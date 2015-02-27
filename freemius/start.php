@@ -36,9 +36,6 @@
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-freemius.php';
 
-		if (file_exists(WP_FS__DIR_INCLUDES . '/_class-fs-debug.php'))
-			require_once WP_FS__DIR_INCLUDES . '/_class-fs-debug.php';
-
 		/**
 		 * Quick shortcut to get Freemius for specified plugin.
 		 * Used by various templates.
