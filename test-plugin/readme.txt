@@ -1,12 +1,12 @@
-=== Dummy Plugin ===
+=== Test Plugin ===
 Contributors: svovaf
-Tags: dummy, plugin
+Tags: test, plugin
 Requires at least: 2.8
 Tested up to: 4.0
 Stable tag: 1.0.0
 License: GPLv2
 
-Freemius dummy plugin description.
+Freemius test plugin description.
 
 == Description ==
 
