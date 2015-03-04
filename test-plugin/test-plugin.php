@@ -24,6 +24,7 @@
 
 			function admin_menu()
 			{
+				// Add main menu item and bind it to the settings page.
 				add_object_page(
 					__('Test Plugin', WP_DM__SLUG),
 					__('Test Plugin', WP_DM__SLUG),
@@ -32,6 +33,15 @@
 					array(&$this, 'render_settings')
 				);
 
+				// Add sub-menu settings item.
+				add_submenu_page(
+					WP_DM__SLUG,
+					__('Test Plugin Settings', WP_DM__SLUG),
+					__('Settings', WP_DM__SLUG),
+					'manage_options',
+					WP_DM__SLUG,
+					array(&$this, 'render_settings')
+				);
 			}
 
 			function render_settings()
