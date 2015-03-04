@@ -11,7 +11,7 @@
 		exit;
 	}
 
-	define('WP_DM__SLUG', 'test-plugin');
+	define('WP_TP__SLUG', 'test-plugin');
 
 	if (!class_exists('Test_Plugin')) :
 
@@ -26,20 +26,20 @@
 			{
 				// Add main menu item and bind it to the settings page.
 				add_object_page(
-					__('Test Plugin', WP_DM__SLUG),
-					__('Test Plugin', WP_DM__SLUG),
+					__('Test Plugin', WP_TP__SLUG),
+					__('Test Plugin', WP_TP__SLUG),
 					'manage_options',
-					WP_DM__SLUG,
+					WP_TP__SLUG,
 					array(&$this, 'render_settings')
 				);
 
 				// Add sub-menu settings item.
 				add_submenu_page(
-					WP_DM__SLUG,
-					__('Test Plugin Settings', WP_DM__SLUG),
-					__('Settings', WP_DM__SLUG),
+					WP_TP__SLUG,
+					__('Test Plugin Settings', WP_TP__SLUG),
+					__('Settings', WP_TP__SLUG),
 					'manage_options',
-					WP_DM__SLUG,
+					WP_TP__SLUG,
 					array(&$this, 'render_settings')
 				);
 			}
@@ -47,7 +47,7 @@
 			function render_settings()
 			{
 				?>
-				<h2><?php _e('Test Plugin Settings', WP_DM__SLUG) ?></h2>
+				<h2><?php _e('Test Plugin Settings', WP_TP__SLUG) ?></h2>
 				<p>
 					Welcome to Freemius test plugin.
 				</p>
