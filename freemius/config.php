@@ -11,7 +11,7 @@
 	}
 
 	define( 'WP_FS__SLUG', 'freemius' );
-//	define( 'WP_FS__DEV_MODE', true );
+	define( 'WP_FS__DEV_MODE', true );
 
 	/**
 	 * Directories
@@ -25,15 +25,10 @@
 	define( 'WP_FS__DIR_SDK', WP_FS__DIR_INCLUDES . '/sdk' );
 
 
-	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
-		define( 'WP_FS__ACCOUNTS_OPTION_NAME', 'fs_accounts' );
-	}
-	define( 'WP_FS__OPTIONS_OPTION_NAME', 'fs_options' );
-
 	/**
 	 * Domain / URL / Address
 	 */
-	define( 'WP_FS__TESTING_DOMAIN', 'wp:8080' );
+	define( 'WP_FS__TESTING_DOMAIN', 'fswp:8080' );
 	define( 'WP_FS__DOMAIN_PRODUCTION', 'wp.freemius.com' );
 	define( 'WP_FS__DOMAIN_LOCALHOST', 'wp.freemius' );
 	define( 'WP_FS__ADDRESS_LOCALHOST', 'http://' . WP_FS__DOMAIN_LOCALHOST . ':8080' );
@@ -48,6 +43,11 @@
 		define( 'FS_API__ADDRESS', 'http://api.freemius:8080' );
 		define('FS_API__SANDBOX_ADDRESS', 'http://sandbox-api.freemius:8080');
 	}
+
+	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
+		define( 'WP_FS__ACCOUNTS_OPTION_NAME', 'fs_accounts' . (!WP_FS__IS_PRODUCTION ? '_dbg' : '') );
+	}
+	define( 'WP_FS__OPTIONS_OPTION_NAME', 'fs_options' . (!WP_FS__IS_PRODUCTION ? '_dbg' : '') );
 
 	/**
 	 * Billing Frequencies
@@ -79,4 +79,5 @@
 	define( 'WP_FS__LOG_DATETIME_FORMAT', 'Y-n-d H:i:s' );
 
 
+	define('WP_FS__SCRIPT_START_TIME', time());
 	define( 'WP_FS__LOWEST_PRIORITY', 999999999 );

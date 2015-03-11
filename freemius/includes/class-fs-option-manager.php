@@ -13,7 +13,7 @@
 	/**
 	 * 3-layer lazy options manager.
 	 *      layer 3: Memory
-	 *      layer 2: Cache (if there's any caching plugin)
+	 *      layer 2: Cache (if there's any caching plugin and if WP_FS__DEBUG_SDK is FALSE)
 	 *      layer 1: Database (options table). All options stored as one option record in the DB to reduce number of DB queries.
 	 *
 	 * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to explicitly call store().
@@ -70,7 +70,9 @@
 			$option_name = $this->_get_option_manager_name();
 
 			if ( $flush || ! isset( $this->_options ) ) {
-				$this->_options = wp_cache_get( $option_name, WP_FS__SLUG );
+				if ( ! WP_FS__DEBUG_SDK ) {
+					$this->_options = wp_cache_get( $option_name, WP_FS__SLUG );
+				}
 
 //				$this->_logger->info('wp_cache_get = ' . var_export($this->_options, true));
 
@@ -96,7 +98,7 @@
 					$cached = false;
 				}
 
-				if ( ! $cached ) // Set non encoded cache.
+				if ( WP_FS__DEBUG_SDK && ! $cached ) // Set non encoded cache.
 				{
 					wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
 				}
@@ -178,12 +180,14 @@
 			$option_name = $this->_get_option_manager_name();
 
 			if ( $this->_logger->is_on() ) {
-				$this->_logger->info( $option_name . ' = ' . var_export( $this->_options , true) );
+				$this->_logger->info( $option_name . ' = ' . var_export( $this->_options, true ) );
 			}
 
 			// Update DB.
 			update_option( $option_name, $this->_options );
 
-			wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
+			if ( WP_FS__DEBUG_SDK ) {
+				wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
+			}
 		}
 	}

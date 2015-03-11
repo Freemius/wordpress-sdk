@@ -121,11 +121,7 @@
 					for (var i = 0, prop = ['id', 'title', 'name'], len = prop.length; i < len; i++)
 						$('#fs_activation form input[name=plan_' + prop[i] + ']').val(identity.plan[prop[i]]);
 
-					var plans_names = '';
-					for (var i = 0, len = identity.plans.length; i < len; i++)
-						plans_names += (0 === i ? '' : ',') + identity.plans[i].name;
-
-					$('#fs_activation form input[name=plans]').val(plans_names);
+					$('#fs_activation form input[name=plans]').val(encodeURIComponent(JSON.stringify(identity.plans)));
 
 					$('#fs_activation form').submit();
 				});

@@ -18,6 +18,7 @@
 
 	$plan_id = fs_request_get('plan_id');
 	$billing_cycle = fs_request_get('billing_cycle', WP_FS__PERIOD_MONTHLY);
+	$licenses = fs_request_get('licenses', 1);
 
 	// Get site context secure params.
 	$context_params = FS_Security::instance()->get_context_params(
@@ -37,6 +38,8 @@
 	$query_params = array_merge($context_params, array(
 		// Adds plan ID.
 		'plan_id' => $plan_id,
+		// Licenses number.
+		'licenses' => $licenses,
 		// Billing cycle.
 		'billing_cycle' => $billing_cycle,
 		// Current plugin version.

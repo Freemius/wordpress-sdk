@@ -12,7 +12,7 @@
 
 	class FS_Api {
 		/**
-		 * @var array of FS_Api
+		 * @var FS_Api[]
 		 */
 		private static $_instances = array();
 
@@ -44,13 +44,13 @@
 		private $_logger;
 
 		/**
-		 * @param Freemius  $freemius
-		 * @param string    $scope  'app', 'developer', 'user' or 'install'.
-		 * @param number    $id     Element's id.
-		 * @param string    $public_key Public key.
-		 * @param string    $secret_key Element's secret key.
+		 * @param Freemius $freemius
+		 * @param string   $scope      'app', 'developer', 'user' or 'install'.
+		 * @param number   $id         Element's id.
+		 * @param string   $public_key Public key.
+		 * @param string   $secret_key Element's secret key.
 		 *
-		 * @return
+		 * @return \FS_Api
 		 */
 		static function instance( Freemius $freemius, $scope, $id, $public_key, $secret_key ) {
 			$identifier = md5($freemius->get_slug() . $scope . $id . $public_key . $secret_key);
@@ -88,7 +88,7 @@
 		 */
 		private function __construct(Freemius $freemius, $scope, $id, $public_key, $secret_key)
 		{
-			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key );
+			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, !$freemius->is_live() );
 
 			$this->_fs = $freemius;
 

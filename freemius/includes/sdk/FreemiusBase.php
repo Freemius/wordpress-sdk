@@ -36,7 +36,7 @@
 
 	abstract class Freemius_Api_Base
 	{
-		const VERSION = '1.0.2';
+		const VERSION = '1.0.3';
 		const FORMAT = 'json';
 
 		protected $_id;

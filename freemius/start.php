@@ -31,6 +31,8 @@
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-site.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-tag.php';
+		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-plan.php';
+		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-license.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-api.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-plugin-updater.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
@@ -51,20 +53,21 @@
 
 		/**
 		 * @param string $slug
-		 * @param string $developer_id
+		 * @param number $plugin_id
 		 * @param string $public_key
+		 * @param bool   $is_live    Is live or test plugin.
+		 * @param bool   $is_premium Hints freemius if running the premium plugin or not.
 		 *
 		 * @return Freemius
 		 */
-		function fs_init($slug, $developer_id, $public_key)
-		{
-			$fs = Freemius::instance($slug);
-			$fs->init($developer_id, $public_key);
+		function fs_init($slug, $plugin_id, $public_key, $is_live = true, $is_premium = true) {
+			$fs = Freemius::instance( $slug );
+			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
+
 			return $fs;
 		}
 
-		function fs_dump_log()
-		{
+		function fs_dump_log() {
 			FS_Logger::dump();
 		}
 	}

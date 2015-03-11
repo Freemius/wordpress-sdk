@@ -44,6 +44,14 @@
 									<li>
 										&nbsp;•&nbsp;
 										<form action="" method="POST">
+											<input type="hidden" name="fs_action" value="deactivate_license">
+											<?php wp_nonce_field('deactivate_license') ?>
+											<a href="#" onclick="if (confirm('<?php _e('Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Deactivate License', WP_FS__SLUG) ?></a>
+										</form>
+									</li>
+									<li>
+										&nbsp;•&nbsp;
+										<form action="" method="POST">
 											<input type="hidden" name="fs_action" value="downgrade_account">
 											<?php wp_nonce_field('downgrade_account') ?>
 											<a href="#" onclick="if (confirm('<?php _e('Downgrading your plan will automatically stop all recurring payments and will immediately change your plan to Free. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', WP_FS__SLUG) ?></a>
@@ -75,7 +83,7 @@
 
 									$profile[] = array('id' => 'site_secret_key', 'title' => __('Secret Key', WP_FS__SLUG), 'value' => ((is_string($site->secret_key)) ? $site->secret_key : __('No Secret', WP_FS__SLUG)));
 
-									$profile[] = array('id' => 'plan', 'title' => __('Plan', WP_FS__SLUG), 'value' => is_string($site->plan_name) ? strtoupper($site->plan_name) : 'FREE');
+									$profile[] = array('id' => 'plan', 'title' => __('Plan', WP_FS__SLUG), 'value' => is_string($site->plan->name) ? strtoupper($site->plan->title) : 'FREE');
 
 									$profile[] = array('id' => 'version', 'title' => __('Version', WP_FS__SLUG), 'value' => $fs->get_plugin_version());
 								?>
@@ -100,29 +108,39 @@
 											<?php endif ?>
 											<?php if ('plan' === $p['id']) : ?>
 												<div class="button-group">
-													<form action="" method="POST" class="button-group">
-														<input type="submit" class="button" value="<?php _e('Sync License', WP_FS__SLUG) ?>">
-														<input type="hidden" name="fs_action" value="sync_license">
-														<?php wp_nonce_field('sync_license') ?>
-														<?php if ( $fs->is_not_paying() ) : ?>
-															<a href="<?php echo $fs->get_upgrade_url() ?>" class="button button-primary button-upgrade"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
-														<?php endif; ?>
-													</form>
+													<?php if ( $fs->is_not_paying() ) : ?>
+														<?php $license = $fs->_get_premium_license() ?>
+															<?php if (false !== $license && ($license->left() > 0 || ($site->is_localhost() && $license->is_free_localhost))) : ?>
+															<form action="" method="POST">
+																<?php $plan = $fs->_get_plan_by_id($license->plan_id) ?>
+																<input type="hidden" name="fs_action" value="activate_license">
+																<?php wp_nonce_field('activate_license') ?>
+																<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', WP_FS__SLUG), $plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
+															</form>
+															<?php else : ?>
+															<form action="" method="POST" class="button-group">
+																<input type="submit" class="button" value="<?php _e('Sync License', WP_FS__SLUG) ?>">
+																<input type="hidden" name="fs_action" value="sync_license">
+																<?php wp_nonce_field('sync_license') ?>
+																<a href="<?php echo $fs->get_upgrade_url() ?>" class="button button-primary button-upgrade"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
+															</form>
+															<?php endif ?>
+													<?php endif; ?>
 												</div>
 											<?php elseif ('version' === $p['id']) : ?>
 												<div class="button-group">
 													<?php if ( $fs->is_paying__fs__() ) : ?>
-														<?php if (is_object($update)) : ?>
+														<?php if (is_object($update) || !$fs->is_premium()) : ?>
 															<form action="" method="POST" class="button-group">
-																<input type="submit" class="button button-primary" value="<?php echo sprintf( __('Download Update [%1s]', WP_FS__SLUG), $update->version) ?>">
+																<input type="submit" class="button button-primary" value="<?php echo is_object($update) ? sprintf( __('Download Update [%1s]', WP_FS__SLUG), $update->version) : sprintf( __('Download %1s Version', WP_FS__SLUG), $site->plan->title) ?>">
 																<input type="hidden" name="fs_action" value="download_latest">
 																<?php wp_nonce_field('download_latest') ?>
 															</form>
-<!--															<form action="" method="POST" class="button-group">-->
-<!--																<input type="hidden" name="fs_action" value="install_latest">-->
-<!--																--><?php //wp_nonce_field('install_latest') ?>
-<!--																<input type="submit" class="button button-primary" value="--><?php //_e('Update Now', WP_FS__SLUG) ?><!--">-->
-<!--															</form>-->
+															<!--															<form action="" method="POST" class="button-group">-->
+															<!--																<input type="hidden" name="fs_action" value="install_latest">-->
+															<!--																--><?php //wp_nonce_field('install_latest') ?>
+															<!--																<input type="submit" class="button button-primary" value="--><?php //_e('Update Now', WP_FS__SLUG) ?><!--">-->
+															<!--															</form>-->
 														<?php else : ?>
 															<form action="" method="POST" class="button-group">
 																<input type="hidden" name="fs_action" value="check_updates">
@@ -132,7 +150,7 @@
 														<?php endif ?>
 													<?php endif; ?>
 												</div>
-											<?php elseif (in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) || (is_string($user->secret_key) && in_array($p['id'], array('email', 'user_name'))) ) : ?>
+											<?php elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/ (is_string($user->secret_key) && in_array($p['id'], array('email', 'user_name'))) ) : ?>
 												<form action="" method="POST" onsubmit="var val = prompt('<?php echo __('What is your', WP_FS__SLUG) . ' ' . $p['title'] . '?' ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
 													<input type="hidden" name="fs_action" value="update_<?php echo $p['id'] ?>">
 													<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $slug ?>" value="">

@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.4';
+		public $version = '1.0.5';
 
 		private $_slug;
 		private $_plugin_basename;
@@ -23,10 +23,20 @@
 		private $_plugin_main_file_path;
 		private $_plugin_data;
 
-
+		/**
+		 * @since 1.0.5
+		 * @var bool If false, runs API calls through sandbox.
+		 */
+		private $_is_live;
 
 		/**
-		 * @var array of Freemius
+		 * @since 1.0.5
+		 * @var bool Hints the SDK if running a premium plugin or free.
+		 */
+		private $_is_premium;
+
+		/**
+		 * @var Freemius[]
 		 */
 		private static $_instances = array();
 
@@ -51,10 +61,15 @@
 		 */
 		private $_site = false;
 		/**
-		 * @var array
+		 * @var FS_Plugin_Plan[]
 		 * @since 1.0.2
 		 */
 		private $_plans = false;
+		/**
+		 * @var FS_Plugin_License[]
+		 * @since 1.0.5
+		 */
+		private $_licenses = false;
 		/**
 		 * @var FS_Logger
 		 * @since 1.0.0
@@ -102,6 +117,11 @@
 			register_uninstall_hook($this->_plugin_main_file_path, array('Freemius', '_uninstall_plugin_hook'));
 		}
 
+		/**
+		 * @param $slug
+		 *
+		 * @return Freemius
+		 */
 		static function instance( $slug ) {
 			$slug = strtolower( $slug );
 
@@ -177,22 +197,22 @@
 		private function _load_account() {
 			$this->_logger->entrance();
 
-
-			$sites = self::get_all_sites();
-			$users = self::get_all_users();
-			$plans = self::get_all_plans();
+			$sites    = self::get_all_sites();
+			$users    = self::get_all_users();
+			$plans    = self::get_all_plans();
+			$licenses = self::get_all_licenses();
 
 			if ( $this->_logger->is_on() && is_admin() ) {
 				$this->_logger->log( 'sites = ' . var_export( $sites, true ) );
 				$this->_logger->log( 'users = ' . var_export( $users, true ) );
 				$this->_logger->log( 'plans = ' . var_export( $plans, true ) );
+				$this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
 			}
 
 			if ( isset( $sites[ $this->_plugin_basename ] ) && is_object( $sites[ $this->_plugin_basename ] ) ) {
 				// Load site.
 				$this->_site            = clone $sites[ $this->_plugin_basename ];
-				$this->_site->plan_id   = $this->_decrypt( $this->_site->plan_id );
-				$this->_site->plan_name = $this->_decrypt( $this->_site->plan_name );
+				$this->_site->plan   = $this->_decrypt_entity( $this->_site->plan );
 
 				// Load relevant user.
 				$this->_user = clone $users[ $this->_site->user_id ];
@@ -200,11 +220,27 @@
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
 				for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-					$this->_plans[ $i ] = $this->_decrypt( $this->_plans[ $i ] );
+					if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
+						$this->_plans[ $i ] = $this->_decrypt_entity( $this->_plans[ $i ] );
+					} else {
+						unset( $this->_plans[ $i ] );
+					}
 				}
 
-				if (version_compare($this->_site->version, $this->get_plugin_version(), '<'))
+				$this->_plans = array_values($this->_plans);
+
+				// Load licenses.
+				$this->_licenses = array();
+				if ( is_array( $licenses ) &&
+				     isset( $licenses[ $this->_slug ] ) &&
+				     isset( $licenses[ $this->_slug ][ $this->_user->id ] )
+				) {
+					$this->_licenses = $licenses[ $this->_slug ][ $this->_user->id ];
+				}
+
+				if ( version_compare( $this->_site->version, $this->get_plugin_version(), '<' ) ) {
 					$this->_update_plugin_version_event();
+				}
 
 			} else {
 				self::$_static_logger->info( 'Trying to load account from external source with ' . 'fs_load_account_' . $this->_slug );
@@ -213,29 +249,28 @@
 
 				if ( false === $account ) {
 					self::$_static_logger->info( 'Plugin is not registered on that site.' );
-				}
-				else
-				{
+				} else {
 					if ( is_object( $account['site'] ) ) {
 						self::$_static_logger->info( 'Account loaded: user_id = ' . $this->_user->id . '; site_id = ' . $this->_site->id . ';' );
 
-						$this->_set_account($account['user'], $account['site']);
+						$this->_set_account( $account['user'], $account['site'] );
 					}
 				}
 			}
-
 		}
 
 		/**
 		 * Init plugin's Freemius instance.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.1
+		 * @since  1.0.1
 		 *
-		 * @param $id
-		 * @param $public_key
+		 * @param number $id
+		 * @param string $public_key
+		 * @param bool   $is_live
+		 * @param bool   $is_premium
 		 */
-		function init( $id, $public_key ) {
+		function init( $id, $public_key, $is_live = true, $is_premium = true) {
 			$this->_logger->entrance();
 
 			$this->_plugin             = new FS_Plugin();
@@ -243,6 +278,8 @@
 			$this->_plugin->public_key = $public_key;
 			$this->_plugin->slug       = $this->_slug;
 
+			$this->_is_live    = $is_live;
+			$this->_is_premium = $is_premium;
 
 			if ( $this->is_registered() ) {
 				$this->_background_sync();
@@ -285,7 +322,33 @@
 		 */
 		function is_sandbox()
 		{
-			return isset($this->_plugin->secret_key);
+			return (!$this->_is_live) || isset($this->_plugin->secret_key);
+		}
+
+		/**
+		 * Check if running test vs. live plugin.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function is_live()
+		{
+			return $this->_is_live;
+		}
+
+		/**
+		 * Check if running premium plugin code.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function is_premium()
+		{
+			return $this->_is_premium;
 		}
 
 		/**
@@ -304,7 +367,7 @@
 			if ($this->_site->updated <= time() - WP_FS__TIME_24_HOURS_IN_SEC)
 			{
 				// Initiate background plan sync.
-				$this->_sync_plan(true);
+				$this->_sync_license(true);
 
 				$this->_check_updates(true);
 			}
@@ -577,7 +640,7 @@
 		/* Account
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
-		 * @return array of FS_User
+		 * @return FS_User[]
 		 */
 		static function get_all_users()
 		{
@@ -591,7 +654,7 @@
 		}
 
 		/**
-		 * @return array of FS_Site
+		 * @return FS_Site[]
 		 */
 		private static function get_all_sites()
 		{
@@ -605,7 +668,24 @@
 		}
 
 		/**
-		 * @return array of string
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return FS_Plugin_License[]
+		 */
+		private static function get_all_licenses()
+		{
+			$licenses = self::$_accounts->get_option( 'licenses', array() );
+
+			if ( ! is_array( $licenses ) ) {
+				$licenses = array();
+			}
+
+			return $licenses;
+		}
+
+		/**
+		 * @return FS_Plugin_Plan[]
 		 */
 		private static function get_all_plans()
 		{
@@ -621,8 +701,8 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
-
-		 * @return array of FS_Plugin_Tag
+		 *
+		 * @return FS_Plugin_Tag[]
 		 */
 		private static function get_all_updates()
 		{
@@ -678,11 +758,11 @@
 		}
 
 		function get_plan_id() {
-			return $this->_site->plan_id;
+			return $this->_site->plan->id;
 		}
 
 		function get_plan_title() {
-			return $this->_site->plan_title;
+			return $this->_site->plan->title;
 		}
 
 		function update_account($user_id, $user_email, $site_id)
@@ -706,7 +786,7 @@
 		 */
 		function is_trial() {
 			$this->_logger->entrance();
-			return ((isset($this->_site->is_trial) && $this->_site->is_trial) || 'trial' === $this->_site->plan_name);
+			return ((isset($this->_site->is_trial) && $this->_site->is_trial) || 'trial' === $this->_site->plan->name);
 		}
 
 		/**
@@ -717,7 +797,7 @@
 		 */
 		function is_paying__fs__() {
 			$this->_logger->entrance();
-			return (!$this->is_trial() && 'free' !== $this->_site->plan_name);
+			return (!$this->is_trial() && 'free' !== $this->_site->plan->name);
 		}
 
 		/**
@@ -727,7 +807,7 @@
 		 * @return bool
 		 */
 		function is_free_plan() {
-			return ('free' === $this->_site->plan_name);
+			return ('free' === $this->_site->plan->name);
 		}
 
 		/**
@@ -741,10 +821,117 @@
 			return ($this->is_trial() || $this->is_free_plan());
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function _has_premium_license() {
+			$this->_logger->entrance();
+
+			$premium_license = $this->_get_premium_license();
+
+			return (false !== $premium_license);
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return FS_Plugin_License
+		 */
+		function _get_premium_license() {
+			$this->_logger->entrance();
+
+			foreach ( $this->_licenses as $license ) {
+				if ( $license->quota > ( ( $license->is_free_localhost ? 0 : $license->activated_local ) + $license->activated ) ) {
+					return $license;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Sync local plugin plans with remote server.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 */
+		function _sync_plans()
+		{
+			$plans = $this->_get_plugin_plans();
+			if (!isset($plans->error))
+			{
+				$this->_plans = $plans;
+				$this->_store_plans();
+			}
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param number $id
+		 *
+		 * @return FS_Plugin_Plan
+		 */
+		function _get_plan_by_id($id) {
+			$this->_logger->entrance();
+
+			if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
+				$this->_sync_plans();
+			}
+
+			foreach ( $this->_plans as $plan ) {
+				if ( $id == $plan->id ) {
+					return $plan;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param number $id
+		 *
+		 * @return FS_Plugin_License
+		 */
+		function _get_license_by_id($id) {
+			$this->_logger->entrance();
+
+			if ( ! is_array( $this->_licenses ) || 0 === count( $this->_licenses ) ) {
+				$this->_sync_plans();
+			}
+
+			foreach ( $this->_licenses as $license ) {
+				if ( $id == $license->id ) {
+					return $license;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.2
+		 *
+		 * @param string $plan Plan name
+		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
+		 *
+		 * @return bool
+		 */
 		function is_plan( $plan, $exact = false ) {
 			$this->_logger->entrance();
 
-			if ($this->_site->plan_name === $plan)
+			$plan = strtolower($plan);
+
+			if ($this->_site->plan->name === $plan)
 				// Exact plan.
 				return true;
 			else if ($exact)
@@ -755,9 +942,9 @@
 			$required_plan_order = -1;
 			for ($i = 0, $len = count($this->_plans); $i < $len; $i++)
 			{
-				if ($plan === $this->_plans[$i])
+				if ($plan === $this->_plans[$i]->name)
 					$required_plan_order = $i;
-				else if ($this->_site->plan_name === $this->_plans[$i])
+				else if ($this->_site->plan->name === $this->_plans[$i]->name)
 					$current_plan_order = $i;
 			}
 
@@ -917,6 +1104,42 @@
 			return base64_decode($str);
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param \FS_Entity $entity
+		 *
+		 * @return \FS_Entity Return an encrypted clone entity.
+		 */
+		private function _encrypt_entity(FS_Entity $entity) {
+			$clone = clone $entity;
+			$props = get_object_vars( $entity );
+
+			foreach ( $props as $key => $val ) {
+				$clone->{$key} = $this->_encrypt( $val );
+			}
+
+			return $clone;
+		}
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param \FS_Entity $entity
+		 *
+		 * @return \FS_Entity Return an decrypted clone entity.
+		 */
+		private function _decrypt_entity(FS_Entity $entity) {
+			$clone = clone $entity;
+			$props = get_object_vars( $entity );
+
+			foreach ( $props as $key => $val ) {
+				$clone->{$key} = $this->_decrypt( $val );
+			}
+
+			return $clone;
+		}
 
 		/* Management Dashboard Menu
 		------------------------------------------------------------------------------------------------------------------*/
@@ -1017,15 +1240,21 @@
 				$user->last        = fs_request_get( 'user_last' );
 				$user->is_verified = fs_request_get_bool( 'user_is_verified' );
 
-				$site             = new FS_Site();
-				$site->id         = fs_request_get( 'install_id' );
-				$site->public_key = fs_request_get( 'install_public_key' );
-				$site->secret_key = fs_request_get( 'install_secret_key' );
-				$site->plan_id    = fs_request_get( 'plan_id' );
-				$site->plan_title = fs_request_get( 'plan_title' );
-				$site->plan_name  = fs_request_get( 'plan_name' );
+				$site              = new FS_Site();
+				$site->id          = fs_request_get( 'install_id' );
+				$site->public_key  = fs_request_get( 'install_public_key' );
+				$site->secret_key  = fs_request_get( 'install_secret_key' );
+				$site->plan->id    = fs_request_get( 'plan_id' );
+				$site->plan->title = fs_request_get( 'plan_title' );
+				$site->plan->name  = fs_request_get( 'plan_name' );
 
-				$this->_set_account( $user, $site, explode( ',', fs_request_get( 'plans' ) ) );
+				$plans      = array();
+				$plans_data = json_decode( urldecode( fs_request_get( 'plans' ) ) );
+				foreach ( $plans_data as $p ) {
+					$plans[] = new FS_Plugin_Plan( $p );
+				}
+
+				$this->_set_account( $user, $site, $plans );
 
 				// Reload the page with the keys.
 				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
@@ -1227,10 +1456,11 @@
 		 * @param bool $store Flush to Database if true.
 		 */
 		private function _store_site($store = true) {
-			$this->_site->updated      = time();
-			$encrypted_site            = clone $this->_site;
-			$encrypted_site->plan_name = $this->_encrypt( $this->_site->plan_name );
-			$encrypted_site->plan_id   = $this->_encrypt( $this->_site->plan_id );
+			$this->_logger->entrance();
+
+			$this->_site->updated = time();
+			$encrypted_site       = clone $this->_site;
+			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
 			$sites                            = self::get_all_sites();
 			$sites[ $this->_plugin_basename ] = $encrypted_site;
@@ -1246,14 +1476,40 @@
 		 * @param bool $store Flush to Database if true.
 		 */
 		private function _store_plans($store = true) {
-			$plans           = self::get_all_plans();
-			$encrypted_plans = $this->_plans;
+			$this->_logger->entrance();
+
+			$plans = self::get_all_plans();
+
+			// Copy plans.
+			$encrypted_plans = array();
 			for ( $i = 0, $len = count( $encrypted_plans ); $i < $len; $i ++ ) {
-				$encrypted_plans[ $i ] = $this->_encrypt( $this->_plans[ $i ] );
+				$encrypted_plans[] = $this->_encrypt_entity( $this->_plans[ $i ] );
 			}
 
 			$plans[ $this->_slug ] = $encrypted_plans;
 			self::$_accounts->set_option( 'plans', $plans, $store );
+		}
+
+		/**
+		 * Update user's plugin licenses.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @param bool $store
+		 */
+		private function _store_licenses($store = true) {
+			$this->_logger->entrance();
+
+			$licenses = self::get_all_licenses();
+
+			if ( ! isset( $licenses[ $this->_slug ] ) ) {
+				$licenses[ $this->_slug ] = array();
+			}
+
+			$licenses[ $this->_slug ][ $this->_user->id ] = $this->_licenses;
+
+			self::$_accounts->set_option( 'licenses', $licenses, $store );
 		}
 
 		/**
@@ -1301,6 +1557,7 @@
 			$this->_store_site(false);
 			$this->_store_user(false);
 			$this->_store_plans(false);
+			$this->_store_licenses(false);
 
 			self::$_accounts->store();
 		}
@@ -1343,36 +1600,142 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 * @uses   FS_Api
+		 *
+		 * @return stdClass|\FS_Site
+		 */
+		private function _get_site() {
+			$this->_logger->entrance();
+			$api = $this->get_api_site_scope();
+
+			$site = $api->call( '/' );
+
+			if (!isset( $site->error )) {
+				$site = new FS_Site( $site );
+				$site->slug = $this->_slug;
+				$site->version = $this->get_plugin_version();
+			}
+
+			return $site;
+		}
+
+		/**
+		 * @param bool $store
+		 *
+		 * @return \FS_Plugin_Plan|\stdClass|false
+		 */
+		private function _enrich_site_plan($store = true) {
+			// Try to load plan from local cache.
+			$plan = $this->_get_plan_by_id( $this->_site->plan->id );
+
+			if ( false === $plan ) {
+				$plan = $this->_get_site_plan();
+			}
+
+			if ( $plan instanceof FS_Plugin_Plan ) {
+				$this->_update_plan( $plan, $store );
+			}
+
+			return $plan;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 * @uses   FS_Api
 		 *
-		 * @param bool|number $plan_id
-		 *
-		 * @return stdClass
+		 * @return FS_Plugin_Plan|stdClass
 		 */
-		private function _get_site_plan($plan_id = false)
+		private function _get_site_plan()
 		{
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
 
-			$result = $api->call( '/plans' . (is_numeric($plan_id) ? "/{$plan_id}" : '') . '.json' );
+			$plan = $api->call( "/plans/{$this->_site->plan->id}.json" );
 
-			return !isset($result->error) ? $result->plans[0] : $result;
+			return !isset($plan->error) ? new FS_Plugin_Plan($plan) : $plan;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 * @uses   FS_Api
+		 *
+		 * @return FS_Plugin_Plan[]|stdClass
+		 */
+		private function _get_plugin_plans() {
+			$this->_logger->entrance();
+			$api = $this->get_api_site_scope();
+
+			$result = $api->call( '/plans.json' );
+
+			if ( ! isset( $result->error ) ) {
+				for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
+					$result->plans[ $i ] = new FS_Plugin_Plan( $result->plans[ $i ] );
+				}
+
+				$result = $result->plans;
+			}
+
+			return $result;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 * @uses   FS_Api
+		 *
+		 * @return FS_Plugin_License[]|stdClass
+		 */
+		private function _get_licenses() {
+			$this->_logger->entrance();
+			$api = $this->get_api_user_scope();
+
+			$result = $api->call( "/plugins/{$this->_plugin->id}/licenses.json" );
+
+			if ( ! isset( $result->error ) ) {
+				for ( $i = 0, $len = count( $result->licenses ); $i < $len; $i ++ ) {
+					$result->licenses[ $i ] = new FS_Plugin_License( $result->licenses[ $i ] );
+				}
+
+				$result = $result->licenses;
+			}
+
+			return $result;
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
-		 * @param stdClass  $plan
-		 * @param bool      $store
+		 * @param FS_Plugin_Plan  $plan
+		 * @param bool            $store
 		 */
-		private function _update_plan($plan, $store = false)
-		{
-			$this->_site->plan_id    = $plan->id;
-			$this->_site->plan_name  = $plan->name;
-			$this->_site->plan_title = $plan->title;
-			$this->_store_site($store);
+		private function _update_plan($plan, $store = false) {
+			$this->_logger->entrance();
+
+			$this->_site->plan = $plan;
+			$this->_store_site( $store );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param FS_Plugin_License[] $licenses
+		 */
+		private function _update_licenses($licenses) {
+			$this->_logger->entrance();
+
+			if ( is_array( $licenses ) ) {
+				for ( $i = 0, $len = count( $licenses ); $i < $len; $i ++ ) {
+					$licenses[ $i ]->updated = time();
+				}
+			}
+
+			$this->_licenses = $licenses;
+			$this->_store_licenses();
 		}
 
 		/**
@@ -1429,19 +1792,22 @@
 		 *
 		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by the admin.
 		 */
-		private function _sync_plan($background = false) {
+		private function _sync_license($background = false) {
 			$this->_logger->entrance();
 
-			$plan = $this->_get_site_plan();
+			// Load site details.
+			$site = $this->_get_site();
 
-			if ( isset( $plan->error ) ) {
+			$plan_change = 'none';
+
+			if ( isset( $site->error ) ) {
 				$api = $this->get_api_site_scope();
 
 				// Try to ping API to see if not blocked.
 				if ( ! $api->test() ) {
 					// Failed to ping API - blocked!
 					self::add_admin_message(
-						sprintf( __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s license synchronization. Please contact your host to whitelist %2s', WP_FS__SLUG ), $this->get_plugin_name(), '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a><br> Error received from the server: ' . var_export($plan->error, true) ),
+						sprintf( __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s license synchronization. Please contact your host to whitelist %2s', WP_FS__SLUG ), $this->get_plugin_name(), '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>' ) . '<br> Error received from the server: ' . var_export( $site->error, true ),
 						__( 'Oops...', WP_FS__SLUG ),
 						'error',
 						$background
@@ -1459,37 +1825,157 @@
 				// Plan update failure, set update time to 24hours + 10min so it won't annoy the admin too much.
 				$this->_site->updated = time() - WP_FS__TIME_24_HOURS_IN_SEC + WP_FS__TIME_10_MIN_IN_SEC;
 			} else {
-				if ( $this->_site->plan_id !== $plan->id ) {
-					$is_upgraded = $this->is_free_plan();
+				// Sync licenses.
+				$licenses = $this->_get_licenses();
+				if ( ! isset( $licenses->error ) ) {
+					$this->_update_licenses( $licenses );
+				}
 
-					$this->_update_plan($plan, true);
+				// Check if plan / license changed.
+				if ( $this->_site->plan->id !== $site->plan->id ||
+				     $this->_site->license_id !== $site->license_id
+				) {
+					$is_free = $this->is_free_plan();
 
-					// Notify about new license.
-					if ( is_admin() ) {
-						self::add_admin_message(
-							( $is_upgraded ?
-								sprintf(
-									__( 'Your plan was successfully upgraded. Please download our %1slatest %2s version here%3s.', WP_FS__SLUG ), '<a href="' . $this->get_account_url('download_latest') . '">', $plan->title, '</a>' ) :
-								__( 'Your plan has been successfully synced.', WP_FS__SLUG ) ),
-							__( 'Ye-ha!', WP_FS__SLUG )
-						);
+					$license = $this->_get_license_by_id( $site->license_id );
+
+					if ( $is_free && $license->is_expired() ) {
+						// The license is expired, so ignore it.
+					} else {
+						// License changed.
+						$this->_site = $site;
+						$this->_enrich_site_plan( true );
+
+						$plan_change = $is_free ? 'upgraded' : 'downgraded';
 					}
 				} else {
-					if ( ! $background ) {
+					if ( is_numeric( $this->_site->license_id ) ) {
+						$license = $this->_get_license_by_id( $this->_site->license_id );
+						if ( $license->is_expired() ) {
+							$this->_site->license_id = null;
+							$this->_site->plan->id   = $this->_plans[0]->id;
+							$this->_enrich_site_plan( true );
+							$plan_change = 'downgraded';
+						}
+					}
+				}
+			}
+
+			if ( ! $background && is_admin() ) {
+				switch ( $plan_change ) {
+					case 'none':
 						self::add_admin_message(
 							sprintf(
 								__( 'It looks like your plan did NOT change. If you did upgrade, it\'s probably an issue on our side (sorry). Please %1sContact Us HERE%2s.', WP_FS__SLUG ),
-								'<a href="' . $this->contact_url( 'bug', sprintf( __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', WP_FS__SLUG ), strtoupper( $this->_site->plan_name ) ) ) . '">',
+								'<a href="' . $this->contact_url( 'bug', sprintf( __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', WP_FS__SLUG ), strtoupper( $this->_site->plan->name ) ) ) . '">',
 								'</a>'
 							),
 							__( 'Hmm...', WP_FS__SLUG ),
 							'error'
 						);
-					}
+						break;
+					case 'upgraded':
+						self::add_admin_message(
+							sprintf(
+								__( 'Your plan was successfully upgraded, %1sdownload our latest %2s version now%3s.', WP_FS__SLUG ), '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
+							__( 'Ye-ha!', WP_FS__SLUG )
+						);
+						break;
+					case 'downgraded':
+						self::add_admin_message(
+							__( 'Your plan has been successfully synced.', WP_FS__SLUG ),
+							__( 'Ye-ha!', WP_FS__SLUG )
+						);
+						break;
 				}
 			}
 
-			$this->do_action( 'after_account_plan_sync', $this->_site->plan_name );
+			$this->do_action( 'after_account_plan_sync', $this->_site->plan->name );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 */
+		private function _activate_license() {
+			$this->_logger->entrance();
+
+			$premium_license = $this->_get_premium_license();
+
+			$api     = $this->get_api_site_scope();
+			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put' );
+
+			if ( isset( $license->error ) ) {
+				self::add_admin_message(
+					__( 'It looks like the license could not be activated.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
+					__( 'Hmm...', WP_FS__SLUG ),
+					'error'
+				);
+
+				return;
+			}
+
+			// Updated site plan.
+			$this->_site->plan->id = $license->plan_id;
+			$this->_site->license_id = $license->id;
+			$this->_enrich_site_plan( false );
+
+			// Update license cache.
+			for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
+				if ( $license->id == $this->_licenses[ $i ]->id ) {
+					$this->_licenses[ $i ] = new FS_Plugin_License( $license );
+					break;
+				}
+			}
+
+			$this->_store_account();
+
+			self::add_admin_message(
+				sprintf( __( 'Your license was successfully activated, %1sdownload our latest %2s version now%3s.', WP_FS__SLUG ), '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
+				__( 'Ye-ha!', WP_FS__SLUG )
+			);
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 */
+		private function _deactivate_license(){
+			$this->_logger->entrance();
+
+			$api     = $this->get_api_site_scope();
+			$license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
+
+			if ( isset( $license->error ) ) {
+				self::add_admin_message(
+					__( 'It looks like the license deactivation failed.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
+					__( 'Hmm...', WP_FS__SLUG ),
+					'error'
+				);
+
+				return;
+			}
+
+			// Update license cache.
+			for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
+				if ( $license->id == $this->_licenses[ $i ]->id ) {
+					$this->_licenses[ $i ] = new FS_Plugin_License( $license );
+				}
+			}
+
+			// Updated site plan to default.
+			$this->_sync_plans();
+			$this->_site->plan->id = $this->_plans[0]->id;
+			$this->_enrich_site_plan(false);
+
+			$this->_store_account();
+
+			self::add_admin_message(
+				sprintf( __( 'Your license was successfully deactivated, you are back to the %1s plan.', WP_FS__SLUG ), $this->_site->plan->title ),
+				__( 'O.K', WP_FS__SLUG )
+			);
 		}
 
 		/**
@@ -1508,13 +1994,14 @@
 
 			$plan_downgraded = false;
 			if ( ! isset( $site->error ) ) {
-				$plan = $this->_get_site_plan();
+				$prev_plan_id = $this->_site->plan->id;
 
-				if (!isset($plan->error))
-				{
-					$this->_update_plan($plan, true);
-					$plan_downgraded = true;
-				}
+				// Update new site plan id.
+				$this->_site->plan->id = $site->plan_id;
+
+				$plan = $this->_enrich_site_plan();
+
+				$plan_downgraded = ($plan instanceof FS_Plugin_Plan && $prev_plan_id != $plan->id);
 			} else {
 				// handle different error cases.
 
@@ -1579,7 +2066,7 @@
 				if ( ! $background ) {
 					self::add_admin_message(
 						sprintf(
-							__( 'Version %1s was released. Please download our %2slatest %3s version here%4s.', WP_FS__SLUG ), $update->version, '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan_title, '</a>' ),
+							__( 'Version %1s was released. Please download our %2slatest %3s version here%4s.', WP_FS__SLUG ), $update->version, '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
 						__( 'New!', WP_FS__SLUG )
 					);
 				}
@@ -1689,7 +2176,19 @@
 
 			if ( fs_request_is_action( 'sync_license' ) ) {
 //				check_admin_referer( 'sync_license' );
-				$this->_sync_plan();
+				$this->_sync_license();
+				return;
+			}
+
+			if ( fs_request_is_action( 'activate_license' ) ) {
+				check_admin_referer( 'activate_license' );
+				$this->_activate_license();
+				return;
+			}
+
+			if ( fs_request_is_action( 'deactivate_license' ) ) {
+				check_admin_referer( 'deactivate_license' );
+				$this->_deactivate_license();
 				return;
 			}
 
@@ -2007,7 +2506,7 @@
 		/* Plugin Auto-Updates (@since 1.0.4)
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
-		 * @var array of string
+		 * @var string[]
 		 */
 		private static $_auto_updated_plugins;
 		/**

@@ -14,6 +14,17 @@
 		public $id;
 		public $updated;
 
+		/**
+		 * @param bool|stdClass $entity
+		 */
+		function __construct( $entity = false )
+		{
+			if (!($entity instanceof stdClass))
+				return;
+
+			$this->id = $entity->id;
+		}
+
 		static function get_type()
 		{
 			return 'type';
