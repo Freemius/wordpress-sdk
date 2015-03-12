@@ -807,7 +807,7 @@
 		 * @return bool
 		 */
 		function is_free_plan() {
-			return ('free' === $this->_site->plan->name);
+			return ('free' === $this->_site->plan->name || is_null($this->_site->license_id));
 		}
 
 		/**
@@ -1837,9 +1837,13 @@
 				) {
 					$is_free = $this->is_free_plan();
 
-					$license = $this->_get_license_by_id( $site->license_id );
+					if (!$is_free) {
+						// Make sure license exist and not expired.
+						$license = $this->_get_license_by_id( $site->license_id );
+						$is_free = (!is_object($license) || $license->is_expired());
+					}
 
-					if ( $is_free && $license->is_expired() ) {
+					if ( $is_free ) {
 						// The license is expired, so ignore it.
 					} else {
 						// License changed.
