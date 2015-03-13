@@ -103,7 +103,9 @@
 					throw new Freemius_Exception('Scope not implemented.');
 			}
 
-			return '/v' . FS_API__VERSION . $base . (!empty($pPath) ? '/' : '') . $pPath . '.' . self::FORMAT . $query;
+			return '/v' . FS_API__VERSION . $base .
+			       (!empty($pPath) ? '/' : '') . $pPath .
+			       ((false === strpos($pPath, '.')) ? '.' . self::FORMAT : '') . $query;
 		}
 
 		abstract function MakeRequest($pCanonizedPath, $pMethod = 'GET', $pParams = array());
