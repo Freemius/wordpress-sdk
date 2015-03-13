@@ -1837,14 +1837,11 @@
 				) {
 					$is_free = $this->is_free_plan();
 
-					if (!$is_free) {
-						// Make sure license exist and not expired.
-						$license = $this->_get_license_by_id( $site->license_id );
-						$is_free = (!is_object($license) || $license->is_expired());
-					}
+					// Make sure license exist and not expired.
+					$new_license = is_null($site->license_id) ? false : $this->_get_license_by_id( $site->license_id );
 
-					if ( $is_free ) {
-						// The license is expired, so ignore it.
+					if ( $is_free && ((!is_object($new_license) || $new_license->is_expired()))) {
+						// The license is expired, so ignore upgrade method.
 					} else {
 						// License changed.
 						$this->_site = $site;
