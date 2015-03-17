@@ -30,6 +30,7 @@
 		'billing_cycle' => fs_request_get('billing_cycle', WP_FS__PERIOD_ANNUALLY),
 	));
 ?>
+
 <div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
 	<div id="iframe"></div>
 	<form action="" method="POST">
@@ -44,7 +45,6 @@
 	<script type="text/javascript">
 		(function($, undef) {
 			$(function () {
-
 				var
 				// Keep track of the iframe height.
 					iframe_height = 800,
@@ -55,9 +55,6 @@
 
 				// Append the Iframe into the DOM.
 					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
-						.load(function () {
-
-						})
 						.appendTo('#iframe');
 
 				FS.PostMessage.init(base_url);
@@ -73,3 +70,4 @@
 		})(jQuery);
 	</script>
 </div>
+<?php fs_require_template('powered-by.php') ?>

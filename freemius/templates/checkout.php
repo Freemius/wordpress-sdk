@@ -19,6 +19,7 @@
 	$plan_id = fs_request_get('plan_id');
 	$billing_cycle = fs_request_get('billing_cycle', WP_FS__PERIOD_MONTHLY);
 	$licenses = fs_request_get('licenses', 1);
+	$pricing_id = fs_request_get('pricing_id', false);
 
 	// Get site context secure params.
 	$context_params = FS_Security::instance()->get_context_params(
@@ -34,6 +35,9 @@
 			$timestamp,
 			'checkout'
 		);
+
+	if (false !== $pricing_id)
+		$context_params['pricing_id'] = $pricing_id;
 
 	$query_params = array_merge($context_params, array(
 		// Adds plan ID.
@@ -78,3 +82,4 @@
 		})(jQuery);
 	</script>
 </div>
+<?php fs_require_template('powered-by.php') ?>

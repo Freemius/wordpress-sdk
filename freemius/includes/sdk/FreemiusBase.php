@@ -80,7 +80,7 @@
 			// Trim '.json' suffix.
 			$format_length = strlen('.' . self::FORMAT);
 			$start = $format_length * (-1); //negative
-			if (substr($pPath, $start) === ('.' . self::FORMAT))
+			if (substr(strtolower($pPath), $start) === ('.' . self::FORMAT))
 				$pPath = substr($pPath, 0, strlen($pPath) - $format_length);
 
 			switch ($this->_scope) {
