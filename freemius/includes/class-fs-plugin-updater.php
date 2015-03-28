@@ -43,11 +43,14 @@
 		 * @since 1.0.4
 		 */
 		private function _filters() {
+			// Override request for plugin information
+			add_filter( 'plugins_api', array( &$this, 'plugins_api_filter' ), 10, 3 );
+
+			// WP 3.0+
 			add_filter( 'pre_set_site_transient_update_plugins', array(
 				&$this,
 				'pre_set_site_transient_update_plugins_filter'
 			) );
-			add_filter( 'plugins_api', array( &$this, 'plugins_api_filter' ), 10, 3 );
 
 			if ( ! WP_FS__IS_PRODUCTION ) {
 				add_filter( 'http_request_host_is_external', array(
@@ -120,6 +123,44 @@
 		}
 
 		/**
+		 * Try to fetch plugin's info from .org repository.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @param $action
+		 * @param $args
+		 *
+		 * @return bool|mixed
+		 */
+		private function _fetach_plugin_info_from_repository($action, $args)
+		{
+			$url = $http_url = 'http://api.wordpress.org/plugins/info/1.0/';
+			if ( $ssl = wp_http_supports( array( 'ssl' ) ) )
+				$url = set_url_scheme( $url, 'https' );
+
+			$args = array(
+				'timeout' => 15,
+				'body' => array(
+					'action' => $action,
+					'request' => serialize( $args )
+				)
+			);
+
+			$request = wp_remote_post( $url, $args );
+
+			if (is_wp_error( $request ))
+				return false;
+
+			$res = maybe_unserialize( wp_remote_retrieve_body( $request ) );
+
+			if ( ! is_object( $res ) && ! is_array( $res ) )
+				return false;
+
+			return $res;
+		}
+
+		/**
 		 * Updates information on the "View version x.x details" page with custom data.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -143,12 +184,34 @@
 				return $data;
 			}
 
-			/*$info = $this->_fs->get_api_site_scope()->call('/information.json');
+			// Get plugin's newest update.
+			$new_version = $this->_fs->get_update();
 
-			if ( !isset($info->error) ) {
-				$data = $info;
-			}*/
+			// Try to fetch info from .org repository.
+			$data = $this->_fetach_plugin_info_from_repository($action, $args);
 
-			return $data;
+			if (false === $data) {
+				$data = $args;
+
+				// Fetch as much as possible info from local files.
+				$plugin_local_data = $this->_fs->get_plugin_data();
+				$data->name = $plugin_local_data['Name'];
+				$data->author = $plugin_local_data['Author'];
+				$data->sections = array(
+					'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to version ' . $new_version->version,
+				);
+
+				// @todo Stor extra plugin info on Freemius or parse readme.txt markup.
+				/*$info = $this->_fs->get_api_site_scope()->call('/information.json');
+
+if ( !isset($info->error) ) {
+	$data = $info;
+}*/
+			}
+
+			$data->version = $new_version->version;
+			$data->download_link = $new_version->url;
+
+			return $args;
 		}
 	}

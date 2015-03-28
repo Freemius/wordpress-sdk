@@ -293,8 +293,8 @@
 					$this->_init_admin();
 
 					// @todo Fix automatic plugin updater. Currently, extract the plugin into {{tag_id}}.tmp folder which breaks stuff.
-//					if ($this->is_paying__fs__())
-//						new FS_Plugin_Updater($this);
+					if ($this->is_paying__fs__())
+						new FS_Plugin_Updater($this);
 				}
 			}
 		}
@@ -542,7 +542,7 @@
 
 		/* Plugin Information
 		------------------------------------------------------------------------------------------------------------------*/
-		private function _get_plugin_data() {
+		function get_plugin_data() {
 			if ( ! isset( $this->_plugin_data ) ) {
 				if ( ! function_exists( 'get_plugins' ) ) {
 					require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -604,7 +604,7 @@
 		{
 			$this->_logger->entrance();
 
-			$plugin_data = $this->_get_plugin_data();
+			$plugin_data = $this->get_plugin_data();
 
 			$this->_logger->departure( 'Name = ' . $plugin_data['Name'] );
 
@@ -620,7 +620,7 @@
 		function get_plugin_version() {
 			$this->_logger->entrance();
 
-			$plugin_data = $this->_get_plugin_data();
+			$plugin_data = $this->get_plugin_data();
 
 			$this->_logger->departure( 'Version = ' . $plugin_data['Version'] );
 
@@ -1778,6 +1778,7 @@
 		 * @return bool|FS_Plugin_Tag
 		 */
 		function get_update() {
+			$this->_check_updates(true);
 			$updates = $this->get_all_updates();
 
 			return isset( $updates[ $this->_plugin->id ] ) && is_object( $updates[ $this->_plugin->id ] ) ? $updates[ $this->_plugin->id ] : false;
