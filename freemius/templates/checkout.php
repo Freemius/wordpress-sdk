@@ -16,10 +16,10 @@
 
 	$timestamp = time();
 
-	$plan_id = fs_request_get('plan_id');
-	$billing_cycle = fs_request_get('billing_cycle', WP_FS__PERIOD_MONTHLY);
-	$licenses = fs_request_get('licenses', 1);
-	$pricing_id = fs_request_get('pricing_id', false);
+//	$plan_id = fs_request_get('plan_id');
+//	$billing_cycle = fs_request_get('billing_cycle', WP_FS__PERIOD_MONTHLY);
+//	$licenses = fs_request_get('licenses', 1);
+//	$pricing_id = fs_request_get('pricing_id', false);
 
 	// Get site context secure params.
 	$context_params = FS_Security::instance()->get_context_params(
@@ -36,16 +36,16 @@
 			'checkout'
 		);
 
-	if (false !== $pricing_id)
-		$context_params['pricing_id'] = $pricing_id;
+//	if (false !== $pricing_id)
+//		$context_params['pricing_id'] = $pricing_id;
 
-	$query_params = array_merge($context_params, array(
+	$query_params = array_merge($context_params, $_GET, array(
 		// Adds plan ID.
-		'plan_id' => $plan_id,
+//		'plan_id' => $plan_id,
 		// Licenses number.
-		'licenses' => $licenses,
+//		'licenses' => $licenses,
 		// Billing cycle.
-		'billing_cycle' => $billing_cycle,
+//		'billing_cycle' => $billing_cycle,
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
 		// Admin CSS URL for style/design competability.

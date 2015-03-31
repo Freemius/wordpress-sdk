@@ -211,23 +211,27 @@
 
 			if ( isset( $sites[ $this->_plugin_basename ] ) && is_object( $sites[ $this->_plugin_basename ] ) ) {
 				// Load site.
-				$this->_site            = clone $sites[ $this->_plugin_basename ];
-				$this->_site->plan   = $this->_decrypt_entity( $this->_site->plan );
+				$this->_site       = clone $sites[ $this->_plugin_basename ];
+				$this->_site->plan = $this->_decrypt_entity( $this->_site->plan );
 
 				// Load relevant user.
 				$this->_user = clone $users[ $this->_site->user_id ];
 
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
-				for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-					if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
-						$this->_plans[ $i ] = $this->_decrypt_entity( $this->_plans[ $i ] );
-					} else {
-						unset( $this->_plans[ $i ] );
+
+				if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
+					$this->_sync_plans(true);
+				}
+				else {
+					for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
+						if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
+							$this->_plans[ $i ] = $this->_decrypt_entity( $this->_plans[ $i ] );
+						} else {
+							unset( $this->_plans[ $i ] );
+						}
 					}
 				}
-
-				$this->_plans = array_values($this->_plans);
 
 				// Load licenses.
 				$this->_licenses = array();
@@ -844,9 +848,11 @@
 		function _get_premium_license() {
 			$this->_logger->entrance();
 
-			foreach ( $this->_licenses as $license ) {
-				if ( $license->quota > ( ( $license->is_free_localhost ? 0 : $license->activated_local ) + $license->activated ) ) {
-					return $license;
+			if (is_array($this->_licenses)) {
+				foreach ( $this->_licenses as $license ) {
+					if ( $license->quota > ( ( $license->is_free_localhost ? 0 : $license->activated_local ) + $license->activated ) ) {
+						return $license;
+					}
 				}
 			}
 
@@ -858,6 +864,8 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
+		 *
+		 * @return FS_Plugin_Plan[]|stdClass
 		 */
 		function _sync_plans()
 		{
@@ -867,6 +875,8 @@
 				$this->_plans = $plans;
 				$this->_store_plans();
 			}
+
+			return $this->_plans;
 		}
 
 		/**
@@ -1482,7 +1492,8 @@
 
 			// Copy plans.
 			$encrypted_plans = array();
-			for ( $i = 0, $len = count( $encrypted_plans ); $i < $len; $i ++ ) {
+			for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
+				$this->_plans[ $i ]->updated = time();
 				$encrypted_plans[] = $this->_encrypt_entity( $this->_plans[ $i ] );
 			}
 
