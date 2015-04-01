@@ -790,6 +790,10 @@
 		 */
 		function is_trial() {
 			$this->_logger->entrance();
+
+			if (!$this->is_registered())
+				return false;
+
 			return ((isset($this->_site->is_trial) && $this->_site->is_trial) || 'trial' === $this->_site->plan->name);
 		}
 
@@ -801,6 +805,10 @@
 		 */
 		function is_paying__fs__() {
 			$this->_logger->entrance();
+
+			if (!$this->is_registered())
+				return false;
+
 			return (!$this->is_trial() && 'free' !== $this->_site->plan->name);
 		}
 
@@ -811,6 +819,9 @@
 		 * @return bool
 		 */
 		function is_free_plan() {
+			if (!$this->is_registered())
+				return true;
+
 			return ('free' === $this->_site->plan->name || is_null($this->_site->license_id));
 		}
 
@@ -938,6 +949,9 @@
 		 */
 		function is_plan( $plan, $exact = false ) {
 			$this->_logger->entrance();
+
+			if (!$this->is_registered())
+				return false;
 
 			$plan = strtolower($plan);
 
