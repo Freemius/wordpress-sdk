@@ -90,7 +90,11 @@
 
 			$bt = debug_backtrace();
 			$i = 1;
-			while ($i < count($bt) - 1 && false !== strpos($bt[ $i ]['file'], '/freemius/')) {
+			while (
+				$i < count($bt) - 1 &&
+			       (false !== strpos(fs_normalize_path($bt[ $i ]['file']), '/freemius/') ||
+			        fs_normalize_path(dirname(dirname($bt[ $i ]['file']))) !== fs_normalize_path(WP_PLUGIN_DIR) )
+			) {
 				$i++;
 			}
 
