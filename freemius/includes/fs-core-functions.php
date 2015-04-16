@@ -188,3 +188,29 @@
 
 		return $string;
 	}
+	
+	if (function_exists('wp_normalize_path'))
+	{
+		/**
+		 * Normalize a filesystem path.
+		 *
+		 * Replaces backslashes with forward slashes for Windows systems, and ensures
+		 * no duplicate slashes exist.
+		 *
+		 * @param string $path Path to normalize.
+		 * @return string Normalized path.
+		 */
+		function fs_normalize_path( $path )
+		{
+			return wp_normalize_path($path);
+		}
+	}
+	else {
+		function fs_normalize_path( $path ) {
+			$path = str_replace( '\\', '/', $path );
+			$path = preg_replace( '|/+|', '/', $path );
+
+			return $path;
+		}
+	}
+
