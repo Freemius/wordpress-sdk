@@ -25,6 +25,9 @@
 		private $_options;
 		private $_logger;
 
+		/**
+		 * @var FS_Option_Manager[]
+		 */
 		private static $_MANAGERS = array();
 
 		private function __construct( $id, $load = false ) {
@@ -131,6 +134,8 @@
 			} else if ( is_object( $this->_options ) ) {
 				return isset( $this->_options->{$option} ) ? $this->_options->{$option} : $default;
 			}
+
+			return $default;
 		}
 
 		function set_option( $option, $value, $flush = false ) {

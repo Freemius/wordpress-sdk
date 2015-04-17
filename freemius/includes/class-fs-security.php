@@ -37,7 +37,7 @@
 
 	    private function __construct(){ }
 
-		function get_secure_token(FS_Entity $entity, $timestamp, $action = '')
+		function get_secure_token(FS_Scope_Entity $entity, $timestamp, $action = '')
 		{
 			return md5(
 				$timestamp .
@@ -48,7 +48,7 @@
 			);
 		}
 
-	    function get_context_params(FS_Entity $entity, $timestamp = false, $action = '')
+	    function get_context_params(FS_Scope_Entity $entity, $timestamp = false, $action = '')
 	    {
 		    if (false === $timestamp)
 		        $timestamp = time();

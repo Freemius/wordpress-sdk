@@ -66,6 +66,11 @@
 		 */
 		private $_site = false;
 		/**
+		 * @var FS_Plugin_License
+		 * @since 1.0.1
+		 */
+		private $_license;
+		/**
 		 * @var FS_Plugin_Plan[]
 		 * @since 1.0.2
 		 */
@@ -345,6 +350,8 @@
 					$this->_licenses = $licenses[ $this->_slug ][ $this->_user->id ];
 				}
 
+				$this->_license = $this->_get_license_by_id($this->_site->license_id);
+
 				if ( version_compare( $this->_site->version, $this->get_plugin_version(), '<' ) ) {
 					$this->_update_plugin_version_event();
 				}
@@ -502,7 +509,7 @@
 		 *
 		 * @param array         $data
 		 * @param string        $action
-		 * @param array|null    $args
+		 * @param stdClass|null $args
 		 *
 		 * @return array|null
 		 */
@@ -670,10 +677,8 @@
 			{
 				self::instance($slug)->get_plugin_basename();
 			}
-			else
-			{
-				return $slug . '/' . $slug . '.php';
-			}
+
+			return $slug . '/' . $slug . '.php';
 		}
 
 		/**
@@ -1376,7 +1381,7 @@
 			return (
 				!$this->is_trial() &&
 				'free' !== $this->_site->plan->name &&
-				$this->_site->has_features_enabled_license()
+				$this->has_features_enabled_license()
 			);
 		}
 
@@ -1392,7 +1397,7 @@
 
 			return (
 				'free' === $this->_site->plan->name ||
-				!$this->_site->has_features_enabled_license()
+				!$this->has_features_enabled_license()
 			);
 		}
 
@@ -1531,7 +1536,7 @@
 			$this->_logger->entrance();
 
 			if ( ! is_array( $this->_licenses ) || 0 === count( $this->_licenses ) ) {
-				$this->_sync_plans();
+				$this->_sync_licenses();
 			}
 
 			foreach ( $this->_licenses as $license ) {
@@ -1544,6 +1549,42 @@
 		}
 
 		/**
+		 * Sync site's license with user licenses.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param $new_license FS_Plugin_License|null
+		 */
+		function _update_site_license($new_license) {
+			$this->_logger->entrance();
+
+			$this->_license = $new_license;
+
+			if (!is_object($new_license)) {
+				$this->_site->license_id = null;
+				return;
+			}
+
+			$this->_site->license_id = $this->_license->id;
+
+			if ( ! is_array( $this->_licenses ) ) {
+				$this->_licenses = array();
+			}
+
+			for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
+				if ( $new_license->id == $this->_licenses[ $i ]->id ) {
+					$this->_licenses[ $i ] = $new_license;
+
+					return;
+				}
+			}
+
+			// If new license just append.
+			$this->_licenses[] = $new_license;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
@@ -1551,7 +1592,7 @@
 		 */
 		function _get_license()
 		{
-			return $this->_site->license;
+			return $this->_license;
 		}
 
 		/**
@@ -2219,11 +2260,15 @@
 		 * Add action, specific for the current context plugin.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.1
+		 * @since  1.0.1
 		 *
-		 * @param $tag
+		 * @param     $tag
 		 *
-		 * @uses add_action()
+		 * @param callable $function_to_add
+		 * @param int      $priority
+		 * @param int      $accepted_args
+		 *
+		 * @uses   add_action()
 		 */
 		function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
@@ -2652,6 +2697,38 @@
 		}
 
 		/**
+		 * Check if site assigned with active license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 */
+		function has_active_license()
+		{
+			return (
+				is_object($this->_license) &&
+				is_numeric($this->_license->id) &&
+				!$this->_license->is_expired()
+			);
+		}
+
+		/**
+		 * Check if site assigned with license which with enabled features.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return bool
+		 */
+		function has_features_enabled_license()
+		{
+			return (
+				is_object($this->_license) &&
+				is_numeric($this->_license->id) &&
+				$this->_license->is_features_enabled()
+			);
+		}
+
+		/**
 		 * Sync site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -2770,28 +2847,29 @@
 				$this->_sync_licenses();
 
 				// Check if plan / license changed.
-				if ( $this->_site->is_different_plan_or_license($site)) {
+				if ( !FS_Entity::equals($site->plan, $this->_site->plan) ||
+				     $site->license_id != $this->_site->license_id) {
 					$is_free = $this->is_free_plan();
 
 					// Make sure license exist and not expired.
-					$new_license = is_null($site->license) ? null : $this->_get_license_by_id( $site->license->id );
-					$site->license = $new_license;
+					$new_license = is_null($site->license_id) ? null : $this->_get_license_by_id( $site->license_id );
 
 					if ( $is_free && ((!is_object($new_license) || $new_license->is_expired()))) {
 						// The license is expired, so ignore upgrade method.
 					} else {
 						// License changed.
 						$this->_site = $site;
+						$this->_license = $new_license;
 						$this->_enrich_site_plan( true );
 
 						$plan_change = $is_free ? 'upgraded' : 'downgraded';
 					}
 				} else {
-					if (is_object($this->_site->license)) {
-						if ( ! $this->_site->has_features_enabled_license() ) {
+					if (is_object($this->_license)) {
+						if ( ! $this->has_features_enabled_license() ) {
 							$this->_deactivate_license();
 							$plan_change = 'downgraded';
-						} else if ( ! $this->_site->has_active_license() ) {
+						} else if ( ! $this->has_active_license() ) {
 							$plan_change = 'expired';
 						}
 					}
@@ -2868,16 +2946,8 @@
 
 			// Updated site plan.
 			$this->_site->plan->id = $premium_license->plan_id;
-			$this->_site->license  = $premium_license;
+			$this->_update_site_license($premium_license);
 			$this->_enrich_site_plan( false );
-
-			// Update license cache.
-			for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
-				if ( $premium_license->id == $this->_licenses[ $i ]->id ) {
-					$this->_licenses[ $i ] = $premium_license;
-					break;
-				}
-			}
 
 			$this->_store_account();
 
@@ -2897,7 +2967,7 @@
 		protected function _deactivate_license(){
 			$this->_logger->entrance();
 
-			if (!is_object($this->_site->license)) {
+			if (!is_object($this->_license)) {
 				self::add_admin_message(
 					sprintf( __( 'It looks like your site currently don\'t have an active license.', WP_FS__SLUG ), $this->_site->plan->title ),
 					__( 'Hmm...', WP_FS__SLUG )
@@ -2907,7 +2977,7 @@
 			}
 
 			$api     = $this->get_api_site_scope();
-			$license = $api->call( "/licenses/{$this->_site->license->id}.json", 'delete' );
+			$license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
 
 			if ( isset( $license->error ) ) {
 				self::add_admin_message(
@@ -2930,7 +3000,7 @@
 			$this->_sync_plans();
 			$this->_site->plan->id = $this->_plans[0]->id;
 			// Unlink license from site.
-			$this->_site->license  = null;
+			$this->_update_site_license(null);
 			$this->_enrich_site_plan(false);
 
 			$this->_store_account();
@@ -3010,7 +3080,7 @@
 		 */
 		private function _can_download_premium()
 		{
-			return $this->_site->has_active_license();
+			return $this->has_active_license();
 		}
 
 		/**

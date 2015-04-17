@@ -12,8 +12,8 @@
 			echo 'error form-invalid';
 			break;
 		case 'update-nag':
-			echo 'update-nag';
-//			break;
+			echo 'update-nag ';
+			break;
 		case 'update':
 		case 'success':
 		default:

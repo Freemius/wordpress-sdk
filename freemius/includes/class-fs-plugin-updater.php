@@ -92,7 +92,7 @@
 		 *
 		 * @uses FS_Api
 		 *
-		 * @param array $transient_data Update array build by WordPress.
+		 * @param stdClass $transient_data Update array build by WordPress.
 		 *
 		 * @return array Modified update array with custom plugin data.
 		 */
