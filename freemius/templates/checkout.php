@@ -28,7 +28,7 @@
 		'checkout'
 	);
 
-	if ($fs->is_sandbox())
+	if ($fs->is_payments_sandbox())
 		// Append plugin secure token for sandbox mode authentication.)
 		$context_params['sandbox'] = FS_Security::instance()->get_secure_token(
 			$fs->get_plugin(),

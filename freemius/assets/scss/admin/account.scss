@@ -1,0 +1,117 @@
+#fs_account
+{
+    .postbox,
+    .widefat
+    {
+        width: 700px;
+    }
+
+    .fs-header-actions
+    {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.9em;
+
+        ul
+        {
+            margin: 0;
+        }
+
+        li
+        {
+            form
+            {
+                display: inline-block;
+            }
+
+            float: left;
+            a
+            {
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+#fs_account_details
+{
+    width: 100%;
+
+    form
+    {
+        display: inline-block;
+    }
+
+    .fs-field-email label
+    {
+        background: orange;
+        color: #fff;
+        display: inline-block;
+        border-radius: 3px;
+        padding: 5px;
+        font-size: 11px;
+        line-height: 11px;
+        vertical-align: baseline;
+    }
+
+    tr
+    {
+        td:first-child
+        {
+            font-weight: bold;
+            text-align: right;
+        }
+
+        td.fs-right
+        {
+            text-align: right;
+        }
+
+        &.fs-odd
+        {
+            background: #ebebeb;
+        }
+    }
+
+    td, th
+    {
+        padding: 10px;
+    }
+
+    var, code
+    {
+        color: green;
+        font-size: 16px;
+    }
+}
+
+#fs_addons
+{
+    td:first-child,
+    th:first-child
+    {
+        text-align: left;
+        font-weight: bold;
+    }
+    td:last-child,
+    th:last-child
+    {
+        text-align: right;
+    }
+    th
+    {
+        font-weight: bold;
+    }
+}
+
+@media screen and (max-width: 782px)
+{
+    #fs_account_settings
+    {
+        .postbox
+        {
+            width: 100%;
+        }
+    }
+}

@@ -48,6 +48,15 @@
 		require_once( fs_get_template_path( $path ) );
 	}
 
+	function fs_get_template( $path, &$params = null ) {
+		ob_start();
+
+		$VARS = &$params;
+		require_once( fs_get_template_path( $path ) );
+
+		return ob_get_clean();
+	}
+
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style($handle, $path, $deps = array(), $ver = false, $media = 'all') {
@@ -74,6 +83,12 @@
 
 	/* Request handlers.
 	--------------------------------------------------------------------------------------------*/
+	/**
+	 * @param string $key
+	 * @param mixed  $def
+	 *
+	 * @return mixed
+	 */
 	function fs_request_get( $key, $def = false ) {
 		return isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
 	}
@@ -104,6 +119,17 @@
 		}
 
 		return false;
+	}
+
+	/* Core UI.
+	--------------------------------------------------------------------------------------------*/
+	function fs_ui_action_button($slug, $page, $action, $title, $params = array(), $is_primary = true)
+	{
+		?><a class="button<?php if ($is_primary) echo ' button-primary'; ?>" href="<?php echo wp_nonce_url(fs($slug)->_get_admin_page_url($page, array_merge($params, array('fs_action' => $action))), $action) ?>"><?php echo $title ?></a><?php
+	}
+	function fs_ui_action_link($slug, $page, $action, $title, $params = array())
+	{
+		?><a class="" href="<?php echo wp_nonce_url(fs($slug)->_get_admin_page_url($page, array_merge($params, array('fs_action' => $action))), $action) ?>"><?php echo $title ?></a><?php
 	}
 
 	/* Core Redirect (copied from BuddyPress).
@@ -187,4 +213,52 @@
 		$string = preg_replace( '/(\\\\0)+/', '', $string );
 
 		return $string;
+	}
+
+	/*function fs_error_handler($errno, $errstr, $errfile, $errline)
+	{
+		if (false === strpos($errfile, 'freemius/'))
+		{
+			// @todo Dump Freemius errors to local log.
+		}
+
+//		switch ($errno) {
+//			case E_USER_ERROR:
+//				break;
+//			case E_WARNING:
+//			case E_USER_WARNING:
+//				break;
+//			case E_NOTICE:
+//			case E_USER_NOTICE:
+//				break;
+//			default:
+//				break;
+//		}
+	}
+
+	set_error_handler('fs_error_handler');*/
+
+	if (function_exists('wp_normalize_path'))
+	{
+		/**
+		 * Normalize a filesystem path.
+		 *
+		 * Replaces backslashes with forward slashes for Windows systems, and ensures
+		 * no duplicate slashes exist.
+		 *
+		 * @param string $path Path to normalize.
+		 * @return string Normalized path.
+		 */
+		function fs_normalize_path( $path )
+		{
+			return wp_normalize_path($path);
+		}
+	}
+	else {
+		function fs_normalize_path( $path ) {
+			$path = str_replace( '\\', '/', $path );
+			$path = preg_replace( '|/+|', '/', $path );
+
+			return $path;
+		}
 	}

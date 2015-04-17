@@ -52,7 +52,7 @@
 				'pre_set_site_transient_update_plugins_filter'
 			) );
 
-			if ( ! WP_FS__IS_PRODUCTION ) {
+			if ( ! WP_FS__IS_PRODUCTION_MODE ) {
 				add_filter( 'http_request_host_is_external', array(
 						$this,
 						'http_request_host_is_external_filter'
@@ -178,27 +178,40 @@
 			$this->_logger->entrance();
 
 			if ( ( 'plugin_information' !== $action ) ||
-			     ! isset( $args->slug ) ||
-			     ( $this->_fs->get_slug() !== $args->slug )
+			     ! isset( $args->slug )
 			) {
 				return $data;
 			}
 
-			// Get plugin's newest update.
-			$new_version = $this->_fs->get_update();
+			$addon = false;
+			$is_addon = false;
 
-			// Try to fetch info from .org repository.
-			$data = $this->_fetach_plugin_info_from_repository($action, $args);
+			if ( $this->_fs->get_slug() !== $args->slug ) {
+				$addon = $this->_fs->get_addon_by_slug( $args->slug );
 
-			if (false === $data) {
+				if ( ! is_object( $addon ) ) {
+					return $data;
+				}
+
+				$is_addon = true;
+			}
+
+
+			if (!$is_addon)
+			{
+				// Try to fetch info from .org repository.
+				$data = $this->_fetach_plugin_info_from_repository( $action, $args );
+			}
+
+			if ( false === $data ) {
 				$data = $args;
 
 				// Fetch as much as possible info from local files.
 				$plugin_local_data = $this->_fs->get_plugin_data();
-				$data->name = $plugin_local_data['Name'];
-				$data->author = $plugin_local_data['Author'];
-				$data->sections = array(
-					'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to version ' . $new_version->version,
+				$data->name        = $plugin_local_data['Name'];
+				$data->author      = $plugin_local_data['Author'];
+				$data->sections    = array(
+					'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
 				);
 
 				// @todo Stor extra plugin info on Freemius or parse readme.txt markup.
@@ -209,9 +222,18 @@ if ( !isset($info->error) ) {
 }*/
 			}
 
+			// Get plugin's newest update.
+			$new_version = $this->_fs->get_update($is_addon ? $addon->id : false);
+			if ($is_addon) {
+				$data->name    = $addon->title . ' ' . __('Add On', WP_FS__SLUG);
+				$data->slug    = $addon->slug;
+				$data->url     = WP_FS__ADDRESS;
+				$data->package = $new_version->url;
+			}
+
 			$data->version = $new_version->version;
 			$data->download_link = $new_version->url;
 
-			return $args;
+			return $data;
 		}
 	}

@@ -11,10 +11,52 @@
 	}
 
 	class FS_Plugin extends FS_Scope_Entity {
+		/**
+		 * @since 1.0.6
+		 * @var null|number
+		 */
+		public $parent_plugin_id;
+		/**
+		 * @var string
+		 */
+		public $title;
+		/**
+		 * @var string
+		 */
 		public $slug;
+		/**
+		 * @var string
+		 */
 		public $file;
+		/**
+		 * @var string
+		 */
 		public $version;
+		/**
+		 * @var bool
+		 */
 		public $auto_update;
+		/**
+		 * @var FS_Plugin_Info
+		 */
+		public $info;
+
+		/**
+		 * @param stdClass|bool $plugin
+		 */
+		function __construct( $plugin = false )
+		{
+			if (!($plugin instanceof stdClass))
+				return;
+
+			parent::__construct($plugin);
+
+			$this->slug = $plugin->slug;
+			$this->title = $plugin->title;
+
+			if (isset($plugin->info) && is_object($plugin->info))
+				$this->info = new FS_Plugin_Info($plugin->info);
+		}
 
 		static function get_type()
 		{

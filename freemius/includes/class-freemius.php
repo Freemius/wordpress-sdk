@@ -5,16 +5,16 @@
 	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
 	 * @since       1.0.3
 	 */
-
 	if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 	}
 
-	final class Freemius {
+	// "final class" only supported since PHP 5.
+	class Freemius {
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.5';
+		public $version = '1.0.6';
 
 		private $_slug;
 		private $_plugin_basename;
@@ -51,6 +51,11 @@
 		 */
 		private $_plugin = false;
 		/**
+		 * @var FS_Plugin
+		 * @since 1.0.4
+		 */
+		private $_parent = false;
+		/**
 		 * @var FS_User
 		 * @since 1.0.1
 		 */
@@ -82,42 +87,68 @@
 		 */
 		private static $_accounts;
 
-		private function __construct( $slug )
-		{
+		/* Ctor
+------------------------------------------------------------------------------------------------------------------*/
+
+		private function __construct( $slug ) {
 			$this->_slug = $slug;
 
-			$this->_logger = FS_Logger::get_logger(WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK);
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$bt = debug_backtrace();
-			$i = 1;
-			while ($i < count($bt) - 1 && false !== strpos($bt[ $i ]['file'], '/freemius/')) {
-				$i++;
-			}
+			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
+			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
+			$this->_plugin_basename       = plugin_basename( $this->_plugin_main_file_path );
 
-			$this->_plugin_main_file_path = $bt[ $i ]['file'];
-			$this->_plugin_dir_path = plugin_dir_path($this->_plugin_main_file_path);
-			$this->_plugin_basename = plugin_basename($this->_plugin_main_file_path);
-
-			$base_name_split = explode('/', $this->_plugin_basename);
+			$base_name_split        = explode( '/', $this->_plugin_basename );
 			$this->_plugin_dir_name = $base_name_split[0];
 
-			if ($this->_logger->is_on()) {
-				$this->_logger->info('plugin_main_file_path = ' . $this->_plugin_main_file_path);
-				$this->_logger->info('plugin_dir_path = ' . $this->_plugin_dir_path);
-				$this->_logger->info('plugin_basename = ' . $this->_plugin_basename);
-				$this->_logger->info('plugin_dir_name = ' . $this->_plugin_dir_name);
+			if ( $this->_logger->is_on() ) {
+				$this->_logger->info( 'plugin_main_file_path = ' . $this->_plugin_main_file_path );
+				$this->_logger->info( 'plugin_dir_path = ' . $this->_plugin_dir_path );
+				$this->_logger->info( 'plugin_basename = ' . $this->_plugin_basename );
+				$this->_logger->info( 'plugin_dir_name = ' . $this->_plugin_dir_name );
 			}
 
 			$this->_load_account();
 
 			// Hook to plugin activation
-			register_activation_hook($this->_plugin_main_file_path, array(&$this, '_activate_plugin_event_hook'));
+			register_activation_hook( $this->_plugin_main_file_path, array( &$this, '_activate_plugin_event_hook' ) );
 
 			// Hook to plugin uninstall.
-			register_uninstall_hook($this->_plugin_main_file_path, array('Freemius', '_uninstall_plugin_hook'));
+			register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
 		}
 
 		/**
+		 * Leverage backtrace to find caller plugin file path.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return string
+		 */
+		private function _find_caller_plugin_file()
+		{
+			$bt = debug_backtrace();
+			$i = 1;
+			while (
+				$i < count($bt) - 1 &&
+				(false !== strpos(fs_normalize_path($bt[ $i ]['file']), '/freemius/') ||
+				 fs_normalize_path(dirname(dirname($bt[ $i ]['file']))) !== fs_normalize_path(WP_PLUGIN_DIR) )
+			) {
+				$i++;
+			}
+
+			return $bt[ $i ]['file'];
+		}
+
+		/* Instance
+		------------------------------------------------------------------------------------------------------------------*/
+		/**
+		 * Main singleton instance.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.0
+
 		 * @param $slug
 		 *
 		 * @return Freemius
@@ -137,6 +168,75 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param string|number $slug_or_id
+		 *
+		 * @return bool
+		 */
+		private static function has_instance( $slug_or_id) {
+			return ! is_numeric( $slug_or_id ) ?
+				isset( self::$_instances[ strtolower( $slug_or_id ) ] ) :
+				( false !== self::get_instance_by_id( $slug_or_id ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param $id
+		 *
+		 * @return bool|Freemius
+		 */
+		static function get_instance_by_id($id)
+		{
+			foreach (self::$_instances as $slug => $instance)
+			{
+				if ($id == $instance->get_id())
+					return $instance;
+			}
+
+			return false;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return bool
+		 */
+		function is_parent_plugin_installed()
+		{
+			return self::has_instance($this->_plugin->parent_plugin_id);
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return bool|Freemius
+		 */
+		function get_parent_instance()
+		{
+			return self::get_instance_by_id( $this->_plugin->parent_plugin_id );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param $slug_or_id
+		 *
+		 * @return bool|Freemius
+		 */
+		function get_addon_instance($slug_or_id) {
+			return ! is_numeric( $slug_or_id ) ?
+				self::instance( strtolower( $slug_or_id ) ) :
+				self::get_instance_by_id( $slug_or_id );
+		}
+
+		/**
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.1
@@ -145,10 +245,12 @@
 		 *
 		 * @return bool|Freemius
 		 */
-		static function load_instance_by_file($plugin_file) {
+		static function get_instance_by_file($plugin_file) {
 			$sites = self::get_all_sites();
 
-			return isset( $sites[ $plugin_file ] ) ? self::instance( $sites[ $plugin_file ]->slug ) : false;
+			return isset( $sites[ $plugin_file ] ) ?
+				self::instance( $sites[ $plugin_file ]->slug ) :
+				false;
 		}
 
 		private static $_statics_loaded = false;
@@ -183,7 +285,8 @@
 
 			$this->_site = $site;
 			$this->_user = $user;
-			$this->_plans = $plans;
+			if (false !== $plans)
+				$this->_plans = $plans;
 
 			$this->_store_account();
 		}
@@ -263,6 +366,8 @@
 			}
 		}
 
+		/* Initialization
+		------------------------------------------------------------------------------------------------------------------*/
 		/**
 		 * Init plugin's Freemius instance.
 		 *
@@ -277,10 +382,49 @@
 		function init( $id, $public_key, $is_live = true, $is_premium = true) {
 			$this->_logger->entrance();
 
-			$this->_plugin             = new FS_Plugin();
-			$this->_plugin->id         = $id;
-			$this->_plugin->public_key = $public_key;
-			$this->_plugin->slug       = $this->_slug;
+			$this->dynamic_init(array(
+				'id' => $id,
+				'public_key' => $public_key,
+				'is_live' => $is_live,
+				'is_premium' => $is_premium,
+			));
+		}
+
+		/**
+		 * Dynamic initiator, originally created to support initiation
+		 * with parent_id for add-ons.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param array $plugin
+		 *
+		 * @throws \Freemius_Exception
+		 */
+		function dynamic_init(array $plugin) {
+			$this->_logger->entrance();
+
+			$id          = isset( $plugin['id'] ) && is_numeric( $plugin['id'] ) ? $plugin['id'] : false;
+			$public_key  = ! empty( $plugin['public_key'] ) ? $plugin['public_key'] : false;
+			$secret_key  = ! empty( $plugin['secret_key'] ) ? $plugin['secret_key'] : null;
+			$is_live     = isset( $plugin['is_live'] ) && is_bool( $plugin['is_live'] ) ? $plugin['is_live'] : true;
+			$is_premium  = isset( $plugin['is_premium'] ) && is_bool( $plugin['is_premium'] ) ? $plugin['is_premium'] : true;
+			$parent_id   = isset( $plugin['parent_id'] ) && is_numeric( $plugin['parent_id'] ) ? $plugin['parent_id'] : null;
+			$parent_name = ! empty( $plugin['parent_name'] ) ? $plugin['parent_name'] : null;
+
+			if ( false === $id ) {
+				throw new Freemius_Exception( 'Plugin id parameter is not set.' );
+			}
+			if ( false === $public_key ) {
+				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
+			}
+
+			$this->_plugin                   = new FS_Plugin();
+			$this->_plugin->id               = $id;
+			$this->_plugin->public_key       = $public_key;
+			$this->_plugin->secret_key       = $secret_key;
+			$this->_plugin->slug             = $this->_slug;
+			$this->_plugin->parent_plugin_id = $parent_id;
 
 			$this->_is_live    = $is_live;
 			$this->_is_premium = $is_premium;
@@ -290,17 +434,267 @@
 			}
 
 			if ( is_admin() ) {
-				if ( ! $this->is_registered() ) {
-					$this->_init_admin_activation();
+				$this->_init_admin_activation();
+
+				if ( $this->is_addon() ) {
+					if ( ! $this->is_parent_plugin_installed() ) {
+						$this->add_admin_message(
+							( is_string( $parent_name ) ?
+								sprintf( __( '%s cannot run without %s.', WP_FS__SLUG ), $this->get_plugin_name(), $parent_name ) :
+								sprintf( __( '%s cannot run without the plugin.', WP_FS__SLUG ), $this->get_plugin_name() )
+							),
+							__( 'Oops...', WP_FS__SLUG ),
+							'error'
+						);
+
+						return;
+					} else {
+						$parent_fs = self::get_instance_by_id( $parent_id );
+
+						// Get parent plugin reference.
+						$this->_parent = $parent_fs->get_plugin();
+
+						if ( $parent_fs->is_registered() && ! $this->is_registered() ) {
+							// If parent plugin activated, automatically install add-on for the user.
+							$this->_activate_addon_account( $parent_fs );
+						}
+					}
 				} else {
+
+					if ( $this->is_registered() ) {
+						if ( $this->_has_addons() &&
+						     'plugin-information' === fs_request_get( 'tab', false ) &&
+						     $this->get_id() == fs_request_get( 'parent_plugin_id', false )
+						) {
+							// Remove default plugin information action.
+							remove_all_actions( 'install_plugins_pre_plugin-information' );
+
+							require_once WP_FS__DIR_INCLUDES . '/fs-plugin-functions.php';
+
+							// Override action with custom plugins function for add-ons.
+							add_action( 'install_plugins_pre_plugin-information', 'fs_install_plugin_information' );
+
+							// Override request for plugin information for Add-ons.
+							add_filter( 'plugins_api', array( &$this, '_get_addon_info_filter' ), 10, 3 );
+						} else {
+							if ( $this->is_paying__fs__() || $this->_has_addons() ) {
+								new FS_Plugin_Updater( $this );
+							}
+						}
+					}
+				}
+
+				if ( $this->is_registered() ) {
 					$this->set_has_menu();
 					$this->_init_admin();
-
-					// @todo Fix automatic plugin updater. Currently, extract the plugin into {{tag_id}}.tmp folder which breaks stuff.
-					if ($this->is_paying__fs__())
-						new FS_Plugin_Updater($this);
 				}
 			}
+
+			$this->do_action('initiated');
+		}
+
+
+		/**
+		 * Generate add-on plugin information.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param array         $data
+		 * @param string        $action
+		 * @param array|null    $args
+		 *
+		 * @return array|null
+		 */
+		function _get_addon_info_filter( $data, $action = '', $args = null ) {
+			$this->_logger->entrance();
+
+			$parent_plugin_id = fs_request_get('parent_plugin_id', false);
+				
+			if ( $this->get_id() != $parent_plugin_id ||
+			     ( 'plugin_information' !== $action ) ||
+			     ! isset( $args->slug )
+			) {
+				return $data;
+			}
+
+			// Find add-on by slug.
+			$addons = $this->get_addons();
+			$selected_addon = false;
+			foreach ($addons as $addon)
+			{
+				if ($addon->slug == $args->slug)
+				{
+					$selected_addon = $addon;
+					break;
+				}
+			}
+
+			if (false === $selected_addon)
+				return $data;
+
+			fs_enqueue_local_style( 'fs_addons', '/admin/add-ons.css' );
+
+			$data = $args;
+
+			// Fetch as much as possible info from local files.
+			$plugin_local_data = $this->get_plugin_data();
+			$data->name = $selected_addon->title;
+			$data->author = $plugin_local_data['Author'];
+			$view_vars = array('plugin' => $selected_addon);
+			$data->sections = array(
+				'description' => fs_get_template( '/plugin-info/description.php', $view_vars),
+			);
+
+			if (!empty($selected_addon->info->banner_url)) {
+				$data->banners = array(
+					'low' => $selected_addon->info->banner_url,
+				);
+			}
+
+			if (!empty($selected_addon->info->screenshots))
+			{
+				$view_vars = array('screenshots' => $selected_addon->info->screenshots);
+				$data->sections['screenshots'] = fs_get_template( '/plugin-info/screenshots.php', $view_vars);
+			}
+
+			// Load add-on pricing.
+			$has_pricing = false;
+			$has_features = false;
+			$plans = false;
+			$plans_result = $this->get_api_site_scope()->call
+			("/addons/{$selected_addon->id}/plans.json");
+			if (!isset($plans_result->error)) {
+				$plans = $plans_result->plans;
+				if ( is_array( $plans ) ) {
+					foreach ( $plans as &$plan ) {
+						$pricing_result = $this->get_api_site_scope()->call( "/addons/{$selected_addon->id}/plans/{$plan->id}/pricing.json" );
+						if ( ! isset( $pricing_result->error ) ) {
+							// Update plan's pricing.
+							$plan->pricing = $pricing_result->pricing;
+
+							$has_pricing = true;
+						}
+
+						$features_result = $this->get_api_site_scope()->call( "/addons/{$selected_addon->id}/plans/{$plan->id}/features.json" );
+						if ( ! isset( $features_result->error ) &&
+						     is_array( $features_result->features ) &&
+						     0 < count( $features_result->features )
+						) {
+							// Update plan's pricing.
+							$plan->features = $features_result->features;
+
+							$has_features = true;
+						}
+					}
+				}
+			}
+
+			// Get latest add-on version.
+			$latest = $this->_fetch_latest_version($selected_addon->id);
+
+			if (is_object($latest))
+			{
+				$data->version = $latest->version;
+				$data->last_updated = !is_null($latest->updated) ? $latest->updated : $latest->created;
+				$data->requires = $latest->requires_platform_version;
+				$data->tested = $latest->tested_up_to_version;
+			}
+			else
+			{
+				// Add message to developer to deploy the plugin through Freemius.
+			}
+
+			$data->checkout_link = $this->checkout_url();
+			$data->download_link = 'https://dummy.com';
+
+			if ($has_pricing)
+			{
+				// Add plans to data.
+				$data->plans = $plans;
+
+				if ($has_features) {
+					$view_vars                     = array( 'plans' => $plans );
+					$data->sections['features']     = fs_get_template( '/plugin-info/features.php', $view_vars );
+				}
+			}
+
+			return $data;
+		}
+
+		/**
+		 * Check if add-on installed and activated on site.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param string|number $slug_or_id
+		 *
+		 * @return bool
+		 */
+		function is_addon_activated($slug_or_id)
+		{
+			return self::has_instance($slug_or_id);
+		}
+
+		/**
+		 * Determines if add-on installed.
+		 *
+		 * NOTE: This is a heuristic and only works if the folder/file named as the slug.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param string $slug
+		 *
+		 * @return bool
+		 */
+		function is_addon_installed($slug)
+		{
+			return file_exists(fs_normalize_path(WP_PLUGIN_DIR . '/' . $this->get_addon_basename($slug)));
+		}
+
+		/**
+		 * Get add-on basename.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		function get_addon_basename($slug)
+		{
+			if ($this->is_addon_activated($slug))
+			{
+				self::instance($slug)->get_plugin_basename();
+			}
+			else
+			{
+				return $slug . '/' . $slug . '.php';
+			}
+		}
+
+		/**
+		 * Get installed add-ons instances.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return Freemius[]
+		 */
+		function get_installed_addons() {
+			$installed_addons = array();
+			foreach ( self::$_instances as $slug => $instance ) {
+				if ( $instance->is_addon() ) {
+					if ( $this->_plugin->id == $instance->_parent->id ) {
+						$installed_addons[] = $instance;
+					}
+				}
+			}
+
+			return $installed_addons;
 		}
 
 		/**
@@ -309,7 +703,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
 		 *
-		 * @param $secret_key
+		 * @param string $secret_key
 		 */
 		function init_sandbox($secret_key)
 		{
@@ -317,14 +711,37 @@
 		}
 
 		/**
-		 * Check if running in sandbox mode.
+		 * Tell Freemius that the current plugin is an add-on.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param number $parent_plugin_id The parent plugin ID
+		 */
+		function init_addon($parent_plugin_id)
+		{
+			$this->_plugin->parent_plugin_id = $parent_plugin_id;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return bool
+		 */
+		function is_addon() {
+			return isset($this->_plugin->parent_plugin_id) && is_numeric( $this->_plugin->parent_plugin_id );
+		}
+
+		/**
+		 * Check if running in payments sandbox mode.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
 		 *
 		 * @return bool
 		 */
-		function is_sandbox()
+		function is_payments_sandbox()
 		{
 			return (!$this->_is_live) || isset($this->_plugin->secret_key);
 		}
@@ -356,24 +773,39 @@
 		}
 
 		/**
+		 * Check if plugin allowed to install stuff.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function is_allowed_to_install()
+		{
+			return $this->is_premium();
+		}
+
+		/**
 		 * Background sync every 24 hours.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
 		 */
-		private function _background_sync()
-		{
+		private function _background_sync() {
 			if ( ! is_numeric( $this->_site->updated ) || $this->_site->updated >= time() ) {
 				// If updated not set or happens to be in the future, set as if was 24 hours earlier.
 				$this->_site->updated = time() - WP_FS__TIME_24_HOURS_IN_SEC;
 			}
 
-			if ($this->_site->updated <= time() - WP_FS__TIME_24_HOURS_IN_SEC)
-			{
+			if ( ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && ! fs_request_is_action( 'sync_license' ) ) || $this->_site->updated <= time() - WP_FS__TIME_24_HOURS_IN_SEC ) {
 				// Initiate background plan sync.
-				$this->_sync_license(true);
+				$this->_sync_license( true );
 
-				$this->_check_updates(true);
+				$this->_check_updates( true );
+
+				if ( ! $this->is_addon() ) {
+					$this->_sync_addons();
+				}
 			}
 		}
 
@@ -385,17 +817,19 @@
 				return;
 			}
 
-			if (empty($_GET['page']) || $this->_slug != $_GET['page']) {
-				$activation_url = $this->_get_admin_page_url();
+			if (!$this->is_addon() && !$this->is_registered()) {
+				if ( empty( $_GET['page'] ) || $this->_slug != $_GET['page'] ) {
+					$activation_url = $this->_get_admin_page_url();
 
-				self::add_admin_message(
-					sprintf(__('You are just one step away - %1sActivate ' . $this->get_plugin_name() . ' Now%2s', WP_FS__SLUG), '<a href="' . $activation_url . '"><b>', '</b></a>'),
-					'',
-					'update-nag'
-				);
+					self::add_admin_message(
+						sprintf( __( 'You are just one step away - %1sActivate ' . $this->get_plugin_name() . ' Now%2s', WP_FS__SLUG ), '<a href="' . $activation_url . '"><b>', '</b></a>' ),
+						'',
+						'update-nag'
+					);
+				}
+
+				add_action( 'admin_menu', array( &$this, '_add_dashboard_menu_for_activation' ), WP_FS__LOWEST_PRIORITY );
 			}
-
-			add_action( 'admin_menu', array( &$this, '_add_dashboard_menu_for_activation' ), WP_FS__LOWEST_PRIORITY );
 		}
 
 		private function _init_admin() {
@@ -403,7 +837,9 @@
 
 			add_action( 'admin_init', array( &$this, '_add_upgrade_action_link' ) );
 			add_action( 'admin_menu', array( &$this, '_add_dashboard_menu' ), WP_FS__LOWEST_PRIORITY );
-			add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
+			if (!$this->is_addon()) {
+				add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
+			}
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 		}
 
@@ -433,21 +869,21 @@
 		 * @uses FS_Api
 		 */
 		function _activate_plugin_event_hook() {
-			$this->_logger->entrance('slug = ' . $this->_slug);
+			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
-			if ($this->is_registered()) {
+			if ( $this->is_registered() ) {
 				// Send re-activation event.
 				$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => true ) );
-			}else{
-				// Auto forward to account activation.
-				add_option( "fs_{$this->_slug}_activated", true );
-
+			} else {
 				// @todo Implement "bounce rate" by calculating number of plugin activations without registration.
 			}
+
+			// Store hint that the plugin was just activated.
+			add_option( "fs_{$this->_slug}_activated", true );
 		}
 
 		/**
@@ -538,7 +974,7 @@
 
 			self::$_static_logger->info('plugin = ' . $plugin_file);
 
-			$fs = self::load_instance_by_file($plugin_file);
+			$fs = self::get_instance_by_file($plugin_file);
 
 			if (is_object($fs))
 				$fs->_uninstall_plugin_event();
@@ -567,7 +1003,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.1
 		 *
-		 * @return numeric Plugin ID.
+		 * @return number Plugin ID.
 		 */
 		function get_id()
 		{
@@ -595,7 +1031,7 @@
 		 */
 		function get_secret_key()
 		{
-			return $this->_plugin->_secret_key;
+			return $this->_plugin->secret_key;
 		}
 
 		/**
@@ -720,6 +1156,40 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return FS_Plugin[]|false
+		 */
+		private static function get_all_addons()
+		{
+			$addons = self::$_accounts->get_option( 'addons', array() );
+
+			if ( ! is_array( $addons ) ) {
+				$addons = array();
+			}
+
+			return $addons;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return FS_Plugin[]|false
+		 */
+		private static function get_all_account_addons()
+		{
+			$addons = self::$_accounts->get_option( 'account_addons', array() );
+
+			if ( ! is_array( $addons ) ) {
+				$addons = array();
+			}
+
+			return $addons;
+		}
+
+		/**
 		 * Check if user is registered.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -759,6 +1229,100 @@
 		 */
 		function get_site() {
 			return $this->_site;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return FS_Plugin[]|false
+		 */
+		function get_addons() {
+			$this->_logger->entrance();
+
+			$addons = self::get_all_addons();
+
+			if (!is_array($addons) ||
+			    !isset($addons[$this->_plugin->id]) ||
+			    !is_array($addons[$this->_plugin->id]) ||
+			    0 === count($addons[$this->_plugin->id])
+			)
+				return false;
+
+			return $addons[$this->_plugin->id];
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @return FS_Plugin[]|false
+		 */
+		function get_account_addons() {
+			$this->_logger->entrance();
+
+			$addons = self::get_all_account_addons();
+
+			if (!is_array($addons) ||
+			    !isset($addons[$this->_plugin->id]) ||
+			    !is_array($addons[$this->_plugin->id]) ||
+			    0 === count($addons[$this->_plugin->id])
+			)
+				return false;
+
+			return $addons[$this->_plugin->id];
+		}
+
+		/**
+		 * Get add-on by ID (from local data).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param number $id
+		 *
+		 * @return FS_Plugin|false
+		 */
+		function get_addon($id) {
+			$this->_logger->entrance();
+
+			$addons = $this->get_addons();
+
+			if ( is_array( $addons ) ) {
+				foreach ( $addons as $addon ) {
+					if ( $id == $addon->id ) {
+						return $addon;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Get add-on by slug (from local data).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 *
+		 * @param string $slug
+		 *
+		 * @return FS_Plugin|false
+		 */
+		function get_addon_by_slug($slug) {
+			$this->_logger->entrance();
+
+			$addons = $this->get_addons();
+
+			if ( is_array( $addons ) ) {
+				foreach ( $addons as $addon ) {
+					if ( $slug == $addon->slug ) {
+						return $addon;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		function get_plan_id() {
@@ -809,7 +1373,11 @@
 			if (!$this->is_registered())
 				return false;
 
-			return (!$this->is_trial() && 'free' !== $this->_site->plan->name);
+			return (
+				!$this->is_trial() &&
+				'free' !== $this->_site->plan->name &&
+				$this->_site->has_features_enabled_license()
+			);
 		}
 
 		/**
@@ -822,7 +1390,10 @@
 			if (!$this->is_registered())
 				return true;
 
-			return ('free' === $this->_site->plan->name || is_null($this->_site->license_id));
+			return (
+				'free' === $this->_site->plan->name ||
+				!$this->_site->has_features_enabled_license()
+			);
 		}
 
 		/**
@@ -845,9 +1416,23 @@
 		function _has_premium_license() {
 			$this->_logger->entrance();
 
-			$premium_license = $this->_get_premium_license();
+			$premium_license = $this->_get_available_premium_license();
 
 			return (false !== $premium_license);
+		}
+
+		/**
+		 * Check if plugin has any add-ons.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function _has_addons(){
+			$this->_logger->entrance();
+
+			return (false !== $this->get_addons());
 		}
 
 		/**
@@ -856,12 +1441,12 @@
 		 *
 		 * @return FS_Plugin_License
 		 */
-		function _get_premium_license() {
+		function _get_available_premium_license() {
 			$this->_logger->entrance();
 
 			if (is_array($this->_licenses)) {
 				foreach ( $this->_licenses as $license ) {
-					if ( $license->quota > ( ( $license->is_free_localhost ? 0 : $license->activated_local ) + $license->activated ) ) {
+					if ( !$license->is_utilized() && $license->is_features_enabled() ) {
 						return $license;
 					}
 				}
@@ -880,7 +1465,7 @@
 		 */
 		function _sync_plans()
 		{
-			$plans = $this->_get_plugin_plans();
+			$plans = $this->_fetch_plugin_plans();
 			if (!isset($plans->error))
 			{
 				$this->_plans = $plans;
@@ -915,6 +1500,26 @@
 		}
 
 		/**
+		 * Sync local plugin plans with remote server.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return FS_Plugin_License[]|stdClass
+		 */
+		function _sync_licenses()
+		{
+			$licenses = $this->_fetch_licenses();
+			if (!isset($licenses->error))
+			{
+				$this->_licenses = $licenses;
+				$this->_store_licenses();
+			}
+
+			return $this->_licenses;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
@@ -936,6 +1541,17 @@
 			}
 
 			return false;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return bool|\FS_Plugin_License
+		 */
+		function _get_license()
+		{
+			return $this->_site->license;
 		}
 
 		/**
@@ -982,12 +1598,7 @@
 
 		function is_ssl() {
 
-			return
-				// Checks if CloudFlare's HTTPS (Flexible SSL support)
-				( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) ||
-				// Check if HTTPS request.
-				( isset( $_SERVER['HTTPS'] ) && 'on' == $_SERVER['HTTPS'] ) ||
-				( isset( $_SERVER['SERVER_PORT'] ) && 443 == $_SERVER['SERVER_PORT'] );
+			return WP_FS__IS_HTTPS;
 
 		}
 
@@ -1042,6 +1653,43 @@
 			$this->_logger->entrance();
 
 			return $this->_get_admin_page_url( 'pricing', array('billing_cycle' => $period) );
+		}
+
+		/**
+		 * Checkout page URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param string        $period Billing cycle
+		 * @param bool|string   $plan_name
+		 * @param bool|number   $plan_id
+		 * @param bool|int      $licenses
+		 *
+		 * @return string
+		 */
+		function checkout_url (
+			$period = WP_FS__PERIOD_ANNUALLY,
+			$plan_name = false,
+			$plan_id = false,
+			$licenses = false
+		)
+		{
+			$this->_logger->entrance();
+
+			$params = array(
+				'checkout' => 'true',
+				'billing_cycle' => $period,
+			);
+
+			if (false !== $plan_name)
+				$params['plan_name'] = $plan_name;
+			if (false !== $plan_id)
+				$params['plan_id'] = $plan_id;
+			if (false !== $licenses)
+				$params['licenses'] = $licenses;
+
+			return $this->_get_admin_page_url( 'pricing', $params );
 		}
 
 		/**
@@ -1287,40 +1935,107 @@
 			}
 		}
 
+		/**
+		 * Tries to activate add-on account based on parent plugin info.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param \Freemius $parent_fs
+		 */
+		private function _activate_addon_account(Freemius $parent_fs) {
+			if ( $this->is_registered() ) {
+				// Already activated.
+				return;
+			}
+
+			// Activate add-on with parent plugin credentials.
+			$addon_install = $parent_fs->get_api_site_scope()->call( "/addons/{$this->_plugin->id}/installs.json", 'post', array(
+				'title'            => get_bloginfo( 'name' ),
+				'version'          => $this->get_plugin_version(),
+				'language'         => get_bloginfo( 'language' ),
+				'charset'          => get_bloginfo( 'charset' ),
+				'platform_version' => get_bloginfo( 'version' ),
+			) );
+
+			if ( isset( $addon_install->error ) ) {
+				$this->add_admin_message(
+					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
+					'Oops...',
+					'error'
+				);
+				return;
+			}
+
+			// First of all, set site info - otherwise we won't
+			// be able to invoke API calls.
+			$this->_site = new FS_Site( $addon_install );
+
+			// Sync add-on plans.
+			$this->_sync_plans();
+
+			// Get site's current plan.
+			$this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
+
+			// Get user information based on parent's plugin.
+			$user = $parent_fs->get_user();
+
+			$this->_set_account( $user, $this->_site );
+
+			// Sync licenses.
+			$this->_sync_licenses();
+
+			// Try to activate premium license.
+			$this->_activate_license( true );
+		}
+
 		function _add_dashboard_menu() {
 			$this->_logger->entrance();
 
-			// Add user account page.
-			$this->add_submenu_item(
-				__( 'Account', $this->_slug ),
-				array( &$this, '_account_page_render' ),
-				$this->get_plugin_name() . ' &ndash; ' . __( 'Account', $this->_slug ),
-				'manage_options',
-				'account',
-				array( &$this, '_account_page_load' )
-			);
+			if (!$this->is_addon()) {
+				// Add user account page.
+				$this->add_submenu_item(
+					__( 'Account', $this->_slug ),
+					array( &$this, '_account_page_render' ),
+					$this->get_plugin_name() . ' &ndash; ' . __( 'Account', $this->_slug ),
+					'manage_options',
+					'account',
+					array( &$this, '_account_page_load' )
+				);
 
-			// Add contact page.
-			$this->add_submenu_item(
-				__( 'Contact Us', $this->_slug ),
-				array( &$this, '_contact_page_render' ),
-				$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Contact Us', $this->_slug ),
-				'manage_options',
-				'contact',
-				array( &$this, '_clean_admin_content_section' )
-			);
+				// Add contact page.
+				$this->add_submenu_item(
+					__( 'Contact Us', $this->_slug ),
+					array( &$this, '_contact_page_render' ),
+					$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Contact Us', $this->_slug ),
+					'manage_options',
+					'contact',
+					array( &$this, '_clean_admin_content_section' )
+				);
 
-			// Add upgrade/pricing page.
-			$this->add_submenu_item(
-				( $this->is_paying__fs__() ? __( 'Pricing', $this->_slug ) : __( 'Upgrade', $this->_slug ) . '&nbsp;&nbsp;&#x27a4;' ),
-				array( &$this, '_pricing_page_render' ),
-				$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Pricing', $this->_slug ),
-				'manage_options',
-				'pricing',
-				array( &$this, '_clean_admin_content_section' ),
-				WP_FS__LOWEST_PRIORITY
-			);
+				if ( $this->_has_addons() ) {
+					$this->add_submenu_item(
+						__( 'Add Ons', $this->_slug ),
+						array( &$this, '_addons_page_render' ),
+						$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Add Ons', $this->_slug ),
+						'manage_options',
+						'addons',
+						array( &$this, '_addons_page_load' ),
+						WP_FS__LOWEST_PRIORITY - 1
+					);
+				}
 
+				// Add upgrade/pricing page.
+				$this->add_submenu_item(
+					( $this->is_paying__fs__() ? __( 'Pricing', $this->_slug ) : __( 'Upgrade', $this->_slug ) . '&nbsp;&nbsp;&#x27a4;' ),
+					array( &$this, '_pricing_page_render' ),
+					$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Pricing', $this->_slug ),
+					'manage_options',
+					'pricing',
+					array( &$this, '_clean_admin_content_section' ),
+					WP_FS__LOWEST_PRIORITY
+				);
+			}
 
 			ksort( $this->_menu_items );
 
@@ -1328,7 +2043,7 @@
 				foreach ( $items as $item ) {
 					if (!isset($item['url'])) {
 						$hook = add_submenu_page(
-							$this->_slug,
+							$this->is_addon() ? $this->_parent->slug : $this->_slug,
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
@@ -1341,7 +2056,7 @@
 						}
 					}else {
 						add_submenu_page(
-							$this->_slug,
+							$this->is_addon() ? $this->_parent->slug : $this->_slug,
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
@@ -1371,16 +2086,45 @@
 		}
 
 		/**
-		 * @param string       $menu_title
-		 * @param callable       $render_function
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.1
+		 *
+		 * @param string        $menu_title
+		 * @param callable      $render_function
 		 * @param bool|string   $page_title
-		 * @param string $capability
+		 * @param string        $capability
 		 * @param bool|string   $menu_slug
-		 * @param bool|callable   $before_render_function
-		 * @param int    $priority
+		 * @param bool|callable $before_render_function
+		 * @param int           $priority
 		 */
-		function add_submenu_item( $menu_title, $render_function, $page_title = false, $capability = 'manage_options', $menu_slug = false, $before_render_function = false, $priority = 10  ) {
+		function add_submenu_item(
+			$menu_title,
+			$render_function,
+			$page_title = false,
+			$capability = 'manage_options',
+			$menu_slug = false,
+			$before_render_function = false,
+			$priority = 10
+		) {
 			$this->_logger->entrance('Title = ' . $menu_title );
+
+			if ($this->is_addon()) {
+				$parent_fs = $this->get_parent_instance();
+
+				if ( is_object( $parent_fs ) ) {
+					$parent_fs->add_submenu_item(
+						$menu_title,
+						$render_function,
+						$page_title,
+						$capability,
+						$menu_slug,
+						$before_render_function,
+						$priority
+					);
+
+					return;
+				}
+			}
 
 			if (!isset($this->_menu_items[$priority]))
 				$this->_menu_items[$priority] = array();
@@ -1397,13 +2141,47 @@
 			$this->_has_menu = true;
 		}
 
-		function add_submenu_link_item( $menu_title, $url, $menu_slug = false, $capability = 'read', $priority = 10 ) {
-			$this->_logger->entrance('Title = ' . $menu_title . '; Url = ' . $url);
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.1
+		 *
+		 * @param string $menu_title
+		 * @param string $url
+		 * @param bool   $menu_slug
+		 * @param string $capability
+		 * @param int    $priority
+		 *
+		 */
+		function add_submenu_link_item(
+			$menu_title,
+			$url,
+			$menu_slug = false,
+			$capability = 'read',
+			$priority = 10
+		) {
+			$this->_logger->entrance( 'Title = ' . $menu_title . '; Url = ' . $url );
 
-			if (!isset($this->_menu_items[$priority]))
-				$this->_menu_items[$priority] = array();
+			if ($this->is_addon()) {
+				$parent_fs = $this->get_parent_instance();
 
-			$this->_menu_items[$priority][] = array(
+				if ( is_object( $parent_fs ) ) {
+					$parent_fs->add_submenu_link_item(
+						$menu_title,
+						$url,
+						$menu_slug,
+						$capability,
+						$priority
+					);
+
+					return;
+				}
+			}
+
+			if ( ! isset( $this->_menu_items[ $priority ] ) ) {
+				$this->_menu_items[ $priority ] = array();
+			}
+
+			$this->_menu_items[ $priority ][] = array(
 				'menu_title'             => $menu_title,
 				'capability'             => $capability,
 				'menu_slug'              => $this->_get_menu_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
@@ -1435,7 +2213,6 @@
 					array( 'fs_' . $tag . '_' . $this->_slug ),
 					array_slice( func_get_args(), 1 ) )
 			);
-//			do_action( $tag . '_' . $this->_slug );
 		}
 
 		/**
@@ -1519,22 +2296,29 @@
 		 * Update user's plugin licenses.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.5
+		 * @since  1.0.5
 		 *
-		 * @param bool $store
+		 * @param bool                  $store
+		 * @param string|bool           $plugin_slug
+		 * @param FS_Plugin_License[]   $licenses
 		 */
-		private function _store_licenses($store = true) {
+		private function _store_licenses($store = true, $plugin_slug = false, $licenses = array()) {
 			$this->_logger->entrance();
 
-			$licenses = self::get_all_licenses();
+			$all_licenses = self::get_all_licenses();
 
-			if ( ! isset( $licenses[ $this->_slug ] ) ) {
-				$licenses[ $this->_slug ] = array();
+			if (!is_string($plugin_slug)) {
+				$plugin_slug = $this->_slug;
+				$licenses = $this->_licenses;
 			}
 
-			$licenses[ $this->_slug ][ $this->_user->id ] = $this->_licenses;
+			if ( ! isset( $all_licenses[ $plugin_slug ] ) ) {
+				$all_licenses[ $plugin_slug ] = array();
+			}
 
-			self::$_accounts->set_option( 'licenses', $licenses, $store );
+			$all_licenses[ $plugin_slug ][ $this->_user->id ] = $licenses;
+
+			self::$_accounts->set_option( 'licenses', $all_licenses, $store );
 		}
 
 		/**
@@ -1546,6 +2330,8 @@
 		 * @param bool $store Flush to Database if true.
 		 */
 		private function _store_user($store = true) {
+			$this->_logger->entrance();
+
 			$this->_user->updated      = time();
 			$users                     = self::get_all_users();
 			$users[ $this->_user->id ] = $this->_user;
@@ -1560,15 +2346,56 @@
 		 *
 		 * @param FS_Plugin_Tag|null $update
 		 * @param bool               $store Flush to Database if true.
+		 * @param bool|number        $plugin_id
 		 */
-		private function _store_update($update, $store = true) {
+		private function _store_update($update, $store = true, $plugin_id = false) {
+			$this->_logger->entrance();
+
 			if ( $update instanceof FS_Plugin_Tag ) {
 				$update->updated = time();
 			}
 
+			if ( ! is_numeric( $plugin_id ) ) {
+				$plugin_id = $this->_plugin->id;
+			}
+
 			$updates               = self::get_all_updates();
-			$updates[ $this->_plugin->id ] = $update;
+			$updates[ $plugin_id ] = $update;
 			self::$_accounts->set_option( 'updates', $updates, $store );
+		}
+
+		/**
+		 * Update new updates information.
+		 *
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.6
+		 *
+		 * @param FS_Plugin[] $plugin_addons
+		 * @param bool $store Flush to Database if true.
+		 */
+		private function _store_addons($plugin_addons, $store = true) {
+			$this->_logger->entrance();
+
+			$addons                       = self::get_all_addons();
+			$addons[ $this->_plugin->id ] = $plugin_addons;
+			self::$_accounts->set_option( 'addons', $addons, $store );
+		}
+
+		/**
+		 * Update account add-ons list.
+		 *
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.6
+		 *
+		 * @param FS_Plugin[] $addons
+		 * @param bool $store Flush to Database if true.
+		 */
+		private function _store_account_addons($addons, $store = true) {
+			$this->_logger->entrance();
+
+			$all_addons                       = self::get_all_account_addons();
+			$all_addons[ $this->_plugin->id ] = $addons;
+			self::$_accounts->set_option( 'account_addons', $all_addons, $store );
 		}
 
 		/**
@@ -1579,6 +2406,8 @@
 		 */
 		private function _store_account()
 		{
+			$this->_logger->entrance();
+
 			$this->_store_site(false);
 			$this->_store_user(false);
 			$this->_store_plans(false);
@@ -1595,6 +2424,8 @@
 		 * @uses FS_Api
 		 */
 		private function _handle_account_user_sync() {
+			$this->_logger->entrance();
+
 			$api = $this->get_api_user_scope();
 
 			// Get user's information.
@@ -1630,7 +2461,7 @@
 		 *
 		 * @return stdClass|\FS_Site
 		 */
-		private function _get_site() {
+		private function _fetch_site() {
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
 
@@ -1655,7 +2486,7 @@
 			$plan = $this->_get_plan_by_id( $this->_site->plan->id );
 
 			if ( false === $plan ) {
-				$plan = $this->_get_site_plan();
+				$plan = $this->_fetch_site_plan();
 			}
 
 			if ( $plan instanceof FS_Plugin_Plan ) {
@@ -1672,7 +2503,7 @@
 		 *
 		 * @return FS_Plugin_Plan|stdClass
 		 */
-		private function _get_site_plan()
+		private function _fetch_site_plan()
 		{
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
@@ -1689,7 +2520,7 @@
 		 *
 		 * @return FS_Plugin_Plan[]|stdClass
 		 */
-		private function _get_plugin_plans() {
+		private function _fetch_plugin_plans() {
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
 
@@ -1711,13 +2542,19 @@
 		 * @since  1.0.5
 		 * @uses   FS_Api
 		 *
+		 * @param number|bool $plugin_id
+		 *
 		 * @return FS_Plugin_License[]|stdClass
 		 */
-		private function _get_licenses() {
+		private function _fetch_licenses($plugin_id = false) {
 			$this->_logger->entrance();
+
 			$api = $this->get_api_user_scope();
 
-			$result = $api->call( "/plugins/{$this->_plugin->id}/licenses.json" );
+			if (!is_numeric($plugin_id))
+				$plugin_id = $this->_plugin->id;
+
+			$result = $api->call( "/plugins/{$plugin_id}/licenses.json" );
 
 			if ( ! isset( $result->error ) ) {
 				for ( $i = 0, $len = count( $result->licenses ); $i < $len; $i ++ ) {
@@ -1749,8 +2586,9 @@
 		 * @since  1.0.5
 		 *
 		 * @param FS_Plugin_License[] $licenses
+		 * @param string|bool         $plugin_slug
 		 */
-		private function _update_licenses($licenses) {
+		private function _update_licenses($licenses, $plugin_slug = false) {
 			$this->_logger->entrance();
 
 			if ( is_array( $licenses ) ) {
@@ -1759,39 +2597,33 @@
 				}
 			}
 
-			$this->_licenses = $licenses;
-			$this->_store_licenses();
+			if (!is_string($plugin_slug))
+				$this->_licenses = $licenses;
+
+			$this->_store_licenses( true, $plugin_slug, $licenses );
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
-		 * @return object|false Plugin latest tag info.
-		 */
-		private function _fetch_latest_version() {
-			$tag            = $this->get_api_site_scope()->call( '/updates/latest.json' );
-			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
-			$this->_logger->departure( 'Latest version ' . $latest_version );
-
-			return ( is_object( $tag ) && isset( $tag->version ) ) ? $tag : false;
-		}
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.4
+		 * @param bool|number $plugin_id
 		 *
 		 * @return object|false New plugin tag info if exist.
 		 */
-		private function _fetch_newer_version() {
-			$latest_tag = $this->_fetch_latest_version();
+		private function _fetch_newer_version($plugin_id = false) {
+			$latest_tag = $this->_fetch_latest_version( $plugin_id );
 
 			if ( ! is_object( $latest_tag ) ) {
 				return false;
 			}
 
 			// Check if version is actually newer.
-			$has_new_version = version_compare( $this->get_plugin_version(), $latest_tag->version, '<' );
+			$has_new_version =
+				// If it's an non-installed add-on then always return latest.
+				( $this->_is_addon_id( $plugin_id ) && ! $this->is_addon_activated( $plugin_id ) ) ||
+				// Compare versions.
+				version_compare( $this->get_plugin_version(), $latest_tag->version, '<' );
 
 			$this->_logger->departure( $has_new_version ? 'Found newer plugin version ' . $latest_tag->version : 'No new version' );
 
@@ -1799,14 +2631,24 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.5
+		 *
+		 * @param bool|number $plugin_id
 		 *
 		 * @return bool|FS_Plugin_Tag
 		 */
-		function get_update() {
-			$this->_check_updates(true);
+		function get_update($plugin_id = false) {
+			$this->_logger->entrance();
+
+			if ( ! is_numeric( $plugin_id ) ) {
+				$plugin_id = $this->_plugin->id;
+			}
+
+			$this->_check_updates( true, $plugin_id );
 			$updates = $this->get_all_updates();
 
-			return isset( $updates[ $this->_plugin->id ] ) && is_object( $updates[ $this->_plugin->id ] ) ? $updates[ $this->_plugin->id ] : false;
+			return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
 		}
 
 		/**
@@ -1814,6 +2656,7 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.3
+		 *
 		 * @uses   FS_Api
 		 *
 		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by the admin.
@@ -1821,8 +2664,80 @@
 		private function _sync_license($background = false) {
 			$this->_logger->entrance();
 
+			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
+
+			$is_addon_sync = ( $plugin_id !== $this->get_id() );
+
+			if ( $is_addon_sync ) {
+				$this->_sync_addon_license( $plugin_id , $background );
+			} else {
+				$this->_sync_plugin_license( $background );
+			}
+
+			$this->do_action( 'after_account_plan_sync', $this->_site->plan->name );
+		}
+
+		/**
+		 * Sync plugin's add-on license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 * @uses   FS_Api
+		 *
+		 * @param number $addon_id
+		 * @param bool   $background
+		 */
+		private function _sync_addon_license($addon_id, $background) {
+			$this->_logger->entrance();
+
+			if ( $this->is_addon_activated( $addon_id ) ) {
+				// If already installed, use add-on sync.
+				$fs_addon = self::get_instance_by_id( $addon_id );
+				$fs_addon->_sync_license( $background );
+
+				return;
+			}
+
+			// Validate add-on exists.
+			$addon = $this->get_addon( $addon_id );
+
+			if ( ! is_object( $addon ) ) {
+				return;
+			}
+
+			// Add add-on into account add-ons.
+			$account_addons = $this->get_account_addons();
+			if ( ! is_array( $account_addons ) ) {
+				$account_addons = array();
+			}
+			$account_addons[] = $addon->id;
+			$account_addons   = array_unique( $account_addons );
+			$this->_store_account_addons( $account_addons );
+
+			// Load add-on licenses.
+			$licenses = $this->_fetch_licenses( $addon->id );
+
+			// Sync add-on licenses.
+			if ( ! isset( $licenses->error ) ) {
+				$this->_update_licenses( $licenses, $addon->slug );
+			}
+		}
+
+		/**
+		 * Sync site's plugin plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 * @uses   FS_Api
+		 *
+		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by the admin.
+		 */
+		private function _sync_plugin_license($background = false)
+		{
+			$this->_logger->entrance();
+
 			// Load site details.
-			$site = $this->_get_site();
+			$site = $this->_fetch_site();
 
 			$plan_change = 'none';
 
@@ -1852,19 +2767,15 @@
 				$this->_site->updated = time() - WP_FS__TIME_24_HOURS_IN_SEC + WP_FS__TIME_10_MIN_IN_SEC;
 			} else {
 				// Sync licenses.
-				$licenses = $this->_get_licenses();
-				if ( ! isset( $licenses->error ) ) {
-					$this->_update_licenses( $licenses );
-				}
+				$this->_sync_licenses();
 
 				// Check if plan / license changed.
-				if ( $this->_site->plan->id !== $site->plan->id ||
-				     $this->_site->license_id !== $site->license_id
-				) {
+				if ( $this->_site->is_different_plan_or_license($site)) {
 					$is_free = $this->is_free_plan();
 
 					// Make sure license exist and not expired.
-					$new_license = is_null($site->license_id) ? false : $this->_get_license_by_id( $site->license_id );
+					$new_license = is_null($site->license) ? null : $this->_get_license_by_id( $site->license->id );
+					$site->license = $new_license;
 
 					if ( $is_free && ((!is_object($new_license) || $new_license->is_expired()))) {
 						// The license is expired, so ignore upgrade method.
@@ -1876,13 +2787,12 @@
 						$plan_change = $is_free ? 'upgraded' : 'downgraded';
 					}
 				} else {
-					if ( is_numeric( $this->_site->license_id ) ) {
-						$license = $this->_get_license_by_id( $this->_site->license_id );
-						if ( $license->is_expired() ) {
-							$this->_site->license_id = null;
-							$this->_site->plan->id   = $this->_plans[0]->id;
-							$this->_enrich_site_plan( true );
+					if (is_object($this->_site->license)) {
+						if ( ! $this->_site->has_features_enabled_license() ) {
+							$this->_deactivate_license();
 							$plan_change = 'downgraded';
+						} else if ( ! $this->_site->has_active_license() ) {
+							$plan_change = 'expired';
 						}
 					}
 				}
@@ -1914,54 +2824,69 @@
 							__( 'Ye-ha!', WP_FS__SLUG )
 						);
 						break;
+					case 'expired':
+						self::add_admin_message(
+							sprintf( __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to re-new your license to continue getting updates and support.', WP_FS__SLUG ), $this->_site->plan->title ),
+							__( 'Ye-ha!', WP_FS__SLUG )
+						);
+						break;
 				}
 			}
-
-			$this->do_action( 'after_account_plan_sync', $this->_site->plan->name );
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.5
+		 * @since  1.0.5
 		 *
+		 * @param bool $background
 		 */
-		private function _activate_license() {
+		protected function _activate_license($background = false) {
 			$this->_logger->entrance();
 
-			$premium_license = $this->_get_premium_license();
+			$premium_license = $this->_get_available_premium_license();
+
+			if ( ! is_object( $premium_license ) ) {
+				return;
+			}
 
 			$api     = $this->get_api_site_scope();
 			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put' );
 
 			if ( isset( $license->error ) ) {
-				self::add_admin_message(
-					__( 'It looks like the license could not be activated.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
-					__( 'Hmm...', WP_FS__SLUG ),
-					'error'
-				);
+				if ( ! $background ) {
+					self::add_admin_message(
+						__( 'It looks like the license could not be activated.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
+						__( 'Hmm...', WP_FS__SLUG ),
+						'error'
+					);
+				}
 
 				return;
 			}
 
+			$premium_license = new FS_Plugin_License( $license );
+
 			// Updated site plan.
-			$this->_site->plan->id = $license->plan_id;
-			$this->_site->license_id = $license->id;
+			$this->_site->plan->id = $premium_license->plan_id;
+			$this->_site->license  = $premium_license;
 			$this->_enrich_site_plan( false );
 
 			// Update license cache.
 			for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
-				if ( $license->id == $this->_licenses[ $i ]->id ) {
-					$this->_licenses[ $i ] = new FS_Plugin_License( $license );
+				if ( $premium_license->id == $this->_licenses[ $i ]->id ) {
+					$this->_licenses[ $i ] = $premium_license;
 					break;
 				}
 			}
 
 			$this->_store_account();
 
-			self::add_admin_message(
-				sprintf( __( 'Your license was successfully activated, %1sdownload our latest %2s version now%3s.', WP_FS__SLUG ), '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
-				__( 'Ye-ha!', WP_FS__SLUG )
-			);
+			if ( ! $background ) {
+				self::add_admin_message(
+					sprintf( __( 'Your license for %s was successfully activated, %sdownload our latest %s version now%s.', WP_FS__SLUG ), '<i>' . $this->get_plugin_name() . '</i>', '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
+					__( 'Ye-ha!', WP_FS__SLUG )
+				);
+			}
 		}
 
 		/**
@@ -1969,11 +2894,20 @@
 		 * @since 1.0.5
 		 *
 		 */
-		private function _deactivate_license(){
+		protected function _deactivate_license(){
 			$this->_logger->entrance();
 
+			if (!is_object($this->_site->license)) {
+				self::add_admin_message(
+					sprintf( __( 'It looks like your site currently don\'t have an active license.', WP_FS__SLUG ), $this->_site->plan->title ),
+					__( 'Hmm...', WP_FS__SLUG )
+				);
+
+				return;
+			}
+
 			$api     = $this->get_api_site_scope();
-			$license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
+			$license = $api->call( "/licenses/{$this->_site->license->id}.json", 'delete' );
 
 			if ( isset( $license->error ) ) {
 				self::add_admin_message(
@@ -1995,6 +2929,8 @@
 			// Updated site plan to default.
 			$this->_sync_plans();
 			$this->_site->plan->id = $this->_plans[0]->id;
+			// Unlink license from site.
+			$this->_site->license  = null;
 			$this->_enrich_site_plan(false);
 
 			$this->_store_account();
@@ -2011,7 +2947,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
 		 *
-		 * @users FS_Api
+		 * @uses FS_Api
 		 */
 		private function _downgrade_site() {
 			$this->_logger->entrance();
@@ -2020,6 +2956,7 @@
 			$site = $api->call( 'downgrade.json', 'put');
 
 			$plan_downgraded = false;
+			$plan = false;
 			if ( ! isset( $site->error ) ) {
 				$prev_plan_id = $this->_site->plan->id;
 
@@ -2051,19 +2988,103 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param bool|number $plugin_id
+		 *
+		 * @return bool
+		 */
+		private function _is_addon_id($plugin_id)
+		{
+			return is_numeric($plugin_id) && ($this->get_id() != $plugin_id);
+		}
+
+		/**
+		 * Check if user eligible to download premium version updates.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return bool
+		 */
+		private function _can_download_premium()
+		{
+			return $this->_site->has_active_license();
+		}
+
+		/**
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param bool|number $addon_id
+		 * @param string      $type "json" or "zip"
+		 *
+		 * @return string
+		 */
+		private function _get_latest_version_endpoint($addon_id = false, $type = 'json') {
+
+			$is_addon = $this->_is_addon_id( $addon_id );
+
+			$is_premium = null;
+			if ( ! $is_addon ) {
+				$is_premium = $this->_can_download_premium();
+			} else if ( $this->is_addon_activated( $addon_id ) ) {
+				$is_premium = self::get_instance_by_id( $addon_id )->_can_download_premium();
+			}
+
+			return // If add-on, then append add-on ID.
+				( $is_addon ? "/addons/$addon_id" : '' ) .
+				'/updates/latest.' . $type .
+				// If add-on and not yet activated, try to fetch based on server licensing.
+				( is_bool( $is_premium ) ? '?is_premium=' . json_encode( $is_premium ) : '' );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.4
+		 *
+		 * @param bool|number $addon_id
+		 *
+		 * @return object|false Plugin latest tag info.
+		 */
+		private function _fetch_latest_version( $addon_id = false ) {
+			$tag = $this->get_api_site_scope()->call( $this->_get_latest_version_endpoint( $addon_id, 'json' ) );
+			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
+			$this->_logger->departure( 'Latest version ' . $latest_version );
+
+			return ( is_object( $tag ) && isset( $tag->version ) ) ? $tag : false;
+		}
+
+		/**
 		 * Download latest plugin version, based on plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
-		 * @users FS_Api
+		 * @param bool|number $plugin_id
+		 *
+		 * @uses   FS_Api
 		 */
-		private function _download_latest(){
-			$latest = $this->get_api_site_scope()->call( '/updates/latest.zip' );
+		private function _download_latest( $plugin_id = false ) {
+			$this->_logger->entrance();
 
-			if (!is_object($latest)) {
+			$is_addon = $this->_is_addon_id( $plugin_id );
+
+			$is_premium = $this->_can_download_premium();
+
+			$latest = $this->get_api_site_scope()->call( $this->_get_latest_version_endpoint( $plugin_id, 'zip' ) );
+
+			$slug = $this->_slug;
+			if ( $is_addon ) {
+				$addon = $this->get_addon( $plugin_id );
+				$slug  = is_object( $addon ) ? $addon->slug : 'addon';
+			}
+
+			if ( ! is_object( $latest ) ) {
 				header( "Content-Type: application/zip" );
-				header( "Content-Disposition: attachment; filename={$this->_slug}-premium.zip" );
+				header( "Content-Disposition: attachment; filename={$slug}" . ( !$is_addon && $is_premium ? '-premium' : '' ) . ".zip" );
 				header( "Content-Length: " . strlen( $latest ) );
 				echo $latest;
 
@@ -2073,22 +3094,22 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
-		 * @users FS_Api
+		 * @uses   FS_Api
 		 *
-		 * @param bool $background Hints the method if it's a background updates check. If false, it means that was initiated by the admin.
+		 * @param bool        $background Hints the method if it's a background updates check. If false, it means that was initiated by the admin.
+		 * @param bool|number $plugin_id
 		 */
-		private function _check_updates($background = false) {
+		private function _check_updates($background = false, $plugin_id = false) {
+			$this->_logger->entrance();
+
 			// Check if there's a newer version for download.
-			$new_version = $this->_fetch_newer_version();
+			$new_version = $this->_fetch_newer_version($plugin_id);
 
 			$update = null;
 			if ( is_object( $new_version ) ) {
-				$update          = new FS_Plugin_Tag();
-				$update->id      = $new_version->id;
-				$update->url     = $new_version->url;
-				$update->version = $new_version->version;
+				$update = new FS_Plugin_Tag($new_version);
 
 				if ( ! $background ) {
 					self::add_admin_message(
@@ -2105,7 +3126,31 @@
 				);
 			}
 
-			$this->_store_update( $update, true );
+			$this->_store_update( $update, true, $plugin_id );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.4
+		 * 
+		 * @uses FS_Api
+		 *        
+		 */
+		private function _sync_addons() {
+			$this->_logger->entrance();
+
+			$result = $this->get_api_site_scope()->call( '/addons.json?enriched=true' );
+
+			if ( isset( $result->error ) ) {
+				return;
+			}
+
+			$addons = array();
+			for ( $i = 0, $len = count( $result->plugins ); $i < $len; $i ++ ) {
+				$addons[ $i ] = new FS_Plugin( $result->plugins[ $i ] );
+			}
+
+			$this->_store_addons( $addons, true );
 		}
 
 		/**
@@ -2113,7 +3158,7 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.3
-		 * @users FS_Api
+		 * @uses FS_Api
 		 */
 		private function _update_email() {
 			$this->_logger->entrance();
@@ -2143,7 +3188,7 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.3
-		 * @users FS_Api
+		 * @uses FS_Api
 		 */
 		private function _verify_email() {
 			$this->_handle_account_user_sync();
@@ -2176,11 +3221,29 @@
 		 */
 		private function _handle_account_edits() {
 
+			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
+
 			if ( fs_request_is_action( 'delete_account' ) ) {
 				check_admin_referer( 'delete_account' );
-				$this->delete_account_event();
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-					exit();
+
+				if ($plugin_id == $this->get_id()) {
+					$this->delete_account_event();
+
+					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+						exit();
+					}
+				}
+				else
+				{
+					if ($this->is_addon_activated($plugin_id))
+					{
+						$fs_addon = self::get_instance_by_id($plugin_id);
+						$fs_addon->delete_account_event();
+
+						if ( fs_redirect( $this->_get_admin_page_url('account') ) ) {
+							exit();
+						}
+					}
 				}
 			}
 
@@ -2209,19 +3272,44 @@
 
 			if ( fs_request_is_action( 'activate_license' ) ) {
 				check_admin_referer( 'activate_license' );
-				$this->_activate_license();
+
+				if ($plugin_id == $this->get_id()) {
+					$this->_activate_license();
+				}
+				else
+				{
+					if ($this->is_addon_activated($plugin_id))
+					{
+						$fs_addon = self::get_instance_by_id($plugin_id);
+						$fs_addon->_activate_license();
+					}
+				}
+
 				return;
 			}
 
 			if ( fs_request_is_action( 'deactivate_license' ) ) {
 				check_admin_referer( 'deactivate_license' );
-				$this->_deactivate_license();
+
+				if ($plugin_id == $this->get_id()) {
+					$this->_deactivate_license();
+				}
+				else
+				{
+					if ($this->is_addon_activated($plugin_id))
+					{
+						$fs_addon = self::get_instance_by_id($plugin_id);
+						$fs_addon->_deactivate_license();
+					}
+				}
+
 				return;
 			}
 
 			if ( fs_request_is_action( 'download_latest' ) ) {
 				check_admin_referer( 'download_latest' );
-				$this->_download_latest();
+				$this->_download_latest( fs_request_get( 'plugin_id', $this->get_id() ) );
+
 				return;
 			}
 
@@ -2270,7 +3358,20 @@
 
 			$this->_logger->info( var_export( $_REQUEST, true ) );
 
-			fs_enqueue_local_style( 'fs_account', 'account.css' );
+			fs_enqueue_local_style( 'fs_account', '/admin/account.css' );
+
+			if ( $this->_has_addons() ) {
+				wp_enqueue_script('plugin-install');
+				add_thickbox();
+
+				function fs_addons_body_class($classes)
+				{
+					$classes .= ' plugins-php';
+					return $classes;
+				}
+
+				add_filter( 'admin_body_class', 'fs_addons_body_class' );
+			}
 
 			$this->_handle_account_edits();
 
@@ -2288,6 +3389,42 @@
 
 			$vars = array( 'slug' => $this->_slug );
 			fs_require_once_template( 'account.php', $vars );
+		}
+
+		/**
+		 * Load required resources before add-ons page render.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 */
+		function _addons_page_load(){
+			$this->_logger->entrance();
+
+			fs_enqueue_local_style( 'fs_addons', '/admin/add-ons.css' );
+
+			wp_enqueue_script('plugin-install');
+			add_thickbox();
+
+			function fs_addons_body_class($classes)
+			{
+				$classes .= ' plugins-php';
+				return $classes;
+			}
+
+			add_filter( 'admin_body_class', 'fs_addons_body_class' );
+		}
+
+		/**
+		 * Render add-ons page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.6
+		 */
+		function _addons_page_render() {
+			$this->_logger->entrance();
+
+			$vars = array( 'slug' => $this->_slug );
+			fs_require_once_template( 'add-ons.php', $vars );
 		}
 
 		/* Pricing & Upgrade
@@ -2499,9 +3636,31 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.3
 		 */
-		function _redirect_on_activation_hook(){
-			wp_redirect( $this->_get_admin_page_url() );
-			exit();
+		function _redirect_on_activation_hook() {
+			$url = false;
+			$plugin_fs = false;
+
+			if ( ! $this->is_addon() ) {
+				$plugin_fs = $this;
+			} else if ( $this->is_parent_plugin_installed() ) {
+				$plugin_fs = self::get_parent_instance();
+			}
+
+			if ( is_object( $plugin_fs ) ) {
+				if ( ! $plugin_fs->is_registered() ) {
+					// Forward to parent plugin activation when parent not registered.
+					$url = $plugin_fs->_get_admin_page_url();
+				} else {
+					// Forward to account page.
+					$url = $plugin_fs->_get_admin_page_url( 'account' );
+				}
+			}
+
+
+			if ( is_string( $url ) ) {
+				wp_redirect( $url );
+				exit();
+			}
 		}
 
 		/**

@@ -11,7 +11,7 @@
 	}
 
 	define( 'WP_FS__SLUG', 'freemius' );
-	define( 'WP_FS__DEV_MODE', false );
+	define( 'WP_FS__DEV_MODE', true );
 
 	/**
 	 * Directories
@@ -34,20 +34,31 @@
 	define( 'WP_FS__ADDRESS_LOCALHOST', 'http://' . WP_FS__DOMAIN_LOCALHOST . ':8080' );
 	define( 'WP_FS__ADDRESS_PRODUCTION', 'https://' . WP_FS__DOMAIN_PRODUCTION );
 
-	define( 'WP_FS__IS_PRODUCTION', !defined('WP_FS__DEV_MODE') || !WP_FS__DEV_MODE || (WP_FS__TESTING_DOMAIN !== $_SERVER['HTTP_HOST'] ) );
+	define( 'WP_FS__IS_PRODUCTION_MODE', ! defined( 'WP_FS__DEV_MODE' ) || ! WP_FS__DEV_MODE || ( WP_FS__TESTING_DOMAIN !== $_SERVER['HTTP_HOST'] ) );
 
-	define( 'WP_FS__ADDRESS', ( WP_FS__IS_PRODUCTION ? WP_FS__ADDRESS_PRODUCTION : WP_FS__ADDRESS_LOCALHOST ) );
+	define( 'WP_FS__ADDRESS', ( WP_FS__IS_PRODUCTION_MODE ? WP_FS__ADDRESS_PRODUCTION : WP_FS__ADDRESS_LOCALHOST ) );
+
+	define( 'WP_FS__IS_LOCALHOST', ( substr($_SERVER['REMOTE_ADDR'], 0, 4) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1') );
+	define( 'WP_FS__IS_LOCALHOST_FOR_SERVER', (false !== strpos($_SERVER['HTTP_HOST'], 'localhost')) );
 
 	// Set API address for local testing.
-	if ( ! WP_FS__IS_PRODUCTION ) {
+	if ( ! WP_FS__IS_PRODUCTION_MODE ) {
 		define( 'FS_API__ADDRESS', 'http://api.freemius:8080' );
-		define('FS_API__SANDBOX_ADDRESS', 'http://sandbox-api.freemius:8080');
+		define( 'FS_API__SANDBOX_ADDRESS', 'http://sandbox-api.freemius:8080' );
 	}
 
 	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
-		define( 'WP_FS__ACCOUNTS_OPTION_NAME', 'fs_accounts' . (!WP_FS__IS_PRODUCTION ? '_dbg' : '') );
+		define( 'WP_FS__ACCOUNTS_OPTION_NAME', 'fs_accounts' . ( ! WP_FS__IS_PRODUCTION_MODE ? '_dbg' : '' ) );
 	}
-	define( 'WP_FS__OPTIONS_OPTION_NAME', 'fs_options' . (!WP_FS__IS_PRODUCTION ? '_dbg' : '') );
+	define( 'WP_FS__OPTIONS_OPTION_NAME', 'fs_options' . ( ! WP_FS__IS_PRODUCTION_MODE ? '_dbg' : '' ) );
+
+	define( 'WP_FS__IS_HTTPS', (
+		                           // Checks if CloudFlare's HTTPS (Flexible SSL support)
+		                           isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) ||
+	                           // Check if HTTPS request.
+	                           ( isset( $_SERVER['HTTPS'] ) && 'on' == $_SERVER['HTTPS'] ) ||
+	                           ( isset( $_SERVER['SERVER_PORT'] ) && 443 == $_SERVER['SERVER_PORT'] )
+	);
 
 	/**
 	 * Billing Frequencies
@@ -79,5 +90,5 @@
 	define( 'WP_FS__LOG_DATETIME_FORMAT', 'Y-n-d H:i:s' );
 
 
-	define('WP_FS__SCRIPT_START_TIME', time());
+	define( 'WP_FS__SCRIPT_START_TIME', time() );
 	define( 'WP_FS__LOWEST_PRIORITY', 999999999 );

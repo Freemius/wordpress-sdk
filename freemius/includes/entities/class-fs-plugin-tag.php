@@ -13,4 +13,20 @@
 	class FS_Plugin_Tag extends FS_Entity {
 		public $version;
 		public $url;
+
+		function __construct( $tag = false )
+		{
+			if (!($tag instanceof stdClass))
+				return;
+
+			parent::__construct($tag);
+
+			$this->version = $tag->version;
+			$this->url = $tag->url;
+		}
+
+		static function get_type()
+		{
+			return 'tag';
+		}
 	}

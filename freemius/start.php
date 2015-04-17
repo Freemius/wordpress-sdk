@@ -24,12 +24,15 @@
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-logger.php';
 
 		require_once WP_FS__DIR_INCLUDES . '/fs-core-functions.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-fs-option-manager.php';
+		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-abstract-manager.php';
+		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-license-manager.php';
+		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-option-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-entity.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-scope-entity.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-user.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-site.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin.php';
+		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-info.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-tag.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-plan.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-license.php';
@@ -64,6 +67,13 @@
 			$fs = Freemius::instance( $slug );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
+			return $fs;
+		}
+
+		function fs_dynamic_init($plugin)
+		{
+			$fs = Freemius::instance( $plugin['slug'] );
+			$fs->dynamic_init($plugin);
 			return $fs;
 		}
 
