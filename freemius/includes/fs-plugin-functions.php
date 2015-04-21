@@ -168,22 +168,22 @@
 							?></label></li>
 				<?php $first = false; endforeach ?>
 				</ul>
-				<?php echo ' <a class="button button-primary right" href="' . add_query_arg(array(
+				<?php echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
 								'plugin_id' => $plan->plugin_id,
 								'plan_id' => $plan->id,
 								'pricing_id' => $plan->pricing[0]->id,
 								'billing_cycle' => $billing_cycle,
-							), $api->checkout_link) . '" target="_parent">' . __( 'Purchase' ) . '</a>' ?>
+							), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>' ?>
 					</div>
 				<?php endforeach ?>
 				<?php wp_enqueue_script('jquery'); ?>
 				<script type="text/javascript">
 					(function($) {
 						$('.plugin-information-pricing input[type=radio]').click(function () {
-							var checkout_url = '<?php echo add_query_arg(array(
+							var checkout_url = '<?php echo esc_url(add_query_arg(array(
 								'plugin_id' => $plan->plugin_id,
 								'billing_cycle' => $billing_cycle,
-							), $api->checkout_link) ?>&plan_id=' +
+							), $api->checkout_link)) ?>&plan_id=' +
 								$(this).parents('.plugin-information-pricing').find('h3').attr('data-plan') +
 								'&pricing_id=' + $(this).val();
 
@@ -294,12 +294,12 @@
 
 		if ( ! empty( $api->checkout_link ) && isset($api->plans) && 0 < is_array($api->plans) )
 		{
-			echo ' <a class="button button-primary right" href="' . add_query_arg(array(
+			echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
 				'plugin_id' => $plan->plugin_id,
 				'plan_id' => $plan->id,
 				'pricing_id' => $plan->pricing[0]->id,
 				'billing_cycle' => $billing_cycle,
-			), $api->checkout_link) . '" target="_parent">' . __( 'Purchase' ) . '</a>';
+			), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>';
 
 			// @todo Add Cart concept.
 //			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';
