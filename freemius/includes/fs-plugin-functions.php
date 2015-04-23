@@ -180,7 +180,7 @@
 				<script type="text/javascript">
 					(function($) {
 						$('.plugin-information-pricing input[type=radio]').click(function () {
-							var checkout_url = '<?php echo esc_url(add_query_arg(array(
+							var checkout_url = '<?php echo esc_url_raw(add_query_arg(array(
 								'plugin_id' => $plan->plugin_id,
 								'billing_cycle' => $billing_cycle,
 							), $api->checkout_link)) ?>&plan_id=' +
