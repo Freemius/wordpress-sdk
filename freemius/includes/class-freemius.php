@@ -317,6 +317,8 @@
 				$this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
 			}
 
+			$this->_plugin = FS_Plugin_Manager::instance($this->_slug)->get();
+
 			if ( isset( $sites[ $this->_plugin_basename ] ) && is_object( $sites[ $this->_plugin_basename ] ) ) {
 				// Load site.
 				$this->_site       = clone $sites[ $this->_plugin_basename ];
@@ -373,6 +375,8 @@
 			}
 		}
 
+		// <editor-fold defaultstate="collapsed" desc="Initialization">
+
 		/* Initialization
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
@@ -426,12 +430,15 @@
 				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
 			}
 
-			$this->_plugin                   = new FS_Plugin();
+			$plugin                          = new FS_Plugin();
 			$this->_plugin->id               = $id;
 			$this->_plugin->public_key       = $public_key;
 			$this->_plugin->secret_key       = $secret_key;
 			$this->_plugin->slug             = $this->_slug;
 			$this->_plugin->parent_plugin_id = $parent_id;
+
+			// Update plugin details.
+			FS_Plugin_Manager::instance( $this->_slug )->update( $plugin, true );
 
 			$this->_is_live    = $is_live;
 			$this->_is_premium = $is_premium;
@@ -497,9 +504,10 @@
 				}
 			}
 
-			$this->do_action('initiated');
+			$this->do_action( 'initiated' );
 		}
 
+		// </editor-fold>
 
 		/**
 		 * Generate add-on plugin information.
@@ -2743,7 +2751,7 @@
 
 			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
 
-			$is_addon_sync = ( $plugin_id !== $this->get_id() );
+			$is_addon_sync = (!$this->_plugin->is_addon() && $plugin_id !== $this->get_id() );
 
 			if ( $is_addon_sync ) {
 				$this->_sync_addon_license( $plugin_id , $background );
@@ -3604,7 +3612,13 @@
 		 */
 		function get_api_site_scope() {
 			if ( ! isset( $this->_site_api ) ) {
-				$this->_site_api = FS_Api::instance( $this, 'install', $this->_site->id, $this->_site->public_key, $this->_site->secret_key );
+				$this->_site_api = FS_Api::instance(
+					$this,
+					'install',
+					$this->_site->id,
+					$this->_site->public_key,
+					$this->_site->secret_key
+				);
 			}
 
 			return $this->_site_api;

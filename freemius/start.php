@@ -25,8 +25,8 @@
 
 		require_once WP_FS__DIR_INCLUDES . '/fs-core-functions.php';
 //		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-abstract-manager.php';
-//		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-license-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-option-manager.php';
+		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-plugin-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-entity.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-scope-entity.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-user.php';
