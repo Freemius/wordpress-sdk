@@ -21,6 +21,9 @@
 	<div class="wrap">
 	<h2 class="nav-tab-wrapper">
 		<a href="<?php $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _e('Account', WP_FS__SLUG) ?></a>
+		<?php if ( $fs->_has_addons() ) : ?>
+			<a href="<?php echo $fs->_get_admin_page_url('addons') ?>" class="nav-tab"><?php _e('Add Ons', WP_FS__SLUG) ?></a>
+		<?php endif ?>
 		<?php if ($fs->is_not_paying()) : ?>
 			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
 		<?php endif ?>
