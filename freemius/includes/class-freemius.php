@@ -431,11 +431,11 @@
 			}
 
 			$plugin                          = new FS_Plugin();
-			$this->_plugin->id               = $id;
-			$this->_plugin->public_key       = $public_key;
-			$this->_plugin->secret_key       = $secret_key;
-			$this->_plugin->slug             = $this->_slug;
-			$this->_plugin->parent_plugin_id = $parent_id;
+			$plugin->id               = $id;
+			$plugin->public_key       = $public_key;
+			$plugin->secret_key       = $secret_key;
+			$plugin->slug             = $this->_slug;
+			$plugin->parent_plugin_id = $parent_id;
 
 			// Update plugin details.
 			FS_Plugin_Manager::instance( $this->_slug )->update( $plugin, true );
@@ -721,6 +721,9 @@
 		function init_sandbox($secret_key)
 		{
 			$this->_plugin->secret_key = $secret_key;
+
+			// Update plugin details.
+			FS_Plugin_Manager::instance( $this->_slug )->update( $this->_plugin, true );
 		}
 
 		/**
