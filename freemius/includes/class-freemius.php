@@ -440,6 +440,8 @@
 			// Update plugin details.
 			FS_Plugin_Manager::instance( $this->_slug )->update( $plugin, true );
 
+			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
+
 			$this->_is_live    = $is_live;
 			$this->_is_premium = $is_premium;
 
