@@ -22,6 +22,11 @@
 		private static $_options;
 
 		/**
+		 * @var FS_Option_Manager API Caching layer
+		 */
+		private static $_cache;
+
+		/**
 		 * @var int Clock diff in seconds between current server to API server.
 		 */
 		private static $_clock_diff;
@@ -32,10 +37,9 @@
 		private $_api;
 
 		/**
-		 * @var Freemius
-		 * @since 1.0.4
+		 * @var string
 		 */
-		private $_fs;
+		private $_slug;
 
 		/**
 		 * @var FS_Logger
@@ -44,55 +48,59 @@
 		private $_logger;
 
 		/**
-		 * @param Freemius $freemius
-		 * @param string   $scope      'app', 'developer', 'user' or 'install'.
-		 * @param number   $id         Element's id.
-		 * @param string   $public_key Public key.
-		 * @param string   $secret_key Element's secret key.
+		 * @param string      $slug
+		 * @param string      $scope      'app', 'developer', 'user' or 'install'.
+		 * @param number      $id         Element's id.
+		 * @param string      $public_key Public key.
+		 * @param bool        $is_sandbox
+		 * @param bool|string $secret_key Element's secret key.
 		 *
+		 * @internal param \Freemius $freemius
 		 * @return \FS_Api
 		 */
-		static function instance( Freemius $freemius, $scope, $id, $public_key, $secret_key ) {
-			$identifier = md5($freemius->get_slug() . $scope . $id . $public_key . $secret_key);
+		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false ) {
+			$identifier = md5($slug . $scope . $id . $public_key . (is_string($secret_key) ? $secret_key : '') . json_encode($is_sandbox));
 
 			if ( ! isset( self::$_instances[ $identifier ] ) ) {
 				if ( 0 === count( self::$_instances ) ) {
 					self::_init();
 				}
 
-				self::$_instances[ $identifier ] = new FS_Api($freemius, $scope, $id, $public_key, $secret_key );
+				self::$_instances[ $identifier ] = new FS_Api($slug, $scope, $id, $public_key, $secret_key, $is_sandbox );
 			}
 
 			return self::$_instances[ $identifier ];
 		}
 
-		private static function _init()
-		{
+		private static function _init() {
 			if ( ! class_exists( 'Freemius_Api' ) ) {
 				require_once( WP_FS__DIR_SDK . '/Freemius.php' );
 			}
 
-			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
+			self::$_options    = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
+			self::$_cache      = FS_Option_Manager::get_manager( 'fs_api_cache', true );
 
-			self::$_clock_diff = self::$_options->get_option('api_clock_diff', 0);
+			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
 
-			Freemius_Api::SetClockDiff(self::$_clock_diff);
+			Freemius_Api::SetClockDiff( self::$_clock_diff );
 		}
 
 		/**
-		 * @param \Freemius $freemius
-		 * @param string    $scope  'app', 'developer', 'user' or 'install'.
-		 * @param number    $id     Element's id.
-		 * @param string    $public_key Public key.
-		 * @param string    $secret_key Element's secret key.
+		 * @param string      $slug
+		 * @param string      $scope      'app', 'developer', 'user' or 'install'.
+		 * @param number      $id         Element's id.
+		 * @param string      $public_key Public key.
+		 * @param bool|string $secret_key Element's secret key.
+		 * @param bool        $is_sandbox
+		 *
+		 * @internal param \Freemius $freemius
 		 */
-		private function __construct(Freemius $freemius, $scope, $id, $public_key, $secret_key)
+		private function __construct($slug, $scope, $id, $public_key, $secret_key, $is_sandbox)
 		{
-			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, !$freemius->is_live() );
+			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, $is_sandbox );
 
-			$this->_fs = $freemius;
-
-			$this->_logger = FS_Logger::get_logger(WP_FS__SLUG . '_' . $this->_fs->get_slug() . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK);
+			$this->_slug = $slug;
+			$this->_logger = FS_Logger::get_logger(WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK);
 		}
 
 		/**
@@ -169,6 +177,64 @@
 		function call($path, $method = 'GET', $params = array())
 		{
 			return $this->_call($path, $method, $params);
+		}
+
+		/**
+		 * @param string $path
+		 * @param bool   $flush
+		 * @param int    $expiration (optional) Time until expiration in seconds from now, defaults to 24 hours
+		 *
+		 * @return stdClass|mixed
+		 */
+		function get($path = '/', $flush = false, $expiration = WP_FS__TIME_24_HOURS_IN_SEC)
+		{
+			$cache_key = $this->get_cache_key($path);
+
+			// Always flush during development.
+			if (WP_FS__DEV_MODE || $this->_api->IsSandbox())
+				$flush = true;
+
+			// Get result from cache.
+			$cache_entry = self::$_cache->get_option($cache_key, false);
+
+			if (false === $cache_entry ||
+				!isset($cache_entry->timestamp) ||
+				!is_numeric($cache_entry->timestamp) ||
+			    $cache_entry->timestamp < WP_FS__SCRIPT_START_TIME) {
+				$flush = true;
+			}
+
+			if ($flush)
+			{
+				$result = $this->call($path);
+
+				if (isset($result->error))
+				{
+					// If there was an error during a newer data fetch,
+					// then fallback to older data version.
+					if (is_object($cache_entry) &&
+						isset($cache_entry->result) &&
+						!isset($cache_entry->result->error))
+					{
+						$result = $cache_entry->result;
+					}
+				}
+
+				$cache_entry = new stdClass();
+				$cache_entry->result = $result;
+				$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
+				self::$_cache->set_option($cache_key, $cache_entry, true);
+			}
+
+			return $cache_entry->result;
+		}
+
+		private function get_cache_key($path, $method = 'GET', $params = array())
+		{
+			$canonized = $this->_api->CanonizePath($path);
+//			$exploded = explode('/', $canonized);
+//			return $method . '_' . array_pop($exploded) . '_' . md5($canonized . json_encode($params));
+			return $method . ':' . $canonized . (!empty($params) ? '#' . md5(json_encode($params))  : '');
 		}
 
 		/**
