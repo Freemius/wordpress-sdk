@@ -24,7 +24,7 @@
 		<?php if ( $fs->_has_addons() ) : ?>
 			<a href="<?php echo $fs->_get_admin_page_url('addons') ?>" class="nav-tab"><?php _e('Add Ons', WP_FS__SLUG) ?></a>
 		<?php endif ?>
-		<?php if ($fs->is_not_paying()) : ?>
+		<?php if ($fs->is_not_paying() && $fs->has_paid_plan()) : ?>
 			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
 		<?php endif ?>
 	</h2>
@@ -91,6 +91,13 @@
 					$profile[] = array('id' => 'version', 'title' => __('Version', WP_FS__SLUG), 'value' => $fs->get_plugin_version());
 				?>
 				<?php $odd = true; foreach ($profile as $p) : ?>
+					<?php
+					if ('plan' === $p['id'] && !$fs->has_paid_plan()) {
+						// If plugin don't have any paid plans, there's no reason
+						// to show current plan.
+						continue;
+					}
+					?>
 					<tr class="fs-field-<?php echo $p['id'] ?><?php if ($odd) :?> alternate<?php endif ?>">
 						<td>
 							<nobr><?php echo $p['title'] ?>:</nobr>
@@ -123,8 +130,8 @@
 										<?php else : ?>
 											<form action="" method="POST" class="button-group">
 												<input type="submit" class="button" value="<?php _e('Sync License', WP_FS__SLUG) ?>">
-												<input type="hidden" name="fs_action" value="sync_license">
-												<?php wp_nonce_field('sync_license') ?>
+												<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
+												<?php wp_nonce_field($slug . '_sync_license') ?>
 												<a href="<?php echo $fs->get_upgrade_url() ?>" class="button button-primary button-upgrade"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
 											</form>
 										<?php endif ?>
@@ -204,8 +211,8 @@
 						<td><?php echo $fs_addon->get_plugin_version() ?></td>
 						<td><?php echo is_string($addon_site->plan->name) ? strtoupper($addon_site->plan->title) : 'FREE' ?></td>
 						<?php
-							$current_license = $fs_addon->_get_license();
-							$is_current_license_expired = is_object($current_license) && $current_license->is_expired();
+						$current_license = $fs_addon->_get_license();
+						$is_current_license_expired = is_object($current_license) && $current_license->is_expired();
 						?>
 						<?php if ( $fs_addon->is_not_paying() ) : ?>
 							<?php if ($is_current_license_expired) : ?>
@@ -225,7 +232,7 @@
 									<div class="button-group">
 										<?php fs_ui_action_button(
 											$slug, 'account',
-											'sync_license',
+											$slug . '_sync_license',
 											__('Sync License', WP_FS__SLUG),
 											array('plugin_id' => $addon_id),
 											false
@@ -288,16 +295,16 @@
 					<?php endif ?>
 					<?php if (defined('WP_FS__DEV_MODE') && WP_FS__DEV_MODE) : ?>
 						<td>
-						<?php
-							if ($is_addon_activated)
-								fs_ui_action_button(
-									$slug, 'account',
-									'delete_account',
-									__('Delete', WP_FS__SLUG),
-									array('plugin_id' => $addon_id),
-									false
-								)
-						?>
+							<?php
+								if ($is_addon_activated)
+									fs_ui_action_button(
+										$slug, 'account',
+										'delete_account',
+										__('Delete', WP_FS__SLUG),
+										array('plugin_id' => $addon_id),
+										false
+									)
+							?>
 						</td>
 					<?php endif ?>
 				</tr>
