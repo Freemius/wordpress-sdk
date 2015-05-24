@@ -21,7 +21,7 @@
 		protected $_plugin;
 
 		/**
-		 * @var FS_License_Manager[]
+		 * @var FS_Plugin_Manager[]
 		 */
 		private static $_instances = array();
 		/**
@@ -32,7 +32,7 @@
 		/**
 		 * @param string $slug
 		 *
-		 * @return \FS_License_Manager
+		 * @return \FS_Plugin_Manager
 		 */
 		static function instance($slug) {
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
@@ -147,4 +147,6 @@
 				$this->_plugin :
 				false;
 		}
+
+
 	}
