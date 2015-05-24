@@ -16,6 +16,22 @@
 		public $last;
 		public $is_verified;
 
+		/**
+		 * @param stdClass|bool $user
+		 */
+		function __construct( $user = false ) {
+			if ( ! ( $user instanceof stdClass ) ) {
+				return;
+			}
+
+			parent::__construct( $user );
+
+			$this->email       = $user->email;
+			$this->first       = $user->first;
+			$this->last        = $user->last;
+			$this->is_verified = $user->is_verified;
+		}
+
 		function get_name()
 		{
 			return trim(ucfirst(trim(is_string($this->first) ? $this->first : '')) . ' ' . ucfirst(trim(is_string($this->last) ? $this->last : '')));
