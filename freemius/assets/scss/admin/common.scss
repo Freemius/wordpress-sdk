@@ -1,8 +1,63 @@
+@import "../start";
+
 .fs-notice
 {
+    position: relative;
+
     &.success
     {
         color:       green;
-        font-weight: 700;
+//        font-weight: normal;
+    }
+
+    .fs-close
+    {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        color: #ccc;
+
+        &:hover
+        {
+            color: #aaa;
+        }
+    }
+}
+
+.fs-secure-notice
+{
+    position: fixed;
+    top: 32px;
+    left: 160px;
+    right: 0;
+    background: rgb(235, 253, 235);
+    padding: 10px 20px;
+    color: green;
+    z-index: 999999;
+    box-shadow: 0px 2px 2px rgba(6, 113, 6, 0.3);
+    @include opacity(0.95);
+
+    &:hover
+    {
+        @include opacity(1);
+    }
+}
+
+@media screen and (max-width: 960px)
+{
+    .fs-secure-notice
+    {
+        left: 36px;
+    }
+}
+
+@media screen and (max-width: 782px)
+{
+    .fs-secure-notice
+    {
+        left: 0;
+        top: 46px;
+        text-align: center;
     }
 }
