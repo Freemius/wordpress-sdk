@@ -10,6 +10,7 @@
 	wp_enqueue_script('json2');
 	fs_enqueue_local_script('postmessage', 'nojquery.ba-postmessage.min.js');
 	fs_enqueue_local_script('fs-postmessage', 'postmessage.js');
+	fs_enqueue_local_style( 'fs_checkout', '/admin/common.css' );
 
 	$slug = $VARS['slug'];
 	$fs = fs($slug);
@@ -28,8 +29,11 @@
 		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	)));
 ?>
-
-<div id="fs_contact" class="wrap" style="margin: 0 0 -65px -20px;">
+<div class="fs-secure-notice">
+	<i class="dashicons dashicons-lock"></i>
+	<span><b>Secure HTTPS contact page</b>, running via iframe from external domain</span>
+</div>
+<div id="fs_contact" class="wrap" style="margin: 40px 0 -65px -20px;">
 	<div id="iframe"></div>
 	<script type="text/javascript">
 		(function($) {
