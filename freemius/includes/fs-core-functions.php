@@ -93,6 +93,10 @@
 		return isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
 	}
 
+	function fs_request_has( $key ) {
+		return isset( $_REQUEST[ $key ] );
+	}
+
 	function fs_request_get_bool( $key, $def = false ) {
 		return ( isset( $_REQUEST[ $key ] ) && ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) ) ? true : $def;
 	}
