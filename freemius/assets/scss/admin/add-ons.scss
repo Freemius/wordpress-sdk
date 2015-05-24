@@ -94,31 +94,33 @@
                 }
             }
 
-            &:hover
-            {
-                .fs-overlay
+            @media screen and (min-width: 960px) {
+                &:hover
                 {
-                    border: 2px solid $fms-link-color;
-                    margin-left: -1px;
-                    margin-top: -1px;
-                }
-
-                .fs-inner
-                {
-                    ul
+                    .fs-overlay
                     {
-                        top: -100px;
+                        border:      2px solid $fms-link-color;
+                        margin-left: -1px;
+                        margin-top:  -1px;
                     }
 
-                    .fs-card-banner
+                    .fs-inner
                     {
-//                        background-position: 50% -100px;
-                    }
+                        ul
+                        {
+                            top: -100px;
+                        }
 
-                    .fs-title,
-                    .fs-offer
-                    {
-                        color: $fms-link-color;
+                        .fs-card-banner
+                        {
+                            //                        background-position: 50% -100px;
+                        }
+
+                        .fs-title,
+                        .fs-offer
+                        {
+                            color: $fms-link-color;
+                        }
                     }
                 }
             }
@@ -226,6 +228,11 @@
             text-transform: uppercase;
             font-size: 1.1em;
         }
+
+        label
+        {
+            white-space: nowrap;
+        }
     }
 
     #section-features
@@ -288,6 +295,20 @@
             width: 30px;
             height: 30px;
             font-size: 30px;
+        }
+    }
+}
+
+@media screen and (max-width: 961px)
+{
+    #fs_addons
+    {
+        .fs-cards-list
+        {
+            .fs-card
+            {
+                height: 265px;
+            }
         }
     }
 }
