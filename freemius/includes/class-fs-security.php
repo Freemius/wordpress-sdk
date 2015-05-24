@@ -57,6 +57,7 @@
 			    's_ctx_type' => $entity->get_type(),
 			    's_ctx_id' => $entity->id,
 			    's_ctx_ts' => $timestamp,
-			    's_ctx_secure' => $this->get_secure_token($entity, $timestamp, $action), 		    );
+			    's_ctx_secure' => $this->get_secure_token($entity, $timestamp, $action),
+		    );
 	    }
     }

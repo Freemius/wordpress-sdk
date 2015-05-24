@@ -47,10 +47,12 @@
 		define( 'FS_API__SANDBOX_ADDRESS', 'http://sandbox-api.freemius:8080' );
 	}
 
+	define( 'WP_FS___OPTION_PREFIX', 'fs' . (WP_FS__IS_PRODUCTION_MODE ? '' : '_dbg') . '_' );
+
 	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
-		define( 'WP_FS__ACCOUNTS_OPTION_NAME', 'fs_accounts' . ( ! WP_FS__IS_PRODUCTION_MODE ? '_dbg' : '' ) );
+		define( 'WP_FS__ACCOUNTS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'accounts' );
 	}
-	define( 'WP_FS__OPTIONS_OPTION_NAME', 'fs_options' . ( ! WP_FS__IS_PRODUCTION_MODE ? '_dbg' : '' ) );
+	define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
 	define( 'WP_FS__IS_HTTPS', (
 		                           // Checks if CloudFlare's HTTPS (Flexible SSL support)
