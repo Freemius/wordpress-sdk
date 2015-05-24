@@ -24,7 +24,7 @@
 	);
 
 	$query_params = array_merge($context_params, array(
-		'next' => $fs->_get_admin_page_url('account', array('fs_action' => 'sync_license')),
+		'next' => $fs->_get_admin_page_url('account', array('fs_action' => $slug . '_sync_license')),
 		'plugin_version' => $fs->get_plugin_version(),
 		// Billing cycle.
 		'billing_cycle' => fs_request_get('billing_cycle', WP_FS__PERIOD_ANNUALLY),
