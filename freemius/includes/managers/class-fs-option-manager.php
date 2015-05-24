@@ -126,6 +126,11 @@
 			}
 		}
 
+		function has_option ($option)
+		{
+			return array_key_exists( $option, $this->_options );
+		}
+
 		function get_option( $option, $default = null ) {
 			$this->_logger->entrance( 'option = ' . $option );
 
