@@ -27,4 +27,5 @@
 		<?php endif ?>
 		<?php echo $VARS['message'] ?>
 	<?php if ('update-nag' !== $VARS['type']) : ?></p><?php endif ?>
+	<?php if ($VARS['sticky']) : ?><i class="dashicons dashicons-no"></i><?php endif ?>
 </div>

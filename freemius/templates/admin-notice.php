@@ -6,7 +6,7 @@
 	 * @since       1.0.3
 	 */
 ?>
-	<div class="<?php
+	<div data-id="<?php echo $VARS['id'] ?>" data-slug="<?php echo $VARS['slug'] ?>" class="<?php
 	switch ($VARS['type']) {
 		case 'error':
 			echo 'error form-invalid';
@@ -19,9 +19,9 @@
 			echo 'updated success';
 			break;
 	}
-?> fs-notice"><p>
+?> fs-notice<?php if ($VARS['sticky']) echo ' fs-sticky' ?>"><p>
 		<?php if (!empty($VARS['title'])) : ?>
 			<b><?php echo $VARS['title'] ?></b>
 		<?php endif ?>
 		<?php echo $VARS['message'] ?>
-	</p></div>
+	</p><?php if ($VARS['sticky']) : ?><i class="fs-close dashicons dashicons-no" title="<?php _e('Dismiss', WP_FS__SLUG) ?>"></i><?php endif ?></div>
