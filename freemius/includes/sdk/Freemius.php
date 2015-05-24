@@ -18,7 +18,7 @@
 	if (!function_exists('curl_init'))
 		throw new Exception('Freemius needs the CURL PHP extension.');
 
-	require_once(dirname(__FILE__) . '/FreemiusBase.php');
+	require_once( dirname( __FILE__ ) . '/FreemiusBase.php' );
 
 	define('FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION);
 
@@ -47,14 +47,18 @@
 		);
 
 		/**
-		 * @param string $pScope 'app', 'developer', 'user' or 'install'.
-		 * @param number $pID Element's id.
-		 * @param string $pPublic Public key.
-		 * @param string $pSecret Element's secret key.
-		 * @param bool $pSandbox Whether or not to run API in sandbox mode.
+		 * @param string      $pScope 'app', 'developer', 'user' or 'install'.
+		 * @param number      $pID Element's id.
+		 * @param string      $pPublic Public key.
+		 * @param string|bool $pSecret Element's secret key.
+		 * @param bool        $pSandbox Whether or not to run API in sandbox mode.
 		 */
-		public function __construct($pScope, $pID, $pPublic, $pSecret, $pSandbox = false)
+		public function __construct($pScope, $pID, $pPublic, $pSecret = false, $pSandbox = false)
 		{
+			// If secret key not provided, user public key encryption.
+			if (is_bool($pSecret))
+				$pSecret = $pPublic;
+
 			parent::Init($pScope, $pID, $pPublic, $pSecret, $pSandbox);
 		}
 
@@ -111,8 +115,12 @@
 				$pResourceUrl
 			));
 
+			// If secret and public keys are identical, it means that
+			// the signature uses public key hash encoding.
+			$auth_type = ($this->_secret !== $this->_public) ? 'FS' : 'FSP';
+
 			// Add authorization header.
-			$opts[CURLOPT_HTTPHEADER][] = 'Authorization: FS ' . $this->_id . ':' . $this->_public . ':' . self::Base64UrlEncode(hash_hmac('sha256', $string_to_sign, $this->_secret));
+			$opts[CURLOPT_HTTPHEADER][] = 'Authorization: ' . $auth_type . ' ' . $this->_id . ':' . $this->_public . ':' . self::Base64UrlEncode(hash_hmac('sha256', $string_to_sign, $this->_secret));
 		}
 
 		/**
