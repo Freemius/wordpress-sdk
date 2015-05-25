@@ -322,6 +322,13 @@
 		}
 
 		private static $_statics_loaded = false;
+
+		/**
+		 * Load static resources.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.1
+		 */
 		private static function _load_required_static() {
 			if (self::$_statics_loaded)
 				return;
@@ -1025,6 +1032,14 @@
 			$this->_add_upgrade_action_link();
 		}
 
+		/**
+		 * Return current page's URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.7
+		 *
+		 * @return string
+		 */
 		function current_page_url() {
 			$url = 'http';
 
@@ -1043,6 +1058,14 @@
 			return esc_url($url);
 		}
 
+		/**
+		 * Check if the current page is the plugin's main admin settings page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.7
+		 *
+		 * @return bool
+		 */
 		function _is_plugin_page()
 		{
 			return (is_admin() && $_REQUEST['page'] === $this->_menu_slug);
@@ -1204,6 +1227,12 @@
 			$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => false, 'is_uninstalled' => true ) );
 		}
 
+		/**
+		 * Uninstall plugin hook. Called only when connected his account with Freemius for active sites tracking.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.2
+		 */
 		public static function _uninstall_plugin_hook() {
 			self::_load_required_static();
 
@@ -1225,6 +1254,14 @@
 
 		/* Plugin Information
 		------------------------------------------------------------------------------------------------------------------*/
+		/**
+		 * Return plugin data.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.1
+		 *
+		 * @return array
+		 */
 		function get_plugin_data() {
 			if ( ! isset( $this->_plugin_data ) ) {
 				if ( ! function_exists( 'get_plugins' ) ) {
@@ -1237,6 +1274,12 @@
 			return $this->_plugin_data;
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.1
+		 *
+		 * @return string Plugin slug.
+		 */
 		function get_slug()
 		{
 			return $this->_slug;
@@ -1568,21 +1611,28 @@
 			return false;
 		}
 
+		/**
+		 * Get site's plan ID.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.2
+		 *
+		 * @return number
+		 */
 		function get_plan_id() {
 			return $this->_site->plan->id;
 		}
 
+		/**
+		 * Get site's plan title.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.2
+		 *
+		 * @return string
+		 */
 		function get_plan_title() {
 			return $this->_site->plan->title;
-		}
-
-		function update_account($user_id, $user_email, $site_id)
-		{
-			$this->_user->id = $user_id;
-			$this->_user->email = $user_email;
-			$this->_site->user_id = $user_id;
-			$this->_site->id = $site_id;
-			$this->_store_account();
 		}
 
 		/* Licensing
@@ -1888,17 +1938,43 @@
 			return FS_Plan_Manager::has_free_plan($this->_plans);
 		}
 
+		/**
+		 * Check if feature supported with current site's plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.1
+		 *
+		 * @todo IMPLEMENT
+		 *
+		 * @param number $feature_id
+		 *
+		 * @throws \Exception
+		 */
 		function is_feature_supported($feature_id)
 		{
 			throw new Exception('not implemented');
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.1
+		 *
+		 * @return bool Is running in SSL/HTTPS
+		 */
 		function is_ssl() {
 
 			return WP_FS__IS_HTTPS;
 
 		}
 
+		/**
+		 * Check if running in HTTPS and if site's plan matching the specified plan.
+		 *
+		 * @param string $plan
+		 * @param bool   $exact
+		 *
+		 * @return bool
+		 */
 		function is_ssl_and_plan( $plan, $exact = false ) {
 			return ( $this->is_ssl() && $this->is_plan( $plan, $exact ) );
 		}
@@ -2212,6 +2288,12 @@
 			$submenu[$menu_slug] = array();
 		}
 
+		/**
+		 * Remove plugin's all admin menu items & pages, and replace with activation page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.1
+		 */
 		private function _override_plugin_menu_with_activation()
 		{
 			$menu = $this->_find_plugin_main_menu();
@@ -2317,6 +2399,12 @@
 			return false;
 		}
 
+		/**
+		 * Install plugin with new user information after approval.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.7
+		 */
 		function _install_with_new_user() {
 			if ( $this->is_registered() ) {
 				return;
