@@ -342,7 +342,65 @@
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
 
+			if (WP_FS__DEV_MODE)
+			{
+				add_action( 'admin_menu', array( 'Freemius', 'add_debug_page' ) );
+			}
+
 			self::$_statics_loaded = true;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.8
+		 */
+		static function add_debug_page()
+		{
+			self::$_static_logger->entrance();
+
+			$hook = add_object_page(
+				__('Freemius Debug', WP_FS__SLUG),
+				__('Freemius Debug', WP_FS__SLUG),
+				'manage_options',
+				WP_FS__SLUG,
+				array('Freemius', '_debug_page_render')
+			);
+
+			add_action( "load-$hook", array('Freemius', '_debug_page_actions') );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.8
+		 */
+		static function _debug_page_actions()
+		{
+			if ( fs_request_is_action( 'delete_all_accounts' ) ) {
+				check_admin_referer( 'delete_all_accounts' );
+
+				self::$_accounts->clear(true);
+
+				return;
+			}
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.8
+		 */
+		static function _debug_page_render(){
+			self::$_static_logger->entrance();
+
+			$sites    = self::get_all_sites();
+			$users    = self::get_all_users();
+//			$plans    = self::get_all_plans();
+//			$licenses = self::get_all_licenses();
+
+			$vars = array(
+				'sites' => $sites,
+				'users' => $users,
+			);
+			fs_require_once_template( 'debug.php', $vars );
 		}
 
 		/**
@@ -967,6 +1025,9 @@
 						$this->_sync_addons();
 					}
 				}
+
+				// Update last sync timestamp.
+				$this->_storage->sync_timestamp = time();
 
 				return true;
 			}
@@ -3058,13 +3119,15 @@
 		 * @since  1.0.5
 		 * @uses   FS_Api
 		 *
+		 * @param bool $flush
+		 *
 		 * @return stdClass|\FS_Site
 		 */
-		private function _fetch_site() {
+		private function _fetch_site($flush = false) {
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
 
-			$site = $api->get( '/' );
+			$site = $api->get( '/', $flush );
 
 			if (!isset( $site->error )) {
 				$site = new FS_Site( $site );
@@ -3387,7 +3450,7 @@
 			$this->_logger->entrance();
 
 			// Load site details.
-			$site = $this->_fetch_site();
+			$site = $this->_fetch_site(true);
 
 			$plan_change = 'none';
 
