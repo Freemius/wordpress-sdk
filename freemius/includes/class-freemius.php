@@ -14,11 +14,12 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.7';
+		public $version = '1.0.8';
 
 		private $_slug;
 		private $_menu_slug;
 		private $_plugin_basename;
+		private $_free_plugin_basename;
 		private $_plugin_dir_path;
 		private $_plugin_dir_name;
 		private $_plugin_main_file_path;
@@ -124,11 +125,12 @@
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_admin_notices = FS_Admin_Notice_Manager::instance($slug);
+			$this->_admin_notices = FS_Admin_Notice_Manager::instance( $slug );
 
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = plugin_basename( $this->_plugin_main_file_path );
+			$this->_free_plugin_basename  = str_replace( '-premium/', '/',  $this->_plugin_basename );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
 			$this->_plugin_dir_name = $base_name_split[0];
@@ -137,6 +139,7 @@
 				$this->_logger->info( 'plugin_main_file_path = ' . $this->_plugin_main_file_path );
 				$this->_logger->info( 'plugin_dir_path = ' . $this->_plugin_dir_path );
 				$this->_logger->info( 'plugin_basename = ' . $this->_plugin_basename );
+				$this->_logger->info( 'free_plugin_basename = ' . $this->_free_plugin_basename );
 				$this->_logger->info( 'plugin_dir_name = ' . $this->_plugin_dir_name );
 			}
 
@@ -277,6 +280,18 @@
 				! $this->is_anonymous() &&
 				! $this->is_pending_activation()
 			);
+		}
+
+		/**
+		 * Is user on plugin's admin activation page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.8
+		 *
+		 * @return bool
+		 */
+		function is_activation_page(){
+			return isset( $_GET['page'] ) && (strtolower($this->_menu_slug) === strtolower($_GET['page']));
 		}
 
 		/**
@@ -448,9 +463,9 @@
 			$this->_storage = FS_Key_Value_Storage::instance('plugin_data', $this->_slug);
 			$this->_plugin = FS_Plugin_Manager::instance($this->_slug)->get();
 
-			if ( isset( $sites[ $this->_plugin_basename ] ) && is_object( $sites[ $this->_plugin_basename ] ) ) {
+			if ( isset( $sites[ $this->_free_plugin_basename ] ) && is_object( $sites[ $this->_free_plugin_basename ] ) ) {
 				// Load site.
-				$this->_site       = clone $sites[ $this->_plugin_basename ];
+				$this->_site       = clone $sites[ $this->_free_plugin_basename ];
 				$this->_site->plan = $this->_decrypt_entity( $this->_site->plan );
 
 				// Load relevant user.
@@ -598,11 +613,9 @@
 
 
 			if ( is_admin() ) {
-//				$this->_init_admin_activation();
-
 				if ( $this->is_addon() ) {
 					if ( ! $this->is_parent_plugin_installed() ) {
-						$this->add_admin_message(
+						$this->_admin_notices->add(
 							( is_string( $parent_name ) ?
 								sprintf( __( '%s cannot run without %s.', WP_FS__SLUG ), $this->get_plugin_name(), $parent_name ) :
 								sprintf( __( '%s cannot run without the plugin.', WP_FS__SLUG ), $this->get_plugin_name() )
@@ -678,7 +691,7 @@
 			$this->_logger->entrance();
 
 			$parent_plugin_id = fs_request_get('parent_plugin_id', false);
-				
+
 			if ( $this->get_id() != $parent_plugin_id ||
 			     ( 'plugin_information' !== $action ) ||
 			     ! isset( $args->slug )
@@ -1078,7 +1091,7 @@
 
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
-					if ( empty( $_GET['page'] ) || $this->_menu_slug != $_GET['page'] ) {
+					if ( !$this->is_activation_page() ) {
 						$activation_url = $this->_get_admin_page_url();
 
 						$this->_admin_notices->add(
@@ -1178,8 +1191,8 @@
 		function _delete_site()
 		{
 			$sites = self::get_all_sites();
-			if ( isset( $sites[ $this->_plugin_basename ] ) ) {
-				unset( $sites[ $this->_plugin_basename ] );
+			if ( isset( $sites[ $this->_free_plugin_basename ] ) ) {
+				unset( $sites[ $this->_free_plugin_basename ] );
 			}
 
 			self::$_accounts->set_option( 'sites', $sites, true );
@@ -2336,6 +2349,8 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.7
+		 *
+		 * @return bool If submenu with plugin's menu slug was found.
 		 */
 		private function _remove_all_submenu_pages()
 		{
@@ -2347,6 +2362,8 @@
 				return false;
 
 			$submenu[$menu_slug] = array();
+
+			return true;
 		}
 
 		/**
@@ -2355,15 +2372,17 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
 		 */
-		private function _override_plugin_menu_with_activation()
-		{
+		private function _override_plugin_menu_with_activation() {
 			$menu = $this->_find_plugin_main_menu();
 
-			remove_all_actions($menu['hook_name']);
+			remove_all_actions( $menu['hook_name'] );
 
 			$this->_remove_all_submenu_pages();
 
-			$this->_clean_admin_content_section();
+			if ( $this->is_activation_page() ) {
+				// Clean admin page from distracting content.
+				$this->_clean_admin_content_section();
+			}
 
 			// Override menu action.
 			$hook = add_menu_page(
@@ -2371,15 +2390,16 @@
 				$menu['menu'][0],
 				'manage_options',
 				$this->_menu_slug,
-				array(&$this, '_connect_page_render'),
+				array( &$this, '_connect_page_render' ),
 				$menu['menu'][6],
 				$menu['position']
 			);
 
-			if (fs_request_is_action( $this->_slug . '_activate_existing' ))
-				add_action("load-$hook", array(&$this, '_install_with_current_user'));
-			else if (fs_request_is_action( $this->_slug . '_activate_new' ))
-				add_action("load-$hook", array(&$this, '_install_with_new_user'));
+			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
+				add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
+			} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+				add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+			}
 		}
 
 		/**
@@ -2557,7 +2577,7 @@
 
 				if (isset($install->error))
 				{
-					$this->add_admin_message(
+					$this->_admin_notices->add(
 						sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $install->error->message . '</b>' ),
 						'Oops...',
 						'error'
@@ -2603,7 +2623,7 @@
 			) );
 
 			if ( isset( $addon_install->error ) ) {
-				$this->add_admin_message(
+				$this->_admin_notices->add(
 					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
 					'Oops...',
 					'error'
@@ -2924,7 +2944,7 @@
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
 			$sites                            = self::get_all_sites();
-			$sites[ $this->_plugin_basename ] = $encrypted_site;
+			$sites[ $this->_free_plugin_basename ] = $encrypted_site;
 			self::$_accounts->set_option( 'sites', $sites, $store );
 		}
 
@@ -3841,9 +3861,9 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
-		 * 
+		 *
 		 * @uses FS_Api
-		 *        
+		 *
 		 */
 		private function _sync_addons() {
 			$this->_logger->entrance();
@@ -4142,7 +4162,7 @@
 			add_filter( 'admin_body_class', 'fs_addons_body_class' );
 
 			if ( ! $this->is_registered() && $this->is_org_repo_compliant() ) {
-				$this->add_admin_message(
+				$this->_admin_notices->add(
 					sprintf(__( 'Just letting you know that the add-ons information of %s is being pulled from external server.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>'),
 					__('Heads up ', WP_FS__SLUG),
 					'update-nag'
@@ -4405,7 +4425,7 @@
 		}
 
 		/**
-		 * Adds Upgrade link to the main Plugins page plugin link actions collection.
+		 * Adds Upgrade and Add-Ons links to the main Plugins page link actions collection.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.0
@@ -4413,8 +4433,27 @@
 		function _add_upgrade_action_link() {
 			$this->_logger->entrance();
 
-			if ( ! $this->is_paying__fs__() ) {
-				$this->add_plugin_action_link( __( 'Upgrade', $this->_slug ), $this->get_upgrade_url(), true, 20, 'upgrade' );
+			if ($this->is_registered()) {
+				if ( ! $this->is_paying__fs__() && $this->has_paid_plan() ) {
+					$this->add_plugin_action_link(
+						__( 'Upgrade', $this->_slug ),
+						$this->get_upgrade_url(),
+						false,
+						20,
+						'upgrade'
+					);
+				}
+
+				if ($this->_has_addons())
+				{
+					$this->add_plugin_action_link(
+						__( 'Add-Ons', $this->_slug ),
+						$this->_get_admin_page_url('addons'),
+						false,
+						10,
+						'addons'
+					);
+				}
 			}
 		}
 
@@ -4476,6 +4515,20 @@
 			return $links;
 		}
 
+		/**
+		 * Adds admin message.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.4
+		 *
+		 * @param string $message
+		 * @param string $title
+		 * @param string $type
+		 */
+		function add_admin_message($message, $title = '', $type = 'success')
+		{
+			$this->_admin_notices->add($message, $title, $type);
+		}
 
 		/* Plugin Auto-Updates (@since 1.0.4)
 		------------------------------------------------------------------------------------------------------------------*/
@@ -4526,9 +4579,4 @@
 			// Pass update decision to next filters
 			return $update;
 		}
-
-
-		/* Messaging (@since 1.0.4)
-		------------------------------------------------------------------------------------------------------------------*/
-
 	}

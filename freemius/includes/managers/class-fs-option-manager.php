@@ -18,7 +18,7 @@
 	 *
 	 * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to explicitly call store().
 	 *
-	 * Class FreemiusOptionManager
+	 * Class Freemius_Option_Manager
 	 */
 	class FS_Option_Manager {
 		private $_id;

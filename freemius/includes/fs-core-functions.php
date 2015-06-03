@@ -181,8 +181,10 @@
 	 *
 	 * @since 2.3
 	 *
+	 * @param string $location
+	 *
 	 * @return string redirect-sanitized URL
-	 **/
+	 */
 	function fs_sanitize_redirect( $location ) {
 		$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!]|i', '', $location );
 		$location = fs_kses_no_null( $location );
