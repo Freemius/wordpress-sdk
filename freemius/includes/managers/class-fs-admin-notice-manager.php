@@ -218,7 +218,16 @@
 		 * @param string $id
 		 */
 		function remove_sticky( $id ) {
+			// Remove from sticky storage.
 			$this->_sticky_storage->remove( $id );
+
+			// Remove from current admin messages.
+			if ( isset( $this->_admin_messages['all_admin_notices'] ) && isset( $this->_admin_messages['all_admin_notices'][ $id ] ) ) {
+				unset( $this->_admin_messages['all_admin_notices'][ $id ] );
+			}
+			if ( isset( $this->_admin_messages['admin_notices'] ) && isset( $this->_admin_messages['admin_notices'][ $id ] ) ) {
+				unset( $this->_admin_messages['admin_notices'][ $id ] );
+			}
 		}
 
 		/**
@@ -235,6 +244,17 @@
 		 */
 		function add_sticky( $message, $id, $title = '', $type = 'success', $all_admin = false ) {
 			$this->add( $message, $title, $type, true, $all_admin, $id );
+		}
+
+		/**
+		 * Clear all sticky messages.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.8
+		 */
+		function clear_all_sticky()
+		{
+			$this->_sticky_storage->clear_all();
 		}
 
 		/**
