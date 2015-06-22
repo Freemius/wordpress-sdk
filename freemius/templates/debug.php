@@ -5,7 +5,7 @@
 	 */
 	$sites = $VARS['sites'];
 ?>
-<table id="fs_addons" class="widefat">
+<table id="fs_installs" class="widefat">
 	<thead>
 	<tr>
 		<th>ID</th>
@@ -29,6 +29,40 @@
 <?php endforeach ?>
 	</tbody>
 </table>
+<?php
+	$addons = $VARS['addons'];
+?>
+<?php foreach ($addons as $plugin_id => $plugin_addons) : ?>
+<h2><?php printf(__('Addons of Plugin %s', WP_FS__SLUG), $plugin_id) ?></h2>
+<table id="fs_addons" class="widefat">
+	<thead>
+	<tr>
+		<th>ID</th>
+		<th>Title</th>
+		<th>Slug</th>
+		<th>Version</th>
+		<th>Public Key</th>
+		<th>Secret Key</th>
+	</tr>
+	</thead>
+	<tbody>
+	<?php
+		/**
+		 * @var FS_Plugin[] $plugin_addons
+		 */
+		foreach ($plugin_addons as $addon) : ?>
+		<tr>
+			<td><?php echo $addon->id ?></td>
+			<td><?php echo $addon->title ?></td>
+			<td><?php echo $addon->slug ?></td>
+			<td><?php echo $addon->version ?></td>
+			<td><?php echo $addon->public_key ?></td>
+			<td><?php echo $addon->secret_key ?></td>
+		</tr>
+	<?php endforeach ?>
+	</tbody>
+</table>
+<?php endforeach ?>
 <h2><?php _e('Users', WP_FS__SLUG) ?></h2>
 <?php
 	/**
@@ -36,7 +70,7 @@
 	 */
 	$users = $VARS['users'];
 ?>
-<table id="fs_addons" class="widefat">
+<table id="fs_users" class="widefat">
 	<thead>
 	<tr>
 		<th>ID</th>
