@@ -114,6 +114,7 @@
 				$plugin_details->new_version = $new_version->version;
 				$plugin_details->url         = WP_FS__ADDRESS;
 				$plugin_details->package     = $new_version->url;
+				$plugin_details->plugin      = $this->_fs->get_plugin_basename();
 
 				// Add plugin to transient data.
 				$transient_data->response[ $this->_fs->get_plugin_basename() ] = $plugin_details;
@@ -196,14 +197,16 @@
 				$is_addon = true;
 			}
 
-
+			$plugin_in_repo = false;
 			if (!$is_addon)
 			{
 				// Try to fetch info from .org repository.
 				$data = $this->_fetach_plugin_info_from_repository( $action, $args );
+
+				$plugin_in_repo = ( false !== $data );
 			}
 
-			if ( false === $data ) {
+			if ( !$plugin_in_repo ) {
 				$data = $args;
 
 				// Fetch as much as possible info from local files.
@@ -214,7 +217,7 @@
 					'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
 				);
 
-				// @todo Stor extra plugin info on Freemius or parse readme.txt markup.
+				// @todo Store extra plugin info on Freemius or parse readme.txt markup.
 				/*$info = $this->_fs->get_api_site_scope()->call('/information.json');
 
 if ( !isset($info->error) ) {
@@ -223,12 +226,20 @@ if ( !isset($info->error) ) {
 			}
 
 			// Get plugin's newest update.
-			$new_version = $this->_fs->get_update($is_addon ? $addon->id : false);
+			$new_version = $this->_fs->_fetch_latest_version($is_addon ? $addon->id : false);
+
 			if ($is_addon) {
 				$data->name    = $addon->title . ' ' . __('Add On', WP_FS__SLUG);
 				$data->slug    = $addon->slug;
 				$data->url     = WP_FS__ADDRESS;
 				$data->package = $new_version->url;
+			}
+
+			if (!$plugin_in_repo)
+			{
+				$data->last_updated = !is_null($new_version->updated) ? $new_version->updated : $new_version->created;
+				$data->requires = $new_version->requires_platform_version;
+				$data->tested = $new_version->tested_up_to_version;
 			}
 
 			$data->version = $new_version->version;

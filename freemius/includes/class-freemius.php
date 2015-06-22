@@ -3778,7 +3778,7 @@
 		 *
 		 * @return object|false Plugin latest tag info.
 		 */
-		private function _fetch_latest_version( $addon_id = false ) {
+		function _fetch_latest_version( $addon_id = false ) {
 			$tag = $this->get_api_site_or_plugin_scope()->get( $this->_get_latest_version_endpoint( $addon_id, 'json' ), true );
 			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
 			$this->_logger->departure( 'Latest version ' . $latest_version );
