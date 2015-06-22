@@ -16,6 +16,8 @@
 	 * @var FS_Plugin_Tag $update
 	 */
 	$update = $fs->get_update();
+
+	$is_paying = $fs->is_paying__fs__();
 ?>
 
 	<div class="wrap">
@@ -37,16 +39,16 @@
 		<div class="fs-header-actions">
 			<ul>
 				<li>
-					<form action="" method="POST">
+					<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 						<input type="hidden" name="fs_action" value="delete_account">
 						<?php wp_nonce_field('delete_account') ?>
 						<a href="#" onclick="if (confirm('<?php _e('Are you sure you want to delete the account?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Delete Account', WP_FS__SLUG) ?></a>
 					</form>
 				</li>
-				<?php if ($fs->is_paying__fs__()) : ?>
+				<?php if ($is_paying) : ?>
 					<li>
 						&nbsp;•&nbsp;
-						<form action="" method="POST">
+						<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 							<input type="hidden" name="fs_action" value="deactivate_license">
 							<?php wp_nonce_field('deactivate_license') ?>
 							<a href="#" onclick="if (confirm('<?php _e('Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Deactivate License', WP_FS__SLUG) ?></a>
@@ -54,7 +56,7 @@
 					</li>
 					<li>
 						&nbsp;•&nbsp;
-						<form action="" method="POST">
+						<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 							<input type="hidden" name="fs_action" value="downgrade_account">
 							<?php wp_nonce_field('downgrade_account') ?>
 							<a href="#" onclick="if (confirm('<?php _e('Downgrading your plan will automatically stop all recurring payments and will immediately change your plan to Free. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', WP_FS__SLUG) ?></a>
@@ -110,7 +112,7 @@
 						</td>
 						<td class="fs-right">
 							<?php if ('email' === $p['id'] && !$user->is_verified()) : ?>
-								<form action="" method="POST">
+								<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 									<input type="hidden" name="fs_action" value="verify_email">
 									<?php wp_nonce_field('verify_email') ?>
 									<input type="submit" class="button button-small" value="<?php _e('Verify Email', WP_FS__SLUG) ?>">
@@ -118,30 +120,28 @@
 							<?php endif ?>
 							<?php if ('plan' === $p['id']) : ?>
 								<div class="button-group">
-									<?php if ( $fs->is_not_paying() ) : ?>
-										<?php $license = $fs->_get_available_premium_license() ?>
+										<?php $license = $fs->is_not_paying() ? $fs->_get_available_premium_license() : false ?>
 										<?php if (false !== $license && ($license->left() > 0 || ($site->is_localhost() && $license->is_free_localhost))) : ?>
-											<form action="" method="POST">
+											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 												<?php $plan = $fs->_get_plan_by_id($license->plan_id) ?>
 												<input type="hidden" name="fs_action" value="activate_license">
 												<?php wp_nonce_field('activate_license') ?>
 												<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', WP_FS__SLUG), $plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
 											</form>
 										<?php else : ?>
-											<form action="" method="POST" class="button-group">
+											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" class="button-group">
 												<input type="submit" class="button" value="<?php _e('Sync License', WP_FS__SLUG) ?>">
 												<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
 												<?php wp_nonce_field($slug . '_sync_license') ?>
-												<a href="<?php echo $fs->get_upgrade_url() ?>" class="button button-primary button-upgrade"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
+												<a href="<?php echo $fs->get_upgrade_url() ?>" class="button<?php if (!$is_paying) echo ' button-primary' ?> button-upgrade"><?php (!$is_paying) ? _e('Upgrade', WP_FS__SLUG) : _e('Change Plan', WP_FS__SLUG) ?></a>
 											</form>
 										<?php endif ?>
-									<?php endif; ?>
 								</div>
 							<?php elseif ('version' === $p['id']) : ?>
 								<div class="button-group">
-									<?php if ( $fs->is_paying__fs__() ) : ?>
+									<?php if ( $is_paying ) : ?>
 										<?php if (!$fs->is_allowed_to_install()) : ?>
-											<form action="" method="POST" class="button-group">
+											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" class="button-group">
 												<input type="submit" class="button button-primary" value="<?php echo sprintf( __('Download %1s Version', WP_FS__SLUG), $site->plan->title) . (is_object($update) ? ' [' . $update->version . ']' : '') ?>">
 												<input type="hidden" name="fs_action" value="download_latest">
 												<?php wp_nonce_field('download_latest') ?>
@@ -152,7 +152,7 @@
 									<?php endif; ?>
 								</div>
 							<?php elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/ (is_string($user->secret_key) && in_array($p['id'], array('email', 'user_name'))) ) : ?>
-								<form action="" method="POST" onsubmit="var val = prompt('<?php echo __('What is your', WP_FS__SLUG) . ' ' . $p['title'] . '?' ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
+								<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" onsubmit="var val = prompt('<?php echo __('What is your', WP_FS__SLUG) . ' ' . $p['title'] . '?' ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
 									<input type="hidden" name="fs_action" value="update_<?php echo $p['id'] ?>">
 									<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $slug ?>" value="">
 									<?php wp_nonce_field('update_' . $p['id']) ?>

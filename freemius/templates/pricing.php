@@ -14,14 +14,20 @@
 	$slug = $VARS['slug'];
 	$fs = fs($slug);
 
-	$timestamp = time();
+	$context_params = array(
+		'plugin_id'         => $fs->get_id(),
+		'plugin_public_key' => $fs->get_public_key(),
+		'plugin_version'    => $fs->get_plugin_version(),
+	);
 
 	// Get site context secure params.
-	$context_params = FS_Security::instance()->get_context_params(
-		$fs->get_site(),
-		$timestamp,
-		'upgrade'
-	);
+	if ($fs->is_registered()) {
+		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
+			$fs->get_site(),
+			time(),
+			'upgrade'
+		) );
+	}
 
 	$query_params = array_merge($context_params, array(
 		'next' => $fs->_get_admin_page_url('account', array('fs_action' => $slug . '_sync_license')),
@@ -31,43 +37,43 @@
 	));
 ?>
 
-<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
-	<div id="iframe"></div>
-	<form action="" method="POST">
-		<input type="hidden" name="user_id" />
-		<input type="hidden" name="user_email" />
-		<input type="hidden" name="site_id" />
-		<input type="hidden" name="public_key" />
-		<input type="hidden" name="secret_key" />
-		<input type="hidden" name="action" value="account" />
-	</form>
+	<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
+		<div id="iframe"></div>
+		<form action="" method="POST">
+			<input type="hidden" name="user_id" />
+			<input type="hidden" name="user_email" />
+			<input type="hidden" name="site_id" />
+			<input type="hidden" name="public_key" />
+			<input type="hidden" name="secret_key" />
+			<input type="hidden" name="action" value="account" />
+		</form>
 
-	<script type="text/javascript">
-		(function($, undef) {
-			$(function () {
-				var
-				// Keep track of the iframe height.
-					iframe_height = 800,
-					base_url = '<?php echo WP_FS__ADDRESS ?>',
-				// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
-				// passed via query string or hard coded into the child page, it depends on your needs).
-					src = base_url + '/pricing/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+		<script type="text/javascript">
+			(function($, undef) {
+				$(function () {
+					var
+					// Keep track of the iframe height.
+						iframe_height = 800,
+						base_url = '<?php echo WP_FS__ADDRESS ?>',
+					// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
+					// passed via query string or hard coded into the child page, it depends on your needs).
+						src = base_url + '/pricing/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
 
-				// Append the Iframe into the DOM.
-					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
-						.appendTo('#iframe');
+					// Append the Iframe into the DOM.
+						iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
+							.appendTo('#iframe');
 
-				FS.PostMessage.init(base_url);
+					FS.PostMessage.init(base_url);
 
-				FS.PostMessage.receive('height', function (data){
-					var h = data.height;
-					if (!isNaN(h) && h > 0 && h != iframe_height) {
-						iframe_height = h;
-						$("#iframe iframe").height(iframe_height + 'px');
-					}
+					FS.PostMessage.receive('height', function (data){
+						var h = data.height;
+						if (!isNaN(h) && h > 0 && h != iframe_height) {
+							iframe_height = h;
+							$("#iframe iframe").height(iframe_height + 'px');
+						}
+					});
 				});
-			});
-		})(jQuery);
-	</script>
-</div>
+			})(jQuery);
+		</script>
+	</div>
 <?php fs_require_template('powered-by.php') ?>

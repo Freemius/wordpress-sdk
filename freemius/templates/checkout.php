@@ -17,14 +17,53 @@
 
 	$timestamp = time();
 
+	$context_params = array(
+		'plugin_id'         => $fs->get_id(),
+		'plugin_public_key' => $fs->get_public_key(),
+		'plugin_version'    => $fs->get_plugin_version(),
+	);
+
 	// Get site context secure params.
-	$context_params = !$fs->is_registered() ?
-		array() :
-		FS_Security::instance()->get_context_params(
+	if ($fs->is_registered()) {
+		$context_params = array_merge($context_params, FS_Security::instance()->get_context_params(
 			$fs->get_site(),
 			$timestamp,
 			'checkout'
-		);
+		));
+	} else {
+		$current_user = wp_get_current_user();
+
+		// Add site and user info to the request, this information
+		// is NOT being stored unless the user complete the purchase
+		// and agrees to the TOS.
+		$context_params = array_merge( $context_params, array(
+			'user_firstname'   => $current_user->user_firstname,
+			'user_lastname'    => $current_user->user_lastname,
+			'user_email'       => $current_user->user_email,
+//			'user_nickname'    => $current_user->user_nicename,
+//			'plugin_slug'      => $slug,
+//			'site_url'         => get_site_url(),
+//			'site_name'        => get_bloginfo( 'name' ),
+//			'platform_version' => get_bloginfo( 'version' ),
+//			'language'         => get_bloginfo( 'language' ),
+//			'charset'          => get_bloginfo( 'charset' ),
+//			'account_url'      => fs_nonce_url( $fs->_get_admin_page_url(
+//				'account',
+//				array( 'fs_action' => 'sync_user' )
+//			), 'sync_user' ),
+		) );
+
+		$fs_user = Freemius::_get_user_by_email($current_user->user_email);
+
+		if (is_object($fs_user))
+		{
+			$context_params = array_merge($context_params, FS_Security::instance()->get_context_params(
+				$fs_user,
+				$timestamp,
+				'checkout'
+			));
+		}
+	}
 
 	if ($fs->is_payments_sandbox())
 		// Append plugin secure token for sandbox mode authentication.)
@@ -34,18 +73,20 @@
 			'checkout'
 		);
 
+	$return_url = fs_nonce_url($fs->_get_admin_page_url(
+		'account',
+		array(
+			'fs_action' => $slug . '_sync_license',
+			'plugin_id' => isset($_GET['plugin_id']) ? $_GET['plugin_id'] : $fs->get_id()
+		)
+	), $slug . '_sync_license');
+
 	$query_params = array_merge($context_params, $_GET, array(
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
-		'return_url'     => wp_nonce_url($fs->_get_admin_page_url(
-			'account',
-			array(
-				'fs_action' => $slug . '_sync_license',
-				'plugin_id' => isset($_GET['plugin_id']) ? $_GET['plugin_id'] : $fs->get_id()
-			)
-		), $slug . '_sync_license'),
+		'return_url'     => $return_url,
 		// Admin CSS URL for style/design competability.
-		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
+//		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	));
 ?>
 <div class="fs-secure-notice">
@@ -55,6 +96,50 @@
 <div id="fs_contact" class="wrap" style="margin: 40px 0 -65px -20px;">
 	<div id="iframe"></div>
 	<script type="text/javascript">
+		// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
+		jQuery(function($) { $.extend({
+			form: function(url, data, method) {
+				if (method == null) method = 'POST';
+				if (data == null) data = {};
+
+				var form = $('<form>').attr({
+					method: method,
+					action: url
+				}).css({
+					display: 'none'
+				});
+
+				var addData = function(name, data) {
+					if ($.isArray(data)) {
+						for (var i = 0; i < data.length; i++) {
+							var value = data[i];
+							addData(name + '[]', value);
+						}
+					} else if (typeof data === 'object') {
+						for (var key in data) {
+							if (data.hasOwnProperty(key)) {
+								addData(name + '[' + key + ']', data[key]);
+							}
+						}
+					} else if (data != null) {
+						form.append($('<input>').attr({
+							type: 'hidden',
+							name: String(name),
+							value: String(data)
+						}));
+					}
+				};
+
+				for (var key in data) {
+					if (data.hasOwnProperty(key)) {
+						addData(key, data[key]);
+					}
+				}
+
+				return form.appendTo('body');
+			}
+		}); });
+
 		(function($) {
 			$(function () {
 
@@ -78,6 +163,32 @@
 						$("#iframe iframe").height(iframe_height + 'px');
 					}
 				});
+
+				FS.PostMessage.receive('install', function (data){
+					// Post data to activation URL.
+					$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
+							'fs_action' => $slug . '_activate_new',
+							'plugin_id' => isset($_GET['plugin_id']) ? $_GET['plugin_id'] : $fs->get_id()
+							)), $slug . '_activate_new') ?>', {
+						user_id           : data.user.id,
+						user_secret_key   : data.user.secret_key,
+						user_public_key   : data.user.public_key,
+						install_id        : data.install.id,
+						install_secret_key: data.install.secret_key,
+						install_public_key: data.install.public_key
+					}).submit();
+				});
+
+				FS.PostMessage.receive('pending_activation', function(data){
+					$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
+							'fs_action' => $slug . '_activate_new',
+							'plugin_id' => fs_request_get('plugin_id', $fs->get_id()),
+							'pending_activation' => true,
+							)), $slug . '_activate_new') ?>', {
+						user_email: data.user_email
+					}).submit();
+				});
+
 				FS.PostMessage.receive('get_context', function (){
 					// If the user didn't connect his account with Freemius,
 					// once he accepts the Terms of Service and Privacy Policy,
@@ -85,30 +196,31 @@
 					// of the user will be shared with Freemius in order to complete the
 					// purchase workflow and activate the license for the right user.
 					<?php $current_user = wp_get_current_user() ?>
-					FS.PostMessage.post('user_context', {
-						user: {
-							firstname: '<?php echo $current_user->user_firstname ?>',
-							lastname: '<?php echo $current_user->user_lastname ?>',
-							nickname: '<?php echo $current_user-> user_nicename ?>',
-							email: '<?php echo $current_user->user_email ?>'
-						},
-						plugin: {
-							id: '<?php echo $fs->get_id() ?>',
-							slug: '<?php echo $slug ?>',
-							public_key: '<?php echo $fs->get_public_key() ?>',
-							version: '<?php echo $fs->get_plugin_version() ?>'
-						},
-						site: {
-							name: '<?php echo get_bloginfo('name') ?>',
-							version: '<?php echo get_bloginfo('version') ?>',
-							language: '<?php echo get_bloginfo('language') ?>',
-							charset: '<?php get_bloginfo('charset') ?>',
-							account_url: '<?php echo wp_nonce_url($fs->_get_admin_page_url(
+					FS.PostMessage.post('context', {
+//						user_firstname: '<?php //echo $current_user->user_firstname ?>//',
+//						user_lastname: '<?php //echo $current_user->user_lastname ?>//',
+//						user_email: '<?php //echo $current_user->user_email ?>//'
+						plugin_id        : '<?php echo $fs->get_id() ?>',
+						plugin_public_key: '<?php echo $fs->get_public_key() ?>',
+						plugin_version   : '<?php echo $fs->get_plugin_version() ?>',
+						plugin_slug      : '<?php echo $slug ?>',
+						site_name        : '<?php echo get_bloginfo('name') ?>',
+						platform_version : '<?php echo get_bloginfo('version') ?>',
+						language         : '<?php echo get_bloginfo('language') ?>',
+						charset          : '<?php echo get_bloginfo('charset') ?>',
+						return_url       : '<?php echo $return_url ?>',
+						account_url      : '<?php echo fs_nonce_url($fs->_get_admin_page_url(
 									'account',
 									array('fs_action' => 'sync_user')
-							), 'sync_user') ?>'
-						}
-					});
+						), 'sync_user') ?>',
+						activation_url   : '<?php echo fs_nonce_url($fs->_get_admin_page_url('',
+							array(
+								'fs_action' => $slug . '_activate_new',
+								'plugin_id' => fs_request_get('plugin_id', $fs->get_id()),
+
+								)),
+							$slug . '_activate_new') ?>'
+					}, iframe[0]);
 				});
 			});
 		})(jQuery);

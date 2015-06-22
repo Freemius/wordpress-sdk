@@ -15,14 +15,21 @@
 	$slug = $VARS['slug'];
 	$fs = fs($slug);
 
-	$timestamp = time();
+	$context_params = array(
+		'plugin_id'         => $fs->get_id(),
+		'plugin_public_key' => $fs->get_public_key(),
+		'plugin_version'    => $fs->get_plugin_version(),
+	);
+
 
 	// Get site context secure params.
-	$context_params = FS_Security::instance()->get_context_params(
-		$fs->get_site(),
-		$timestamp,
-		'contact'
-	);
+	if ($fs->is_registered()) {
+		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
+			$fs->get_site(),
+			time(),
+			'contact'
+		) );
+	}
 
 	$query_params = array_merge($_GET, array_merge($context_params, array(
 		'plugin_version' => $fs->get_plugin_version(),

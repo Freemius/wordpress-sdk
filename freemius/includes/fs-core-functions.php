@@ -268,3 +268,9 @@
 			return $path;
 		}
 	}
+
+	function fs_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
+//		$actionurl = str_replace( '&amp;', '&', $actionurl );
+		return add_query_arg( $name, wp_create_nonce( $action ), $actionurl );
+	}
+

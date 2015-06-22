@@ -38,6 +38,12 @@
 		private $_is_premium;
 
 		/**
+		 * @since 1.0.8
+		 * @var bool Hints the SDK if the plugin has any paid plans.
+		 */
+		private $_has_paid_plans;
+
+		/**
 		 * @since 1.0.7
 		 * @var bool Hints the SDK if the plugin is WordPress.org compliant.
 		 */
@@ -403,17 +409,22 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.8
 		 */
-		static function _debug_page_render(){
+		static function _debug_page_render() {
 			self::$_static_logger->entrance();
 
-			$sites    = self::get_all_sites();
-			$users    = self::get_all_users();
+			$sites          = self::get_all_sites();
+			$users          = self::get_all_users();
+			$addons         = self::get_all_addons();
+			$account_addons = self::get_all_account_addons();
+
 //			$plans    = self::get_all_plans();
 //			$licenses = self::get_all_licenses();
 
 			$vars = array(
 				'sites' => $sites,
 				'users' => $users,
+				'addons' => $addons,
+				'account_addons' => $account_addons,
 			);
 			fs_require_once_template( 'debug.php', $vars );
 		}
@@ -545,6 +556,18 @@
 			));
 		}
 
+		private function _get_option(&$options, $key, $default = false) {
+			return ! empty( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
+		private function _get_bool_option(&$options, $key, $default = false) {
+			return isset( $options[ $key ] ) && is_bool( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
+		private function _get_numeric_option(&$options, $key, $default = false) {
+			return isset( $options[ $key ] ) && is_numeric( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
 		/**
 		 * Dynamic initiator, originally created to support initiation
 		 * with parent_id for add-ons.
@@ -559,18 +582,17 @@
 		function dynamic_init(array $plugin_info) {
 			$this->_logger->entrance();
 
-			$id          = isset( $plugin_info['id'] ) && is_numeric( $plugin_info['id'] ) ? $plugin_info['id'] : false;
-			$public_key  = ! empty( $plugin_info['public_key'] ) ? $plugin_info['public_key'] : false;
-			$secret_key  = ! empty( $plugin_info['secret_key'] ) ? $plugin_info['secret_key'] : null;
-			$parent_id   = isset( $plugin_info['parent_id'] ) && is_numeric( $plugin_info['parent_id'] ) ? $plugin_info['parent_id'] : null;
-			$parent_name = ! empty( $plugin_info['parent_name'] ) ? $plugin_info['parent_name'] : null;
+			$id          = $this->_get_numeric_option( $plugin_info, 'id', false );
+			$public_key  = $this->_get_option( $plugin_info, 'public_key', false );
+			$secret_key  = $this->_get_option( $plugin_info, 'secret_key', null );
+			$parent_id   = $this->_get_numeric_option( $plugin_info, 'parent_id', null );
+			$parent_name = $this->_get_option( $plugin_info, 'parent_name', null );
 
-			if (isset( $plugin_info['parent'] ))
-			{
-				$parent_id   = isset( $plugin_info['parent']['id'] ) && is_numeric( $plugin_info['parent']['id'] ) ? $plugin_info['parent']['id'] : null;
-				$parent_slug = ! empty( $plugin_info['parent']['slug'] ) ? $plugin_info['parent']['slug'] : null;
-				$parent_public_key = ! empty( $plugin_info['parent']['public_key'] ) ? $plugin_info['parent']['public_key'] : null;
-				$parent_name = ! empty( $plugin_info['parent']['name'] ) ? $plugin_info['parent']['name'] : null;
+			if ( isset( $plugin_info['parent'] ) ) {
+				$parent_id         = $this->_get_numeric_option( $plugin_info['parent'], 'id', null );
+				$parent_slug       = $this->_get_option( $plugin_info['parent'], 'slug', null );
+				$parent_public_key = $this->_get_option( $plugin_info['parent'], 'public_key', null );
+				$parent_name       = $this->_get_option( $plugin_info['parent'], 'name', null );
 			}
 
 			if ( false === $id ) {
@@ -592,13 +614,15 @@
 
 			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
 
-			$this->_menu_slug = plugin_basename(isset( $plugin_info['menu_slug'] ) ? $plugin_info['menu_slug'] : $this->_slug);
-			$this->_is_live          = isset( $plugin_info['is_live'] ) && is_bool( $plugin_info['is_live'] ) ? $plugin_info['is_live'] : true;
-			$this->_has_addons       = isset( $plugin_info['has_addons'] ) && is_bool( $plugin_info['has_addons'] ) ? $plugin_info['has_addons'] : true;
-			$this->_is_premium       = isset( $plugin_info['is_premium'] ) && is_bool( $plugin_info['is_premium'] ) ? $plugin_info['is_premium'] : true;
-			$this->_is_org_compliant = isset( $plugin_info['is_org_compliant'] ) && is_bool( $plugin_info['is_org_compliant'] ) ? $plugin_info['is_org_compliant'] : true;
+			$this->_menu_slug        = plugin_basename( isset( $plugin_info['menu_slug'] ) ? $plugin_info['menu_slug'] : $this->_slug );
+			$this->_is_live          = $this->_get_bool_option( $plugin_info, 'is_live', true );
+			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
+			$this->_is_premium       = $this->_get_bool_option( $plugin_info, 'is_premium', true );
+			$this->_is_premium       = $this->_get_bool_option( $plugin_info, 'is_premium', true );
+			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
+			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 
-			if (false === $this->_background_sync()) {
+			if ( false === $this->_background_sync() ) {
 				// If background sync wasn't executed,
 				// and if the plugin declared it has add-ons but
 				// no add-ons found in the local data, then try to sync add-ons.
@@ -609,7 +633,6 @@
 					$this->_sync_addons();
 				}
 			}
-
 
 
 			if ( is_admin() ) {
@@ -1052,14 +1075,19 @@
 		 * Show a notice that activation is currently pending.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.7
+		 * @since  1.0.7
 		 *
+		 * @param bool|string $email
 		 */
-		function _add_pending_activation_notice()
+		function _add_pending_activation_notice($email = false)
 		{
-			$current_user = wp_get_current_user();
+			if (!is_string($email)) {
+				$current_user = wp_get_current_user();
+				$email = $current_user->user_email;
+			}
+
 			$this->_admin_notices->add_sticky(
-				sprintf( __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>', '<b>' . $current_user->user_email . '</b>' ),
+				sprintf( __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>', '<b>' . $email . '</b>' ),
 				'activation_pending',
 				'Thanks!'
 			);
@@ -1237,6 +1265,12 @@
 			}
 
 			$this->do_action( 'before_account_delete' );
+
+			// Clear all admin notices.
+			$this->_admin_notices->clear_all_sticky();
+
+			// Delete add-ons related to plugin's account.
+			$this->_delete_account_addons();
 
 			$this->_delete_site();
 
@@ -1995,7 +2029,7 @@
 		 * @return bool
 		 */
 		function has_paid_plan() {
-			return FS_Plan_Manager::has_paid_plan($this->_plans);
+			return $this->_has_paid_plans || FS_Plan_Manager::has_paid_plan($this->_plans);
 		}
 
 		/**
@@ -2512,29 +2546,73 @@
 					$this->_site = $site;
 					$site_result = $this->get_api_site_scope()->get();
 					$site        = new FS_Site( $site_result );
+					$this->_site = $site;
 					$this->_enrich_site_plan( false );
 
 					$this->_set_account( $user, $site );
 					$this->_sync_plans();
 
-					if ($this->is_pending_activation())
-					{
+					if ( is_numeric( $site->license_id ) ) {
+						$this->_license = $this->_get_license_by_id( $site->license_id );
+					}
+
+					if ( $this->is_pending_activation() ) {
 						// Remove pending activation sticky notice (if still exist).
-						$this->_admin_notices->remove_sticky('activation_pending');
+						$this->_admin_notices->remove_sticky( 'activation_pending' );
 
 						// Remove plugin from pending activation mode.
-						unset($this->_storage->is_pending_activation);
+						unset( $this->_storage->is_pending_activation );
 
+						if ( ! $this->is_paying__fs__() ) {
+							$this->_admin_notices->add_sticky(
+								sprintf( __( '%s activation was successfully completed.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
+								'activation_complete'
+							);
+						}
+					}
+
+					if (fs_request_has('plugin_id'))
+					{
+						$plugin_id = fs_request_get('plugin_id', false);
+						if ($plugin_id != $this->_plugin->id) {
+							// Add-on was purchased - sync license after install.
+							if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
+								'account',
+								array(
+									'fs_action' => $this->_slug . '_sync_license',
+									'plugin_id' => $plugin_id
+								)
+							), $this->_slug . '_sync_license' ) ) ) {
+								exit();
+							}
+
+						}
+					}
+
+					if ( $this->is_paying__fs__() ) {
 						$this->_admin_notices->add_sticky(
-							sprintf( __( '%s activation was successfully completed.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
-							'activation_complete'
+							sprintf(
+								__( 'Your account was successfully activated with the %s plan, %sdownload our latest %s version now%s.', WP_FS__SLUG ),
+								$this->_site->plan->title,
+								'<a href="' . $this->get_account_url( 'download_latest' ) . '">',
+								$this->_site->plan->title,
+								'</a>'
+							),
+							'plan_upgraded',
+							__( 'Ye-ha!', WP_FS__SLUG )
 						);
+
+						// Go to account page.
+						return;
+//						if ( fs_redirect( $this->_get_admin_page_url('account') ) ) {
+//							exit();
+//						}
 					}
 				} else if ( fs_request_has( 'pending_activation' ) ) {
 					// Install must be activated via email since
 					// user with the same email already exist.
 					$this->_storage->is_pending_activation = true;
-					$this->_add_pending_activation_notice();
+					$this->_add_pending_activation_notice(fs_request_get('user_email'));
 				}
 
 				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
@@ -2657,22 +2735,24 @@
 			$this->_logger->entrance();
 
 			if (!$this->is_addon()) {
-				if ( $this->is_registered() ) {
-					// Add user account page.
-					$this->add_submenu_item(
-						__( 'Account', $this->_slug ),
-						array( &$this, '_account_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __( 'Account', $this->_slug ),
-						'manage_options',
-						'account',
-						array( &$this, '_account_page_load' )
-					);
+				if ( $this->is_registered() || $this->is_anonymous() ) {
+					if ($this->is_registered()) {
+						// Add user account page.
+						$this->add_submenu_item(
+							__( 'Account', $this->_slug ),
+							array( &$this, '_account_page_render' ),
+							$this->get_plugin_name() . ' &ndash; ' . __( 'Account', $this->_slug ),
+							'manage_options',
+							'account',
+							array( &$this, '_account_page_load' )
+						);
+					}
 
 					// Add contact page.
 					$this->add_submenu_item(
 						__( 'Contact Us', $this->_slug ),
 						array( &$this, '_contact_page_render' ),
-						$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Contact Us', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . __( 'Contact Us', $this->_slug ),
 						'manage_options',
 						'contact',
 						array( &$this, '_clean_admin_content_section' )
@@ -2682,7 +2762,7 @@
 						$this->add_submenu_item(
 							__( 'Add Ons', $this->_slug ),
 							array( &$this, '_addons_page_render' ),
-							$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Add Ons', $this->_slug ),
+							$this->get_plugin_name() . ' &ndash; ' . __( 'Add Ons', $this->_slug ),
 							'manage_options',
 							'addons',
 							array( &$this, '_addons_page_load' ),
@@ -2694,7 +2774,7 @@
 					$this->add_submenu_item(
 						( $this->is_paying__fs__() ? __( 'Pricing', $this->_slug ) : __( 'Upgrade', $this->_slug ) . '&nbsp;&nbsp;&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
-						$this->_plugin_data['Name'] . ' &ndash; ' . __( 'Pricing', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . __( 'Pricing', $this->_slug ),
 						'manage_options',
 						'pricing',
 						array( &$this, '_clean_admin_content_section' ),
@@ -3059,6 +3139,26 @@
 			$addons                       = self::get_all_addons();
 			$addons[ $this->_plugin->id ] = $plugin_addons;
 			self::$_accounts->set_option( 'addons', $addons, $store );
+		}
+
+		/**
+		 * Delete plugin's associated add-ons.
+		 *
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.8
+		 *
+		 * @param bool $store
+		 */
+		private function _delete_account_addons($store = true) {
+			$all_addons = self::get_all_account_addons();
+
+			if ( ! isset( $all_addons[ $this->_plugin->id ] ) ) {
+				return false;
+			}
+
+			unset( $all_addons[ $this->_plugin->id ] );
+
+			self::$_accounts->set_option( 'account_addons', $all_addons, $store );
 		}
 
 		/**
