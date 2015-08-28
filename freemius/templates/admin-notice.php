@@ -11,6 +11,9 @@
 		case 'error':
 			echo 'error form-invalid';
 			break;
+		case 'promotion':
+			echo 'updated promotion';
+			break;
 		case 'update':
 //			echo 'update-nag update';
 //			break;
@@ -19,9 +22,6 @@
 			echo 'updated success';
 			break;
 	}
-?> fs-notice<?php if ($VARS['sticky']) echo ' fs-sticky' ?>"><p>
-		<?php if (!empty($VARS['title'])) : ?>
-			<b><?php echo $VARS['title'] ?></b>
-		<?php endif ?>
+?> fs-notice<?php if ($VARS['sticky']) echo ' fs-sticky' ?><?php if (!empty($VARS['title'])) echo ' fs-has-title' ?>"><?php if (!empty($VARS['title'])) : ?><label class="fs-plugin-title"><?php echo $VARS['title'] ?></label><?php endif ?><p>
 		<?php echo $VARS['message'] ?>
 	</p><?php if ($VARS['sticky']) : ?><i class="fs-close dashicons dashicons-no" title="<?php _e('Dismiss', WP_FS__SLUG) ?>"></i><?php endif ?></div>

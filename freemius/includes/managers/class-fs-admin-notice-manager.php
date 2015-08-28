@@ -16,6 +16,10 @@
 		 */
 		protected $_slug;
 		/**
+		 * @var string
+		 */
+		protected $_title;
+		/**
 		 * @var array[]
 		 */
 		private $_admin_messages = array();
@@ -34,21 +38,23 @@
 
 		/**
 		 * @param string $slug
+		 * @param string $title
 		 *
 		 * @return \FS_Key_Value_Storage
 		 */
-		static function instance( $slug ) {
+		static function instance( $slug, $title = '' ) {
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
-				self::$_instances[ $slug ] = new FS_Admin_Notice_Manager( $slug );
+				self::$_instances[ $slug ] = new FS_Admin_Notice_Manager( $slug, $title );
 			}
 
 			return self::$_instances[ $slug ];
 		}
 
-		protected function __construct( $slug ) {
+		protected function __construct( $slug, $title = '' ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_slug           = $slug;
+			$this->_title          = !empty($title) ? $title : '';
 			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_slug );
 
 			if (is_admin())
@@ -202,6 +208,7 @@
 				'id'      => $id,
 				'all'     => $all_admin,
 				'slug'    => $this->_slug,
+				'title'   => $this->_title,
 			);
 
 			if ( $is_sticky && $store_if_sticky ) {
@@ -215,19 +222,39 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
-		 * @param string $id
+		 * @param string $ids
 		 */
-		function remove_sticky( $id ) {
-			// Remove from sticky storage.
-			$this->_sticky_storage->remove( $id );
+		function remove_sticky( $ids ) {
+			if (!is_array($ids))
+				$ids = array($ids);
 
-			// Remove from current admin messages.
-			if ( isset( $this->_admin_messages['all_admin_notices'] ) && isset( $this->_admin_messages['all_admin_notices'][ $id ] ) ) {
-				unset( $this->_admin_messages['all_admin_notices'][ $id ] );
+			foreach ($ids as $id) {
+				// Remove from sticky storage.
+				$this->_sticky_storage->remove( $id );
+
+				// Remove from current admin messages.
+				if ( isset( $this->_admin_messages['all_admin_notices'] ) && isset( $this->_admin_messages['all_admin_notices'][ $id ] ) ) {
+					unset( $this->_admin_messages['all_admin_notices'][ $id ] );
+				}
+				if ( isset( $this->_admin_messages['admin_notices'] ) && isset( $this->_admin_messages['admin_notices'][ $id ] ) ) {
+					unset( $this->_admin_messages['admin_notices'][ $id ] );
+				}
 			}
-			if ( isset( $this->_admin_messages['admin_notices'] ) && isset( $this->_admin_messages['admin_notices'][ $id ] ) ) {
-				unset( $this->_admin_messages['admin_notices'][ $id ] );
-			}
+		}
+
+		/**
+		 * Check if sticky message exists by id.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param $id
+		 *
+		 * @return bool
+		 */
+		function has_sticky($id)
+		{
+			return isset( $this->_sticky_storage[ $id ] );
 		}
 
 		/**
