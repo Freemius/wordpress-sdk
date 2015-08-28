@@ -1,4 +1,4 @@
-(function (undef) {
+(function ($, undef) {
     var global = this;
 
     // Namespace.
@@ -33,7 +33,7 @@
                 _init();
 
                 // Automatically receive forward messages.
-                FS.PostMessage.receive('forward', function (data){
+                FS.PostMessage.receiveOnce('forward', function (data){
                     window.location = data.url;
                 });
             },
@@ -58,6 +58,8 @@
             },
             post : function (type, data, iframe)
             {
+                console.debug('PostMessage.post', type);
+
                 if (iframe)
                 {
                     // Post to iframe.
@@ -76,10 +78,24 @@
             },
             receive: function (type, callback)
             {
+                console.debug('PostMessage.receive', type);
+
                 if (undef === _callbacks[type])
                     _callbacks[type] = [];
 
                 _callbacks[type].push(callback);
+            },
+            receiveOnce: function (type, callback)
+            {
+                if (this.is_set(type))
+                    return;
+
+                this.receive(type, callback);
+            },
+            // Check if any callbacks assigned to a specified message type.
+            is_set: function (type)
+            {
+                return (undef != _callbacks[type]);
             },
             parent_url: function ()
             {
@@ -91,4 +107,4 @@
             }
         };
     }();
-})();
+})(jQuery);

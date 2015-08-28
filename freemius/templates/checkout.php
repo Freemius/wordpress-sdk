@@ -156,7 +156,7 @@
 						.appendTo('#iframe');
 
 				FS.PostMessage.init(base_url);
-				FS.PostMessage.receive('height', function (data){
+				FS.PostMessage.receiveOnce('height', function (data){
 					var h = data.height;
 					if (!isNaN(h) && h > 0 && h != iframe_height) {
 						iframe_height = h;
@@ -164,7 +164,7 @@
 					}
 				});
 
-				FS.PostMessage.receive('install', function (data){
+				FS.PostMessage.receiveOnce('install', function (data){
 					// Post data to activation URL.
 					$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
 							'fs_action' => $slug . '_activate_new',
@@ -179,7 +179,7 @@
 					}).submit();
 				});
 
-				FS.PostMessage.receive('pending_activation', function(data){
+				FS.PostMessage.receiveOnce('pending_activation', function(data){
 					$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
 							'fs_action' => $slug . '_activate_new',
 							'plugin_id' => fs_request_get('plugin_id', $fs->get_id()),
@@ -189,7 +189,9 @@
 					}).submit();
 				});
 
-				FS.PostMessage.receive('get_context', function (){
+				FS.PostMessage.receiveOnce('get_context', function (){
+					console.debug('receiveOnce', 'get_context');
+
 					// If the user didn't connect his account with Freemius,
 					// once he accepts the Terms of Service and Privacy Policy,
 					// and then click the purchase button, the context information
