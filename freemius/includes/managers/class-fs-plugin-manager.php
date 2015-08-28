@@ -80,6 +80,8 @@
 		 *
 		 * @param bool|FS_Plugin $plugin
 		 * @param bool           $flush
+		 *
+		 * @return bool|\FS_Plugin
 		 */
 		function store($plugin = false, $flush = true) {
 			$all_plugins = $this->get_all_plugins();
@@ -91,6 +93,8 @@
 
 			$options_manager = $this->get_option_manager();
 			$options_manager->set_option( 'plugins', $all_plugins, $flush );
+
+			return $this->_plugin;
 		}
 
 		/**
@@ -110,7 +114,8 @@
 			    $this->_plugin->slug != $plugin->slug ||
 			    $this->_plugin->public_key != $plugin->public_key ||
 			    $this->_plugin->secret_key != $plugin->secret_key ||
-			    $this->_plugin->parent_plugin_id != $plugin->parent_plugin_id
+			    $this->_plugin->parent_plugin_id != $plugin->parent_plugin_id ||
+			    $this->_plugin->title != $plugin->title
 			)
 			{
 				$this->store($plugin, $store);
