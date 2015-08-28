@@ -62,6 +62,8 @@
 	                           ( isset( $_SERVER['SERVER_PORT'] ) && 443 == $_SERVER['SERVER_PORT'] )
 	);
 
+	define('WP_FS__IS_POST_REQUEST', (strtoupper($_SERVER['REQUEST_METHOD']) == 'POST'));
+
 	/**
 	 * Billing Frequencies
 	 */
