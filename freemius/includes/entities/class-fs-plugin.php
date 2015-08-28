@@ -40,6 +40,10 @@
 		 * @var FS_Plugin_Info
 		 */
 		public $info;
+		/**
+		 * @var bool
+		 */
+		public $is_premium;
 
 		/**
 		 * @param stdClass|bool $plugin
@@ -53,6 +57,7 @@
 
 			$this->slug = $plugin->slug;
 			$this->title = $plugin->title;
+			$this->is_premium = false;
 
 			if (isset($plugin->info) && is_object($plugin->info))
 				$this->info = new FS_Plugin_Info($plugin->info);
