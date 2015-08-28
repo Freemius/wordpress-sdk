@@ -4693,4 +4693,55 @@
 			// Pass update decision to next filters
 			return $update;
 		}
+		#region Marketing ------------------------------------------------------------------
+
+		/**
+		 * Check if current user purchased any other plugins before.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function has_purchased_before() {
+			// TODO: Implement has_purchased_before() method.
+		}
+
+		/**
+		 * Check if current user classified as an agency.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_agency() {
+			// TODO: Implement is_agency() method.
+		}
+
+		/**
+		 * Check if current user classified as a developer.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_developer() {
+			// TODO: Implement is_developer() method.
+		}
+
+		/**
+		 * Check if current user classified as a business.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_business() {
+			// TODO: Implement is_business() method.
+		}
+
+		#endregion ------------------------------------------------------------------
 	}

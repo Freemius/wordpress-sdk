@@ -157,4 +157,44 @@
 		 * @return bool
 		 */
 		abstract function has_free_plan();
+		#region Marketing ------------------------------------------------------------------
+
+		/**
+		 * Check if current user purchased any other plugins before.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		abstract function has_purchased_before();
+		/**
+		 * Check if current user classified as an agency.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		abstract function is_agency();
+		/**
+		 * Check if current user classified as a developer.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		abstract function is_developer();
+		/**
+		 * Check if current user classified as a business.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		abstract function is_business();
+
+		#endregion ------------------------------------------------------------------
 	}
