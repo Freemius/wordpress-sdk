@@ -45,7 +45,8 @@
 		<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/connect-logo.png" />
 	</div>
 	<div class="fs-content">
-		<p><?php echo sprintf(
+		<p><?php
+				echo $fs->apply_filters('connect_message', sprintf(
 				__('Hey %s', WP_FS__SLUG) . ',<br>' .
 				__('In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', WP_FS__SLUG),
 				$first_name,
@@ -53,7 +54,7 @@
 				'<b>' . $current_user->user_login . '</b>',
 				'<a href="' . get_site_url() . '" target="_blank">' . $site_url . '</a>',
 				'<a href="https://freemius.com/wordpress/" target="_blank">freemius.com</a>'
-			)
+				));
 			?></p>
 	</div>
 	<div class="fs-actions">
