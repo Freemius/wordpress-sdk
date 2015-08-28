@@ -21,14 +21,53 @@
 	 * Class Freemius_Abstract
 	 */
 	abstract class Freemius_Abstract {
+
+		#region Identity ------------------------------------------------------------------
+
 		/**
-		 * Check if plugin using the free plan.
+		 * Check if user registered with Freemius by connecting his account.
 		 *
-		 * @since 1.0.4
+		 * @since 1.0.1
+
+		 * @return bool
+		 */
+		abstract function is_registered();
+
+		/**
+		 * Check if the user skipped connecting the account with Freemius.
+		 *
+		 * @since 1.0.7
 		 *
 		 * @return bool
 		 */
-		abstract function is_free_plan();
+		abstract function is_anonymous();
+
+		#endregion Identity ------------------------------------------------------------------
+
+		#region Permissions ------------------------------------------------------------------
+
+		/**
+		 * Check if plugin must be WordPress.org compliant.
+		 *
+		 * @since 1.0.7
+		 *
+		 * @return bool
+		 */
+		abstract function is_org_repo_compliant();
+
+		/**
+		 * Check if plugin is allowed to install executable files.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		function is_allowed_to_install(){
+			return ($this->is_premium() || !$this->is_org_repo_compliant());
+		}
+
+		#endregion Permissions ------------------------------------------------------------------
 
 		/**
 		 * Check if user in trial or in free plan (not paying).
@@ -45,11 +84,11 @@
 		/**
 		 * Check if the user has an activated and valid paid license on current plugin's install.
 		 *
-		 * @since 1.0.4
+		 * @since 1.0.9
 		 *
 		 * @return bool
 		 */
-		abstract function is_paying__fs__();
+		abstract function is_paying();
 
 		/**
 		 * Check if the user is paying or in trial.
@@ -178,19 +217,26 @@
 
 		#endregion Trial ------------------------------------------------------------------
 
+		#region Plans ------------------------------------------------------------------
+
 		/**
-		 * Check if the user skipped connecting the account with Freemius.
+		 * Check if plugin using the free plan.
 		 *
-		 * @since 1.0.7
+		 * @since 1.0.4
 		 *
 		 * @return bool
 		 */
-		abstract function is_anonymous();
+		abstract function is_free_plan();
 
 		/**
-		 * Check if user registered with Freemius by connecting his account.
+		 * @since  1.0.2
 		 *
-		 * @since 1.0.1
+		 * @param string $plan Plan name
+		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
+		 *
+		 * @return bool
+		 */
+		abstract function is_plan( $plan, $exact = false );
 
 		/**
 		 * Check if plan based on trial. If not in trial mode, should return false.
@@ -240,6 +286,48 @@
 		 * @return bool
 		 */
 		abstract function has_free_plan();
+
+		#endregion Plans ------------------------------------------------------------------
+
+		/**
+		 * Check if running payments in sandbox mode.
+		 *
+		 * @since 1.0.4
+		 *
+		 * @return bool
+		 */
+		abstract function is_payments_sandbox();
+
+		/**
+		 * Check if running test vs. live plugin.
+		 *
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		abstract function is_live();
+
+		/**
+		 * Check if running premium plugin code.
+		 *
+		 * @since 1.0.5
+		 *
+		 * @return bool
+		 */
+		abstract function is_premium();
+
+		/**
+		 * Get upgrade URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.2
+		 *
+		 * @param string $period Billing cycle
+		 *
+		 * @return string
+		 */
+		abstract function get_upgrade_url( $period = WP_FS__PERIOD_ANNUALLY );
+
 		#region Marketing ------------------------------------------------------------------
 
 		/**
