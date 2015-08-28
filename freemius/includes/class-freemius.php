@@ -3445,6 +3445,32 @@
 			return $trial_plan;
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 * @uses   FS_Api
+		 *
+		 * @param number|bool $license_id
+		 *
+		 * @return FS_Subscription|stdClass|bool
+		 */
+		private function _fetch_site_license_subscription($license_id = false) {
+			$this->_logger->entrance();
+			$api = $this->get_api_site_scope();
+
+			if ( ! is_numeric( $license_id ) ) {
+				$license_id = $this->_license->id;
+			}
+
+			$result = $api->get( "/licenses/{$license_id}/subscriptions.json", true );
+
+			return ! isset( $result->error ) ?
+				((is_array($result->subscriptions) && 0 < count($result->subscriptions)) ?
+					new FS_Subscription( $result->subscriptions[0] ) :
+					false
+				) :
+				$result;
+		}
 		 * @since  1.0.4
 		 * @uses   FS_Api
 		 *
@@ -3958,6 +3984,7 @@
 				$this->_site->plan->id = $site->plan_id;
 
 				$plan = $this->_enrich_site_plan();
+				$subscription = $this->_sync_site_subscription($this->_license);
 
 				$plan_downgraded = ($plan instanceof FS_Plugin_Plan && $prev_plan_id != $plan->id);
 			} else {
