@@ -197,18 +197,21 @@
 			// Get result from cache.
 			$cache_entry = self::$_cache->get_option($cache_key, false);
 
-			if (false === $cache_entry ||
-				!isset($cache_entry->timestamp) ||
-				!is_numeric($cache_entry->timestamp) ||
-			    $cache_entry->timestamp < WP_FS__SCRIPT_START_TIME) {
-				$flush = true;
+			$fetch = false;
+			if ($flush ||
+			    false === $cache_entry ||
+			    !isset($cache_entry->timestamp) ||
+			    !is_numeric($cache_entry->timestamp) ||
+			    $cache_entry->timestamp < WP_RW__SCRIPT_START_TIME)
+			{
+				$fetch = true;
 			}
 
-			if ($flush)
+			if ($fetch)
 			{
 				$result = $this->call($path);
 
-				if (isset($result->error))
+				if (!is_object($result) || isset($result->error))
 				{
 					// If there was an error during a newer data fetch,
 					// then fallback to older data version.
