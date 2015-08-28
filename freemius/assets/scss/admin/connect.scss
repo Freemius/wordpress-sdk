@@ -68,6 +68,17 @@ $form_width: 480px;
 //        }
     }
 
+    &.fs-anonymous-disabled
+    {
+        .fs-actions
+        {
+            .button.button-primary
+            {
+                width: 100%;
+            }
+        }
+    }
+
     .fs-permissions
     {
         padding:    10px 20px;

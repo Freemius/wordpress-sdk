@@ -4,10 +4,21 @@
 {
     position: relative;
 
+    &.fs-has-title
+    {
+        margin-bottom: 30px !important;
+    }
+
     &.success
     {
         color:       green;
 //        font-weight: normal;
+    }
+
+    &.promotion
+    {
+        border-color: $fs-notice-promotion-border-color !important;
+        background-color: $fs-notice-promotion-bkg !important;
     }
 
     .fs-close
@@ -22,6 +33,20 @@
         {
             color: #aaa;
         }
+    }
+
+    label.fs-plugin-title
+    {
+        background: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        padding: 2px 10px;
+        position: absolute;
+        bottom: -22px;
+        @include border-radius(0 0 3px 3px);
+        left: 10px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: auto;
     }
 }
 

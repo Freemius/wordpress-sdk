@@ -3,7 +3,7 @@
     .postbox,
     .widefat
     {
-        width: 700px;
+        max-width: 700px;
     }
 
     .fs-header-actions
@@ -34,7 +34,7 @@
     }
 }
 
-#fs_account_details
+.fs-key-value-table
 {
     width: 100%;
 
@@ -43,7 +43,7 @@
         display: inline-block;
     }
 
-    .fs-field-email label
+    td label
     {
         background: orange;
         color: #fff;
@@ -59,8 +59,17 @@
     {
         td:first-child
         {
-            font-weight: bold;
+            nobr
+            {
+                font-weight: bold;
+            }
+
             text-align: right;
+
+            form
+            {
+                display: block;
+            }
         }
 
         td.fs-right
@@ -102,16 +111,5 @@
     th
     {
         font-weight: bold;
-    }
-}
-
-@media screen and (max-width: 782px)
-{
-    #fs_account_settings
-    {
-        .postbox
-        {
-            width: 100%;
-        }
     }
 }
