@@ -72,6 +72,13 @@
 							$("#iframe iframe").height(iframe_height + 'px');
 						}
 					});
+
+					FS.PostMessage.receive('get_dimensions', function (data){
+						FS.PostMessage.post('dimensions', {
+							height: $(document.body).height(),
+							scrollTop: $(document).scrollTop()
+						}, iframe[0]);
+					});
 				});
 			})(jQuery);
 		</script>

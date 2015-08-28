@@ -224,6 +224,15 @@
 							$slug . '_activate_new') ?>'
 					}, iframe[0]);
 				});
+
+				FS.PostMessage.receiveOnce('get_dimensions', function (data){
+					console.debug('receiveOnce', 'get_dimensions');
+
+					FS.PostMessage.post('dimensions', {
+						height: $(document.body).height(),
+						scrollTop: $(document).scrollTop()
+					}, iframe[0]);
+				});
 			});
 		})(jQuery);
 	</script>
