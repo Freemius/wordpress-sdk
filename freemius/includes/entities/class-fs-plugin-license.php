@@ -115,4 +115,19 @@
 		{
 			return (!$this->is_block_features || !$this->is_expired());
 		}
+
+		/**
+		 * Subscription considered to be new without any payments
+		 * if the license expires in less than 24 hours
+		 * from the license creation.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_first_payment_pending()
+		{
+			return ( WP_FS__TIME_24_HOURS_IN_SEC >= strtotime($this->expiration) - strtotime($this->created));
+		}
 	}
