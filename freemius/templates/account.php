@@ -17,7 +17,14 @@
 	 */
 	$update = $fs->get_update();
 
-	$is_paying = $fs->is_paying__fs__();
+	$is_paying = $fs->is_paying();
+	$user = $fs->get_user();
+	$site = $fs->get_site();
+	$name = $user->get_name();
+	$license = $fs->_get_license();
+	$subscription = $fs->_get_subscription();
+	$plan = $fs->get_plan();
+	$is_active_subscription = (is_object($subscription) && $subscription->is_active());
 ?>
 
 	<div class="wrap">
@@ -45,7 +52,13 @@
 					<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 						<input type="hidden" name="fs_action" value="delete_account">
 						<?php wp_nonce_field('delete_account') ?>
-						<a href="#" onclick="if (confirm('<?php _e('Are you sure you want to delete the account?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Delete Account', WP_FS__SLUG) ?></a>
+						<a href="#" onclick="if (confirm('<?php
+							if ($is_active_subscription) {
+								printf( __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', WP_FS__SLUG ), $plan->title );
+							}else {
+								_e( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', WP_FS__SLUG );
+							}
+							?>'))  this.parentNode.submit(); return false;"><?php _e('Delete Account', WP_FS__SLUG) ?></a>
 					</form>
 				</li>
 				<?php if ($is_paying) : ?>
@@ -57,14 +70,21 @@
 							<a href="#" onclick="if (confirm('<?php _e('Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Deactivate License', WP_FS__SLUG) ?></a>
 						</form>
 					</li>
+					<?php if (!$license->is_lifetime() &&
+					          $is_active_subscription) : ?>
 					<li>
 						&nbsp;•&nbsp;
 						<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 							<input type="hidden" name="fs_action" value="downgrade_account">
 							<?php wp_nonce_field('downgrade_account') ?>
-							<a href="#" onclick="if (confirm('<?php _e('Downgrading your plan will automatically stop all recurring payments and will immediately change your plan to Free. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', WP_FS__SLUG) ?></a>
+							<a href="#" onclick="if (confirm('<?php printf(__('Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', WP_FS__SLUG), $plan->title, human_time_diff( time(), strtotime( $license->expiration ) )) ?> <?php if (!$license->is_block_features) {
+								printf(__( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', WP_FS__SLUG ), $plan->title);
+							}else {
+								printf(__( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', WP_FS__SLUG), $plan->title);
+							}?> <?php _e(' Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', WP_FS__SLUG) ?></a>
 						</form>
 					</li>
+					<?php endif ?>
 					<li>
 						&nbsp;•&nbsp;
 						<a href="<?php echo $fs->get_upgrade_url() ?>"><?php _e('Change Plan', WP_FS__SLUG) ?></a>
@@ -73,14 +93,11 @@
 			</ul>
 		</div>
 		<div class="inside">
-			<table id="fs_account_details" cellspacing="0">
+			<table id="fs_account_details" cellspacing="0" class="fs-key-value-table">
 				<?php
 					$profile = array();
-					$user = $fs->get_user();
-					$site = $fs->get_site();
-					$name = $user->get_name();
 					$profile[] = array('id' => 'user_name', 'title' => __('Name', WP_FS__SLUG), 'value' => $name);
-					if (isset($user->email) && false !== strpos($user->email, '@'))
+//					if (isset($user->email) && false !== strpos($user->email, '@'))
 						$profile[] = array('id' => 'email', 'title' => __('Email', WP_FS__SLUG), 'value' => $user->email);
 					if (is_numeric($user->id))
 						$profile[] = array('id' => 'user_id', 'title' => __('User ID', WP_FS__SLUG), 'value' => $user->id);
@@ -153,11 +170,11 @@
 								<div class="button-group">
 										<?php $license = $fs->is_not_paying() ? $fs->_get_available_premium_license() : false ?>
 										<?php if (false !== $license && ($license->left() > 0 || ($site->is_localhost() && $license->is_free_localhost))) : ?>
+											<?php $premium_plan = $fs->_get_plan_by_id($license->plan_id) ?>
 											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
-												<?php $plan = $fs->_get_plan_by_id($license->plan_id) ?>
 												<input type="hidden" name="fs_action" value="activate_license">
 												<?php wp_nonce_field('activate_license') ?>
-												<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', WP_FS__SLUG), $plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
+												<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', WP_FS__SLUG), $premium_plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
 											</form>
 										<?php else : ?>
 											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" class="button-group">
@@ -364,7 +381,7 @@
 	<!--							</tbody>-->
 	<!--						</table>-->
 
-	<?php $fs->do_action( 'fs_after_account_details' ) ?>
+	<?php $fs->do_action( 'after_account_details' ) ?>
 	</div>
 	</div>
 	</div>
