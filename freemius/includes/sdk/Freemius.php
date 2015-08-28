@@ -196,7 +196,7 @@
 				{
 					if (strlen(@inet_pton($matches[1])) === 16)
 					{
-						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
+//						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
 						self::$CURL_OPTS[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
 						curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 						$result = curl_exec($ch);
