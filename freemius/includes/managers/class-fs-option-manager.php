@@ -21,8 +21,17 @@
 	 * Class Freemius_Option_Manager
 	 */
 	class FS_Option_Manager {
+		/**
+		 * @var string
+		 */
 		private $_id;
+		/**
+		 * @var array
+		 */
 		private $_options;
+		/**
+		 * @var \FS_Logger
+		 */
 		private $_logger;
 
 		/**
@@ -30,6 +39,13 @@
 		 */
 		private static $_MANAGERS = array();
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @param string $id
+		 * @param bool   $load
+		 */
 		private function __construct( $id, $load = false ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_opt_mngr_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -44,6 +60,9 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
 		 * @param $id
 		 * @param $load
 		 *
@@ -67,6 +86,12 @@
 			return $this->_id;
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @param bool $flush
+		 */
 		function load( $flush = false ) {
 			$this->_logger->entrance();
 
@@ -108,14 +133,32 @@
 			}
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @return bool
+		 */
 		function is_loaded() {
 			return isset( $this->_options );
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @return bool
+		 */
 		function is_empty() {
 			return ( $this->is_loaded() && false === $this->_options );
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param bool $flush
+		 */
 		function clear( $flush = false ) {
 			$this->_logger->entrance();
 
@@ -126,11 +169,39 @@
 			}
 		}
 
+		/**
+		 * Delete options manager from DB.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 */
+		function delete()
+		{
+			delete_option($this->_get_option_manager_name());
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @param string $option
+		 *
+		 * @return bool
+		 */
 		function has_option ($option)
 		{
 			return array_key_exists( $option, $this->_options );
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @param string $option
+		 * @param mixed $default
+		 *
+		 * @return mixed
+		 */
 		function get_option( $option, $default = null ) {
 			$this->_logger->entrance( 'option = ' . $option );
 
@@ -143,6 +214,14 @@
 			return $default;
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @param string $option
+		 * @param mixed  $value
+		 * @param bool   $flush
+		 */
 		function set_option( $option, $value, $flush = false ) {
 			$this->_logger->entrance( 'option = ' . $option );
 
@@ -161,6 +240,15 @@
 			}
 		}
 
+		/**
+		 * Unset option.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 *
+		 * @param string $option
+		 * @param bool   $flush
+		 */
 		function unset_option( $option, $flush = false ) {
 			$this->_logger->entrance( 'option = ' . $option );
 
@@ -184,6 +272,12 @@
 			}
 		}
 
+		/**
+		 * Dump options to database.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 */
 		function store() {
 			$this->_logger->entrance();
 

@@ -78,16 +78,12 @@
 		}
 
 		/**
-		 * Store plugin on local DB.
-		 *
 		 * @author   Vova Feldman (@svovaf)
 		 * @since    1.0.7
 		 *
 		 * @param string $key
 		 * @param mixed  $value
 		 * @param bool   $flush
-		 *
-		 * @internal param bool|\FS_Plugin $plugin
 		 */
 		function store( $key, $value, $flush = true ) {
 			$all_data = $this->get_all_data();
@@ -115,6 +111,21 @@
 				$options_manager          = $this->get_option_manager();
 				$options_manager->set_option( $this->_id, $all_data, true );
 			}
+		}
+
+		/**
+		 * Delete key-value storage.
+		 *
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.9
+		 */
+		function delete( ) {
+			$this->_data = array();
+
+			$all_data = $this->get_all_data();
+			unset( $all_data[ $this->_slug ] );
+			$options_manager = $this->get_option_manager();
+			$options_manager->set_option( $this->_id, $all_data, true );
 		}
 
 		/**
@@ -153,6 +164,7 @@
 				$this->_data[ $key ] :
 				$default;
 		}
+
 
 		/* ArrayAccess + Magic Access (better for refactoring)
         -----------------------------------------------------------------------------------*/
