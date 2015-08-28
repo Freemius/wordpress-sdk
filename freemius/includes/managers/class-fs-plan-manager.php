@@ -12,11 +12,29 @@
 
 	class FS_Plan_Manager {
 		/**
+		 * @var FS_Plan_Manager
+		 */
+		private static $_instance;
+
+		/**
+		 * @return FS_Plan_Manager
+		 */
+		static function instance() {
+			if ( ! isset( self::$_instance ) ) {
+				self::$_instance = new FS_Plan_Manager();
+			}
+
+			return self::$_instance;
+		}
+
+		private function __construct() { }
+
+		/**
 		 * @param FS_Plugin_License[] $licenses
 		 *
 		 * @return bool
 		 */
-		static function has_premium_license( $licenses ) {
+		function has_premium_license( $licenses ) {
 			if (is_array($licenses)) {
 				foreach ( $licenses as $license ) {
 					if ( !$license->is_utilized() && $license->is_features_enabled() ) {
@@ -38,13 +56,14 @@
 		 *
 		 * @return bool
 		 */
-		static function has_paid_plan($plans) {
+		function has_paid_plan($plans)
+		{
 			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
 				return false;
 			}
 
 			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
-				if ( 'free' !== $plans[ $i ]->name ) {
+				if ( ! $plans[ $i ]->is_free() ) {
 					return true;
 				}
 			}
@@ -64,7 +83,20 @@
 		 *
 		 * @return bool
 		 */
-		static function has_free_plan($plans) {
+		function has_free_plan($plans) {
+			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
+				return true;
+			}
+
+			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
+				if ( $plans[ $i ]->is_free() ) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		/**
 		 * Find all plans that have trial.
 		 *
