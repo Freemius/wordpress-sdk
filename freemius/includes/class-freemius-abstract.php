@@ -52,13 +52,15 @@
 		abstract function is_paying__fs__();
 
 		/**
-		 * Check if the user in a trial.
+		 * Check if the user is paying or in trial.
 		 *
-		 * @since 1.0.3
+		 * @since 1.0.9
 		 *
 		 * @return bool
 		 */
-		abstract function is_trial();
+		function is_paying_or_trial(){
+			return ($this->is_paying() || $this->is_trial());
+		}
 
 		/**
 		 * @since  1.0.2
@@ -96,27 +98,27 @@
 		 * @return bool
 		 */
 		abstract function is_premium();
+		#region Trial ------------------------------------------------------------------
 
 		/**
-		 * Check if plugin must be WordPress.org compliant.
+		 * Check if the user in a trial.
 		 *
-		 * @since 1.0.7
+		 * @since 1.0.3
 		 *
 		 * @return bool
 		 */
-		abstract function is_org_repo_compliant();
+		abstract function is_trial();
 
 		/**
-		 * Check if plugin is allowed to install executable files.
+		 * Check if trial already utilized.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.5
+		 * @since 1.0.9
 		 *
 		 * @return bool
 		 */
-		function is_allowed_to_install(){
-			return ($this->is_premium() || !$this->is_org_repo_compliant());
-		}
+		abstract function is_trial_utilized();
+
+		#endregion Trial ------------------------------------------------------------------
 
 		/**
 		 * Check if the user skipped connecting the account with Freemius.
@@ -132,9 +134,32 @@
 		 *
 		 * @since 1.0.1
 
+		/**
+		 * Check if plan based on trial. If not in trial mode, should return false.
+		 *
+		 * @since  1.0.9
+		 *
+		 * @param string $plan Plan name
+		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
+		 *
 		 * @return bool
 		 */
-		abstract function is_registered();
+		abstract function is_trial_plan( $plan, $exact = false );
+
+		/**
+		 * Check if plan matches active license' plan or active trial license' plan.
+		 *
+		 * @since  1.0.9
+		 *
+		 * @param string $plan Plan name
+		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
+		 *
+		 * @return bool
+		 */
+		function is_plan_or_trial( $plan, $exact = false ) {
+			return $this->is_plan( $plan, $exact ) ||
+			       $this->is_trial_plan( $plan, $exact );
+		}
 
 		/**
 		 * Check if plugin has any paid plans.

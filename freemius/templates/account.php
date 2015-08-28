@@ -28,6 +28,9 @@
 		<?php endif ?>
 		<?php if ($fs->is_not_paying() && $fs->has_paid_plan()) : ?>
 			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
+			<?php if (!$fs->is_trial_utilized() && $fs->has_trial_plan()) : ?>
+				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _e('Free Trial', WP_FS__SLUG) ?></a>
+			<?php endif ?>
 		<?php endif ?>
 	</h2>
 	<div id="poststuff">
@@ -88,7 +91,23 @@
 
 					$profile[] = array('id' => 'site_secret_key', 'title' => __('Secret Key', WP_FS__SLUG), 'value' => ((is_string($site->secret_key)) ? $site->secret_key : __('No Secret', WP_FS__SLUG)));
 
-					$profile[] = array('id' => 'plan', 'title' => __('Plan', WP_FS__SLUG), 'value' => is_string($site->plan->name) ? strtoupper($site->plan->title) : 'FREE');
+					if ($fs->is_trial()){
+						$trial_plan = $fs->get_trial_plan();
+
+						$profile[] = array( 'id'    => 'plan',
+						                    'title' => __( 'Plan', WP_FS__SLUG ),
+						                    'value' => (is_string( $trial_plan->name ) ?
+							                    strtoupper( $trial_plan->title ) . ' ' :
+							                    '') . __('TRIAL', WP_FS__SLUG)
+						);
+					}else {
+						$profile[] = array( 'id'    => 'plan',
+						                    'title' => __( 'Plan', WP_FS__SLUG ),
+						                    'value' => is_string( $site->plan->name ) ?
+							                    strtoupper( $site->plan->title ) :
+							                    __('FREE', WP_FS__SLUG)
+						);
+					}
 
 					$profile[] = array('id' => 'version', 'title' => __('Version', WP_FS__SLUG), 'value' => $fs->get_plugin_version());
 				?>
@@ -109,6 +128,18 @@
 							<?php if ('email' === $p['id'] && !$user->is_verified()) : ?>
 								<label><?php _e('not verified', WP_FS__SLUG) ?></label>
 							<?php endif ?>
+							<?php if ( 'plan' === $p['id'] ) : ?>
+								<?php if ($fs->is_trial()) : ?>
+								<label><?php printf( __('Expires in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $site->trial_ends ) )) ?></label>
+								<?php elseif (is_object($license) && !$license->is_lifetime()) : ?>
+									<?php if (!$is_active_subscription && !$license->is_first_payment_pending()) : ?>
+									<label><?php printf( __('Expires in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $license->expiration ) )) ?></label>
+									<?php elseif ($is_active_subscription && !$subscription->is_first_payment_pending()) : ?>
+										<label><?php printf( __('Auto renews in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $subscription->next_payment ) )) ?></label>
+									<?php endif ?>
+								<?php endif ?>
+							<?php endif ?>
+
 						</td>
 						<td class="fs-right">
 							<?php if ('email' === $p['id'] && !$user->is_verified()) : ?>

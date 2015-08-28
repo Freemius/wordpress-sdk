@@ -65,12 +65,47 @@
 		 * @return bool
 		 */
 		static function has_free_plan($plans) {
+		/**
+		 * Find all plans that have trial.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param FS_Plugin_Plan[] $plans
+		 *
+		 * @return FS_Plugin_Plan[]
+		 */
+		function get_trial_plans($plans) {
+			$trial_plans = array();
+
+			if ( is_array( $plans ) && 0 < count( $plans ) ) {
+				for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
+					if ( $plans[ $i ]->has_trial() ) {
+						$trial_plans[] = $plans[ $i ];
+					}
+				}
+			}
+
+			return $trial_plans;
+		}
+
+		/**
+		 * Check if plugin has any trial plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param FS_Plugin_Plan[] $plans
+		 *
+		 * @return bool
+		 */
+		function has_trial_plan($plans) {
 			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
 				return true;
 			}
 
 			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
-				if ( 'free' === $plans[ $i ]->name ) {
+				if ( $plans[ $i ]->has_trial() ) {
 					return true;
 				}
 			}

@@ -218,6 +218,27 @@
 
 			return $this->_is_on;
 		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.9
+		 */
+		private function _register_account_hooks()
+		{
+			if (is_admin() && !$this->is_ajax()) {
+				if ( $this->has_trial_plan() ) {
+					$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
+					if ( ! $this->_site->is_trial_utilized() &&
+					     (
+						     // Show promotion if never shown it yet and 24 hours after initial activation.
+						     ( false === $last_time_trial_promotion_shown && $this->_storage->activation_timestamp < ( time() - WP_FS__TIME_24_HOURS_IN_SEC ) ) ||
+						     // Show promotion in every 30 days.
+						     ( is_numeric($last_time_trial_promotion_shown) && 30 * WP_FS__TIME_24_HOURS_IN_SEC < time() - $last_time_trial_promotion_shown ) )
+					) {
+						$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
+					}
+				}
+			}
 		}
 
 		/**
@@ -1828,12 +1849,44 @@
 			if (!$this->is_registered())
 				return false;
 
-			return ((isset($this->_site->is_trial) && $this->_site->is_trial) || 'trial' === $this->_site->plan->name);
+			// Paid plan beats trial.
+			return $this->is_free_plan() && $this->_site->is_trial();
 		}
 
 		/**
+		 * Check if trial already utilized.
+		 *
+		 * @since 1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_trial_utilized()
+		{
+			$this->_logger->entrance();
+
+			if (!$this->is_registered())
+				return false;
+
+			return $this->_site->is_trial_utilized();
+		}
+
+		/**
+		 * Get trial plan information (if in trial).
+		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.1
+		 * @since 1.0.9
+		 *
+		 * @return bool|FS_Plugin_Plan
+		 */
+		function get_trial_plan(){
+			$this->_logger->entrance();
+
+			if (!$this->is_trial())
+				return false;
+
+			return $this->_storage->trial_plan;
+		}
+
 		 *
 		 * @return bool
 		 */
@@ -2090,15 +2143,42 @@
 		}
 
 		/**
-		 * Check if plugin has any paid plans.
+		 * Check if plan based on trial. If not in trial mode, should return false.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.7
+		 * @since  1.0.9
+		 *
+		 * @param string $plan Plan name
+		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
 		 */
-		function has_paid_plan() {
-			return $this->_has_paid_plans || FS_Plan_Manager::has_paid_plan($this->_plans);
+		function is_trial_plan( $plan, $exact = false ){
+			$this->_logger->entrance();
+
+			if (!$this->is_registered())
+				return false;
+
+			if (!$this->is_trial())
+				return false;
+
+			if ($this->_storage->trial_plan->name === $plan)
+				// Exact plan.
+				return true;
+			else if ($exact)
+				// Required exact, but plans are different.
+				return false;
+
+			$current_plan_order = -1;
+			$required_plan_order = -1;
+			for ($i = 0, $len = count($this->_plans); $i < $len; $i++)
+			{
+				if ($plan === $this->_plans[$i]->name)
+					$required_plan_order = $i;
+				else if ($this->_storage->trial_plan->name === $this->_plans[$i]->name)
+					$current_plan_order = $i;
+			}
+
+			return ($current_plan_order > $required_plan_order);
 		}
 
 		/**
@@ -2116,32 +2196,18 @@
 		}
 
 		/**
-		 * Check if feature supported with current site's plan.
+		 * Check if plugin has any plan with a trail.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.1
+		 * @since  1.0.9
 		 *
-		 * @todo IMPLEMENT
-		 *
-		 * @param number $feature_id
-		 *
-		 * @throws \Exception
+		 * @return bool
 		 */
-		function is_feature_supported($feature_id)
-		{
-			throw new Exception('not implemented');
-		}
+		function has_trial_plan(){
+			if (!$this->is_registered())
+				return false;
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.1
-		 *
-		 * @return bool Is running in SSL/HTTPS
-		 */
-		function is_ssl() {
-
-			return WP_FS__IS_HTTPS;
-
+			return $this->_storage->get( 'has_trial_plan', false );
 		}
 
 		/**
@@ -2173,20 +2239,16 @@
 		}
 
 		/**
-		 * Construct plugin's settings page URL.
-		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since 1.0.9
 		 *
-		 * @param string $page
-		 * @param array $params
+		 * @uses get_upgrade_url
 		 *
 		 * @return string
 		 */
-		function _get_admin_page_url($page = '', $params = array()) {
-			return add_query_arg( array_merge( $params, array(
-				'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
-			) ), admin_url( 'admin.php', 'admin' ) );
+		function get_trial_url()
+		{
+			return $this->get_upgrade_url('trial');
 		}
 
 		/**
@@ -3361,6 +3423,28 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 * @uses   FS_Api
+		 *
+		 * @param bool $store
+		 *
+		 * @return \FS_Plugin_Plan|\stdClass|false
+		 */
+		private function _enrich_site_trial_plan($store = true) {
+			// Try to load plan from local cache.
+			$trial_plan = $this->_get_plan_by_id( $this->_site->trial_plan_id );
+
+			if ( false === $trial_plan ) {
+				$trial_plan = $this->_fetch_site_plan($this->_site->trial_plan_id);
+			}
+
+			if ( $trial_plan instanceof FS_Plugin_Plan ) {
+				$this->_storage->store('trial_plan', $trial_plan, $store);
+			}
+
+			return $trial_plan;
+		}
+
 		 * @since  1.0.4
 		 * @uses   FS_Api
 		 *
@@ -3891,6 +3975,76 @@
 			{
 				$this->_admin_notices->add(
 					__( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', WP_FS__SLUG ),
+					__( 'Oops...'),
+					'error'
+				);
+			}
+		}
+
+		/**
+		 * Cancel site trial.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.9
+		 *
+		 * @uses FS_Api
+		 */
+		private function _cancel_trial() {
+			$this->_logger->entrance();
+
+			if (!$this->is_trial())
+			{
+				$this->_admin_notices->add(
+					__( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', WP_FS__SLUG ),
+					__( 'Oops...'),
+					'error'
+				);
+
+				return;
+			}
+
+			$api  = $this->get_api_site_scope();
+			$site = $api->call( 'trials.json', 'delete');
+
+			$trial_cancelled = false;
+
+			if ( ! isset( $site->error ) ) {
+				$prev_trial_ends = $this->_site->trial_ends;
+
+				// Update new site plan id.
+				$this->_site->trial_ends = $site->trial_ends;
+
+				$trial_cancelled = ($prev_trial_ends != $site->trial_ends);
+			} else {
+				// handle different error cases.
+
+			}
+
+			if ($trial_cancelled)
+			{
+				// Remove previous sticky message about upgrade (if exist).
+				$this->_admin_notices->remove_sticky('plan_upgraded');
+
+				$this->_admin_notices->add(
+					sprintf(__( 'Your %s Plan trial was successfully cancelled.', WP_FS__SLUG ), $this->_storage->trial_plan->title)
+				);
+
+				$this->_admin_notices->remove_sticky( array(
+					'trial_started',
+					'trial_promotion',
+					'plan_upgraded',
+				) );
+
+				// Store site updates.
+				$this->_store_site();
+
+				// Clear trial plan information.
+				unset($this->_storage->trial_plan);
+			}
+			else
+			{
+				$this->_admin_notices->add(
+					__( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', WP_FS__SLUG ),
 					__( 'Oops...'),
 					'error'
 				);
@@ -4527,6 +4681,107 @@
 			return $this->is_registered() ?
 				$this->get_api_site_scope() :
 				$this->get_api_plugin_scope();
+		}
+
+		/**
+		 * Show trial promotional notice (if any trial exist).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.9
+		 *
+		 * @param $plans
+		 */
+		function _check_for_trial_plans($plans)
+		{
+			$this->_storage->has_trial_plan = FS_Plan_Manager::instance()->has_trial_plan( $plans );
+		}
+
+		/**
+		 * Show trial promotional notice (if any trial exist).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.9
+		 */
+		function _add_trial_notice()
+		{
+			// Check if trial already utilized.
+			if ( $this->_site->is_trial_utilized() ) {
+				return;
+			}
+
+			// Check if already paying.
+			if ($this->is_paying()) {
+				return;
+			}
+
+			// Check if trial message is already shown.
+			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) ) {
+				return;
+			}
+
+			$trial_plans       = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
+			$trial_plans_count = count( $trial_plans );
+
+			// Check if any of the plans contains trial.
+			if ( 0 === $trial_plans_count ) {
+				return;
+			}
+
+			/**
+			 * @var FS_Plugin_Plan $paid_plan
+			 */
+			$paid_plan            = $trial_plans[0];
+			$require_subscription = $paid_plan->is_require_subscription;
+			$upgrade_url          = $this->get_trial_url();
+			$cc_string            = $require_subscription ?
+				sprintf(__( 'No commitment for %s days - cancel anytime!', WP_FS__SLUG ), $paid_plan->trial_period) :
+				__( 'No credit card required!', WP_FS__SLUG );
+
+
+			$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
+
+			if ( $total_paid_plans === $trial_plans_count ) {
+				// All paid plans have trials.
+				$message = sprintf(
+					__( 'Hey! How do you like %s so far? Test all our awesome premium features with a %d-day free trial.', WP_FS__SLUG ) . ' ' . $cc_string,
+					sprintf('<b>%s</b>', $this->get_plugin_name()),
+					$paid_plan->trial_period
+				);
+			} else {
+				$plans_string = '';
+				for ( $i = 0; $i < $trial_plans_count; $i ++ ) {
+					$plans_string .= sprintf( '<a href="%s">%s</a>', $upgrade_url, $trial_plans[ $i ]->title );
+
+					if ( $i < $trial_plans_count - 2 ) {
+						$plans_string .= ', ';
+					} else if ( $i == $trial_plans_count - 2 ) {
+						$plans_string .= ' and ';
+					}
+				}
+
+				// Not all paid plans have trials.
+				$message = sprintf(
+					__( 'Hey! How do you like the plugin so far? Test all our %s features with a %d-day free trial.' . $cc_string, WP_FS__SLUG ),
+					$plans_string,
+					$paid_plan->trial_period
+				);
+			}
+
+			// Add start trial button.
+			$message .= ' ' . sprintf(
+				'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+				$upgrade_url,
+				__( 'Start free trial', WP_FS__SLUG )
+			);
+
+			$this->_admin_notices->add_sticky(
+				$this->apply_filters('trial_promotion_message', $message),
+				'trial_promotion',
+				'',
+				'promotion'
+			);
+
+			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
 		}
 
 		/* Action Links

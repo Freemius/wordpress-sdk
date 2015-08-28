@@ -27,6 +27,8 @@
 		 * @var number
 		 */
 		public $license_id;
+		public $trial_plan_id;
+		public $trial_ends;
 		public $is_trial;
 
 		/**
@@ -48,8 +50,15 @@
 //				$this->license     = new FS_Plugin_License();
 //				$this->license->id = $site->license_id;
 //			}
-			// @todo Add trial workflow support.
-			$this->is_trial = false;
+
+			/**
+			 * Added trial properties.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.0.9
+			 */
+			$this->trial_plan_id = $site->trial_plan_id;
+			$this->trial_ends = $site->trial_ends;
 		}
 
 		static function get_type()
@@ -62,5 +71,31 @@
 			// The server has no way to verify if localhost unless localhost appears in domain.
 			return WP_FS__IS_LOCALHOST_FOR_SERVER;
 //			return (substr($_SERVER['REMOTE_ADDR'], 0, 4) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1');
+		}
+
+		/**
+		 * Check if site in trial.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_trial()
+		{
+			return is_numeric($this->trial_plan_id) && (strtotime($this->trial_ends) > WP_FS__SCRIPT_START_TIME);
+		}
+
+		/**
+		 * Check if user already utilized the trial with the current install.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function is_trial_utilized()
+		{
+			return is_numeric($this->trial_plan_id);
 		}
 	}
