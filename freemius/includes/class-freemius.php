@@ -36,6 +36,7 @@
 		 * @var bool Hints the SDK if running a premium plugin or free.
 		 */
 		private $_is_premium;
+		private $_enable_anonymous;
 
 		/**
 		 * @since 1.0.8
@@ -621,6 +622,7 @@
 			$this->_is_premium       = $this->_get_bool_option( $plugin_info, 'is_premium', true );
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
+			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
 
 			if ( false === $this->_background_sync() ) {
 				// If background sync wasn't executed,
@@ -2173,6 +2175,18 @@
 			return $this->_get_admin_page_url( 'pricing', $params );
 		}
 
+
+		/**
+		 * Check if plugin can work in anonymous mode.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		function enable_anonymous() {
+			return $this->_enable_anonymous;
+		}
 		/**
 		 * Plugin's account URL.
 		 *

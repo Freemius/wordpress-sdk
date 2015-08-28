@@ -26,7 +26,7 @@
 	if (false !== $protocol_pos)
 		$site_url = substr($site_url, $protocol_pos + 3);
 ?>
-<div id="fs_connect" class="wrap">
+<div id="fs_connect" class="wrap<?php if (!$fs->enable_anonymous()) echo ' fs-anonymous-disabled' ?>">
 	<div class="fs-visual">
 		<b class="fs-site-icon"><i class="dashicons dashicons-wordpress"></i></b>
 		<i class="dashicons dashicons-plus fs-first"></i>
@@ -47,18 +47,20 @@
 	<div class="fs-content">
 		<p><?php
 				echo $fs->apply_filters('connect_message', sprintf(
-				__('Hey %s', WP_FS__SLUG) . ',<br>' .
-				__('In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', WP_FS__SLUG),
-				$first_name,
-				'<b>' . $fs->get_plugin_name() . '</b>',
-				'<b>' . $current_user->user_login . '</b>',
-				'<a href="' . get_site_url() . '" target="_blank">' . $site_url . '</a>',
-				'<a href="https://freemius.com/wordpress/" target="_blank">freemius.com</a>'
+					__('Hey %s', WP_FS__SLUG) . ',<br>' .
+					__('In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', WP_FS__SLUG),
+					$first_name,
+					'<b>' . $fs->get_plugin_name() . '</b>',
+					'<b>' . $current_user->user_login . '</b>',
+					'<a href="' . get_site_url() . '" target="_blank">' . $site_url . '</a>',
+					'<a href="https://freemius.com/wordpress/" target="_blank">freemius.com</a>'
 				));
 			?></p>
 	</div>
 	<div class="fs-actions">
+		<?php if ( $fs->enable_anonymous() ) : ?>
 		<a href="<?php echo wp_nonce_url($fs->_get_admin_page_url('', array('fs_action' => $slug . '_skip_activation')), $slug . '_skip_activation') ?>" class="button button-secondary" tabindex="2"><?php _e('Skip', WP_FS__SLUG) ?></a>
+		<?php endif ?>
 		<?php $fs_user = Freemius::_get_user_by_email($current_user->user_email) ?>
 		<?php if (is_object($fs_user)) : ?>
 			<form action="" method="POST">
