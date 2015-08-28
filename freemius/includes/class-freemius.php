@@ -157,6 +157,67 @@
 
 			// Hook to plugin uninstall.
 			register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+		/**
+		 * Check if Freemius should be turned on for the current plugin install + version combination. The API query will be only invoked once per plugin version (cached locally).
+		 *
+		 * @return bool
+		 */
+		private function _is_on() {
+			self::$_static_logger->entrance();
+
+			if ( isset( $this->_is_on ) ) {
+				return $this->_is_on;
+			}
+
+			// If already installed then sure it's on :)
+			if ( $this->is_registered() ) {
+				$this->_is_on = true;
+
+				return $this->_is_on;
+			}
+
+			$version = $this->get_plugin_version();
+
+			if ( isset($this->_storage->is_on) ) {
+				if ( $version == $this->_storage->is_on['version'] ) {
+					$this->_is_on = $this->_storage->is_on['is_active'];
+
+					return $this->_is_on;
+				}
+			}
+
+			// Defaults to new install.
+			$is_update = false;
+			$is_update = $this->apply_filters( 'is_plugin_update', $is_update );
+
+			/**
+			 * Check anonymously if the SDK should be currently activated.
+			 * The logic is based on whether the developer turned Freemius off,
+			 * or set a limit to the number of activations. It's not related to
+			 * any private information of the current WordPress instance.
+			 *
+			 * Note:
+			 * Only the plugin's public key is being shared with the endpoint.
+			 * NO private nor sensitive information is being shared.
+			 */
+			$result = $this->get_api_plugin_scope()->get( 'is_active.json?is_update=' . json_encode( $is_update ) );
+
+			$is_active = ! isset( $result->error ) &&
+			             isset( $result->is_active ) &&
+			             is_bool( $result->is_active ) ?
+				$result->is_active :
+				false;
+
+			$this->_storage->is_on = array(
+				'is_active' => $is_active,
+				'timestamp' => WP_FS__SCRIPT_START_TIME,
+				'version'   => $version,
+			);
+
+			$this->_is_on = $is_active;
+
+			return $this->_is_on;
+		}
 		}
 
 		/**
@@ -623,6 +684,12 @@
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
+
+			// Check if Freemius is on for the current plugin.
+			// This MUST be executed after all the plugin variables has been loaded.
+			if ( ! $this->_is_on() ) {
+				return;
+			}
 
 			if ( false === $this->_background_sync() ) {
 				// If background sync wasn't executed,
