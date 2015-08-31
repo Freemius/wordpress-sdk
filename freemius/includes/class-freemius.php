@@ -4311,6 +4311,9 @@
 							$plan_change = 'expired';
 						}
 					}
+
+					if (is_numeric($site->license_id) && is_object($this->_license))
+						$this->_sync_site_subscription($this->_license);
 				}
 			}
 
