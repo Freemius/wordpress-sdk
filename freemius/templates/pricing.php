@@ -13,6 +13,7 @@
 
 	$slug = $VARS['slug'];
 	$fs = fs($slug);
+	$timestamp = time();
 
 	$context_params = array(
 		'plugin_id'         => $fs->get_id(),
@@ -24,10 +25,18 @@
 	if ($fs->is_registered()) {
 		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
 			$fs->get_site(),
-			time(),
+			$timestamp,
 			'upgrade'
 		) );
 	}
+
+	if ($fs->is_payments_sandbox())
+		// Append plugin secure token for sandbox mode authentication.)
+		$context_params['sandbox'] = FS_Security::instance()->get_secure_token(
+			$fs->get_plugin(),
+			$timestamp,
+			'checkout'
+		);
 
 	$query_params = array_merge($context_params, array(
 		'next' => $fs->_get_admin_page_url('account', array('fs_action' => $slug . '_sync_license')),
