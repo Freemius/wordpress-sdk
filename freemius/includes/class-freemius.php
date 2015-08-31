@@ -798,6 +798,11 @@
 					'trial_started',
 					'plan_upgraded',
 				));
+
+				$this->_admin_notices->add(
+					__( 'Premium plugin version was successfully activated.', WP_FS__SLUG ),
+					__( 'W00t!', WP_FS__SLUG )
+				);
 			} else {
 				// Activated free code (after had the premium before).
 				$this->do_action( 'after_free_version_reactivation' );
