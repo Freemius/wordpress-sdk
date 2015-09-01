@@ -4154,7 +4154,7 @@
 
 			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
 
-			$is_addon_sync = (!$this->_plugin->is_addon() && $plugin_id !== $this->get_id() );
+			$is_addon_sync = (!$this->_plugin->is_addon() && $plugin_id != $this->get_id() );
 
 			if ( $is_addon_sync ) {
 				$this->_sync_addon_license( $plugin_id , $background );
