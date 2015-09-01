@@ -2335,6 +2335,11 @@
 			if (!$this->is_trial())
 				return false;
 
+			if (!isset($this->_storage->trial_plan)) {
+				// Store trial plan information.
+				$this->_enrich_site_trial_plan( true );
+			}
+
 			if ($this->_storage->trial_plan->name === $plan)
 				// Exact plan.
 				return true;
@@ -2918,6 +2923,11 @@
 
 			$this->_set_account( $user, $site );
 			$this->_sync_plans();
+
+			if ($this->is_trial()) {
+				// Store trial plan information.
+				$this->_enrich_site_trial_plan( true );
+			}
 
 			$this->do_action( 'after_account_connection', $user, $site );
 
