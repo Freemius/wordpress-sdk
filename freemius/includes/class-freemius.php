@@ -2839,7 +2839,8 @@
 
 			if ( is_object($site) &&
 			     is_numeric($site->id) &&
-			     is_numeric($site->user_id)
+			     is_numeric($site->user_id) &&
+			     is_object($site->plan)
 			) {
 				// Load site.
 				$this->_site       = clone $site;
