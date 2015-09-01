@@ -68,9 +68,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.4
 		 *
-		 * @param $allow
-		 * @param $host
-		 * @param $url
+		 * @param bool   $allow
+		 * @param string $host
+		 * @param string $url
 		 *
 		 * @return bool
 		 */
@@ -129,12 +129,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.5
 		 *
-		 * @param $action
-		 * @param $args
+		 * @param string $action
+		 * @param array  $args
 		 *
 		 * @return bool|mixed
 		 */
-		private function _fetach_plugin_info_from_repository($action, $args)
+		private function _fetch_plugin_info_from_repository($action, $args)
 		{
 			$url = $http_url = 'http://api.wordpress.org/plugins/info/1.0/';
 			if ( $ssl = wp_http_supports( array( 'ssl' ) ) )
@@ -169,9 +169,9 @@
 		 *
 		 * @uses FS_Api
 		 *
-		 * @param mixed  $data
-		 * @param string $action
-		 * @param object $args
+		 * @param object     $data
+		 * @param string     $action
+		 * @param mixed      $args
 		 *
 		 * @return object
 		 */
@@ -201,7 +201,7 @@
 			if (!$is_addon)
 			{
 				// Try to fetch info from .org repository.
-				$data = $this->_fetach_plugin_info_from_repository( $action, $args );
+				$data = $this->_fetch_plugin_info_from_repository( $action, $args );
 
 				$plugin_in_repo = ( false !== $data );
 			}
