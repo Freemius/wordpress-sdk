@@ -11,7 +11,9 @@
 	}
 
 	define( 'WP_FS__SLUG', 'freemius' );
-	define( 'WP_FS__DEV_MODE', false );
+	if ( !defined('WP_FS__DEV_MODE' )) {
+		define( 'WP_FS__DEV_MODE', false );
+	}
 
 	/**
 	 * Directories
