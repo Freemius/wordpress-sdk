@@ -55,9 +55,8 @@
 		 *
 		 * @return Freemius
 		 */
-		function fs($slug)
-		{
-			return Freemius::instance($slug);
+		function fs( $slug ) {
+			return Freemius::instance( $slug );
 		}
 
 		/**
@@ -69,17 +68,23 @@
 		 *
 		 * @return Freemius
 		 */
-		function fs_init($slug, $plugin_id, $public_key, $is_live = true, $is_premium = true) {
+		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
 			$fs = Freemius::instance( $slug );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
 		}
 
-		function fs_dynamic_init($plugin)
-		{
+		/**
+		 * @param array [string]string $plugin
+		 *
+		 * @return \Freemius
+		 * @throws \Freemius_Exception
+		 */
+		function fs_dynamic_init( $plugin ) {
 			$fs = Freemius::instance( $plugin['slug'] );
-			$fs->dynamic_init($plugin);
+			$fs->dynamic_init( $plugin );
+
 			return $fs;
 		}
 
