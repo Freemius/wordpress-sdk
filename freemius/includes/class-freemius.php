@@ -165,7 +165,18 @@
 				// Freemius version upgrade mode.
 				$this->_storage->sdk_last_version = $this->_storage->sdk_version;
 				$this->_storage->sdk_version = $this->version;
+
+				if ( !is_null($this->_storage->sdk_last_version) &&
+				     version_compare( $this->_storage->sdk_last_version, $this->version, '<' ) ) {
 				$this->_storage->sdk_upgrade_mode = true;
+					$this->_storage->sdk_downgrade_mode = false;
+				}
+				else
+				{
+					$this->_storage->sdk_downgrade_mode = true;
+					$this->_storage->sdk_upgrade_mode = false;
+
+				}
 			}
 
 			$plugin_version = $this->get_plugin_version();
@@ -173,7 +184,17 @@
 				// Freemius version upgrade mode.
 				$this->_storage->plugin_last_version = $this->_storage->plugin_version;
 				$this->_storage->plugin_version = $plugin_version;
+
+				if ( !is_null($this->_storage->plugin_last_version) &&
+				     version_compare( $this->_storage->plugin_last_version, $plugin_version, '<' ) ) {
 				$this->_storage->plugin_upgrade_mode = true;
+					$this->_storage->plugin_downgrade_mode = false;
+				}
+				else
+				{
+					$this->_storage->plugin_downgrade_mode = true;
+					$this->_storage->plugin_upgrade_mode = false;
+				}
 			}
 
 			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
