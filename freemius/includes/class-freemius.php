@@ -4273,6 +4273,7 @@
 			} else {
 				// Sync licenses.
 				$this->_sync_licenses();
+
 				// Check if plan / license changed.
 				if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
 				     // Check if trial started.
@@ -4315,9 +4316,9 @@
 
 							$plan_change = $is_free ?
 								'upgraded' :
-								is_object($new_license) ?
+								(is_object($new_license) ?
 									'changed' :
-									'downgraded';
+									'downgraded');
 						}
 					}
 
@@ -4357,7 +4358,7 @@
 						sprintf(
 							__( 'Your plan was successfully upgraded.', WP_FS__SLUG ),
 							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : sprintf(
+						) . ( $this->is_premium() ? '' : ' ' . sprintf(
 							'<a href="%s">%s</a>',
 							$this->get_account_url( 'download_latest' ),
 							sprintf(
@@ -4412,7 +4413,7 @@
 						sprintf(
 							__( 'Your trial has been successfully started.', WP_FS__SLUG ),
 							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : sprintf(
+						) . ( $this->is_premium() ? '' : ' ' . sprintf(
 							'<a href="%s">%s</a>',
 							$this->get_account_url( 'download_latest' ),
 							sprintf(
