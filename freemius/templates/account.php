@@ -54,7 +54,7 @@
 						<?php wp_nonce_field('delete_account') ?>
 						<a href="#" onclick="if (confirm('<?php
 							if ($is_active_subscription) {
-								printf( __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', WP_FS__SLUG ), $plan->title );
+								echo esc_attr(sprintf( __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', WP_FS__SLUG ), $plan->title ));
 							}else {
 								_e( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', WP_FS__SLUG );
 							}
