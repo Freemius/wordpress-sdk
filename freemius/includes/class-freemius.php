@@ -2866,7 +2866,7 @@
 
 				$this->_license = $this->_get_license_by_id($this->_site->license_id);
 
-				if ( version_compare( $this->_site->version, $this->get_plugin_version(), '<' ) ) {
+				if ( $this->_site->version != $this->get_plugin_version() ) {
 					$this->_update_plugin_version_event();
 				}
 
