@@ -5709,8 +5709,8 @@
 		 */
 		function is_plugin_upgrade_mode()
 		{
-			return isset($this->_storage->sdk_upgrade_mode) ?
-				$this->_storage->sdk_upgrade_mode :
+			return isset($this->_storage->plugin_upgrade_mode) ?
+				$this->_storage->plugin_upgrade_mode :
 				false;
 		}
 
@@ -5724,7 +5724,7 @@
 		 */
 		function set_plugin_upgrade_complete()
 		{
-			$this->_storage->sdk_upgrade_mode = false;
+			$this->_storage->plugin_upgrade_mode = false;
 		}
 
 		#endregion ------------------------------------------------------------------
