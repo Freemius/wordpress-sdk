@@ -4864,6 +4864,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.3
 		 * @uses FS_Api
+		 *
+		 * @return object
 		 */
 		private function _update_email() {
 			$this->_logger->entrance();
@@ -4886,6 +4888,38 @@
 				// handle different error cases.
 
 			}
+
+			return $user;
+		}
+
+		/**
+		 * Handle user name update.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 * @uses   FS_Api
+		 *
+		 * @return object
+		 */
+		private function _update_user_name() {
+			$this->_logger->entrance();
+			$name = fs_request_get( 'fs_user_name_' . $this->_slug, '' );
+
+			$api  = $this->get_api_user_scope();
+			$user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,first,last", 'put', array(
+				'name' => $name,
+			) );
+
+			if ( ! isset( $user->error ) ) {
+				$this->_user->first = $user->first;
+				$this->_user->last  = $user->last;
+				$this->_store_user();
+			} else {
+				// handle different error cases.
+
+			}
+
+			return $user;
 		}
 
 		/**
@@ -5033,9 +5067,40 @@
 			if ( fs_request_is_action( 'update_email' ) ) {
 				check_admin_referer( 'update_email' );
 
-				$this->_update_email();
+				$result = $this->_update_email();
 
-				$this->_admin_notices->add(__('Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG));
+				if ( isset( $result->error ) ) {
+					switch ($result->error->code) {
+						case 'user_exist':
+							$this->_admin_notices->add(
+								__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', WP_FS__SLUG ),
+								__( 'Oops...', WP_FS__SLUG ),
+								'error'
+							);
+							break;
+					}
+				} else {
+					$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG ) );
+				}
+
+				return;
+			}
+
+			if ( fs_request_is_action( 'update_user_name' ) ) {
+				check_admin_referer( 'update_user_name' );
+
+				$result = $this->_update_user_name();
+
+				if (isset($result->error)) {
+					$this->_admin_notices->add(
+						__( 'Please provide your full name.', WP_FS__SLUG ),
+						__( 'Oops...', WP_FS__SLUG ),
+						'error'
+					);
+				}
+				else {
+					$this->_admin_notices->add( __( 'Your name was successfully updated.', WP_FS__SLUG ) );
+				}
 
 				return;
 			}
