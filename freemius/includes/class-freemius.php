@@ -168,7 +168,7 @@
 
 				if ( !is_null($this->_storage->sdk_last_version) &&
 				     version_compare( $this->_storage->sdk_last_version, $this->version, '<' ) ) {
-				$this->_storage->sdk_upgrade_mode = true;
+					$this->_storage->sdk_upgrade_mode = true;
 					$this->_storage->sdk_downgrade_mode = false;
 				}
 				else
@@ -187,7 +187,7 @@
 
 				if ( !is_null($this->_storage->plugin_last_version) &&
 				     version_compare( $this->_storage->plugin_last_version, $plugin_version, '<' ) ) {
-				$this->_storage->plugin_upgrade_mode = true;
+					$this->_storage->plugin_upgrade_mode = true;
 					$this->_storage->plugin_downgrade_mode = false;
 				}
 				else
@@ -648,10 +648,10 @@
 			$parent_name = $this->_get_option( $plugin_info, 'parent_name', null );
 
 			if ( isset( $plugin_info['parent'] ) ) {
-				$parent_id         = $this->_get_numeric_option( $plugin_info['parent'], 'id', null );
+				$parent_id = $this->_get_numeric_option( $plugin_info['parent'], 'id', null );
 //				$parent_slug       = $this->_get_option( $plugin_info['parent'], 'slug', null );
 //				$parent_public_key = $this->_get_option( $plugin_info['parent'], 'public_key', null );
-				$parent_name       = $this->_get_option( $plugin_info['parent'], 'name', null );
+				$parent_name = $this->_get_option( $plugin_info['parent'], 'name', null );
 			}
 
 			if ( false === $id ) {
@@ -661,21 +661,21 @@
 				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
 			}
 
-			$plugin = ($this->_plugin instanceof FS_Plugin) ?
+			$plugin = ( $this->_plugin instanceof FS_Plugin ) ?
 				$this->_plugin :
 				new FS_Plugin();
 
-			$plugin->update('id', $id);
-			$plugin->update('public_key', $public_key);
+			$plugin->update( 'id', $id );
+			$plugin->update( 'public_key', $public_key );
 //			$plugin->update('secret_key', $secret_key);
-			$plugin->update('slug', $this->_slug);
-			$plugin->update('parent_plugin_id', $parent_id);
-			$plugin->update('title', $this->get_plugin_name());
-			$plugin->update('version', $this->get_plugin_version());
-			$plugin->update('file', $this->_free_plugin_basename);
-			$plugin->update('is_premium', $this->_get_bool_option( $plugin_info, 'is_premium', true ));
+			$plugin->update( 'slug', $this->_slug );
+			$plugin->update( 'parent_plugin_id', $parent_id );
+			$plugin->update( 'title', $this->get_plugin_name() );
+			$plugin->update( 'version', $this->get_plugin_version() );
+			$plugin->update( 'file', $this->_free_plugin_basename );
+			$plugin->update( 'is_premium', $this->_get_bool_option( $plugin_info, 'is_premium', true ) );
 
-			if ($plugin->is_updated()) {
+			if ( $plugin->is_updated() ) {
 				// Update plugin details.
 				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
 			}
@@ -772,14 +772,15 @@
 					if ( ! isset( $this->_storage->activation_timestamp ) ) {
 						$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
 					}
-
-					if ($this->_storage->prev_is_premium !== $this->_plugin->is_premium)
-					{
-						if (isset($this->_storage->prev_is_premium)) {
+					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+						if ( isset( $this->_storage->prev_is_premium ) ) {
 							add_action( is_admin() ? 'admin_init' : 'init', array(
-									&$this,
-									'_plugin_code_type_changed'
-								) );
+								&$this,
+								'_plugin_code_type_changed'
+							) );
+						} else {
+							// Set for code type for the first time.
+							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
 						}
 					}
 
@@ -1516,6 +1517,8 @@
 
 			// Send uninstall event.
 			$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => false, 'is_uninstalled' => true ) );
+
+			// @todo Decide if we want to delete plugin information from db.
 		}
 
 		/**
