@@ -207,8 +207,6 @@
 			$this->_register_hooks();
 
 			$this->_load_account();
-
-			$this->_register_account_hooks();
 		}
 
 		/**
@@ -2817,6 +2815,8 @@
 		private function _load_account() {
 			$this->_logger->entrance();
 
+			$this->do_action('before_account_load');
+
 			$sites    = self::get_all_sites();
 			$users    = self::get_all_users();
 			$plans    = self::get_all_plans();
@@ -2873,21 +2873,9 @@
 					$this->_update_plugin_version_event();
 				}
 
-			} else {
-				self::$_static_logger->info( 'Trying to load account from external source with ' . 'fs_load_account_' . $this->_slug );
-
-				$account = apply_filters( 'fs_load_account_' . $this->_slug, false );
-
-				if ( false === $account ) {
-					self::$_static_logger->info( 'Plugin is not registered on that site.' );
-				} else {
-					if ( is_object( $account['site'] ) ) {
-						self::$_static_logger->info( 'Account loaded: user_id = ' . $this->_user->id . '; site_id = ' . $this->_site->id . ';' );
-
-						$this->_set_account( $account['user'], $account['site'] );
-					}
-				}
 			}
+
+			$this->_register_account_hooks();
 		}
 
 		/**
