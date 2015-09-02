@@ -842,6 +842,7 @@
 				$this->_admin_notices->remove_sticky(array(
 					'trial_started',
 					'plan_upgraded',
+					'plan_changed',
 				));
 
 				$this->_admin_notices->add(
