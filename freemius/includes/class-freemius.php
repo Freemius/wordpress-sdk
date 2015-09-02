@@ -161,42 +161,6 @@
 				$this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
 
-			if (!isset($this->_storage->sdk_version) || $this->_storage->sdk_version != $this->version){
-				// Freemius version upgrade mode.
-				$this->_storage->sdk_last_version = $this->_storage->sdk_version;
-				$this->_storage->sdk_version = $this->version;
-
-				if ( empty($this->_storage->sdk_last_version) ||
-				     version_compare( $this->_storage->sdk_last_version, $this->version, '<' ) ) {
-					$this->_storage->sdk_upgrade_mode = true;
-					$this->_storage->sdk_downgrade_mode = false;
-				}
-				else
-				{
-					$this->_storage->sdk_downgrade_mode = true;
-					$this->_storage->sdk_upgrade_mode = false;
-
-				}
-			}
-
-			$plugin_version = $this->get_plugin_version();
-			if (!isset($this->_storage->plugin_version) || $this->_storage->plugin_version != $plugin_version){
-				// Freemius version upgrade mode.
-				$this->_storage->plugin_last_version = $this->_storage->plugin_version;
-				$this->_storage->plugin_version = $plugin_version;
-
-				if ( empty($this->_storage->plugin_last_version) ||
-				     version_compare( $this->_storage->plugin_last_version, $plugin_version, '<' ) ) {
-					$this->_storage->plugin_upgrade_mode = true;
-					$this->_storage->plugin_downgrade_mode = false;
-				}
-				else
-				{
-					$this->_storage->plugin_downgrade_mode = true;
-					$this->_storage->plugin_upgrade_mode = false;
-				}
-			}
-
 			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
@@ -207,23 +171,80 @@
 			$this->_register_hooks();
 
 			$this->_load_account();
+
+			$this->_version_updates_handler();
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.0.9
 		 */
-		private function _register_hooks()
+		private function _version_updates_handler()
 		{
-			// Hook to plugin activation
-			register_activation_hook( $this->_plugin_main_file_path, array( &$this, '_activate_plugin_event_hook' ) );
+			if (!isset($this->_storage->sdk_version) || $this->_storage->sdk_version != $this->version){
+				// Freemius version upgrade mode.
+				$this->_storage->sdk_last_version = $this->_storage->sdk_version;
+				$this->_storage->sdk_version = $this->version;
 
-			// Hook to plugin uninstall.
-			register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+				if ( empty($this->_storage->sdk_last_version) ||
+				     version_compare( $this->_storage->sdk_last_version, $this->version, '<' )
+				) {
+					$this->_storage->sdk_upgrade_mode = true;
+					$this->_storage->sdk_downgrade_mode = false;
+				}
+				else
+				{
+					$this->_storage->sdk_downgrade_mode = true;
+					$this->_storage->sdk_upgrade_mode = false;
+
+				}
+
+				$this->do_action('sdk_version_update');
+			}
+
+			$plugin_version = $this->get_plugin_version();
+			if (!isset($this->_storage->plugin_version) || $this->_storage->plugin_version != $plugin_version){
+				// Plugin version upgrade mode.
+				$this->_storage->plugin_last_version = $this->_storage->plugin_version;
+				$this->_storage->plugin_version = $plugin_version;
+
+				if ( empty($this->_storage->plugin_last_version) ||
+				     version_compare( $this->_storage->plugin_last_version, $plugin_version, '<' )
+				) {
+					$this->_storage->plugin_upgrade_mode = true;
+					$this->_storage->plugin_downgrade_mode = false;
+				}
+				else
+				{
+					$this->_storage->plugin_downgrade_mode = true;
+					$this->_storage->plugin_upgrade_mode = false;
+				}
+
+				$this->do_action('plugin_version_update');
+			}
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.0.9
+		 */
+		private function _register_hooks() {
+			if ( is_admin() ) {
+				// Hook to plugin activation
+				register_activation_hook( $this->_plugin_main_file_path, array(
+					&$this,
+					'_activate_plugin_event_hook'
+				) );
+
+				// Hook to plugin uninstall.
+				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+
+				if ( ! $this->is_ajax() ) {
+					add_action( 'admin_menu', array( &$this, '_add_dashboard_menu' ) );
+				}
+			}
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
-
-			add_action( 'admin_menu', array( &$this, '_add_dashboard_menu' ) );
 		}
 
 		/**
@@ -294,19 +315,23 @@
 		 */
 		private function _register_account_hooks()
 		{
-			if (is_admin() && !$this->is_ajax()) {
-				if ( $this->has_trial_plan() ) {
-					$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
-					if ( ! $this->_site->is_trial_utilized() &&
-					     (
-						     // Show promotion if never shown it yet and 24 hours after initial activation.
-						     ( false === $last_time_trial_promotion_shown && $this->_storage->activation_timestamp < ( time() - WP_FS__TIME_24_HOURS_IN_SEC ) ) ||
-						     // Show promotion in every 30 days.
-						     ( is_numeric($last_time_trial_promotion_shown) && 30 * WP_FS__TIME_24_HOURS_IN_SEC < time() - $last_time_trial_promotion_shown ) )
-					) {
-						$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
+			if (is_admin()) {
+				if (!$this->is_ajax()) {
+					if ( $this->has_trial_plan() ) {
+						$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
+						if ( ! $this->_site->is_trial_utilized() &&
+						     (
+							     // Show promotion if never shown it yet and 24 hours after initial activation.
+							     ( false === $last_time_trial_promotion_shown && $this->_storage->activation_timestamp < ( time() - WP_FS__TIME_24_HOURS_IN_SEC ) ) ||
+							     // Show promotion in every 30 days.
+							     ( is_numeric( $last_time_trial_promotion_shown ) && 30 * WP_FS__TIME_24_HOURS_IN_SEC < time() - $last_time_trial_promotion_shown ) )
+						) {
+							$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
+						}
 					}
 				}
+
+//				$this->add_action( 'plugin_version_update', array( &$this, '_update_plugin_version_event' ));
 			}
 		}
 
@@ -2875,10 +2900,11 @@
 
 				$this->_license = $this->_get_license_by_id($this->_site->license_id);
 
-				if ( $this->_site->version != $this->get_plugin_version() ) {
+				if ($this->_site->version != $this->get_plugin_version()) {
+					// If stored install version is different than current installed plugin version,
+					// then update plugin version event.
 					$this->_update_plugin_version_event();
 				}
-
 			}
 
 			$this->_register_account_hooks();
@@ -2893,6 +2919,9 @@
 		 * @param bool|array $plans
 		 */
 		private function _set_account(FS_User $user, FS_Site $site, $plans = false) {
+			// Store provided site version for the account setup.
+			$given_site_version = $site->version;
+
 			$site->slug    = $this->_slug;
 			$site->user_id = $user->id;
 			$site->version = $this->get_plugin_version();
@@ -2903,6 +2932,14 @@
 				$this->_plans = $plans;
 
 			$this->_store_account();
+
+			// This must be executed after the account is stored, since the update plugin event
+			// uses the API which requires the account details.
+			if (!empty($given_site_version) && $given_site_version != $this->get_plugin_version()) {
+				// If setup account with a different plugin install version,
+				// then update plugin version event.
+				$this->_update_plugin_version_event();
+			}
 		}
 
 		/**
