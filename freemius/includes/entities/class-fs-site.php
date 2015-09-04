@@ -39,6 +39,12 @@
 		 * @var string|null
 		 */
 		public $trial_ends;
+		/**
+		 * @since 1.0.9
+		 *
+		 * @var bool
+		 */
+		public $is_premium = false;
 
 		/**
 		 * @param stdClass|bool $site
@@ -56,6 +62,7 @@
 			$this->plan->id   = $site->plan_id;
 			$this->license_id = $site->license_id;
 			$this->version    = $site->version;
+			$this->is_premium = $site->is_premium;
 
 			/**
 			 * Added trial properties.

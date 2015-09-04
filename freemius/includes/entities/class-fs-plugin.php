@@ -41,6 +41,8 @@
 		 */
 		public $info;
 		/**
+		 * @since 1.0.9
+		 *
 		 * @var bool
 		 */
 		public $is_premium;

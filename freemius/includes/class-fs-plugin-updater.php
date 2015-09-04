@@ -99,7 +99,9 @@
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
 
-			if ( empty( $transient_data ) ) {
+			if ( empty( $transient_data ) ||
+			     defined('WP_FS__UNINSTALL_MODE')
+			) {
 				return $transient_data;
 			}
 
