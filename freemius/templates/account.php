@@ -189,11 +189,7 @@
 								<div class="button-group">
 									<?php if ( $is_paying ) : ?>
 										<?php if (!$fs->is_allowed_to_install()) : ?>
-											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" class="button-group">
-												<input type="submit" class="button button-primary" value="<?php echo sprintf( __('Download %1s Version', WP_FS__SLUG), $site->plan->title) . (is_object($update) ? ' [' . $update->version . ']' : '') ?>">
-												<input type="hidden" name="fs_action" value="download_latest">
-												<?php wp_nonce_field('download_latest') ?>
-											</form>
+											<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __('Download %1s Version', WP_FS__SLUG), $site->plan->title) . (is_object($update) ? ' [' . $update->version . ']' : '') ?></a>
 										<?php elseif ( is_object($update) ) : ?>
 											<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename()), 'upgrade-plugin_' . $fs->get_plugin_basename()) ?>"><?php echo sprintf( __('Install Update Now [%1s]', WP_FS__SLUG), $update->version ) ?></a>
 										<?php endif ?>
@@ -335,7 +331,10 @@
 										$slug, 'account',
 										'download_latest',
 										__('Download Latest', WP_FS__SLUG),
-										array('plugin_id' => $addon_id)
+										array(
+											'plugin_id' => $addon_id,
+											'ts' => WP_FS__SCRIPT_START_TIME,
+										)
 									) ?>
 								<?php endif ?>
 							<?php endif ?>

@@ -2989,15 +2989,15 @@
 				}
 			}
 
-			if ( $this->is_paying() ) {
+			if ( $this->is_paying() && !$this->is_premium() ) {
 				$this->_admin_notices->add_sticky(
 					sprintf(
-						__( 'Your account was successfully activated with the %s plan, %sdownload our latest %s version now%s.', WP_FS__SLUG ),
-						$this->_site->plan->title,
-						'<a href="' . $this->get_account_url( 'download_latest' ) . '">',
-						$this->_site->plan->title,
-						'</a>'
-					),
+						__( 'Your account was successfully activated with the %s plan.', WP_FS__SLUG ),
+						$this->_site->plan->title
+					) . ' ' . $this->_get_latest_download_link( sprintf(
+						__( 'Download our latest %s version now', WP_FS__SLUG ),
+						$this->_site->plan->title
+					) ),
 					'plan_upgraded',
 					__( 'Ye-ha!', WP_FS__SLUG )
 				);
@@ -4260,8 +4260,12 @@
 								sprintf(
 									__( 'Your %s Add-on plan was successfully upgraded, %sdownload the latest version now%3s.', WP_FS__SLUG ), $addon->title, '<a href="' . $this->get_account_url( 'download_latest', array( 'plugin_id' => $addon_id ) ) . '">', '</a>' ) :
 								sprintf(
-									__( '%s Add-on was successfully purchased, %sdownload the latest version now%3s.', WP_FS__SLUG ), $addon->title, '<a href="' . $this->get_account_url( 'download_latest', array( 'plugin_id' => $addon_id ) ) . '">', '</a>' )
-							,
+									__( '%s Add-on was successfully purchased.', WP_FS__SLUG ),
+									$addon->title
+								) . ' ' . $this->_get_latest_download_link(
+									__( 'Download the latest version now', WP_FS__SLUG ),
+									$addon_id
+								),
 							'addon_plan_upgraded',
 							__( 'Ye-ha!', WP_FS__SLUG )
 						);
@@ -4398,13 +4402,11 @@
 						sprintf(
 							__( 'Your plan was successfully upgraded.', WP_FS__SLUG ),
 							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : ' ' . sprintf(
-							'<a href="%s">%s</a>',
-							$this->get_account_url( 'download_latest' ),
-							sprintf(
+						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
 								__( 'Download the latest %s version now', WP_FS__SLUG ),
 								$this->_site->plan->title
-							) ) ),
+							) )
+						),
 						'plan_upgraded',
 						__( 'Ye-ha!', WP_FS__SLUG )
 					);
@@ -4453,10 +4455,7 @@
 						sprintf(
 							__( 'Your trial has been successfully started.', WP_FS__SLUG ),
 							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : ' ' . sprintf(
-							'<a href="%s">%s</a>',
-							$this->get_account_url( 'download_latest' ),
-							sprintf(
+						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
 								__( 'Download the latest %s version now', WP_FS__SLUG ),
 								$this->_storage->trial_plan->title
 							) ) ),
@@ -4531,10 +4530,7 @@
 					sprintf(
 						__( 'Your license for %s was successfully activated.', WP_FS__SLUG ),
 						'<i>' . $this->get_plugin_name() . '</i>'
-					) . ( $this->is_premium() ? '' : sprintf(
-						'<a href="%s">%s</a>',
-						$this->get_account_url( 'download_latest' ),
-						sprintf(
+					) . ( $this->is_premium() ? '' : $this->_get_latest_download_link( sprintf(
 							__( 'Download the latest %s version now', WP_FS__SLUG ),
 							$this->_site->plan->title
 						) ) ),
@@ -4800,8 +4796,11 @@
 			return ( is_object( $tag ) && isset( $tag->version ) ) ? $tag : false;
 		}
 
+		#region Download Plugin ------------------------------------------------------------------
+
 		/**
 		 * Download latest plugin version, based on plan.
+		 * The download will be fetched via the API first.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
@@ -4809,6 +4808,8 @@
 		 * @param bool|number $plugin_id
 		 *
 		 * @uses   FS_Api
+		 *
+		 * @deprecated
 		 */
 		private function _download_latest( $plugin_id = false ) {
 			$this->_logger->entrance();
@@ -4817,7 +4818,9 @@
 
 			$is_premium = $this->_can_download_premium();
 
-			$latest = $this->get_api_site_scope()->call( $this->_get_latest_version_endpoint( $plugin_id, 'zip' ) );
+			$latest = $this->get_api_site_scope()->call(
+				$this->_get_latest_version_endpoint( $plugin_id, 'zip' )
+			);
 
 			$slug = $this->_slug;
 			if ( $is_addon ) {
@@ -4834,6 +4837,87 @@
 				exit();
 			}
 		}
+
+		/**
+		 * Download latest plugin version, based on plan.
+		 *
+		 * Not like _download_latest(), this will redirect the page
+		 * to secure download url to prevent dual download (from FS to WP server,
+		 * and then from WP server to the client / browser).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param bool|number $plugin_id
+		 *
+		 * @uses   FS_Api
+		 * @uses   wp_redirect()
+		 */
+		private function _download_latest_directly( $plugin_id = false ) {
+			$this->_logger->entrance();
+
+			wp_redirect( $this->_get_latest_download_api_url( $plugin_id ) );
+		}
+
+		/**
+		 * Get latest plugin FS API download URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param bool|number $plugin_id
+		 *
+		 * @return string
+		 */
+		private function _get_latest_download_api_url( $plugin_id = false ) {
+			$this->_logger->entrance();
+
+			return $this->get_api_site_scope()->get_signed_url(
+				$this->_get_latest_version_endpoint( $plugin_id, 'zip' )
+			);
+		}
+
+		/**
+		 * Get latest plugin download link.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param string      $label
+		 * @param bool|number $plugin_id
+		 *
+		 * @return string
+		 */
+		private function _get_latest_download_link( $label, $plugin_id = false ) {
+			return sprintf(
+				'<a target="_blank" href="%s">%s</a>',
+				$this->_get_latest_download_local_url( $plugin_id ),
+				$label
+			);
+		}
+
+		/**
+		 * Get latest plugin download local URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param bool|number $plugin_id
+		 *
+		 * @return string
+		 */
+		function _get_latest_download_local_url($plugin_id = false) {
+			// Add timestamp to protect from caching.
+			$params = array( 'ts' => WP_FS__SCRIPT_START_TIME );
+
+			if ( ! empty( $plugin_id ) ) {
+				$params['plugin_id'] = $plugin_id;
+			}
+
+			return $this->get_account_url( 'download_latest', $params );
+		}
+
+		#endregion Download Plugin ------------------------------------------------------------------
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -5091,7 +5175,7 @@
 
 			if ( fs_request_is_action( 'download_latest' ) ) {
 				check_admin_referer( 'download_latest' );
-				$this->_download_latest( fs_request_get( 'plugin_id', $this->get_id() ) );
+				$this->_download_latest_directly( fs_request_get( 'plugin_id', $this->get_id() ) );
 
 				return;
 			}

@@ -180,6 +180,18 @@
 		}
 
 		/**
+		 * Get API request URL signed via query string.
+		 *
+		 * @param string $path
+		 *
+		 * @return string
+		 */
+		function get_signed_url($path)
+		{
+			return $this->_api->GetSignedUrl($path);
+		}
+
+		/**
 		 * @param string $path
 		 * @param bool   $flush
 		 * @param int    $expiration (optional) Time until expiration in seconds from now, defaults to 24 hours

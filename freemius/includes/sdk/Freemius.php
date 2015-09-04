@@ -94,33 +94,83 @@
 		 */
 		protected function SignRequest($pResourceUrl, &$opts)
 		{
-			$eol = "\n";
-			$content_md5 = '';
-			$now = (time() - self::$_clock_diff);
-			$date = date('r', $now);
+			$eol          = "\n";
+			$content_md5  = '';
+			$now          = ( time() - self::$_clock_diff );
+			$date         = date( 'r', $now );
+			$content_type = 'application/json';
 
-			if (isset($opts[CURLOPT_POST]) && 0 < $opts[CURLOPT_POST])
-			{
-				$content_md5 = md5($opts[CURLOPT_POSTFIELDS]);
-				$opts[CURLOPT_HTTPHEADER][] = 'Content-MD5: ' . $content_md5;
+			if ( isset( $opts[ CURLOPT_POST ] ) && 0 < $opts[ CURLOPT_POST ] ) {
+				$content_md5                  = md5( $opts[ CURLOPT_POSTFIELDS ] );
+				$opts[ CURLOPT_HTTPHEADER ][] = 'Content-MD5: ' . $content_md5;
 			}
 
-			$opts[CURLOPT_HTTPHEADER][] = 'Date: ' . $date;
+			$opts[ CURLOPT_HTTPHEADER ][] = 'Date: ' . $date;
 
-			$string_to_sign = implode($eol, array(
-				$opts[CURLOPT_CUSTOMREQUEST],
+			$string_to_sign = implode( $eol, array(
+				$opts[ CURLOPT_CUSTOMREQUEST ],
 				$content_md5,
-				'application/json',
+				$content_type,
 				$date,
 				$pResourceUrl
-			));
+			) );
 
 			// If secret and public keys are identical, it means that
 			// the signature uses public key hash encoding.
-			$auth_type = ($this->_secret !== $this->_public) ? 'FS' : 'FSP';
+			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
 
 			// Add authorization header.
-			$opts[CURLOPT_HTTPHEADER][] = 'Authorization: ' . $auth_type . ' ' . $this->_id . ':' . $this->_public . ':' . self::Base64UrlEncode(hash_hmac('sha256', $string_to_sign, $this->_secret));
+			$opts[ CURLOPT_HTTPHEADER ][] = 'Authorization: ' .
+			                                $auth_type . ' ' .
+			                                $this->_id . ':' .
+			                                $this->_public . ':' .
+			                                self::Base64UrlEncode(
+				                                hash_hmac( 'sha256', $string_to_sign, $this->_secret )
+			                                );
+		}
+
+		/**
+		 * Get API request URL signed via query string.
+		 *
+		 * @param string $pPath
+		 *
+		 * @throws \Freemius_Exception
+		 *
+		 * @return string
+		 */
+		function GetSignedUrl($pPath) {
+			$resource     = explode( '?', $this->CanonizePath($pPath) );
+			$pResourceUrl = $resource[0];
+
+			$eol          = "\n";
+			$content_md5  = '';
+			$content_type = '';
+			$now          = ( time() - self::$_clock_diff );
+			$date         = date( 'r', $now );
+
+			$string_to_sign = implode( $eol, array(
+				'GET',
+				$content_md5,
+				$content_type,
+				$date,
+				$pResourceUrl
+			) );
+
+			// If secret and public keys are identical, it means that
+			// the signature uses public key hash encoding.
+			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
+
+			return $this->GetUrl(
+				$pResourceUrl . '?' .
+				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
+				http_build_query( array(
+					'auth_date'     => $date,
+					'authorization' => $auth_type . ' ' . $this->_id . ':' .
+					                   $this->_public . ':' .
+					                   self::Base64UrlEncode( hash_hmac(
+						                   'sha256', $string_to_sign, $this->_secret
+					                   ) )
+				) ) );
 		}
 
 		/**
@@ -128,10 +178,10 @@
 		 * developers want to do fancier things or use something other than curl to
 		 * make the request.
 		 *
-		 * @param $pCanonizedPath The URL to make the request to
-		 * @param string $pMethod HTTP method
-		 * @param array $params The parameters to use for the POST body
-		 * @param null $ch Initialized curl handle
+		 * @param string        $pCanonizedPath The URL to make the request to
+		 * @param string        $pMethod HTTP method
+		 * @param array         $params The parameters to use for the POST body
+		 * @param null|resource $ch Initialized curl handle
 		 *
 		 * @return mixed
 		 * @throws Freemius_Exception
