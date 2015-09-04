@@ -1652,7 +1652,6 @@
 				// Get name.
 				$this->_plugin_name = $plugin_data['Name'];
 
-				if ( $this->is_premium() ) {
 					// Check if plugin name contains [Premium] suffix and remove it.
 					$suffix     = '[premium]';
 					$suffix_len = strlen( $suffix );
@@ -1662,7 +1661,6 @@
 					) {
 						$this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
 					}
-				}
 
 				$this->_logger->departure( 'Name = ' . $this->_plugin_name );
 			}
