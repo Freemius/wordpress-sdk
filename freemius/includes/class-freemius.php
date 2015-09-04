@@ -5120,11 +5120,17 @@
 		 *
 		 */
 		private function _handle_account_edits() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
 
 			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
+			$action = fs_get_action();
 
-			if ( fs_request_is_action( 'delete_account' ) ) {
-				check_admin_referer( 'delete_account' );
+			switch ($action)
+			{
+				case 'delete_account':
+					check_admin_referer( $action );
 
 				if ( $plugin_id == $this->get_id() ) {
 					$this->delete_account_event();
@@ -5142,44 +5148,17 @@
 						}
 					}
 				}
-			}
-
-			if ( fs_request_is_action( 'downgrade_account' ) ) {
-				check_admin_referer( 'downgrade_account' );
-				$this->_downgrade_site();
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'cancel_trial' ) ) {
-//				check_admin_referer( 'cancel_trial' );
-				$this->_cancel_trial();
-
-				return;
-			}
-
-			if ( fs_request_is_action( 'verify_email' ) ) {
-				check_admin_referer( 'verify_email' );
-				$this->_verify_email();
+				case 'downgrade_account':
+					check_admin_referer( $action );
+					$this->_downgrade_site();
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'sync_user' ) ) {
-				$this->_handle_account_user_sync();
-
-				return;
-			}
-
-			if ( fs_request_is_action( $this->_slug . '_sync_license' ) ) {
-//				check_admin_referer( 'sync_license' );
-				$this->_sync_license();
-
-				return;
-			}
-
-			if ( fs_request_is_action( 'activate_license' ) ) {
-				check_admin_referer( 'activate_license' );
+				case 'activate_license':
+					check_admin_referer( $action );
 
 				if ( $plugin_id == $this->get_id() ) {
 					$this->_activate_license();
@@ -5191,10 +5170,9 @@
 				}
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'deactivate_license' ) ) {
-				check_admin_referer( 'deactivate_license' );
+				case 'deactivate_license':
+					check_admin_referer( $action );
 
 				if ( $plugin_id == $this->get_id() ) {
 					$this->_deactivate_license();
@@ -5206,23 +5184,14 @@
 				}
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'download_latest' ) ) {
-				check_admin_referer( 'download_latest' );
-				$this->_download_latest_directly( fs_request_get( 'plugin_id', $this->get_id() ) );
-
-				return;
-			}
-
-			if ( fs_request_is_action( 'check_updates' ) ) {
-				check_admin_referer( 'check_updates' );
+				case 'check_updates':
+					check_admin_referer( $action );
 				$this->_check_updates();
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'update_email' ) ) {
+				case 'update_email':
 				check_admin_referer( 'update_email' );
 
 				$result = $this->_update_email();
@@ -5242,9 +5211,8 @@
 				}
 
 				return;
-			}
 
-			if ( fs_request_is_action( 'update_user_name' ) ) {
+				case 'update_user_name':
 				check_admin_referer( 'update_user_name' );
 
 				$result = $this->_update_user_name();
@@ -5260,15 +5228,45 @@
 				}
 
 				return;
+
+				#region Actions that might be called from external links (e.g. email)
+
+				case 'cancel_trial':
+					$this->_cancel_trial();
+
+					return;
+
+				case 'verify_email':
+					$this->_verify_email();
+
+					return;
+
+				case 'sync_user':
+					$this->_handle_account_user_sync();
+
+					return;
+
+				case $this->_slug . '_sync_license':
+					$this->_sync_license();
+
+					return;
+
+				case 'download_latest':
+					$this->_download_latest_directly( $plugin_id );
+
+					return;
+
+				#endregion
 			}
+
 
 			if ( WP_FS__IS_POST_REQUEST ) {
 				$properties = array( 'site_secret_key', 'site_id', 'site_public_key' );
 				foreach ( $properties as $p ) {
-					if ( fs_request_is_action( 'update_' . $p ) ) {
-						check_admin_referer( 'update_' . $p );
+					if ( 'update_' . $p  === $action ) {
+						check_admin_referer( $action );
 
-						$this->_logger->log( 'update_' . $p );
+						$this->_logger->log( $action );
 
 						$site_property                      = substr( $p, strlen( 'site_' ) );
 						$site_property_value                = fs_request_get( 'fs_' . $p . '_' . $this->_slug, '' );
@@ -5279,9 +5277,11 @@
 
 						$this->do_action( 'account_property_edit', 'site', $site_property, $site_property_value );
 
-						$this->_admin_notices->add( sprintf( __( 'You have successfully updated your %s .', WP_FS__SLUG ), '<b>' . str_replace( '_', ' ', $p ) . '</b>' ) );
+						$this->_admin_notices->add( sprintf(
+							__( 'You have successfully updated your %s .', WP_FS__SLUG ),
+							'<b>' . str_replace( '_', ' ', $p ) . '</b>' ) );
 
-						break;
+						return;
 					}
 				}
 			}
