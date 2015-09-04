@@ -109,20 +109,24 @@
 		return ( 'get' === strtolower( $_SERVER['REQUEST_METHOD'] ) );
 	}
 
-	function fs_request_is_action( $action, $action_key = 'action' ) {
-		$is_action = ( ! empty( $_REQUEST[ $action_key ] ) && $action === $_REQUEST[ $action_key ] );
-
-		if ( $is_action ) {
-			return true;
+	function fs_get_action($action_key = 'action') {
+		if ( ! empty( $_REQUEST[ $action_key ] ) ) {
+			return strtolower( $_REQUEST[ $action_key ] );
 		}
 
 		if ( 'action' == $action_key ) {
 			$action_key = 'fs_action';
 
-			return ( ! empty( $_REQUEST[ $action_key ] ) && $action === $_REQUEST[ $action_key ] );
+			if ( ! empty( $_REQUEST[ $action_key ] ) ) {
+				return strtolower( $_REQUEST[ $action_key ] );
+			}
 		}
 
 		return false;
+	}
+
+	function fs_request_is_action( $action, $action_key = 'action' ) {
+		return ( strtolower( $action ) === fs_get_action( $action_key ) );
 	}
 
 	/* Core UI.
