@@ -78,7 +78,7 @@
 			}
 
 			self::$_options    = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
-			self::$_cache      = FS_Option_Manager::get_manager( 'fs_api_cache', true );
+			self::$_cache      = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
 
 			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
 

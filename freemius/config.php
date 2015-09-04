@@ -54,6 +54,9 @@
 	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
 		define( 'WP_FS__ACCOUNTS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'accounts' );
 	}
+	if ( ! defined( 'WP_FS__API_CACHE_OPTION_NAME' ) ) {
+		define( 'WP_FS__API_CACHE_OPTION_NAME', WP_FS___OPTION_PREFIX . 'api_cache' );
+	}
 	define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
 	define( 'WP_FS__IS_HTTPS', (
