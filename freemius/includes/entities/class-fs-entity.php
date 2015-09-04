@@ -67,7 +67,14 @@
 		 * @return bool
 		 */
 		function update($key, $val) {
-			if ( $this->{$key} == $val ) {
+			if ( $this->{$key} === $val ) {
+				return false;
+			}
+
+			if ( ( is_string( $this->{$key} ) && is_numeric( $val ) ||
+			       ( is_numeric( $this->{$key} ) && is_string( $val ) ) ) &&
+			     $this->{$key} == $val
+			) {
 				return false;
 			}
 
