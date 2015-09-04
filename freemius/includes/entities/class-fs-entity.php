@@ -61,29 +61,39 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param string $key
-		 * @param string $val
+		 * @param string|array[string]mixed $key
+		 * @param string|bool               $val
 		 *
 		 * @return bool
 		 */
-		function update($key, $val) {
-			if ( $this->{$key} === $val ) {
-				return false;
+		function update($key, $val = false) {
+			if ( ! is_array( $key ) ) {
+				$key = array( $key => $val );
 			}
 
-			if ( ( is_string( $this->{$key} ) && is_numeric( $val ) ||
-			       ( is_numeric( $this->{$key} ) && is_string( $val ) ) ) &&
-			     $this->{$key} == $val
-			) {
-				return false;
+			$is_updated = false;
+
+			foreach ( $key as $k => $v ) {
+				if ( $this->{$k} === $v ) {
+					continue;
+				}
+
+				if ( ( is_string( $this->{$k} ) && is_numeric( $v ) ||
+				       ( is_numeric( $this->{$k} ) && is_string( $v ) ) ) &&
+				     $this->{$k} == $v
+				) {
+					continue;
+				}
+
+				// Update value.
+				$this->{$k} = $v;
+
+				$is_updated = true;
 			}
 
-			// Update value.
-			$this->{$key} = $val;
+			$this->_is_updated = $is_updated;
 
-			$this->_is_updated = true;
-
-			return true;
+			return $is_updated;
 		}
 
 		/**

@@ -693,15 +693,17 @@
 				$this->_plugin :
 				new FS_Plugin();
 
-			$plugin->update( 'id', $id );
-			$plugin->update( 'public_key', $public_key );
-//			$plugin->update('secret_key', $secret_key);
-			$plugin->update( 'slug', $this->_slug );
-			$plugin->update( 'parent_plugin_id', $parent_id );
-			$plugin->update( 'title', $this->get_plugin_name() );
-			$plugin->update( 'version', $this->get_plugin_version() );
-			$plugin->update( 'file', $this->_free_plugin_basename );
-			$plugin->update( 'is_premium', $this->_get_bool_option( $plugin_info, 'is_premium', true ) );
+			$plugin->update( array(
+				'id'               => $id,
+				'public_key'       => $public_key,
+				'slug'             => $this->_slug,
+				'parent_plugin_id' => $parent_id,
+				'version'          => $this->get_plugin_version(),
+				'title'            => $this->get_plugin_name(),
+				'file'             => $this->_free_plugin_basename,
+				'is_premium'       => $this->_get_bool_option( $plugin_info, 'is_premium', true ),
+//				'secret_key' => $secret_key,
+			) );
 
 			if ( $plugin->is_updated() ) {
 				// Update plugin details.
@@ -1652,15 +1654,15 @@
 				// Get name.
 				$this->_plugin_name = $plugin_data['Name'];
 
-					// Check if plugin name contains [Premium] suffix and remove it.
-					$suffix     = '[premium]';
-					$suffix_len = strlen( $suffix );
+				// Check if plugin name contains [Premium] suffix and remove it.
+				$suffix     = '[premium]';
+				$suffix_len = strlen( $suffix );
 
-					if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
-					     $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
-					) {
-						$this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
-					}
+				if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
+				     $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
+				) {
+					$this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
+				}
 
 				$this->_logger->departure( 'Name = ' . $this->_plugin_name );
 			}
@@ -5130,102 +5132,102 @@
 				case 'delete_account':
 					check_admin_referer( $action );
 
-				if ( $plugin_id == $this->get_id() ) {
-					$this->delete_account_event();
+					if ( $plugin_id == $this->get_id() ) {
+						$this->delete_account_event();
 
-					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-						exit();
-					}
-				} else {
-					if ( $this->is_addon_activated( $plugin_id ) ) {
-						$fs_addon = self::get_instance_by_id( $plugin_id );
-						$fs_addon->delete_account_event();
-
-						if ( fs_redirect( $this->_get_admin_page_url( 'account' ) ) ) {
+						if ( fs_redirect( $this->_get_admin_page_url() ) ) {
 							exit();
 						}
-					}
-				}
+					} else {
+						if ( $this->is_addon_activated( $plugin_id ) ) {
+							$fs_addon = self::get_instance_by_id( $plugin_id );
+							$fs_addon->delete_account_event();
 
-				return;
+							if ( fs_redirect( $this->_get_admin_page_url( 'account' ) ) ) {
+								exit();
+							}
+						}
+					}
+
+					return;
 
 				case 'downgrade_account':
 					check_admin_referer( $action );
 					$this->_downgrade_site();
 
-				return;
+					return;
 
 				case 'activate_license':
 					check_admin_referer( $action );
 
-				if ( $plugin_id == $this->get_id() ) {
-					$this->_activate_license();
-				} else {
-					if ( $this->is_addon_activated( $plugin_id ) ) {
-						$fs_addon = self::get_instance_by_id( $plugin_id );
-						$fs_addon->_activate_license();
+					if ( $plugin_id == $this->get_id() ) {
+						$this->_activate_license();
+					} else {
+						if ( $this->is_addon_activated( $plugin_id ) ) {
+							$fs_addon = self::get_instance_by_id( $plugin_id );
+							$fs_addon->_activate_license();
+						}
 					}
-				}
 
-				return;
+					return;
 
 				case 'deactivate_license':
 					check_admin_referer( $action );
 
-				if ( $plugin_id == $this->get_id() ) {
-					$this->_deactivate_license();
-				} else {
-					if ( $this->is_addon_activated( $plugin_id ) ) {
-						$fs_addon = self::get_instance_by_id( $plugin_id );
-						$fs_addon->_deactivate_license();
+					if ( $plugin_id == $this->get_id() ) {
+						$this->_deactivate_license();
+					} else {
+						if ( $this->is_addon_activated( $plugin_id ) ) {
+							$fs_addon = self::get_instance_by_id( $plugin_id );
+							$fs_addon->_deactivate_license();
+						}
 					}
-				}
 
-				return;
+					return;
 
 				case 'check_updates':
 					check_admin_referer( $action );
-				$this->_check_updates();
+					$this->_check_updates();
 
-				return;
+					return;
 
 				case 'update_email':
-				check_admin_referer( 'update_email' );
+					check_admin_referer( 'update_email' );
 
-				$result = $this->_update_email();
+					$result = $this->_update_email();
 
-				if ( isset( $result->error ) ) {
-					switch ( $result->error->code ) {
-						case 'user_exist':
-							$this->_admin_notices->add(
-								__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', WP_FS__SLUG ),
-								__( 'Oops...', WP_FS__SLUG ),
-								'error'
-							);
-							break;
+					if ( isset( $result->error ) ) {
+						switch ( $result->error->code ) {
+							case 'user_exist':
+								$this->_admin_notices->add(
+									__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', WP_FS__SLUG ),
+									__( 'Oops...', WP_FS__SLUG ),
+									'error'
+								);
+								break;
+						}
+					} else {
+						$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG ) );
 					}
-				} else {
-					$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG ) );
-				}
 
-				return;
+					return;
 
 				case 'update_user_name':
-				check_admin_referer( 'update_user_name' );
+					check_admin_referer( 'update_user_name' );
 
-				$result = $this->_update_user_name();
+					$result = $this->_update_user_name();
 
-				if ( isset( $result->error ) ) {
-					$this->_admin_notices->add(
-						__( 'Please provide your full name.', WP_FS__SLUG ),
-						__( 'Oops...', WP_FS__SLUG ),
-						'error'
-					);
-				} else {
-					$this->_admin_notices->add( __( 'Your name was successfully updated.', WP_FS__SLUG ) );
-				}
+					if ( isset( $result->error ) ) {
+						$this->_admin_notices->add(
+							__( 'Please provide your full name.', WP_FS__SLUG ),
+							__( 'Oops...', WP_FS__SLUG ),
+							'error'
+						);
+					} else {
+						$this->_admin_notices->add( __( 'Your name was successfully updated.', WP_FS__SLUG ) );
+					}
 
-				return;
+					return;
 
 				#region Actions that might be called from external links (e.g. email)
 
