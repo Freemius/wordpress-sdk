@@ -1192,6 +1192,20 @@
 			} else {
 				// Activated free code (after had the premium before).
 				$this->do_action( 'after_free_version_reactivation' );
+
+				if ( $this->is_paying() && !$this->is_premium() ) {
+					$this->_admin_notices->add_sticky(
+						sprintf(
+							__( 'You have a %s license.', WP_FS__SLUG ),
+							$this->_site->plan->title
+						) . ' ' . $this->_get_latest_download_link( sprintf(
+							__( 'Download %s version now', WP_FS__SLUG ),
+							$this->_site->plan->title
+						) ),
+						'plan_upgraded',
+						__( 'Ye-ha!', WP_FS__SLUG )
+					);
+				}
 			}
 
 			// Update is_premium of latest version.
