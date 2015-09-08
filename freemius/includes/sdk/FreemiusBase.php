@@ -110,6 +110,13 @@
 
 		abstract function MakeRequest($pCanonizedPath, $pMethod = 'GET', $pParams = array());
 
+		/**
+		 * @param string $pPath
+		 * @param string $pMethod
+		 * @param array  $pParams
+		 *
+		 * @return array|object|null
+		 */
 		private function _Api($pPath, $pMethod = 'GET', $pParams = array())
 		{
 			$pMethod = strtoupper($pMethod);
@@ -133,9 +140,37 @@
 				));
 			}
 
+			if (empty($result))
+				return null;
+
 			$decoded = json_decode($result);
 
-			return (null === $decoded) ? $result : $decoded;
+			if (is_null($decoded)) {
+				if (preg_match('/Please turn JavaScript on/i', $result) &&
+				    preg_match('/text\/javascript/', $result)
+				) {
+					$decoded = (object) array(
+						'error' => (object) array(
+							'type'    => 'CloudFlareDDoSProtection',
+							'message' => $result,
+							'code'    => 'cloudflare_ddos_protection',
+							'http'    => 402
+						)
+					);
+				}
+				else {
+					$decoded = (object) array(
+						'error' => (object) array(
+							'type'    => 'Unknown',
+							'message' => $result,
+							'code'    => 'unknown',
+							'http'    => 402
+						)
+					);
+				}
+			}
+
+			return $decoded;
 		}
 
 		/**
