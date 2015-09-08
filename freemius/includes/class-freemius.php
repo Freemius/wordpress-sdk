@@ -257,7 +257,7 @@
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
 						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
-			}
+					}
 				}
 			}
 
@@ -1722,8 +1722,8 @@
 
 			if ($this->has_api_connectivity()) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
-			add_option( "fs_{$this->_slug}_activated", true );
-		}
+				add_option( "fs_{$this->_slug}_activated", true );
+			}
 		}
 
 		/**
@@ -1785,7 +1785,7 @@
 			unset( $this->_storage->connectivity_test );
 
 			if ( $this->is_registered() ) {
-			// Send deactivation event.
+				// Send deactivation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
 					'is_active' => false,
 					// Send version on deactivation.
@@ -1841,8 +1841,10 @@
 
 			// Send uninstall event.
 			$this->get_api_site_scope()->call( '/', 'put', array(
-				'is_active' => false,
-				'is_uninstalled' => true
+				'is_active'      => false,
+				'is_uninstalled' => true,
+				// Send version on uninstall.
+				'version'        => $this->get_plugin_version(),
 			) );
 
 			// @todo Decide if we want to delete plugin information from db.
@@ -6107,18 +6109,18 @@
 				$url = $plugin_fs->_get_admin_page_url();
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
-				$plugin_fs = self::get_parent_instance();
-			}
-
-			if ( is_object( $plugin_fs ) ) {
-				if ( ! $plugin_fs->is_registered() ) {
-					// Forward to parent plugin activation when parent not registered.
-					$url = $plugin_fs->_get_admin_page_url();
-				} else {
-					// Forward to account page.
-					$url = $plugin_fs->_get_admin_page_url( 'account' );
+					$plugin_fs = self::get_parent_instance();
 				}
-			}
+
+				if ( is_object( $plugin_fs ) ) {
+					if ( ! $plugin_fs->is_registered() ) {
+						// Forward to parent plugin activation when parent not registered.
+						$url = $plugin_fs->_get_admin_page_url();
+					} else {
+						// Forward to account page.
+						$url = $plugin_fs->_get_admin_page_url( 'account' );
+					}
+				}
 			}
 
 			if ( is_string( $url ) ) {
