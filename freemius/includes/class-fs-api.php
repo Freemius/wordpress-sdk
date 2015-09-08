@@ -226,7 +226,7 @@
 				if (!is_object($result) || isset($result->error))
 				{
 					// If there was an error during a newer data fetch,
-					// then fallback to older data version.
+					// fallback to older data version.
 					if (is_object($cache_entry) &&
 						isset($cache_entry->result) &&
 						!isset($cache_entry->result->error))
