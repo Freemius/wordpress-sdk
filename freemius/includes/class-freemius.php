@@ -1700,6 +1700,7 @@
 				// Send re-activation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
 					'is_active' => true,
+					'is_premium' => $this->is_premium(),
 					// Send version on activation.
 					'version' => $this->get_plugin_version(),
 				) );
@@ -1788,6 +1789,7 @@
 				// Send deactivation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
 					'is_active' => false,
+					'is_premium' => $this->is_premium(),
 					// Send version on deactivation.
 					'version'   => $this->get_plugin_version(),
 				) );
@@ -1806,7 +1808,10 @@
 			$this->_site->version = $this->get_plugin_version();
 
 			// Send upgrade event.
-			$site = $this->get_api_site_scope()->call( '/', 'put', array( 'version' => $this->get_plugin_version() ) );
+			$site = $this->get_api_site_scope()->call( '/', 'put', array(
+				'version'    => $this->get_plugin_version(),
+				'is_premium' => $this->is_premium(),
+			) );
 
 			if ( ! isset( $site->error ) ) {
 				$this->_store_site( true );
@@ -1842,6 +1847,7 @@
 			// Send uninstall event.
 			$this->get_api_site_scope()->call( '/', 'put', array(
 				'is_active'      => false,
+				'is_premium' => $this->is_premium(),
 				'is_uninstalled' => true,
 				// Send version on uninstall.
 				'version'        => $this->get_plugin_version(),
