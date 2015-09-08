@@ -46,6 +46,12 @@
 		 * @var bool
 		 */
 		public $is_premium;
+		/**
+		 * @since 1.0.9
+		 *
+		 * @var bool
+		 */
+		public $is_live;
 
 		/**
 		 * @param stdClass|bool $plugin
@@ -60,6 +66,7 @@
 			$this->slug = $plugin->slug;
 			$this->title = $plugin->title;
 			$this->is_premium = false;
+			$this->is_live = true;
 
 			if (isset($plugin->info) && is_object($plugin->info))
 				$this->info = new FS_Plugin_Info($plugin->info);

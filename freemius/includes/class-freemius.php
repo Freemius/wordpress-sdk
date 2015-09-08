@@ -48,10 +48,9 @@
 		private $_is_on;
 
 		/**
-		 * @since 1.0.5
-		 * @var bool If false, runs API calls through sandbox.
+		 * @since 1.0.9
+		 * @var bool If false, issues with connectivity to Freemius API.
 		 */
-		private $_is_live;
 		private $_has_api_connection;
 
 		/**
@@ -1019,6 +1018,7 @@
 				'title'            => $this->get_plugin_name(),
 				'file'             => $this->_free_plugin_basename,
 				'is_premium'       => $this->_get_bool_option( $plugin_info, 'is_premium', true ),
+				'is_live'          => $this->_get_bool_option( $plugin_info, 'is_live', true ),
 //				'secret_key' => $secret_key,
 			) );
 
@@ -1029,7 +1029,6 @@
 			$this->_plugin->secret_key = $secret_key;
 
 			$this->_menu_slug        = plugin_basename( isset( $plugin_info['menu_slug'] ) ? $plugin_info['menu_slug'] : $this->_slug );
-			$this->_is_live          = $this->_get_bool_option( $plugin_info, 'is_live', true );
 			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
@@ -1453,7 +1452,7 @@
 		 * @return bool
 		 */
 		function is_payments_sandbox() {
-			return ( ! $this->_is_live ) || isset( $this->_plugin->secret_key );
+			return ( ! $this->is_live() ) || isset( $this->_plugin->secret_key );
 		}
 
 		/**
@@ -1465,7 +1464,7 @@
 		 * @return bool
 		 */
 		function is_live() {
-			return $this->_is_live;
+			return $this->_plugin->is_live;
 		}
 
 		/**
@@ -1512,6 +1511,8 @@
 		 * @return bool If function actually executed the sync in this iteration.
 		 */
 		private function _background_sync() {
+			$this->_logger->entrance();
+
 			// Don't sync license on AJAX calls.
 			if ( $this->is_ajax() ) {
 				return false;
