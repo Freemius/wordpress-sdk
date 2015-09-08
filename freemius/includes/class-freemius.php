@@ -6134,7 +6134,9 @@
 
 			if ( ! $this->is_addon() ) {
 				$plugin_fs = $this;
-			} else if ( $this->is_parent_plugin_installed() ) {
+				$url = $plugin_fs->_get_admin_page_url();
+			} else {
+				if ( $this->is_parent_plugin_installed() ) {
 				$plugin_fs = self::get_parent_instance();
 			}
 
@@ -6147,7 +6149,7 @@
 					$url = $plugin_fs->_get_admin_page_url( 'account' );
 				}
 			}
-
+			}
 
 			if ( is_string( $url ) ) {
 				wp_redirect( $url );
