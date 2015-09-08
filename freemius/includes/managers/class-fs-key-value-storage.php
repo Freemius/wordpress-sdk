@@ -86,6 +86,11 @@
 		 * @param bool   $flush
 		 */
 		function store( $key, $value, $flush = true ) {
+			if (array_key_exists( $key, $this->_data ) && $value === $this->_data[$key]) {
+				// No need to store data if the value wasn't changed.
+				return;
+			}
+
 			$all_data = $this->get_all_data();
 
 			$this->_data[ $key ] = $value;
