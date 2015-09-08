@@ -1779,10 +1779,19 @@
 				return;
 			}
 
+			$this->_admin_notices->clear_all_sticky();
+
 			// Reset connectivity test cache.
 			unset( $this->_storage->connectivity_test );
+
+			if ( $this->is_registered() ) {
 			// Send deactivation event.
-			$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => false ) );
+				$this->get_api_site_scope()->call( '/', 'put', array(
+					'is_active' => false,
+					// Send version on deactivation.
+					'version'   => $this->get_plugin_version(),
+				) );
+			}
 		}
 
 		/**
