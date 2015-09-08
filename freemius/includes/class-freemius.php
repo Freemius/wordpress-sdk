@@ -254,73 +254,18 @@
 				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
 
 				if ( ! $this->is_ajax() ) {
-					add_action( 'admin_menu', array( &$this, '_add_dashboard_menu' ) );
+					if ( ! $this->is_addon() ) {
+						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
+						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
+			}
 				}
 			}
+
+			register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
+
+			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
-		}
-
-		/**
-		 * Check if Freemius should be turned on for the current plugin install + version combination. The API query will be only invoked once per plugin version (cached locally).
-		 *
-		 * @return bool
-		 */
-		private function _is_on() {
-			self::$_static_logger->entrance();
-
-			if ( isset( $this->_is_on ) ) {
-				return $this->_is_on;
-			}
-
-			// If already installed then sure it's on :)
-			if ( $this->is_registered() ) {
-				$this->_is_on = true;
-
-				return $this->_is_on;
-			}
-
-			$version = $this->get_plugin_version();
-
-			if ( isset( $this->_storage->is_on ) ) {
-				if ( $version == $this->_storage->is_on['version'] ) {
-					$this->_is_on = $this->_storage->is_on['is_active'];
-
-					return $this->_is_on;
-				}
-			}
-
-			// Defaults to new install.
-			$is_update = false;
-			$is_update = $this->apply_filters( 'is_plugin_update', $is_update );
-
-			/**
-			 * Check anonymously if the SDK should be currently activated.
-			 * The logic is based on whether the developer turned Freemius off,
-			 * or set a limit to the number of activations. It's not related to
-			 * any private information of the current WordPress instance.
-			 *
-			 * Note:
-			 * Only the plugin's public key is being shared with the endpoint.
-			 * NO private nor sensitive information is being shared.
-			 */
-			$result = $this->get_api_plugin_scope()->get( 'is_active.json?is_update=' . json_encode( $is_update ) );
-
-			$is_active = ! isset( $result->error ) &&
-			             isset( $result->is_active ) &&
-			             is_bool( $result->is_active ) ?
-				$result->is_active :
-				false;
-
-			$this->_storage->is_on = array(
-				'is_active' => $is_active,
-				'timestamp' => WP_FS__SCRIPT_START_TIME,
-				'version'   => $version,
-			);
-
-			$this->_is_on = $is_active;
-
-			return $this->_is_on;
 		}
 
 		/**
@@ -1052,7 +997,7 @@
 
 			// Check if Freemius is on for the current plugin.
 			// This MUST be executed after all the plugin variables has been loaded.
-			if ( ! $this->_is_on() ) {
+			if ( ! $this->is_on() ) {
 				return;
 			}
 
@@ -1095,7 +1040,6 @@
 					}
 				} else {
 					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
-					add_action( 'admin_menu', array( &$this, '_admin_menu_action' ), WP_FS__LOWEST_PRIORITY );
 
 					if ( $this->_has_addons() &&
 					     'plugin-information' === fs_request_get( 'tab', false ) &&
@@ -1118,12 +1062,12 @@
 					}
 				}
 
-				if ( $this->is_registered() ||
-				     $this->is_anonymous() ||
-				     $this->is_pending_activation()
-				) {
-					$this->_init_admin();
-				}
+//				if ( $this->is_registered() ||
+//				     $this->is_anonymous() ||
+//				     $this->is_pending_activation()
+//				) {
+//					$this->_init_admin();
+//				}
 			}
 
 			$this->do_action( 'initiated' );
@@ -1675,14 +1619,6 @@
 		}
 
 		private function _init_admin() {
-			register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
-
-//			add_action( 'admin_init', array( &$this, '_add_upgrade_action_link' ) );
-//			add_action( 'admin_menu', array( &$this, '_add_dashboard_menu' ), WP_FS__LOWEST_PRIORITY );
-			if ( ! $this->is_addon() ) {
-				add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
-			}
-			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 		}
 
 		/* Events
@@ -3608,6 +3544,19 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 */
+		function _prepare_admin_menu() {
+			if ( ! $this->has_api_connectivity() && !$this->enable_anonymous() ) {
+				$this->remove_menu_item();
+			} else {
+				$this->add_submenu_items();
+				$this->add_menu_action();
+			}
+		}
+
+		/**
 		 * Admin dashboard menu items modifications.
 		 *
 		 * NOTE: admin_menu action executed before admin_init.
@@ -3616,9 +3565,9 @@
 		 * @since  1.0.7
 		 *
 		 */
-		function _admin_menu_action() {
+		private function add_menu_action() {
 			if ( $this->is_activation_mode() ) {
-				$this->_override_plugin_menu_with_activation();
+				$this->override_plugin_menu_with_activation();
 			} else {
 				// If not registered try to install user.
 				if ( ! $this->is_registered() &&
@@ -3626,8 +3575,6 @@
 				) {
 					$this->_install_with_new_user();
 				}
-
-//				$this->_add_dashboard_menu();
 			}
 		}
 
@@ -3665,7 +3612,7 @@
 		 *
 		 * @return string[]
 		 */
-		private function _find_plugin_main_menu() {
+		private function find_plugin_main_menu() {
 			global $menu;
 
 			$position   = - 1;
@@ -3689,25 +3636,45 @@
 		}
 
 		/**
-		 * Remove all sub-menu pages.
+		 * Remove all sub-menu items.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
 		 * @return bool If submenu with plugin's menu slug was found.
 		 */
-		private function _remove_all_submenu_pages() {
+		private function remove_all_submenu_items() {
 			global $submenu;
 
-			$menu_slug = $this->_menu_slug;
-
-			if ( ! isset( $submenu[ $menu_slug ] ) ) {
+			if ( ! isset( $submenu[ $this->_menu_slug ] ) ) {
 				return false;
 			}
 
-			$submenu[ $menu_slug ] = array();
+			$submenu[ $this->_menu_slug ] = array();
 
 			return true;
+		}
+
+		/**
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return array[string]mixed
+		 */
+		private function remove_menu_item(){
+			$this->_logger->entrance();
+
+			// Find main menu item.
+			$menu = $this->find_plugin_main_menu();
+
+			// Remove it with its actions.
+			remove_all_actions( $menu['hook_name'] );
+
+			// Remove all submenu items.
+			$this->remove_all_submenu_items();
+
+			return $menu;
 		}
 
 		/**
@@ -3716,12 +3683,10 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
 		 */
-		private function _override_plugin_menu_with_activation() {
-			$menu = $this->_find_plugin_main_menu();
+		private function override_plugin_menu_with_activation() {
+			$this->_logger->entrance();
 
-			remove_all_actions( $menu['hook_name'] );
-
-			$this->_remove_all_submenu_pages();
+			$menu = $this->remove_menu_item();
 
 			if ( $this->is_activation_page() ) {
 				// Clean admin page from distracting content.
@@ -3746,7 +3711,7 @@
 			}
 		}
 
-		function _add_dashboard_menu() {
+		private function add_submenu_items() {
 			$this->_logger->entrance();
 
 			$this->do_action( 'before_admin_menu_init' );
@@ -3835,10 +3800,6 @@
 		}
 
 		function _add_default_submenu_items() {
-			if ( ! $this->_has_menu ) {
-				return;
-			}
-
 			if ( $this->is_registered() ) {
 				$this->add_submenu_link_item( __( 'Support Forum', $this->_slug ), 'https://wordpress.org/support/plugin/' . $this->_slug, 'wp-support-forum', 'read', 50 );
 			}
