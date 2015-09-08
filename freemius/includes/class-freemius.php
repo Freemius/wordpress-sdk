@@ -52,6 +52,7 @@
 		 * @var bool If false, runs API calls through sandbox.
 		 */
 		private $_is_live;
+		private $_has_api_connection;
 
 		/**
 		 * @since 1.0.9
@@ -619,6 +620,322 @@
 
 		#endregion ------------------------------------------------------------------
 
+		#region Connectivity Issues ------------------------------------------------------------------
+
+		/**
+		 * Check if Freemius should be turned on for the current plugin install + version combination. The API query will be only invoked once per plugin version (cached locally).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		private function is_on() {
+			self::$_static_logger->entrance();
+
+			if ( isset( $this->_is_on ) ) {
+				return $this->_is_on;
+			}
+
+			// If already installed then sure it's on :)
+			if ( $this->is_registered() ) {
+				$this->_is_on = true;
+
+				return $this->_is_on;
+			}
+
+			$version = $this->get_plugin_version();
+
+			if ( isset( $this->_storage->is_on ) ) {
+				if ( $version == $this->_storage->is_on['version'] ) {
+					$this->_is_on = $this->_storage->is_on['is_active'];
+
+					return $this->_is_on;
+				}
+			}
+
+			// Defaults to new install.
+			$is_update = false;
+			$is_update = $this->apply_filters( 'is_plugin_update', $is_update );
+
+			/**
+			 * Check anonymously if the SDK should be currently activated.
+			 * The logic is based on whether the developer turned Freemius off,
+			 * or set a limit to the number of activations. It's not related to
+			 * any private information of the current WordPress instance.
+			 *
+			 * Note:
+			 * Only the plugin's public key is being shared with the endpoint.
+			 * NO private nor sensitive information is being shared.
+			 */
+			$result = $this->get_api_plugin_scope()->get(
+				'is_active.json?is_update=' . json_encode( $is_update )
+			);
+
+			$is_active = ! isset( $result->error ) &&
+			             isset( $result->is_active ) &&
+			             is_bool( $result->is_active ) ?
+				$result->is_active :
+				false;
+
+			$this->_storage->is_on = array(
+				'is_active' => $is_active,
+				'timestamp' => WP_FS__SCRIPT_START_TIME,
+				'version'   => $version,
+			);
+
+			$this->_is_on = $is_active;
+
+			return $this->_is_on;
+		}
+
+		/**
+		 * Check if there's any connectivity issue to Freemius API.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return bool
+		 */
+		private function has_api_connectivity() {
+			if ( isset( $this->_has_api_connection ) ) {
+				return $this->_has_api_connection;
+			}
+
+			$version = $this->get_plugin_version();
+
+			if (WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
+			    isset( $this->_storage->connectivity_test ) &&
+			    true === $this->_storage->connectivity_test['is_connected']
+			){
+				unset($this->_storage->connectivity_test);
+			}
+
+			if ( isset( $this->_storage->connectivity_test ) ) {
+				if ( $version == $this->_storage->connectivity_test['version'] &&
+				     $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
+				     $_SERVER['SERVER_ADDR'] == $this->_storage->connectivity_test['server_ip']
+				) {
+					$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
+
+					return $this->_has_api_connection;
+				}
+			}
+
+			$is_connected = WP_FS__SIMULATE_NO_API_CONNECTIVITY ?
+				false :
+				$this->get_api_plugin_scope()->test();
+
+			if ( ! $is_connected ) {
+				$this->_add_connectivity_issue_message();
+			}
+
+			$this->_storage->connectivity_test = array(
+				'is_connected' => $is_connected,
+				'host' => $_SERVER['HTTP_HOST'],
+				'server_ip' => $_SERVER['SERVER_ADDR'],
+				'version' => $version,
+			);
+
+			$this->_has_api_connection = $is_connected;
+
+			return $this->_has_api_connection;
+		}
+
+		/**
+		 * Generate API connectivity issue message.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 */
+		function _add_connectivity_issue_message() {
+			if ( ! function_exists( 'wp_nonce_url' ) ) {
+				require_once( ABSPATH . 'wp-includes/functions.php' );
+			}
+			if ( ! function_exists( 'wp_get_current_user' ) ) {
+				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+			}
+
+			$current_user = wp_get_current_user();
+//			$admin_email = get_option( 'admin_email' );
+			$admin_email = $current_user->user_email;
+
+			// API connectivity issue.
+			$this->_admin_notices->add_sticky(
+				sprintf(
+					__( '%s requires an access to our API. From unknown reason, CloudFlare, the firewall we use, identified this server as a potential threat, and blocks the connection.', WP_FS__SLUG ) .
+					' ' .
+					__( 'We are sure it\'s a mistake on our side and more than happy to resolve it for you ASAP if you give us a chance. %s', WP_FS__SLUG ),
+					'<b>' . $this->get_plugin_name() . '</b>',
+					sprintf(
+						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+						sprintf(
+							'<a class="fs-resolve" href="#"><b>%s</b></a>%s',
+							__( 'Yes - I\'m giving you a chance to fix it', WP_FS__SLUG ),
+							' - ' . sprintf(
+								__( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', WP_FS__SLUG ),
+								'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+							)
+						),
+						sprintf(
+							'<a href="%s" target="_blank"><b>%s</b></a>%s',
+							sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+							__( 'Let\'s try your previous version', WP_FS__SLUG ),
+							' - ' . __( 'Uninstall this version and install the previous one.', WP_FS__SLUG )
+						),
+						sprintf(
+							'<a href="%s"><b>%s</b></a>%s',
+							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+							__( 'That\'s exhausting, please deactivate', WP_FS__SLUG ),
+							' - ' . __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', WP_FS__SLUG )
+						)
+					)
+				),
+				'failed_connect_api',
+				'Oops...',
+				'error'
+			);
+
+//				add_action( "wp_ajax_{$this->_slug}_deactivate_plugin", array( &$this, 'send_affiliate_application' ) );
+		}
+
+		/**
+		 * Get collection of all active plugins.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return array[string]array
+		 */
+		private function get_active_plugins() {
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+
+			$active_plugin            = array();
+			$all_plugins              = get_plugins();
+			$active_plugins_basenames = get_option( 'active_plugins' );
+
+			foreach ( $active_plugins_basenames as $plugin_basename ) {
+				$active_plugin[ $plugin_basename ] = $all_plugins[ $plugin_basename ];
+			}
+
+			return $active_plugin;
+		}
+
+		/**
+		 * Handle user request to resolve connectivity issue.
+		 * This method will send an email to Freemius API technical staff for resolution.
+		 * The email will contain server's info and installed plugins (might be caching issue).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 */
+		function _email_about_firewall_issue()
+		{
+			$this->_admin_notices->remove_sticky('failed_connect_api');
+
+			$active_plugin = $this->get_active_plugins();
+			$active_plugin_string = '';
+			foreach ($active_plugin as $plugin)
+			{
+				$active_plugin_string .= sprintf(
+					'<a href="%s">%s</a> [v%s]<br>',
+					$plugin['PluginURI'],
+					$plugin['Name'],
+					$plugin['Version']
+				);
+			}
+
+			if ( ! function_exists( 'wp_get_current_user' ) ) {
+				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+			}
+
+			$curl_version = curl_version();
+			$current_user = wp_get_current_user();
+//			$admin_email = get_option( 'admin_email' );
+			$admin_email = $current_user->user_email;
+
+			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
+			wp_mail(
+				'api@freemius.com',
+				'API Connectivity Issue [' . $this->get_plugin_name() . ']',
+				sprintf('<table>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">SDK</th></tr>
+	</thead>
+	<tbody>
+		<tr><td><b>FS Version:</b></td><td>%s</td></tr>
+		<tr><td><b>cURL Version:</b></td><td>%s</td></tr>
+	</tbody>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Plugin</th></tr>
+	</thead>
+	<tbody>
+		<tr><td><b>Name:</b></td><td>%s</td></tr>
+		<tr><td><b>Version:</b></td><td>%s</td></tr>
+	</tbody>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Site</th></tr>
+	</thead>
+	<tbody>
+		<tr><td><b>Address:</b></td><td>%s</td></tr>
+		<tr><td><b>HTTP_HOST:</b></td><td>%s</td></tr>
+		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>
+	</tbody>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">User</th></tr>
+	</thead>
+	<tbody>
+		<tr><td><b>Email:</b></td><td><a href="mailto:%s">%s</a></td></tr>
+		<tr><td><b>First:</b></td><td>%s</td></tr>
+		<tr><td><b>Last:</b></td><td>%s</td></tr>
+	</tbody>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Plugins</th></tr>
+	</thead>
+	<tbody>
+		<tr><td style="vertical-align: top"><b>Active Plugins:</b></td><td>%s</td></tr>
+	</tbody>
+</table>',
+					$this->version,
+					$curl_version['version'],
+					$this->get_plugin_name(),
+					$this->get_plugin_version(),
+					site_url(),
+					!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '',
+					!empty($_SERVER['SERVER_ADDR']) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '',
+					$admin_email,
+					$admin_email,
+					$current_user->user_firstname,
+					$current_user->user_lastname,
+					$active_plugin_string
+				),
+				'Content-type: text/html'
+			);
+
+			$this->_admin_notices->add_sticky(
+				sprintf(
+					__('Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', WP_FS__SLUG),
+					'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+				),
+				'server_details_sent'
+			);
+
+			// Action was taken, tell that API connectivity troubleshooting should be off now.
+
+			echo "1";
+			exit;
+		}
+
+		static function _add_firewall_issues_javascript()
+		{
+			$params = array();
+			fs_require_once_template( 'firewall-issues-js.php', $params );
+		}
+
+		#endregion Connectivity Issues ------------------------------------------------------------------
+
 		#region Initialization ------------------------------------------------------------------
 
 		/**
@@ -717,6 +1034,22 @@
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
+
+			if (!$this->has_api_connectivity()){
+				if (is_admin() && $this->_admin_notices->has_sticky('failed_connect_api')) {
+					add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+
+					add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
+						&$this,
+						'_email_about_firewall_issue'
+					) );
+				}
+
+				// Turn Freemius off.
+				$this->_is_on = false;
+
+				return;
+			}
 
 			// Check if Freemius is on for the current plugin.
 			// This MUST be executed after all the plugin variables has been loaded.
@@ -1414,7 +1747,11 @@
 
 			if ( $this->is_registered() ) {
 				// Send re-activation event.
-				$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => true ) );
+				$this->get_api_site_scope()->call( '/', 'put', array(
+					'is_active' => true,
+					// Send version on activation.
+					'version' => $this->get_plugin_version(),
+				) );
 
 				/**
 				 * @todo Work on automatic deactivation of the Free plugin version. It doesn't work since the slug of the free & premium versions is identical. Therefore, only one instance of Freemius is created and the activation hook of the premium version is not being added.
@@ -1432,8 +1769,10 @@
 				// @todo Implement "bounce rate" by calculating number of plugin activations without registration.
 			}
 
-			// Store hint that the plugin was just activated.
+			if ($this->has_api_connectivity()) {
+				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 			add_option( "fs_{$this->_slug}_activated", true );
+		}
 		}
 
 		/**
@@ -1489,6 +1828,8 @@
 				return;
 			}
 
+			// Reset connectivity test cache.
+			unset( $this->_storage->connectivity_test );
 			// Send deactivation event.
 			$this->get_api_site_scope()->call( '/', 'put', array( 'is_active' => false ) );
 		}
