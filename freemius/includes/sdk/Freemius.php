@@ -41,9 +41,6 @@
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_TIMEOUT        => 60,
 			CURLOPT_USERAGENT      => FS_SDK__USER_AGENT,
-			CURLOPT_HTTPHEADER     => array(
-				'Content-Type: application/json',
-			)
 		);
 
 		/**
@@ -186,44 +183,49 @@
 		 * @return mixed
 		 * @throws Freemius_Exception
 		 */
-		public function MakeRequest($pCanonizedPath, $pMethod = 'GET', $params = array(), $ch = null)
-		{
-			if (!$ch)
+		public function MakeRequest($pCanonizedPath, $pMethod = 'GET', $params = array(), $ch = null) {
+			if ( ! $ch ) {
 				$ch = curl_init();
+			}
 
 			$opts = self::$CURL_OPTS;
 
-			if (!is_array($opts[CURLOPT_HTTPHEADER]))
-				$opts[CURLOPT_HTTPHEADER] = array();
+			if ( !isset($opts[ CURLOPT_HTTPHEADER ]) || ! is_array( $opts[ CURLOPT_HTTPHEADER ] ) ) {
+				$opts[ CURLOPT_HTTPHEADER ] = array();
+			}
 
-			if ('POST' === $pMethod || 'PUT' === $pMethod)
-			{
-				if (is_array($params) && 0 < count($params)) {
+			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
+				$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
+
+				if ( is_array( $params ) && 0 < count( $params ) ) {
 					$opts[ CURLOPT_POST ]       = count( $params );
 					$opts[ CURLOPT_POSTFIELDS ] = json_encode( $params );
 				}
 
-				$opts[CURLOPT_RETURNTRANSFER] = true;
+				$opts[ CURLOPT_RETURNTRANSFER ] = true;
 			}
 
-			$opts[CURLOPT_URL] = $this->GetUrl($pCanonizedPath);
-			$opts[CURLOPT_CUSTOMREQUEST] = $pMethod;
+			$opts[ CURLOPT_URL ]           = $this->GetUrl( $pCanonizedPath );
+			$opts[ CURLOPT_CUSTOMREQUEST ] = $pMethod;
 
-			$resource = explode('?', $pCanonizedPath);
-			$this->SignRequest($resource[0], $opts);
+			$resource = explode( '?', $pCanonizedPath );
+
+			// Only sign request if not ping.json connectivity test.
+			if ( '/ping.json' !== strtolower( substr( $resource[0], - strlen( '/ping.json' ) ) ) ) {
+				$this->SignRequest( $resource[0], $opts );
+			}
 
 			// disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
 			// for 2 seconds if the server does not support this header.
-			$opts[CURLOPT_HTTPHEADER][] = 'Expect:';
+			$opts[ CURLOPT_HTTPHEADER ][] = 'Expect:';
 
-			if ('https' === substr(strtolower($pCanonizedPath), 0, 5))
-			{
-				$opts[CURLOPT_SSL_VERIFYHOST] = false;
-				$opts[CURLOPT_SSL_VERIFYPEER] = false;
+			if ( 'https' === substr( strtolower( $pCanonizedPath ), 0, 5 ) ) {
+				$opts[ CURLOPT_SSL_VERIFYHOST ] = false;
+				$opts[ CURLOPT_SSL_VERIFYPEER ] = false;
 			}
 
-			curl_setopt_array($ch, $opts);
-			$result = curl_exec($ch);
+			curl_setopt_array( $ch, $opts );
+			$result = curl_exec( $ch );
 
 			/*if (curl_errno($ch) == 60) // CURLE_SSL_CACERT
 			{
@@ -238,37 +240,33 @@
 			// the case, curl will try IPv4 first and if that fails, then it will
 			// fall back to IPv6 and the error EHOSTUNREACH is returned by the
 			// operating system.
-			if (false === $result && empty($opts[CURLOPT_IPRESOLVE]))
-			{
+			if ( false === $result && empty( $opts[ CURLOPT_IPRESOLVE ] ) ) {
 				$matches = array();
-				$regex = '/Failed to connect to ([^:].*): Network is unreachable/';
-				if (preg_match($regex, curl_error($ch), $matches))
-				{
-					if (strlen(@inet_pton($matches[1])) === 16)
-					{
+				$regex   = '/Failed to connect to ([^:].*): Network is unreachable/';
+				if ( preg_match( $regex, curl_error( $ch ), $matches ) ) {
+					if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
 //						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
-						self::$CURL_OPTS[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
-						curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-						$result = curl_exec($ch);
+						self::$CURL_OPTS[ CURLOPT_IPRESOLVE ] = CURL_IPRESOLVE_V4;
+						curl_setopt( $ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+						$result = curl_exec( $ch );
 					}
 				}
 			}
 
-			if ($result === false)
-			{
-				$e = new Freemius_Exception(array(
+			if ( $result === false ) {
+				$e = new Freemius_Exception( array(
 					'error' => array(
-						'code' => curl_errno($ch),
-						'message' => curl_error($ch),
-						'type' => 'CurlException',
+						'code'    => curl_errno( $ch ),
+						'message' => curl_error( $ch ),
+						'type'    => 'CurlException',
 					),
-				));
+				) );
 
-				curl_close($ch);
+				curl_close( $ch );
 				throw $e;
 			}
 
-			curl_close($ch);
+			curl_close( $ch );
 
 			return $result;
 		}
