@@ -4909,10 +4909,8 @@
 
 			if ( ! $background ) {
 				$this->_admin_notices->add_sticky(
-					sprintf(
-						__( 'Your license for %s was successfully activated.', WP_FS__SLUG ),
-						'<i>' . $this->get_plugin_name() . '</i>'
-					) . ( $this->is_premium() ? '' : $this->_get_latest_download_link( sprintf(
+					__( 'Your license was successfully activated.', WP_FS__SLUG ) .
+					( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
 						__( 'Download the latest %s version now', WP_FS__SLUG ),
 						$this->_site->plan->title
 					) ) ),
@@ -4976,7 +4974,10 @@
 				);
 			}
 
-			$this->_admin_notices->remove_sticky( array( 'plan_upgraded' ) );
+			$this->_admin_notices->remove_sticky( array(
+				'plan_upgraded',
+				'license_activated',
+			) );
 		}
 
 		/**
