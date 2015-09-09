@@ -89,17 +89,17 @@
 		 * @param string $pResourceUrl
 		 * @param array $opts
 		 */
-		protected function SignRequest($pResourceUrl, &$opts)
-		{
+		protected function SignRequest($pResourceUrl, &$opts) {
 			$eol          = "\n";
 			$content_md5  = '';
 			$now          = ( time() - self::$_clock_diff );
 			$date         = date( 'r', $now );
-			$content_type = 'application/json';
+			$content_type = '';
 
 			if ( isset( $opts[ CURLOPT_POST ] ) && 0 < $opts[ CURLOPT_POST ] ) {
 				$content_md5                  = md5( $opts[ CURLOPT_POSTFIELDS ] );
 				$opts[ CURLOPT_HTTPHEADER ][] = 'Content-MD5: ' . $content_md5;
+				$content_type                 = 'application/json';
 			}
 
 			$opts[ CURLOPT_HTTPHEADER ][] = 'Date: ' . $date;
@@ -195,9 +195,8 @@
 			}
 
 			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
-				$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
-
 				if ( is_array( $params ) && 0 < count( $params ) ) {
+					$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
 					$opts[ CURLOPT_POST ]       = count( $params );
 					$opts[ CURLOPT_POSTFIELDS ] = json_encode( $params );
 				}
