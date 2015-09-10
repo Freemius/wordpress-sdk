@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	class FS_Key_Value_Storage implements \ArrayAccess, \Iterator, \Countable {
+	class FS_Key_Value_Storage implements ArrayAccess, Iterator, Countable {
 		/**
 		 * @var string
 		 */
@@ -37,7 +37,7 @@
 		 * @param string $id
 		 * @param string $slug
 		 *
-		 * @return \FS_Key_Value_Storage
+		 * @return FS_Key_Value_Storage
 		 */
 		static function instance( $id, $slug ) {
 			$key = $id . ':' . $slug;
@@ -191,7 +191,7 @@
 
 		function offsetSet( $k, $v ) {
 			if ( is_null( $k ) ) {
-				throw new \Exception( 'Can\'t append value to request params.' );
+				throw new Exception( 'Can\'t append value to request params.' );
 			} else {
 				$this->{$k} = $v;
 			}

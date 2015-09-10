@@ -36,8 +36,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param \FS_Entity $entity1
-		 * @param \FS_Entity $entity2
+		 * @param FS_Entity $entity1
+		 * @param FS_Entity $entity2
 		 *
 		 * @return bool
 		 */

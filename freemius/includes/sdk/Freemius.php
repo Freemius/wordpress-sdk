@@ -131,7 +131,7 @@
 		 *
 		 * @param string $pPath
 		 *
-		 * @throws \Freemius_Exception
+		 * @throws Freemius_Exception
 		 *
 		 * @return string
 		 */

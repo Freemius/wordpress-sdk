@@ -40,7 +40,7 @@
 		 * @param string $slug
 		 * @param string $title
 		 *
-		 * @return \FS_Key_Value_Storage
+		 * @return FS_Key_Value_Storage
 		 */
 		static function instance( $slug, $title = '' ) {
 			if ( ! isset( self::$_instances[ $slug ] ) ) {

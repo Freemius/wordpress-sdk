@@ -78,8 +78,8 @@
 		/**
 		 * @param array [string]string $plugin
 		 *
-		 * @return \Freemius
-		 * @throws \Freemius_Exception
+		 * @return Freemius
+		 * @throws Freemius_Exception
 		 */
 		function fs_dynamic_init( $plugin ) {
 			$fs = Freemius::instance( $plugin['slug'] );

@@ -925,7 +925,7 @@
 		 *
 		 * @param array $plugin_info
 		 *
-		 * @throws \Freemius_Exception
+		 * @throws Freemius_Exception
 		 */
 		function dynamic_init( array $plugin_info ) {
 			$this->_logger->entrance();
@@ -2919,7 +2919,7 @@
 		 *
 		 * @param number $feature_id
 		 *
-		 * @throws \Exception
+		 * @throws Exception
 		 */
 		function is_feature_supported( $feature_id ) {
 			throw new Exception( 'not implemented' );
@@ -3071,9 +3071,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
-		 * @param \FS_Entity $entity
+		 * @param FS_Entity $entity
 		 *
-		 * @return \FS_Entity Return an encrypted clone entity.
+		 * @return FS_Entity Return an encrypted clone entity.
 		 */
 		private function _encrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
@@ -3090,9 +3090,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
-		 * @param \FS_Entity $entity
+		 * @param FS_Entity $entity
 		 *
-		 * @return \FS_Entity Return an decrypted clone entity.
+		 * @return FS_Entity Return an decrypted clone entity.
 		 */
 		private function _decrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
@@ -3304,8 +3304,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param \FS_User $user
-		 * @param \FS_Site $site
+		 * @param FS_User $user
+		 * @param FS_Site $site
 		 *
 		 * @return bool False if account already set.
 		 */
@@ -3494,7 +3494,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param \Freemius $parent_fs
+		 * @param Freemius $parent_fs
 		 */
 		private function _activate_addon_account( Freemius $parent_fs ) {
 			if ( $this->is_registered() ) {
@@ -4294,7 +4294,7 @@
 		/**
 		 * @param bool $store
 		 *
-		 * @return \FS_Plugin_Plan|object|false
+		 * @return FS_Plugin_Plan|object|false
 		 */
 		private function _enrich_site_plan( $store = true ) {
 			// Try to load plan from local cache.
@@ -4318,7 +4318,7 @@
 		 *
 		 * @param bool $store
 		 *
-		 * @return \FS_Plugin_Plan|object|false
+		 * @return FS_Plugin_Plan|object|false
 		 */
 		private function _enrich_site_trial_plan( $store = true ) {
 			// Try to load plan from local cache.
@@ -5886,7 +5886,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
-		 * @return \FS_Api
+		 * @return FS_Api
 		 */
 		function get_api_site_or_plugin_scope() {
 			return $this->is_registered() ?

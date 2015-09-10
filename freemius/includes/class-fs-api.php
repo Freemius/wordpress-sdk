@@ -55,8 +55,8 @@
 		 * @param bool        $is_sandbox
 		 * @param bool|string $secret_key Element's secret key.
 		 *
-		 * @internal param \Freemius $freemius
-		 * @return \FS_Api
+		 * @internal param Freemius $freemius
+		 * @return FS_Api
 		 */
 		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false ) {
 			$identifier = md5($slug . $scope . $id . $public_key . (is_string($secret_key) ? $secret_key : '') . json_encode($is_sandbox));

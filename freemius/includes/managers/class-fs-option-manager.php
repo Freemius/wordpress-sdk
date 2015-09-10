@@ -30,7 +30,7 @@
 		 */
 		private $_options;
 		/**
-		 * @var \FS_Logger
+		 * @var FS_Logger
 		 */
 		private $_logger;
 

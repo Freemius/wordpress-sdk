@@ -32,7 +32,7 @@
 		/**
 		 * @param string $slug
 		 *
-		 * @return \FS_Plugin_Manager
+		 * @return FS_Plugin_Manager
 		 */
 		static function instance($slug) {
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
