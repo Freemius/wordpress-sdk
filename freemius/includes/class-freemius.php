@@ -3955,9 +3955,11 @@
 		function do_action( $tag, $arg = '' ) {
 			$this->_logger->entrance( $tag );
 
+			$args = func_get_args();
+
 			call_user_func_array( 'do_action', array_merge(
 					array( 'fs_' . $tag . '_' . $this->_slug ),
-					array_slice( func_get_args(), 1 ) )
+					array_slice( $args, 1 ) )
 			);
 		}
 
@@ -3996,9 +3998,11 @@
 		function apply_filters( $tag, $value ) {
 			$this->_logger->entrance( $tag );
 
+			$args = func_get_args();
+
 			return call_user_func_array( 'apply_filters', array_merge(
 					array( 'fs_' . $tag . '_' . $this->_slug ),
-					array_slice( func_get_args(), 1 ) )
+					array_slice( $args, 1 ) )
 			);
 		}
 
