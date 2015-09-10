@@ -50,6 +50,12 @@
     }
 }
 
+.rtl .fs-notice .fs-close
+{
+    left: 10px;
+    right: auto;
+}
+
 .fs-secure-notice
 {
     position: fixed;
