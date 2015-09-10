@@ -27,9 +27,9 @@
 	define('FS_API__PROTOCOL', version_compare($curl_version['version'], '7.37', '>=') ? 'https' : 'http');
 
 	if (!defined('FS_API__ADDRESS'))
-		define('FS_API__ADDRESS', FS_API__PROTOCOL . '://api.freemius.com');
+		define('FS_API__ADDRESS', '://api.freemius.com');
 	if (!defined('FS_API__SANDBOX_ADDRESS'))
-		define('FS_API__SANDBOX_ADDRESS', FS_API__PROTOCOL . '://sandbox-api.freemius.com');
+		define('FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com');
 
 	class Freemius_Api extends Freemius_Api_Base
 	{
@@ -61,7 +61,12 @@
 
 		public function GetUrl($pCanonizedPath = '')
 		{
-			return ($this->_sandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS) . $pCanonizedPath;
+			$address = ($this->_sandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS);
+
+			if (':' === $address[0])
+				$address = self::$_protocol . $address;
+
+			return $address . $pCanonizedPath;
 		}
 
 		/**
@@ -75,9 +80,32 @@
 		 * @since 1.0.3
 		 * @param $pSeconds
 		 */
-		public static function SetClockDiff($pSeconds)
-		{
+		public static function SetClockDiff($pSeconds) {
 			self::$_clock_diff = $pSeconds;
+		}
+
+		/**
+		 * @var string http or https
+		 */
+		private static $_protocol = FS_API__PROTOCOL;
+
+		/**
+		 * Set API connection protocol.
+		 *
+		 * @since 1.0.4
+		 */
+		public static function SetHttp() {
+			self::$_protocol = 'http';
+		}
+
+		/**
+		 * @since 1.0.4
+		 *
+		 * @return bool
+		 */
+		public static function IsHttps()
+		{
+			return ('https' === self::$_protocol);
 		}
 
 		/**

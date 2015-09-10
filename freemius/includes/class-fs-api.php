@@ -59,14 +59,14 @@
 		 * @return FS_Api
 		 */
 		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false ) {
-			$identifier = md5($slug . $scope . $id . $public_key . (is_string($secret_key) ? $secret_key : '') . json_encode($is_sandbox));
+			$identifier = md5( $slug . $scope . $id . $public_key . ( is_string( $secret_key ) ? $secret_key : '' ) . json_encode( $is_sandbox ) );
 
 			if ( ! isset( self::$_instances[ $identifier ] ) ) {
 				if ( 0 === count( self::$_instances ) ) {
 					self::_init();
 				}
 
-				self::$_instances[ $identifier ] = new FS_Api($slug, $scope, $id, $public_key, $secret_key, $is_sandbox );
+				self::$_instances[ $identifier ] = new FS_Api( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox );
 			}
 
 			return self::$_instances[ $identifier ];
@@ -77,12 +77,15 @@
 				require_once( WP_FS__DIR_SDK . '/Freemius.php' );
 			}
 
-			self::$_options    = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
-			self::$_cache      = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
+			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
+			self::$_cache   = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
 
 			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
-
 			Freemius_Api::SetClockDiff( self::$_clock_diff );
+
+			if ( self::$_options->get_option( 'api_force_http', false ) ) {
+				Freemius_Api::SetHttp();
+			}
 		}
 
 		/**
@@ -95,12 +98,11 @@
 		 *
 		 * @internal param \Freemius $freemius
 		 */
-		private function __construct($slug, $scope, $id, $public_key, $secret_key, $is_sandbox)
-		{
+		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox ) {
 			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, $is_sandbox );
 
-			$this->_slug = $slug;
-			$this->_logger = FS_Logger::get_logger(WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK);
+			$this->_slug   = $slug;
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 		}
 
 		/**
@@ -108,21 +110,21 @@
 		 *
 		 * @return bool|int False if clock diff didn't change, otherwise returns the clock diff in seconds.
 		 */
-		private function _sync_clock_diff()
-		{
+		private function _sync_clock_diff() {
 			$this->_logger->entrance();
 
 			// Sync clock and store.
 			$new_clock_diff = $this->_api->FindClockDiff();
 
-			if ($new_clock_diff === self::$_clock_diff)
+			if ( $new_clock_diff === self::$_clock_diff ) {
 				return false;
+			}
 
 			// Update API clock's diff.
-			$this->_api->SetClockDiff(self::$_clock_diff);
+			$this->_api->SetClockDiff( self::$_clock_diff );
 
 			// Store new clock diff in storage.
-			self::$_options->set_option('api_clock_diff', self::$_clock_diff, true);
+			self::$_options->set_option( 'api_clock_diff', self::$_clock_diff, true );
 
 			return $new_clock_diff;
 		}
@@ -137,7 +139,7 @@
 		 *
 		 * @return array|mixed|string|void
 		 */
-		private function _call($path, $method = 'GET', $params = array(), $retry = false) {
+		private function _call( $path, $method = 'GET', $params = array(), $retry = false ) {
 			$this->_logger->entrance();
 
 			$result = $this->_api->Api( $path, $method, $params );
@@ -174,9 +176,8 @@
 		 * @return array|mixed|string|void
 		 * @throws Freemius_Exception
 		 */
-		function call($path, $method = 'GET', $params = array())
-		{
-			return $this->_call($path, $method, $params);
+		function call( $path, $method = 'GET', $params = array() ) {
+			return $this->_call( $path, $method, $params );
 		}
 
 		/**
@@ -186,9 +187,8 @@
 		 *
 		 * @return string
 		 */
-		function get_signed_url($path)
-		{
-			return $this->_api->GetSignedUrl($path);
+		function get_signed_url( $path ) {
+			return $this->_api->GetSignedUrl( $path );
 		}
 
 		/**
@@ -198,72 +198,81 @@
 		 *
 		 * @return stdClass|mixed
 		 */
-		function get($path = '/', $flush = false, $expiration = WP_FS__TIME_24_HOURS_IN_SEC)
-		{
-			$cache_key = $this->get_cache_key($path);
+		function get( $path = '/', $flush = false, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+			$cache_key = $this->get_cache_key( $path );
 
 			// Always flush during development.
-			if (WP_FS__DEV_MODE || $this->_api->IsSandbox())
+			if ( WP_FS__DEV_MODE || $this->_api->IsSandbox() ) {
 				$flush = true;
+			}
 
 			// Get result from cache.
-			$cache_entry = self::$_cache->get_option($cache_key, false);
+			$cache_entry = self::$_cache->get_option( $cache_key, false );
 
 			$fetch = false;
-			if ($flush ||
-			    false === $cache_entry ||
-			    !isset($cache_entry->timestamp) ||
-			    !is_numeric($cache_entry->timestamp) ||
-			    $cache_entry->timestamp < WP_RW__SCRIPT_START_TIME)
-			{
+			if ( $flush ||
+			     false === $cache_entry ||
+			     ! isset( $cache_entry->timestamp ) ||
+			     ! is_numeric( $cache_entry->timestamp ) ||
+			     $cache_entry->timestamp < WP_RW__SCRIPT_START_TIME
+			) {
 				$fetch = true;
 			}
 
-			if ($fetch)
-			{
-				$result = $this->call($path);
+			if ( $fetch ) {
+				$result = $this->call( $path );
 
-				if (!is_object($result) || isset($result->error))
-				{
+				if ( ! is_object( $result ) || isset( $result->error ) ) {
 					// If there was an error during a newer data fetch,
 					// fallback to older data version.
-					if (is_object($cache_entry) &&
-						isset($cache_entry->result) &&
-						!isset($cache_entry->result->error))
-					{
+					if ( is_object( $cache_entry ) &&
+					     isset( $cache_entry->result ) &&
+					     ! isset( $cache_entry->result->error )
+					) {
 						$result = $cache_entry->result;
 					}
 				}
 
-				$cache_entry = new stdClass();
-				$cache_entry->result = $result;
+				$cache_entry            = new stdClass();
+				$cache_entry->result    = $result;
 				$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
-				self::$_cache->set_option($cache_key, $cache_entry, true);
+				self::$_cache->set_option( $cache_key, $cache_entry, true );
 			}
 
 			return $cache_entry->result;
 		}
 
-		private function get_cache_key($path, $method = 'GET', $params = array())
-		{
-			$canonized = $this->_api->CanonizePath($path);
+		private function get_cache_key( $path, $method = 'GET', $params = array() ) {
+			$canonized = $this->_api->CanonizePath( $path );
 //			$exploded = explode('/', $canonized);
 //			return $method . '_' . array_pop($exploded) . '_' . md5($canonized . json_encode($params));
-			return $method . ':' . $canonized . (!empty($params) ? '#' . md5(json_encode($params))  : '');
+			return $method . ':' . $canonized . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
 		}
 
 		/**
+		 * Test API connectivity.
+		 * If fails, try to fallback to HTTP.
+		 *
 		 * @return bool True if successful connectivity to the API.
 		 */
-		function test()
-		{
+		function test() {
 			$this->_logger->entrance();
 
-			return $this->_api->Test();
+			$test = $this->_api->Test();
+
+			if ( false === $test && $this->_api->IsHttps() ) {
+				// Fallback to HTTP, since HTTPS fails.
+				$this->_api->SetHttp();
+
+				self::$_options->set_option( 'api_force_http', true );
+
+				$test = $this->_api->Test();
+			}
+
+			return $test;
 		}
 
-		function get_url($path = '')
-		{
-			return $this->_api->GetUrl($path);
+		function get_url( $path = '' ) {
+			return $this->_api->GetUrl( $path );
 		}
 	}
