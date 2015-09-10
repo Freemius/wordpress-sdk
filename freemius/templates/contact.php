@@ -33,7 +33,8 @@
 
 	$query_params = array_merge($_GET, array_merge($context_params, array(
 		'plugin_version' => $fs->get_plugin_version(),
-		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
+		'wp_login_url' => wp_login_url(),
+//		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	)));
 ?>
 <div class="fs-secure-notice">
