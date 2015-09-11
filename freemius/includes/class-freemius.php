@@ -1737,11 +1737,13 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.3
+		 *
+		 * @param bool $check_user Enforce checking if user have plugins activation privileges.
 		 */
-		function delete_account_event() {
+		function delete_account_event($check_user = true) {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( $check_user && ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
@@ -1844,11 +1846,13 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
+		 *
+		 * @param bool $check_user Enforce checking if user have plugins activation privileges.
 		 */
-		function _uninstall_plugin_event() {
+		function _uninstall_plugin_event($check_user = true) {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ($check_user && ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
