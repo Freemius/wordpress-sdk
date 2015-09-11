@@ -187,6 +187,10 @@
 				is_object( $this->_plugin ) ? $this->_plugin->title : ''
 			);
 
+			if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ) {
+				FS_Api::clear_cache();
+			}
+
 			$this->_register_hooks();
 
 			$this->_load_account();
@@ -1696,6 +1700,9 @@
 				return;
 			}
 
+			// Clear API cache on activation.
+			FS_Api::clear_cache();
+
 			if ( $this->is_registered() ) {
 				// Send re-activation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
@@ -1794,6 +1801,9 @@
 					'version'   => $this->get_plugin_version(),
 				) );
 			}
+
+			// Clear API cache on deactivation.
+			FS_Api::clear_cache();
 		}
 
 		/**

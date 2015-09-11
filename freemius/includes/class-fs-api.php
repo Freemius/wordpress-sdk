@@ -275,4 +275,16 @@
 		function get_url( $path = '' ) {
 			return $this->_api->GetUrl( $path );
 		}
+
+		/**
+		 * Clear API cache.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 */
+		static function clear_cache()
+		{
+			self::$_cache   = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
+			self::$_cache->clear( true );
+		}
 	}
