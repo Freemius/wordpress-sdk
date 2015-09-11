@@ -859,7 +859,8 @@
 					$current_user->user_lastname,
 					$active_plugin_string
 				),
-				'Content-type: text/html'
+				"Content-type: text/html\r\n" .
+		        "Reply-To: $admin_email <$admin_email>"
 			);
 
 			$this->_admin_notices->add_sticky(
