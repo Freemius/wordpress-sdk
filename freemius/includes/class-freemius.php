@@ -1620,10 +1620,7 @@
 		 * @return bool
 		 */
 		function _is_plugin_page() {
-			return ( is_admin() && $_REQUEST['page'] === $this->_menu_slug );
-		}
-
-		private function _init_admin() {
+			return fs_is_plugin_page( $this->_menu_slug );
 		}
 
 		/* Events

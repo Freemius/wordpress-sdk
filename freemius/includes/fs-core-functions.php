@@ -129,6 +129,11 @@
 		return ( strtolower( $action ) === fs_get_action( $action_key ) );
 	}
 
+	function fs_is_plugin_page($menu_slug)
+	{
+		return ( is_admin() && $_REQUEST['page'] === $menu_slug );
+	}
+
 	/* Core UI.
 	--------------------------------------------------------------------------------------------*/
 	function fs_ui_action_button($slug, $page, $action, $title, $params = array(), $is_primary = true)
