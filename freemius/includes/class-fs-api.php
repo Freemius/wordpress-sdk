@@ -223,13 +223,19 @@
 				$result = $this->call( $path );
 
 				if ( ! is_object( $result ) || isset( $result->error ) ) {
-					// If there was an error during a newer data fetch,
-					// fallback to older data version.
 					if ( is_object( $cache_entry ) &&
 					     isset( $cache_entry->result ) &&
 					     ! isset( $cache_entry->result->error )
 					) {
+						// If there was an error during a newer data fetch,
+						// fallback to older data version.
 						$result = $cache_entry->result;
+					}
+					else
+					{
+						// If no older data version, return result without
+						// caching the error.
+						return $result;
 					}
 				}
 
