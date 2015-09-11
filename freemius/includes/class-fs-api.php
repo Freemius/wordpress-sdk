@@ -270,7 +270,7 @@
 				// Fallback to HTTP, since HTTPS fails.
 				$this->_api->SetHttp();
 
-				self::$_options->set_option( 'api_force_http', true );
+				self::$_options->set_option( 'api_force_http', true, true );
 
 				$test = $this->_api->Test();
 			}
