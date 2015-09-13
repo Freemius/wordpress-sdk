@@ -708,12 +708,23 @@
 //			$admin_email = get_option( 'admin_email' );
 			$admin_email = $current_user->user_email;
 
-			// API connectivity issue.
+			$ping = $this->get_api_plugin_scope()->ping();
+
+			if ( is_object( $ping ) &&
+			     isset( $ping->error ) &&
+			     'cloudflare_ddos_protection' === $ping->error->code
+			) {
+				$message = __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', WP_FS__SLUG );
+			} else {
+				$message = __( 'From unknown reason, the API connectivity test fails.', WP_FS__SLUG );
+			}
+
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__( '%s requires an access to our API. From unknown reason, CloudFlare, the firewall we use, identified this server as a potential threat, and blocks the connection.', WP_FS__SLUG ) .
-					' ' .
-					__( 'We are sure it\'s a mistake on our side and more than happy to resolve it for you ASAP if you give us a chance. %s', WP_FS__SLUG ),
+					__( '%s requires an access to our API.', WP_FS__SLUG ) . ' ' .
+					$message . ' ' .
+					__( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', WP_FS__SLUG ) .
+					' %s',
 					'<b>' . $this->get_plugin_name() . '</b>',
 					sprintf(
 						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
@@ -804,6 +815,8 @@
 //			$admin_email = get_option( 'admin_email' );
 			$admin_email = $current_user->user_email;
 
+			$ping = $this->get_api_plugin_scope()->ping();
+
 			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
 			wp_mail(
 				'api@freemius.com',
@@ -845,6 +858,12 @@
 	<tbody>
 		<tr><td style="vertical-align: top"><b>Active Plugins:</b></td><td>%s</td></tr>
 	</tbody>
+	<thead>
+		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">API Error</th></tr>
+	</thead>
+	<tbody>
+		<tr><td colspan="2">%s</td></tr>
+	</tbody>
 </table>',
 					$this->version,
 					$curl_version['version'],
@@ -857,7 +876,8 @@
 					$admin_email,
 					$current_user->user_firstname,
 					$current_user->user_lastname,
-					$active_plugin_string
+					$active_plugin_string,
+					(is_string($ping) ? $ping : json_encode($ping))
 				),
 				"Content-type: text/html\r\n" .
 		        "Reply-To: $admin_email <$admin_email>"

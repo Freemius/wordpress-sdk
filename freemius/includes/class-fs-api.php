@@ -257,7 +257,8 @@
 
 		/**
 		 * Test API connectivity.
-		 * If fails, try to fallback to HTTP.
+		 *
+		 * @since  1.0.9 If fails, try to fallback to HTTP.
 		 *
 		 * @return bool True if successful connectivity to the API.
 		 */
@@ -276,6 +277,18 @@
 			}
 
 			return $test;
+		}
+
+		/**
+		 * Ping API for connectivity test, and return result object.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return object
+		 */
+		function ping(){
+			return $this->_api->Ping();
 		}
 
 		function get_url( $path = '' ) {

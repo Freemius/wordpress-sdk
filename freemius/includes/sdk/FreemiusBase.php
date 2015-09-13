@@ -178,9 +178,19 @@
 		 */
 		public function Test()
 		{
-			$pong = $this->_Api('/v' . FS_API__VERSION . '/ping.json');
+			$pong = $this->Ping();
 
 			return (is_object($pong) && isset($pong->api) && 'pong' === $pong->api);
+		}
+
+		/**
+		 * Ping API to test connectivity.
+		 *
+		 * @return object
+		 */
+		public function Ping()
+		{
+			return $this->_Api('/v' . FS_API__VERSION . '/ping.json');
 		}
 
 		/**
