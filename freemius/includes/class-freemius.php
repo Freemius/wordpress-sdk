@@ -655,8 +655,8 @@
 			if (WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
 			    isset( $this->_storage->connectivity_test ) &&
 			    true === $this->_storage->connectivity_test['is_connected']
-			){
-				unset($this->_storage->connectivity_test);
+			) {
+				unset( $this->_storage->connectivity_test );
 			}
 
 			if ( isset( $this->_storage->connectivity_test ) ) {
@@ -1004,26 +1004,28 @@
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
 
-			if (!$this->has_api_connectivity()){
-				if (is_admin() && $this->_admin_notices->has_sticky('failed_connect_api')) {
-					add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+			if (!$this->is_registered()) {
+				if ( ! $this->has_api_connectivity() ) {
+					if ( is_admin() && $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+						add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
-					add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
-						&$this,
-						'_email_about_firewall_issue'
-					) );
+						add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
+							&$this,
+							'_email_about_firewall_issue'
+						) );
+					}
+
+					// Turn Freemius off.
+					$this->_is_on = false;
+
+					return;
 				}
 
-				// Turn Freemius off.
-				$this->_is_on = false;
-
-				return;
-			}
-
-			// Check if Freemius is on for the current plugin.
-			// This MUST be executed after all the plugin variables has been loaded.
-			if ( ! $this->is_on() ) {
-				return;
+				// Check if Freemius is on for the current plugin.
+				// This MUST be executed after all the plugin variables has been loaded.
+				if ( ! $this->is_on() ) {
+					return;
+				}
 			}
 
 			if ( false === $this->_background_sync() ) {
@@ -1786,7 +1788,10 @@
 			self::$_accounts->store();
 
 			// Clear all storage data.
-			$this->_storage->delete();
+			$this->_storage->clear_all(true, array(
+				'connectivity_test',
+				'is_on',
+			));
 
 			// Send delete event.
 			$this->get_api_site_scope()->call( '/', 'delete' );
@@ -1809,8 +1814,10 @@
 
 			$this->_admin_notices->clear_all_sticky();
 
-			// Reset connectivity test cache.
-			unset( $this->_storage->connectivity_test );
+			if (!$this->has_api_connectivity()) {
+				// Reset connectivity test cache.
+				unset( $this->_storage->connectivity_test );
+			}
 
 			if ( $this->is_registered() ) {
 				// Send deactivation event.

@@ -105,10 +105,16 @@
 		 * @author   Vova Feldman (@svovaf)
 		 * @since    1.0.7
 		 *
-		 * @param bool $store
+		 * @param bool     $store
+		 * @param string[] $exceptions Set of keys to keep and not clear.
 		 */
-		function clear_all( $store = true ) {
-			$this->_data = array();
+		function clear_all( $store = true , $exceptions = array()) {
+			$new_data = array();
+			foreach ( $exceptions as $key ) {
+				$new_data[ $key ] = $this->_data[ $key ];
+			}
+
+			$this->_data = $new_data;
 
 			if ( $store ) {
 				$all_data                 = $this->get_all_data();
