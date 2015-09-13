@@ -3152,7 +3152,7 @@
 			$this->_clean_admin_content_section();
 
 			if ( fs_request_is_action( 'activate' ) && fs_request_is_post() ) {
-				check_admin_referer( 'activate_' . $this->_plugin->public_key );
+//				check_admin_referer( 'activate_' . $this->_plugin->public_key );
 
 				// Verify matching plugin details.
 				if ( $this->_plugin->id != fs_request_get( 'plugin_id' ) || $this->_slug != fs_request_get( 'plugin_slug' ) ) {
@@ -3404,7 +3404,7 @@
 			}
 
 			if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
-				check_admin_referer( $this->_slug . '_activate_new' );
+//				check_admin_referer( $this->_slug . '_activate_new' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
 					$user             = new FS_User();
@@ -3476,7 +3476,7 @@
 			}
 
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
-				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
+//				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
 				// Get current logged WP user.
 				$current_user = wp_get_current_user();
 
