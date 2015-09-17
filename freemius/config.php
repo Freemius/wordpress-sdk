@@ -99,6 +99,13 @@
 	define( 'WP_FS__ECHO_DEBUG_SDK', ! empty( $_GET['fs_dbg_echo'] ) );
 	define( 'WP_FS__LOG_DATETIME_FORMAT', 'Y-n-d H:i:s' );
 
+	if (WP_FS__ECHO_DEBUG_SDK) {
+		error_reporting( E_ALL );
+		ini_set( 'error_reporting', E_ALL );
+		ini_set( 'display_errors', true );
+		ini_set( 'html_errors', true );
+	}
+
 
 	define( 'WP_FS__SCRIPT_START_TIME', time() );
 	define( 'WP_FS__LOWEST_PRIORITY', 999999999 );
