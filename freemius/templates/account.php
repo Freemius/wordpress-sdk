@@ -224,6 +224,7 @@
 		$addons_to_show = array_unique(array_merge($installed_addons_ids, $account_addons));
 	?>
 	<?php if (0 < count($addons_to_show)) : ?>
+	<div class="postbox">
 		<table id="fs_addons" class="widefat">
 			<thead>
 			<tr>
@@ -327,15 +328,7 @@
 								<?php if ($fs->is_allowed_to_install()) : ?>
 									<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=install-plugin&plugin=' . $addon->slug), 'install-plugin_' . $addon->slug) ?>"><?php _e('Install Now', WP_FS__SLUG) ?></a>
 								<?php else : ?>
-									<?php fs_ui_action_button(
-										$slug, 'account',
-										'download_latest',
-										__('Download Latest', WP_FS__SLUG),
-										array(
-											'plugin_id' => $addon_id,
-											'ts' => WP_FS__SCRIPT_START_TIME,
-										)
-									) ?>
+									<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url($addon_id) ?>"><?php echo __('Download Latest', WP_FS__SLUG) ?></a>
 								<?php endif ?>
 							<?php endif ?>
 						</td>
@@ -358,6 +351,7 @@
 			<?php endforeach ?>
 			</tbody>
 		</table>
+	</div>
 	<?php endif ?>
 	<!--						<table id="fs_addons" class="widefat">-->
 	<!--							<thead>-->
