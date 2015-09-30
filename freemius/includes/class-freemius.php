@@ -1379,7 +1379,7 @@
 		function get_installed_addons() {
 			$installed_addons = array();
 			foreach ( self::$_instances as $slug => $instance ) {
-				if ( $instance->is_addon() ) {
+				if ( $instance->is_addon() && is_object($instance->_parent) ) {
 					if ( $this->_plugin->id == $instance->_parent->id ) {
 						$installed_addons[] = $instance;
 					}
