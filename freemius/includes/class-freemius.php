@@ -3061,13 +3061,13 @@
 			if ( is_string( $message ) ) {
 				$params['message'] = $message;
 			}
-			
+
 			if ( $this->is_addon() ) {
 				$params['addon_id'] = $this->get_id();
 				return $this->get_parent_instance()->_get_admin_page_url( 'contact', $params );
 			} else {
-				return $this->_get_admin_page_url( 'contact', $params );
-			}
+			return $this->_get_admin_page_url( 'contact', $params );
+		}
 		}
 
 		/* Logger
@@ -4676,7 +4676,10 @@
 					$plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
 
 					if ( ! isset( $plans_result->error ) ) {
-						$plans = $plans_result->plans;
+						$plans = array();
+						foreach ($plans_result->plans as $plan) {
+							$plans[] = new FS_Plugin_Plan($plan);
+						}
 
 						$this->_admin_notices->add_sticky(
 							FS_Plan_Manager::instance()->has_free_plan( $plans ) ?
