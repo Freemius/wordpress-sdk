@@ -1064,6 +1064,12 @@
 							// If parent plugin activated, automatically install add-on for the user.
 							$this->_activate_addon_account( $parent_fs );
 						}
+
+						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
+						if ($this->is_premium()){
+							// Remove add-on download admin-notice.
+							$parent_fs->_admin_notices->remove_sticky('addon_plan_upgraded_' . $this->_slug);
+						}
 					}
 				} else {
 					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
