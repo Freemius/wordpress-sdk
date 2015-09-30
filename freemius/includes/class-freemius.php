@@ -1926,6 +1926,8 @@
 
 			if ( is_object( $fs ) ) {
 				$fs->_uninstall_plugin_event();
+
+				$fs->do_action('after_uninstall');
 			}
 		}
 
@@ -3067,13 +3069,13 @@
 			if ( is_string( $message ) ) {
 				$params['message'] = $message;
 			}
-
+			
 			if ( $this->is_addon() ) {
 				$params['addon_id'] = $this->get_id();
 				return $this->get_parent_instance()->_get_admin_page_url( 'contact', $params );
 			} else {
-			return $this->_get_admin_page_url( 'contact', $params );
-		}
+				return $this->_get_admin_page_url( 'contact', $params );
+			}
 		}
 
 		/* Logger
