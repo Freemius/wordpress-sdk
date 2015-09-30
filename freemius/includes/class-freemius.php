@@ -4704,7 +4704,7 @@
 									__( 'Download the latest version now', WP_FS__SLUG ),
 									$addon_id
 								),
-							'addon_plan_upgraded',
+							'addon_plan_upgraded_' . $addon->slug,
 							__( 'Ye-ha!', WP_FS__SLUG )
 						);
 					}
