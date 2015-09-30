@@ -1064,6 +1064,12 @@
 							// If parent plugin activated, automatically install add-on for the user.
 							$this->_activate_addon_account( $parent_fs );
 						}
+
+						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
+						if ($this->is_premium()){
+							// Remove add-on download admin-notice.
+							$parent_fs->_admin_notices->remove_sticky('addon_plan_upgraded_' . $this->_slug);
+						}
 					}
 				} else {
 					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
@@ -1920,6 +1926,8 @@
 
 			if ( is_object( $fs ) ) {
 				$fs->_uninstall_plugin_event();
+
+				$fs->do_action('after_uninstall');
 			}
 		}
 
@@ -4676,7 +4684,10 @@
 					$plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
 
 					if ( ! isset( $plans_result->error ) ) {
-						$plans = $plans_result->plans;
+						$plans = array();
+						foreach ($plans_result->plans as $plan) {
+							$plans[] = new FS_Plugin_Plan($plan);
+						}
 
 						$this->_admin_notices->add_sticky(
 							FS_Plan_Manager::instance()->has_free_plan( $plans ) ?
@@ -4695,7 +4706,7 @@
 									__( 'Download the latest version now', WP_FS__SLUG ),
 									$addon_id
 								),
-							'addon_plan_upgraded',
+							'addon_plan_upgraded_' . $addon->slug,
 							__( 'Ye-ha!', WP_FS__SLUG )
 						);
 					}
