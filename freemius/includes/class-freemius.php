@@ -3061,8 +3061,13 @@
 			if ( is_string( $message ) ) {
 				$params['message'] = $message;
 			}
-
-			return $this->_get_admin_page_url( 'contact', $params );
+			
+			if ( $this->is_addon() ) {
+				$params['addon_id'] = $this->get_id();
+				return $this->get_parent_instance()->_get_admin_page_url( 'contact', $params );
+			} else {
+				return $this->_get_admin_page_url( 'contact', $params );
+			}
 		}
 
 		/* Logger
