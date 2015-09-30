@@ -12,7 +12,7 @@
         exit;
     }
 
-    if (!class_exists('Test_Plugin_Addon')) {
+    if ( ! class_exists('Test_Plugin_Addon') ) {
 
         if ( ! defined( 'WP_TP__SLUG' ) ) {
             define( 'WP_TP__SLUG', 'test-plugin' );
@@ -50,21 +50,54 @@
         }
 
         function test_plugin_addon() {
-            if ( ! class_exists( 'Test_Plugin' ) ) {
-                // Add admin notice since add-on should not work without the plugin.
-                
-                return;
-            }
-
             global $test_plugin_addon;
+            
             if ( ! isset( $test_plugin_addon ) ) {
                 $test_plugin_addon = new Test_Plugin_Addon();
             }
 
             return $test_plugin_addon;
         }
+        
+        function is_parent_plugin_activated()
+        {
+		    $active_plugins = get_option( 'active_plugins' );
+		    foreach ( $active_plugins as $plugin_basename ) {
+		        // Check if any of the active files is the parent plugin.
+			    if ( false !== strpos( $plugin_basename, '/test-plugin.php' ) ) {
+				    return true;
+			    }
+		    }
 
-        // Init add-on only after all active plugins code
-        // was included to make sure the parent plugin loaded first.
-        add_action( 'plugins_loaded', 'test_plugin_addon' );
+		    return false;
+        }
+        
+        if ( class_exists( 'Test_Plugin' ) )
+        {
+            // If parent plugin already loaded, init add-on.
+            test_plugin_addon();
+        }
+        else if ( is_parent_plugin_activated() )
+        {
+			// Init add-on only after the parent plugins is loaded.
+			// 
+			// Make sure the parent plugin has the following call:
+			//  do_action( 'test_plugin_loaded' );
+			//
+			add_action( 'test_plugin_loaded', 'test_plugin_addon' );
+        }
+        else
+        {
+            // Parent plugin is not activated.
+            //  1) Deactivate the add-on
+            //  2) Show WP fata error message.
+            
+            deactivate_plugins( basename( __FILE__ ) );
+
+		    wp_die( 
+		        'The Add On cannot run without the parent plugin. Please activate the parent plugin and then try again.', 
+		        'Error', 
+		        array( 'back_link' => true ) 
+		    );
+        }
     }
