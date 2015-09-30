@@ -56,5 +56,10 @@
 		}
 
 		$dp = new Test_Plugin();
+		
+		// Broadcast an event that the plugin was loaded.
+		// Using this action, Add-ons can hook to the event and invoke their init method 
+		// right after the plugin was fully loaded.
+		do_action( 'test_plugin_loaded' );
 
 	endif;
