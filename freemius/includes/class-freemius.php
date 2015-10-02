@@ -1602,7 +1602,13 @@
 						$activation_url = $this->_get_admin_page_url();
 
 						$this->_admin_notices->add(
-							sprintf( __( 'You are just one step away - %1sActivate "' . $this->get_plugin_name() . '" Now%2s', WP_FS__SLUG ), '<a href="' . $activation_url . '"><b>', '</b></a>' ),
+							sprintf(
+								__( 'You are just one step away - %s', WP_FS__SLUG ),
+								sprintf( '<b><a href="%s">%s</a></b>',
+									$activation_url,
+									sprintf( __( 'Activate "%s" Now', WP_FS__SLUG ), $this->get_plugin_name() )
+								)
+							),
 							'',
 							'update-nag'
 						);
