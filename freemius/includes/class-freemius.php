@@ -1522,7 +1522,7 @@
 				$this->_storage->sync_timestamp = $sync_timestamp;
 			}
 
-			if ( /*( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && ) ||*/
+			if ( ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && fs_request_has('background_sync')) ||
 			( $sync_timestamp <= time() - WP_FS__TIME_24_HOURS_IN_SEC )
 			) {
 
@@ -3605,6 +3605,7 @@
 
 		#region Admin Menu Items ------------------------------------------------------------------
 
+		private $_has_menu = false;
 		private $_menu_items = array();
 
 		/**
