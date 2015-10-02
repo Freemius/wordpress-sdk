@@ -47,8 +47,8 @@
 	<div class="fs-content">
 		<p><?php
 				echo $fs->apply_filters('connect_message', sprintf(
-					__('Hey %s', WP_FS__SLUG) . ',<br>' .
-					__('In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', WP_FS__SLUG),
+					_x('Hey %s,', 'greeting', 'freemius') . '<br>' .
+					__('In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius'),
 					$first_name,
 					'<b>' . $fs->get_plugin_name() . '</b>',
 					'<b>' . $current_user->user_login . '</b>',
@@ -59,14 +59,14 @@
 	</div>
 	<div class="fs-actions">
 		<?php if ( $fs->enable_anonymous() ) : ?>
-		<a href="<?php echo wp_nonce_url($fs->_get_admin_page_url('', array('fs_action' => $slug . '_skip_activation')), $slug . '_skip_activation') ?>" class="button button-secondary" tabindex="2"><?php _e('Skip', WP_FS__SLUG) ?></a>
+		<a href="<?php echo wp_nonce_url($fs->_get_admin_page_url('', array('fs_action' => $slug . '_skip_activation')), $slug . '_skip_activation') ?>" class="button button-secondary" tabindex="2"><?php _ex('Skip', 'verb', 'freemius') ?></a>
 		<?php endif ?>
 		<?php $fs_user = Freemius::_get_user_by_email($current_user->user_email) ?>
 		<?php if (is_object($fs_user)) : ?>
 			<form action="" method="POST">
 				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
 				<?php wp_nonce_field('activate_existing_' . $fs->get_public_key()) ?>
-				<button class="button button-primary" tabindex="1" type="submit"><?php _e('Allow & Continue', WP_FS__SLUG) ?> &nbsp;&#10140;</button>
+				<button class="button button-primary" tabindex="1" type="submit"><?php _ex('Allow & Continue', 'button label', 'freemius') ?> &nbsp;&#10140;</button>
 			</form>
 		<?php else : ?>
 			<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
@@ -98,31 +98,31 @@
 				<?php foreach ($params as $name => $value) : ?>
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr($value) ?>">
 				<?php endforeach ?>
-				<button class="button button-primary" tabindex="1" type="submit"><?php _e('Allow & Continue', WP_FS__SLUG) ?> &nbsp;&#10140;</button>
+				<button class="button button-primary" tabindex="1" type="submit"><?php _ex('Allow & Continue', 'button label', 'freemius') ?> &nbsp;&#10140;</button>
 			</form>
 		<?php endif ?>
 	</div>
 	<div class="fs-permissions">
-		<a class="fs-trigger" href="#"><?php _e('What permissions are being granted?', WP_FS__SLUG) ?></a>
+		<a class="fs-trigger" href="#"><?php _e('What permissions are being granted?', 'freemius') ?></a>
 		<ul>
 			<li>
 				<i class="dashicons dashicons-admin-users"></i>
 				<div>
-					<span><?php _e('Your Profile Overview', WP_FS__SLUG) ?></span>
+					<span><?php _e('Your Profile Overview', 'freemius') ?></span>
 					<p>Name and email address</p>
 				</div>
 			</li>
 			<li>
 				<i class="dashicons dashicons-wordpress"></i>
 				<div>
-					<span><?php _e('Your Site Overview', WP_FS__SLUG) ?></span>
+					<span><?php _e('Your Site Overview', 'freemius') ?></span>
 					<p>Site address and WordPress version</p>
 				</div>
 			</li>
 			<li>
 				<i class="dashicons dashicons-admin-plugins"></i>
 				<div>
-					<span><?php _e('Current Plugin Events', WP_FS__SLUG) ?></span>
+					<span><?php _e('Current Plugin Events', 'freemius') ?></span>
 					<p>Activation, deactivation and uninstall</p>
 				</div>
 			</li>

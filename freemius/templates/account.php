@@ -29,14 +29,14 @@
 
 	<div class="wrap">
 	<h2 class="nav-tab-wrapper">
-		<a href="<?php $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _e('Account', WP_FS__SLUG) ?></a>
+		<a href="<?php $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _e('Account', 'freemius') ?></a>
 		<?php if ( $fs->_has_addons() ) : ?>
-			<a href="<?php echo $fs->_get_admin_page_url('addons') ?>" class="nav-tab"><?php _e('Add Ons', WP_FS__SLUG) ?></a>
+			<a href="<?php echo $fs->_get_admin_page_url('addons') ?>" class="nav-tab"><?php _e('Add Ons', 'freemius') ?></a>
 		<?php endif ?>
 		<?php if ($fs->is_not_paying() && $fs->has_paid_plan()) : ?>
-			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _e('Upgrade', WP_FS__SLUG) ?></a>
+			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _e('Upgrade', 'freemius') ?></a>
 			<?php if (!$fs->is_trial_utilized() && $fs->has_trial_plan()) : ?>
-				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _e('Free Trial', WP_FS__SLUG) ?></a>
+				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _e('Free Trial', 'freemius') ?></a>
 			<?php endif ?>
 		<?php endif ?>
 	</h2>
@@ -45,7 +45,7 @@
 	<div class="has-sidebar has-right-sidebar">
 	<div class="has-sidebar-content">
 	<div class="postbox">
-		<h3><?php _e('Account Details', WP_FS__SLUG) ?></h3>
+		<h3><?php _e('Account Details', 'freemius') ?></h3>
 		<div class="fs-header-actions">
 			<ul>
 				<li>
@@ -54,11 +54,11 @@
 						<?php wp_nonce_field('delete_account') ?>
 						<a href="#" onclick="if (confirm('<?php
 							if ($is_active_subscription) {
-								echo esc_attr(sprintf( __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', WP_FS__SLUG ), $plan->title ));
+								echo esc_attr(sprintf( __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', 'freemius' ), $plan->title ));
 							}else {
-								_e( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', WP_FS__SLUG );
+								_e( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', 'freemius' );
 							}
-							?>'))  this.parentNode.submit(); return false;"><?php _e('Delete Account', WP_FS__SLUG) ?></a>
+							?>'))  this.parentNode.submit(); return false;"><?php _e('Delete Account', 'freemius') ?></a>
 					</form>
 				</li>
 				<?php if ($is_paying) : ?>
@@ -67,7 +67,7 @@
 						<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 							<input type="hidden" name="fs_action" value="deactivate_license">
 							<?php wp_nonce_field('deactivate_license') ?>
-							<a href="#" onclick="if (confirm('<?php _e('Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Deactivate License', WP_FS__SLUG) ?></a>
+							<a href="#" onclick="if (confirm('<?php _e('Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', 'freemius') ?>')) this.parentNode.submit(); return false;"><?php _e('Deactivate License', 'freemius') ?></a>
 						</form>
 					</li>
 					<?php if (!$license->is_lifetime() &&
@@ -77,17 +77,17 @@
 						<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 							<input type="hidden" name="fs_action" value="downgrade_account">
 							<?php wp_nonce_field('downgrade_account') ?>
-							<a href="#" onclick="if (confirm('<?php printf(__('Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', WP_FS__SLUG), $plan->title, human_time_diff( time(), strtotime( $license->expiration ) )) ?> <?php if (!$license->is_block_features) {
-								printf(__( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', WP_FS__SLUG ), $plan->title);
+							<a href="#" onclick="if (confirm('<?php printf(__('Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'freemius'), $plan->title, human_time_diff( time(), strtotime( $license->expiration ) )) ?> <?php if (!$license->is_block_features) {
+								printf(__( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', 'freemius' ), $plan->title);
 							}else {
-								printf(__( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', WP_FS__SLUG), $plan->title);
-							}?> <?php _e(' Are you sure you want to proceed?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', WP_FS__SLUG) ?></a>
+								printf(__( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius'), $plan->title);
+							}?> <?php _e(' Are you sure you want to proceed?', 'freemius') ?>')) this.parentNode.submit(); return false;"><?php _e('Downgrade', 'freemius') ?></a>
 						</form>
 					</li>
 					<?php endif ?>
 					<li>
 						&nbsp;•&nbsp;
-						<a href="<?php echo $fs->get_upgrade_url() ?>"><?php _e('Change Plan', WP_FS__SLUG) ?></a>
+						<a href="<?php echo $fs->get_upgrade_url() ?>"><?php _e('Change Plan', 'freemius') ?></a>
 					</li>
 				<?php endif ?>
 			</ul>
@@ -96,37 +96,37 @@
 			<table id="fs_account_details" cellspacing="0" class="fs-key-value-table">
 				<?php
 					$profile = array();
-					$profile[] = array('id' => 'user_name', 'title' => __('Name', WP_FS__SLUG), 'value' => $name);
+					$profile[] = array('id' => 'user_name', 'title' => __('Name', 'freemius'), 'value' => $name);
 //					if (isset($user->email) && false !== strpos($user->email, '@'))
-						$profile[] = array('id' => 'email', 'title' => __('Email', WP_FS__SLUG), 'value' => $user->email);
+						$profile[] = array('id' => 'email', 'title' => __('Email', 'freemius'), 'value' => $user->email);
 					if (is_numeric($user->id))
-						$profile[] = array('id' => 'user_id', 'title' => __('User ID', WP_FS__SLUG), 'value' => $user->id);
+						$profile[] = array('id' => 'user_id', 'title' => __('User ID', 'freemius'), 'value' => $user->id);
 
-					$profile[] = array('id' => 'site_id', 'title' => __('Site ID', WP_FS__SLUG), 'value' => is_string($site->id) ? $site->id : 'No ID');
+					$profile[] = array('id' => 'site_id', 'title' => __('Site ID', 'freemius'), 'value' => is_string($site->id) ? $site->id : 'No ID');
 
-					$profile[] = array('id' => 'site_public_key', 'title' => __('Public Key', WP_FS__SLUG), 'value' => $site->public_key);
+					$profile[] = array('id' => 'site_public_key', 'title' => __('Public Key', 'freemius'), 'value' => $site->public_key);
 
-					$profile[] = array('id' => 'site_secret_key', 'title' => __('Secret Key', WP_FS__SLUG), 'value' => ((is_string($site->secret_key)) ? $site->secret_key : __('No Secret', WP_FS__SLUG)));
+					$profile[] = array('id' => 'site_secret_key', 'title' => __('Secret Key', 'freemius'), 'value' => ((is_string($site->secret_key)) ? $site->secret_key : __('No Secret', 'freemius')));
 
 					if ($fs->is_trial()){
 						$trial_plan = $fs->get_trial_plan();
 
 						$profile[] = array( 'id'    => 'plan',
-						                    'title' => __( 'Plan', WP_FS__SLUG ),
+						                    'title' => __( 'Plan', 'freemius' ),
 						                    'value' => (is_string( $trial_plan->name ) ?
 							                    strtoupper( $trial_plan->title ) . ' ' :
-							                    '') . __('TRIAL', WP_FS__SLUG)
+							                    '') . __('TRIAL', 'freemius')
 						);
 					}else {
 						$profile[] = array( 'id'    => 'plan',
-						                    'title' => __( 'Plan', WP_FS__SLUG ),
+						                    'title' => __( 'Plan', 'freemius' ),
 						                    'value' => is_string( $site->plan->name ) ?
 							                    strtoupper( $site->plan->title ) :
-							                    __('FREE', WP_FS__SLUG)
+							                    __('FREE', 'freemius')
 						);
 					}
 
-					$profile[] = array('id' => 'version', 'title' => __('Version', WP_FS__SLUG), 'value' => $fs->get_plugin_version());
+					$profile[] = array('id' => 'version', 'title' => __('Version', 'freemius'), 'value' => $fs->get_plugin_version());
 				?>
 				<?php $odd = true; foreach ($profile as $p) : ?>
 					<?php
@@ -143,16 +143,16 @@
 						<td>
 							<code><?php echo htmlspecialchars($p['value']) ?></code>
 							<?php if ('email' === $p['id'] && !$user->is_verified()) : ?>
-								<label><?php _e('not verified', WP_FS__SLUG) ?></label>
+								<label><?php _e('not verified', 'freemius') ?></label>
 							<?php endif ?>
 							<?php if ( 'plan' === $p['id'] ) : ?>
 								<?php if ($fs->is_trial()) : ?>
-								<label><?php printf( __('Expires in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $site->trial_ends ) )) ?></label>
+								<label><?php printf( __('Expires in %s', 'freemius'), human_time_diff( time(), strtotime( $site->trial_ends ) )) ?></label>
 								<?php elseif (is_object($license) && !$license->is_lifetime()) : ?>
 									<?php if (!$is_active_subscription && !$license->is_first_payment_pending()) : ?>
-									<label><?php printf( __('Expires in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $license->expiration ) )) ?></label>
+									<label><?php printf( __('Expires in %s', 'freemius'), human_time_diff( time(), strtotime( $license->expiration ) )) ?></label>
 									<?php elseif ($is_active_subscription && !$subscription->is_first_payment_pending()) : ?>
-										<label><?php printf( __('Auto renews in %s', WP_FS__SLUG), human_time_diff( time(), strtotime( $subscription->next_payment ) )) ?></label>
+										<label><?php printf( __('Auto renews in %s', 'freemius'), human_time_diff( time(), strtotime( $subscription->next_payment ) )) ?></label>
 									<?php endif ?>
 								<?php endif ?>
 							<?php endif ?>
@@ -163,7 +163,7 @@
 								<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 									<input type="hidden" name="fs_action" value="verify_email">
 									<?php wp_nonce_field('verify_email') ?>
-									<input type="submit" class="button button-small" value="<?php _e('Verify Email', WP_FS__SLUG) ?>">
+									<input type="submit" class="button button-small" value="<?php _e('Verify Email', 'freemius') ?>">
 								</form>
 							<?php endif ?>
 							<?php if ('plan' === $p['id']) : ?>
@@ -174,14 +174,14 @@
 											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST">
 												<input type="hidden" name="fs_action" value="activate_license">
 												<?php wp_nonce_field('activate_license') ?>
-												<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', WP_FS__SLUG), $premium_plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
+												<input type="submit" class="button button-primary" value="<?php printf( __('Activate %s Plan', 'freemius'), $premium_plan->title, ($site->is_localhost() && $license->is_free_localhost) ? '[localhost]' : (1 < $license->left() ? $license->left() . ' left' : '' )) ?> ">
 											</form>
 										<?php else : ?>
 											<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" class="button-group">
-												<input type="submit" class="button" value="<?php _e('Sync License', WP_FS__SLUG) ?>">
+												<input type="submit" class="button" value="<?php _e('Sync License', 'freemius') ?>">
 												<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
 												<?php wp_nonce_field($slug . '_sync_license') ?>
-												<a href="<?php echo $fs->get_upgrade_url() ?>" class="button<?php if (!$is_paying) echo ' button-primary' ?> button-upgrade"><?php (!$is_paying) ? _e('Upgrade', WP_FS__SLUG) : _e('Change Plan', WP_FS__SLUG) ?></a>
+												<a href="<?php echo $fs->get_upgrade_url() ?>" class="button<?php if (!$is_paying) echo ' button-primary' ?> button-upgrade"><?php (!$is_paying) ? _ex('Upgrade', 'verb', 'freemius') : _e('Change Plan', 'freemius') ?></a>
 											</form>
 										<?php endif ?>
 								</div>
@@ -189,18 +189,18 @@
 								<div class="button-group">
 									<?php if ( $is_paying ) : ?>
 										<?php if (!$fs->is_allowed_to_install()) : ?>
-											<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __('Download %1s Version', WP_FS__SLUG), $site->plan->title) . (is_object($update) ? ' [' . $update->version . ']' : '') ?></a>
+											<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __('Download %1s Version', 'freemius'), $site->plan->title) . (is_object($update) ? ' [' . $update->version . ']' : '') ?></a>
 										<?php elseif ( is_object($update) ) : ?>
-											<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename()), 'upgrade-plugin_' . $fs->get_plugin_basename()) ?>"><?php echo sprintf( __('Install Update Now [%1s]', WP_FS__SLUG), $update->version ) ?></a>
+											<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename()), 'upgrade-plugin_' . $fs->get_plugin_basename()) ?>"><?php echo sprintf( __('Install Update Now [%1s]', 'freemius'), $update->version ) ?></a>
 										<?php endif ?>
 									<?php endif; ?>
 								</div>
 							<?php elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/ (is_string($user->secret_key) && in_array($p['id'], array('email', 'user_name'))) ) : ?>
-								<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" onsubmit="var val = prompt('<?php echo __('What is your', WP_FS__SLUG) . ' ' . $p['title'] . '?' ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
+								<form action="<?php echo $fs->_get_admin_page_url('account') ?>" method="POST" onsubmit="var val = prompt('<?php printf( __('What is your %s?', 'freemius'), $p['title'] ) ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
 									<input type="hidden" name="fs_action" value="update_<?php echo $p['id'] ?>">
 									<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $slug ?>" value="">
 									<?php wp_nonce_field('update_' . $p['id']) ?>
-									<input type="submit" class="button button-small" value="<?php _e('Edit', WP_FS__SLUG) ?>">
+									<input type="submit" class="button button-small" value="<?php _ex('Edit', 'verb', 'freemius') ?>">
 								</form>
 							<?php endif ?>
 						</td>
@@ -229,9 +229,9 @@
 			<thead>
 			<tr>
 				<th></th>
-				<th><?php _e('Version', WP_FS__SLUG) ?></th>
-				<th><?php _e('Plan', WP_FS__SLUG) ?></th>
-				<th><?php _e('Expiration', WP_FS__SLUG) ?></th>
+				<th><?php _ex('Version', 'plugin version', 'freemius') ?></th>
+				<th><?php _e('Plan', 'freemius') ?></th>
+				<th><?php _ex('Expiration', 'expiration date', 'freemius') ?></th>
 				<th></th>
 				<?php if (defined('WP_FS__DEV_MODE') && WP_FS__DEV_MODE) : ?>
 					<th></th>
@@ -261,7 +261,7 @@
 						?>
 						<?php if ( $fs_addon->is_not_paying() ) : ?>
 							<?php if ($is_current_license_expired) : ?>
-								<td><?php _e('Expired', WP_FS__SLUG) ?></td>
+								<td><?php _e('Expired', 'freemius') ?></td>
 							<?php endif ?>
 							<?php $premium_license = $fs_addon->_get_available_premium_license() ?>
 							<td<?php if (!$is_current_license_expired) echo ' colspan="2"' ?>>
@@ -270,7 +270,7 @@
 									<?php fs_ui_action_button(
 										$slug, 'account',
 										'activate_license',
-										sprintf( __('Activate %s Plan', WP_FS__SLUG), $fs_addon->get_plan_title(), ($site->is_localhost() && $premium_license->is_free_localhost) ? '[localhost]' : (1 < $premium_license->left() ? $premium_license->left() . ' left' : '' )),
+										sprintf( __('Activate %s Plan', 'freemius'), $fs_addon->get_plan_title(), ($site->is_localhost() && $premium_license->is_free_localhost) ? '[localhost]' : (1 < $premium_license->left() ? $premium_license->left() . ' left' : '' )),
 										array('plugin_id' => $addon_id)
 									) ?>
 								<?php else : ?>
@@ -278,7 +278,7 @@
 										<?php fs_ui_action_button(
 											$slug, 'account',
 											$slug . '_sync_license',
-											__('Sync License', WP_FS__SLUG),
+											__('Sync License', 'freemius'),
 											array('plugin_id' => $addon_id),
 											false
 										) ?>
@@ -287,7 +287,7 @@
 											                            '&TB_iframe=true&width=600&height=550' ) ),
 											esc_attr( sprintf( __( 'More information about %s' ), $addon->title ) ),
 											esc_attr( $addon->title ),
-											__('Upgrade', WP_FS__SLUG)
+											_x('Upgrade', 'verb', 'freemius')
 										); ?>
 									</div>
 								<?php endif ?>
@@ -296,12 +296,12 @@
 							<?php if (is_object($current_license)) : ?>
 								<td><?php
 										if ($current_license->is_lifetime()){
-											_e('No expiration', WP_FS__SLUG);
+											_e('No expiration', 'freemius');
 										} else if ($current_license->is_expired()) {
-											_e('Expired', WP_FS__SLUG);
+											_e('Expired', 'freemius');
 										} else {
 											echo sprintf(
-												__('In %s', WP_FS__SLUG),
+												__('In %s', 'freemius'),
 												human_time_diff( time(), strtotime( $current_license->expiration ) )
 											);
 										}
@@ -310,7 +310,7 @@
 									<?php fs_ui_action_button(
 										$slug, 'account',
 										'deactivate_license',
-										__('Deactivate License', WP_FS__SLUG),
+										__('Deactivate License', 'freemius'),
 										array('plugin_id' => $addon_id),
 										false
 									) ?>
@@ -323,12 +323,12 @@
 						<td colspan="4">
 							<?php if ($fs->is_addon_installed($addon->slug)) : ?>
 								<?php $addon_file = $fs->get_addon_basename($addon->slug) ?>
-								<a class="button button-primary" href="<?php echo wp_nonce_url('plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file) ?>" title="<?php esc_attr__('Activate this add-on') ?>" class="edit"><?php _e('Activate', WP_FS__SLUG) ?></a>
+								<a class="button button-primary" href="<?php echo wp_nonce_url('plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file) ?>" title="<?php esc_attr__('Activate this add-on') ?>" class="edit"><?php _e('Activate', 'freemius') ?></a>
 							<?php else : ?>
 								<?php if ($fs->is_allowed_to_install()) : ?>
-									<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=install-plugin&plugin=' . $addon->slug), 'install-plugin_' . $addon->slug) ?>"><?php _e('Install Now', WP_FS__SLUG) ?></a>
+									<a class="button button-primary" href="<?php echo wp_nonce_url(self_admin_url('update.php?action=install-plugin&plugin=' . $addon->slug), 'install-plugin_' . $addon->slug) ?>"><?php _e('Install Now', 'freemius') ?></a>
 								<?php else : ?>
-									<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url($addon_id) ?>"><?php echo __('Download Latest', WP_FS__SLUG) ?></a>
+									<a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url($addon_id) ?>"><?php echo __('Download Latest', 'freemius') ?></a>
 								<?php endif ?>
 							<?php endif ?>
 						</td>
@@ -340,10 +340,10 @@
 									fs_ui_action_button(
 										$slug, 'account',
 										'delete_account',
-										__('Delete', WP_FS__SLUG),
+										_x('Delete', 'verb', WP_FS__SLUG),
 										array('plugin_id' => $addon_id),
 										false
-									)
+									);
 							?>
 						</td>
 					<?php endif ?>
@@ -353,26 +353,6 @@
 		</table>
 	</div>
 	<?php endif ?>
-	<!--						<table id="fs_addons" class="widefat">-->
-	<!--							<thead>-->
-	<!--							<tr>-->
-	<!--								<th></th>-->
-	<!--								<th>--><?php //_e('Version', WP_FS__SLUG) ?><!--</th>-->
-	<!--								<th>--><?php //_e('Plan', WP_FS__SLUG) ?><!--</th>-->
-	<!--								<th>--><?php //_e('Expiration', WP_FS__SLUG) ?><!--</th>-->
-	<!--								<th></th>-->
-	<!--							</tr>-->
-	<!--							</thead>-->
-	<!--							<tbody>-->
-	<!--							<tr>-->
-	<!--								<td>MailChimp</td>-->
-	<!--								<td>1.2.3</td>-->
-	<!--								<td>Great Plan</td>-->
-	<!--								<td>--><?php //echo human_time_diff( time(), strtotime( '2016-02-11' ) ) ?><!--</td>-->
-	<!--								<td><a class="button button-primary" href="--><?php //echo wp_nonce_url(self_admin_url('update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename()), 'upgrade-plugin_' . $fs->get_plugin_basename()) ?><!--">--><?php //echo sprintf( __('Download Now', WP_FS__SLUG) ) ?><!--</a></td>-->
-	<!--							</tr>-->
-	<!--							</tbody>-->
-	<!--						</table>-->
 
 	<?php $fs->do_action( 'after_account_details' ) ?>
 	</div>

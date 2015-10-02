@@ -12,7 +12,7 @@
 			<ul>
 				<?php for ($i = 0; $i < 3; $i++) : ?>
 					<?php if (!empty($plugin->info->{'selling_point_' . $i})) : ?>
-						<li><i class="dashicons dashicons-yes"></i><h3><?php _e($plugin->info->{'selling_point_' . $i}, WP_FS__SLUG) ?></h3></li>
+						<li><i class="dashicons dashicons-yes"></i><h3><?php echo $plugin->info->{'selling_point_' . $i} ?></h3></li>
 					<?php endif ?>
 				<?php endfor ?>
 			</ul>
@@ -34,7 +34,7 @@
 	<?php if (!empty($plugin->info->screenshots)) : ?>
 		<?php $screenshots = $plugin->info->screenshots ?>
 		<div class="fs-screenshots clearfix">
-			<h2><?php _e('Screenshots', WP_FS__SLUG) ?></h2>
+			<h2><?php _e('Screenshots', 'freemius') ?></h2>
 			<ul>
 				<?php $i = 0; foreach ($screenshots as $s => $url) : ?>
 					<?php
@@ -47,7 +47,7 @@
 								background-image: url('<?php echo $url ?>');
 							}
 						</style>
-						<a href="<?php echo $url ?>" title="<?php printf( __('Click to view full-size screenshot %d', WP_FS__SLUG), $i) ?>" class="fs-screenshot-<?php echo $i ?>"></a>
+						<a href="<?php echo $url ?>" title="<?php printf( __('Click to view full-size screenshot %d', 'freemius'), $i) ?>" class="fs-screenshot-<?php echo $i ?>"></a>
 					</li>
 					<?php $i++; endforeach ?>
 			</ul>

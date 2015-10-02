@@ -193,7 +193,7 @@
 				</script>
 			<?php endif ?>
 			<div>
-			<h3><?php _e( 'Details', WP_FS__SLUG ) ?></h3>
+			<h3><?php _e( 'Details', 'freemius' ) ?></h3>
 			<ul>
 				<?php if ( ! empty( $api->version ) ) { ?>
 					<li><strong><?php _e( 'Version:' ); ?></strong> <?php echo $api->version; ?></li>

@@ -518,10 +518,10 @@
 			self::$_static_logger->entrance();
 
 			$hook = add_object_page(
-				__( 'Freemius Debug', WP_FS__SLUG ),
-				__( 'Freemius Debug', WP_FS__SLUG ),
+				__( 'Freemius Debug', 'freemius' ),
+				__( 'Freemius Debug', 'freemius' ),
 				'manage_options',
-				WP_FS__SLUG,
+				'freemius',
 				array( 'Freemius', '_debug_page_render' )
 			);
 
@@ -714,39 +714,39 @@
 			     isset( $ping->error ) &&
 			     'cloudflare_ddos_protection' === $ping->error->code
 			) {
-				$message = __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', WP_FS__SLUG );
+				$message = __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'freemius' );
 			} else {
-				$message = __( 'From unknown reason, the API connectivity test fails.', WP_FS__SLUG );
+				$message = __( 'From unknown reason, the API connectivity test fails.', 'freemius' );
 			}
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__( '%s requires an access to our API.', WP_FS__SLUG ) . ' ' .
+					__( '%s requires an access to our API.', 'freemius' ) . ' ' .
 					$message . ' ' .
-					__( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', WP_FS__SLUG ) .
+					__( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'freemius' ) .
 					' %s',
 					'<b>' . $this->get_plugin_name() . '</b>',
 					sprintf(
 						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 						sprintf(
 							'<a class="fs-resolve" href="#"><b>%s</b></a>%s',
-							__( 'Yes - I\'m giving you a chance to fix it', WP_FS__SLUG ),
+							__( 'Yes - I\'m giving you a chance to fix it', 'freemius' ),
 							' - ' . sprintf(
-								__( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', WP_FS__SLUG ),
+								__( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'freemius' ),
 								'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 							)
 						),
 						sprintf(
 							'<a href="%s" target="_blank"><b>%s</b></a>%s',
 							sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-							__( 'Let\'s try your previous version', WP_FS__SLUG ),
-							' - ' . __( 'Uninstall this version and install the previous one.', WP_FS__SLUG )
+							__( 'Let\'s try your previous version', 'freemius' ),
+							' - ' . __( 'Uninstall this version and install the previous one.', 'freemius' )
 						),
 						sprintf(
 							'<a href="%s"><b>%s</b></a>%s',
 							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-							__( 'That\'s exhausting, please deactivate', WP_FS__SLUG ),
-							' - ' . __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', WP_FS__SLUG )
+							__( 'That\'s exhausting, please deactivate', 'freemius' ),
+							' - ' . __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', 'freemius' )
 						)
 					)
 				),
@@ -885,7 +885,7 @@
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__('Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', WP_FS__SLUG),
+					__('Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', 'freemius'),
 					'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 				),
 				'server_details_sent'
@@ -1046,10 +1046,10 @@
 					if ( ! $this->is_parent_plugin_installed() ) {
 						$this->_admin_notices->add(
 							( is_string( $parent_name ) ?
-								sprintf( __( '%s cannot run without %s.', WP_FS__SLUG ), $this->get_plugin_name(), $parent_name ) :
-								sprintf( __( '%s cannot run without the plugin.', WP_FS__SLUG ), $this->get_plugin_name() )
+								sprintf( _x( '%s cannot run without %s.', 'addonX cannot run without pluginY', 'freemius' ), $this->get_plugin_name(), $parent_name ) :
+								sprintf( _x( '%s cannot run without the plugin.', 'addonX cannot run...', 'freemius' ), $this->get_plugin_name() )
 							),
-							__( 'Oops...', WP_FS__SLUG ),
+							__( 'Oops...', 'freemius' ),
 							'error'
 						);
 
@@ -1162,9 +1162,9 @@
 				) );
 
 				$this->_admin_notices->add_sticky(
-					__( 'Premium plugin version was successfully activated.', WP_FS__SLUG ),
+					__( 'Premium plugin version was successfully activated.', 'freemius' ),
 					'premium_activated',
-					__( 'W00t!', WP_FS__SLUG )
+					__( 'W00t!', 'freemius' )
 				);
 			} else {
 				// Activated free code (after had the premium before).
@@ -1173,14 +1173,14 @@
 				if ( $this->is_paying() && !$this->is_premium() ) {
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'You have a %s license.', WP_FS__SLUG ),
+							_x( 'You have a %s license.', 'E.g. You have a Professional license.', 'freemius' ),
 							$this->_site->plan->title
 						) . ' ' . $this->_get_latest_download_link( sprintf(
-							__( 'Download %s version now', WP_FS__SLUG ),
+							__( 'Download %s version now', 'freemius' ),
 							$this->_site->plan->title
 						) ),
 						'plan_upgraded',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__( 'Ye-ha!', 'freemius' )
 					);
 				}
 			}
@@ -1566,7 +1566,7 @@
 			}
 
 			$this->_admin_notices->add_sticky(
-				sprintf( __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>', '<b>' . $email . '</b>' ),
+				sprintf( __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', 'freemius' ), '<b>' . $this->get_plugin_name() . '</b>', '<b>' . $email . '</b>' ),
 				'activation_pending',
 				'Thanks!'
 			);
@@ -1603,10 +1603,10 @@
 
 						$this->_admin_notices->add(
 							sprintf(
-								__( 'You are just one step away - %s', WP_FS__SLUG ),
+								__( 'You are just one step away - %s', 'freemius' ),
 								sprintf( '<b><a href="%s">%s</a></b>',
 									$activation_url,
-									sprintf( __( 'Activate "%s" Now', WP_FS__SLUG ), $this->get_plugin_name() )
+									sprintf( __( 'Activate "%s" Now', 'freemius' ), $this->get_plugin_name() )
 								)
 							),
 							'',
@@ -3395,7 +3395,7 @@
 
 				if ( ! $this->is_paying() ) {
 					$this->_admin_notices->add_sticky(
-						sprintf( __( '%s activation was successfully completed.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
+						sprintf( _x( '%s activation was successfully completed.', 'pluginX activation was successfully...', 'freemius' ), '<b>' . $this->get_plugin_name() . '</b>' ),
 						'activation_complete'
 					);
 				}
@@ -3404,14 +3404,14 @@
 			if ( $this->is_paying() && !$this->is_premium() ) {
 				$this->_admin_notices->add_sticky(
 					sprintf(
-						__( 'Your account was successfully activated with the %s plan.', WP_FS__SLUG ),
+						__( 'Your account was successfully activated with the %s plan.', 'freemius' ),
 						$this->_site->plan->title
 					) . ' ' . $this->_get_latest_download_link( sprintf(
-						__( 'Download our latest %s version now', WP_FS__SLUG ),
+						__( 'Download our latest %s version now', 'freemius' ),
 						$this->_site->plan->title
 					) ),
 					'plan_upgraded',
-					__( 'Ye-ha!', WP_FS__SLUG )
+					__( 'Ye-ha!', 'freemius' )
 				);
 			}
 
@@ -3524,7 +3524,7 @@
 
 				if ( isset( $install->error ) ) {
 					$this->_admin_notices->add(
-						sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $install->error->message . '</b>' ),
+						sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', 'freemius' ), $this->get_plugin_name(), '<b>' . $install->error->message . '</b>' ),
 						'Oops...',
 						'error'
 					);
@@ -3571,7 +3571,7 @@
 
 			if ( isset( $addon_install->error ) ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
+					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', 'freemius' ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
 					'Oops...',
 					'error'
 				);
@@ -3605,7 +3605,6 @@
 
 		#region Admin Menu Items ------------------------------------------------------------------
 
-		private $_has_menu = false;
 		private $_menu_items = array();
 
 		/**
@@ -4317,8 +4316,8 @@
 					$this->do_action( 'account_email_verified', $user->email );
 
 					$this->_admin_notices->add(
-						__( 'Your email has been successfully verified - you are AWESOME!', WP_FS__SLUG ),
-						__( 'Right on!', WP_FS__SLUG )
+						__( 'Your email has been successfully verified - you are AWESOME!', 'freemius' ),
+						__( 'Right on!', 'freemius' )
 					);
 				}
 
@@ -4698,22 +4697,22 @@
 						$this->_admin_notices->add_sticky(
 							FS_Plan_Manager::instance()->has_free_plan( $plans ) ?
 								sprintf(
-									__( 'Your %s Add-on plan was successfully upgraded.', WP_FS__SLUG ),
+									__( 'Your %s Add-on plan was successfully upgraded.', 'freemius' ),
 									$addon->title
 								) . ' ' . $this->_get_latest_download_link(
-									__( 'Download the latest version now', WP_FS__SLUG ),
+									__( 'Download the latest version now', 'freemius' ),
 									$addon_id
 								)
 								:
 								sprintf(
-									__( '%s Add-on was successfully purchased.', WP_FS__SLUG ),
+									__( '%s Add-on was successfully purchased.', 'freemius' ),
 									$addon->title
 								) . ' ' . $this->_get_latest_download_link(
-									__( 'Download the latest version now', WP_FS__SLUG ),
+									__( 'Download the latest version now', 'freemius' ),
 									$addon_id
 								),
 							'addon_plan_upgraded_' . $addon->slug,
-							__( 'Ye-ha!', WP_FS__SLUG )
+							__( 'Ye-ha!', 'freemius' )
 						);
 					}
 				}
@@ -4744,16 +4743,16 @@
 				if ( ! $api->test() ) {
 					// Failed to ping API - blocked!
 					$this->_admin_notices->add(
-						sprintf( __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s license synchronization. Please contact your host to whitelist %2s', WP_FS__SLUG ), $this->get_plugin_name(), '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>' ) . '<br> Error received from the server: ' . var_export( $site->error, true ),
-						__( 'Oops...', WP_FS__SLUG ),
+						sprintf( __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s license synchronization. Please contact your host to whitelist %2s', 'freemius' ), $this->get_plugin_name(), '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>' ) . '<br> Error received from the server: ' . var_export( $site->error, true ),
+						__( 'Oops...', 'freemius' ),
 						'error',
 						$background
 					);
 				} else {
 					// Authentication params are broken.
 					$this->_admin_notices->add(
-						__( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', WP_FS__SLUG ),
-						__( 'Oops...', WP_FS__SLUG ),
+						__( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'freemius' ),
+						__( 'Oops...', 'freemius' ),
 						'error'
 					);
 				}
@@ -4835,11 +4834,11 @@
 					if ( ! $background && is_admin() ) {
 						$this->_admin_notices->add(
 							sprintf(
-								__( 'It looks like your plan did\'t change. If you did upgrade, it\'s probably an issue on our side - sorry. %1sPlease contact us here%2s', WP_FS__SLUG ),
-								'<a href="' . $this->contact_url( 'bug', sprintf( __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', WP_FS__SLUG ), strtoupper( $this->_site->plan->name ) ) ) . '">',
+								__( 'It looks like your plan did\'t change. If you did upgrade, it\'s probably an issue on our side - sorry. %1sPlease contact us here%2s', 'freemius' ),
+								'<a href="' . $this->contact_url( 'bug', sprintf( __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', 'freemius' ), strtoupper( $this->_site->plan->name ) ) ) . '">',
 								'</a>'
 							),
-							__( 'Hmm...', WP_FS__SLUG ),
+							__( 'Hmm...', 'freemius' ),
 							'error'
 						);
 					}
@@ -4847,15 +4846,15 @@
 				case 'upgraded':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your plan was successfully upgraded.', WP_FS__SLUG ),
+							__( 'Your plan was successfully upgraded.', 'freemius' ),
 							'<i>' . $this->get_plugin_name() . '</i>'
 						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__( 'Download the latest %s version now', WP_FS__SLUG ),
+								__( 'Download the latest %s version now', 'freemius' ),
 								$this->_site->plan->title
 							) )
 						),
 						'plan_upgraded',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__( 'Ye-ha!', 'freemius' )
 					);
 
 					$this->_admin_notices->remove_sticky( array(
@@ -4868,7 +4867,7 @@
 				case 'changed':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your plan was successfully changed to %s.', WP_FS__SLUG ),
+							__( 'Your plan was successfully changed to %s.', 'freemius' ),
 							$this->_site->plan->title
 						),
 						'plan_changed'
@@ -4883,31 +4882,31 @@
 					break;
 				case 'downgraded':
 					$this->_admin_notices->add_sticky(
-						sprintf( __( 'Your license has expired. You can still continue using the free plugin forever.', WP_FS__SLUG ) ),
+						sprintf( __( 'Your license has expired. You can still continue using the free plugin forever.', 'freemius' ) ),
 						'license_expired',
-						__( 'Hmm...', WP_FS__SLUG )
+						__( 'Hmm...', 'freemius' )
 					);
 					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 					break;
 				case 'expired':
 					$this->_admin_notices->add_sticky(
-						sprintf( __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', WP_FS__SLUG ), $this->_site->plan->title ),
+						sprintf( __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'freemius' ), $this->_site->plan->title ),
 						'license_expired',
-						__( 'Hmm...', WP_FS__SLUG )
+						__( 'Hmm...', 'freemius' )
 					);
 					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 					break;
 				case 'trial_started':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your trial has been successfully started.', WP_FS__SLUG ),
+							__( 'Your trial has been successfully started.', 'freemius' ),
 							'<i>' . $this->get_plugin_name() . '</i>'
 						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__( 'Download the latest %s version now', WP_FS__SLUG ),
+								__( 'Download the latest %s version now', 'freemius' ),
 								$this->_storage->trial_plan->title
 							) ) ),
 						'trial_started',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__( 'Ye-ha!', 'freemius' )
 					);
 
 					$this->_admin_notices->remove_sticky( array(
@@ -4916,9 +4915,9 @@
 					break;
 				case 'trial_expired':
 					$this->_admin_notices->add_sticky(
-						__( 'Your trial has expired. You can still continue using all our free features.', WP_FS__SLUG ),
+						__( 'Your trial has expired. You can still continue using all our free features.', 'freemius' ),
 						'trial_expired',
-						__( 'Hm...', WP_FS__SLUG )
+						__( 'Hm...', 'freemius' )
 					);
 					$this->_admin_notices->remove_sticky( array(
 						'trial_started',
@@ -4954,8 +4953,8 @@
 			if ( isset( $license->error ) ) {
 				if ( ! $background ) {
 					$this->_admin_notices->add(
-						__( 'It looks like the license could not be activated.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
-						__( 'Hmm...', WP_FS__SLUG ),
+						__( 'It looks like the license could not be activated.', 'freemius' ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
+						__( 'Hmm...', 'freemius' ),
 						'error'
 					);
 				}
@@ -4974,13 +4973,13 @@
 
 			if ( ! $background ) {
 				$this->_admin_notices->add_sticky(
-					__( 'Your license was successfully activated.', WP_FS__SLUG ) .
+					__( 'Your license was successfully activated.', 'freemius' ) .
 					( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-						__( 'Download the latest %s version now', WP_FS__SLUG ),
+						__( 'Download the latest %s version now', 'freemius' ),
 						$this->_site->plan->title
 					) ) ),
 					'license_activated',
-					__( 'Ye-ha!', WP_FS__SLUG )
+					__( 'Ye-ha!', 'freemius' )
 				);
 			}
 
@@ -5001,8 +5000,8 @@
 
 			if ( ! is_object( $this->_license ) ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'It looks like your site currently don\'t have an active license.', WP_FS__SLUG ), $this->_site->plan->title ),
-					__( 'Hmm...', WP_FS__SLUG )
+					sprintf( __( 'It looks like your site currently don\'t have an active license.', 'freemius' ), $this->_site->plan->title ),
+					__( 'Hmm...', 'freemius' )
 				);
 
 				return;
@@ -5013,8 +5012,8 @@
 
 			if ( isset( $license->error ) ) {
 				$this->_admin_notices->add(
-					__( 'It looks like the license deactivation failed.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
-					__( 'Hmm...', WP_FS__SLUG ),
+					__( 'It looks like the license deactivation failed.', 'freemius' ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
+					__( 'Hmm...', 'freemius' ),
 					'error'
 				);
 
@@ -5039,8 +5038,8 @@
 
 			if ( $show_notice ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Your license was successfully deactivated, you are back to the %1s plan.', WP_FS__SLUG ), $this->_site->plan->title ),
-					__( 'O.K', WP_FS__SLUG )
+					sprintf( __( 'Your license was successfully deactivated, you are back to the %1s plan.', 'freemius' ), $this->_site->plan->title ),
+					__( 'O.K', 'freemius' )
 				);
 			}
 
@@ -5088,7 +5087,7 @@
 				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 
 				$this->_admin_notices->add(
-					sprintf( __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', WP_FS__SLUG ),
+					sprintf( __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'freemius' ),
 						$plan->title,
 						human_time_diff( time(), strtotime( $this->_license->expiration ) )
 					)
@@ -5098,7 +5097,7 @@
 				$this->_store_site();
 			} else {
 				$this->_admin_notices->add(
-					__( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', WP_FS__SLUG ),
+					__( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'freemius' ),
 					__( 'Oops...' ),
 					'error'
 				);
@@ -5118,7 +5117,7 @@
 
 			if ( ! $this->is_trial() ) {
 				$this->_admin_notices->add(
-					__( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', WP_FS__SLUG ),
+					__( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'freemius' ),
 					__( 'Oops...' ),
 					'error'
 				);
@@ -5148,7 +5147,7 @@
 				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 
 				$this->_admin_notices->add(
-					sprintf( __( 'Your %s Plan trial was successfully cancelled.', WP_FS__SLUG ), $this->_storage->trial_plan->title )
+					sprintf( __( 'Your %s Plan trial was successfully cancelled.', 'freemius' ), $this->_storage->trial_plan->title )
 				);
 
 				$this->_admin_notices->remove_sticky( array(
@@ -5164,7 +5163,7 @@
 				unset( $this->_storage->trial_plan );
 			} else {
 				$this->_admin_notices->add(
-					__( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', WP_FS__SLUG ),
+					__( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'freemius' ),
 					__( 'Oops...' ),
 					'error'
 				);
@@ -5385,14 +5384,21 @@
 				if ( ! $background ) {
 					$this->_admin_notices->add(
 						sprintf(
-							__( 'Version %1s was released. Please download our %2slatest %3s version here%4s.', WP_FS__SLUG ), $update->version, '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
-						__( 'New!', WP_FS__SLUG )
+							__( 'Version %s was released. Please download %s.', 'freemius' ),
+							$update->version,
+							sprintf(
+								'<a href="%s" target="_blank">%s</a>',
+								$this->get_account_url( 'download_latest' ),
+								sprintf( __( 'the latest %s version here', 'freemius' ), $this->_site->plan->title )
+							)
+						),
+						__( 'New!', 'freemius' )
 					);
 				}
 			} else if ( false === $new_version && ! $background ) {
 				$this->_admin_notices->add(
-					__( 'Seems like you got the latest release.', WP_FS__SLUG ),
-					__( 'You are all good!', WP_FS__SLUG )
+					__( 'Seems like you got the latest release.', 'freemius' ),
+					__( 'You are all good!', 'freemius' )
 				);
 			}
 
@@ -5510,7 +5516,7 @@
 			) );
 
 			if ( ! isset( $result->error ) ) {
-				$this->_admin_notices->add( sprintf( __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', WP_FS__SLUG ), sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email ) ) );
+				$this->_admin_notices->add( sprintf( __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', 'freemius' ), sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email ) ) );
 			} else {
 				// handle different error cases.
 
@@ -5605,14 +5611,14 @@
 						switch ( $result->error->code ) {
 							case 'user_exist':
 								$this->_admin_notices->add(
-									__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', WP_FS__SLUG ),
-									__( 'Oops...', WP_FS__SLUG ),
+									__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'freemius' ),
+									__( 'Oops...', 'freemius' ),
 									'error'
 								);
 								break;
 						}
 					} else {
-						$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG ) );
+						$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', 'freemius' ) );
 					}
 
 					return;
@@ -5624,12 +5630,12 @@
 
 					if ( isset( $result->error ) ) {
 						$this->_admin_notices->add(
-							__( 'Please provide your full name.', WP_FS__SLUG ),
-							__( 'Oops...', WP_FS__SLUG ),
+							__( 'Please provide your full name.', 'freemius' ),
+							__( 'Oops...', 'freemius' ),
 							'error'
 						);
 					} else {
-						$this->_admin_notices->add( __( 'Your name was successfully updated.', WP_FS__SLUG ) );
+						$this->_admin_notices->add( __( 'Your name was successfully updated.', 'freemius' ) );
 					}
 
 					return;
@@ -5683,7 +5689,7 @@
 						$this->do_action( 'account_property_edit', 'site', $site_property, $site_property_value );
 
 						$this->_admin_notices->add( sprintf(
-							__( 'You have successfully updated your %s .', WP_FS__SLUG ),
+							__( 'You have successfully updated your %s.', 'freemius' ),
 							'<b>' . str_replace( '_', ' ', $p ) . '</b>' ) );
 
 						return;
@@ -5777,8 +5783,8 @@
 
 			if ( ! $this->is_registered() && $this->is_org_repo_compliant() ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Just letting you know that the add-ons information of %s is being pulled from external server.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
-					__( 'Heads up ', WP_FS__SLUG ),
+					sprintf( __( 'Just letting you know that the add-ons information of %s is being pulled from external server.', 'freemius' ), '<b>' . $this->get_plugin_name() . '</b>' ),
+					__( 'Heads up ', 'freemius' ),
 					'update-nag'
 				);
 			}
@@ -6013,8 +6019,8 @@
 			$require_subscription = $paid_plan->is_require_subscription;
 			$upgrade_url          = $this->get_trial_url();
 			$cc_string            = $require_subscription ?
-				sprintf( __( 'No commitment for %s days - cancel anytime!', WP_FS__SLUG ), $paid_plan->trial_period ) :
-				__( 'No credit card required!', WP_FS__SLUG );
+				sprintf( __( 'No commitment for %s days - cancel anytime!', 'freemius' ), $paid_plan->trial_period ) :
+				__( 'No credit card required!', 'freemius' );
 
 
 			$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
@@ -6022,7 +6028,7 @@
 			if ( $total_paid_plans === $trial_plans_count ) {
 				// All paid plans have trials.
 				$message = sprintf(
-					__( 'Hey! How do you like %s so far? Test all our awesome premium features with a %d-day free trial.', WP_FS__SLUG ) . ' ' . $cc_string,
+					__( 'Hey! How do you like %s so far? Test all our awesome premium features with a %d-day free trial.', 'freemius' ) . ' ' . $cc_string,
 					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
 					$paid_plan->trial_period
 				);
@@ -6040,7 +6046,7 @@
 
 				// Not all paid plans have trials.
 				$message = sprintf(
-					__( 'Hey! How do you like the plugin so far? Test all our %s features with a %d-day free trial.' . $cc_string, WP_FS__SLUG ),
+					__( 'Hey! How do you like the plugin so far? Test all our %s features with a %d-day free trial.' . $cc_string, 'freemius' ),
 					$plans_string,
 					$paid_plan->trial_period
 				);
@@ -6050,7 +6056,7 @@
 			$message .= ' ' . sprintf(
 					'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 					$upgrade_url,
-					__( 'Start free trial', WP_FS__SLUG )
+					__( 'Start free trial', 'freemius' )
 				);
 
 			$this->_admin_notices->add_sticky(

@@ -1,4 +1,4 @@
-<h2><?php _e('Plugins Installs / Sites', WP_FS__SLUG) ?></h2>
+<h2><?php _e('Plugins Installs', 'freemius') ?> / <?php _ex('Sites', 'like websites', 'freemius') ?></h2>
 <?php
 	/**
 	 * @var FS_Site[] $sites
@@ -33,7 +33,7 @@
 	$addons = $VARS['addons'];
 ?>
 <?php foreach ($addons as $plugin_id => $plugin_addons) : ?>
-<h2><?php printf(__('Addons of Plugin %s', WP_FS__SLUG), $plugin_id) ?></h2>
+<h2><?php printf(__('Add Ons of Plugin %s', 'freemius'), $plugin_id) ?></h2>
 <table id="fs_addons" class="widefat">
 	<thead>
 	<tr>
@@ -63,7 +63,7 @@
 	</tbody>
 </table>
 <?php endforeach ?>
-<h2><?php _e('Users', WP_FS__SLUG) ?></h2>
+<h2><?php _e('Users', 'freemius') ?></h2>
 <?php
 	/**
 	 * @var FS_User[] $users
@@ -98,5 +98,5 @@
 <form action="" method="POST">
 	<input type="hidden" name="fs_action" value="delete_all_accounts">
 	<?php wp_nonce_field('delete_all_accounts') ?>
-	<button class="button button-primary" onclick="if (confirm('<?php _e('Are you sure you want to delete the all Freemius data?', WP_FS__SLUG) ?>')) this.parentNode.submit(); return false;"><?php _e('Delete All Accounts', WP_FS__SLUG) ?></button>
+	<button class="button button-primary" onclick="if (confirm('<?php _e('Are you sure you want to delete the all Freemius data?', 'freemius') ?>')) this.parentNode.submit(); return false;"><?php _e('Delete All Accounts', 'freemius') ?></button>
 </form>

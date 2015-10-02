@@ -24,4 +24,4 @@
 	}
 ?> fs-notice<?php if ($VARS['sticky']) echo ' fs-sticky' ?><?php if (!empty($VARS['title'])) echo ' fs-has-title' ?>"><?php if (!empty($VARS['title'])) : ?><label class="fs-plugin-title"><?php echo $VARS['title'] ?></label><?php endif ?><p>
 		<?php echo $VARS['message'] ?>
-	</p><?php if ($VARS['sticky']) : ?><i class="fs-close dashicons dashicons-no" title="<?php _e('Dismiss', WP_FS__SLUG) ?>"></i><?php endif ?></div>
+	</p><?php if ($VARS['sticky']) : ?><i class="fs-close dashicons dashicons-no" title="<?php _e('Dismiss', 'freemius') ?>"></i><?php endif ?></div>

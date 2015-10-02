@@ -18,7 +18,7 @@
 	$addons = $fs->get_addons();
 ?>
 	<div id="fs_addons" class="wrap">
-		<h2><?php printf(__('Add Ons for %s', WP_FS__SLUG), $fs->get_plugin_name()) ?></h2>
+		<h2><?php printf(__('Add Ons for %s', 'freemius'), $fs->get_plugin_name()) ?></h2>
 		<div id="poststuff">
 			<ul class="fs-cards-list">
 				<?php foreach ($addons as $addon) : ?>
@@ -78,7 +78,7 @@
 								<li class="fs-card-banner" style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"></li>
 								<li class="fs-title"><?php echo $addon->title ?></li>
 								<li class="fs-offer">
-									<span class="fs-price"><?php echo (0 == $price) ? __('Free', WP_FS__SLUG) : '$' . number_format($price, 2) ?></span>
+									<span class="fs-price"><?php echo (0 == $price) ? __('Free', 'freemius') : '$' . number_format($price, 2) ?></span>
 								</li>
 								<li class="fs-description"><?php echo !empty($addon->info->short_description) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
 							</ul>
