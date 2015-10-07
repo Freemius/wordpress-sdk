@@ -214,7 +214,7 @@
 			     false === $cache_entry ||
 			     ! isset( $cache_entry->timestamp ) ||
 			     ! is_numeric( $cache_entry->timestamp ) ||
-			     $cache_entry->timestamp < WP_RW__SCRIPT_START_TIME
+			     $cache_entry->timestamp < WP_FS__SCRIPT_START_TIME
 			) {
 				$fetch = true;
 			}
