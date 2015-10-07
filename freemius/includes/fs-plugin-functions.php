@@ -140,18 +140,33 @@
 				<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __( '%s Plan' ), $plan->title) ?></h3>
 				<ul>
 				<?php $billing_cycle = 'annual' ?>
+					<?php if ( 1 === count($plan->pricing) && 1 == $plan->pricing[0]->licenses ) : ?>
+						<?php $pricing = $plan->pricing[0] ?>
+						<li><label><?php _efs( 'price' ) ?>: $<?php
+									if (isset($pricing->annual_price)) {
+										echo $pricing->annual_price . ($plan->is_block_features ? ' / year' : '');
+										$billing_cycle = 'annual';
+									} else if (isset($pricing->monthly_price)) {
+										echo $pricing->monthly_price . ' / mo';
+										$billing_cycle = 'monthly';
+									} else if (isset($pricing->lifetime_price)) {
+										echo $pricing->lifetime_price;
+										$billing_cycle = 'lifetime';
+									}
+								?></label></li>
+					<?php else : ?>
 				<?php $first = true; foreach ($plan->pricing as $pricing) : ?>
 					<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="<?php echo $pricing->id ?>"<?php checked($first, true) ?>><?php
 								switch ($pricing->licenses)
 								{
 									case '1':
-										_e('Single Site License');
+										_efs('license-single-site');
 										break;
 									case null:
-										_e('Unlimited Licenses');
+										_efs('license-unlimited');
 										break;
 									default:
-										printf( __( 'Up to %s Sites' ), $pricing->licenses);
+										printf( __fs( 'license-x-sites' ), $pricing->licenses);
 										break;
 								}
 					?> - $<?php
@@ -167,6 +182,7 @@
 								}
 							?></label></li>
 				<?php $first = false; endforeach ?>
+					<?php endif ?>
 				</ul>
 				<?php echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
 								'plugin_id' => $plan->plugin_id,
