@@ -62,7 +62,7 @@
 			'reviews'      => _x( 'Reviews',      'Plugin installer section title' ),
 			'other_notes'  => _x( 'Other Notes',  'Plugin installer section title' ),
 
-			'features'      => _x( 'Features & Pricing',      'Plugin installer section title' ),
+			'features'      => __fs( 'features-and-pricing' ),
 		);
 
 		// Sanitize HTML
@@ -137,7 +137,7 @@
 			<?php if (isset($api->plans)) : ?>
 				<div class="plugin-information-pricing">
 				<?php foreach ($api->plans as $plan) : ?>
-				<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __( '%s Plan' ), $plan->title) ?></h3>
+				<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan' ), $plan->title) ?></h3>
 				<ul>
 				<?php $billing_cycle = 'annual' ?>
 					<?php if ( 1 === count($plan->pricing) && 1 == $plan->pricing[0]->licenses ) : ?>
@@ -189,7 +189,7 @@
 								'plan_id' => $plan->id,
 								'pricing_id' => $plan->pricing[0]->id,
 								'billing_cycle' => $billing_cycle,
-							), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>' ?>
+							), $api->checkout_link)) . '" target="_parent">' . __fs( 'purchase' ) . '</a>' ?>
 					</div>
 				<?php endforeach ?>
 				<?php wp_enqueue_script('jquery'); ?>
@@ -209,7 +209,7 @@
 				</script>
 			<?php endif ?>
 			<div>
-			<h3><?php _e( 'Details', 'freemius' ) ?></h3>
+			<h3><?php _efs( 'details' ) ?></h3>
 			<ul>
 				<?php if ( ! empty( $api->version ) ) { ?>
 					<li><strong><?php _e( 'Version:' ); ?></strong> <?php echo $api->version; ?></li>
@@ -315,7 +315,7 @@
 				'plan_id' => $plan->id,
 				'pricing_id' => $plan->pricing[0]->id,
 				'billing_cycle' => $billing_cycle,
-			), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>';
+			), $api->checkout_link)) . '" target="_parent">' . __fs( 'purchase' ) . '</a>';
 
 			// @todo Add Cart concept.
 //			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';

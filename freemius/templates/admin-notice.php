@@ -6,8 +6,8 @@
 	 * @since       1.0.3
 	 */
 ?>
-	<div data-id="<?php echo $VARS['id'] ?>" data-slug="<?php echo $VARS['slug'] ?>" class="<?php
-	switch ($VARS['type']) {
+<div data-id="<?php echo $VARS['id'] ?>" data-slug="<?php echo $VARS['slug'] ?>" class="<?php
+	switch ( $VARS['type'] ) {
 		case 'error':
 			echo 'error form-invalid';
 			break;
@@ -22,6 +22,12 @@
 			echo 'updated success';
 			break;
 	}
-?> fs-notice<?php if ($VARS['sticky']) echo ' fs-sticky' ?><?php if (!empty($VARS['title'])) echo ' fs-has-title' ?>"><?php if (!empty($VARS['title'])) : ?><label class="fs-plugin-title"><?php echo $VARS['title'] ?></label><?php endif ?><p>
+?> fs-notice<?php if ( $VARS['sticky'] ) {
+	echo ' fs-sticky';
+} ?><?php if ( ! empty( $VARS['title'] ) ) {
+	echo ' fs-has-title';
+} ?>"><?php if ( ! empty( $VARS['title'] ) ) : ?><label
+		class="fs-plugin-title"><?php echo $VARS['title'] ?></label><?php endif ?><p>
 		<?php echo $VARS['message'] ?>
-	</p><?php if ($VARS['sticky']) : ?><i class="fs-close dashicons dashicons-no" title="<?php _e('Dismiss', 'freemius') ?>"></i><?php endif ?></div>
+	</p><?php if ( $VARS['sticky'] ) : ?><i class="fs-close dashicons dashicons-no"
+                                            title="<?php _efs( 'dismiss' ) ?>"></i><?php endif ?></div>

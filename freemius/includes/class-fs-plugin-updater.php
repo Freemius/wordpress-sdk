@@ -231,7 +231,7 @@ if ( !isset($info->error) ) {
 			$new_version = $this->_fs->_fetch_latest_version($is_addon ? $addon->id : false);
 
 			if ($is_addon) {
-				$data->name    = $addon->title . ' ' . __('Add On', 'freemius');
+				$data->name    = $addon->title . ' ' . __fs( 'addon' );
 				$data->slug    = $addon->slug;
 				$data->url     = WP_FS__ADDRESS;
 				$data->package = $new_version->url;
