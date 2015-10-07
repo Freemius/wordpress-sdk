@@ -3415,7 +3415,34 @@
 				);
 			}
 
-			return true;
+			$plugin_id = fs_request_get( 'plugin_id', false );
+
+			// Store activation time ONLY for plugins (not add-ons).
+			if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
+				$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
+			}
+
+			if ( is_numeric( $plugin_id ) ) {
+				if ( $plugin_id != $this->_plugin->id ) {
+					// Add-on was installed - sync license right after install.
+					if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
+						'account',
+						array(
+							'fs_action' => $this->_slug . '_sync_license',
+							'plugin_id' => $plugin_id
+						)
+					), $this->_slug . '_sync_license' ) ) ) {
+						exit();
+					}
+
+				}
+			}
+			else {
+				// Reload the page with the keys.
+				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+					exit();
+				}
+			}
 		}
 
 		/**
@@ -3454,40 +3481,18 @@
 					$this->_site = $site;
 
 					$this->setup_account( $this->_user, $this->_site );
-
-					$plugin_id = fs_request_get( 'plugin_id', false );
-
-					// Store activation time ONLY for plugins (not add-ons).
-					if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
-						$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
-					}
-
-					if ( is_numeric( $plugin_id ) ) {
-						if ( $plugin_id != $this->_plugin->id ) {
-							// Add-on was purchased - sync license after install.
-							if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
-								'account',
-								array(
-									'fs_action' => $this->_slug . '_sync_license',
-									'plugin_id' => $plugin_id
-								)
-							), $this->_slug . '_sync_license' ) ) ) {
-								exit();
-							}
-
-						}
-					}
 				} else if ( fs_request_has( 'pending_activation' ) ) {
 					// Install must be activated via email since
 					// user with the same email already exist.
 					$this->_storage->is_pending_activation = true;
 					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
-				}
 
+					// Reload the page with with pending activation message.
 				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
 					exit();
 				}
 			}
+		}
 		}
 
 		/**
@@ -3524,8 +3529,9 @@
 
 				if ( isset( $install->error ) ) {
 					$this->_admin_notices->add(
-						sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', 'freemius' ), $this->get_plugin_name(), '<b>' . $install->error->message . '</b>' ),
-						'Oops...',
+						sprintf( __fs( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+						__fs( 'contact-us-with-error-message' ) . ' ' . '<b>' . $install->error->message . '</b>',
+						__fs( 'oops' ) . '...',
 						'error'
 					);
 
@@ -3534,15 +3540,12 @@
 
 				$site        = new FS_Site( $install );
 				$this->_site = $site;
-				$this->_enrich_site_plan( false );
+//				$this->_enrich_site_plan( false );
 
-				$this->_set_account( $user, $site );
-				$this->_sync_plans();
+//				$this->_set_account( $user, $site );
+//				$this->_sync_plans();
 
-				// Reload the page with the keys.
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-					exit();
-				}
+				$this->setup_account( $this->_user, $this->_site );
 			}
 		}
 
@@ -3571,8 +3574,9 @@
 
 			if ( isset( $addon_install->error ) ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', 'freemius' ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
-					'Oops...',
+					sprintf( __fs( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+					__fs( 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_install->error->message . '</b>',
+					__fs( 'oops' ) . '...',
 					'error'
 				);
 
