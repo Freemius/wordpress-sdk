@@ -26,8 +26,9 @@
 	echo ' fs-sticky';
 } ?><?php if ( ! empty( $VARS['title'] ) ) {
 	echo ' fs-has-title';
-} ?>"><?php if ( ! empty( $VARS['title'] ) ) : ?><label
-		class="fs-plugin-title"><?php echo $VARS['title'] ?></label><?php endif ?><p>
+} ?>"><?php if ( ! empty( $VARS['plugin'] ) ) : ?><label
+		class="fs-plugin-title"><?php echo $VARS['plugin'] ?></label><?php endif ?><p>
+		<?php if ( ! empty( $VARS['title'] ) ) : ?><b><?php echo $VARS['title'] ?></b> <?php endif ?>
 		<?php echo $VARS['message'] ?>
 	</p><?php if ( $VARS['sticky'] ) : ?><i class="fs-close dashicons dashicons-no"
                                             title="<?php _efs( 'dismiss' ) ?>"></i><?php endif ?></div>

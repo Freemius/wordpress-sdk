@@ -208,7 +208,7 @@
 				'id'      => $id,
 				'all'     => $all_admin,
 				'slug'    => $this->_slug,
-				'title'   => $this->_title,
+				'plugin'   => $this->_title,
 			);
 
 			if ( $is_sticky && $store_if_sticky ) {
