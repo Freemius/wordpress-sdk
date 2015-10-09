@@ -140,6 +140,11 @@
 {
     #section-description
     {
+        h2, h3, p, b, i, blockquote, li, ul, ol
+        {
+            clear: none;
+        }
+
         .fs-selling-points
         {
             padding-bottom: 10px;
@@ -166,7 +171,6 @@
 
                     h3
                     {
-                        clear: none;
                         margin-left: 30px;
                     }
                 }
