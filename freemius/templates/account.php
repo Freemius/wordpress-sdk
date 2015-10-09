@@ -418,7 +418,7 @@
 										fs_ui_action_button(
 											$slug, 'account',
 											'delete_account',
-											_fs( 'delete' ),
+											__fs( 'delete' ),
 											array( 'plugin_id' => $addon_id ),
 											false
 										);
