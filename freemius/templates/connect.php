@@ -98,6 +98,7 @@
 							'account',
 							array( 'fs_action' => 'sync_user' )
 						), 'sync_user' ),
+						'site_uid'          => $fs->get_anonymous_id(),
 						'site_url'          => get_site_url(),
 						'site_name'         => get_bloginfo( 'name' ),
 						'platform_version'  => get_bloginfo( 'version' ),

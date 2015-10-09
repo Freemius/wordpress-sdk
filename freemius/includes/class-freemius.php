@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.9';
+		public $version = '1.1.0';
 
 		/**
 		 * @since 1.0.1
@@ -497,6 +497,9 @@
 			self::$_static_logger->entrance();
 
 			self::$_accounts = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			if ( ! isset( self::$_accounts->unique_id ) ) {
+				self::$_accounts->unique_id = md5( get_site_url() );
+			}
 
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
@@ -673,7 +676,7 @@
 
 			$is_connected = WP_FS__SIMULATE_NO_API_CONNECTIVITY ?
 				false :
-				$this->get_api_plugin_scope()->test();
+				$this->get_api_plugin_scope()->test( self::$_accounts->unique_id );
 
 			if ( ! $is_connected ) {
 				$this->_add_connectivity_issue_message();
@@ -689,6 +692,18 @@
 			$this->_has_api_connection = $is_connected;
 
 			return $this->_has_api_connection;
+		}
+
+		/**
+		 * Anonymous and unique site identifier (Hash).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.0
+		 *
+		 * @return string
+		 */
+		function get_anonymous_id() {
+			return self::$_accounts->unique_id;
 		}
 
 		/**
@@ -3522,6 +3537,7 @@
 
 				// Install the plugin.
 				$install = $this->get_api_user_scope()->call( "/plugins/{$this->get_id()}/installs.json", 'post', array(
+					'uid'              => $this->get_anonymous_id(),
 					'url'              => get_site_url(),
 					'title'            => get_bloginfo( 'name' ),
 					'version'          => $this->get_plugin_version(),
@@ -3612,7 +3628,6 @@
 
 		#region Admin Menu Items ------------------------------------------------------------------
 
-		private $_has_menu = false;
 		private $_menu_items = array();
 
 		/**

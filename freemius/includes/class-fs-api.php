@@ -260,12 +260,16 @@
 		 *
 		 * @since  1.0.9 If fails, try to fallback to HTTP.
 		 *
+		 * @param null|string $unique_anonymous_id
+		 *
 		 * @return bool True if successful connectivity to the API.
 		 */
-		function test() {
+		function test( $unique_anonymous_id = null ) {
 			$this->_logger->entrance();
 
-			$test = $this->_api->Test();
+			$test = is_null( $unique_anonymous_id ) ?
+				$this->_api->Test() :
+				$this->_api->Test( $this->_call( 'ping.json?uid=' . $unique_anonymous_id ) );
 
 			if ( false === $test && $this->_api->IsHttps() ) {
 				// Fallback to HTTP, since HTTPS fails.
@@ -285,9 +289,10 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
+		 *
 		 * @return object
 		 */
-		function ping(){
+		function ping() {
 			return $this->_api->Ping();
 		}
 
