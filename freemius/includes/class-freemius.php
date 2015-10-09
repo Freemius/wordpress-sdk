@@ -3102,6 +3102,23 @@
 			}
 		}
 
+		/**
+		 * Add-on direct info URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.0
+		 *
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		function addon_url($slug)
+		{
+			return $this->_get_admin_page_url( 'addons', array(
+				'slug' => $slug
+			) );
+		}
+
 		/* Logger
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
@@ -6304,6 +6321,21 @@
 		 */
 		function add_admin_message( $message, $title = '', $type = 'success' ) {
 			$this->_admin_notices->add( $message, $title, $type );
+		}
+
+		/**
+		 * Adds sticky admin message.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.0
+		 *
+		 * @param string $message
+		 * @param string $id
+		 * @param string $title
+		 * @param string $type
+		 */
+		function add_sticky_admin_message( $message, $id, $title = '', $type = 'success' ) {
+			$this->_admin_notices->add_sticky( $message, $id, $title, $type );
 		}
 
 		/* Plugin Auto-Updates (@since 1.0.4)

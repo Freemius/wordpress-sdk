@@ -12,6 +12,10 @@
 	 */
 	$fs = fs( $slug );
 
+	$open_addon_slug = fs_request_get( 'slug' );
+
+	$open_addon = false;
+
 	/**
 	 * @var FS_Plugin[]
 	 */
@@ -24,6 +28,8 @@
 			<ul class="fs-cards-list">
 				<?php foreach ( $addons as $addon ) : ?>
 					<?php
+					$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
+
 					$price        = 0;
 					$plans_result = $fs->get_api_site_or_plugin_scope()->get( "/addons/{$addon->id}/plans.json" );
 					if ( ! isset( $plans_result->error ) ) {
@@ -53,7 +59,7 @@
 						}
 					}
 					?>
-					<li class="fs-card">
+					<li class="fs-card" data-slug="<?php echo $addon->slug ?>">
 						<?php
 							echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 								esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
@@ -90,4 +96,18 @@
 			</ul>
 		</div>
 	</div>
+<?php if ( $open_addon ) : ?>
+	<script type="text/javascript">
+		(function ($) {
+			var interval = setInterval(function () {
+				// Open add-on information page.
+				$('.fs-card[data-slug=<?php echo $open_addon_slug ?>] a').click();
+				if ($('#TB_iframeContent').length > 0) {
+					clearInterval(interval);
+					interval = null;
+				}
+			}, 200);
+		})(jQuery);
+	</script>
+<?php endif ?>
 <?php fs_require_template( 'powered-by.php' ) ?>
