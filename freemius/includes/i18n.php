@@ -195,6 +195,4 @@
 		'addon-x-cannot-run-without-parent'    => _x( '%s cannot run without the plugin.', 'addonX cannot run...', 'freemius' ),
 		'plugin-x-activation-message'          => _x( '%s activation was successfully completed.', 'pluginX activation was successfully...', 'freemius' ),
 		'features-and-pricing'                 => _x( 'Features & Pricing', 'Plugin installer section title', 'freemius' ),
-		''                                     => __( '', 'freemius' ),
-		''                                     => __( '', 'freemius' ),
 	);
