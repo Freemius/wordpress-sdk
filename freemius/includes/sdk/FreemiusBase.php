@@ -174,13 +174,20 @@
 		}
 
 		/**
-		 * @return bool True if successful connectivity to the API endpoint using ping.json endpoint.
+		 * If successful connectivity to the API endpoint using ping.json endpoint.
+		 *
+		 *      - OR -
+		 *
+		 * Validate if ping result object is valid.
+		 *
+		 * @param mixed $pPong
+		 *
+		 * @return bool
 		 */
-		public function Test()
-		{
-			$pong = $this->Ping();
+		public function Test($pPong = null) {
+			$pong = is_null( $pPong ) ? $this->Ping() : $pPong;
 
-			return (is_object($pong) && isset($pong->api) && 'pong' === $pong->api);
+			return ( is_object( $pong ) && isset( $pong->api ) && 'pong' === $pong->api );
 		}
 
 		/**

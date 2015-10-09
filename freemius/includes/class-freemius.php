@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.0.9';
+		public $version = '1.1.0';
 
 		/**
 		 * @since 1.0.1
@@ -391,9 +391,9 @@
 		 * @return false|Freemius
 		 */
 		static function get_instance_by_file( $plugin_file ) {
-			$slug = self::find_slug_by_basename($plugin_file);
+			$slug = self::find_slug_by_basename( $plugin_file );
 
-			return (false !== $slug) ?
+			return ( false !== $slug ) ?
 				self::instance( $slug ) :
 				false;
 		}
@@ -497,6 +497,9 @@
 			self::$_static_logger->entrance();
 
 			self::$_accounts = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			if ( ! isset( self::$_accounts->unique_id ) ) {
+				self::$_accounts->unique_id = md5( get_site_url() );
+			}
 
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
@@ -518,10 +521,10 @@
 			self::$_static_logger->entrance();
 
 			$hook = add_object_page(
-				__( 'Freemius Debug', WP_FS__SLUG ),
-				__( 'Freemius Debug', WP_FS__SLUG ),
+				__fs( 'freemius-debug' ),
+				__fs( 'freemius-debug' ),
 				'manage_options',
-				WP_FS__SLUG,
+				'freemius',
 				array( 'Freemius', '_debug_page_render' )
 			);
 
@@ -571,7 +574,8 @@
 		#region Connectivity Issues ------------------------------------------------------------------
 
 		/**
-		 * Check if Freemius should be turned on for the current plugin install + version combination. The API query will be only invoked once per plugin version (cached locally).
+		 * Check if Freemius should be turned on for the current plugin install + version combination. The API query
+		 * will be only invoked once per plugin version (cached locally).
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
@@ -652,9 +656,9 @@
 
 			$version = $this->get_plugin_version();
 
-			if (WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
-			    isset( $this->_storage->connectivity_test ) &&
-			    true === $this->_storage->connectivity_test['is_connected']
+			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
+			     isset( $this->_storage->connectivity_test ) &&
+			     true === $this->_storage->connectivity_test['is_connected']
 			) {
 				unset( $this->_storage->connectivity_test );
 			}
@@ -672,7 +676,7 @@
 
 			$is_connected = WP_FS__SIMULATE_NO_API_CONNECTIVITY ?
 				false :
-				$this->get_api_plugin_scope()->test();
+				$this->get_api_plugin_scope()->test( self::$_accounts->unique_id );
 
 			if ( ! $is_connected ) {
 				$this->_add_connectivity_issue_message();
@@ -680,14 +684,26 @@
 
 			$this->_storage->connectivity_test = array(
 				'is_connected' => $is_connected,
-				'host' => $_SERVER['HTTP_HOST'],
-				'server_ip' => $_SERVER['SERVER_ADDR'],
-				'version' => $version,
+				'host'         => $_SERVER['HTTP_HOST'],
+				'server_ip'    => $_SERVER['SERVER_ADDR'],
+				'version'      => $version,
 			);
 
 			$this->_has_api_connection = $is_connected;
 
 			return $this->_has_api_connection;
+		}
+
+		/**
+		 * Anonymous and unique site identifier (Hash).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.0
+		 *
+		 * @return string
+		 */
+		function get_anonymous_id() {
+			return self::$_accounts->unique_id;
 		}
 
 		/**
@@ -714,44 +730,44 @@
 			     isset( $ping->error ) &&
 			     'cloudflare_ddos_protection' === $ping->error->code
 			) {
-				$message = __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', WP_FS__SLUG );
+				$message = __fs( 'cloudflare-blocks-connection-message' );
 			} else {
-				$message = __( 'From unknown reason, the API connectivity test fails.', WP_FS__SLUG );
+				$message = __fs( 'connectivity-test-fails-message' );
 			}
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__( '%s requires an access to our API.', WP_FS__SLUG ) . ' ' .
+					__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
 					$message . ' ' .
-					__( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', WP_FS__SLUG ) .
+					__fs( 'happy-to-resolve-issue-asap' ) .
 					' %s',
 					'<b>' . $this->get_plugin_name() . '</b>',
 					sprintf(
 						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 						sprintf(
 							'<a class="fs-resolve" href="#"><b>%s</b></a>%s',
-							__( 'Yes - I\'m giving you a chance to fix it', WP_FS__SLUG ),
+							__fs( 'fix-issue-title' ),
 							' - ' . sprintf(
-								__( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', WP_FS__SLUG ),
+								__fs( 'fix-issue-desc' ),
 								'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 							)
 						),
 						sprintf(
 							'<a href="%s" target="_blank"><b>%s</b></a>%s',
 							sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-							__( 'Let\'s try your previous version', WP_FS__SLUG ),
-							' - ' . __( 'Uninstall this version and install the previous one.', WP_FS__SLUG )
+							__fs( 'install-previous-title' ),
+							' - ' . __fs( 'install-previous-desc' )
 						),
 						sprintf(
 							'<a href="%s"><b>%s</b></a>%s',
 							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-							__( 'That\'s exhausting, please deactivate', WP_FS__SLUG ),
-							' - ' . __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', WP_FS__SLUG )
+							__fs( 'deactivate-plugin-title' ),
+							' - ' . __fs( 'deactivate-plugin-desc', 'freemius' )
 						)
 					)
 				),
 				'failed_connect_api',
-				'Oops...',
+				__fs( 'oops' ) . '...',
 				'error'
 			);
 
@@ -790,14 +806,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
-		function _email_about_firewall_issue()
-		{
-			$this->_admin_notices->remove_sticky('failed_connect_api');
+		function _email_about_firewall_issue() {
+			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-			$active_plugin = $this->get_active_plugins();
+			$active_plugin        = $this->get_active_plugins();
 			$active_plugin_string = '';
-			foreach ($active_plugin as $plugin)
-			{
+			foreach ( $active_plugin as $plugin ) {
 				$active_plugin_string .= sprintf(
 					'<a href="%s">%s</a> [v%s]<br>',
 					$plugin['PluginURI'],
@@ -821,7 +835,7 @@
 			wp_mail(
 				'api@freemius.com',
 				'API Connectivity Issue [' . $this->get_plugin_name() . ']',
-				sprintf('<table>
+				sprintf( '<table>
 	<thead>
 		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">SDK</th></tr>
 	</thead>
@@ -870,22 +884,22 @@
 					$this->get_plugin_name(),
 					$this->get_plugin_version(),
 					site_url(),
-					!empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '',
-					!empty($_SERVER['SERVER_ADDR']) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '',
+					! empty( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '',
+					! empty( $_SERVER['SERVER_ADDR'] ) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '',
 					$admin_email,
 					$admin_email,
 					$current_user->user_firstname,
 					$current_user->user_lastname,
 					$active_plugin_string,
-					(is_string($ping) ? $ping : json_encode($ping))
+					( is_string( $ping ) ? $ping : json_encode( $ping ) )
 				),
 				"Content-type: text/html\r\n" .
-		        "Reply-To: $admin_email <$admin_email>"
+				"Reply-To: $admin_email <$admin_email>"
 			);
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__('Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', WP_FS__SLUG),
+					__fs( 'fix-request-sent-message' ),
 					'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 				),
 				'server_details_sent'
@@ -897,8 +911,7 @@
 			exit;
 		}
 
-		static function _add_firewall_issues_javascript()
-		{
+		static function _add_firewall_issues_javascript() {
 			$params = array();
 			fs_require_once_template( 'firewall-issues-js.php', $params );
 		}
@@ -1004,7 +1017,7 @@
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
 
-			if (!$this->is_registered()) {
+			if ( ! $this->is_registered() ) {
 				if ( ! $this->has_api_connectivity() ) {
 					if ( is_admin() && $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
 						add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
@@ -1046,10 +1059,10 @@
 					if ( ! $this->is_parent_plugin_installed() ) {
 						$this->_admin_notices->add(
 							( is_string( $parent_name ) ?
-								sprintf( __( '%s cannot run without %s.', WP_FS__SLUG ), $this->get_plugin_name(), $parent_name ) :
-								sprintf( __( '%s cannot run without the plugin.', WP_FS__SLUG ), $this->get_plugin_name() )
+								sprintf( __fs( 'addon-cannot-run-without-x' ), $this->get_plugin_name(), $parent_name ) :
+								sprintf( __fs( 'addon-x-cannot-run-without-parent' ), $this->get_plugin_name() )
 							),
-							__( 'Oops...', WP_FS__SLUG ),
+							__fs( 'oops' ) . '...',
 							'error'
 						);
 
@@ -1066,9 +1079,9 @@
 						}
 
 						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
-						if ($this->is_premium()){
+						if ( $this->is_premium() ) {
 							// Remove add-on download admin-notice.
-							$parent_fs->_admin_notices->remove_sticky('addon_plan_upgraded_' . $this->_slug);
+							$parent_fs->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
 						}
 					}
 				} else {
@@ -1162,25 +1175,25 @@
 				) );
 
 				$this->_admin_notices->add_sticky(
-					__( 'Premium plugin version was successfully activated.', WP_FS__SLUG ),
+					__fs( 'premium-activated-message' ),
 					'premium_activated',
-					__( 'W00t!', WP_FS__SLUG )
+					__fs( 'woot' ) . '!'
 				);
 			} else {
 				// Activated free code (after had the premium before).
 				$this->do_action( 'after_free_version_reactivation' );
 
-				if ( $this->is_paying() && !$this->is_premium() ) {
+				if ( $this->is_paying() && ! $this->is_premium() ) {
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'You have a %s license.', WP_FS__SLUG ),
+							__fs( 'you-have-x-license' ),
 							$this->_site->plan->title
 						) . ' ' . $this->_get_latest_download_link( sprintf(
-							__( 'Download %s version now', WP_FS__SLUG ),
+							__fs( 'download-x-version-now' ),
 							$this->_site->plan->title
 						) ),
 						'plan_upgraded',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__fs( 'yee-haw' ) . '!'
 					);
 				}
 			}
@@ -1199,9 +1212,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param array         $data
-		 * @param string        $action
-		 * @param object|null   $args
+		 * @param array       $data
+		 * @param string      $action
+		 * @param object|null $args
 		 *
 		 * @return array|null
 		 */
@@ -1385,7 +1398,7 @@
 		function get_installed_addons() {
 			$installed_addons = array();
 			foreach ( self::$_instances as $slug => $instance ) {
-				if ( $instance->is_addon() && is_object($instance->_parent) ) {
+				if ( $instance->is_addon() && is_object( $instance->_parent ) ) {
 					if ( $this->_plugin->id == $instance->_parent->id ) {
 						$installed_addons[] = $instance;
 					}
@@ -1522,8 +1535,8 @@
 				$this->_storage->sync_timestamp = $sync_timestamp;
 			}
 
-			if ( /*( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && ) ||*/
-			( $sync_timestamp <= time() - WP_FS__TIME_24_HOURS_IN_SEC )
+			if ( ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && fs_request_has( 'background_sync' ) ) ||
+			     ( $sync_timestamp <= time() - WP_FS__TIME_24_HOURS_IN_SEC )
 			) {
 
 				if ( $this->is_registered() ) {
@@ -1566,7 +1579,11 @@
 			}
 
 			$this->_admin_notices->add_sticky(
-				sprintf( __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>', '<b>' . $email . '</b>' ),
+				sprintf(
+					__fs( 'pending-activation-message' ),
+					'<b>' . $this->get_plugin_name() . '</b>',
+					'<b>' . $email . '</b>'
+				),
 				'activation_pending',
 				'Thanks!'
 			);
@@ -1602,7 +1619,13 @@
 						$activation_url = $this->_get_admin_page_url();
 
 						$this->_admin_notices->add(
-							sprintf( __( 'You are just one step away - %1sActivate "' . $this->get_plugin_name() . '" Now%2s', WP_FS__SLUG ), '<a href="' . $activation_url . '"><b>', '</b></a>' ),
+							sprintf(
+								__fs( 'you-are-step-away' ),
+								sprintf( '<b><a href="%s">%s</a></b>',
+									$activation_url,
+									sprintf( __fs( 'activate-x-now' ), $this->get_plugin_name() )
+								)
+							),
 							'',
 							'update-nag'
 						);
@@ -1732,10 +1755,10 @@
 			if ( $this->is_registered() ) {
 				// Send re-activation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
-					'is_active' => true,
+					'is_active'  => true,
 					'is_premium' => $this->is_premium(),
 					// Send version on activation.
-					'version' => $this->get_plugin_version(),
+					'version'    => $this->get_plugin_version(),
 				) );
 
 				/**
@@ -1746,15 +1769,15 @@
 					deactivate_plugins( $this->_free_plugin_basename );
 
 					$this->_admin_notices->add(
-						sprintf( __( 'The upgrade of %s was successfully completed.' ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
-						__( 'W00t!' )
+						sprintf( __fs( 'successful-version-upgrade-message' ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
+						__fs( 'woot' ) . '!'
 					);
 				}
 			} else {
 				// @todo Implement "bounce rate" by calculating number of plugin activations without registration.
 			}
 
-			if ($this->has_api_connectivity()) {
+			if ( $this->has_api_connectivity() ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
@@ -1768,7 +1791,7 @@
 		 *
 		 * @param bool $check_user Enforce checking if user have plugins activation privileges.
 		 */
-		function delete_account_event($check_user = true) {
+		function delete_account_event( $check_user = true ) {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
 			if ( $check_user && ! current_user_can( 'activate_plugins' ) ) {
@@ -1794,10 +1817,10 @@
 			self::$_accounts->store();
 
 			// Clear all storage data.
-			$this->_storage->clear_all(true, array(
+			$this->_storage->clear_all( true, array(
 				'connectivity_test',
 				'is_on',
-			));
+			) );
 
 			// Send delete event.
 			$this->get_api_site_scope()->call( '/', 'delete' );
@@ -1820,7 +1843,7 @@
 
 			$this->_admin_notices->clear_all_sticky();
 
-			if (!$this->has_api_connectivity()) {
+			if ( ! $this->has_api_connectivity() ) {
 				// Reset connectivity test cache.
 				unset( $this->_storage->connectivity_test );
 			}
@@ -1828,10 +1851,10 @@
 			if ( $this->is_registered() ) {
 				// Send deactivation event.
 				$this->get_api_site_scope()->call( '/', 'put', array(
-					'is_active' => false,
+					'is_active'  => false,
 					'is_premium' => $this->is_premium(),
 					// Send version on deactivation.
-					'version'   => $this->get_plugin_version(),
+					'version'    => $this->get_plugin_version(),
 				) );
 			}
 
@@ -1867,8 +1890,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
-		private function send_install_update($params) {
-			$this->_logger->entrance( );
+		private function send_install_update( $params ) {
+			$this->_logger->entrance();
 
 			// Send data update event.
 			$this->get_api_site_scope()->call( '/', 'put', $params );
@@ -1882,17 +1905,17 @@
 		 *
 		 * @param bool $check_user Enforce checking if user have plugins activation privileges.
 		 */
-		function _uninstall_plugin_event($check_user = true) {
+		function _uninstall_plugin_event( $check_user = true ) {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ($check_user && ! current_user_can( 'activate_plugins' ) ) {
+			if ( $check_user && ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
 			// Send uninstall event.
 			$this->get_api_site_scope()->call( '/', 'put', array(
 				'is_active'      => false,
-				'is_premium' => $this->is_premium(),
+				'is_premium'     => $this->is_premium(),
 				'is_uninstalled' => true,
 				// Send version on uninstall.
 				'version'        => $this->get_plugin_version(),
@@ -1920,14 +1943,14 @@
 
 			self::$_static_logger->info( 'plugin = ' . $plugin_file );
 
-			define('WP_FS__UNINSTALL_MODE', true);
+			define( 'WP_FS__UNINSTALL_MODE', true );
 
 			$fs = self::get_instance_by_file( $plugin_file );
 
 			if ( is_object( $fs ) ) {
 				$fs->_uninstall_plugin_event();
 
-				$fs->do_action('after_uninstall');
+				$fs->do_action( 'after_uninstall' );
 			}
 		}
 
@@ -2081,14 +2104,14 @@
 		 *
 		 * @return false|string
 		 */
-		private static function find_slug_by_basename($plugin_base_name)
-		{
+		private static function find_slug_by_basename( $plugin_base_name ) {
 			$file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
 
-			if (!array($file_slug_map) || !isset($file_slug_map[$plugin_base_name]))
+			if ( ! array( $file_slug_map ) || ! isset( $file_slug_map[ $plugin_base_name ] ) ) {
 				return false;
+			}
 
-			return $file_slug_map[$plugin_base_name];
+			return $file_slug_map[ $plugin_base_name ];
 		}
 
 		/**
@@ -3069,9 +3092,10 @@
 			if ( is_string( $message ) ) {
 				$params['message'] = $message;
 			}
-			
+
 			if ( $this->is_addon() ) {
 				$params['addon_id'] = $this->get_id();
+
 				return $this->get_parent_instance()->_get_admin_page_url( 'contact', $params );
 			} else {
 				return $this->_get_admin_page_url( 'contact', $params );
@@ -3260,7 +3284,7 @@
 				$this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
 			}
 
-			$site = isset($sites[ $this->_slug ]) ? $sites[ $this->_slug ] : false;
+			$site = isset( $sites[ $this->_slug ] ) ? $sites[ $this->_slug ] : false;
 
 			if ( is_object( $site ) &&
 			     is_numeric( $site->id ) &&
@@ -3333,15 +3357,15 @@
 			     $this->_site->version != $this->get_plugin_version()
 			) {
 				$this->_site->version = $this->get_plugin_version();
-				$params['version'] = $this->_site->version;
+				$params['version']    = $this->_site->version;
 			}
 
 			if ( $this->_site->is_premium != $this->is_premium() ) {
 				$this->_site->is_premium = $this->is_premium();
-				$params['is_premium'] = $this->_site->is_premium;
+				$params['is_premium']    = $this->_site->is_premium;
 			}
 
-			if (0 < count($params)) {
+			if ( 0 < count( $params ) ) {
 				// Send updated values to FS.
 				$this->send_install_update( $params );
 			}
@@ -3389,27 +3413,54 @@
 
 				if ( ! $this->is_paying() ) {
 					$this->_admin_notices->add_sticky(
-						sprintf( __( '%s activation was successfully completed.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
+						sprintf( __fs( 'plugin-x-activation-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
 						'activation_complete'
 					);
 				}
 			}
 
-			if ( $this->is_paying() && !$this->is_premium() ) {
+			if ( $this->is_paying() && ! $this->is_premium() ) {
 				$this->_admin_notices->add_sticky(
 					sprintf(
-						__( 'Your account was successfully activated with the %s plan.', WP_FS__SLUG ),
+						__fs( 'activation-with-plan-x-message' ),
 						$this->_site->plan->title
 					) . ' ' . $this->_get_latest_download_link( sprintf(
-						__( 'Download our latest %s version now', WP_FS__SLUG ),
+						__fs( 'download-latest-x-version' ),
 						$this->_site->plan->title
 					) ),
 					'plan_upgraded',
-					__( 'Ye-ha!', WP_FS__SLUG )
+					__fs( 'yee-haw' ) . '!'
 				);
 			}
 
-			return true;
+			$plugin_id = fs_request_get( 'plugin_id', false );
+
+			// Store activation time ONLY for plugins (not add-ons).
+			if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
+				$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
+			}
+
+			if ( is_numeric( $plugin_id ) ) {
+				if ( $plugin_id != $this->_plugin->id ) {
+					// Add-on was installed - sync license right after install.
+					if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
+						'account',
+						array(
+							'fs_action' => $this->_slug . '_sync_license',
+							'plugin_id' => $plugin_id
+						)
+					), $this->_slug . '_sync_license' ) ) ) {
+						exit();
+					}
+
+				}
+			}
+			else {
+				// Reload the page with the keys.
+				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+					exit();
+				}
+			}
 		}
 
 		/**
@@ -3448,38 +3499,16 @@
 					$this->_site = $site;
 
 					$this->setup_account( $this->_user, $this->_site );
-
-					$plugin_id = fs_request_get( 'plugin_id', false );
-
-					// Store activation time ONLY for plugins (not add-ons).
-					if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
-						$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
-					}
-
-					if ( is_numeric( $plugin_id ) ) {
-						if ( $plugin_id != $this->_plugin->id ) {
-							// Add-on was purchased - sync license after install.
-							if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
-								'account',
-								array(
-									'fs_action' => $this->_slug . '_sync_license',
-									'plugin_id' => $plugin_id
-								)
-							), $this->_slug . '_sync_license' ) ) ) {
-								exit();
-							}
-
-						}
-					}
 				} else if ( fs_request_has( 'pending_activation' ) ) {
 					// Install must be activated via email since
 					// user with the same email already exist.
 					$this->_storage->is_pending_activation = true;
 					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
-				}
 
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-					exit();
+					// Reload the page with with pending activation message.
+					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+						exit();
+					}
 				}
 			}
 		}
@@ -3508,6 +3537,7 @@
 
 				// Install the plugin.
 				$install = $this->get_api_user_scope()->call( "/plugins/{$this->get_id()}/installs.json", 'post', array(
+					'uid'              => $this->get_anonymous_id(),
 					'url'              => get_site_url(),
 					'title'            => get_bloginfo( 'name' ),
 					'version'          => $this->get_plugin_version(),
@@ -3518,8 +3548,9 @@
 
 				if ( isset( $install->error ) ) {
 					$this->_admin_notices->add(
-						sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $install->error->message . '</b>' ),
-						'Oops...',
+						sprintf( __fs( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+						__fs( 'contact-us-with-error-message' ) . ' ' . '<b>' . $install->error->message . '</b>',
+						__fs( 'oops' ) . '...',
 						'error'
 					);
 
@@ -3528,15 +3559,12 @@
 
 				$site        = new FS_Site( $install );
 				$this->_site = $site;
-				$this->_enrich_site_plan( false );
+//				$this->_enrich_site_plan( false );
 
-				$this->_set_account( $user, $site );
-				$this->_sync_plans();
+//				$this->_set_account( $user, $site );
+//				$this->_sync_plans();
 
-				// Reload the page with the keys.
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-					exit();
-				}
+				$this->setup_account( $this->_user, $this->_site );
 			}
 		}
 
@@ -3565,8 +3593,9 @@
 
 			if ( isset( $addon_install->error ) ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Couldn\'t activate %s. Please contact us with the following message: %s', WP_FS__SLUG ), $this->get_plugin_name(), '<b>' . $addon_install->error->message . '</b>' ),
-					'Oops...',
+					sprintf( __fs( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+					__fs( 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_install->error->message . '</b>',
+					__fs( 'oops' ) . '...',
 					'error'
 				);
 
@@ -3599,7 +3628,6 @@
 
 		#region Admin Menu Items ------------------------------------------------------------------
 
-		private $_has_menu = false;
 		private $_menu_items = array();
 
 		/**
@@ -3617,7 +3645,7 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-			if ( ! $this->has_api_connectivity() && !$this->enable_anonymous() ) {
+			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
 				$this->remove_menu_item();
 			} else {
 				$this->add_submenu_items();
@@ -3731,7 +3759,7 @@
 		 *
 		 * @return array[string]mixed
 		 */
-		private function remove_menu_item(){
+		private function remove_menu_item() {
 			$this->_logger->entrance();
 
 			// Find main menu item.
@@ -3790,9 +3818,9 @@
 					if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
-							__( 'Account', $this->_slug ),
+							__fs( 'account' ),
 							array( &$this, '_account_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . __( 'Account', $this->_slug ),
+							$this->get_plugin_name() . ' &ndash; ' . __fs( 'account' ),
 							'manage_options',
 							'account',
 							array( &$this, '_account_page_load' )
@@ -3801,9 +3829,9 @@
 
 					// Add contact page.
 					$this->add_submenu_item(
-						__( 'Contact Us', $this->_slug ),
+						__fs( 'contact-us' ),
 						array( &$this, '_contact_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __( 'Contact Us', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . __fs( 'contact-us' ),
 						'manage_options',
 						'contact',
 						array( &$this, '_clean_admin_content_section' )
@@ -3811,9 +3839,9 @@
 
 					if ( $this->_has_addons() ) {
 						$this->add_submenu_item(
-							__( 'Add Ons', $this->_slug ),
+							__fs( 'add-ons' ),
 							array( &$this, '_addons_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . __( 'Add Ons', $this->_slug ),
+							$this->get_plugin_name() . ' &ndash; ' . __fs( 'add-ons' ),
 							'manage_options',
 							'addons',
 							array( &$this, '_addons_page_load' ),
@@ -3823,9 +3851,9 @@
 
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
-						( $this->is_paying() ? __( 'Pricing', $this->_slug ) : __( 'Upgrade', $this->_slug ) . '&nbsp;&nbsp;&#x27a4;' ),
+						( $this->is_paying() ? __fs( 'pricing' ) : __fs( 'upgrade' ) . '&nbsp;&nbsp;&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __( 'Pricing', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing' ),
 						'manage_options',
 						'pricing',
 						array( &$this, '_clean_admin_content_section' ),
@@ -3870,7 +3898,13 @@
 
 		function _add_default_submenu_items() {
 			if ( $this->is_registered() ) {
-				$this->add_submenu_link_item( __( 'Support Forum', $this->_slug ), 'https://wordpress.org/support/plugin/' . $this->_slug, 'wp-support-forum', 'read', 50 );
+				$this->add_submenu_link_item(
+					__fs( 'support-forum' ),
+					'https://wordpress.org/support/plugin/' . $this->_slug,
+					'wp-support-forum',
+					'read',
+					50
+				);
 			}
 		}
 
@@ -4109,7 +4143,7 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
-			$sites                = self::get_all_sites();
+			$sites                 = self::get_all_sites();
 			$sites[ $this->_slug ] = $encrypted_site;
 			self::$_accounts->set_option( 'sites', $sites, $store );
 		}
@@ -4311,8 +4345,8 @@
 					$this->do_action( 'account_email_verified', $user->email );
 
 					$this->_admin_notices->add(
-						__( 'Your email has been successfully verified - you are AWESOME!', WP_FS__SLUG ),
-						__( 'Right on!', WP_FS__SLUG )
+						__fs( 'email-verified-message' ),
+						__fs( 'right-on' ) . '!'
 					);
 				}
 
@@ -4618,7 +4652,8 @@
 		 *
 		 * @uses   FS_Api
 		 *
-		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by the admin.
+		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by
+		 *                         the admin.
 		 */
 		private function _sync_license( $background = false ) {
 			$this->_logger->entrance();
@@ -4685,29 +4720,29 @@
 
 					if ( ! isset( $plans_result->error ) ) {
 						$plans = array();
-						foreach ($plans_result->plans as $plan) {
-							$plans[] = new FS_Plugin_Plan($plan);
+						foreach ( $plans_result->plans as $plan ) {
+							$plans[] = new FS_Plugin_Plan( $plan );
 						}
 
 						$this->_admin_notices->add_sticky(
 							FS_Plan_Manager::instance()->has_free_plan( $plans ) ?
 								sprintf(
-									__( 'Your %s Add-on plan was successfully upgraded.', WP_FS__SLUG ),
+									__fs( 'addon-successfully-upgraded-message' ),
 									$addon->title
 								) . ' ' . $this->_get_latest_download_link(
-									__( 'Download the latest version now', WP_FS__SLUG ),
+									__fs( 'download-latest-version' ),
 									$addon_id
 								)
 								:
 								sprintf(
-									__( '%s Add-on was successfully purchased.', WP_FS__SLUG ),
+									__fs( 'addon-successfully-purchased-message' ),
 									$addon->title
 								) . ' ' . $this->_get_latest_download_link(
-									__( 'Download the latest version now', WP_FS__SLUG ),
+									__fs( 'download-latest-version' ),
 									$addon_id
 								),
 							'addon_plan_upgraded_' . $addon->slug,
-							__( 'Ye-ha!', WP_FS__SLUG )
+							__fs( 'yee-haw' ) . '!'
 						);
 					}
 				}
@@ -4721,7 +4756,8 @@
 		 * @since  1.0.6
 		 * @uses   FS_Api
 		 *
-		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by the admin.
+		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by
+		 *                         the admin.
 		 */
 		private function _sync_plugin_license( $background = false ) {
 			$this->_logger->entrance();
@@ -4738,16 +4774,20 @@
 				if ( ! $api->test() ) {
 					// Failed to ping API - blocked!
 					$this->_admin_notices->add(
-						sprintf( __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s license synchronization. Please contact your host to whitelist %2s', WP_FS__SLUG ), $this->get_plugin_name(), '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>' ) . '<br> Error received from the server: ' . var_export( $site->error, true ),
-						__( 'Oops...', WP_FS__SLUG ),
+						sprintf(
+							__fs( 'server-blocking-access' ),
+							$this->get_plugin_name(),
+							'<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
+						) . '<br> ' . __fs( 'server-error-message' ) . var_export( $site->error, true ),
+						__fs( 'oops' ) . '...',
 						'error',
 						$background
 					);
 				} else {
 					// Authentication params are broken.
 					$this->_admin_notices->add(
-						__( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', WP_FS__SLUG ),
-						__( 'Oops...', WP_FS__SLUG ),
+						__fs( 'wrong-authentication-param-message' ),
+						__fs( 'oops' ) . '...',
 						'error'
 					);
 				}
@@ -4829,11 +4869,19 @@
 					if ( ! $background && is_admin() ) {
 						$this->_admin_notices->add(
 							sprintf(
-								__( 'It looks like your plan did\'t change. If you did upgrade, it\'s probably an issue on our side - sorry. %1sPlease contact us here%2s', WP_FS__SLUG ),
-								'<a href="' . $this->contact_url( 'bug', sprintf( __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', WP_FS__SLUG ), strtoupper( $this->_site->plan->name ) ) ) . '">',
-								'</a>'
+								__fs( 'plan-did-not-change-message' ) . ' ' .
+								sprintf(
+									'<a href="%s">%s</a>',
+									$this->contact_url(
+										'bug',
+										sprintf( __( 'plan-did-not-change-email-message', 'freemius' ),
+											strtoupper( $this->_site->plan->name )
+										)
+									),
+									__fs( 'contact-us-here' )
+								)
 							),
-							__( 'Hmm...', WP_FS__SLUG ),
+							__fs( 'hmm' ) . '...',
 							'error'
 						);
 					}
@@ -4841,15 +4889,15 @@
 				case 'upgraded':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your plan was successfully upgraded.', WP_FS__SLUG ),
+							__fs( 'plan-upgraded-message' ),
 							'<i>' . $this->get_plugin_name() . '</i>'
 						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__( 'Download the latest %s version now', WP_FS__SLUG ),
+								__fs( 'download-latest-x-version' ),
 								$this->_site->plan->title
 							) )
 						),
 						'plan_upgraded',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__fs( 'yee-haw' ) . '!'
 					);
 
 					$this->_admin_notices->remove_sticky( array(
@@ -4862,7 +4910,7 @@
 				case 'changed':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your plan was successfully changed to %s.', WP_FS__SLUG ),
+							__fs( 'plan-changed-to-x-message' ),
 							$this->_site->plan->title
 						),
 						'plan_changed'
@@ -4877,31 +4925,31 @@
 					break;
 				case 'downgraded':
 					$this->_admin_notices->add_sticky(
-						sprintf( __( 'Your license has expired. You can still continue using the free plugin forever.', WP_FS__SLUG ) ),
+						sprintf( __fs( 'license-expired-blocking-message' ) ),
 						'license_expired',
-						__( 'Hmm...', WP_FS__SLUG )
+						__fs( 'hmm' ) . '...'
 					);
 					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 					break;
 				case 'expired':
 					$this->_admin_notices->add_sticky(
-						sprintf( __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', WP_FS__SLUG ), $this->_site->plan->title ),
+						sprintf( __fs( 'license-expired-non-blocking-message' ), $this->_site->plan->title ),
 						'license_expired',
-						__( 'Hmm...', WP_FS__SLUG )
+						__fs( 'hmm' ) . '...'
 					);
 					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 					break;
 				case 'trial_started':
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__( 'Your trial has been successfully started.', WP_FS__SLUG ),
+							__fs( 'trial-started-message' ),
 							'<i>' . $this->get_plugin_name() . '</i>'
 						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__( 'Download the latest %s version now', WP_FS__SLUG ),
+								__fs( 'download-latest-x-version' ),
 								$this->_storage->trial_plan->title
 							) ) ),
 						'trial_started',
-						__( 'Ye-ha!', WP_FS__SLUG )
+						__fs( 'yee-haw' ) . '!'
 					);
 
 					$this->_admin_notices->remove_sticky( array(
@@ -4910,9 +4958,9 @@
 					break;
 				case 'trial_expired':
 					$this->_admin_notices->add_sticky(
-						__( 'Your trial has expired. You can still continue using all our free features.', WP_FS__SLUG ),
+						__fs( 'trial-expired-message' ),
 						'trial_expired',
-						__( 'Hm...', WP_FS__SLUG )
+						__fs( 'hmm' ) . '...'
 					);
 					$this->_admin_notices->remove_sticky( array(
 						'trial_started',
@@ -4948,8 +4996,9 @@
 			if ( isset( $license->error ) ) {
 				if ( ! $background ) {
 					$this->_admin_notices->add(
-						__( 'It looks like the license could not be activated.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
-						__( 'Hmm...', WP_FS__SLUG ),
+						__fs( 'license-activation-failed-message' ) . '<br> ' .
+						__fs( 'server-error-message' ) . ' ' . var_export( $license->error, true ),
+						__fs( 'hmm' ) . '...',
 						'error'
 					);
 				}
@@ -4968,20 +5017,20 @@
 
 			if ( ! $background ) {
 				$this->_admin_notices->add_sticky(
-					__( 'Your license was successfully activated.', WP_FS__SLUG ) .
+					__fs( 'license-activated-message' ) .
 					( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-						__( 'Download the latest %s version now', WP_FS__SLUG ),
-						$this->_site->plan->title
-					) ) ),
+							__fs( 'download-latest-x-version' ),
+							$this->_site->plan->title
+						) ) ),
 					'license_activated',
-					__( 'Ye-ha!', WP_FS__SLUG )
+					__fs( 'yee-haw' ) . '!'
 				);
 			}
 
-			$this->_admin_notices->remove_sticky(array(
+			$this->_admin_notices->remove_sticky( array(
 				'trial_promotion',
 				'license_expired',
-			));
+			) );
 		}
 
 		/**
@@ -4995,8 +5044,8 @@
 
 			if ( ! is_object( $this->_license ) ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'It looks like your site currently don\'t have an active license.', WP_FS__SLUG ), $this->_site->plan->title ),
-					__( 'Hmm...', WP_FS__SLUG )
+					sprintf( __fs( 'no-active-license-message' ), $this->_site->plan->title ),
+					__fs( 'hmm' ) . '...'
 				);
 
 				return;
@@ -5007,8 +5056,9 @@
 
 			if ( isset( $license->error ) ) {
 				$this->_admin_notices->add(
-					__( 'It looks like the license deactivation failed.', WP_FS__SLUG ) . '<br> Error received from the server: ' . var_export( $license->error, true ),
-					__( 'Hmm...', WP_FS__SLUG ),
+					__fs( 'license-deactivation-failed-message' ) . '<br> ' .
+					__fs( 'server-error-message' ) . ' ' . var_export( $license->error, true ),
+					__fs( 'hmm' ) . '...',
 					'error'
 				);
 
@@ -5033,8 +5083,8 @@
 
 			if ( $show_notice ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Your license was successfully deactivated, you are back to the %1s plan.', WP_FS__SLUG ), $this->_site->plan->title ),
-					__( 'O.K', WP_FS__SLUG )
+					sprintf( __fs( 'license-deactivation-message' ), $this->_site->plan->title ),
+					__fs( 'ok' )
 				);
 			}
 
@@ -5082,7 +5132,7 @@
 				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 
 				$this->_admin_notices->add(
-					sprintf( __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', WP_FS__SLUG ),
+					sprintf( __fs( 'plan-x-downgraded-message' ),
 						$plan->title,
 						human_time_diff( time(), strtotime( $this->_license->expiration ) )
 					)
@@ -5092,8 +5142,8 @@
 				$this->_store_site();
 			} else {
 				$this->_admin_notices->add(
-					__( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', WP_FS__SLUG ),
-					__( 'Oops...' ),
+					__fs( 'plan-downgraded-failure-message' ),
+					__fs( 'oops' ) . '...',
 					'error'
 				);
 			}
@@ -5112,8 +5162,8 @@
 
 			if ( ! $this->is_trial() ) {
 				$this->_admin_notices->add(
-					__( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', WP_FS__SLUG ),
-					__( 'Oops...' ),
+					__fs( 'trial-cancel-no-trial-message' ),
+					__fs( 'oops' ) . '...',
 					'error'
 				);
 
@@ -5142,7 +5192,7 @@
 				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 
 				$this->_admin_notices->add(
-					sprintf( __( 'Your %s Plan trial was successfully cancelled.', WP_FS__SLUG ), $this->_storage->trial_plan->title )
+					sprintf( __fs( 'trial-cancel-message' ), $this->_storage->trial_plan->title )
 				);
 
 				$this->_admin_notices->remove_sticky( array(
@@ -5158,8 +5208,8 @@
 				unset( $this->_storage->trial_plan );
 			} else {
 				$this->_admin_notices->add(
-					__( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', WP_FS__SLUG ),
-					__( 'Oops...' ),
+					__fs( 'trial-cancel-failure-message' ),
+					__fs( 'oops' ) . '...',
 					'error'
 				);
 			}
@@ -5227,7 +5277,10 @@
 		 * @return object|false Plugin latest tag info.
 		 */
 		function _fetch_latest_version( $addon_id = false ) {
-			$tag            = $this->get_api_site_or_plugin_scope()->get( $this->_get_latest_version_endpoint( $addon_id, 'json' ), true );
+			$tag            = $this->get_api_site_or_plugin_scope()->get(
+				$this->_get_latest_version_endpoint( $addon_id, 'json' ),
+				true
+			);
 			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
 			$this->_logger->departure( 'Latest version ' . $latest_version );
 
@@ -5268,7 +5321,7 @@
 
 			if ( ! is_object( $latest ) ) {
 				header( "Content-Type: application/zip" );
-				header( "Content-Disposition: attachment; filename={$slug}" . ( !$is_addon && $is_premium ? '-premium' : '' ) . ".zip" );
+				header( "Content-Disposition: attachment; filename={$slug}" . ( ! $is_addon && $is_premium ? '-premium' : '' ) . ".zip" );
 				header( "Content-Length: " . strlen( $latest ) );
 				echo $latest;
 
@@ -5344,7 +5397,7 @@
 		 *
 		 * @return string
 		 */
-		function _get_latest_download_local_url($plugin_id = false) {
+		function _get_latest_download_local_url( $plugin_id = false ) {
 			// Add timestamp to protect from caching.
 			$params = array( 'ts' => WP_FS__SCRIPT_START_TIME );
 
@@ -5363,7 +5416,8 @@
 		 *
 		 * @uses   FS_Api
 		 *
-		 * @param bool        $background Hints the method if it's a background updates check. If false, it means that was initiated by the admin.
+		 * @param bool        $background Hints the method if it's a background updates check. If false, it means that
+		 *                                was initiated by the admin.
 		 * @param bool|number $plugin_id
 		 */
 		private function _check_updates( $background = false, $plugin_id = false ) {
@@ -5379,14 +5433,21 @@
 				if ( ! $background ) {
 					$this->_admin_notices->add(
 						sprintf(
-							__( 'Version %1s was released. Please download our %2slatest %3s version here%4s.', WP_FS__SLUG ), $update->version, '<a href="' . $this->get_account_url( 'download_latest' ) . '">', $this->_site->plan->title, '</a>' ),
-						__( 'New!', WP_FS__SLUG )
+							__fs( 'version-x-released' ) . ' ' . __fS( 'please-download-x' ),
+							$update->version,
+							sprintf(
+								'<a href="%s" target="_blank">%s</a>',
+								$this->get_account_url( 'download_latest' ),
+								sprintf( __fs( 'latest-x-version' ), $this->_site->plan->title )
+							)
+						),
+						__fs( 'new' ) . '!'
 					);
 				}
 			} else if ( false === $new_version && ! $background ) {
 				$this->_admin_notices->add(
-					__( 'Seems like you got the latest release.', WP_FS__SLUG ),
-					__( 'You are all good!', WP_FS__SLUG )
+					__fs( 'you-have-latest' ),
+					__fs( 'you-are-good' )
 				);
 			}
 
@@ -5504,7 +5565,10 @@
 			) );
 
 			if ( ! isset( $result->error ) ) {
-				$this->_admin_notices->add( sprintf( __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', WP_FS__SLUG ), sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email ) ) );
+				$this->_admin_notices->add( sprintf(
+					__fs( 'verification-email-sent-message' ),
+					sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email )
+				) );
 			} else {
 				// handle different error cases.
 
@@ -5524,10 +5588,9 @@
 			}
 
 			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
-			$action = fs_get_action();
+			$action    = fs_get_action();
 
-			switch ($action)
-			{
+			switch ( $action ) {
 				case 'delete_account':
 					check_admin_referer( $action );
 
@@ -5599,14 +5662,14 @@
 						switch ( $result->error->code ) {
 							case 'user_exist':
 								$this->_admin_notices->add(
-									__( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', WP_FS__SLUG ),
-									__( 'Oops...', WP_FS__SLUG ),
+									__fs( 'user-exist-message' ),
+									__fs( 'oops' ) . '...',
 									'error'
 								);
 								break;
 						}
 					} else {
-						$this->_admin_notices->add( __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', WP_FS__SLUG ) );
+						$this->_admin_notices->add( __fs( 'email-updated-message' ) );
 					}
 
 					return;
@@ -5618,12 +5681,12 @@
 
 					if ( isset( $result->error ) ) {
 						$this->_admin_notices->add(
-							__( 'Please provide your full name.', WP_FS__SLUG ),
-							__( 'Oops...', WP_FS__SLUG ),
+							__fs( 'name-update-failed-message' ),
+							__fs( 'oops' ) . '...',
 							'error'
 						);
 					} else {
-						$this->_admin_notices->add( __( 'Your name was successfully updated.', WP_FS__SLUG ) );
+						$this->_admin_notices->add( __fs( 'name-updated-message' ) );
 					}
 
 					return;
@@ -5662,7 +5725,7 @@
 			if ( WP_FS__IS_POST_REQUEST ) {
 				$properties = array( 'site_secret_key', 'site_id', 'site_public_key' );
 				foreach ( $properties as $p ) {
-					if ( 'update_' . $p  === $action ) {
+					if ( 'update_' . $p === $action ) {
 						check_admin_referer( $action );
 
 						$this->_logger->log( $action );
@@ -5677,7 +5740,7 @@
 						$this->do_action( 'account_property_edit', 'site', $site_property, $site_property_value );
 
 						$this->_admin_notices->add( sprintf(
-							__( 'You have successfully updated your %s .', WP_FS__SLUG ),
+							__fs( 'x-updated' ),
 							'<b>' . str_replace( '_', ' ', $p ) . '</b>' ) );
 
 						return;
@@ -5771,8 +5834,8 @@
 
 			if ( ! $this->is_registered() && $this->is_org_repo_compliant() ) {
 				$this->_admin_notices->add(
-					sprintf( __( 'Just letting you know that the add-ons information of %s is being pulled from external server.', WP_FS__SLUG ), '<b>' . $this->get_plugin_name() . '</b>' ),
-					__( 'Heads up ', WP_FS__SLUG ),
+					sprintf( __fs( 'addons-info-external-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
+					__fs( 'heads-up' ),
 					'update-nag'
 				);
 			}
@@ -6007,8 +6070,8 @@
 			$require_subscription = $paid_plan->is_require_subscription;
 			$upgrade_url          = $this->get_trial_url();
 			$cc_string            = $require_subscription ?
-				sprintf( __( 'No commitment for %s days - cancel anytime!', WP_FS__SLUG ), $paid_plan->trial_period ) :
-				__( 'No credit card required!', WP_FS__SLUG );
+				sprintf( __fs( 'no-commitment-for-x-days' ), $paid_plan->trial_period ) :
+				__fs( 'no-cc-required' ) . '!';
 
 
 			$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
@@ -6016,8 +6079,9 @@
 			if ( $total_paid_plans === $trial_plans_count ) {
 				// All paid plans have trials.
 				$message = sprintf(
-					__( 'Hey! How do you like %s so far? Test all our awesome premium features with a %d-day free trial.', WP_FS__SLUG ) . ' ' . $cc_string,
+					__fs( 'hey' ) . '! ' . __fs( 'trial-x-promotion-message' ),
 					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
+					strtolower( __fs( 'awesome' ) ),
 					$paid_plan->trial_period
 				);
 			} else {
@@ -6034,17 +6098,20 @@
 
 				// Not all paid plans have trials.
 				$message = sprintf(
-					__( 'Hey! How do you like the plugin so far? Test all our %s features with a %d-day free trial.' . $cc_string, WP_FS__SLUG ),
+					__fs( 'hey' ) . '! ' . __fs( 'trial-x-promotion-message' ),
+					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
 					$plans_string,
 					$paid_plan->trial_period
 				);
 			}
 
+			$message .= ' ' . $cc_string;
+
 			// Add start trial button.
 			$message .= ' ' . sprintf(
 					'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 					$upgrade_url,
-					__( 'Start free trial', WP_FS__SLUG )
+					__fs( 'start-free-trial' )
 				);
 
 			$this->_admin_notices->add_sticky(
@@ -6145,7 +6212,7 @@
 			if ( $this->is_registered() ) {
 				if ( ! $this->is_paying() && $this->has_paid_plan() ) {
 					$this->add_plugin_action_link(
-						__( 'Upgrade', $this->_slug ),
+						__fs( 'upgrade' ),
 						$this->get_upgrade_url(),
 						false,
 						20,
@@ -6155,7 +6222,7 @@
 
 				if ( $this->_has_addons() ) {
 					$this->add_plugin_action_link(
-						__( 'Add-Ons', $this->_slug ),
+						__fs( 'add-ons' ),
 						$this->_get_admin_page_url( 'addons' ),
 						false,
 						10,
@@ -6177,7 +6244,7 @@
 
 			if ( ! $this->is_addon() ) {
 				$plugin_fs = $this;
-				$url = $plugin_fs->_get_admin_page_url();
+				$url       = $plugin_fs->_get_admin_page_url();
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
 					$plugin_fs = self::get_parent_instance();

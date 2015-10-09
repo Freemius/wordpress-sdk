@@ -57,6 +57,20 @@
 		return ob_get_clean();
 	}
 
+	function __fs( $key ) {
+		global $fs_text;
+
+		if ( ! isset( $fs_text ) ) {
+			require_once( dirname( __FILE__ ) . '/i18n.php' );
+		}
+
+		return isset( $fs_text[ $key ] ) ? $fs_text[ $key ] : $key;
+	}
+
+	function _efs( $key ) {
+		echo __fs( $key );
+	}
+
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style($handle, $path, $deps = array(), $ver = false, $media = 'all') {

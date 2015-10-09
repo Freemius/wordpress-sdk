@@ -238,7 +238,7 @@
 			$resource = explode( '?', $pCanonizedPath );
 
 			// Only sign request if not ping.json connectivity test.
-			if ( '/ping.json' !== strtolower( substr( $resource[0], - strlen( '/ping.json' ) ) ) ) {
+			if ( '/v1/ping.json' !== strtolower( substr( $resource[0], - strlen( '/v1/ping.json' ) ) ) ) {
 				$this->SignRequest( $resource[0], $opts );
 			}
 

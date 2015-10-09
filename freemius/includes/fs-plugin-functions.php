@@ -62,7 +62,7 @@
 			'reviews'      => _x( 'Reviews',      'Plugin installer section title' ),
 			'other_notes'  => _x( 'Other Notes',  'Plugin installer section title' ),
 
-			'features'      => _x( 'Features & Pricing',      'Plugin installer section title' ),
+			'features'      => __fs( 'features-and-pricing' ),
 		);
 
 		// Sanitize HTML
@@ -137,21 +137,36 @@
 			<?php if (isset($api->plans)) : ?>
 				<div class="plugin-information-pricing">
 				<?php foreach ($api->plans as $plan) : ?>
-				<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __( '%s Plan' ), $plan->title) ?></h3>
+				<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan' ), $plan->title) ?></h3>
 				<ul>
 				<?php $billing_cycle = 'annual' ?>
+					<?php if ( 1 === count($plan->pricing) && 1 == $plan->pricing[0]->licenses ) : ?>
+						<?php $pricing = $plan->pricing[0] ?>
+						<li><label><?php _efs( 'price' ) ?>: $<?php
+									if (isset($pricing->annual_price)) {
+										echo $pricing->annual_price . ($plan->is_block_features ? ' / year' : '');
+										$billing_cycle = 'annual';
+									} else if (isset($pricing->monthly_price)) {
+										echo $pricing->monthly_price . ' / mo';
+										$billing_cycle = 'monthly';
+									} else if (isset($pricing->lifetime_price)) {
+										echo $pricing->lifetime_price;
+										$billing_cycle = 'lifetime';
+									}
+								?></label></li>
+					<?php else : ?>
 				<?php $first = true; foreach ($plan->pricing as $pricing) : ?>
 					<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="<?php echo $pricing->id ?>"<?php checked($first, true) ?>><?php
 								switch ($pricing->licenses)
 								{
 									case '1':
-										_e('Single Site License');
+										_efs('license-single-site');
 										break;
 									case null:
-										_e('Unlimited Licenses');
+										_efs('license-unlimited');
 										break;
 									default:
-										printf( __( 'Up to %s Sites' ), $pricing->licenses);
+										printf( __fs( 'license-x-sites' ), $pricing->licenses);
 										break;
 								}
 					?> - $<?php
@@ -167,13 +182,14 @@
 								}
 							?></label></li>
 				<?php $first = false; endforeach ?>
+					<?php endif ?>
 				</ul>
 				<?php echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
 								'plugin_id' => $plan->plugin_id,
 								'plan_id' => $plan->id,
 								'pricing_id' => $plan->pricing[0]->id,
 								'billing_cycle' => $billing_cycle,
-							), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>' ?>
+							), $api->checkout_link)) . '" target="_parent">' . __fs( 'purchase' ) . '</a>' ?>
 					</div>
 				<?php endforeach ?>
 				<?php wp_enqueue_script('jquery'); ?>
@@ -193,7 +209,7 @@
 				</script>
 			<?php endif ?>
 			<div>
-			<h3><?php _e( 'Details', WP_FS__SLUG ) ?></h3>
+			<h3><?php _efs( 'details' ) ?></h3>
 			<ul>
 				<?php if ( ! empty( $api->version ) ) { ?>
 					<li><strong><?php _e( 'Version:' ); ?></strong> <?php echo $api->version; ?></li>
@@ -269,9 +285,9 @@
 		<div id="section-holder" class="wrap">
 	<?php
 		if ( ! empty( $api->tested ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->tested ) ), $api->tested, '>' ) ) {
-			echo '<div class="notice notice-warning"><p>' . __('<strong>Warning:</strong> This plugin has <strong>not been tested</strong> with your current version of WordPress.') . '</p></div>';
+			echo '<div class="notice notice-warning"><p>' . '<strong>' . __('Warning:') . '</strong> ' . __('This plugin has not been tested with your current version of WordPress.') . '</p></div>';
 		} else if ( ! empty( $api->requires ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->requires ) ), $api->requires, '<' ) ) {
-			echo '<div class="notice notice-warning"><p>' . __('<strong>Warning:</strong> This plugin has <strong>not been marked as compatible</strong> with your version of WordPress.') . '</p></div>';
+			echo '<div class="notice notice-warning"><p>' . '<strong>' . __('Warning:') . '</strong> ' . __('This plugin has not been marked as compatible with your version of WordPress.') . '</p></div>';
 		}
 
 		foreach ( (array) $api->sections as $section_name => $content ) {
@@ -299,7 +315,7 @@
 				'plan_id' => $plan->id,
 				'pricing_id' => $plan->pricing[0]->id,
 				'billing_cycle' => $billing_cycle,
-			), $api->checkout_link)) . '" target="_parent">' . __( 'Purchase' ) . '</a>';
+			), $api->checkout_link)) . '" target="_parent">' . __fs( 'purchase' ) . '</a>';
 
 			// @todo Add Cart concept.
 //			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';
