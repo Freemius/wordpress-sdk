@@ -3754,12 +3754,61 @@
 		}
 
 		/**
+		 * Override submenu's action.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.0
+		 *
+		 * @param $parent_slug
+		 * @param $menu_slug
+		 * @param $function
+		 *
+		 * @return false|string If submenu exist, will return the hook name.
+		 */
+		private function override_plugin_submenu_action($parent_slug, $menu_slug, $function)
+		{
+			global $submenu;
+
+			$menu_slug = plugin_basename( $menu_slug );
+			$parent_slug = plugin_basename( $parent_slug);
+
+			if (!isset($submenu[$parent_slug])) {
+				// Parent menu not exist.
+				return false;
+			}
+
+			$found_submenu_item = false;
+			foreach ($submenu[$parent_slug] as $submenu_item)
+			{
+				if ($menu_slug === $submenu_item[2]){
+					$found_submenu_item = $submenu_item;
+					break;
+				}
+			}
+
+			if (false === $found_submenu_item)
+			{
+				// Submenu item not found.
+				return false;
+			}
+
+			// Remove current function.
+			$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug);
+			remove_all_actions($hookname);
+
+			// Attach new action.
+			add_action($hookname, $function);
+
+			return $hookname;
+		}
+
+		/**
 		 * Find plugin's admin dashboard main menu item.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.2
 		 *
-		 * @return string[]
+		 * @return string[]|false
 		 */
 		private function find_plugin_main_menu() {
 			global $menu;
@@ -3776,6 +3825,9 @@
 					break;
 				}
 			}
+
+			if (false === $found_menu)
+				return false;
 
 			return array(
 				'menu'      => $found_menu,
@@ -3817,6 +3869,9 @@
 			// Find main menu item.
 			$menu = $this->find_plugin_main_menu();
 
+			if (false === $menu)
+				return $menu;
+
 			// Remove it with its actions.
 			remove_all_actions( $menu['hook_name'] );
 
@@ -3837,11 +3892,7 @@
 
 			$menu = $this->remove_menu_item();
 
-			if ( $this->is_activation_page() ) {
-				// Clean admin page from distracting content.
-				$this->_clean_admin_content_section();
-			}
-
+			if (false !== $menu) {
 			// Override menu action.
 			$hook = add_menu_page(
 				$menu['menu'][3],
@@ -3852,6 +3903,20 @@
 				$menu['menu'][6],
 				$menu['position']
 			);
+			}
+			else {
+				// Try to override tools submenu item if exist.
+				$hook = $this->override_plugin_submenu_action(
+					'tools.php',
+					$this->_menu_slug,
+					array( &$this, '_connect_page_render' )
+				);
+			}
+
+			if ( $this->is_activation_page() ) {
+				// Clean admin page from distracting content.
+				$this->_clean_admin_content_section();
+			}
 
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
 				add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
@@ -3860,6 +3925,12 @@
 			}
 		}
 
+		/**
+		 * Add default Freemius menu items.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.0
+		 */
 		private function add_submenu_items() {
 			$this->_logger->entrance();
 
