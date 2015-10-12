@@ -1018,12 +1018,15 @@
 			if ( ! $this->is_registered() ) {
 				if ( ! $this->has_api_connectivity() ) {
 					if ( is_admin() && $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+						if ( ! $this->_enable_anonymous ) {
+							// If anonymous mode is disabled, add firewall admin-notice message.
 						add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
 						add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
 							&$this,
 							'_email_about_firewall_issue'
 						) );
+					}
 					}
 
 					// Turn Freemius off.
