@@ -783,9 +783,7 @@
 		 * @return array[string]array
 		 */
 		private function get_active_plugins() {
-			if ( ! function_exists( 'get_plugins' ) ) {
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-			}
+			$this->require_plugin_essentials();
 
 			$active_plugin            = array();
 			$all_plugins              = get_plugins();
@@ -1161,9 +1159,13 @@
 		 */
 		function _plugin_code_type_changed() {
 			// Send code type changes event.
-			$this->get_api_site_scope()->call( '/', 'put', array( 'is_premium' => $this->_plugin->is_premium ) );
+			$this->get_api_site_scope()->call( '/', 'put', array(
+					'is_active'  => true,
+					'is_premium' => $this->is_premium(),
+					'version'    => $this->get_plugin_version(),
+			) );
 
-			if ( true === $this->_plugin->is_premium ) {
+			if ( $this->is_premium() ) {
 				// Activated premium code.
 				$this->do_action( 'after_premium_version_activation' );
 
@@ -1925,6 +1927,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.1
+		 *
+		 * @return string
+		 */
+		private function premium_plugin_basename(){
+			return preg_replace('/\//', '-premium/', $this->_free_plugin_basename, 1 );
+		}
+
+		/**
 		 * Uninstall plugin hook. Called only when connected his account with Freemius for active sites tracking.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -1948,6 +1960,15 @@
 			$fs = self::get_instance_by_file( $plugin_file );
 
 			if ( is_object( $fs ) ) {
+				$this->require_plugin_essentials();
+
+				if (is_plugin_active( $fs->_free_plugin_basename ) ||
+				    is_plugin_active( $fs->premium_plugin_basename() )
+				){
+					// Deleting Free or Premium plugin version while the other version still installed.
+					return;
+				}
+
 				$fs->_uninstall_plugin_event();
 
 				$fs->do_action( 'after_uninstall' );
@@ -1955,6 +1976,19 @@
 		}
 
 		#region Plugin Information ------------------------------------------------------------------
+
+		/**
+		 * Load WordPress core plugin.php essential module.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.1
+		 */
+		private function require_plugin_essentials()
+		{
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+		}
 
 		/**
 		 * Return plugin data.
@@ -1966,9 +2000,7 @@
 		 */
 		function get_plugin_data() {
 			if ( ! isset( $this->_plugin_data ) ) {
-				if ( ! function_exists( 'get_plugins' ) ) {
-					require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-				}
+				$this->require_plugin_essentials();
 
 				$this->_plugin_data = get_plugin_data( $this->_plugin_main_file_path );
 			}
