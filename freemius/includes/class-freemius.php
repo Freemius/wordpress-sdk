@@ -1613,7 +1613,7 @@
 			if ( fs_request_is_action( $this->_slug . '_skip_activation' ) ) {
 				check_admin_referer( $this->_slug . '_skip_activation' );
 				$this->_storage->is_anonymous = true;
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+				if ( fs_redirect( $this->apply_filters( 'after_skip_url', $this->_get_admin_page_url() ) ) ) {
 					exit();
 				}
 			}
@@ -3509,7 +3509,7 @@
 			}
 			else {
 				// Reload the page with the keys.
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+				if ( fs_redirect( $this->apply_filters( 'after_connect_url', $this->_get_admin_page_url() ) ) ) {
 					exit();
 				}
 			}
@@ -3558,7 +3558,7 @@
 					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
 
 					// Reload the page with with pending activation message.
-					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+					if ( fs_redirect( $this->apply_filters( 'connect_url', $this->_get_admin_page_url() ) ) ) {
 						exit();
 					}
 				}
@@ -6296,7 +6296,7 @@
 
 			if ( ! $this->is_addon() ) {
 				$plugin_fs = $this;
-				$url       = $plugin_fs->_get_admin_page_url();
+				$url       = $plugin_fs->apply_filters( 'connect_url', $plugin_fs->_get_admin_page_url() );
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
 					$plugin_fs = self::get_parent_instance();
@@ -6304,8 +6304,8 @@
 
 				if ( is_object( $plugin_fs ) ) {
 					if ( ! $plugin_fs->is_registered() ) {
-						// Forward to parent plugin activation when parent not registered.
-						$url = $plugin_fs->_get_admin_page_url();
+						// Forward to parent plugin connect when parent not registered.
+						$url = $plugin_fs->apply_filters( 'connect_url', $plugin_fs->_get_admin_page_url() );
 					} else {
 						// Forward to account page.
 						$url = $plugin_fs->_get_admin_page_url( 'account' );
