@@ -783,7 +783,7 @@
 		 * @return array[string]array
 		 */
 		private function get_active_plugins() {
-			$this->require_plugin_essentials();
+			self::require_plugin_essentials();
 
 			$active_plugin            = array();
 			$all_plugins              = get_plugins();
@@ -1963,7 +1963,7 @@
 			$fs = self::get_instance_by_file( $plugin_file );
 
 			if ( is_object( $fs ) ) {
-				$this->require_plugin_essentials();
+				self::require_plugin_essentials();
 
 				if (is_plugin_active( $fs->_free_plugin_basename ) ||
 				    is_plugin_active( $fs->premium_plugin_basename() )
@@ -1986,7 +1986,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.1
 		 */
-		private function require_plugin_essentials()
+		private static function require_plugin_essentials()
 		{
 			if ( ! function_exists( 'get_plugins' ) ) {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -2003,7 +2003,7 @@
 		 */
 		function get_plugin_data() {
 			if ( ! isset( $this->_plugin_data ) ) {
-				$this->require_plugin_essentials();
+				self::require_plugin_essentials();
 
 				$this->_plugin_data = get_plugin_data( $this->_plugin_main_file_path );
 			}
