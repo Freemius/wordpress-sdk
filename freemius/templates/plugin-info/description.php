@@ -19,23 +19,23 @@
 				<?php endfor ?>
 			</ul>
 		</div>
-		<div>
-			<?php
-				echo wp_kses( $plugin->info->description, array(
-					'a'          => array( 'href' => array(), 'title' => array(), 'target' => array() ),
-					'b'          => array(),
-					'i'          => array(),
-					'p'          => array(),
-					'blockquote' => array(),
-					'h2'         => array(),
-					'h3'         => array(),
-					'ul'         => array(),
-					'ol'         => array(),
-					'li'         => array()
-				) );
-			?>
-		</div>
 	<?php endif ?>
+	<div>
+		<?php
+			echo wp_kses( $plugin->info->description, array(
+				'a'          => array( 'href' => array(), 'title' => array(), 'target' => array() ),
+				'b'          => array(),
+				'i'          => array(),
+				'p'          => array(),
+				'blockquote' => array(),
+				'h2'         => array(),
+				'h3'         => array(),
+				'ul'         => array(),
+				'ol'         => array(),
+				'li'         => array()
+			) );
+		?>
+	</div>
 <?php if ( ! empty( $plugin->info->screenshots ) ) : ?>
 	<?php $screenshots = $plugin->info->screenshots ?>
 	<div class="fs-screenshots clearfix">
