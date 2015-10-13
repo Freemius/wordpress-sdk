@@ -267,6 +267,11 @@
 		function test( $unique_anonymous_id = null ) {
 			$this->_logger->entrance();
 
+			if ( ! function_exists( 'curl_version' ) ) {
+				// cUrl extension is not active.
+				return false;
+			}
+
 			$test = is_null( $unique_anonymous_id ) ?
 				$this->_api->Test() :
 				$this->_api->Test( $this->_call( 'ping.json?uid=' . $unique_anonymous_id ) );
