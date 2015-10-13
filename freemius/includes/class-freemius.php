@@ -1102,7 +1102,7 @@
 						add_action( 'install_plugins_pre_plugin-information', 'fs_install_plugin_information' );
 
 						// Override request for plugin information for Add-ons.
-						add_filter( 'plugins_api', array( &$this, '_get_addon_info_filter' ), 10, 3 );
+						add_filter( 'fs_plugins_api', array( &$this, '_get_addon_info_filter' ), 10, 3 );
 					} else {
 						if ( $this->is_paying() || $this->_has_addons() ) {
 							new FS_Plugin_Updater( $this );

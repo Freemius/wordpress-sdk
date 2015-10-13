@@ -22,11 +22,25 @@
 			return;
 		}
 
-		$api = plugins_api( 'plugin_information', array(
+		$args = array(
 			'slug' => wp_unslash( $_REQUEST['plugin'] ),
 			'is_ssl' => is_ssl(),
 			'fields' => array( 'banners' => true, 'reviews' => true )
-		) );
+		);
+
+		if ( is_array( $args ) ) {
+			$args = (object) $args;
+		}
+
+		if ( ! isset( $args->per_page ) ) {
+			$args->per_page = 24;
+		}
+
+		if ( ! isset( $args->locale ) ) {
+			$args->locale = get_locale();
+		}
+
+		$api = apply_filters( 'fs_plugins_api', false, 'plugin_information', $args );
 
 		if ( is_wp_error( $api ) ) {
 			wp_die( $api );
