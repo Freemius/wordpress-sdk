@@ -890,7 +890,7 @@
 					$current_user->user_firstname,
 					$current_user->user_lastname,
 					$active_plugin_string,
-					( is_string( $ping ) ? $ping : json_encode( $ping ) )
+					( is_string( $ping ) ? htmlentities( $ping ) : json_encode( $ping ) )
 				),
 				"Content-type: text/html\r\n" .
 				"Reply-To: $admin_email <$admin_email>"
