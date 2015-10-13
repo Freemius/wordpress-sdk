@@ -4886,12 +4886,21 @@
 		private function _sync_plugin_license( $background = false ) {
 			$this->_logger->entrance();
 
-			// Load site details.
-			$site = $this->_fetch_site( true );
+			// Sync site info.
+			$site = $this->get_api_site_scope()->call( '/', 'put', array(
+				'is_active'        => true,
+				'is_premium'       => $this->is_premium(),
+				'version'          => $this->get_plugin_version(),
+				'url'              => get_site_url(),
+				'title'            => get_bloginfo( 'name' ),
+				'platform_version' => get_bloginfo( 'version' ),
+				'language'         => get_bloginfo( 'language' ),
+				'charset'          => get_bloginfo( 'charset' ),
+			) );
 
 			$plan_change = 'none';
 
-			if ( isset( $site->error ) ) {
+			if ( $this->is_api_error( $site ) ) {
 				$api = $this->get_api_site_scope();
 
 				// Try to ping API to see if not blocked.
@@ -4915,10 +4924,9 @@
 						'error'
 					);
 				}
-
-				// Plan update failure, set update time to 24hours + 10min so it won't annoy the admin too much.
-				$this->_site->updated = time() - WP_FS__TIME_24_HOURS_IN_SEC + WP_FS__TIME_10_MIN_IN_SEC;
 			} else {
+				$site = new FS_Site( $site );
+
 				// Sync licenses.
 				$this->_sync_licenses();
 
