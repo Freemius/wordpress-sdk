@@ -14,9 +14,11 @@
 	 * 3-layer lazy options manager.
 	 *      layer 3: Memory
 	 *      layer 2: Cache (if there's any caching plugin and if WP_FS__DEBUG_SDK is FALSE)
-	 *      layer 1: Database (options table). All options stored as one option record in the DB to reduce number of DB queries.
+	 *      layer 1: Database (options table). All options stored as one option record in the DB to reduce number of DB
+	 *      queries.
 	 *
-	 * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to explicitly call store().
+	 * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to
+	 * explicitly call store().
 	 *
 	 * Class Freemius_Option_Manager
 	 */
@@ -110,7 +112,7 @@
 
 				$cached = true;
 
-				if ( false === $this->_options ) {
+				if ( empty($this->_options) ) {
 					$this->_options = get_option( $option_name );
 
 					if ( is_string( $this->_options ) ) {
@@ -126,7 +128,7 @@
 					$cached = false;
 				}
 
-				if ( WP_FS__DEBUG_SDK && ! $cached ) // Set non encoded cache.
+				if ( ! WP_FS__DEBUG_SDK && ! $cached ) // Set non encoded cache.
 				{
 					wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
 				}
@@ -175,9 +177,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
-		function delete()
-		{
-			delete_option($this->_get_option_manager_name());
+		function delete() {
+			delete_option( $this->_get_option_manager_name() );
 		}
 
 		/**
@@ -188,8 +189,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_option ($option)
-		{
+		function has_option( $option ) {
 			return array_key_exists( $option, $this->_options );
 		}
 
@@ -198,7 +198,7 @@
 		 * @since  1.0.3
 		 *
 		 * @param string $option
-		 * @param mixed $default
+		 * @param mixed  $default
 		 *
 		 * @return mixed
 		 */
@@ -290,7 +290,7 @@
 			// Update DB.
 			update_option( $option_name, $this->_options );
 
-			if ( WP_FS__DEBUG_SDK ) {
+			if ( ! WP_FS__DEBUG_SDK ) {
 				wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
 			}
 		}
