@@ -12,7 +12,7 @@
 	fs_enqueue_local_script('fs-postmessage', 'postmessage.js');
 
 	$slug = $VARS['slug'];
-	$fs = fs($slug);
+	$fs = freemius($slug);
 	$current_user = wp_get_current_user();
 ?>
 <div id="fs_activation" class="wrap" style="margin: 0 0 -65px -20px;">

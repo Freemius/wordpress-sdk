@@ -10,7 +10,7 @@
 	/**
 	 * @var Freemius
 	 */
-	$fs = fs( $slug );
+	$fs = freemius( $slug );
 
 	$open_addon_slug = fs_request_get( 'slug' );
 

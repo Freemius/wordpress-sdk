@@ -13,7 +13,7 @@
 	fs_enqueue_local_style( 'fs_checkout', '/admin/common.css' );
 
 	$slug = $VARS['slug'];
-	$fs   = fs( $slug );
+	$fs   = freemius( $slug );
 
 	$context_params = array(
 		'plugin_id'         => $fs->get_id(),

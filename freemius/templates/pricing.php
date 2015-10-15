@@ -12,7 +12,7 @@
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 
 	$slug      = $VARS['slug'];
-	$fs        = fs( $slug );
+	$fs        = freemius( $slug );
 	$timestamp = time();
 
 	$context_params = array(

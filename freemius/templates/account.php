@@ -10,7 +10,7 @@
 	/**
 	 * @var Freemius $fs
 	 */
-	$fs = fs( $slug );
+	$fs = freemius( $slug );
 
 	/**
 	 * @var FS_Plugin_Tag $update
@@ -315,7 +315,7 @@
 					$addon              = $fs->get_addon( $addon_id );
 					$is_addon_activated = $fs->is_addon_activated( $addon->slug );
 
-					$fs_addon = $is_addon_activated ? fs( $addon->slug ) : false;
+					$fs_addon = $is_addon_activated ? freemius( $addon->slug ) : false;
 					?>
 					<tr>
 						<td>

@@ -13,7 +13,7 @@
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
 	$slug = $VARS['slug'];
-	$fs   = fs( $slug );
+	$fs   = freemius( $slug );
 
 	$timestamp = time();
 

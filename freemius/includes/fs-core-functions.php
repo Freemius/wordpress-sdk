@@ -154,12 +154,12 @@
 		?><a class="button<?php if ( $is_primary ) {
 			echo ' button-primary';
 		} ?>"
-		     href="<?php echo wp_nonce_url( fs( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
+		     href="<?php echo wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
 	}
 
 	function fs_ui_action_link( $slug, $page, $action, $title, $params = array() ) {
 		?><a class=""
-		     href="<?php echo wp_nonce_url( fs( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
+		     href="<?php echo wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
 	}
 
 	/* Core Redirect (copied from BuddyPress).

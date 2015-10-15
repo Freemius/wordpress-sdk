@@ -14,7 +14,7 @@
 	fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
 
 	$slug         = $VARS['slug'];
-	$fs           = fs( $slug );
+	$fs           = freemius( $slug );
 	$current_user = wp_get_current_user();
 
 	$first_name = $current_user->user_firstname;

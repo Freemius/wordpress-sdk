@@ -55,7 +55,7 @@
 		 *
 		 * @return Freemius
 		 */
-		function fs( $slug ) {
+		function freemius( $slug ) {
 			return Freemius::instance( $slug );
 		}
 

@@ -11,7 +11,7 @@
 	}
 
 	define( 'WP_FS__SLUG', 'freemius' );
-	if ( !defined('WP_FS__DEV_MODE' )) {
+	if ( ! defined( 'WP_FS__DEV_MODE' ) ) {
 		define( 'WP_FS__DEV_MODE', false );
 	}
 	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false );
@@ -42,8 +42,8 @@
 
 	define( 'WP_FS__ADDRESS', ( WP_FS__IS_PRODUCTION_MODE ? WP_FS__ADDRESS_PRODUCTION : WP_FS__ADDRESS_LOCALHOST ) );
 
-	define( 'WP_FS__IS_LOCALHOST', ( substr($_SERVER['REMOTE_ADDR'], 0, 4) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1') );
-	define( 'WP_FS__IS_LOCALHOST_FOR_SERVER', (false !== strpos($_SERVER['HTTP_HOST'], 'localhost')) );
+	define( 'WP_FS__IS_LOCALHOST', ( substr( $_SERVER['REMOTE_ADDR'], 0, 4 ) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1' ) );
+	define( 'WP_FS__IS_LOCALHOST_FOR_SERVER', ( false !== strpos( $_SERVER['HTTP_HOST'], 'localhost' ) ) );
 
 	// Set API address for local testing.
 	if ( ! WP_FS__IS_PRODUCTION_MODE ) {
@@ -51,7 +51,7 @@
 		define( 'FS_API__SANDBOX_ADDRESS', 'http://sandbox-api.freemius:8080' );
 	}
 
-	define( 'WP_FS___OPTION_PREFIX', 'fs' . (WP_FS__IS_PRODUCTION_MODE ? '' : '_dbg') . '_' );
+	define( 'WP_FS___OPTION_PREFIX', 'fs' . ( WP_FS__IS_PRODUCTION_MODE ? '' : '_dbg' ) . '_' );
 
 	if ( ! defined( 'WP_FS__ACCOUNTS_OPTION_NAME' ) ) {
 		define( 'WP_FS__ACCOUNTS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'accounts' );
@@ -69,7 +69,7 @@
 	                           ( isset( $_SERVER['SERVER_PORT'] ) && 443 == $_SERVER['SERVER_PORT'] )
 	);
 
-	define('WP_FS__IS_POST_REQUEST', (strtoupper($_SERVER['REQUEST_METHOD']) == 'POST'));
+	define( 'WP_FS__IS_POST_REQUEST', ( strtoupper( $_SERVER['REQUEST_METHOD'] ) == 'POST' ) );
 
 	/**
 	 * Billing Frequencies
@@ -100,7 +100,7 @@
 	define( 'WP_FS__ECHO_DEBUG_SDK', ! empty( $_GET['fs_dbg_echo'] ) );
 	define( 'WP_FS__LOG_DATETIME_FORMAT', 'Y-n-d H:i:s' );
 
-	if (WP_FS__ECHO_DEBUG_SDK) {
+	if ( WP_FS__ECHO_DEBUG_SDK ) {
 		error_reporting( E_ALL );
 		ini_set( 'error_reporting', E_ALL );
 		ini_set( 'display_errors', true );
