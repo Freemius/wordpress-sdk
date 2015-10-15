@@ -102,6 +102,11 @@
 		 * @var FS_Plugin
 		 * @since 1.0.4
 		 */
+		private $_parent_plugin = false;
+		/**
+		 * @var Freemius
+		 * @since 1.1.1
+		 */
 		private $_parent = false;
 		/**
 		 * @var FS_User
@@ -1055,6 +1060,15 @@
 				}
 			}
 
+			if ( $this->is_addon() ) {
+				if ( $this->is_parent_plugin_installed() ) {
+					// Link to parent FS.
+					$this->_parent = self::get_instance_by_id( $parent_id );
+
+					// Get parent plugin reference.
+					$this->_parent_plugin = $this->_parent->get_plugin();
+				}
+			}
 
 			if ( is_admin() ) {
 				if ( $this->is_addon() ) {
@@ -1070,20 +1084,15 @@
 
 						return;
 					} else {
-						$parent_fs = self::get_instance_by_id( $parent_id );
-
-						// Get parent plugin reference.
-						$this->_parent = $parent_fs->get_plugin();
-
-						if ( $parent_fs->is_registered() && ! $this->is_registered() ) {
+						if ( $this->_parent->is_registered() && ! $this->is_registered() ) {
 							// If parent plugin activated, automatically install add-on for the user.
-							$this->_activate_addon_account( $parent_fs );
+							$this->_activate_addon_account( $this->_parent );
 						}
 
 						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
 						if ( $this->is_premium() ) {
 							// Remove add-on download admin-notice.
-							$parent_fs->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
+							$this->_parent->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
 						}
 					}
 				} else {
@@ -1404,8 +1413,8 @@
 		function get_installed_addons() {
 			$installed_addons = array();
 			foreach ( self::$_instances as $slug => $instance ) {
-				if ( $instance->is_addon() && is_object( $instance->_parent ) ) {
-					if ( $this->_plugin->id == $instance->_parent->id ) {
+				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
+					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
 						$installed_addons[] = $instance;
 					}
 				}
