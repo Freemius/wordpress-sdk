@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.1.0';
+		public $version = '1.1.1';
 
 		/**
 		 * @since 1.0.1
@@ -1512,6 +1512,30 @@
 			}
 
 			return $installed_addons;
+		}
+
+		/**
+		 * Check if any add-ons of the plugin are installed.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.1
+		 *
+		 * @return bool
+		 */
+		function has_installed_addons() {
+			if ( ! $this->_has_addons() ) {
+				return false;
+			}
+			
+			foreach ( self::$_instances as $slug => $instance ) {
+				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
+					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		/**
