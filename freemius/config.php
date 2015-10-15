@@ -15,6 +15,7 @@
 		define( 'WP_FS__DEV_MODE', false );
 	}
 	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false );
+	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
 
 	/**
 	 * Directories
