@@ -27,8 +27,7 @@
 			$this->created = $entity->created;
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'type';
 		}
 
@@ -41,16 +40,16 @@
 		 *
 		 * @return bool
 		 */
-		static function equals($entity1, $entity2)
-		{
-			if (is_null($entity1) && is_null($entity2))
+		static function equals( $entity1, $entity2 ) {
+			if ( is_null( $entity1 ) && is_null( $entity2 ) ) {
 				return true;
-			else if (is_object($entity1) && is_object($entity2))
-				return ($entity1->id == $entity2->id);
-			else if (is_object($entity1))
-				return is_null($entity1->id);
-			else
-				return is_null($entity2->id);
+			} else if ( is_object( $entity1 ) && is_object( $entity2 ) ) {
+				return ( $entity1->id == $entity2->id );
+			} else if ( is_object( $entity1 ) ) {
+				return is_null( $entity1->id );
+			} else {
+				return is_null( $entity2->id );
+			}
 		}
 
 		private $_is_updated = false;
@@ -61,12 +60,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param string|array[string]mixed $key
-		 * @param string|bool               $val
+		 * @param  string|array[string]mixed $key
+		 * @param string|bool $val
 		 *
 		 * @return bool
 		 */
-		function update($key, $val = false) {
+		function update( $key, $val = false ) {
 			if ( ! is_array( $key ) ) {
 				$key = array( $key => $val );
 			}
@@ -104,8 +103,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_updated()
-		{
+		function is_updated() {
 			return $this->_is_updated;
 		}
 	}

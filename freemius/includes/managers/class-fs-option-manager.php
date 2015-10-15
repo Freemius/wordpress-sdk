@@ -112,7 +112,7 @@
 
 				$cached = true;
 
-				if ( empty($this->_options) ) {
+				if ( empty( $this->_options ) ) {
 					$this->_options = get_option( $option_name );
 
 					if ( is_string( $this->_options ) ) {

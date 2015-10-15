@@ -230,9 +230,7 @@
 						// If there was an error during a newer data fetch,
 						// fallback to older data version.
 						$result = $cache_entry->result;
-					}
-					else
-					{
+					} else {
 						// If no older data version, return result without
 						// caching the error.
 						return $result;
@@ -311,9 +309,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
-		static function clear_cache()
-		{
-			self::$_cache   = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
+		static function clear_cache() {
+			self::$_cache = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
 			self::$_cache->clear( true );
 		}
 	}

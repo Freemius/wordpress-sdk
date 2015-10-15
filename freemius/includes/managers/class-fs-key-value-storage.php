@@ -86,7 +86,7 @@
 		 * @param bool   $flush
 		 */
 		function store( $key, $value, $flush = true ) {
-			if (array_key_exists( $key, $this->_data ) && $value === $this->_data[$key]) {
+			if ( array_key_exists( $key, $this->_data ) && $value === $this->_data[ $key ] ) {
 				// No need to store data if the value wasn't changed.
 				return;
 			}
@@ -108,7 +108,7 @@
 		 * @param bool     $store
 		 * @param string[] $exceptions Set of keys to keep and not clear.
 		 */
-		function clear_all( $store = true , $exceptions = array()) {
+		function clear_all( $store = true, $exceptions = array() ) {
 			$new_data = array();
 			foreach ( $exceptions as $key ) {
 				$new_data[ $key ] = $this->_data[ $key ];
@@ -130,7 +130,7 @@
 		 * @author   Vova Feldman (@svovaf)
 		 * @since    1.0.9
 		 */
-		function delete( ) {
+		function delete() {
 			$this->_data = array();
 
 			$all_data = $this->get_all_data();
@@ -223,7 +223,7 @@
 		 * @return mixed Can return any type.
 		 */
 		public function current() {
-			return current($this->_data);
+			return current( $this->_data );
 		}
 
 		/**
@@ -234,7 +234,7 @@
 		 * @return void Any returned value is ignored.
 		 */
 		public function next() {
-			return next($this->_data);
+			return next( $this->_data );
 		}
 
 		/**
@@ -245,7 +245,7 @@
 		 * @return mixed scalar on success, or null on failure.
 		 */
 		public function key() {
-			return key($this->_data);
+			return key( $this->_data );
 		}
 
 		/**
@@ -257,8 +257,9 @@
 		 *       Returns true on success or false on failure.
 		 */
 		public function valid() {
-			$key = key($this->_data);
-			return ($key !== null && $key !== false);
+			$key = key( $this->_data );
+
+			return ( $key !== null && $key !== false );
 		}
 
 		/**
@@ -269,7 +270,7 @@
 		 * @return void Any returned value is ignored.
 		 */
 		public function rewind() {
-			reset($this->_data);
+			reset( $this->_data );
 		}
 
 		/**
@@ -283,5 +284,6 @@
 		 *       The return value is cast to an integer.
 		 */
 		public function count() {
-			return count($this->_data);
-		}}
+			return count( $this->_data );
+		}
+	}

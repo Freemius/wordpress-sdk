@@ -28,7 +28,6 @@
 		 * Check if user registered with Freemius by connecting his account.
 		 *
 		 * @since 1.0.1
-
 		 * @return bool
 		 */
 		abstract function is_registered();
@@ -59,12 +58,12 @@
 		 * Check if plugin is allowed to install executable files.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.5
+		 * @since  1.0.5
 		 *
 		 * @return bool
 		 */
-		function is_allowed_to_install(){
-			return ($this->is_premium() || !$this->is_org_repo_compliant());
+		function is_allowed_to_install() {
+			return ( $this->is_premium() || ! $this->is_org_repo_compliant() );
 		}
 
 		#endregion Permissions ------------------------------------------------------------------
@@ -73,12 +72,12 @@
 		 * Check if user in trial or in free plan (not paying).
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
 		 * @return bool
 		 */
 		function is_not_paying() {
-			return ($this->is_trial() || $this->is_free_plan());
+			return ( $this->is_trial() || $this->is_free_plan() );
 		}
 
 		/**
@@ -97,8 +96,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_paying_or_trial(){
-			return ($this->is_paying() || $this->is_trial());
+		function is_paying_or_trial() {
+			return ( $this->is_paying() || $this->is_trial() );
 		}
 
 		#region Premium Only ------------------------------------------------------------------
@@ -120,7 +119,7 @@
 		 *
 		 * @return bool
 		 */
-		function is__premium_only(){
+		function is__premium_only() {
 			return $this->is_premium();
 		}
 
@@ -132,8 +131,8 @@
 		 * @return bool
 		 *
 		 */
-		function is_paying__premium_only(){
-			return ($this->is__premium_only() && $this->is_paying());
+		function is_paying__premium_only() {
+			return ( $this->is__premium_only() && $this->is_paying() );
 		}
 
 		/**
@@ -141,12 +140,12 @@
 		 *
 		 * @since  1.0.9
 		 *
-		 * @param string $plan Plan name
+		 * @param string $plan  Plan name
 		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
 		 */
-		function is_plan__premium_only( $plan, $exact = false ){
+		function is_plan__premium_only( $plan, $exact = false ) {
 			return ( $this->is_premium() && $this->is_plan( $plan, $exact ) );
 		}
 
@@ -157,7 +156,7 @@
 		 *
 		 * @since  1.0.9
 		 *
-		 * @param string $plan Plan name
+		 * @param string $plan  Plan name
 		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
@@ -175,21 +174,21 @@
 		 *
 		 * @return bool
 		 */
-		function is_paying_or_trial__premium_only(){
+		function is_paying_or_trial__premium_only() {
 			return $this->is_premium() && $this->is_paying_or_trial();
 		}
 
 		/**
 		 * Check if the user has an activated and valid paid license on current plugin's install.
 		 *
-		 * @since 1.0.4
+		 * @since      1.0.4
 		 *
 		 * @return bool
 		 *
 		 * @deprecated Method name is confusing since it's not clear from the name the code will be removed.
-		 * @using Alias to is_paying__premium_only()
+		 * @using      Alias to is_paying__premium_only()
 		 */
-		function is_paying__fs__(){
+		function is_paying__fs__() {
 			return $this->is_paying__premium_only();
 		}
 
@@ -231,7 +230,7 @@
 		/**
 		 * @since  1.0.2
 		 *
-		 * @param string $plan Plan name
+		 * @param string $plan  Plan name
 		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
@@ -243,7 +242,7 @@
 		 *
 		 * @since  1.0.9
 		 *
-		 * @param string $plan Plan name
+		 * @param string $plan  Plan name
 		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
@@ -255,7 +254,7 @@
 		 *
 		 * @since  1.0.9
 		 *
-		 * @param string $plan Plan name
+		 * @param string $plan  Plan name
 		 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 		 *
 		 * @return bool
@@ -320,7 +319,7 @@
 		 * Get upgrade URL.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.2
+		 * @since  1.0.2
 		 *
 		 * @param string $period Billing cycle
 		 *
@@ -339,6 +338,7 @@
 		 * @return bool
 		 */
 		abstract function has_purchased_before();
+
 		/**
 		 * Check if current user classified as an agency.
 		 *
@@ -348,6 +348,7 @@
 		 * @return bool
 		 */
 		abstract function is_agency();
+
 		/**
 		 * Check if current user classified as a developer.
 		 *
@@ -357,6 +358,7 @@
 		 * @return bool
 		 */
 		abstract function is_developer();
+
 		/**
 		 * Check if current user classified as a business.
 		 *

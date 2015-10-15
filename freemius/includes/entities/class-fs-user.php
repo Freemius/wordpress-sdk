@@ -32,18 +32,15 @@
 			$this->is_verified = $user->is_verified;
 		}
 
-		function get_name()
-		{
-			return trim(ucfirst(trim(is_string($this->first) ? $this->first : '')) . ' ' . ucfirst(trim(is_string($this->last) ? $this->last : '')));
+		function get_name() {
+			return trim( ucfirst( trim( is_string( $this->first ) ? $this->first : '' ) ) . ' ' . ucfirst( trim( is_string( $this->last ) ? $this->last : '' ) ) );
 		}
 
-		function is_verified()
-		{
-			return (isset($this->is_verified) && true === $this->is_verified);
+		function is_verified() {
+			return ( isset( $this->is_verified ) && true === $this->is_verified );
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'user';
 		}
 	}

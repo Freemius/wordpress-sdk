@@ -10,7 +10,8 @@
 		exit;
 	}
 
-	class FS_License_Manager /*extends FS_Abstract_Manager*/ {
+	class FS_License_Manager /*extends FS_Abstract_Manager*/
+	{
 //
 //
 //		/**
@@ -87,9 +88,9 @@
 		 * @return bool
 		 */
 		static function has_premium_license( $licenses ) {
-			if (is_array($licenses)) {
+			if ( is_array( $licenses ) ) {
 				foreach ( $licenses as $license ) {
-					if ( !$license->is_utilized() && $license->is_features_enabled() ) {
+					if ( ! $license->is_utilized() && $license->is_features_enabled() ) {
 						return true;
 					}
 				}

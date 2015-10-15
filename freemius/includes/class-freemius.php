@@ -296,7 +296,7 @@
 							$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
 						}
 					}
-				}
+		}
 
 //				$this->add_action( 'plugin_version_update', array( &$this, 'update_plugin_version_event' ));
 			}
@@ -810,12 +810,12 @@
 						);
 						break;
 					default:
-				$message = __fs( 'connectivity-test-fails-message' );
+						$message = __fs( 'connectivity-test-fails-message' );
 						break;
 				}
 			}
 
-			if (false === $message){
+			if ( false === $message ) {
 				$message = sprintf(
 					__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
 					__fs( 'connectivity-test-fails-message' ) . ' ' .
@@ -911,7 +911,7 @@
 
 			$ping = $this->get_api_plugin_scope()->ping();
 
-			$error_type = fs_request_get('error_type', 'general');
+			$error_type = fs_request_get( 'error_type', 'general' );
 
 			switch ( $error_type ) {
 				case 'squid':
@@ -950,8 +950,8 @@
 	<tbody>
 		<tr><td><b>Address:</b></td><td>%s</td></tr>
 		<tr><td><b>HTTP_HOST:</b></td><td>%s</td></tr>
-		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>' . (('squid' !== $error_type) ? '' : '
-		<tr><td><b>Hosting Company:</b></td><td>' . fs_request_get('hosting_company') . '</td></tr>') . '
+		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>' . ( ( 'squid' !== $error_type ) ? '' : '
+		<tr><td><b>Hosting Company:</b></td><td>' . fs_request_get( 'hosting_company' ) . '</td></tr>' ) . '
 	</tbody>
 	<thead>
 		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">User</th></tr>
@@ -1117,13 +1117,13 @@
 					if ( is_admin() && $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
 						if ( ! $this->_enable_anonymous ) {
 							// If anonymous mode is disabled, add firewall admin-notice message.
-						add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+							add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
-						add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
-							&$this,
-							'_email_about_firewall_issue'
-						) );
-					}
+							add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
+								&$this,
+								'_email_about_firewall_issue'
+							) );
+						}
 					}
 
 					// Turn Freemius off.
@@ -1264,9 +1264,9 @@
 		function _plugin_code_type_changed() {
 			// Send code type changes event.
 			$this->get_api_site_scope()->call( '/', 'put', array(
-					'is_active'  => true,
-					'is_premium' => $this->is_premium(),
-					'version'    => $this->get_plugin_version(),
+				'is_active'  => true,
+				'is_premium' => $this->is_premium(),
+				'version'    => $this->get_plugin_version(),
 			) );
 
 			if ( $this->is_premium() ) {
@@ -1526,7 +1526,7 @@
 			if ( ! $this->_has_addons() ) {
 				return false;
 			}
-			
+
 			foreach ( self::$_instances as $slug => $instance ) {
 				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
 					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
@@ -2060,8 +2060,8 @@
 		 *
 		 * @return string
 		 */
-		private function premium_plugin_basename(){
-			return preg_replace('/\//', '-premium/', $this->_free_plugin_basename, 1 );
+		private function premium_plugin_basename() {
+			return preg_replace( '/\//', '-premium/', $this->_free_plugin_basename, 1 );
 		}
 
 		/**
@@ -2090,9 +2090,9 @@
 			if ( is_object( $fs ) ) {
 				self::require_plugin_essentials();
 
-				if (is_plugin_active( $fs->_free_plugin_basename ) ||
-				    is_plugin_active( $fs->premium_plugin_basename() )
-				){
+				if ( is_plugin_active( $fs->_free_plugin_basename ) ||
+				     is_plugin_active( $fs->premium_plugin_basename() )
+				) {
 					// Deleting Free or Premium plugin version while the other version still installed.
 					return;
 				}
@@ -2111,8 +2111,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.1
 		 */
-		private static function require_plugin_essentials()
-		{
+		private static function require_plugin_essentials() {
 			if ( ! function_exists( 'get_plugins' ) ) {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
@@ -3272,8 +3271,7 @@
 		 *
 		 * @return string
 		 */
-		function addon_url($slug)
-		{
+		function addon_url( $slug ) {
 			return $this->_get_admin_page_url( 'addons', array(
 				'slug' => $slug
 			) );
@@ -3631,8 +3629,7 @@
 					}
 
 				}
-			}
-			else {
+			} else {
 				// Reload the page with the keys.
 				if ( fs_redirect( $this->apply_filters( 'after_connect_url', $this->_get_admin_page_url() ) ) ) {
 					exit();
@@ -3890,39 +3887,36 @@
 		 *
 		 * @return false|string If submenu exist, will return the hook name.
 		 */
-		private function override_plugin_submenu_action($parent_slug, $menu_slug, $function)
-		{
+		private function override_plugin_submenu_action( $parent_slug, $menu_slug, $function ) {
 			global $submenu;
 
-			$menu_slug = plugin_basename( $menu_slug );
-			$parent_slug = plugin_basename( $parent_slug);
+			$menu_slug   = plugin_basename( $menu_slug );
+			$parent_slug = plugin_basename( $parent_slug );
 
-			if (!isset($submenu[$parent_slug])) {
+			if ( ! isset( $submenu[ $parent_slug ] ) ) {
 				// Parent menu not exist.
 				return false;
 			}
 
 			$found_submenu_item = false;
-			foreach ($submenu[$parent_slug] as $submenu_item)
-			{
-				if ($menu_slug === $submenu_item[2]){
+			foreach ( $submenu[ $parent_slug ] as $submenu_item ) {
+				if ( $menu_slug === $submenu_item[2] ) {
 					$found_submenu_item = $submenu_item;
 					break;
 				}
 			}
 
-			if (false === $found_submenu_item)
-			{
+			if ( false === $found_submenu_item ) {
 				// Submenu item not found.
 				return false;
 			}
 
 			// Remove current function.
-			$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug);
-			remove_all_actions($hookname);
+			$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
+			remove_all_actions( $hookname );
 
 			// Attach new action.
-			add_action($hookname, $function);
+			add_action( $hookname, $function );
 
 			return $hookname;
 		}
@@ -3951,8 +3945,9 @@
 				}
 			}
 
-			if (false === $found_menu)
+			if ( false === $found_menu ) {
 				return false;
+			}
 
 			return array(
 				'menu'      => $found_menu,
@@ -3994,8 +3989,9 @@
 			// Find main menu item.
 			$menu = $this->find_plugin_main_menu();
 
-			if (false === $menu)
+			if ( false === $menu ) {
 				return $menu;
+			}
 
 			// Remove it with its actions.
 			remove_all_actions( $menu['hook_name'] );
@@ -4017,19 +4013,18 @@
 
 			$menu = $this->remove_menu_item();
 
-			if (false !== $menu) {
-			// Override menu action.
-			$hook = add_menu_page(
-				$menu['menu'][3],
-				$menu['menu'][0],
-				'manage_options',
-				$this->_menu_slug,
-				array( &$this, '_connect_page_render' ),
-				$menu['menu'][6],
-				$menu['position']
-			);
-			}
-			else {
+			if ( false !== $menu ) {
+				// Override menu action.
+				$hook = add_menu_page(
+					$menu['menu'][3],
+					$menu['menu'][0],
+					'manage_options',
+					$this->_menu_slug,
+					array( &$this, '_connect_page_render' ),
+					$menu['menu'][6],
+					$menu['position']
+				);
+			} else {
 				// Try to override tools submenu item if exist.
 				$hook = $this->override_plugin_submenu_action(
 					'tools.php',
@@ -5745,7 +5740,7 @@
 		 *
 		 * @return object
 		 */
-		private function _update_email($new_email) {
+		private function _update_email( $new_email ) {
 			$this->_logger->entrance();
 
 
@@ -5778,7 +5773,7 @@
 		 *
 		 * @return bool Is API result contains an error.
 		 */
-		private function is_api_error($result) {
+		private function is_api_error( $result ) {
 			return ( is_object( $result ) && isset( $result->error ) ) ||
 			       is_string( $result );
 		}
@@ -5797,16 +5792,16 @@
 		private function init_change_owner( $candidate_email ) {
 			$this->_logger->entrance();
 
-			$api  = $this->get_api_site_scope();
+			$api    = $this->get_api_site_scope();
 			$result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
-				'email'                   => $candidate_email,
+				'email'             => $candidate_email,
 				'after_confirm_url' => $this->_get_admin_page_url(
 					'account',
 					array( 'fs_action' => 'change_owner' )
 				),
 			) );
 
-			return ! $this->is_api_error($result);
+			return ! $this->is_api_error( $result );
 		}
 
 		/**
@@ -6022,20 +6017,20 @@
 					check_admin_referer( 'update_email' );
 
 					$new_email = fs_request_get( 'fs_email_' . $this->_slug, '' );
-					$result = $this->_update_email($new_email);
+					$result    = $this->_update_email( $new_email );
 
 					if ( isset( $result->error ) ) {
 						switch ( $result->error->code ) {
 							case 'user_exist':
 								$this->_admin_notices->add(
-									__fs( 'user-exist-message' ) . ' '.
-									sprintf( __fs( 'user-exist-message_ownership' ), '<b>' . $new_email . '</b>') .
+									__fs( 'user-exist-message' ) . ' ' .
+									sprintf( __fs( 'user-exist-message_ownership' ), '<b>' . $new_email . '</b>' ) .
 									sprintf(
 										'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 										$this->get_account_url( 'change_owner', array(
-												'state' => 'init',
-												'candidate_email' => $new_email
-											) ),
+											'state'           => 'init',
+											'candidate_email' => $new_email
+										) ),
 										__fs( 'change-ownership' )
 									),
 									__fs( 'oops' ) . '...',

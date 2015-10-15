@@ -38,8 +38,7 @@
 			$this->is_block_features = $license->is_block_features;
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'license';
 		}
 
@@ -51,12 +50,12 @@
 		 *
 		 * @return int
 		 */
-		function left()
-		{
-			if ($this->is_expired())
+		function left() {
+			if ( $this->is_expired() ) {
 				return 0;
+			}
 
-			return ($this->quota - $this->activated - ($this->is_free_localhost ? 0 : $this->activated_local));
+			return ( $this->quota - $this->activated - ( $this->is_free_localhost ? 0 : $this->activated_local ) );
 		}
 
 		/**
@@ -65,9 +64,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_expired()
-		{
-			return !$this->is_lifetime() && (strtotime($this->expiration) < WP_FS__SCRIPT_START_TIME);
+		function is_expired() {
+			return ! $this->is_lifetime() && ( strtotime( $this->expiration ) < WP_FS__SCRIPT_START_TIME );
 		}
 
 		/**
@@ -76,9 +74,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_lifetime()
-		{
-			return is_null($this->expiration);
+		function is_lifetime() {
+			return is_null( $this->expiration );
 		}
 
 		/**
@@ -91,13 +88,13 @@
 		 *
 		 * @return bool
 		 */
-		function is_utilized($is_localhost = null)
-		{
-			if (is_null($is_localhost))
+		function is_utilized( $is_localhost = null ) {
+			if ( is_null( $is_localhost ) ) {
 				$is_localhost = WP_FS__IS_LOCALHOST_FOR_SERVER;
+			}
 
-			return !($this->is_free_localhost && $is_localhost) &&
-			       ($this->quota <= $this->activated + ($this->is_free_localhost ? 0 : $this->activated_local));
+			return ! ( $this->is_free_localhost && $is_localhost ) &&
+			       ( $this->quota <= $this->activated + ( $this->is_free_localhost ? 0 : $this->activated_local ) );
 		}
 
 		/**
@@ -111,9 +108,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_features_enabled()
-		{
-			return (!$this->is_block_features || !$this->is_expired());
+		function is_features_enabled() {
+			return ( ! $this->is_block_features || ! $this->is_expired() );
 		}
 
 		/**
@@ -126,8 +122,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_first_payment_pending()
-		{
-			return ( WP_FS__TIME_24_HOURS_IN_SEC >= strtotime($this->expiration) - strtotime($this->created));
+		function is_first_payment_pending() {
+			return ( WP_FS__TIME_24_HOURS_IN_SEC >= strtotime( $this->expiration ) - strtotime( $this->created ) );
 		}
 	}

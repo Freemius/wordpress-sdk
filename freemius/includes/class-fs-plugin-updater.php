@@ -40,7 +40,7 @@
 		 * Initiate required filters.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 */
 		private function _filters() {
 			// Override request for plugin information
@@ -54,19 +54,21 @@
 
 			if ( ! WP_FS__IS_PRODUCTION_MODE ) {
 				add_filter( 'http_request_host_is_external', array(
-						$this,
-						'http_request_host_is_external_filter'
-					), 10, 3 );
+					$this,
+					'http_request_host_is_external_filter'
+				), 10, 3 );
 			}
 		}
 
 		/**
-		 * Since WP version 3.6, a new security feature was added that denies access to repository with a local ip. During development mode we want to be able updating plugin versions via our localhost repository. This filter white-list all domains including "api.freemius".
+		 * Since WP version 3.6, a new security feature was added that denies access to repository with a local ip.
+		 * During development mode we want to be able updating plugin versions via our localhost repository. This
+		 * filter white-list all domains including "api.freemius".
 		 *
-		 * @link http://www.emanueletessore.com/wordpress-download-failed-valid-url-provided/
+		 * @link   http://www.emanueletessore.com/wordpress-download-failed-valid-url-provided/
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
 		 * @param bool   $allow
 		 * @param string $host
@@ -74,9 +76,8 @@
 		 *
 		 * @return bool
 		 */
-		function http_request_host_is_external_filter($allow, $host, $url)
-		{
-			return (false !== strpos($host, 'freemius')) ? true : $allow;
+		function http_request_host_is_external_filter( $allow, $host, $url ) {
+			return ( false !== strpos( $host, 'freemius' ) ) ? true : $allow;
 		}
 
 		/**
@@ -88,9 +89,9 @@
 		 * See wp-includes/update.php line 121 for the original wp_update_plugins() function.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
-		 * @uses FS_Api
+		 * @uses   FS_Api
 		 *
 		 * @param stdClass $transient_data Update array build by WordPress.
 		 *
@@ -100,7 +101,7 @@
 			$this->_logger->entrance();
 
 			if ( empty( $transient_data ) ||
-			     defined('WP_FS__UNINSTALL_MODE')
+			     defined( 'WP_FS__UNINSTALL_MODE' )
 			) {
 				return $transient_data;
 			}
@@ -129,36 +130,38 @@
 		 * Try to fetch plugin's info from .org repository.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.5
+		 * @since  1.0.5
 		 *
 		 * @param string $action
 		 * @param array  $args
 		 *
 		 * @return bool|mixed
 		 */
-		private function _fetch_plugin_info_from_repository($action, $args)
-		{
+		private function _fetch_plugin_info_from_repository( $action, $args ) {
 			$url = $http_url = 'http://api.wordpress.org/plugins/info/1.0/';
-			if ( $ssl = wp_http_supports( array( 'ssl' ) ) )
+			if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
 				$url = set_url_scheme( $url, 'https' );
+			}
 
 			$args = array(
 				'timeout' => 15,
-				'body' => array(
-					'action' => $action,
+				'body'    => array(
+					'action'  => $action,
 					'request' => serialize( $args )
 				)
 			);
 
 			$request = wp_remote_post( $url, $args );
 
-			if (is_wp_error( $request ))
+			if ( is_wp_error( $request ) ) {
 				return false;
+			}
 
 			$res = maybe_unserialize( wp_remote_retrieve_body( $request ) );
 
-			if ( ! is_object( $res ) && ! is_array( $res ) )
+			if ( ! is_object( $res ) && ! is_array( $res ) ) {
 				return false;
+			}
 
 			return $res;
 		}
@@ -167,13 +170,13 @@
 		 * Updates information on the "View version x.x details" page with custom data.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since 1.0.4
+		 * @since  1.0.4
 		 *
-		 * @uses FS_Api
+		 * @uses   FS_Api
 		 *
-		 * @param object     $data
-		 * @param string     $action
-		 * @param mixed      $args
+		 * @param object $data
+		 * @param string $action
+		 * @param mixed  $args
 		 *
 		 * @return object
 		 */
@@ -186,7 +189,7 @@
 				return $data;
 			}
 
-			$addon = false;
+			$addon    = false;
 			$is_addon = false;
 
 			if ( $this->_fs->get_slug() !== $args->slug ) {
@@ -200,15 +203,14 @@
 			}
 
 			$plugin_in_repo = false;
-			if (!$is_addon)
-			{
+			if ( ! $is_addon ) {
 				// Try to fetch info from .org repository.
 				$data = $this->_fetch_plugin_info_from_repository( $action, $args );
 
 				$plugin_in_repo = ( false !== $data );
 			}
 
-			if ( !$plugin_in_repo ) {
+			if ( ! $plugin_in_repo ) {
 				$data = $args;
 
 				// Fetch as much as possible info from local files.
@@ -228,23 +230,22 @@ if ( !isset($info->error) ) {
 			}
 
 			// Get plugin's newest update.
-			$new_version = $this->_fs->_fetch_latest_version($is_addon ? $addon->id : false);
+			$new_version = $this->_fs->_fetch_latest_version( $is_addon ? $addon->id : false );
 
-			if ($is_addon) {
+			if ( $is_addon ) {
 				$data->name    = $addon->title . ' ' . __fs( 'addon' );
 				$data->slug    = $addon->slug;
 				$data->url     = WP_FS__ADDRESS;
 				$data->package = $new_version->url;
 			}
 
-			if (!$plugin_in_repo)
-			{
-				$data->last_updated = !is_null($new_version->updated) ? $new_version->updated : $new_version->created;
-				$data->requires = $new_version->requires_platform_version;
-				$data->tested = $new_version->tested_up_to_version;
+			if ( ! $plugin_in_repo ) {
+				$data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
+				$data->requires     = $new_version->requires_platform_version;
+				$data->tested       = $new_version->tested_up_to_version;
 			}
 
-			$data->version = $new_version->version;
+			$data->version       = $new_version->version;
 			$data->download_link = $new_version->url;
 
 			return $data;

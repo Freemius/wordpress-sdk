@@ -27,7 +27,8 @@
 			return self::$_instance;
 		}
 
-		private function __construct() { }
+		private function __construct() {
+		}
 
 		/**
 		 * @param FS_Plugin_License[] $licenses
@@ -35,9 +36,9 @@
 		 * @return bool
 		 */
 		function has_premium_license( $licenses ) {
-			if (is_array($licenses)) {
+			if ( is_array( $licenses ) ) {
 				foreach ( $licenses as $license ) {
-					if ( !$license->is_utilized() && $license->is_features_enabled() ) {
+					if ( ! $license->is_utilized() && $license->is_features_enabled() ) {
 						return true;
 					}
 				}
@@ -56,8 +57,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_paid_plan($plans)
-		{
+		function has_paid_plan( $plans ) {
 			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
 				return false;
 			}
@@ -83,7 +83,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_free_plan($plans) {
+		function has_free_plan( $plans ) {
 			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
 				return true;
 			}
@@ -107,7 +107,7 @@
 		 *
 		 * @return FS_Plugin_Plan[]
 		 */
-		function get_trial_plans($plans) {
+		function get_trial_plans( $plans ) {
 			$trial_plans = array();
 
 			if ( is_array( $plans ) && 0 < count( $plans ) ) {
@@ -131,7 +131,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_trial_plan($plans) {
+		function has_trial_plan( $plans ) {
 			if ( ! is_array( $plans ) || 0 === count( $plans ) ) {
 				return true;
 			}

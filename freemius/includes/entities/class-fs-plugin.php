@@ -56,20 +56,21 @@
 		/**
 		 * @param stdClass|bool $plugin
 		 */
-		function __construct( $plugin = false )
-		{
-			if (!($plugin instanceof stdClass))
+		function __construct( $plugin = false ) {
+			if ( ! ( $plugin instanceof stdClass ) ) {
 				return;
+			}
 
-			parent::__construct($plugin);
+			parent::__construct( $plugin );
 
-			$this->slug = $plugin->slug;
-			$this->title = $plugin->title;
+			$this->slug       = $plugin->slug;
+			$this->title      = $plugin->title;
 			$this->is_premium = false;
-			$this->is_live = true;
+			$this->is_live    = true;
 
-			if (isset($plugin->info) && is_object($plugin->info))
-				$this->info = new FS_Plugin_Info($plugin->info);
+			if ( isset( $plugin->info ) && is_object( $plugin->info ) ) {
+				$this->info = new FS_Plugin_Info( $plugin->info );
+			}
 		}
 
 		/**
@@ -80,13 +81,11 @@
 		 *
 		 * @return bool
 		 */
-		function is_addon()
-		{
-			return isset($this->parent_plugin_id) && is_numeric($this->parent_plugin_id);
+		function is_addon() {
+			return isset( $this->parent_plugin_id ) && is_numeric( $this->parent_plugin_id );
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'plugin';
 		}
 	}

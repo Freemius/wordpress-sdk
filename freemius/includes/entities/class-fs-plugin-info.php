@@ -42,8 +42,7 @@
 			$this->screenshots       = $plugin_info->screenshots;
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'plugin';
 		}
 	}

@@ -10,15 +10,15 @@
 	 * KEEP THE POWERED BY TAB AND GET ADDITIONAL - 2% - OFF THE COMMISSION
 	 */
 
-	wp_enqueue_script('jquery');
-	wp_enqueue_script('json2');
-	fs_enqueue_local_script('postmessage', 'nojquery.ba-postmessage.min.js');
-	fs_enqueue_local_script('fs-postmessage', 'postmessage.js');
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'json2' );
+	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
+	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 ?>
 
 <div id="piframe"></div>
 <script type="text/javascript">
-	(function($) {
+	(function ($) {
 		$(function () {
 			var
 				base_url = '<?php echo WP_FS__ADDRESS ?>',
@@ -26,7 +26,7 @@
 					.appendTo('#piframe');
 
 			FS.PostMessage.init(base_url);
-			FS.PostMessage.receive('state', function (state){
+			FS.PostMessage.receive('state', function (state) {
 				if ('closed' === state)
 					$('#fs_promo_tab').css('width', '60px');
 				else

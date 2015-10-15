@@ -15,7 +15,7 @@
 	 *  fs_after_license_loaded
 	 */
 
-	if (!class_exists('Freemius')) {
+	if ( ! class_exists( 'Freemius' ) ) {
 
 		// Configuration should be loaded first.
 		require_once dirname( __FILE__ ) . '/config.php';

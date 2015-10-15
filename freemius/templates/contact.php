@@ -6,14 +6,14 @@
 	 * @since       1.0.3
 	 */
 
-	wp_enqueue_script('jquery');
-	wp_enqueue_script('json2');
-	fs_enqueue_local_script('postmessage', 'nojquery.ba-postmessage.min.js');
-	fs_enqueue_local_script('fs-postmessage', 'postmessage.js');
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'json2' );
+	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
+	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 	fs_enqueue_local_style( 'fs_checkout', '/admin/common.css' );
 
 	$slug = $VARS['slug'];
-	$fs = fs($slug);
+	$fs   = fs( $slug );
 
 	$context_params = array(
 		'plugin_id'         => $fs->get_id(),
@@ -23,7 +23,7 @@
 
 
 	// Get site context secure params.
-	if ($fs->is_registered()) {
+	if ( $fs->is_registered() ) {
 		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
 			$fs->get_site(),
 			time(),
@@ -31,23 +31,23 @@
 		) );
 	}
 
-	$query_params = array_merge($_GET, array_merge($context_params, array(
+	$query_params = array_merge( $_GET, array_merge( $context_params, array(
 		'plugin_version' => $fs->get_plugin_version(),
-		'wp_login_url' => wp_login_url(),
+		'wp_login_url'   => wp_login_url(),
 //		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
-	)));
+	) ) );
 ?>
-<div class="fs-secure-notice">
-	<i class="dashicons dashicons-lock"></i>
-	<span><b>Secure HTTPS contact page</b>, running via iframe from external domain</span>
-</div>
-<div id="fs_contact" class="wrap" style="margin: 40px 0 -65px -20px;">
-	<div id="iframe"></div>
-	<script type="text/javascript">
-		(function($) {
-			$(function () {
+	<div class="fs-secure-notice">
+		<i class="dashicons dashicons-lock"></i>
+		<span><b>Secure HTTPS contact page</b>, running via iframe from external domain</span>
+	</div>
+	<div id="fs_contact" class="wrap" style="margin: 40px 0 -65px -20px;">
+		<div id="iframe"></div>
+		<script type="text/javascript">
+			(function ($) {
+				$(function () {
 
-				var
+					var
 					// Keep track of the iframe height.
 					iframe_height = 800,
 					base_url = '<?php echo WP_FS__ADDRESS ?>',
@@ -57,16 +57,16 @@
 					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
 						.appendTo('#iframe');
 
-				FS.PostMessage.init(base_url);
-				FS.PostMessage.receive('height', function (data){
-					var h = data.height;
-					if (!isNaN(h) && h > 0 && h != iframe_height) {
-						iframe_height = h;
-						$("#iframe iframe").height(iframe_height + 'px');
-					}
+					FS.PostMessage.init(base_url);
+					FS.PostMessage.receive('height', function (data) {
+						var h = data.height;
+						if (!isNaN(h) && h > 0 && h != iframe_height) {
+							iframe_height = h;
+							$("#iframe iframe").height(iframe_height + 'px');
+						}
+					});
 				});
-			});
-		})(jQuery);
-	</script>
-</div>
-<?php fs_require_template('powered-by.php') ?>
+			})(jQuery);
+		</script>
+	</div>
+<?php fs_require_template( 'powered-by.php' ) ?>

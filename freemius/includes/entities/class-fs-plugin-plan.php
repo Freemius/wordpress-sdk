@@ -19,8 +19,7 @@
 		/**
 		 * @param stdClass|bool $plan
 		 */
-		function __construct( $plan = false )
-		{
+		function __construct( $plan = false ) {
 			if ( ! ( $plan instanceof stdClass ) ) {
 				return;
 			}
@@ -33,8 +32,7 @@
 			$this->is_require_subscription = $plan->is_require_subscription;
 		}
 
-		static function get_type()
-		{
+		static function get_type() {
 			return 'plan';
 		}
 
@@ -44,9 +42,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_free()
-		{
-			return ('free' === $this->name);
+		function is_free() {
+			return ( 'free' === $this->name );
 		}
 
 		/**
@@ -55,8 +52,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_trial()
-		{
+		function has_trial() {
 			return ! $this->is_free() &&
 			       is_numeric( $this->trial_period ) && ( $this->trial_period > 0 );
 		}

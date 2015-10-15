@@ -27,14 +27,14 @@
 		/**
 		 * @var FS_Logger
 		 */
-		protected  $_logger;
+		protected $_logger;
 
 		/**
 		 * @param string $slug
 		 *
 		 * @return FS_Plugin_Manager
 		 */
-		static function instance($slug) {
+		static function instance( $slug ) {
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
 				self::$_instances[ $slug ] = new FS_Plugin_Manager( $slug );
 			}
@@ -42,20 +42,18 @@
 			return self::$_instances[ $slug ];
 		}
 
-		protected function __construct($slug) {
+		protected function __construct( $slug ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_slug = $slug;
 			$this->load();
 		}
 
-		protected function get_option_manager()
-		{
+		protected function get_option_manager() {
 			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 		}
 
-		protected function get_all_plugins()
-		{
+		protected function get_all_plugins() {
 			return $this->get_option_manager()->get_option( 'plugins', array() );
 		}
 
@@ -83,11 +81,12 @@
 		 *
 		 * @return bool|\FS_Plugin
 		 */
-		function store($plugin = false, $flush = true) {
+		function store( $plugin = false, $flush = true ) {
 			$all_plugins = $this->get_all_plugins();
 
-			if (false !== $plugin)
+			if ( false !== $plugin ) {
 				$this->_plugin = $plugin;
+			}
 
 			$all_plugins[ $this->_slug ] = $this->_plugin;
 
@@ -108,17 +107,16 @@
 		 *
 		 * @return bool True if plugin was updated.
 		 */
-		function update(FS_Plugin $plugin, $store = true)
-		{
-			if (!($this->_plugin instanceof FS_Plugin) ||
-			    $this->_plugin->slug != $plugin->slug ||
-			    $this->_plugin->public_key != $plugin->public_key ||
-			    $this->_plugin->secret_key != $plugin->secret_key ||
-			    $this->_plugin->parent_plugin_id != $plugin->parent_plugin_id ||
-			    $this->_plugin->title != $plugin->title
-			)
-			{
-				$this->store($plugin, $store);
+		function update( FS_Plugin $plugin, $store = true ) {
+			if ( ! ( $this->_plugin instanceof FS_Plugin ) ||
+			     $this->_plugin->slug != $plugin->slug ||
+			     $this->_plugin->public_key != $plugin->public_key ||
+			     $this->_plugin->secret_key != $plugin->secret_key ||
+			     $this->_plugin->parent_plugin_id != $plugin->parent_plugin_id ||
+			     $this->_plugin->title != $plugin->title
+			) {
+				$this->store( $plugin, $store );
+
 				return true;
 			}
 
@@ -130,10 +128,9 @@
 		 * @since  1.0.6
 		 *
 		 * @param FS_Plugin $plugin
-		 * @param bool       $store
+		 * @param bool      $store
 		 */
-		function set(FS_Plugin $plugin, $store = false)
-		{
+		function set( FS_Plugin $plugin, $store = false ) {
 			$this->_plugin = $plugin;
 
 			if ( $store ) {
