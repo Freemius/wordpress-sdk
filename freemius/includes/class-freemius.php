@@ -706,7 +706,14 @@
 		 */
 		function get_anonymous_id() {
 			if ( ! self::$_accounts->has_option( 'unique_id' ) ) {
-				self::$_accounts->set_option( 'unique_id', md5( get_site_url() ), true );
+				$key = get_site_url();
+
+				// If localhost, assign microtime instead of domain.
+				if ( WP_FS__IS_LOCALHOST || false !== strpos( $key, 'localhost' ) ) {
+					$key = microtime();
+				}
+
+				self::$_accounts->set_option( 'unique_id', md5( $key ), true );
 			}
 
 			return self::$_accounts->get_option( 'unique_id' );
