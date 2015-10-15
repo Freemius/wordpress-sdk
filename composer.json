@@ -2,7 +2,7 @@
     "name": "freemius/wordpress-sdk",
     "description": "Freemius WordPress SDK",
     "keywords": ["freemius", "wordpress", "plugin", "sdk"],
-    "homepage": "https://github.com/freemius/wordpress-sdk",
+    "homepage": "https://freemius.com",
     "license": "GPL-2.0+",	
     "require": {
         "php": ">=5.2"
