@@ -739,26 +739,93 @@
 
 			$ping = $this->get_api_plugin_scope()->ping();
 
+			$message = false;
 			if ( is_object( $ping ) &&
-			     isset( $ping->error ) &&
-			     'cloudflare_ddos_protection' === $ping->error->code
+			     isset( $ping->error )
 			) {
-				$message = __fs( 'cloudflare-blocks-connection-message' );
-			} else {
+				switch ( $ping->error->code ) {
+					case 'cloudflare_ddos_protection':
+						$message = sprintf(
+							__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
+							__fs( 'cloudflare-blocks-connection-message' ) . ' ' .
+							__fs( 'happy-to-resolve-issue-asap' ) .
+							' %s',
+							'<b>' . $this->get_plugin_name() . '</b>',
+							sprintf(
+								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+								sprintf(
+									'<a class="fs-resolve" data-type="cloudflare" href="#"><b>%s</b></a>%s',
+									__fs( 'fix-issue-title' ),
+									' - ' . sprintf(
+										__fs( 'fix-issue-desc' ),
+										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+									)
+								),
+								sprintf(
+									'<a href="%s" target="_blank"><b>%s</b></a>%s',
+									sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+									__fs( 'install-previous-title' ),
+									' - ' . __fs( 'install-previous-desc' )
+								),
+								sprintf(
+									'<a href="%s"><b>%s</b></a>%s',
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									__fs( 'deactivate-plugin-title' ),
+									' - ' . __fs( 'deactivate-plugin-desc', 'freemius' )
+								)
+							)
+						);
+						break;
+					case 'squid_cache_block':
+						$message = sprintf(
+							__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
+							__fs( 'squid-blocks-connection-message' ) .
+							' %s',
+							'<b>' . $this->get_plugin_name() . '</b>',
+							sprintf(
+								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+								sprintf(
+									'<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a>%s',
+									__fs( 'squid-no-clue-title' ),
+									' - ' . sprintf(
+										__fs( 'squid-no-clue-desc' ),
+										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+									)
+								),
+								sprintf(
+									'<b>%s</b> - %s',
+									__fs( 'squid-sysadmin-title' ),
+									sprintf(
+										__fs( 'squid-sysadmin-desc' ),
+										// We use a filter since the plugin might require additional API connectivity.
+										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>' )
+								),
+								sprintf(
+									'<a href="%s"><b>%s</b></a>%s',
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									__fs( 'deactivate-plugin-title' ),
+									' - ' . __fs( 'deactivate-plugin-desc', 'freemius' )
+								)
+							)
+						);
+						break;
+					default:
 				$message = __fs( 'connectivity-test-fails-message' );
+						break;
+				}
 			}
 
-			$this->_admin_notices->add_sticky(
-				sprintf(
+			if (false === $message){
+				$message = sprintf(
 					__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
-					$message . ' ' .
+					__fs( 'connectivity-test-fails-message' ) . ' ' .
 					__fs( 'happy-to-resolve-issue-asap' ) .
 					' %s',
 					'<b>' . $this->get_plugin_name() . '</b>',
 					sprintf(
 						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 						sprintf(
-							'<a class="fs-resolve" href="#"><b>%s</b></a>%s',
+							'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
 							__fs( 'fix-issue-title' ),
 							' - ' . sprintf(
 								__fs( 'fix-issue-desc' ),
@@ -778,13 +845,15 @@
 							' - ' . __fs( 'deactivate-plugin-desc', 'freemius' )
 						)
 					)
-				),
+				);
+			}
+
+			$this->_admin_notices->add_sticky(
+				$message,
 				'failed_connect_api',
 				__fs( 'oops' ) . '...',
 				'error'
 			);
-
-//				add_action( "wp_ajax_{$this->_slug}_deactivate_plugin", array( &$this, 'send_affiliate_application' ) );
 		}
 
 		/**
@@ -842,10 +911,24 @@
 
 			$ping = $this->get_api_plugin_scope()->ping();
 
+			$error_type = fs_request_get('error_type', 'general');
+
+			switch ( $error_type ) {
+				case 'squid':
+					$title = 'Squid ACL Blocking Issue';
+					break;
+				case 'cloudflare':
+					$title = 'CloudFlare Blocking Issue';
+					break;
+				default:
+					$title = 'API Connectivity Issue';
+					break;
+			}
+
 			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
 			wp_mail(
 				'api@freemius.com',
-				'API Connectivity Issue [' . $this->get_plugin_name() . ']',
+				$title . ' [' . $this->get_plugin_name() . ']',
 				sprintf( '<table>
 	<thead>
 		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">SDK</th></tr>
@@ -867,7 +950,8 @@
 	<tbody>
 		<tr><td><b>Address:</b></td><td>%s</td></tr>
 		<tr><td><b>HTTP_HOST:</b></td><td>%s</td></tr>
-		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>
+		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>' . (('squid' !== $error_type) ? '' : '
+		<tr><td><b>Hosting Company:</b></td><td>' . fs_request_get('hosting_company') . '</td></tr>') . '
 	</tbody>
 	<thead>
 		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">User</th></tr>

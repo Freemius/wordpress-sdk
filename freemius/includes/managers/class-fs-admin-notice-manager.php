@@ -54,15 +54,17 @@
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_slug           = $slug;
-			$this->_title          = !empty($title) ? $title : '';
+			$this->_title          = ! empty( $title ) ? $title : '';
 			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_slug );
 
-			if (is_admin())
-			{
-				if (0 < count($this->_sticky_storage)) {
+			if ( is_admin() ) {
+				if ( 0 < count( $this->_sticky_storage ) ) {
 					// If there are sticky notices for the current slug, add a callback
 					// to the AJAX action that handles message dismiss.
-					add_action( "wp_ajax_{$slug}_dismiss_notice_action", array(&$this, 'dismiss_notice_ajax_callback') );
+					add_action( "wp_ajax_{$slug}_dismiss_notice_action", array(
+							&$this,
+							'dismiss_notice_ajax_callback'
+						) );
 
 					foreach ( $this->_sticky_storage as $id => $msg ) {
 						// Add admin notice.
@@ -88,7 +90,7 @@
 		 *
 		 */
 		function dismiss_notice_ajax_callback() {
-			$this->_sticky_storage->remove($_POST['message_id']);
+			$this->_sticky_storage->remove( $_POST['message_id'] );
 			wp_die();
 		}
 
@@ -104,6 +106,7 @@
 		}
 
 		private static $_added_sticky_javascript = false;
+
 		/**
 		 * Hook to the admin_footer to add sticky message dismiss JavaScript handler.
 		 *
@@ -164,8 +167,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 */
-		function _enqueue_styles()
-		{
+		function _enqueue_styles() {
 			fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 		}
 
@@ -208,14 +210,14 @@
 				'id'      => $id,
 				'all'     => $all_admin,
 				'slug'    => $this->_slug,
-				'plugin'   => $this->_title,
+				'plugin'  => $this->_title,
 			);
 
 			if ( $is_sticky && $store_if_sticky ) {
 				$this->_sticky_storage->{$id} = $message_object;
 			}
 
-			$this->_admin_messages[ $key ][$id] = $message_object;
+			$this->_admin_messages[ $key ][ $id ] = $message_object;
 		}
 
 		/**
@@ -225,10 +227,11 @@
 		 * @param string $ids
 		 */
 		function remove_sticky( $ids ) {
-			if (!is_array($ids))
-				$ids = array($ids);
+			if ( ! is_array( $ids ) ) {
+				$ids = array( $ids );
+			}
 
-			foreach ($ids as $id) {
+			foreach ( $ids as $id ) {
 				// Remove from sticky storage.
 				$this->_sticky_storage->remove( $id );
 
@@ -252,8 +255,7 @@
 		 *
 		 * @return bool
 		 */
-		function has_sticky($id)
-		{
+		function has_sticky( $id ) {
 			return isset( $this->_sticky_storage[ $id ] );
 		}
 
@@ -279,8 +281,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.8
 		 */
-		function clear_all_sticky()
-		{
+		function clear_all_sticky() {
 			$this->_sticky_storage->clear_all();
 		}
 
