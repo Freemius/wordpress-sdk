@@ -105,6 +105,21 @@
 						'language'          => get_bloginfo( 'language' ),
 						'charset'           => get_bloginfo( 'charset' ),
 					);
+
+					if ( WP_FS__SKIP_EMAIL_ACTIVATION && $fs->has_secret_key() ) {
+						// Even though rand() is known for its security issues,
+						// the timestamp adds another layer of protection.
+						// It would be very hard for an attacker to get the secret key form here.
+						// Plus, this should never run in production since the secret should never
+						// be included in the production version.
+						$params['ts']     = WP_FS__SCRIPT_START_TIME;
+						$params['salt']   = md5( uniqid( rand() ) );
+						$params['secure'] = md5(
+							$params['ts'] .
+							$params['salt'] .
+							$fs->get_secret_key()
+						);
+					}
 				?>
 				<?php foreach ( $params as $name => $value ) : ?>
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
@@ -155,8 +170,11 @@
 </div>
 <script type="text/javascript">
 	(function ($) {
-		$('.button.button-primary').on('click', function () {
+		$('.button').on('click', function () {
+			// Set loading mode.
 			$(document.body).css({'cursor': 'wait'});
+		});
+		$('.button.button-primary').on('click', function () {
 			$(this).html('<?php _efs( 'activating' ) ?>...').css({'cursor': 'wait'});
 		});
 		$('.fs-permissions .fs-trigger').on('click', function () {
