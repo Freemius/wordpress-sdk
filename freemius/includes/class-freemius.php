@@ -5158,7 +5158,7 @@
 									'<a href="%s">%s</a>',
 									$this->contact_url(
 										'bug',
-										sprintf( __( 'plan-did-not-change-email-message', 'freemius' ),
+										sprintf( __fs( 'plan-did-not-change-email-message', 'freemius' ),
 											strtoupper( $this->_site->plan->name )
 										)
 									),
