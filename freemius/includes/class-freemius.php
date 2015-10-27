@@ -1739,7 +1739,9 @@
 
 			if ( fs_request_is_action( $this->_slug . '_skip_activation' ) ) {
 				check_admin_referer( $this->_slug . '_skip_activation' );
-				$this->_storage->is_anonymous = true;
+
+				$this->skip_connection();
+
 				if ( fs_redirect( $this->apply_filters( 'after_skip_url', $this->_get_admin_page_url() ) ) ) {
 					exit();
 				}
@@ -1993,6 +1995,24 @@
 
 			// Clear API cache on deactivation.
 			FS_Api::clear_cache();
+		}
+
+		/**
+		 * Skip account connect, and set anonymous mode.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.1
+		 */
+		private function skip_connection() {
+			$this->_logger->entrance();
+
+			$this->_storage->is_anonymous = true;
+
+			// Send anonymous skip event.
+			// No user identified info nor any tracking will be sent after the user skips the opt-in.
+			$this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
+				'uid' => $this->get_anonymous_id(),
+			) );
 		}
 
 		/**
