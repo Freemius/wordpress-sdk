@@ -120,6 +120,8 @@
 				return false;
 			}
 
+			self::$_clock_diff = $new_clock_diff;
+
 			// Update API clock's diff.
 			$this->_api->SetClockDiff( self::$_clock_diff );
 
