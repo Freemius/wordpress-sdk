@@ -2075,12 +2075,12 @@
 
 			// Send uninstall event.
 			$this->get_api_site_scope()->call( '/', 'put', array(
-				'is_active'      => false,
-				'is_premium'     => $this->is_premium(),
-				'is_uninstalled' => true,
-				// Send version on uninstall.
-				'version'        => $this->get_plugin_version(),
-			) );
+					'is_active'      => false,
+					'is_premium'     => $this->is_premium(),
+					'is_uninstalled' => true,
+					// Send version on uninstall.
+					'version'        => $this->get_plugin_version(),
+				) );
 
 			// @todo Decide if we want to delete plugin information from db.
 		}
@@ -2206,6 +2206,16 @@
 		 */
 		function get_secret_key() {
 			return $this->_plugin->secret_key;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.1
+		 *
+		 * @return bool
+		 */
+		function has_secret_key() {
+			return ! empty( $this->_plugin->secret_key );
 		}
 
 		/**
@@ -3232,9 +3242,9 @@
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
 			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
-			return add_query_arg( array_merge( $params, array(
-				'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
-			) ), admin_url( 'admin.php', 'admin' ) );
+				return add_query_arg( array_merge( $params, array(
+					'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
+				) ), admin_url( 'admin.php', 'admin' ) );
 			} else {
 				return add_query_arg( array_merge( $params, array(
 					'page' => trim( "{$this->_slug}-{$page}", '-' )
@@ -4190,7 +4200,7 @@
 
 		private function _get_menu_slug( $slug = '' ) {
 			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
-			return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
+				return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
 			} else {
 				return $this->_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
 			}
