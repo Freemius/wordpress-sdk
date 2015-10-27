@@ -292,11 +292,28 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
+		 * @param null|string $unique_anonymous_id
 		 *
 		 * @return object
 		 */
-		function ping() {
-			return $this->_api->Ping();
+		function ping( $unique_anonymous_id = null ) {
+			return is_null( $unique_anonymous_id ) ?
+				$this->_api->Ping() :
+				$this->_call( 'ping.json?uid=' . $unique_anonymous_id );
+		}
+
+		/**
+		 * Check if valid ping request result.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.1
+		 *
+		 * @param mixed $pong
+		 *
+		 * @return bool
+		 */
+		function is_valid_ping( $pong ) {
+			return $this->_api->Test( $pong );
 		}
 
 		function get_url( $path = '' ) {
