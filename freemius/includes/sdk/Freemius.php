@@ -52,7 +52,7 @@
 		 */
 		public function __construct($pScope, $pID, $pPublic, $pSecret = false, $pSandbox = false)
 		{
-			// If secret key not provided, user public key encryption.
+			// If secret key not provided, use public key encryption.
 			if (is_bool($pSecret))
 				$pSecret = $pPublic;
 
