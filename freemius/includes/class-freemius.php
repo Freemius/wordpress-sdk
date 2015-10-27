@@ -5082,6 +5082,9 @@
 				// Sync licenses.
 				$this->_sync_licenses();
 
+				// Sync plans.
+				$this->_sync_plans();
+
 				// Check if plan / license changed.
 				if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
 				     // Check if trial started.
