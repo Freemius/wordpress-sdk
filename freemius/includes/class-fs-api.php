@@ -289,7 +289,9 @@
 
 				self::$_options->set_option( 'api_force_http', true, true );
 
-				$test = $this->_api->Test();
+				$test = is_null( $unique_anonymous_id ) ?
+					$this->_api->Test() :
+					$this->_api->Test( $this->_call( 'ping.json?uid=' . $unique_anonymous_id ) );
 			}
 
 			return $test;
