@@ -3709,7 +3709,7 @@
 					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
 
 					// Reload the page with with pending activation message.
-					if ( fs_redirect( $this->apply_filters( 'connect_url', $this->_get_admin_page_url() ) ) ) {
+					if ( fs_redirect( $this->apply_filters( 'after_pending_connect_url', $this->apply_filters( 'connect_url', $this->_get_admin_page_url() ) ) ) ) {
 						exit();
 					}
 				}
