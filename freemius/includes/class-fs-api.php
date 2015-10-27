@@ -108,13 +108,17 @@
 		/**
 		 * Find clock diff between server and API server, and store the diff locally.
 		 *
+		 * @param bool|int $diff
+		 *
 		 * @return bool|int False if clock diff didn't change, otherwise returns the clock diff in seconds.
 		 */
-		private function _sync_clock_diff() {
+		private function _sync_clock_diff( $diff = false ) {
 			$this->_logger->entrance();
 
 			// Sync clock and store.
-			$new_clock_diff = $this->_api->FindClockDiff();
+			$new_clock_diff = ( false === $diff ) ?
+				$this->_api->FindClockDiff() :
+				$diff;
 
 			if ( $new_clock_diff === self::$_clock_diff ) {
 				return false;
@@ -150,11 +154,14 @@
 			     isset( $result->error ) &&
 			     'request_expired' === $result->error->code
 			) {
-
 				if ( ! $retry ) {
+					$diff = isset( $result->error->timestamp ) ?
+						( time() - strtotime( $result->error->timestamp ) ) :
+						false;
+
 					// Try to sync clock diff.
-					if ( false !== $this->_sync_clock_diff() ) // Retry call with new synced clock.
-					{
+					if ( false !== $this->_sync_clock_diff( $diff ) ) {
+						// Retry call with new synced clock.
 						return $this->_call( $path, $method, $params, true );
 					}
 				}
