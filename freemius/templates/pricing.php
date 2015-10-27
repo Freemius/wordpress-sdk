@@ -39,7 +39,7 @@
 		);
 	}
 
-	$query_params = array_merge( $context_params, array(
+	$query_params = array_merge( $context_params, $_GET, array(
 		'next'           => $fs->_get_admin_page_url( 'account', array( 'fs_action' => $slug . '_sync_license' ) ),
 		'plugin_version' => $fs->get_plugin_version(),
 		// Billing cycle.
