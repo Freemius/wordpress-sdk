@@ -481,7 +481,9 @@
 		 * @return bool
 		 */
 		function is_activation_page() {
-			return isset( $_GET['page'] ) && ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) );
+			return isset( $_GET['page'] ) &&
+			       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
+			         ( strtolower( $this->_slug ) === strtolower( $_GET['page'] ) ) );
 		}
 
 		private static $_statics_loaded = false;
@@ -1801,7 +1803,8 @@
 		 * @return bool
 		 */
 		function _is_plugin_page() {
-			return fs_is_plugin_page( $this->_menu_slug );
+			return fs_is_plugin_page( $this->_menu_slug ) ||
+			       fs_is_plugin_page( $this->_slug );
 		}
 
 		/* Events
@@ -3200,9 +3203,15 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
+			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
 			return add_query_arg( array_merge( $params, array(
 				'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
 			) ), admin_url( 'admin.php', 'admin' ) );
+			} else {
+				return add_query_arg( array_merge( $params, array(
+					'page' => trim( "{$this->_slug}-{$page}", '-' )
+				) ), admin_url( 'admin.php', 'admin' ) );
+			}
 		}
 
 		/**
@@ -4019,7 +4028,7 @@
 					$menu['menu'][3],
 					$menu['menu'][0],
 					'manage_options',
-					$this->_menu_slug,
+					$this->_get_menu_slug(),
 					array( &$this, '_connect_page_render' ),
 					$menu['menu'][6],
 					$menu['position']
@@ -4152,7 +4161,11 @@
 		}
 
 		private function _get_menu_slug( $slug = '' ) {
+			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
 			return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
+			} else {
+				return $this->_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
+			}
 		}
 
 		/**
