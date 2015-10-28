@@ -11,22 +11,74 @@
 	}
 
 	class FS_Subscription extends FS_Entity {
-		public $user_id;
-		public $install_id;
-		public $plan_id;
-		public $license_id;
-		public $amount_per_cycle;
-		public $billing_cycle;
-		public $outstanding_balance;
-		public $failed_payments;
-		public $gateway;
-		public $trial_ends;
-		public $next_payment;
-		public $vat_id;
-		public $country_code;
+
+		#region Properties
 
 		/**
-		 * @param stdClass|bool $subscription
+		 * @var number
+		 */
+		public $user_id;
+		/**
+		 * @var number
+		 */
+		public $install_id;
+		/**
+		 * @var number
+		 */
+		public $plan_id;
+		/**
+		 * @var number
+		 */
+		public $license_id;
+		/**
+		 * @var float
+		 */
+		public $total_gross;
+		/**
+		 * @var float
+		 */
+		public $amount_per_cycle;
+		/**
+		 * @var int # of months
+		 */
+		public $billing_cycle;
+		/**
+		 * @var float
+		 */
+		public $outstanding_balance;
+		/**
+		 * @var int
+		 */
+		public $failed_payments;
+		/**
+		 * @var string
+		 */
+		public $gateway;
+		/**
+		 * @var string
+		 */
+		public $external_id;
+		/**
+		 * @var string|null
+		 */
+		public $trial_ends;
+		/**
+		 * @var string|null Datetime of the next payment, or null if cancelled
+		 */
+		public $next_payment;
+		/**
+		 * @var string|null
+		 */
+		public $vat_id;
+		/**
+		 * @var string Two characters country code
+		 */
+		public $country_code;
+
+		#endregion Properties
+
+		/**
+		 * @param object|bool $subscription
 		 */
 		function __construct( $subscription = false ) {
 			if ( ! ( $subscription instanceof stdClass ) ) {
@@ -39,11 +91,13 @@
 			$this->install_id          = $subscription->install_id;
 			$this->plan_id             = $subscription->plan_id;
 			$this->license_id          = $subscription->license_id;
+			$this->total_gross         = $subscription->total_gross;
 			$this->amount_per_cycle    = $subscription->amount_per_cycle;
 			$this->billing_cycle       = $subscription->billing_cycle;
 			$this->outstanding_balance = $subscription->outstanding_balance;
 			$this->failed_payments     = $subscription->failed_payments;
 			$this->gateway             = $subscription->gateway;
+			$this->external_id         = $subscription->external_id;
 			$this->trial_ends          = $subscription->trial_ends;
 			$this->next_payment        = $subscription->next_payment;
 			$this->vat_id              = $subscription->vat_id;

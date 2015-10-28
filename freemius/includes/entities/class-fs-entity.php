@@ -11,8 +11,17 @@
 	}
 
 	class FS_Entity {
+		/**
+		 * @var number
+		 */
 		public $id;
+		/**
+		 * @var string Datetime value in 'YYYY-MM-DD HH:MM:SS' format.
+		 */
 		public $updated;
+		/**
+		 * @var string Datetime value in 'YYYY-MM-DD HH:MM:SS' format.
+		 */
 		public $created;
 
 		/**
@@ -105,5 +114,17 @@
 		 */
 		function is_updated() {
 			return $this->_is_updated;
+		}
+
+		/**
+		 * @param $id
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.2
+		 *
+		 * @return bool
+		 */
+		static function is_valid_id($id){
+			return is_numeric($id);
 		}
 	}

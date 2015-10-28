@@ -11,13 +11,38 @@
 	}
 
 	class FS_User extends FS_Scope_Entity {
-		public $email;
-		public $first;
-		public $last;
-		public $is_verified;
+
+		#region Properties
 
 		/**
-		 * @param stdClass|bool $user
+		 * @var string
+		 */
+		public $email;
+		/**
+		 * @var string
+		 */
+		public $first;
+		/**
+		 * @var string
+		 */
+		public $last;
+		/**
+		 * @var bool
+		 */
+		public $is_verified;
+		/**
+		 * @var string|null
+		 */
+		public $customer_id;
+		/**
+		 * @var float
+		 */
+		public $gross;
+
+		#endregion Properties
+
+		/**
+		 * @param object|bool $user
 		 */
 		function __construct( $user = false ) {
 			if ( ! ( $user instanceof stdClass ) ) {
@@ -30,6 +55,8 @@
 			$this->first       = $user->first;
 			$this->last        = $user->last;
 			$this->is_verified = $user->is_verified;
+			$this->customer_id = $user->customer_id;
+			$this->gross       = $user->gross;
 		}
 
 		function get_name() {

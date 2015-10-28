@@ -11,7 +11,13 @@
 	}
 
 	class FS_Scope_Entity extends FS_Entity {
+		/**
+		 * @var string
+		 */
 		public $public_key;
+		/**
+		 * @var string
+		 */
 		public $secret_key;
 
 		/**

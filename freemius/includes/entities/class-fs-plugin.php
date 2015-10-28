@@ -24,6 +24,9 @@
 		 * @var string
 		 */
 		public $slug;
+
+		#region Install Specific Properties
+
 		/**
 		 * @var string
 		 */
@@ -52,6 +55,8 @@
 		 * @var bool
 		 */
 		public $is_live;
+
+		#endregion Install Specific Properties
 
 		/**
 		 * @param stdClass|bool $plugin

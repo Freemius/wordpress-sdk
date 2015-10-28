@@ -11,13 +11,57 @@
 	}
 
 	class FS_Plugin_License extends FS_Entity {
+
+		#region Properties
+
+		/**
+		 * @var number
+		 */
+		public $plugin_id;
+		/**
+		 * @var number
+		 */
+		public $user_id;
+		/**
+		 * @var number
+		 */
 		public $plan_id;
-		public $activated;
-		public $activated_local;
+		/**
+		 * @var number
+		 */
+		public $pricing_id;
+		/**
+		 * @var int
+		 */
 		public $quota;
+		/**
+		 * @var int
+		 */
+		public $activated;
+		/**
+		 * @var int
+		 */
+		public $activated_local;
+		/**
+		 * @var string
+		 */
 		public $expiration;
+		/**
+		 * @var bool $is_free_localhost Defaults to true. If true, allow unlimited localhost installs with the same
+		 *      license.
+		 */
 		public $is_free_localhost;
+		/**
+		 * @var bool $is_block_features Defaults to true. If false, don't block features after license expiry - only
+		 *      block updates and support.
+		 */
 		public $is_block_features;
+		/**
+		 * @var bool
+		 */
+		public $is_cancelled;
+
+		#endregion Properties
 
 		/**
 		 * @param stdClass|bool $license
@@ -29,13 +73,17 @@
 
 			parent::__construct( $license );
 
+			$this->plugin_id         = $license->plugin_id;
+			$this->user_id           = $license->user_id;
 			$this->plan_id           = $license->plan_id;
+			$this->pricing_id        = $license->pricing_id;
+			$this->quota             = $license->quota;
 			$this->activated         = $license->activated;
 			$this->activated_local   = $license->activated_local;
-			$this->quota             = $license->quota;
 			$this->expiration        = $license->expiration;
 			$this->is_free_localhost = $license->is_free_localhost;
 			$this->is_block_features = $license->is_block_features;
+			$this->is_cancelled      = $license->is_cancelled;
 		}
 
 		static function get_type() {
