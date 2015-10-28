@@ -296,7 +296,7 @@
 							$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
 						}
 					}
-		}
+				}
 
 				// If user is paying or in trial and have the free version installed,
 				// assume that the deactivation is for the upgrade process.
@@ -1108,25 +1108,12 @@
 		function _email_about_firewall_issue() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-			$active_plugin        = $this->get_active_plugins();
-			$active_plugin_string = '';
-			foreach ( $active_plugin as $plugin ) {
-				$active_plugin_string .= sprintf(
-					'<a href="%s">%s</a> [v%s]<br>',
-					$plugin['PluginURI'],
-					$plugin['Name'],
-					$plugin['Version']
-				);
-			}
-
 			if ( ! function_exists( 'wp_get_current_user' ) ) {
 				require_once( ABSPATH . 'wp-includes/pluggable.php' );
 			}
 
-			$curl_version = curl_version();
 			$current_user = wp_get_current_user();
-//			$admin_email = get_option( 'admin_email' );
-			$admin_email = $current_user->user_email;
+			$admin_email  = $current_user->user_email;
 
 			$ping = $this->get_api_plugin_scope()->ping();
 
@@ -1144,71 +1131,31 @@
 					break;
 			}
 
+			$custom_email_sections = array();
+
+			if ( 'squid' === $error_type ) {
+				// Override the 'Site' email section.
+				$custom_email_sections['site'] = array(
+					'rows' => array(
+						'hosting_company' => array( 'Hosting Company', fs_request_get( 'hosting_company' ) )
+					)
+				);
+			}
+
+			// Add 'API Error' custom email section.
+			$custom_email_sections['api_error'] = array(
+				'title' => 'API Error',
+				'rows'  => array(
+					'ping' => array( is_string( $ping ) ? htmlentities( $ping ) : json_encode( $ping ) )
+				)
+			);
+
 			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
-			wp_mail(
-				'api@freemius.com',
-				$title . ' [' . $this->get_plugin_name() . ']',
-				sprintf( '<table>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">SDK</th></tr>
-	</thead>
-	<tbody>
-		<tr><td><b>FS Version:</b></td><td>%s</td></tr>
-		<tr><td><b>cURL Version:</b></td><td>%s</td></tr>
-	</tbody>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Plugin</th></tr>
-	</thead>
-	<tbody>
-		<tr><td><b>Name:</b></td><td>%s</td></tr>
-		<tr><td><b>Version:</b></td><td>%s</td></tr>
-	</tbody>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Site</th></tr>
-	</thead>
-	<tbody>
-		<tr><td><b>Address:</b></td><td>%s</td></tr>
-		<tr><td><b>HTTP_HOST:</b></td><td>%s</td></tr>
-		<tr><td><b>SERVER_ADDR:</b></td><td>%s</td></tr>' . ( ( 'squid' !== $error_type ) ? '' : '
-		<tr><td><b>Hosting Company:</b></td><td>' . fs_request_get( 'hosting_company' ) . '</td></tr>' ) . '
-	</tbody>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">User</th></tr>
-	</thead>
-	<tbody>
-		<tr><td><b>Email:</b></td><td><a href="mailto:%s">%s</a></td></tr>
-		<tr><td><b>First:</b></td><td>%s</td></tr>
-		<tr><td><b>Last:</b></td><td>%s</td></tr>
-	</tbody>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">Plugins</th></tr>
-	</thead>
-	<tbody>
-		<tr><td style="vertical-align: top"><b>Active Plugins:</b></td><td>%s</td></tr>
-	</tbody>
-	<thead>
-		<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;">API Error</th></tr>
-	</thead>
-	<tbody>
-		<tr><td colspan="2">%s</td></tr>
-	</tbody>
-</table>',
-					$this->version,
-					$curl_version['version'],
-					$this->get_plugin_name(),
-					$this->get_plugin_version(),
-					site_url(),
-					! empty( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '',
-					! empty( $_SERVER['SERVER_ADDR'] ) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '',
-					$admin_email,
-					$admin_email,
-					$current_user->user_firstname,
-					$current_user->user_lastname,
-					$active_plugin_string,
-					( is_string( $ping ) ? htmlentities( $ping ) : json_encode( $ping ) )
-				),
-				"Content-type: text/html\r\n" .
-				"Reply-To: $admin_email <$admin_email>"
+			$this->_mail(
+				'api@freemius.com',                              // recipient
+				$title . ' [' . $this->get_plugin_name() . ']',  // subject
+				$custom_email_sections,
+				array( "Reply-To: $admin_email <$admin_email>" ) // headers
 			);
 
 			$this->_admin_notices->add_sticky(
@@ -1231,6 +1178,148 @@
 		}
 
 		#endregion Connectivity Issues ------------------------------------------------------------------
+
+		#region Email ------------------------------------------------------------------
+
+		/**
+		 * Generates and sends an HTML email with customizable sections.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.1
+		 *
+		 * @return bool Whether the email contents were sent successfully.
+		 */
+		function _mail( $recipient_email, $subject, $custom_email_sections = array(), $headers = array() ) {
+			$email_sections = $this->_get_email_sections();
+
+			// Insert new sections or replace the default email sections.
+			if ( is_array( $custom_email_sections ) && ! empty( $custom_email_sections ) ) {
+				foreach ( $custom_email_sections as $section_id => $custom_section ) {
+					if ( ! isset( $email_sections[ $section_id ] ) ) {
+						// If the section does not exist, add it.
+						$email_sections[ $section_id ] = $custom_section;
+					} else {
+						// If the section already exists, override it.
+						$current_section = $email_sections[ $section_id ];
+
+						// Replace the current section's title if a custom section title exists.
+						if ( isset( $custom_section['title'] ) ) {
+							$current_section['title'] = $custom_section['title'];
+						}
+
+						// Insert new rows under the current section or replace the default rows.
+						if ( isset( $custom_section['rows'] ) && is_array( $custom_section['rows'] ) && ! empty( $custom_section['rows'] ) ) {
+							foreach ( $custom_section['rows'] as $row_id => $row ) {
+								$current_section['rows'][ $row_id ] = $row;
+							}
+						}
+
+						$email_sections[ $section_id ] = $current_section;
+					}
+				}
+			}
+
+			$vars    = array( 'sections' => $email_sections );
+			$message = fs_get_template( 'email.php', $vars );
+
+			// Set the type of email to HTML.
+			$headers[] = 'Content-type: text/html';
+
+			$header_string = implode( "\r\n", $headers );
+
+			return wp_mail(
+				$recipient_email,
+				$subject,
+				$message,
+				$header_string
+			);
+		}
+
+		/**
+		 * Generates the data for the sections of the email content.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.1
+		 *
+		 * @return array
+		 */
+		function _get_email_sections() {
+			if ( ! function_exists( 'wp_get_current_user' ) ) {
+				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+			}
+
+			// Retrieve the current user's information so that we can get the user's email, first name, and last name below.
+			$current_user = wp_get_current_user();
+
+			// Retrieve the cURL version information so that we can get the version number below.
+			$curl_version_information = curl_version();
+
+			$active_plugin = $this->get_active_plugins();
+
+			// Generate the list of active plugins separated by new line. 
+			$active_plugin_string = '';
+			foreach ( $active_plugin as $plugin ) {
+				$active_plugin_string .= sprintf(
+					'<a href="%s">%s</a> [v%s]<br>',
+					$plugin['PluginURI'],
+					$plugin['Name'],
+					$plugin['Version']
+				);
+			}
+
+			// Generate the default email sections.
+			$sections = array(
+				'sdk'     => array(
+					'title' => 'SDK',
+					'rows'  => array(
+						'fs_version'   => array( 'FS Version', $this->version ),
+						'curl_version' => array( 'cURL Version', $curl_version_information['version'] )
+					)
+				),
+				'plugin'  => array(
+					'title' => 'Plugin',
+					'rows'  => array(
+						'name'    => array( 'Name', $this->get_plugin_name() ),
+						'version' => array( 'Version', $this->get_plugin_version() )
+					)
+				),
+				'site'    => array(
+					'title' => 'Site',
+					'rows'  => array(
+						'address'     => array( 'Address', site_url() ),
+						'host'        => array(
+							'HTTP_HOST',
+							( ! empty( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '' )
+						),
+						'server_addr' => array(
+							'SERVER_ADDR',
+							( ! empty( $_SERVER['SERVER_ADDR'] ) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '' )
+						)
+					)
+				),
+				'user'    => array(
+					'title' => 'User',
+					'rows'  => array(
+						'email' => array( 'Email', $current_user->user_email ),
+						'first' => array( 'First', $current_user->user_firstname ),
+						'last'  => array( 'Last', $current_user->user_lastname )
+					)
+				),
+				'plugins' => array(
+					'title' => 'Plugins',
+					'rows'  => array(
+						'active_plugins' => array( 'Active Plugins', $active_plugin_string )
+					)
+				),
+			);
+
+			// Allow the sections to be modified by other code.
+			$sections = $this->apply_filters( 'email_template_sections', $sections );
+
+			return $sections;
+		}
+
+		#endregion Email ------------------------------------------------------------------
 
 		#region Initialization ------------------------------------------------------------------
 
