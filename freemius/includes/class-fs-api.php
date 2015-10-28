@@ -10,6 +10,15 @@
 		exit;
 	}
 
+	/**
+	 * Class FS_Api
+	 *
+	 * Wraps Freemius API SDK to handle:
+	 *      1. Clock sync.
+	 *      2. Fallback to HTTP when HTTPS fails.
+	 *      3. Adds caching layer to GET requests.
+	 *      4. Adds consistency for failed requests by using last cached version.
+	 */
 	class FS_Api {
 		/**
 		 * @var FS_Api[]
@@ -55,7 +64,6 @@
 		 * @param bool        $is_sandbox
 		 * @param bool|string $secret_key Element's secret key.
 		 *
-		 * @internal param Freemius $freemius
 		 * @return FS_Api
 		 */
 		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false ) {
@@ -95,8 +103,6 @@
 		 * @param string      $public_key Public key.
 		 * @param bool|string $secret_key Element's secret key.
 		 * @param bool        $is_sandbox
-		 *
-		 * @internal param \Freemius $freemius
 		 */
 		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox ) {
 			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, $is_sandbox );
