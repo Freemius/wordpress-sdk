@@ -86,7 +86,38 @@
 		#endregion Account
 
 		'add-ons-for-x'                            => __( 'Add Ons for %s', 'freemius' ),
-		#region Connect
+		
+		#region Plugin Deactivation
+		'deactivation-share-reason'				   => __( 'If you have a moment, please let us know why you are deactivating', 'freemius' ),
+		'deactivation-modal-button-deactivate'     => __( 'Yes - Deactivate' ),
+		'deactivation-modal-button-submit'         => __( 'Submit & Deactivate', 'freemius' ),
+		'deactivation-modal-button-cancel'         => _x( 'Cancel', 'the text of the cancel button of the plugin deactivation dialog box.', 'freemius' ),
+		
+		'reason-no-longer-needed'                  => __( 'I no longer need the plugin', 'freemius' ),
+		'reason-found-a-better-plugin'             => __( 'I found a better plugin', 'freemius' ),
+		'reason-needed-for-a-short-period'         => __( 'I only needed the plugin for a short period', 'freemius' ),
+		'reason-broke-my-site'                     => __( 'The plugin broke my site', 'freemius' ),
+		'reason-suddenly-stopped-working'          => __( 'The plugin suddenly stopped working', 'freemius' ),
+		'reason-cant-pay-anymore'                  => __( "I can't pay for it anymore", 'freemius' ),
+		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.', 'freemius' ),
+		'placeholder-plugin-name'                  => __( "What's the plugin's name?", 'freemius' ),
+		'placeholder-comfortable-price'            => __( 'What price would you feel comfortable paying?', 'freemius' ),
+		
+		'reason-couldnt-make-it-work'              => __( "I couldn't understand how to make it work", 'freemius' ),
+		'reason-great-but-need-specific-feature'   => __( "The plugin is great, but I need specific feature that you don't support", 'freemius' ),
+		'reason-not-working'                       => __( 'The plugin is not working', 'freemius' ),
+		'reason-not-what-i-was-looking-for'        => __( "It's not what I was looking for", 'freemius' ),
+		'reason-didnt-work-as-expected'            => __( "The plugin didn't work as expected", 'freemius' ),
+		'placeholder-feature'                      => __( 'What feature?', 'freemius' ),
+		'placeholder-share-what-didnt-work'        => __( "Kindly share what didn't work so we can fix it for future users...", 'freemius' ),
+		'placeholder-what-youve-been-looking-for'  => __( "What you've been looking for?", 'freemius' ),
+		'placeholder-what-did-you-expect'		   => __( "What did you expect?", 'freemius' ),
+		
+		'reason-didnt-work'                        => __( "The plugin didn't work", 'freemius' ),
+		'reason-dont-like-to-share-my-information' => __( "I don't like to share my information with you", 'freemius' ),
+		#endregion Plugin Deactivation
+		
+        #region Connect
 		'hey-x'                                    => _x( 'Hey %s,', 'greeting', 'freemius' ),
 		'thanks-x'                                 => _x( 'Thanks %s!', 'a greeting. E.g. Thanks John!', 'freemius' ),
 		'connect-message'                          => __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),

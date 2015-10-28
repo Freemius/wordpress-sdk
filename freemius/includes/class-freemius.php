@@ -298,8 +298,217 @@
 					}
 		}
 
-//				$this->add_action( 'plugin_version_update', array( &$this, 'update_plugin_version_event' ));
+				// If user is paying or in trial and have the free version installed,
+				// assume that the deactivation is for the upgrade process.
+				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
+					add_action( 'wp_ajax_submit-uninstall-reason', array( &$this, '_submit_uninstall_reason_action' ) );
+
+					global $pagenow;
+					if ( 'plugins.php' === $pagenow ) {
+						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+					}
+				}
 			}
+		}
+
+		/**
+		 * Displays a confirmation and feedback dialog box when the user clicks on the "Deactivate" link on the plugins
+		 * page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.2
+		 */
+		function _add_deactivation_feedback_dialog_box() {
+			fs_enqueue_local_style( 'fs_deactivation_feedback', '/admin/deactivation-feedback.css' );
+
+			/* Check the type of user:
+			 * 1. Long-term (long-term)
+			 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
+			 * 3. Short-term (short-term)
+			 */
+			$is_long_term_user = true;
+
+			// Check if the site is at least 2 days old.
+			$time_installed = $this->_storage->install_timestamp;
+
+			// Difference in seconds.
+			$date_diff = time() - $time_installed;
+
+			// Convert seconds to days.
+			$date_diff_days = floor( $date_diff / ( 60 * 60 * 24 ) );
+
+			if ( $date_diff_days < 2 ) {
+				$is_long_term_user = false;
+			}
+
+			$is_long_term_user = $this->apply_filters( 'is_long_term_user', $is_long_term_user );
+
+			if ( $is_long_term_user ) {
+				$user_type = 'long-term';
+			} else {
+				if ( ! $this->is_registered() && ! $this->is_anonymous() ) {
+					$user_type = 'non-registered-and-non-anonymous-short-term';
+				} else {
+					$user_type = 'short-term';
+				}
+			}
+
+			$uninstall_reasons = $this->_get_uninstall_reasons( $user_type );
+
+			// Load the HTML template for the deactivation feedback dialog box.
+			$vars = array(
+				'reasons' => $uninstall_reasons,
+				'slug'    => $this->_slug
+			);
+
+			fs_require_once_template( 'deactivation-feedback-modal.php', $vars );
+		}
+
+		/**
+		 * @author Leo Fajardo (leorw)
+		 * @since  1.1.2
+		 *
+		 * @param string $user_type
+		 *
+		 * @return array The uninstall reasons for the specified user type.
+		 */
+		function _get_uninstall_reasons( $user_type = 'long-term' ) {
+			$reason_found_better_plugin = array(
+				'id'                => 2,
+				'text'              => __fs( 'reason-found-a-better-plugin' ),
+				'input_type'        => 'textfield',
+				'input_placeholder' => __fs( 'placeholder-plugin-name' )
+			);
+
+			$reason_other = array(
+				'id'                => 7,
+				'text'              => __fs( 'reason-other' ),
+				'input_type'        => 'textfield',
+				'input_placeholder' => ''
+			);
+
+			$long_term_user_reasons = array(
+				array(
+					'id'                => 1,
+					'text'              => __fs( 'reason-no-longer-needed' ),
+					'input_type'        => '',
+					'input_placeholder' => ''
+				),
+				$reason_found_better_plugin,
+				array(
+					'id'                => 3,
+					'text'              => __fs( 'reason-needed-for-a-short-period' ),
+					'input_type'        => '',
+					'input_placeholder' => ''
+				),
+				array(
+					'id'                => 4,
+					'text'              => __fs( 'reason-broke-my-site' ),
+					'input_type'        => '',
+					'input_placeholder' => ''
+				),
+				array(
+					'id'                => 5,
+					'text'              => __fs( 'reason-suddenly-stopped-working' ),
+					'input_type'        => '',
+					'input_placeholder' => ''
+				)
+			);
+
+			if ( $this->is_paying() ) {
+				$long_term_user_reasons[] = array(
+					'id'                => 6,
+					'text'              => __fs( 'reason-cant-pay-anymore' ),
+					'input_type'        => 'textfield',
+					'input_placeholder' => __fs( 'placeholder-comfortable-price' )
+				);
+			}
+
+			$long_term_user_reasons[] = $reason_other;
+
+			$uninstall_reasons = array(
+				'long-term'                                   => $long_term_user_reasons,
+				'non-registered-and-non-anonymous-short-term' => array(
+					array(
+						'id'                => 8,
+						'text'              => __fs( 'reason-didnt-work' ),
+						'input_type'        => '',
+						'input_placeholder' => ''
+					),
+					array(
+						'id'                => 9,
+						'text'              => __fs( 'reason-dont-like-to-share-my-information' ),
+						'input_type'        => '',
+						'input_placeholder' => ''
+					),
+					$reason_found_better_plugin,
+					$reason_other
+				),
+				'short-term'                                  => array(
+					array(
+						'id'                => 10,
+						'text'              => __fs( 'reason-couldnt-make-it-work' ),
+						'input_type'        => '',
+						'input_placeholder' => ''
+					),
+					$reason_found_better_plugin,
+					array(
+						'id'                => 11,
+						'text'              => __fs( 'reason-great-but-need-specific-feature' ),
+						'input_type'        => 'textarea',
+						'input_placeholder' => __fs( 'placeholder-feature' )
+					),
+					array(
+						'id'                => 12,
+						'text'              => __fs( 'reason-not-working' ),
+						'input_type'        => 'textarea',
+						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work' )
+					),
+					array(
+						'id'                => 13,
+						'text'              => __fs( 'reason-not-what-i-was-looking-for' ),
+						'input_type'        => 'textarea',
+						'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for' )
+					),
+					array(
+						'id'                => 14,
+						'text'              => __fs( 'reason-didnt-work-as-expected' ),
+						'input_type'        => 'textarea',
+						'input_placeholder' => __fs( 'placeholder-what-did-you-expect' )
+					),
+					$reason_other
+				)
+			);
+
+			$uninstall_reasons = $this->apply_filters( 'uninstall_reasons', $uninstall_reasons );
+
+			return $uninstall_reasons[ $user_type ];
+		}
+
+		/**
+		 * Called after the user has submitted his reason for deactivating the plugin.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.2
+		 */
+		function _submit_uninstall_reason_action() {
+			if ( ! isset( $_POST['reason_id'] ) ) {
+				exit;
+			}
+
+			$reason_info = isset( $_REQUEST['reason_info'] ) ? trim( stripslashes( $_REQUEST['reason_info'] ) ) : '';
+
+			$reason = (object) array(
+				'id'   => $_POST['reason_id'],
+				'info' => substr( $reason_info, 0, 128 )
+			);
+
+			$this->_storage->store( 'uninstall_reason', $reason );
+
+			// Print '1' for successful operation.
+			echo 1;
+			exit;
 		}
 
 		/**
@@ -2073,14 +2282,28 @@
 				return;
 			}
 
-			// Send uninstall event.
-			$this->get_api_site_scope()->call( '/', 'put', array(
+			$params = array();
+			if ( isset( $this->_storage->uninstall_reason ) ) {
+				$params['reason_id']   = $this->_storage->uninstall_reason->id;
+				$params['reason_info'] = $this->_storage->uninstall_reason->info;
+			}
+
+			if ( ! $this->is_registered() && isset( $this->_storage->uninstall_reason ) ) {
+				// Send anonymous uninstall event only if user submitted a feedback.
+				$params['uid'] = $this->get_anonymous_id();
+				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+			} else {
+				$params = array_merge( $params, array(
 					'is_active'      => false,
 					'is_premium'     => $this->is_premium(),
 					'is_uninstalled' => true,
 					// Send version on uninstall.
 					'version'        => $this->get_plugin_version(),
 				) );
+
+				// Send uninstall event.
+				$this->get_api_site_scope()->call( '/', 'put', $params );
+			}
 
 			// @todo Decide if we want to delete plugin information from db.
 		}
@@ -6714,6 +6937,18 @@
 			foreach ( $this->_action_links as $new_links ) {
 				foreach ( $new_links as $link ) {
 					$links[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank"' : '' ) . '>' . $link['label'] . '</a>';
+				}
+			}
+
+			/*
+			 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
+			 * 
+			 * If user is paying or in trial and have the free version installed,
+			 * assume that the deactivation is for the upgrade process, so this is not needed.
+			 */
+			if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
+				if ( isset( $links['deactivate'] ) ) {
+					$links['deactivate'] .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
 				}
 			}
 
