@@ -11,13 +11,30 @@
 	}
 
 	class FS_Plugin_Plan extends FS_Entity {
-		public $title;
-		public $name;
-		public $trial_period;
-		public $is_require_subscription;
+
+		#region Properties
 
 		/**
-		 * @param stdClass|bool $plan
+		 * @var string
+		 */
+		public $title;
+		/**
+		 * @var string
+		 */
+		public $name;
+		/**
+		 * @var int Trial days.
+		 */
+		public $trial_period;
+		/**
+		 * @var string If true, require payment for trial.
+		 */
+		public $is_require_subscription;
+
+		#endregion Properties
+
+		/**
+		 * @param object|bool $plan
 		 */
 		function __construct( $plan = false ) {
 			if ( ! ( $plan instanceof stdClass ) ) {
