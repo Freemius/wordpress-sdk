@@ -23,6 +23,14 @@
 		throw new Exception( 'Freemius needs the JSON PHP extension.' );
 	}
 
+	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY' ) ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY', false );
+	}
+
+	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL' ) ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
+	}
+
 	// Include all exception files.
 	$exceptions = array(
 		'Exception',
@@ -121,9 +129,9 @@
 
 			if ( WP_FS__DEV_MODE ) {
 				// Connectivity errors simulation.
-				if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
+				if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY ) {
 					return $this->GetCloudFlareDDoSError();
-				} else if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
+				} else if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
 					return $this->GetSquidAclError();
 				}
 			}

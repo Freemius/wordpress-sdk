@@ -20,6 +20,12 @@
 	 */
 	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false );
 	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
+	if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY', true );
+	}
+	if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
+	}
 
 	/**
 	 * If true and running with secret key, the opt-in process
