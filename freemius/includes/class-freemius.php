@@ -950,9 +950,8 @@
 			if ( ! function_exists( 'wp_nonce_url' ) ) {
 				require_once( ABSPATH . 'wp-includes/functions.php' );
 			}
-			if ( ! function_exists( 'wp_get_current_user' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
-			}
+
+			self::require_pluggable_essentials();
 
 			$current_user = wp_get_current_user();
 //			$admin_email = get_option( 'admin_email' );
@@ -1108,9 +1107,7 @@
 		function _email_about_firewall_issue() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-			if ( ! function_exists( 'wp_get_current_user' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
-			}
+			self::require_pluggable_essentials();
 
 			$current_user = wp_get_current_user();
 			$admin_email  = $current_user->user_email;
@@ -1244,9 +1241,7 @@
 		 * @return array
 		 */
 		function _get_email_sections() {
-			if ( ! function_exists( 'wp_get_current_user' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
-			}
+			self::require_pluggable_essentials();
 
 			// Retrieve the current user's information so that we can get the user's email, first name, and last name below.
 			$current_user = wp_get_current_user();
@@ -2461,6 +2456,18 @@
 		}
 
 		/**
+		 * Load WordPress core pluggable.php module.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.2
+		 */
+		private static function require_pluggable_essentials() {
+			if ( ! function_exists( 'wp_get_current_user' ) ) {
+				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+			}
+		}
+
+		/**
 		 * Return plugin data.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -3582,9 +3589,7 @@
 				$params['fs_action'] = $action;
 			}
 
-			if ( ! function_exists( 'wp_create_nonce' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
-			}
+			self::require_pluggable_essentials();
 
 			return ( $add_action_nonce && is_string( $action ) ) ?
 				wp_nonce_url( $this->_get_admin_page_url( 'account', $params ), $action ) :
