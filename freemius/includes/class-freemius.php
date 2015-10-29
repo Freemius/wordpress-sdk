@@ -1148,7 +1148,7 @@
 			);
 
 			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
-			$this->_mail(
+			$this->send_email(
 				'api@freemius.com',                              // recipient
 				$title . ' [' . $this->get_plugin_name() . ']',  // subject
 				$custom_email_sections,
@@ -1182,22 +1182,32 @@
 		 * Generates and sends an HTML email with customizable sections.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.1.1
+		 * @since  1.1.2
+		 *
+		 * @param string $to_address
+		 * @param string $subject
+		 * @param array  $sections
+		 * @param array  $headers
 		 *
 		 * @return bool Whether the email contents were sent successfully.
 		 */
-		function _mail( $recipient_email, $subject, $custom_email_sections = array(), $headers = array() ) {
-			$email_sections = $this->_get_email_sections();
+		private function send_email(
+			$to_address,
+			$subject,
+			$sections = array(),
+			$headers = array()
+		) {
+			$default_sections = $this->get_email_sections();
 
 			// Insert new sections or replace the default email sections.
-			if ( is_array( $custom_email_sections ) && ! empty( $custom_email_sections ) ) {
-				foreach ( $custom_email_sections as $section_id => $custom_section ) {
-					if ( ! isset( $email_sections[ $section_id ] ) ) {
+			if ( is_array( $sections ) && ! empty( $sections ) ) {
+				foreach ( $sections as $section_id => $custom_section ) {
+					if ( ! isset( $default_sections[ $section_id ] ) ) {
 						// If the section does not exist, add it.
-						$email_sections[ $section_id ] = $custom_section;
+						$default_sections[ $section_id ] = $custom_section;
 					} else {
 						// If the section already exists, override it.
-						$current_section = $email_sections[ $section_id ];
+						$current_section = $default_sections[ $section_id ];
 
 						// Replace the current section's title if a custom section title exists.
 						if ( isset( $custom_section['title'] ) ) {
@@ -1211,12 +1221,12 @@
 							}
 						}
 
-						$email_sections[ $section_id ] = $current_section;
+						$default_sections[ $section_id ] = $current_section;
 					}
 				}
 			}
 
-			$vars    = array( 'sections' => $email_sections );
+			$vars    = array( 'sections' => $default_sections );
 			$message = fs_get_template( 'email.php', $vars );
 
 			// Set the type of email to HTML.
@@ -1225,7 +1235,7 @@
 			$header_string = implode( "\r\n", $headers );
 
 			return wp_mail(
-				$recipient_email,
+				$to_address,
 				$subject,
 				$message,
 				$header_string
@@ -1236,11 +1246,11 @@
 		 * Generates the data for the sections of the email content.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.1.1
+		 * @since  1.1.2
 		 *
 		 * @return array
 		 */
-		function _get_email_sections() {
+		private function get_email_sections() {
 			self::require_pluggable_essentials();
 
 			// Retrieve the current user's information so that we can get the user's email, first name, and last name below.
