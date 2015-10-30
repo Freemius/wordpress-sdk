@@ -4397,12 +4397,24 @@
 					$menu['position']
 				);
 			} else {
+				$menus = array(
+					'tools.php',
+					'options-general.php',
+				);
+
+				foreach ( $menus as $menu_file ) {
 				// Try to override tools submenu item if exist.
 				$hook = $this->override_plugin_submenu_action(
-					'tools.php',
+						$menu_file,
 					$this->_menu_slug,
 					array( &$this, '_connect_page_render' )
 				);
+
+					if ( false !== $hook ) {
+						// Found plugin's submenu item.
+						break;
+					}
+				}
 			}
 
 			if ( $this->is_activation_page() ) {
@@ -4410,11 +4422,13 @@
 				$this->_clean_admin_content_section();
 			}
 
+			if ( false !== $hook ) {
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
 				add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
 			} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
 				add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
 			}
+		}
 		}
 
 		/**
