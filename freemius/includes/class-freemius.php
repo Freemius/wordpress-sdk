@@ -3934,7 +3934,7 @@
 		 *
 		 * @return bool False if account already set.
 		 */
-		function setup_account( FS_User $user, FS_Site $site ) {
+		function setup_account( FS_User $user, FS_Site $site, $redirect = true ) {
 			$this->_user = $user;
 			$this->_site = $site;
 			$this->_enrich_site_plan( false );
@@ -3992,7 +3992,7 @@
 			if ( is_numeric( $plugin_id ) ) {
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
-					if ( fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
+					if ( $redirect && fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
 						'account',
 						array(
 							'fs_action' => $this->_slug . '_sync_license',
@@ -4005,7 +4005,7 @@
 				}
 			} else {
 				// Reload the page with the keys.
-				if ( fs_redirect( $this->apply_filters( 'after_connect_url', $this->_get_admin_page_url() ) ) ) {
+				if ( $redirect && fs_redirect( $this->apply_filters( 'after_connect_url', $this->_get_admin_page_url() ) ) ) {
 					exit();
 				}
 			}
