@@ -2061,13 +2061,11 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->is_activation_page() ) {
-						$activation_url = $this->_get_admin_page_url();
-
 						$this->_admin_notices->add(
 							sprintf(
 								__fs( 'you-are-step-away' ),
 								sprintf( '<b><a href="%s">%s</a></b>',
-									$activation_url,
+									$this->get_activation_url(),
 									sprintf( __fs( 'activate-x-now' ), $this->get_plugin_name() )
 								)
 							),
@@ -6287,6 +6285,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.2
+		 *
+		 * @return string
+		 */
+		private function get_activation_url() {
+			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url() );
+		}
+
+		/**
 		 * Handle account page updates / edits / actions.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -6308,7 +6316,7 @@
 					if ( $plugin_id == $this->get_id() ) {
 						$this->delete_account_event();
 
-						if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+						if ( fs_redirect( $this->get_activation_url() ) ) {
 							exit();
 						}
 					} else {
@@ -6999,7 +7007,7 @@
 
 			if ( ! $this->is_addon() ) {
 				$plugin_fs = $this;
-				$url       = $plugin_fs->apply_filters( 'connect_url', $plugin_fs->_get_admin_page_url() );
+				$url       = $plugin_fs->get_activation_url();
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
 					$plugin_fs = self::get_parent_instance();
@@ -7008,7 +7016,7 @@
 				if ( is_object( $plugin_fs ) ) {
 					if ( ! $plugin_fs->is_registered() ) {
 						// Forward to parent plugin connect when parent not registered.
-						$url = $plugin_fs->apply_filters( 'connect_url', $plugin_fs->_get_admin_page_url() );
+						$url = $plugin_fs->get_activation_url();
 					} else {
 						// Forward to account page.
 						$url = $plugin_fs->_get_admin_page_url( 'account' );
