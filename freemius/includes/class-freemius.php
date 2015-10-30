@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.1.1';
+		public $version = '1.1.2';
 
 		/**
 		 * @since 1.0.1
@@ -4403,12 +4403,12 @@
 				);
 
 				foreach ( $menus as $menu_file ) {
-				// Try to override tools submenu item if exist.
-				$hook = $this->override_plugin_submenu_action(
+					// Try to override tools submenu item if exist.
+					$hook = $this->override_plugin_submenu_action(
 						$menu_file,
-					$this->_menu_slug,
-					array( &$this, '_connect_page_render' )
-				);
+						$this->_menu_slug,
+						array( &$this, '_connect_page_render' )
+					);
 
 					if ( false !== $hook ) {
 						// Found plugin's submenu item.
@@ -4423,12 +4423,12 @@
 			}
 
 			if ( false !== $hook ) {
-			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
-				add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
-			} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
-				add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+				if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
+					add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
+				} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+					add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+				}
 			}
-		}
 		}
 
 		/**
