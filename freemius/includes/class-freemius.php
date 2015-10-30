@@ -3568,7 +3568,7 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
+			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
 				return add_query_arg( array_merge( $params, array(
 					'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
 				) ), admin_url( 'admin.php', 'admin' ) );
