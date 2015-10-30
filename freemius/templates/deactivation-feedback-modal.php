@@ -16,20 +16,20 @@
 
 	foreach ( $reasons as $reason ) {
 		$list_item_classes = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
-		$reasons_list_items_html .= '<li class="' . $list_item_classes . '" data-input-type="' . $reason['input_type'] . '" data-input-placeholder="' . $reason['input_placeholder'] . '"><label><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/> <span>' . $reason['text'] . '.</span></label></li>';
+		$reasons_list_items_html .= '<li class="' . $list_item_classes . '" data-input-type="' . $reason['input_type'] . '" data-input-placeholder="' . $reason['input_placeholder'] . '"><label><span><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/></span><span>' . $reason['text'] . '</span></label></li>';
 	}
 	?>
 	<script>
 		(function( $ ) {
 			var reasonsHtml		= <?php echo json_encode( $reasons_list_items_html ); ?>,
 				modalHtml		=
-				'<div class="freemius-modal<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
-				+	'	<div class="freemius-modal-dialog">'
-				+	'		<div class="freemius-modal-body">'
-				+	'			<div class="freemius-modal-panel panel-confirmation"><p><?php echo $confirmation_message; ?></p></div>'
-				+	'			<div class="freemius-modal-panel panel-reasons"><p><strong><?php printf( __fs( 'deactivation-share-reason' ) ); ?>:</strong></p><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
+				'<div class="fs-modal<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
+				+	'	<div class="fs-modal-dialog">'
+				+	'		<div class="fs-modal-body">'
+				+	'			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
+				+	'			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs( 'deactivation-share-reason' ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
 				+	'		</div>'
-				+	'		<div class="freemius-modal-footer">'
+				+	'		<div class="fs-modal-footer">'
 				+	'			<a href="#" class="button button-secondary button-deactivate"></a>'
 				+	'			<a href="#" class="button button-primary button-close"><?php printf( __fs( 'deactivation-modal-button-cancel' ) ); ?></a>'
 				+	'		</div>'
@@ -56,12 +56,10 @@
 						return;
 					}
 					
-					var _parent = $( this ).parents( '.freemius-modal:first' );
+					var _parent = $( this ).parents( '.fs-modal:first' );
 					var _this = $( this );
 
-					if ( _this.hasClass( 'button-close' ) ) {
-						$modal.removeClass( 'active' );
-					} else if ( _this.hasClass( 'allow-deactivate' ) ) {
+					if ( _this.hasClass( 'allow-deactivate' ) ) {
                         var $radio           = $( 'input[type="radio"]:checked' );
 						
 						if ( 0 === $radio.length ) {
@@ -103,7 +101,7 @@
 					
 					$modal.find( '.reason-input' ).remove();
 					$modal.find( '.button-deactivate').text( '<?php printf( __fs( 'deactivation-modal-button-submit' ) ); ?>' );
-
+					
 					if ( _parent.hasClass( 'has-input' ) ) {
 						var inputType		 = _parent.data( 'input-type' ),
 							inputPlaceholder = _parent.data( 'input-placeholder' ),
@@ -113,6 +111,23 @@
 						_parent.find( 'input, textarea' ).attr( 'placeholder', inputPlaceholder ).focus();
 					}
 				});
+				
+				// If the user has clicked outside the window, cancel it.
+				$modal.on( 'click', function( evt ) {
+					var $target = $( evt.target );
+					
+					// If the user has clicked anywhere in the modal dialog, just return.
+					if ( $target.hasClass( 'fs-modal-body' ) || $target.hasClass( 'fs-modal-footer' ) ) {
+						return;
+					}
+					
+					// If the user has not clicked the close button and the clicked element is inside the modal dialog, just return.
+					if ( ! $target.hasClass( 'button-close' ) && ( $target.parents( '.fs-modal-body').length > 0 ||  $target.parents( '.fs-modal-footer').length > 0 ) ) {
+						return;
+					}
+					
+					closeModal();
+				});
 			}
 			
 			function showModal() {
@@ -120,6 +135,14 @@
 				
 				// Display the dialog box.
 				$modal.addClass( 'active' );
+				
+				$( 'body' ).addClass( 'has-fs-modal' );
+			}
+			
+			function closeModal() {
+				$modal.removeClass( 'active' );
+				
+				$( 'body' ).removeClass( 'has-fs-modal' );
 			}
 			
 			function resetModal() {
@@ -133,37 +156,41 @@
 				
 				var $deactivateButton = $modal.find( '.button-deactivate' );
 				
-				// Reset the deactivate button's text.
-				$deactivateButton.text( '<?php printf( __fs( 'deactivation-modal-button-deactivate' ) ); ?>' );
-				
 				/*
 				 * If the modal dialog has no confirmation message, that is, it has only one panel, then ensure
 				 * that clicking the deactivate button will actually deactivate the plugin.
 				 */
 				if ( $modal.hasClass( 'no-confirmation-message' ) ) {
 					$deactivateButton.addClass( 'allow-deactivate' );
+					
+					showPanel( 'reasons' );
 				} else {
 					$deactivateButton.removeClass( 'allow-deactivate' );
+					
+					showPanel( 'confirm' );
 				}
-				
-                showDefaultPanel();
 			}
             
-            function showDefaultPanel() {
-                if ( $modal.hasClass( 'no-confirmation-message' ) ) {
-                    // If no confirmation message, show the reasons panel immediately.
-    				$modal.find( '.panel-confirmation').removeClass( 'active' );
-    				$modal.find( '.panel-reasons').addClass( 'active' );
-                } else {
-                    // Show the confirmation message first if it is available, then hide the reasons panel.
-    				$modal.find( '.panel-reasons').removeClass( 'active' );
-    				$modal.find( '.panel-confirmation').addClass( 'active' );
-                }                   
-            }
-            
             function showPanel( panelType ) {
-                $modal.find( '.freemius-modal-panel' ).removeClass( 'active ');
-                $modal.find( '.panel-' + panelType ).addClass( 'active' );
+                $modal.find( '.fs-modal-panel' ).removeClass( 'active ');
+                $modal.find( '[data-panel-id="' + panelType + '"]' ).addClass( 'active' );
+				
+				updateButtonLabels();
             }
+			
+			function updateButtonLabels() {
+				var $deactivateButton = $modal.find( '.button-deactivate' );
+				
+				// Reset the deactivate button's text.
+				if ( 'confirm' === getCurrentPanel() ) {
+					$deactivateButton.text( '<?php printf( __fs( 'deactivation-modal-button-confirm' ) ); ?>' );
+				} else {
+					$deactivateButton.text( '<?php printf( __fs( 'deactivation-modal-button-deactivate' ) ); ?>' );
+				}
+			}
+			
+			function getCurrentPanel() {
+                return $modal.find( '.fs-modal-panel.active' ).attr( 'data-panel-id' );
+			}
 		})( jQuery );
 	</script>

@@ -1,4 +1,4 @@
-.freemius-modal {
+.fs-modal {
 	position: fixed;
 	overflow: auto;
 	height: 100%;
@@ -8,22 +8,44 @@
 	display: none;
 	background: rgba(0, 0, 0, 0.6);
 
-	.freemius-modal-dialog {
+	.fs-modal-dialog {
 		background: transparent;
-		padding-bottom: 30px;
 		position: absolute;
 		left: 50%;
-		margin-left: -250px;
+		margin-left: -298px;
+		padding-bottom: 30px;
 		top: -100%;
 		z-index: 100001;
-		width: 500px;
-		-webkit-transform: translate(0, -500%);
-		-ms-transform: translate(0, -500%);
-		transform: translate(0, -500%);
-		-webkit-transition: -webkit-transform 0.3s ease-out;
-		-moz-transition: -moz-transform 0.3s ease-out;
-		-o-transition: -o-transform 0.3s ease-out;
-		transition: transform 0.3s ease-out;
+		width: 596px;
+		
+		@media (max-width: 650px) {
+			margin-left: -50%;
+			box-sizing: border-box;
+			padding-left: 10px;
+			padding-right: 10px;
+			width: 100%;
+			
+			.fs-modal-panel > h3 > strong {
+				font-size: 1.3em;
+			}
+			
+			li.reason {
+				margin-bottom: 10px;
+				
+				.reason-input {
+					margin-left: 29px;
+				}
+				
+				label {
+					display: table;
+
+					> span {
+						display: table-cell;
+						font-size: 1.3em;
+					}
+				}
+			}
+		}
 	}
 
 	&.active {
@@ -33,24 +55,20 @@
 			display: block;
 		}
 
-		.freemius-modal-dialog {
-			-webkit-transform: translate(0, 0);
-			-ms-transform: translate(0, 0);
-			transform: translate(0, 0);
+		.fs-modal-dialog {
 			top: 10%;
 		}
 	}
 
-	.freemius-modal-body,
-	.freemius-modal-footer {
+	.fs-modal-body,
+	.fs-modal-footer {
 		border: 0;
 		background: #fefefe;
 		padding: 20px;
 	}
 
-	.freemius-modal-body {
+	.fs-modal-body {
 		border-bottom: 0;
-		border-radius: 5px 5px 0 0;
 
 		h2 {
 			font-size: 20px;
@@ -67,9 +85,8 @@
 		}
 	}
 
-	.freemius-modal-footer {
+	.fs-modal-footer {
 		border-top: #eeeeee solid 1px;
-		border-radius: 0 0 5px 5px;
 		text-align: right;
 		
 		> .button {
@@ -81,7 +98,7 @@
 		}
 	}
 
-	.freemius-modal-panel:not(.active) {
+	.fs-modal-panel:not(.active) {
 		display: none;
 	}
 	
@@ -92,6 +109,10 @@
 			width: 100%;
 		}
 	}
+}
+
+body.has-fs-modal {
+	overflow: hidden;
 }
 
 #the-list .deactivate > .fs-slug {
