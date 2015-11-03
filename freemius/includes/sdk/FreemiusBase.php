@@ -23,14 +23,6 @@
 		throw new Exception( 'Freemius needs the JSON PHP extension.' );
 	}
 
-	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY' ) ) {
-		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY', false );
-	}
-
-	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL' ) ) {
-		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
-	}
-
 	// Include all exception files.
 	$exceptions = array(
 		'Exception',
@@ -122,87 +114,29 @@
 		 * @param string $pMethod
 		 * @param array  $pParams
 		 *
-		 * @return array|object|null
+		 * @return object[]|object|null
 		 */
 		private function _Api( $pPath, $pMethod = 'GET', $pParams = array() ) {
 			$pMethod = strtoupper( $pMethod );
-
-			if ( WP_FS__DEV_MODE ) {
-				// Connectivity errors simulation.
-				if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY ) {
-					return $this->GetCloudFlareDDoSError();
-				} else if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
-					return $this->GetSquidAclError();
-				}
-			}
 
 			try {
 				$result = $this->MakeRequest( $pPath, $pMethod, $pParams );
 			} catch ( Freemius_Exception $e ) {
 				// Map to error object.
-				$result = json_encode( $e->getResult() );
+				$result = (object) $e->getResult();
 			} catch ( Exception $e ) {
 				// Map to error object.
-				$result = json_encode( array(
+				$result = (object) array(
 					'error' => array(
 						'type'    => 'Unknown',
 						'message' => $e->getMessage() . ' (' . $e->getFile() . ': ' . $e->getLine() . ')',
 						'code'    => 'unknown',
 						'http'    => 402
 					)
-				) );
+				);
 			}
 
-			if ( empty( $result ) ) {
-				return null;
-			}
-
-			$decoded = json_decode( $result );
-
-			if ( is_null( $decoded ) ) {
-				if ( preg_match( '/Please turn JavaScript on/i', $result ) &&
-				     preg_match( '/text\/javascript/', $result )
-				) {
-					$decoded = $this->GetCloudFlareDDoSError( $result );
-				} else if ( preg_match( '/Access control configuration prevents your request from being allowed at this time. Please contact your service provider if you feel this is incorrect./', $result ) &&
-				            preg_match( '/squid/', $result )
-				) {
-					$decoded = $this->GetSquidAclError( $result );
-				} else {
-					$decoded = (object) array(
-						'error' => (object) array(
-							'type'    => 'Unknown',
-							'message' => $result,
-							'code'    => 'unknown',
-							'http'    => 402
-						)
-					);
-				}
-			}
-
-			return $decoded;
-		}
-
-		private function GetCloudFlareDDoSError( $pResult = '' ) {
-			return (object) array(
-				'error' => (object) array(
-					'type'    => 'CloudFlareDDoSProtection',
-					'message' => $pResult,
-					'code'    => 'cloudflare_ddos_protection',
-					'http'    => 402
-				)
-			);
-		}
-
-		private function GetSquidAclError( $pResult = '' ) {
-			return (object) array(
-				'error' => (object) array(
-					'type'    => 'SquidCacheBlock',
-					'message' => $pResult,
-					'code'    => 'squid_cache_block',
-					'http'    => 402
-				)
-			);
+			return $result;
 		}
 
 		/**

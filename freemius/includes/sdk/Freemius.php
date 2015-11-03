@@ -15,24 +15,40 @@
 	 * under the License.
 	 */
 
-	if (!function_exists('curl_init'))
-		throw new Exception('Freemius needs the CURL PHP extension.');
-
 	require_once( dirname( __FILE__ ) . '/FreemiusBase.php' );
 
-	define('FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION);
+	define( 'FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION );
 
-	$curl_version = curl_version();
+	if ( ! defined( 'FS_SDK__SIMULATE_NO_CURL' ) ) {
+		define( 'FS_SDK__SIMULATE_NO_CURL', false );
+	}
 
-	define('FS_API__PROTOCOL', version_compare($curl_version['version'], '7.37', '>=') ? 'https' : 'http');
+	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE' ) ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE', false );
+	}
 
-	if (!defined('FS_API__ADDRESS'))
-		define('FS_API__ADDRESS', '://api.freemius.com');
-	if (!defined('FS_API__SANDBOX_ADDRESS'))
-		define('FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com');
+	if ( ! defined( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL' ) ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
+	}
 
-	class Freemius_Api extends Freemius_Api_Base
-	{
+	define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+
+	if ( ! FS_SDK__HAS_CURL ) {
+		$curl_version = array( 'version' => '7.0.0' );
+	} else {
+		$curl_version = curl_version();
+	}
+
+	define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
+
+	if ( ! defined( 'FS_API__ADDRESS' ) ) {
+		define( 'FS_API__ADDRESS', '://api.freemius.com' );
+	}
+	if ( ! defined( 'FS_API__SANDBOX_ADDRESS' ) ) {
+		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
+	}
+
+	class Freemius_Api extends Freemius_Api_Base {
 		/**
 		 * Default options for curl.
 		 */
@@ -44,27 +60,27 @@
 		);
 
 		/**
-		 * @param string      $pScope 'app', 'developer', 'user' or 'install'.
-		 * @param number      $pID Element's id.
-		 * @param string      $pPublic Public key.
-		 * @param string|bool $pSecret Element's secret key.
+		 * @param string      $pScope   'app', 'developer', 'user' or 'install'.
+		 * @param number      $pID      Element's id.
+		 * @param string      $pPublic  Public key.
+		 * @param string|bool $pSecret  Element's secret key.
 		 * @param bool        $pSandbox Whether or not to run API in sandbox mode.
 		 */
-		public function __construct($pScope, $pID, $pPublic, $pSecret = false, $pSandbox = false)
-		{
+		public function __construct( $pScope, $pID, $pPublic, $pSecret = false, $pSandbox = false ) {
 			// If secret key not provided, use public key encryption.
-			if (is_bool($pSecret))
+			if ( is_bool( $pSecret ) ) {
 				$pSecret = $pPublic;
+			}
 
-			parent::Init($pScope, $pID, $pPublic, $pSecret, $pSandbox);
+			parent::Init( $pScope, $pID, $pPublic, $pSecret, $pSandbox );
 		}
 
-		public function GetUrl($pCanonizedPath = '')
-		{
-			$address = ($this->_sandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS);
+		public function GetUrl( $pCanonizedPath = '' ) {
+			$address = ( $this->_sandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS );
 
-			if (':' === $address[0])
+			if ( ':' === $address[0] ) {
 				$address = self::$_protocol . $address;
+			}
 
 			return $address . $pCanonizedPath;
 		}
@@ -78,9 +94,10 @@
 		 * Set clock diff for all API calls.
 		 *
 		 * @since 1.0.3
+		 *
 		 * @param $pSeconds
 		 */
-		public static function SetClockDiff($pSeconds) {
+		public static function SetClockDiff( $pSeconds ) {
 			self::$_clock_diff = $pSeconds;
 		}
 
@@ -103,21 +120,21 @@
 		 *
 		 * @return bool
 		 */
-		public static function IsHttps()
-		{
-			return ('https' === self::$_protocol);
+		public static function IsHttps() {
+			return ( 'https' === self::$_protocol );
 		}
 
 		/**
 		 * Sign request with the following HTTP headers:
 		 *      Content-MD5: MD5(HTTP Request body)
 		 *      Date: Current date (i.e Sat, 14 Feb 2015 20:24:46 +0000)
-		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign, {scope_entity_secret_key}))
+		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign,
+		 *      {scope_entity_secret_key}))
 		 *
 		 * @param string $pResourceUrl
-		 * @param array $opts
+		 * @param array  $opts
 		 */
-		protected function SignRequest($pResourceUrl, &$opts) {
+		protected function SignRequest( $pResourceUrl, &$opts ) {
 			$eol          = "\n";
 			$content_md5  = '';
 			$now          = ( time() - self::$_clock_diff );
@@ -163,8 +180,8 @@
 		 *
 		 * @return string
 		 */
-		function GetSignedUrl($pPath) {
-			$resource     = explode( '?', $this->CanonizePath($pPath) );
+		function GetSignedUrl( $pPath ) {
+			$resource     = explode( '?', $this->CanonizePath( $pPath ) );
 			$pResourceUrl = $resource[0];
 
 			$eol          = "\n";
@@ -204,29 +221,41 @@
 		 * make the request.
 		 *
 		 * @param string        $pCanonizedPath The URL to make the request to
-		 * @param string        $pMethod HTTP method
-		 * @param array         $params The parameters to use for the POST body
-		 * @param null|resource $ch Initialized curl handle
+		 * @param string        $pMethod        HTTP method
+		 * @param array         $params         The parameters to use for the POST body
+		 * @param null|resource $ch             Initialized curl handle
 		 *
-		 * @return mixed
+		 * @return object[]|object|null
+		 *
 		 * @throws Freemius_Exception
 		 */
-		public function MakeRequest($pCanonizedPath, $pMethod = 'GET', $params = array(), $ch = null) {
+		public function MakeRequest( $pCanonizedPath, $pMethod = 'GET', $params = array(), $ch = null ) {
+			if ( !FS_SDK__HAS_CURL ) {
+				$this->ThrowNoCurlException();
+			}
+
+			// Connectivity errors simulation.
+			if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE ) {
+				$this->ThrowCloudFlareDDoSException();
+			} else if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
+				$this->ThrowSquidAclException();
+			}
+
 			if ( ! $ch ) {
 				$ch = curl_init();
 			}
 
 			$opts = self::$CURL_OPTS;
 
-			if ( !isset($opts[ CURLOPT_HTTPHEADER ]) || ! is_array( $opts[ CURLOPT_HTTPHEADER ] ) ) {
+			if ( ! isset( $opts[ CURLOPT_HTTPHEADER ] ) || ! is_array( $opts[ CURLOPT_HTTPHEADER ] ) ) {
 				$opts[ CURLOPT_HTTPHEADER ] = array();
 			}
 
 			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
 				if ( is_array( $params ) && 0 < count( $params ) ) {
 					$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
-					$opts[ CURLOPT_POST ]       = count( $params );
-					$opts[ CURLOPT_POSTFIELDS ] = json_encode( $params );
+					$opts[ CURLOPT_POST ]         = count( $params );
+					$opts[ CURLOPT_POSTFIELDS ]   = json_encode( $params );
 				}
 
 				$opts[ CURLOPT_RETURNTRANSFER ] = true;
@@ -295,6 +324,80 @@
 
 			curl_close( $ch );
 
-			return $result;
+			if (empty($result))
+				return null;
+
+			$decoded = json_decode( $result );
+
+			if ( is_null( $decoded ) ) {
+				if ( preg_match( '/Please turn JavaScript on/i', $result ) &&
+				     preg_match( '/text\/javascript/', $result )
+				) {
+					$this->ThrowCloudFlareDDoSException( $result );
+				} else if ( preg_match( '/Access control configuration prevents your request from being allowed at this time. Please contact your service provider if you feel this is incorrect./', $result ) &&
+				            preg_match( '/squid/', $result )
+				) {
+					$this->ThrowSquidAclException( $result );
+				} else {
+					$decoded = (object) array(
+						'error' => (object) array(
+							'type'    => 'Unknown',
+							'message' => $result,
+							'code'    => 'unknown',
+							'http'    => 402
+						)
+					);
+				}
+			}
+
+			return $decoded;
+		}
+
+		/**
+		 * @param string $pResult
+		 *
+		 * @throws Freemius_Exception
+		 */
+		private function ThrowNoCurlException( $pResult = '' ) {
+			throw new Freemius_Exception( array(
+				'error' => (object) array(
+					'type'    => 'cUrlMissing',
+					'message' => $pResult,
+					'code'    => 'curl_missing',
+					'http'    => 402
+				)
+			) );
+		}
+
+		/**
+		 * @param string $pResult
+		 *
+		 * @throws Freemius_Exception
+		 */
+		private function ThrowCloudFlareDDoSException( $pResult = '' ) {
+			throw new Freemius_Exception( array(
+				'error' => (object) array(
+					'type'    => 'CloudFlareDDoSProtection',
+					'message' => $pResult,
+					'code'    => 'cloudflare_ddos_protection',
+					'http'    => 402
+				)
+			) );
+		}
+
+		/**
+		 * @param string $pResult
+		 *
+		 * @throws Freemius_Exception
+		 */
+		private function ThrowSquidAclException( $pResult = '' ) {
+			throw new Freemius_Exception( array(
+				'error' => (object) array(
+					'type'    => 'SquidCacheBlock',
+					'message' => $pResult,
+					'code'    => 'squid_cache_block',
+					'http'    => 402
+				)
+			) );
 		}
 	}

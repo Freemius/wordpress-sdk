@@ -18,14 +18,20 @@
 	/**
 	 * API Connectivity Simulation
 	 */
-	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false );
-	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
-	if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
-		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY', true );
+	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false && WP_FS__DEV_MODE );
+	define( 'WP_FS__SIMULATE_NO_CURL', false && WP_FS__DEV_MODE );
+	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE', false && WP_FS__DEV_MODE );
+	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false && WP_FS__DEV_MODE );
+	if ( WP_FS__SIMULATE_NO_CURL ) {
+		define( 'FS_SDK__SIMULATE_NO_CURL', true );
+	}
+	if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE ) {
+		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE', true );
 	}
 	if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
 	}
+
 
 	/**
 	 * If true and running with secret key, the opt-in process
