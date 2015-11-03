@@ -212,13 +212,17 @@
 		#endregion Admin Notices
 		#region Connectivity Issues
 		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test fails.', 'freemius' ),
+		'curl-missing-message'     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.', 'freemius' ),
 		'cloudflare-blocks-connection-message'     => __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'freemius' ),
 		'x-requires-access-to-api'                 => _x( '%s requires an access to our API.', 'as pluginX requires an access to our API', 'freemius' ),
 		'squid-blocks-connection-message'          => __( 'It looks like your server is using Squid ACL (access control lists), which blocks the connection.', 'freemius' ),
 		'squid-no-clue-title'                      => __( 'I don\'t know what is Squid or ACL, help me!', 'freemius' ),
 		'squid-no-clue-desc'                       => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
-		'squid-sysadmin-title'                     => __( 'I\'m a system administrator', 'freemius' ),
+		'sysadmin-title'                     => __( 'I\'m a system administrator', 'freemius' ),
 		'squid-sysadmin-desc'                      => __( 'Great, please whitelist the following domains: %s. Once you done, deactivate the plugin and activate it again.' ),
+		'curl-missing-no-clue-title'                      => __( 'I don\'t know what is cURL or how to install it, help me!', 'freemius' ),
+		'curl-missing-no-clue-desc'                       => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
+		'curl-missing-sysadmin-desc'                      => __( 'Great, please install cURL and enable it in your php.ini file. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the plugin and reactivate it back again.' ),
 		'happy-to-resolve-issue-asap'              => __( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'freemius' ),
 		'fix-issue-title'                          => __( 'Yes - I\'m giving you a chance to fix it', 'freemius' ),
 		'fix-issue-desc'                           => __( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'freemius' ),

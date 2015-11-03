@@ -14,7 +14,7 @@
 		/**
 		 * @var string
 		 */
-		public $version = '1.1.2';
+		public $version = '1.1.3';
 
 		/**
 		 * @since 1.0.1
@@ -947,6 +947,11 @@
 		 * @param mixed $api_result
 		 */
 		function _add_connectivity_issue_message( $api_result ) {
+			if ( $this->_enable_anonymous ) {
+				// Don't add message if can run anonymously.
+				return;
+			}
+
 			if ( ! function_exists( 'wp_nonce_url' ) ) {
 				require_once( ABSPATH . 'wp-includes/functions.php' );
 			}
@@ -962,6 +967,36 @@
 			     isset( $api_result->error )
 			) {
 				switch ( $api_result->error->code ) {
+					case 'curl_missing':
+						$message = sprintf(
+							__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
+							__fs( 'curl-missing-message' ) . ' ' .
+							' %s',
+							'<b>' . $this->get_plugin_name() . '</b>',
+							sprintf(
+								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+								sprintf(
+									'<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
+									__fs( 'curl-missing-no-clue-title' ),
+									' - ' . sprintf(
+										__fs( 'curl-missing-no-clue-desc' ),
+										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+									)
+								),
+								sprintf(
+									'<b>%s</b> - %s',
+									__fs( 'sysadmin-title' ),
+									__fs( 'curl-missing-sysadmin-desc' )
+								),
+								sprintf(
+									'<a href="%s"><b>%s</b></a>%s',
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									__fs( 'deactivate-plugin-title' ),
+									' - ' . __fs( 'deactivate-plugin-desc', 'freemius' )
+								)
+							)
+						);
+						break;
 					case 'cloudflare_ddos_protection':
 						$message = sprintf(
 							__fs( 'x-requires-access-to-api', 'freemius' ) . ' ' .
@@ -1012,7 +1047,7 @@
 								),
 								sprintf(
 									'<b>%s</b> - %s',
-									__fs( 'squid-sysadmin-title' ),
+									__fs( 'sysadmin-title' ),
 									sprintf(
 										__fs( 'squid-sysadmin-desc' ),
 										// We use a filter since the plugin might require additional API connectivity.
@@ -3996,7 +4031,8 @@
 							'fs_action' => $this->_slug . '_sync_license',
 							'plugin_id' => $plugin_id
 						)
-					), $this->_slug . '_sync_license' ) ) ) {
+						), $this->_slug . '_sync_license' ) )
+					) {
 						exit();
 					}
 
