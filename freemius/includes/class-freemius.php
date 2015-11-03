@@ -1534,6 +1534,11 @@
 			}
 
 			if ( is_admin() ) {
+				global $pagenow;
+				if ( 'plugins.php' === $pagenow ) {
+					$this->hook_plugin_action_links();
+				}
+
 				if ( $this->is_addon() ) {
 					if ( ! $this->is_parent_plugin_installed() ) {
 						$this->_admin_notices->add(
@@ -7056,10 +7061,6 @@
 				'key'      => $key,
 				'external' => $external
 			);
-
-			if ( ! $this->is_plugin_action_links_hooked() ) {
-				$this->hook_plugin_action_links();
-			}
 		}
 
 		/**
