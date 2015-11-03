@@ -4055,11 +4055,11 @@
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
 					if ( $redirect && fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
-						'account',
-						array(
-							'fs_action' => $this->_slug . '_sync_license',
-							'plugin_id' => $plugin_id
-						)
+							'account',
+							array(
+								'fs_action' => $this->_slug . '_sync_license',
+								'plugin_id' => $plugin_id
+							)
 						), $this->_slug . '_sync_license' ) )
 					) {
 						exit();
@@ -4256,6 +4256,10 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
+			if ( ! $this->is_on() ) {
+				return;
+			}
+
 			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
 				$this->remove_menu_item();
 			} else {
@@ -4616,15 +4620,15 @@
 
 			if ( $this->is_registered() ) {
 				if ($this->is_submenu_item_visible('support')) {
-				$this->add_submenu_link_item(
-					__fs( 'support-forum' ),
-					'https://wordpress.org/support/plugin/' . $this->_slug,
-					'wp-support-forum',
-					'read',
-					50
-				);
+					$this->add_submenu_link_item(
+						__fs( 'support-forum' ),
+						'https://wordpress.org/support/plugin/' . $this->_slug,
+						'wp-support-forum',
+						'read',
+						50
+					);
+				}
 			}
-		}
 		}
 
 		private function _get_menu_slug( $slug = '' ) {
