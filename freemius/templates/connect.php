@@ -86,6 +86,7 @@
 						'user_lastname'     => $current_user->user_lastname,
 						'user_nickname'     => $current_user->user_nicename,
 						'user_email'        => $current_user->user_email,
+						'user_ip'           => fs_get_ip(),
 						'plugin_slug'       => $slug,
 						'plugin_id'         => $fs->get_id(),
 						'plugin_public_key' => $fs->get_public_key(),
@@ -102,6 +103,7 @@
 						'site_url'          => get_site_url(),
 						'site_name'         => get_bloginfo( 'name' ),
 						'platform_version'  => get_bloginfo( 'version' ),
+						'php_version'       => phpversion(),
 						'language'          => get_bloginfo( 'language' ),
 						'charset'           => get_bloginfo( 'charset' ),
 					);
