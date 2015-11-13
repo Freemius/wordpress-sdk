@@ -5009,7 +5009,6 @@
 		private function _store_site( $store = true ) {
 			$this->_logger->entrance();
 
-			$this->_site->updated = time();
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
@@ -5034,7 +5033,6 @@
 			// Copy plans.
 			$encrypted_plans = array();
 			for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-				$this->_plans[ $i ]->updated = time();
 				$encrypted_plans[] = $this->_encrypt_entity( $this->_plans[ $i ] );
 			}
 
@@ -5082,7 +5080,6 @@
 		private function _store_user( $store = true ) {
 			$this->_logger->entrance();
 
-			$this->_user->updated      = time();
 			$users                     = self::get_all_users();
 			$users[ $this->_user->id ] = $this->_user;
 			self::$_accounts->set_option( 'users', $users, $store );
