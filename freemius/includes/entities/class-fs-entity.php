@@ -10,6 +10,20 @@
 		exit;
 	}
 
+	/**
+	 * Get object's public variables.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.0.0
+	 *
+	 * @param object $object
+	 *
+	 * @return array
+	 */
+	function fs_get_object_public_vars( $object ) {
+		return get_object_vars( $object );
+	}
+
 	class FS_Entity {
 		/**
 		 * @var number
@@ -32,8 +46,13 @@
 				return;
 			}
 
-			$this->id      = $entity->id;
-			$this->created = $entity->created;
+			$props = fs_get_object_public_vars( $this );
+
+			foreach ( $props as $key => $def_value ) {
+				$this->{$key} = isset( $entity->{$key} ) ?
+					$entity->{$key} :
+					$def_value;
+			}
 		}
 
 		static function get_type() {

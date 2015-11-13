@@ -81,27 +81,7 @@
 		 * @param object|bool $subscription
 		 */
 		function __construct( $subscription = false ) {
-			if ( ! ( $subscription instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $subscription );
-
-			$this->user_id             = $subscription->user_id;
-			$this->install_id          = $subscription->install_id;
-			$this->plan_id             = $subscription->plan_id;
-			$this->license_id          = $subscription->license_id;
-			$this->total_gross         = $subscription->total_gross;
-			$this->amount_per_cycle    = $subscription->amount_per_cycle;
-			$this->billing_cycle       = $subscription->billing_cycle;
-			$this->outstanding_balance = $subscription->outstanding_balance;
-			$this->failed_payments     = $subscription->failed_payments;
-			$this->gateway             = $subscription->gateway;
-			$this->external_id         = $subscription->external_id;
-			$this->trial_ends          = $subscription->trial_ends;
-			$this->next_payment        = $subscription->next_payment;
-			$this->vat_id              = $subscription->vat_id;
-			$this->country_code        = $subscription->country_code;
 		}
 
 		static function get_type() {

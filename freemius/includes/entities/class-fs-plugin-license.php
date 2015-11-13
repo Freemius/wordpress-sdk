@@ -67,23 +67,7 @@
 		 * @param stdClass|bool $license
 		 */
 		function __construct( $license = false ) {
-			if ( ! ( $license instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $license );
-
-			$this->plugin_id         = $license->plugin_id;
-			$this->user_id           = $license->user_id;
-			$this->plan_id           = $license->plan_id;
-			$this->pricing_id        = $license->pricing_id;
-			$this->quota             = $license->quota;
-			$this->activated         = $license->activated;
-			$this->activated_local   = $license->activated_local;
-			$this->expiration        = $license->expiration;
-			$this->is_free_localhost = $license->is_free_localhost;
-			$this->is_block_features = $license->is_block_features;
-			$this->is_cancelled      = $license->is_cancelled;
 		}
 
 		static function get_type() {

@@ -45,18 +45,7 @@
 		 * @param object|bool $user
 		 */
 		function __construct( $user = false ) {
-			if ( ! ( $user instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $user );
-
-			$this->email       = $user->email;
-			$this->first       = $user->first;
-			$this->last        = $user->last;
-			$this->is_verified = $user->is_verified;
-			$this->customer_id = $user->customer_id;
-			$this->gross       = $user->gross;
 		}
 
 		function get_name() {

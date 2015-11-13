@@ -37,16 +37,11 @@
 		 * @param object|bool $plan
 		 */
 		function __construct( $plan = false ) {
-			if ( ! ( $plan instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $plan );
 
-			$this->title                   = $plan->title;
-			$this->name                    = strtolower( $plan->name );
-			$this->trial_period            = $plan->trial_period;
-			$this->is_require_subscription = $plan->is_require_subscription;
+			if ( is_object( $plan ) ) {
+				$this->name = strtolower( $plan->name );
+			}
 		}
 
 		static function get_type() {

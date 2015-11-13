@@ -52,26 +52,11 @@
 		function __construct( $site = false ) {
 			$this->plan = new FS_Plugin_Plan();
 
-			if ( ! ( $site instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $site );
 
-			$this->user_id    = $site->user_id;
+			if ( is_object( $site ) ) {
 			$this->plan->id   = $site->plan_id;
-			$this->license_id = $site->license_id;
-			$this->version    = $site->version;
-			$this->is_premium = $site->is_premium;
-
-			/**
-			 * Added trial properties.
-			 *
-			 * @author Vova Feldman (@svovaf)
-			 * @since  1.0.9
-			 */
-			$this->trial_plan_id = $site->trial_plan_id;
-			$this->trial_ends    = $site->trial_ends;
+			}
 		}
 
 		static function get_type() {

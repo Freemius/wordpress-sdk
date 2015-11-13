@@ -62,14 +62,8 @@
 		 * @param stdClass|bool $plugin
 		 */
 		function __construct( $plugin = false ) {
-			if ( ! ( $plugin instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $plugin );
 
-			$this->slug       = $plugin->slug;
-			$this->title      = $plugin->title;
 			$this->is_premium = false;
 			$this->is_live    = true;
 

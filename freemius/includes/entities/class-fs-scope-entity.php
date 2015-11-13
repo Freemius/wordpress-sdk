@@ -24,15 +24,6 @@
 		 * @param bool|stdClass $scope_entity
 		 */
 		function __construct( $scope_entity = false ) {
-			if ( ! ( $scope_entity instanceof stdClass ) ) {
-				return;
-			}
-
 			parent::__construct( $scope_entity );
-
-			$this->public_key = $scope_entity->public_key;
-			if ( isset( $scope_entity->secret_key ) ) {
-				$this->secret_key = $scope_entity->secret_key;
-			}
 		}
 	}
