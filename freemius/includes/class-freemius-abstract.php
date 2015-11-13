@@ -41,6 +41,15 @@
 		 */
 		abstract function is_anonymous();
 
+		/**
+		 * Check if the user currently in activation mode.
+		 *
+		 * @since 1.0.7
+		 *
+		 * @return bool
+		 */
+		abstract function is_activation_mode();
+
 		#endregion Identity ------------------------------------------------------------------
 
 		#region Permissions ------------------------------------------------------------------
