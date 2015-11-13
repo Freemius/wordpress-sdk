@@ -4655,8 +4655,7 @@
 		 *
 		 * @return bool
 		 */
-		private function is_submenu_item_visible($id, $default = true)
-		{
+		private function is_submenu_item_visible( $id, $default = true ) {
 			return $this->_get_bool_option( $this->_default_submenu_items, $id, $default );
 		}
 
