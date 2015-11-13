@@ -138,6 +138,16 @@
 		 * @since 1.1.3
 		 */
 		private $_default_submenu_items;
+		/**
+		 * @var string
+		 * @since 1.1.3
+		 */
+		private $_menu_type;
+		/**
+		 * @var string
+		 * @since 1.1.3
+		 */
+		private $_first_time_path;
 
 		/**
 		 * @var FS_Admin_Notice_Manager
@@ -1469,6 +1479,7 @@
 			);
 
 			$this->_default_submenu_items = array();
+			$this->_menu_type             = 'page';
 			if ( is_null( $parent_id ) && isset( $plugin_info['menu'] ) ) {
 				$this->_default_submenu_items = array(
 					'contact' => $this->_get_bool_option( $plugin_info['menu'], 'contact', true ),
@@ -1477,6 +1488,12 @@
 					'pricing' => $this->_get_bool_option( $plugin_info['menu'], 'pricing', true ),
 					'addons'  => $this->_get_bool_option( $plugin_info['menu'], 'addons', true ),
 				);
+
+				$this->_menu_type       = $this->_get_option( $plugin_info['menu'], 'type', 'page' );
+				$this->_first_time_path = $this->_get_option( $plugin_info['menu'], 'first-path', false );
+				if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
+					$this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
+				}
 			}
 
 			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
@@ -2117,7 +2134,7 @@
 
 				$this->skip_connection();
 
-				if ( fs_redirect( $this->apply_filters( 'after_skip_url', $this->_get_admin_page_url() ) ) ) {
+				if ( fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) ) ) {
 					exit();
 				}
 			}
@@ -3632,7 +3649,36 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
+			if ( empty( $page ) && ! empty( $this->_menu_type ) ) {
+				// If not a Top-Level menu and asking for main settings page,
+				// then try to replicate plugin's main setting original page URL.
+				switch ( $this->_menu_type ) {
+					case 'tools':
+						return add_query_arg( array(
+							'page' => $this->_menu_slug,
+						), admin_url( 'tools.php' ) );
+					case 'settings':
+						return add_query_arg( array(
+							'page' => $this->_menu_slug,
+						), admin_url( 'options-general.php' ) );
+				}
+			}
+
+			if ( 'cpt' === $this->_menu_type ) {
+				if ( empty( $page ) && $this->is_activation_mode() ) {
+					return add_query_arg( array_merge( $params, array(
+						'page' => $this->_menu_slug
+					) ), admin_url( 'admin.php', 'admin' ) );
+				} else {
+					if ( ! empty( $page ) ) {
+						$params['page'] = trim( "{$this->_menu_slug}-{$page}", '-' );
+					}
+
+					return add_query_arg( array_merge( $params, array(
+						'post_type' => $this->_menu_slug,
+					) ), admin_url( 'edit.php', 'admin' ) );
+				}
+			} else if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
 				return add_query_arg( array_merge( $params, array(
 					'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
 				) ), admin_url( 'admin.php', 'admin' ) );
@@ -3640,6 +3686,36 @@
 				return add_query_arg( array_merge( $params, array(
 					'page' => trim( "{$this->_slug}-{$page}", '-' )
 				) ), admin_url( 'admin.php', 'admin' ) );
+			}
+		}
+
+		/**
+		 * Get plugin's original menu slug.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.3
+		 *
+		 * @return string
+		 */
+		private function _get_original_menu_slug() {
+			if ( 'cpt' === $this->_menu_type ) {
+				return add_query_arg( array(
+					'post_type' => $this->_menu_slug
+				), 'edit.php' );
+			}
+
+			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
+				return $this->_menu_slug;
+			} else {
+				return $this->_slug;
+			}
+		}
+
+		private function _get_menu_slug( $slug = '' ) {
+			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
+				return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
+			} else {
+				return $this->_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
 			}
 		}
 
@@ -4068,7 +4144,7 @@
 				}
 			} else {
 				// Reload the page with the keys.
-				if ( $redirect && fs_redirect( $this->apply_filters( 'after_connect_url', $this->_get_admin_page_url() ) ) ) {
+				if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) ) ) {
 					exit();
 				}
 			}
@@ -4117,7 +4193,7 @@
 					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
 
 					// Reload the page with with pending activation message.
-					if ( fs_redirect( $this->apply_filters( 'after_pending_connect_url', $this->apply_filters( 'connect_url', $this->_get_admin_page_url() ) ) ) ) {
+					if ( fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
 						exit();
 					}
 				}
@@ -4147,15 +4223,13 @@
 				$this->_user = $user;
 
 				// Install the plugin.
-				$install = $this->get_api_user_scope()->call( "/plugins/{$this->get_id()}/installs.json", 'post', array(
+				$install = $this->get_api_user_scope()->call(
+					"/plugins/{$this->get_id()}/installs.json",
+					'post',
+					$this->get_install_data_for_api( array(
 					'uid'              => $this->get_anonymous_id(),
-					'url'              => get_site_url(),
-					'title'            => get_bloginfo( 'name' ),
-					'version'          => $this->get_plugin_version(),
-					'language'         => get_bloginfo( 'language' ),
-					'charset'          => get_bloginfo( 'charset' ),
-					'platform_version' => get_bloginfo( 'version' ),
-				) );
+					) )
+				);
 
 				if ( isset( $install->error ) ) {
 					$this->_admin_notices->add(
@@ -4194,13 +4268,13 @@
 			}
 
 			// Activate add-on with parent plugin credentials.
-			$addon_install = $parent_fs->get_api_site_scope()->call( "/addons/{$this->_plugin->id}/installs.json", 'post', array(
-				'title'            => get_bloginfo( 'name' ),
-				'version'          => $this->get_plugin_version(),
-				'language'         => get_bloginfo( 'language' ),
-				'charset'          => get_bloginfo( 'charset' ),
-				'platform_version' => get_bloginfo( 'version' ),
-			) );
+			$addon_install = $parent_fs->get_api_site_scope()->call(
+				"/addons/{$this->_plugin->id}/installs.json",
+				'post',
+				$this->get_install_data_for_api( array(
+					'uid' => $this->get_anonymous_id(),
+				) )
+			);
 
 			if ( isset( $addon_install->error ) ) {
 				$this->_admin_notices->add(
@@ -4248,7 +4322,7 @@
 		 * @return string
 		 */
 		function get_menu_slug() {
-			return $this->_menu_slug;
+			return $this->_get_menu_slug();
 		}
 
 		/**
@@ -4370,13 +4444,14 @@
 		 *
 		 * @return string[]|false
 		 */
-		private function find_plugin_main_menu() {
+		private function find_top_level_menu() {
 			global $menu;
 
 			$position   = - 1;
 			$found_menu = false;
 
-			$menu_slug = plugin_basename( $this->_menu_slug );
+			$menu_slug = $this->_get_original_menu_slug();
+
 			$hook_name = get_plugin_page_hookname( $menu_slug, '' );
 			foreach ( $menu as $pos => $m ) {
 				if ( $menu_slug === $m[2] ) {
@@ -4408,11 +4483,13 @@
 		private function remove_all_submenu_items() {
 			global $submenu;
 
-			if ( ! isset( $submenu[ $this->_menu_slug ] ) ) {
+			$menu_slug = $this->_get_original_menu_slug();
+
+			if ( ! isset( $submenu[ $menu_slug ] ) ) {
 				return false;
 			}
 
-			$submenu[ $this->_menu_slug ] = array();
+			$submenu[ $menu_slug ] = array();
 
 			return true;
 		}
@@ -4428,7 +4505,7 @@
 			$this->_logger->entrance();
 
 			// Find main menu item.
-			$menu = $this->find_plugin_main_menu();
+			$menu = $this->find_top_level_menu();
 
 			if ( false === $menu ) {
 				return $menu;
@@ -4472,7 +4549,6 @@
 				);
 
 				foreach ( $menus as $menu_file ) {
-					// Try to override tools submenu item if exist.
 					$hook = $this->override_plugin_submenu_action(
 						$menu_file,
 						$this->_menu_slug,
@@ -4588,7 +4664,11 @@
 				foreach ( $items as $item ) {
 					if ( ! isset( $item['url'] ) ) {
 						$hook = add_submenu_page(
-							$item['show_submenu'] ? ( $this->is_addon() ? $this->get_parent_instance()->_menu_slug : $this->_menu_slug ) : null,
+							$item['show_submenu'] ?
+								( $this->is_addon() ?
+									$this->get_parent_instance()->_get_original_menu_slug() :
+									$this->_get_original_menu_slug() ) :
+								null,
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
@@ -4601,7 +4681,9 @@
 						}
 					} else {
 						add_submenu_page(
-							$this->is_addon() ? $this->get_parent_instance()->_menu_slug : $this->_menu_slug,
+							$this->is_addon() ?
+								$this->get_parent_instance()->_get_original_menu_slug() :
+								$this->_get_original_menu_slug(),
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
@@ -4628,14 +4710,6 @@
 						50
 					);
 				}
-			}
-		}
-
-		private function _get_menu_slug( $slug = '' ) {
-			if ( false === strpos( $this->_menu_slug, '.php' ) ) {
-				return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
-			} else {
-				return $this->_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
 			}
 		}
 
@@ -6403,6 +6477,23 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.3
+		 *
+		 * @param string $filter Filter name.
+		 *
+		 * @return string
+		 */
+		private function get_after_activation_url( $filter ) {
+			return $this->apply_filters(
+				$filter,
+				empty( $this->_first_time_path ) ?
+					$this->_get_admin_page_url() :
+					$this->_first_time_path
+			);
+		}
+
+		/**
 		 * Handle account page updates / edits / actions.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -6587,7 +6678,6 @@
 
 				#endregion
 			}
-
 
 			if ( WP_FS__IS_POST_REQUEST ) {
 				$properties = array( 'site_secret_key', 'site_id', 'site_public_key' );
@@ -7111,7 +7201,11 @@
 
 			if ( ! $this->is_addon() ) {
 				$plugin_fs = $this;
-				$url       = $plugin_fs->get_activation_url();
+				$url       = $plugin_fs->is_activation_mode() ?
+					$plugin_fs->get_activation_url() :
+					( empty( $this->_first_time_path ) ?
+						$this->_get_admin_page_url() :
+						$this->_first_time_path );
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
 					$plugin_fs = self::get_parent_instance();
@@ -7129,7 +7223,7 @@
 			}
 
 			if ( is_string( $url ) ) {
-				wp_redirect( $url );
+				fs_redirect( $url );
 				exit();
 			}
 		}
