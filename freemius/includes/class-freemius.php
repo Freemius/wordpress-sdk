@@ -1657,11 +1657,7 @@
 		 */
 		function _plugin_code_type_changed() {
 			// Send code type changes event.
-			$this->get_api_site_scope()->call( '/', 'put', array(
-				'is_active'  => true,
-				'is_premium' => $this->is_premium(),
-				'version'    => $this->get_plugin_version(),
-			) );
+			$this->sync_install();
 
 			if ( $this->is_premium() ) {
 				// Activated premium code.
@@ -1702,7 +1698,7 @@
 			$this->_storage->prev_is_premium = $this->_plugin->is_premium;
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion Initialization ------------------------------------------------------------------
 
 		#region Add-ons -------------------------------------------------------------------------
 
@@ -1956,6 +1952,8 @@
 
 		#endregion ------------------------------------------------------------------
 
+		#region Sandbox ------------------------------------------------------------------
+
 		/**
 		 * Set Freemius into sandbox mode for debugging.
 		 *
@@ -1982,6 +1980,8 @@
 		function is_payments_sandbox() {
 			return ( ! $this->is_live() ) || isset( $this->_plugin->secret_key );
 		}
+
+		#endregion Sandbox ------------------------------------------------------------------
 
 		/**
 		 * Check if running test vs. live plugin.
@@ -2278,13 +2278,8 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
-				// Send re-activation event.
-				$this->get_api_site_scope()->call( '/', 'put', array(
-					'is_active'  => true,
-					'is_premium' => $this->is_premium(),
-					// Send version on activation.
-					'version'    => $this->get_plugin_version(),
-				) );
+				// Send re-activation event and sync.
+				$this->sync_install( array(), true );
 
 				/**
 				 * @todo Work on automatic deactivation of the Free plugin version. It doesn't work since the slug of the free & premium versions is identical. Therefore, only one instance of Freemius is created and the activation hook of the premium version is not being added.
@@ -2375,11 +2370,8 @@
 
 			if ( $this->is_registered() ) {
 				// Send deactivation event.
-				$this->get_api_site_scope()->call( '/', 'put', array(
-					'is_active'  => false,
-					'is_premium' => $this->is_premium(),
-					// Send version on deactivation.
-					'version'    => $this->get_plugin_version(),
+				$this->sync_install( array(
+					'is_active' => false,
 				) );
 			}
 
@@ -2416,13 +2408,10 @@
 
 			$this->_site->version = $this->get_plugin_version();
 
-			// Send upgrade event.
-			$site = $this->get_api_site_scope()->call( '/', 'put', array(
-				'version'    => $this->get_plugin_version(),
-				'is_premium' => $this->is_premium(),
-			) );
+			// Send update event.
+			$site = $this->send_install_update( array(), true );
 
-			if ( ! isset( $site->error ) ) {
+			if ( false !== $site && ! $this->is_api_error( $site ) ) {
 				$this->_store_site( true );
 			}
 		}
@@ -2431,13 +2420,116 @@
 		 * Update install details.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
+		 * @since  1.1.2
+		 *
+		 * @param string[] string $override
+		 *
+		 * @return array
 		 */
-		private function send_install_update( $params ) {
+		private function get_install_data_for_api( $override = array() ) {
+			return array_merge( array(
+				'version'                      => $this->get_plugin_version(),
+				'is_premium'                   => $this->is_premium(),
+				'language'                     => get_bloginfo( 'language' ),
+				'charset'                      => get_bloginfo( 'charset' ),
+				'platform_version'             => get_bloginfo( 'version' ),
+				'programming_language_version' => phpversion(),
+				'title'                        => get_bloginfo( 'name' ),
+				'url'                          => get_site_url(),
+				// Special params.
+				'is_active'                    => true,
+				'is_uninstalled'               => false,
+			), $override );
+		}
+
+		/**
+		 * Update install only if changed.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param string[] string $override
+		 * @param bool     $flush
+		 *
+		 * @return false|object|string
+		 */
+		private function send_install_update( $override = array(), $flush = false ) {
 			$this->_logger->entrance();
 
-			// Send data update event.
-			$this->get_api_site_scope()->call( '/', 'put', $params );
+			$check_properties = $this->get_install_data_for_api( $override );
+
+			if ( $flush ) {
+				$params = $check_properties;
+			} else {
+				$params           = array();
+				$special          = array();
+				$special_override = false;
+
+				foreach ( $check_properties as $p => $v ) {
+					if ( property_exists( $this->_site, $p ) ) {
+						if ( ! empty( $this->_site->{$p} ) &&
+						     $this->_site->{$p} != $v
+						) {
+							$this->_site->{$p} = $v;
+							$params[ $p ]      = $v;
+						}
+					} else {
+						$special[ $p ] = $v;
+
+						if ( isset( $override[ $p ] ) ) {
+							$special_override = true;
+						}
+					}
+				}
+
+				if ( $special_override || 0 < count( $params ) ) {
+					// Add special params only if has at least one
+					// standard param, or if explicitly requested to
+					// override a special param or a pram which is not exist
+					// in the install object.
+					$params = array_merge( $params, $special );
+				}
+			}
+
+			if ( 0 < count( $params ) ) {
+				// Send updated values to FS.
+				return $this->get_api_site_scope()->call( '/', 'put', $params );
+			}
+
+			return false;
+		}
+
+		/**
+		 * Update install only if changed.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @param string[] string $override
+		 * @param bool     $flush
+		 *
+		 * @return false|object|string
+		 */
+		private function sync_install( $override = array(), $flush = false ) {
+			$this->_logger->entrance();
+
+			$site = $this->send_install_update( $override, $flush );
+
+			if ( false === $site ) {
+				// No sync required.
+				return;
+			}
+
+			if ( $this->is_api_error( $site ) ) {
+				// Failed to sync, don't update locally.
+				return;
+			}
+
+			$plan              = $this->get_plan();
+			$this->_site       = new FS_Site( $site );
+			$this->_site->plan = $plan;
+
+			$this->_store_site( true );
 		}
 
 		/**
@@ -2466,16 +2558,11 @@
 				$params['uid'] = $this->get_anonymous_id();
 				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
 			} else {
-				$params = array_merge( $params, array(
-					'is_active'      => false,
-					'is_premium'     => $this->is_premium(),
-					'is_uninstalled' => true,
-					// Send version on uninstall.
-					'version'        => $this->get_plugin_version(),
-				) );
-
 				// Send uninstall event.
-				$this->get_api_site_scope()->call( '/', 'put', $params );
+				$this->send_install_update( array(
+					'is_active'      => false,
+					'is_uninstalled' => true,
+				) );
 			}
 
 			// @todo Decide if we want to delete plugin information from db.
@@ -4038,24 +4125,7 @@
 				$this->_plans = $plans;
 			}
 
-			$params = array();
-
-			if ( ! empty( $this->_site->version ) &&
-			     $this->_site->version != $this->get_plugin_version()
-			) {
-				$this->_site->version = $this->get_plugin_version();
-				$params['version']    = $this->_site->version;
-			}
-
-			if ( $this->_site->is_premium != $this->is_premium() ) {
-				$this->_site->is_premium = $this->is_premium();
-				$params['is_premium']    = $this->_site->is_premium;
-			}
-
-			if ( 0 < count( $params ) ) {
-				// Send updated values to FS.
-				$this->send_install_update( $params );
-			}
+			$this->send_install_update( array(), true );
 
 			$this->_store_account();
 
@@ -4227,7 +4297,7 @@
 					"/plugins/{$this->get_id()}/installs.json",
 					'post',
 					$this->get_install_data_for_api( array(
-					'uid'              => $this->get_anonymous_id(),
+						'uid' => $this->get_anonymous_id(),
 					) )
 				);
 
@@ -4587,7 +4657,7 @@
 		 */
 		private function is_submenu_item_visible($id, $default = true)
 		{
-			return $this->_get_bool_option($this->_default_submenu_items, $id, $default);
+			return $this->_get_bool_option( $this->_default_submenu_items, $id, $default );
 		}
 
 		/**
@@ -4613,7 +4683,7 @@
 							'account',
 							array( &$this, '_account_page_load' ),
 							10,
-							$this->is_submenu_item_visible('account')
+							$this->is_submenu_item_visible( 'account' )
 						);
 					}
 
@@ -4626,7 +4696,7 @@
 						'contact',
 						array( &$this, '_clean_admin_content_section' ),
 						10,
-						$this->is_submenu_item_visible('contact')
+						$this->is_submenu_item_visible( 'contact' )
 					);
 
 					if ( $this->_has_addons() ) {
@@ -4638,7 +4708,7 @@
 							'addons',
 							array( &$this, '_addons_page_load' ),
 							WP_FS__LOWEST_PRIORITY - 1,
-							$this->is_submenu_item_visible('addons')
+							$this->is_submenu_item_visible( 'addons' )
 						);
 					}
 
@@ -4653,7 +4723,7 @@
 						WP_FS__LOWEST_PRIORITY,
 						// If user don't have paid plans, add pricing page
 						// to support add-ons checkout but don't add the submenu item.
-						$this->is_submenu_item_visible('pricing') && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_get_menu_slug( 'pricing' ) == $_GET['page'] ) )
+						$this->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_get_menu_slug( 'pricing' ) == $_GET['page'] ) )
 					);
 				}
 			}
@@ -4701,7 +4771,7 @@
 			}
 
 			if ( $this->is_registered() ) {
-				if ($this->is_submenu_item_visible('support')) {
+				if ( $this->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						__fs( 'support-forum' ),
 						'https://wordpress.org/support/plugin/' . $this->_slug,
@@ -4966,7 +5036,7 @@
 			$encrypted_plans = array();
 			for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
 				$this->_plans[ $i ]->updated = time();
-				$encrypted_plans[]           = $this->_encrypt_entity( $this->_plans[ $i ] );
+				$encrypted_plans[] = $this->_encrypt_entity( $this->_plans[ $i ] );
 			}
 
 			$plans[ $this->_slug ] = $encrypted_plans;
@@ -5564,16 +5634,7 @@
 			$this->_logger->entrance();
 
 			// Sync site info.
-			$site = $this->get_api_site_scope()->call( '/', 'put', array(
-				'is_active'        => true,
-				'is_premium'       => $this->is_premium(),
-				'version'          => $this->get_plugin_version(),
-				'url'              => get_site_url(),
-				'title'            => get_bloginfo( 'name' ),
-				'platform_version' => get_bloginfo( 'version' ),
-				'language'         => get_bloginfo( 'language' ),
-				'charset'          => get_bloginfo( 'charset' ),
-			) );
+			$site = $this->send_install_update( array(), true );
 
 			$plan_change = 'none';
 
@@ -6514,6 +6575,10 @@
 
 					if ( $plugin_id == $this->get_id() ) {
 						$this->delete_account_event();
+
+						// Clear user and site.
+						$this->_site = null;
+						$this->_user = null;
 
 						if ( fs_redirect( $this->get_activation_url() ) ) {
 							exit();
