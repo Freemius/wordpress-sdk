@@ -22,7 +22,31 @@
 		/**
 		 * @var string
 		 */
+		public $title;
+		/**
+		 * @var string
+		 */
+		public $url;
+		/**
+		 * @var string
+		 */
 		public $version;
+		/**
+		 * @var string E.g. en-GB
+		 */
+		public $language;
+		/**
+		 * @var string E.g. UTF-8
+		 */
+		public $charset;
+		/**
+		 * @var string Platform version (e.g WordPress version).
+		 */
+		public $platform_version;
+		/**
+		 * @var string Programming language version (e.g PHP version).
+		 */
+		public $programming_language_version;
 		/**
 		 * @var FS_Plugin_Plan $plan
 		 */
@@ -55,7 +79,7 @@
 			parent::__construct( $site );
 
 			if ( is_object( $site ) ) {
-			$this->plan->id   = $site->plan_id;
+				$this->plan->id = $site->plan_id;
 			}
 		}
 
