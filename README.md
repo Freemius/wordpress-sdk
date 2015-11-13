@@ -1,10 +1,10 @@
 Freemius WordPress SDK
 ======================
 
-[Freemius](https://freemius.com) is a monetization platform that help plugin developers to turn their plugin into a commercial product in less than 10 min.
+[Freemius](https://freemius.com) is an analytics & monetization platform for plugin developers. Freemius empower developers with advanced real-time analytics and helps turning any plugin into a commercial product in less than 10 min.
 
-The platform is fully functional and running in production. Having said that, it is still in closed beta. 
-If you are a WordPress plugin developer and you are interested to participate in the beta please [apply here](http://bit.ly/freemius-beta):
+The platform is fully functional and running in production. Having said that, the monetization platform is still in closed beta. 
+If you are a WordPress plugin developer and you are interested to monetize with Freemius [apply to our closed beta here](http://bit.ly/freemius-beta):
 
 http://bit.ly/freemius-beta
 
