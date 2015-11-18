@@ -2559,10 +2559,10 @@
 				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
 			} else {
 				// Send uninstall event.
-				$this->send_install_update( array(
+				$this->send_install_update( array_merge( $params, array(
 					'is_active'      => false,
 					'is_uninstalled' => true,
-				) );
+				) ) );
 			}
 
 			// @todo Decide if we want to delete plugin information from db.
