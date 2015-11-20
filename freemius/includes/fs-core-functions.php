@@ -167,9 +167,10 @@
 			'REMOTE_ADDR',
 		);
 
-		foreach ($fields as $ip_field){
-			if (! empty( $_SERVER[$ip_field] ))
-				return $_SERVER[$ip_field];
+		foreach ( $fields as $ip_field ) {
+			if ( ! empty( $_SERVER[ $ip_field ] ) ) {
+				return $_SERVER[ $ip_field ];
+			}
 		}
 
 		return null;
@@ -324,4 +325,122 @@
 //		$actionurl = str_replace( '&amp;', '&', $actionurl );
 		return add_query_arg( $name, wp_create_nonce( $action ), $actionurl );
 	}
+
+	/**
+	 * Check if string starts with.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.1.3
+	 *
+	 * @param string $haystack
+	 * @param string $needle
+	 *
+	 * @return bool
+	 */
+	function fs_starts_with( $haystack, $needle ) {
+		$length = strlen( $needle );
+
+		return ( substr( $haystack, 0, $length ) === $needle );
+	}
+
+	#region Url Canonization ------------------------------------------------------------------
+
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.1.3
+	 *
+	 * @param string $url
+	 * @param bool   $omit_host
+	 *
+	 * @return string
+	 */
+	function fs_canonize_url( $url, $omit_host = false ) {
+		$parsed_url = parse_url( strtolower( $url ) );
+
+		if ( ! isset( $parsed_url['host'] ) ) {
+			return $url;
+		}
+
+		$canonical = ($omit_host ? '' : $parsed_url['host'] ) . $parsed_url['path'];
+
+		if ( isset( $parsed_url['query'] ) ) {
+			parse_str( $parsed_url['query'], $queryString );
+			$canonical .= '?' . fs_canonize_query_string( $queryString );
+		}
+
+		return $canonical;
+	}
+
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.1.3
+	 *
+	 * @param array $params
+	 * @param array $ignore_params
+	 * @param bool  $params_prefix
+	 *
+	 * @return string
+	 */
+	function fs_canonize_query_string( array $params, array $ignore_params = array(), $params_prefix = false ) {
+		if ( ! is_array( $params ) || 0 === count( $params ) ) {
+			return '';
+		}
+
+		// Urlencode both keys and values
+		$keys   = fs_urlencode_rfc3986( array_keys( $params ) );
+		$values = fs_urlencode_rfc3986( array_values( $params ) );
+		$params = array_combine( $keys, $values );
+
+		// Parameters are sorted by name, using lexicographical byte value ordering.
+		// Ref: Spec: 9.1.1 (1)
+		uksort( $params, 'strcmp' );
+
+		$pairs = array();
+		foreach ( $params as $parameter => $value ) {
+			$lower_param = strtolower( $parameter );
+
+			// Skip ignore params.
+			if ( in_array( $lower_param, $ignore_params ) || ( false !== $params_prefix && startsWith( $lower_param, $params_prefix ) ) ) {
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				// If two or more parameters share the same name, they are sorted by their value
+				// Ref: Spec: 9.1.1 (1)
+				natsort( $value );
+				foreach ( $value as $duplicate_value ) {
+					$pairs[] = $lower_param . '=' . $duplicate_value;
+				}
+			} else {
+				$pairs[] = $lower_param . '=' . $value;
+			}
+		}
+
+		if ( 0 === count( $pairs ) ) {
+			return '';
+		}
+
+		return implode( "&", $pairs );
+	}
+
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.1.3
+	 *
+	 * @param string|string[] $input
+	 *
+	 * @return array|mixed|string
+	 */
+	function fs_urlencode_rfc3986( $input ) {
+		if ( is_array( $input ) ) {
+			return array_map( 'fs_urlencode_rfc3986', $input );
+		} else if ( is_scalar( $input ) ) {
+			return str_replace( '+', ' ', str_replace( '%7E', '~', rawurlencode( $input ) ) );
+		}
+
+		return '';
+	}
+
+	#endregion Url Canonization ------------------------------------------------------------------
+
 

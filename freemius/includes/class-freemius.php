@@ -1473,7 +1473,7 @@
 				// Back compatibility to 1.1.2
 				$plugin_info['menu'] = array(
 					'slug' => isset($plugin_info['menu_slug']) ?
-					$plugin_info['menu_slug'] :
+						$plugin_info['menu_slug'] :
 						$this->_slug
 				);
 			}
@@ -4095,6 +4095,7 @@
 		 *
 		 * @param FS_User $user
 		 * @param FS_Site $site
+		 * @param bool    $redirect
 		 *
 		 * @return bool False if account already set.
 		 */
@@ -4425,24 +4426,42 @@
 		private function override_plugin_menu_with_activation() {
 			$this->_logger->entrance();
 
-			$menu = $this->remove_menu_item();
+			$hook = false;
 
-			if ( false !== $menu ) {
-				// Override menu action.
-				$hook = add_menu_page(
-					$menu['menu'][3],
-					$menu['menu'][0],
-					'manage_options',
+			if ($this->_menu->is_top_level()) {
+				$menu = $this->_menu->remove_menu_item();
+
+				if ( false !== $menu ) {
+					// Override menu action.
+					$hook = add_menu_page(
+						$menu['menu'][3],
+						$menu['menu'][0],
+						'manage_options',
 						$this->_menu->get_slug(),
-					array( &$this, '_connect_page_render' ),
-					$menu['menu'][6],
-					$menu['position']
-				);
-			} else {
-				$menus = array(
-					'tools.php',
-					'options-general.php',
-				);
+						array( &$this, '_connect_page_render' ),
+						$menu['menu'][6],
+						$menu['position']
+					);
+				}
+			}else {
+				if ($this->_menu->has_custom_parent()){
+					$menus = array($this->_menu->get_parent_slug());
+
+					if ($this->_menu->is_override_exact()){
+						// Make sure the current page is matching the activation page.
+						if (fs_canonize_url($_SERVER['REQUEST_URI']) !== fs_canonize_url($this->get_activation_url(), true))
+						{
+							// DO NOT OVERRIDE PAGE.
+							return;
+						}
+					}
+				}
+				else {
+					$menus = array(
+						'tools.php',
+						'options-general.php',
+					);
+				}
 
 				foreach ( $menus as $parent_slug ) {
 					$hook = $this->_menu->override_submenu_action(
