@@ -22,17 +22,40 @@
 		 * @var string
 		 */
 		private $_slug;
+
 		/**
-		 * @since 1.0.6
+		 * @since 1.0.0
 		 *
 		 * @var string
 		 */
-		private $_menu_slug;
 		private $_plugin_basename;
+		/**
+		 * @since 1.0.0
+		 *
+		 * @var string
+		 */
 		private $_free_plugin_basename;
+		/**
+		 * @since 1.0.0
+		 *
+		 * @var string
+		 */
 		private $_plugin_dir_path;
+		/**
+		 * @since 1.0.0
+		 *
+		 * @var string
+		 */
 		private $_plugin_dir_name;
+		/**
+		 * @since 1.0.0
+		 *
+		 * @var string
+		 */
 		private $_plugin_main_file_path;
+		/**
+		 * @var string[]
+		 */
 		private $_plugin_data;
 		/**
 		 * @since 1.0.9
@@ -40,7 +63,6 @@
 		 * @var string
 		 */
 		private $_plugin_name;
-
 		/**
 		 * @since 1.0.9
 		 * @var bool If false, don't turn Freemius on.
@@ -133,21 +155,13 @@
 		 * @since 1.0.5
 		 */
 		private $_licenses = false;
+
 		/**
-		 * @var string[]bool
-		 * @since 1.1.3
+		 * @since 1.0.1
+		 *
+		 * @var FS_Admin_Menu_Manager
 		 */
-		private $_default_submenu_items;
-		/**
-		 * @var string
-		 * @since 1.1.3
-		 */
-		private $_menu_type;
-		/**
-		 * @var string
-		 * @since 1.1.3
-		 */
-		private $_first_time_path;
+		private $_menu;
 
 		/**
 		 * @var FS_Admin_Notice_Manager
@@ -694,20 +708,6 @@
 				( ! $this->enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
 			);
-		}
-
-		/**
-		 * Is user on plugin's admin activation page.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.8
-		 *
-		 * @return bool
-		 */
-		function is_activation_page() {
-			return isset( $_GET['page'] ) &&
-			       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
-			         ( strtolower( $this->_slug ) === strtolower( $_GET['page'] ) ) );
 		}
 
 		private static $_statics_loaded = false;
@@ -1434,8 +1434,8 @@
 
 			if ( isset( $plugin_info['parent'] ) ) {
 				$parent_id = $this->_get_numeric_option( $plugin_info['parent'], 'id', null );
-//				$parent_slug       = $this->_get_option( $plugin_info['parent'], 'slug', null );
-//				$parent_public_key = $this->_get_option( $plugin_info['parent'], 'public_key', null );
+//				$parent_slug       = $this->get_option( $plugin_info['parent'], 'slug', null );
+//				$parent_public_key = $this->get_option( $plugin_info['parent'], 'public_key', null );
 				$parent_name = $this->_get_option( $plugin_info['parent'], 'name', null );
 			}
 
@@ -1469,32 +1469,17 @@
 			}
 			$this->_plugin->secret_key = $secret_key;
 
-			$this->_menu_slug = plugin_basename(
-				isset( $plugin_info['menu_slug'] ) ?
+			if (!isset($plugin_info['menu'])){
+				// Back compatibility to 1.1.2
+				$plugin_info['menu'] = array(
+					'slug' => isset($plugin_info['menu_slug']) ?
 					$plugin_info['menu_slug'] :
-					( ( isset( $plugin_info['menu'] ) && $plugin_info['menu']['slug'] ) ?
-						$plugin_info['menu']['slug'] :
 						$this->_slug
-					)
-			);
-
-			$this->_default_submenu_items = array();
-			$this->_menu_type             = 'page';
-			if ( is_null( $parent_id ) && isset( $plugin_info['menu'] ) ) {
-				$this->_default_submenu_items = array(
-					'contact' => $this->_get_bool_option( $plugin_info['menu'], 'contact', true ),
-					'support' => $this->_get_bool_option( $plugin_info['menu'], 'support', true ),
-					'account' => $this->_get_bool_option( $plugin_info['menu'], 'account', true ),
-					'pricing' => $this->_get_bool_option( $plugin_info['menu'], 'pricing', true ),
-					'addons'  => $this->_get_bool_option( $plugin_info['menu'], 'addons', true ),
 				);
-
-				$this->_menu_type       = $this->_get_option( $plugin_info['menu'], 'type', 'page' );
-				$this->_first_time_path = $this->_get_option( $plugin_info['menu'], 'first-path', false );
-				if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
-					$this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
-				}
 			}
+
+			$this->_menu = FS_Admin_Menu_Manager::instance($this->_slug);
+			$this->_menu->init($plugin_info['menu'], $this->is_addon());
 
 			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
@@ -2141,7 +2126,7 @@
 
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
-					if ( ! $this->is_activation_page() ) {
+					if ( ! $this->_menu->is_activation_page() ) {
 						$this->_admin_notices->add(
 							sprintf(
 								__fs( 'you-are-step-away' ),
@@ -2195,7 +2180,7 @@
 		 * @return bool
 		 */
 		function _is_plugin_page() {
-			return fs_is_plugin_page( $this->_menu_slug ) ||
+			return fs_is_plugin_page( $this->_menu->get_raw_slug() ) ||
 			       fs_is_plugin_page( $this->_slug );
 		}
 
@@ -3736,38 +3721,38 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( empty( $page ) && ! empty( $this->_menu_type ) ) {
+			if ( empty( $page ) && ! $this->_menu->is_top_level() ) {
 				// If not a Top-Level menu and asking for main settings page,
 				// then try to replicate plugin's main setting original page URL.
-				switch ( $this->_menu_type ) {
+				switch ( $this->_menu->get_type() ) {
 					case 'tools':
 						return add_query_arg( array(
-							'page' => $this->_menu_slug,
+							'page' => $this->_menu->get_raw_slug(),
 						), admin_url( 'tools.php' ) );
 					case 'settings':
 						return add_query_arg( array(
-							'page' => $this->_menu_slug,
+							'page' => $this->_menu->get_raw_slug(),
 						), admin_url( 'options-general.php' ) );
 				}
 			}
 
-			if ( 'cpt' === $this->_menu_type ) {
+			if ( $this->_menu->is_cpt() ) {
 				if ( empty( $page ) && $this->is_activation_mode() ) {
 					return add_query_arg( array_merge( $params, array(
-						'page' => $this->_menu_slug
+						'page' => $this->_menu->get_raw_slug()
 					) ), admin_url( 'admin.php', 'admin' ) );
 				} else {
 					if ( ! empty( $page ) ) {
-						$params['page'] = trim( "{$this->_menu_slug}-{$page}", '-' );
+						$params['page'] = trim( "{$this->_menu->get_raw_slug()}-{$page}", '-' );
 					}
 
 					return add_query_arg( array_merge( $params, array(
-						'post_type' => $this->_menu_slug,
+						'post_type' => $this->_menu->get_raw_slug(),
 					) ), admin_url( 'edit.php', 'admin' ) );
 				}
-			} else if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
+			} else if ( false === strpos( $this->_menu->get_raw_slug(), '.php?' ) ) {
 				return add_query_arg( array_merge( $params, array(
-					'page' => trim( "{$this->_menu_slug}-{$page}", '-' )
+					'page' => trim( "{$this->_menu->get_raw_slug()}-{$page}", '-' )
 				) ), admin_url( 'admin.php', 'admin' ) );
 			} else {
 				return add_query_arg( array_merge( $params, array(
@@ -3776,35 +3761,6 @@
 			}
 		}
 
-		/**
-		 * Get plugin's original menu slug.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.3
-		 *
-		 * @return string
-		 */
-		private function _get_original_menu_slug() {
-			if ( 'cpt' === $this->_menu_type ) {
-				return add_query_arg( array(
-					'post_type' => $this->_menu_slug
-				), 'edit.php' );
-			}
-
-			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
-				return $this->_menu_slug;
-			} else {
-				return $this->_slug;
-			}
-		}
-
-		private function _get_menu_slug( $slug = '' ) {
-			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
-				return $this->_menu_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
-			} else {
-				return $this->_slug . ( empty( $slug ) ? '' : ( '-' . $slug ) );
-			}
-		}
 
 		/**
 		 * Plugin's account URL.
@@ -4392,7 +4348,7 @@
 		 * @return string
 		 */
 		function get_menu_slug() {
-			return $this->_get_menu_slug();
+			return $this->_menu->get_slug();
 		}
 
 		/**
@@ -4405,7 +4361,7 @@
 			}
 
 			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
-				$this->remove_menu_item();
+				$this->_menu->remove_menu_item();
 			} else {
 				$this->add_submenu_items();
 				$this->add_menu_action();
@@ -4461,136 +4417,6 @@
 		}
 
 		/**
-		 * Override submenu's action.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.0
-		 *
-		 * @param $parent_slug
-		 * @param $menu_slug
-		 * @param $function
-		 *
-		 * @return false|string If submenu exist, will return the hook name.
-		 */
-		private function override_plugin_submenu_action( $parent_slug, $menu_slug, $function ) {
-			global $submenu;
-
-			$menu_slug   = plugin_basename( $menu_slug );
-			$parent_slug = plugin_basename( $parent_slug );
-
-			if ( ! isset( $submenu[ $parent_slug ] ) ) {
-				// Parent menu not exist.
-				return false;
-			}
-
-			$found_submenu_item = false;
-			foreach ( $submenu[ $parent_slug ] as $submenu_item ) {
-				if ( $menu_slug === $submenu_item[2] ) {
-					$found_submenu_item = $submenu_item;
-					break;
-				}
-			}
-
-			if ( false === $found_submenu_item ) {
-				// Submenu item not found.
-				return false;
-			}
-
-			// Remove current function.
-			$hookname = get_plugin_page_hookname( $menu_slug, $parent_slug );
-			remove_all_actions( $hookname );
-
-			// Attach new action.
-			add_action( $hookname, $function );
-
-			return $hookname;
-		}
-
-		/**
-		 * Find plugin's admin dashboard main menu item.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.2
-		 *
-		 * @return string[]|false
-		 */
-		private function find_top_level_menu() {
-			global $menu;
-
-			$position   = - 1;
-			$found_menu = false;
-
-			$menu_slug = $this->_get_original_menu_slug();
-
-			$hook_name = get_plugin_page_hookname( $menu_slug, '' );
-			foreach ( $menu as $pos => $m ) {
-				if ( $menu_slug === $m[2] ) {
-					$position   = $pos;
-					$found_menu = $m;
-					break;
-				}
-			}
-
-			if ( false === $found_menu ) {
-				return false;
-			}
-
-			return array(
-				'menu'      => $found_menu,
-				'position'  => $position,
-				'hook_name' => $hook_name
-			);
-		}
-
-		/**
-		 * Remove all sub-menu items.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.7
-		 *
-		 * @return bool If submenu with plugin's menu slug was found.
-		 */
-		private function remove_all_submenu_items() {
-			global $submenu;
-
-			$menu_slug = $this->_get_original_menu_slug();
-
-			if ( ! isset( $submenu[ $menu_slug ] ) ) {
-				return false;
-			}
-
-			$submenu[ $menu_slug ] = array();
-
-			return true;
-		}
-
-		/**
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
-		 *
-		 * @return array[string]mixed
-		 */
-		private function remove_menu_item() {
-			$this->_logger->entrance();
-
-			// Find main menu item.
-			$menu = $this->find_top_level_menu();
-
-			if ( false === $menu ) {
-				return $menu;
-			}
-
-			// Remove it with its actions.
-			remove_all_actions( $menu['hook_name'] );
-
-			// Remove all submenu items.
-			$this->remove_all_submenu_items();
-
-			return $menu;
-		}
-
-		/**
 		 * Remove plugin's all admin menu items & pages, and replace with activation page.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -4607,7 +4433,7 @@
 					$menu['menu'][3],
 					$menu['menu'][0],
 					'manage_options',
-					$this->_get_menu_slug(),
+						$this->_menu->get_slug(),
 					array( &$this, '_connect_page_render' ),
 					$menu['menu'][6],
 					$menu['position']
@@ -4618,10 +4444,10 @@
 					'options-general.php',
 				);
 
-				foreach ( $menus as $menu_file ) {
-					$hook = $this->override_plugin_submenu_action(
-						$menu_file,
-						$this->_menu_slug,
+				foreach ( $menus as $parent_slug ) {
+					$hook = $this->_menu->override_submenu_action(
+						$parent_slug,
+						$this->_menu->get_raw_slug(),
 						array( &$this, '_connect_page_render' )
 					);
 
@@ -4632,7 +4458,7 @@
 				}
 			}
 
-			if ( $this->is_activation_page() ) {
+			if ( $this->_menu->is_activation_page() ) {
 				// Clean admin page from distracting content.
 				$this->_clean_admin_content_section();
 			}
@@ -4646,18 +4472,7 @@
 			}
 		}
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.3
-		 *
-		 * @param string $id
-		 * @param bool   $default
-		 *
-		 * @return bool
-		 */
-		private function is_submenu_item_visible( $id, $default = true ) {
-			return $this->_get_bool_option( $this->_default_submenu_items, $id, $default );
-		}
+
 
 		/**
 		 * Add default Freemius menu items.
@@ -4682,7 +4497,7 @@
 							'account',
 							array( &$this, '_account_page_load' ),
 							10,
-							$this->is_submenu_item_visible( 'account' )
+							$this->_menu->is_submenu_item_visible( 'account' )
 						);
 					}
 
@@ -4695,7 +4510,7 @@
 						'contact',
 						array( &$this, '_clean_admin_content_section' ),
 						10,
-						$this->is_submenu_item_visible( 'contact' )
+						$this->_menu->is_submenu_item_visible( 'contact' )
 					);
 
 					if ( $this->_has_addons() ) {
@@ -4707,7 +4522,7 @@
 							'addons',
 							array( &$this, '_addons_page_load' ),
 							WP_FS__LOWEST_PRIORITY - 1,
-							$this->is_submenu_item_visible( 'addons' )
+							$this->_menu->is_submenu_item_visible( 'addons' )
 						);
 					}
 
@@ -4722,7 +4537,7 @@
 						WP_FS__LOWEST_PRIORITY,
 						// If user don't have paid plans, add pricing page
 						// to support add-ons checkout but don't add the submenu item.
-						$this->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_get_menu_slug( 'pricing' ) == $_GET['page'] ) )
+						$this->_menu->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page'] ) )
 					);
 				}
 			}
@@ -4735,8 +4550,8 @@
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
 								( $this->is_addon() ?
-									$this->get_parent_instance()->_get_original_menu_slug() :
-									$this->_get_original_menu_slug() ) :
+									$this->get_parent_instance()->_menu->get_original_menu_slug() :
+									$this->_menu->get_original_menu_slug() ) :
 								null,
 							$item['page_title'],
 							$item['menu_title'],
@@ -4751,8 +4566,8 @@
 					} else {
 						add_submenu_page(
 							$this->is_addon() ?
-								$this->get_parent_instance()->_get_original_menu_slug() :
-								$this->_get_original_menu_slug(),
+								$this->get_parent_instance()->_menu->get_original_menu_slug() :
+								$this->_menu->get_original_menu_slug(),
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
@@ -4770,7 +4585,7 @@
 			}
 
 			if ( $this->is_registered() ) {
-				if ( $this->is_submenu_item_visible( 'support' ) ) {
+				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						__fs( 'support-forum' ),
 						'https://wordpress.org/support/plugin/' . $this->_slug,
@@ -4834,7 +4649,7 @@
 				'page_title'             => is_string( $page_title ) ? $page_title : $menu_title,
 				'menu_title'             => $menu_title,
 				'capability'             => $capability,
-				'menu_slug'              => $this->_get_menu_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
+				'menu_slug'              => $this->_menu->get_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
 				'render_function'        => $render_function,
 				'before_render_function' => $before_render_function,
 				'show_submenu'           => $show_submenu,
@@ -4884,7 +4699,7 @@
 			$this->_menu_items[ $priority ][] = array(
 				'menu_title'             => $menu_title,
 				'capability'             => $capability,
-				'menu_slug'              => $this->_get_menu_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
+				'menu_slug'              => $this->_menu->get_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
 				'url'                    => $url,
 				'page_title'             => $menu_title,
 				'render_function'        => 'fs_dummy',
@@ -6542,11 +6357,13 @@
 		 * @return string
 		 */
 		private function get_after_activation_url( $filter ) {
+			$first_time_path = $this->_menu->get_first_time_path();
+
 			return $this->apply_filters(
 				$filter,
-				empty( $this->_first_time_path ) ?
+				empty( $first_time_path ) ?
 					$this->_get_admin_page_url() :
-					$this->_first_time_path
+					$first_time_path
 			);
 		}
 
@@ -7261,12 +7078,13 @@
 			$plugin_fs = false;
 
 			if ( ! $this->is_addon() ) {
+				$first_time_path = $this->_menu->get_first_time_path();
 				$plugin_fs = $this;
 				$url       = $plugin_fs->is_activation_mode() ?
 					$plugin_fs->get_activation_url() :
-					( empty( $this->_first_time_path ) ?
+					( empty( $first_time_path ) ?
 						$this->_get_admin_page_url() :
-						$this->_first_time_path );
+						$first_time_path );
 			} else {
 				if ( $this->is_parent_plugin_installed() ) {
 					$plugin_fs = self::get_parent_instance();

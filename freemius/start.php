@@ -27,6 +27,7 @@
 //		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-abstract-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-option-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-admin-notice-manager.php';
+		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-admin-menu-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-key-value-storage.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-license-manager.php';
 		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-plan-manager.php';
