@@ -70,6 +70,13 @@
 		private $_is_on;
 
 		/**
+		 * @since 1.1.3
+		 *
+		 * @var bool If false, don't turn Freemius on.
+		 */
+		private $_is_anonymous;
+
+		/**
 		 * @since 1.0.9
 		 * @var bool If false, issues with connectivity to Freemius API.
 		 */
@@ -1989,7 +1996,23 @@
 		 * @return bool
 		 */
 		function is_anonymous() {
-			return $this->_storage->get( 'is_anonymous', false );
+			if ( ! isset( $this->_is_anonymous ) ) {
+				if ( ! isset( $this->_storage->is_anonymous ) ) {
+					// Not skipped.
+					$this->_is_anonymous = false;
+				} else if ( is_bool( $this->_storage->is_anonymous ) ) {
+					// For back compatibility, since the variable was boolean before.
+					$this->_is_anonymous = $this->_storage->is_anonymous;
+
+					// Upgrade stored data format to 1.1.3 format.
+					$this->set_anonymous_mode( $this->_storage->is_anonymous );
+				} else {
+					// Version 1.1.3 and higher.
+					$this->_is_anonymous = $this->_storage->is_anonymous['is'];
+				}
+			}
+
+			return $this->_is_anonymous;
 		}
 
 		/**
@@ -2278,8 +2301,19 @@
 						__fs( 'woot' ) . '!'
 					);
 				}
-			} else {
-				// @todo Implement "bounce rate" by calculating number of plugin activations without registration.
+			} else if ( $this->is_anonymous() ) {
+				/**
+				 * Reset "skipped" click cache on the following:
+				 *  1. Development mode.
+				 *  2. If the user skipped the exact same version before.
+				 *
+				 * @todo 3. If explicitly asked to retry after every activation.
+				 */
+				if ( WP_FS__DEV_MODE ||
+				     $this->get_plugin_version() == $this->_storage->is_anonymous['version']
+				) {
+					$this->reset_anonymous_mode();
+				}
 			}
 
 			if ( $this->has_api_connectivity() ) {
@@ -2365,6 +2399,30 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.3
+		 *
+		 * @param bool $is_anonymous
+		 */
+		private function set_anonymous_mode( $is_anonymous = true ) {
+			// Store information regarding skip to try and opt-in the user
+			// again in the future.
+			$this->_storage->is_anonymous = array(
+				'is'        => $is_anonymous,
+				'timestamp' => WP_FS__SCRIPT_START_TIME,
+				'version'   => $this->get_plugin_version(),
+			);
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.3
+		 */
+		private function reset_anonymous_mode() {
+			unset( $this->_storage->is_anonymous );
+		}
+
+		/**
 		 * Skip account connect, and set anonymous mode.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -2373,7 +2431,7 @@
 		private function skip_connection() {
 			$this->_logger->entrance();
 
-			$this->_storage->is_anonymous = true;
+			$this->set_anonymous_mode();
 
 			// Send anonymous skip event.
 			// No user identified info nor any tracking will be sent after the user skips the opt-in.
