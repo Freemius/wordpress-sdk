@@ -12,9 +12,13 @@
 	// "final class" only supported since PHP 5.
 	class Freemius extends Freemius_Abstract {
 		/**
+		 * SDK Version
+		 *
 		 * @var string
 		 */
 		public $version = '1.1.3';
+
+		#region Plugin Info
 
 		/**
 		 * @since 1.0.1
@@ -63,8 +67,12 @@
 		 * @var string
 		 */
 		private $_plugin_name;
+
+		#endregion Plugin Info
+
 		/**
 		 * @since 1.0.9
+		 *
 		 * @var bool If false, don't turn Freemius on.
 		 */
 		private $_is_on;
@@ -87,7 +95,6 @@
 		 * @var bool Hints the SDK if plugin can support anonymous mode (if skip connect is visible).
 		 */
 		private $_enable_anonymous;
-
 
 		/**
 		 * @since 1.0.8
@@ -113,48 +120,51 @@
 		private $_storage;
 
 		/**
-		 * @var Freemius[]
-		 */
-		private static $_instances = array();
-
-		/**
-		 * @var FS_Logger
 		 * @since 1.0.0
+		 *
+		 * @var FS_Logger
 		 */
 		private $_logger;
 		/**
-		 * @var FS_Plugin
 		 * @since 1.0.4
+		 *
+		 * @var FS_Plugin
 		 */
 		private $_plugin = false;
 		/**
-		 * @var FS_Plugin
 		 * @since 1.0.4
+		 *
+		 * @var FS_Plugin
 		 */
 		private $_parent_plugin = false;
 		/**
-		 * @var Freemius
 		 * @since 1.1.1
+		 *
+		 * @var Freemius
 		 */
 		private $_parent = false;
 		/**
-		 * @var FS_User
 		 * @since 1.0.1
+		 *
+		 * @var FS_User
 		 */
 		private $_user = false;
 		/**
-		 * @var FS_Site
 		 * @since 1.0.1
+		 *
+		 * @var FS_Site
 		 */
 		private $_site = false;
 		/**
-		 * @var FS_Plugin_License
 		 * @since 1.0.1
+		 *
+		 * @var FS_Plugin_License
 		 */
 		private $_license;
 		/**
-		 * @var FS_Plugin_Plan[]
 		 * @since 1.0.2
+		 *
+		 * @var FS_Plugin_Plan[]
 		 */
 		private $_plans = false;
 		/**
@@ -186,6 +196,12 @@
 		 * @since 1.0.2
 		 */
 		private static $_accounts;
+
+		/**
+		 * @var Freemius[]
+		 */
+		private static $_instances = array();
+
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -1476,17 +1492,17 @@
 			}
 			$this->_plugin->secret_key = $secret_key;
 
-			if (!isset($plugin_info['menu'])){
+			if ( ! isset( $plugin_info['menu'] ) ) {
 				// Back compatibility to 1.1.2
 				$plugin_info['menu'] = array(
-					'slug' => isset($plugin_info['menu_slug']) ?
+					'slug' => isset( $plugin_info['menu_slug'] ) ?
 						$plugin_info['menu_slug'] :
 						$this->_slug
 				);
 			}
 
-			$this->_menu = FS_Admin_Menu_Manager::instance($this->_slug);
-			$this->_menu->init($plugin_info['menu'], $this->is_addon());
+			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
+			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
 
 			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
@@ -4486,7 +4502,7 @@
 
 			$hook = false;
 
-			if ($this->_menu->is_top_level()) {
+			if ( $this->_menu->is_top_level() ) {
 				$menu = $this->_menu->remove_menu_item();
 
 				if ( false !== $menu ) {
@@ -4501,20 +4517,18 @@
 						$menu['position']
 					);
 				}
-			}else {
-				if ($this->_menu->has_custom_parent()){
-					$menus = array($this->_menu->get_parent_slug());
+			} else {
+				if ( $this->_menu->has_custom_parent() ) {
+					$menus = array( $this->_menu->get_parent_slug() );
 
-					if ($this->_menu->is_override_exact()){
+					if ( $this->_menu->is_override_exact() ) {
 						// Make sure the current page is matching the activation page.
-						if (fs_canonize_url($_SERVER['REQUEST_URI']) !== fs_canonize_url($this->get_activation_url(), true))
-						{
+						if ( fs_canonize_url( $_SERVER['REQUEST_URI'] ) !== fs_canonize_url( $this->get_activation_url(), true ) ) {
 							// DO NOT OVERRIDE PAGE.
 							return;
 						}
 					}
-				}
-				else {
+				} else {
 					$menus = array(
 						'tools.php',
 						'options-general.php',
@@ -4548,7 +4562,6 @@
 				}
 			}
 		}
-
 
 
 		/**
@@ -7156,8 +7169,8 @@
 
 			if ( ! $this->is_addon() ) {
 				$first_time_path = $this->_menu->get_first_time_path();
-				$plugin_fs = $this;
-				$url       = $plugin_fs->is_activation_mode() ?
+				$plugin_fs       = $this;
+				$url             = $plugin_fs->is_activation_mode() ?
 					$plugin_fs->get_activation_url() :
 					( empty( $first_time_path ) ?
 						$this->_get_admin_page_url() :
