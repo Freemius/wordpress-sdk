@@ -2471,6 +2471,7 @@
 			$site = $this->send_install_update( array(), true );
 
 			if ( false !== $site && ! $this->is_api_error( $site ) ) {
+				$this->_site = new FS_Site( $site );
 				$this->_store_site( true );
 			}
 		}
