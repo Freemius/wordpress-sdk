@@ -4641,8 +4641,8 @@
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
 								( $this->is_addon() ?
-									$this->get_parent_instance()->_menu->get_original_menu_slug() :
-									$this->_menu->get_original_menu_slug() ) :
+									$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
+									$this->_menu->get_top_level_menu_slug() ) :
 								null,
 							$item['page_title'],
 							$item['menu_title'],
@@ -4657,8 +4657,8 @@
 					} else {
 						add_submenu_page(
 							$this->is_addon() ?
-								$this->get_parent_instance()->_menu->get_original_menu_slug() :
-								$this->_menu->get_original_menu_slug(),
+								$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
+								$this->_menu->get_top_level_menu_slug(),
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],

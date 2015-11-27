@@ -327,6 +327,18 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.3
+		 *
+		 * @return string
+		 */
+		function get_top_level_menu_slug() {
+			return $this->has_custom_parent() ?
+				$this->get_parent_slug() :
+				$this->get_original_menu_slug();
+		}
+
+		/**
 		 * Is user on plugin's admin activation page.
 		 *
 		 * @author Vova Feldman (@svovaf)
