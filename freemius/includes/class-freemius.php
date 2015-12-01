@@ -4564,6 +4564,17 @@
 			}
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.0
+		 *
+		 * @return string
+		 */
+		private function get_top_level_menu_slug(){
+			return ( $this->is_addon() ?
+				$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
+				$this->_menu->get_top_level_menu_slug() );
+		}
 
 		/**
 		 * Add default Freemius menu items.
@@ -4640,9 +4651,7 @@
 					if ( ! isset( $item['url'] ) ) {
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
-								( $this->is_addon() ?
-									$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
-									$this->_menu->get_top_level_menu_slug() ) :
+								$this->get_top_level_menu_slug() :
 								null,
 							$item['page_title'],
 							$item['menu_title'],
@@ -4656,9 +4665,7 @@
 						}
 					} else {
 						add_submenu_page(
-							$this->is_addon() ?
-								$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
-								$this->_menu->get_top_level_menu_slug(),
+							$this->get_top_level_menu_slug(),
 							$item['page_title'],
 							$item['menu_title'],
 							$item['capability'],
