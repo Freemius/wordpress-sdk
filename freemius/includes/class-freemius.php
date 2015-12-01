@@ -4542,9 +4542,9 @@
 						foreach ( $activation_url_params as $key => $val ) {
 							if ( ! isset( $request_url_params[ $key ] ) || $val != $request_url_params[ $key ] ) {
 								// Not matching query string - DO NOT OVERRIDE PAGE.
-							return;
+								return;
+							}
 						}
-					}
 					}
 				} else {
 					$menus = array(

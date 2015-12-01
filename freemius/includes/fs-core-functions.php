@@ -351,21 +351,22 @@
 	 *
 	 * @param string $url
 	 * @param bool   $omit_host
+	 * @param array  $ignore_params
 	 *
 	 * @return string
 	 */
-	function fs_canonize_url( $url, $omit_host = false ) {
+	function fs_canonize_url( $url, $omit_host = false, $ignore_params = array() ) {
 		$parsed_url = parse_url( strtolower( $url ) );
 
-		if ( ! isset( $parsed_url['host'] ) ) {
-			return $url;
-		}
+//		if ( ! isset( $parsed_url['host'] ) ) {
+//			return $url;
+//		}
 
-		$canonical = ($omit_host ? '' : $parsed_url['host'] ) . $parsed_url['path'];
+		$canonical = (($omit_host || !isset($parsed_url['host'])) ? '' : $parsed_url['host'] ) . $parsed_url['path'];
 
 		if ( isset( $parsed_url['query'] ) ) {
 			parse_str( $parsed_url['query'], $queryString );
-			$canonical .= '?' . fs_canonize_query_string( $queryString );
+			$canonical .= '?' . fs_canonize_query_string( $queryString, $ignore_params );
 		}
 
 		return $canonical;
@@ -381,7 +382,7 @@
 	 *
 	 * @return string
 	 */
-	function fs_canonize_query_string( array $params, array $ignore_params = array(), $params_prefix = false ) {
+	function fs_canonize_query_string( array $params, array &$ignore_params, $params_prefix = false ) {
 		if ( ! is_array( $params ) || 0 === count( $params ) ) {
 			return '';
 		}
