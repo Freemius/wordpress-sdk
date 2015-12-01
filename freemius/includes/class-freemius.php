@@ -4524,10 +4524,27 @@
 
 					if ( $this->_menu->is_override_exact() ) {
 						// Make sure the current page is matching the activation page.
-						if ( fs_canonize_url( $_SERVER['REQUEST_URI'] ) !== fs_canonize_url( $this->get_activation_url(), true ) ) {
-							// DO NOT OVERRIDE PAGE.
+						$activation_url = strtolower( $this->get_activation_url() );
+						$request_url    = strtolower( $_SERVER['REQUEST_URI'] );
+
+						if ( parse_url( $activation_url, PHP_URL_PATH ) !== parse_url( $request_url, PHP_URL_PATH ) ) {
+							// Different path - DO NOT OVERRIDE PAGE.
 							return;
 						}
+
+						$activation_url_params = array();
+						parse_str( parse_url( $activation_url, PHP_URL_QUERY ), $activation_url_params );
+
+						$request_url_params = array();
+						parse_str( parse_url( $request_url, PHP_URL_QUERY ), $request_url_params );
+
+
+						foreach ( $activation_url_params as $key => $val ) {
+							if ( ! isset( $request_url_params[ $key ] ) || $val != $request_url_params[ $key ] ) {
+								// Not matching query string - DO NOT OVERRIDE PAGE.
+							return;
+						}
+					}
 					}
 				} else {
 					$menus = array(
