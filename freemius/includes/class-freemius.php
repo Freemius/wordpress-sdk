@@ -4587,7 +4587,7 @@
 		 *
 		 * @return string
 		 */
-		private function get_top_level_menu_slug(){
+		private function get_top_level_menu_slug() {
 			return ( $this->is_addon() ?
 				$this->get_parent_instance()->_menu->get_top_level_menu_slug() :
 				$this->_menu->get_top_level_menu_slug() );
@@ -4909,21 +4909,6 @@
 			$this->_logger->entrance( $tag );
 
 			add_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
-		}
-
-		/* Activation
-		------------------------------------------------------------------------------------------------------------------*/
-		/**
-		 * Render activation/sign-up page.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.1
-		 */
-		function _activation_page_render() {
-			$this->_logger->entrance();
-
-			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'activation.php', $vars );
 		}
 
 		/* Account Page

@@ -96,6 +96,10 @@
 		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
 	}
 
+	function fs_img_url( $path ) {
+		return plugins_url( plugin_basename( WP_FS__DIR_IMG . '/' . trim( $path, '/' ) ) );
+	}
+
 	/* Request handlers.
 	--------------------------------------------------------------------------------------------*/
 	/**
@@ -362,7 +366,7 @@
 //			return $url;
 //		}
 
-		$canonical = (($omit_host || !isset($parsed_url['host'])) ? '' : $parsed_url['host'] ) . $parsed_url['path'];
+		$canonical = ( ( $omit_host || ! isset( $parsed_url['host'] ) ) ? '' : $parsed_url['host'] ) . $parsed_url['path'];
 
 		if ( isset( $parsed_url['query'] ) ) {
 			parse_str( $parsed_url['query'], $queryString );
@@ -443,5 +447,15 @@
 	}
 
 	#endregion Url Canonization ------------------------------------------------------------------
+
+	function fs_download_image( $from, $to ) {
+		$ch = curl_init( $from );
+		$fp = fopen( fs_normalize_path( $to ), 'wb' );
+		curl_setopt( $ch, CURLOPT_FILE, $fp );
+		curl_setopt( $ch, CURLOPT_HEADER, 0 );
+		curl_exec( $ch );
+		curl_close( $ch );
+		fclose( $fp );
+	}
 
 

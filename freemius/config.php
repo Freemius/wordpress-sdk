@@ -57,6 +57,7 @@
 	define( 'WP_FS__DIR_ASSETS', WP_FS__DIR . '/assets' );
 	define( 'WP_FS__DIR_CSS', WP_FS__DIR_ASSETS . '/css' );
 	define( 'WP_FS__DIR_JS', WP_FS__DIR_ASSETS . '/js' );
+	define( 'WP_FS__DIR_IMG', WP_FS__DIR_ASSETS . '/img' );
 	define( 'WP_FS__DIR_SDK', WP_FS__DIR_INCLUDES . '/sdk' );
 
 
