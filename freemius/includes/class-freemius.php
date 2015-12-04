@@ -7147,7 +7147,7 @@
 			$this->_logger->entrance();
 
 			if ( $this->is_registered() ) {
-				if ( ! $this->is_paying() && $this->has_paid_plan() ) {
+				if ( ! $this->is_paying() && $this->_has_paid_plans ) {
 					$this->add_plugin_action_link(
 						__fs( 'upgrade' ),
 						$this->get_upgrade_url(),
