@@ -4646,18 +4646,20 @@
 					}
 
 					// Add upgrade/pricing page.
-					$this->add_submenu_item(
-						( $this->is_paying() ? __fs( 'pricing' ) : __fs( 'upgrade' ) . '&nbsp;&nbsp;&#x27a4;' ),
-						array( &$this, '_pricing_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing' ),
-						'manage_options',
-						'pricing',
-						array( &$this, '_clean_admin_content_section' ),
-						WP_FS__LOWEST_PRIORITY,
-						// If user don't have paid plans, add pricing page
-						// to support add-ons checkout but don't add the submenu item.
-						$this->_menu->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page'] ) )
-					);
+					if ( $this->_has_paid_plans ) {
+						$this->add_submenu_item(
+							( $this->is_paying() ? __fs( 'pricing' ) : __fs( 'upgrade' ) . '&nbsp;&nbsp;&#x27a4;' ),
+							array( &$this, '_pricing_page_render' ),
+							$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing' ),
+							'manage_options',
+							'pricing',
+							array( &$this, '_clean_admin_content_section' ),
+							WP_FS__LOWEST_PRIORITY,
+							// If user don't have paid plans, add pricing page
+							// to support add-ons checkout but don't add the submenu item.
+							$this->_menu->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page'] ) )
+						);
+					}
 				}
 			}
 
@@ -7145,7 +7147,7 @@
 			$this->_logger->entrance();
 
 			if ( $this->is_registered() ) {
-				if ( ! $this->is_paying() && $this->has_paid_plan() ) {
+				if ( ! $this->is_paying() && $this->_has_paid_plans ) {
 					$this->add_plugin_action_link(
 						__fs( 'upgrade' ),
 						$this->get_upgrade_url(),
