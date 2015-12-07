@@ -32,6 +32,17 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
 	}
 
+	/**
+	 * If your dev environment supports custom public network IP setup
+	 * like VVV, please update WP_FS__LOCALHOST_IP with your public IP
+	 * and uncomment it during dev.
+	 */
+	if ( ! defined( 'WP_FS__LOCALHOST_IP' ) ) {
+		// VVV default public network IP.
+		define( 'WP_FS__VVV_DEFAULT_PUBLIC_IP', '192.168.50.4' );
+
+//		define( 'WP_FS__LOCALHOST_IP', WP_FS__VVV_DEFAULT_PUBLIC_IP );
+	}
 
 	/**
 	 * If true and running with secret key, the opt-in process
@@ -74,7 +85,12 @@
 
 	define( 'WP_FS__ADDRESS', ( WP_FS__IS_PRODUCTION_MODE ? WP_FS__ADDRESS_PRODUCTION : WP_FS__ADDRESS_LOCALHOST ) );
 
-	define( 'WP_FS__IS_LOCALHOST', ( substr( $_SERVER['REMOTE_ADDR'], 0, 4 ) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1' ) );
+	if ( defined( 'WP_FS__LOCALHOST_IP' ) ) {
+		define( 'WP_FS__IS_LOCALHOST', ( WP_FS__LOCALHOST_IP == $_SERVER['REMOTE_ADDR'] ) );
+	} else {
+		define( 'WP_FS__IS_LOCALHOST', ( substr( $_SERVER['REMOTE_ADDR'], 0, 4 ) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1' ) );
+	}
+
 	define( 'WP_FS__IS_LOCALHOST_FOR_SERVER', ( false !== strpos( $_SERVER['HTTP_HOST'], 'localhost' ) ) );
 
 	// Set API address for local testing.
