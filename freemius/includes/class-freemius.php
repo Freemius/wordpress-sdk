@@ -572,7 +572,7 @@
 		 * @return string
 		 */
 		private function _find_caller_plugin_file() {
-			$bt              = debug_backtrace();
+			$bt                      = debug_backtrace();
 			$backtrace_entries_count = count( $bt );
 
 			// Try to load the cached value of the file path.
@@ -3829,13 +3829,13 @@
 				// then try to replicate plugin's main setting original page URL.
 				switch ( $this->_menu->get_type() ) {
 					case 'tools':
-						return add_query_arg( array(
+						return add_query_arg( array_merge( $params, array(
 							'page' => $this->_menu->get_raw_slug(),
-						), admin_url( 'tools.php' ) );
+						) ), admin_url( 'tools.php' ) );
 					case 'settings':
-						return add_query_arg( array(
+						return add_query_arg( array_merge( $params, array(
 							'page' => $this->_menu->get_raw_slug(),
-						), admin_url( 'options-general.php' ) );
+						) ), admin_url( 'options-general.php' ) );
 				}
 			}
 
