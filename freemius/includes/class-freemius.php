@@ -573,20 +573,48 @@
 		 */
 		private function _find_caller_plugin_file() {
 			$bt              = debug_backtrace();
-			$abs_path_lenght = strlen( ABSPATH );
-			$i               = 1;
-			while (
-				$i < count( $bt ) - 1 &&
-				// substr is used to prevent cases where a freemius folder appears
-				// in the path. For example, if WordPress is installed on:
-				//  /var/www/html/some/path/freemius/path/wordpress/wp-content/...
-				( false !== strpos( substr( fs_normalize_path( $bt[ $i ]['file'] ), $abs_path_lenght ), '/freemius/' ) ||
-				  fs_normalize_path( dirname( dirname( $bt[ $i ]['file'] ) ) ) !== fs_normalize_path( WP_PLUGIN_DIR ) )
-			) {
-				$i ++;
+			$backtrace_entries_count = count( $bt );
+
+			// Try to load the cached value of the file path.
+			if ( isset( $this->_storage->plugin_main_file ) ) {
+				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
+					return $this->_storage->plugin_main_file->path;
+				}
 			}
 
-			return $bt[ $i ]['file'];
+			/**
+			 * All the code below will be executed once on activation.
+			 * If the user changes the main plugin's file name, the file_exists()
+			 * will catch it.
+			 */
+			self::require_plugin_essentials();
+
+			$all_plugins       = get_plugins();
+			$all_plugins_paths = array();
+
+			// Get active plugin's main files real full names (might be symlinks).
+			foreach ( $all_plugins as $relative_path => &$data ) {
+				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
+			}
+
+			$plugin_file = null;
+			for ( $i = 1; $i < $backtrace_entries_count; $i ++ ) {
+				if ( in_array( fs_normalize_path( $bt[ $i ]['file'] ), $all_plugins_paths ) ) {
+					$plugin_file = $bt[ $i ]['file'];
+					break;
+				}
+			}
+
+			if ( is_null( $plugin_file ) ) {
+				// Throw an error to the developer in case of some edge case dev environment.
+				wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
+			}
+
+			$this->_storage->plugin_main_file = (object) array(
+				'path' => fs_normalize_path( $plugin_file ),
+			);
+
+			return $plugin_file;
 		}
 
 		#region Instance ------------------------------------------------------------------
