@@ -23,14 +23,14 @@
 			 * the repository.
 			 */
 			$suffixes = array(
-				'128x128.png',
-				'128x128.jpg',
-				'256x256.png',
-				'256x256.jpg',
+				'-128x128.png',
+				'-128x128.jpg',
+				'-256x256.png',
+				'-256x256.jpg',
 				'.svg',
 			);
 
-			$base_url = 'https://plugins.svn.wordpress.org/' . $slug . '/assets/icon-';
+			$base_url = 'https://plugins.svn.wordpress.org/' . $slug . '/assets/icon';
 
 			foreach ( $suffixes as $s ) {
 				$headers = get_headers( $base_url . $s );

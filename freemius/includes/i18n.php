@@ -37,6 +37,8 @@
 		'x-plan'                                   => _x( '%s Plan', 'e.g. Professional Plan', 'freemius' ),
 		'you-are-step-away'                        => __( 'You are just one step away - %s', 'freemius' ),
 		'activate-x-now'                           => _x( 'Activate "%s" Now', '%s - plugin name. As activate "Jetpack" now', 'freemius' ),
+		'error'                                    => __( 'Error', 'freemius' ),
+		'failed-finding-main-path'                 => __( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'freemius' ),
 		#region Account
 
 		'expiration'                               => _x( 'Expiration', 'as expiration date', 'freemius' ),
@@ -86,14 +88,12 @@
 		#endregion Account
 
 		'add-ons-for-x'                            => __( 'Add Ons for %s', 'freemius' ),
-		
 		#region Plugin Deactivation
-		'deactivation-share-reason'				   => __( 'If you have a moment, please let us know why you are deactivating', 'freemius' ),
+		'deactivation-share-reason'                => __( 'If you have a moment, please let us know why you are deactivating', 'freemius' ),
 		'deactivation-modal-button-deactivate'     => __( 'Deactivate', 'freemius' ),
 		'deactivation-modal-button-confirm'        => __( 'Yes - Deactivate', 'freemius' ),
 		'deactivation-modal-button-submit'         => __( 'Submit & Deactivate', 'freemius' ),
 		'deactivation-modal-button-cancel'         => _x( 'Cancel', 'the text of the cancel button of the plugin deactivation dialog box.', 'freemius' ),
-		
 		'reason-no-longer-needed'                  => __( 'I no longer need the plugin', 'freemius' ),
 		'reason-found-a-better-plugin'             => __( 'I found a better plugin', 'freemius' ),
 		'reason-needed-for-a-short-period'         => __( 'I only needed the plugin for a short period', 'freemius' ),
@@ -103,7 +103,6 @@
 		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.', 'freemius' ),
 		'placeholder-plugin-name'                  => __( "What's the plugin's name?", 'freemius' ),
 		'placeholder-comfortable-price'            => __( 'What price would you feel comfortable paying?', 'freemius' ),
-		
 		'reason-couldnt-make-it-work'              => __( "I couldn't understand how to make it work", 'freemius' ),
 		'reason-great-but-need-specific-feature'   => __( "The plugin is great, but I need specific feature that you don't support", 'freemius' ),
 		'reason-not-working'                       => __( 'The plugin is not working', 'freemius' ),
@@ -112,13 +111,12 @@
 		'placeholder-feature'                      => __( 'What feature?', 'freemius' ),
 		'placeholder-share-what-didnt-work'        => __( "Kindly share what didn't work so we can fix it for future users...", 'freemius' ),
 		'placeholder-what-youve-been-looking-for'  => __( "What you've been looking for?", 'freemius' ),
-		'placeholder-what-did-you-expect'		   => __( "What did you expect?", 'freemius' ),
-		
+		'placeholder-what-did-you-expect'          => __( "What did you expect?", 'freemius' ),
 		'reason-didnt-work'                        => __( "The plugin didn't work", 'freemius' ),
 		'reason-dont-like-to-share-my-information' => __( "I don't like to share my information with you", 'freemius' ),
 		#endregion Plugin Deactivation
-		
-        #region Connect
+
+		#region Connect
 		'hey-x'                                    => _x( 'Hey %s,', 'greeting', 'freemius' ),
 		'thanks-x'                                 => _x( 'Thanks %s!', 'a greeting. E.g. Thanks John!', 'freemius' ),
 		'connect-message'                          => __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
@@ -212,17 +210,17 @@
 		#endregion Admin Notices
 		#region Connectivity Issues
 		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test fails.', 'freemius' ),
-		'curl-missing-message'     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.', 'freemius' ),
+		'curl-missing-message'                     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.', 'freemius' ),
 		'cloudflare-blocks-connection-message'     => __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'freemius' ),
 		'x-requires-access-to-api'                 => _x( '%s requires an access to our API.', 'as pluginX requires an access to our API', 'freemius' ),
 		'squid-blocks-connection-message'          => __( 'It looks like your server is using Squid ACL (access control lists), which blocks the connection.', 'freemius' ),
 		'squid-no-clue-title'                      => __( 'I don\'t know what is Squid or ACL, help me!', 'freemius' ),
 		'squid-no-clue-desc'                       => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
-		'sysadmin-title'                     => __( 'I\'m a system administrator', 'freemius' ),
+		'sysadmin-title'                           => __( 'I\'m a system administrator', 'freemius' ),
 		'squid-sysadmin-desc'                      => __( 'Great, please whitelist the following domains: %s. Once you done, deactivate the plugin and activate it again.' ),
-		'curl-missing-no-clue-title'                      => __( 'I don\'t know what is cURL or how to install it, help me!', 'freemius' ),
-		'curl-missing-no-clue-desc'                       => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
-		'curl-missing-sysadmin-desc'                      => __( 'Great, please install cURL and enable it in your php.ini file. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the plugin and reactivate it back again.' ),
+		'curl-missing-no-clue-title'               => __( 'I don\'t know what is cURL or how to install it, help me!', 'freemius' ),
+		'curl-missing-no-clue-desc'                => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
+		'curl-missing-sysadmin-desc'               => __( 'Great, please install cURL and enable it in your php.ini file. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the plugin and reactivate it back again.' ),
 		'happy-to-resolve-issue-asap'              => __( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'freemius' ),
 		'fix-issue-title'                          => __( 'Yes - I\'m giving you a chance to fix it', 'freemius' ),
 		'fix-issue-desc'                           => __( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'freemius' ),
