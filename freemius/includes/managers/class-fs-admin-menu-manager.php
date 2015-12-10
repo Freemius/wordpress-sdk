@@ -123,11 +123,13 @@
 			$this->_menu_slug = $menu['slug'];
 
 			$this->_default_submenu_items = array();
-			$this->_type                  = 'page';
-			$this->_is_top_level          = true;
-			$this->_is_override_exact     = false;
-			$this->_parent_slug           = false;
-			$this->_parent_type           = 'page';
+			// @deprecated
+			$this->_type              = 'page';
+			$this->_is_top_level      = true;
+			$this->_is_override_exact = false;
+			$this->_parent_slug       = false;
+			// @deprecated
+			$this->_parent_type = 'page';
 
 			if ( ! $is_addon && isset( $menu ) ) {
 				$this->_default_submenu_items = array(
@@ -138,25 +140,27 @@
 					'addons'  => $this->get_bool_option( $menu, 'addons', true ),
 				);
 
+				// @deprecated
 				$this->_type              = $this->get_option( $menu, 'type', 'page' );
-				$this->_is_override_exact = $this->get_bool_option( $menu, 'override_exact', 'page' );
+				$this->_is_override_exact = $this->get_bool_option( $menu, 'override_exact' );
 
 				if ( isset( $menu['parent'] ) ) {
 					$this->_parent_slug = $this->get_option( $menu['parent'], 'slug' );
+					// @deprecated
 					$this->_parent_type = $this->get_option( $menu['parent'], 'type', 'page' );
 
 					// If parent's slug is different, then it's NOT a top level menu item.
 					$this->_is_top_level = ( $this->_parent_slug === $this->_menu_slug );
 				} else {
 					/**
-					 * If no parent the top level if:
+					 * If no parent then top level if:
 					 *  - Has custom admin menu ('page')
 					 *  - CPT menu type ('cpt')
 					 */
-					$this->_is_top_level = in_array( $this->_type, array(
-						'cpt',
-						'page'
-					) );
+//					$this->_is_top_level = in_array( $this->_type, array(
+//						'cpt',
+//						'page'
+//					) );
 				}
 
 				$this->_first_time_path = $this->get_option( $menu, 'first-path', false );
@@ -239,6 +243,9 @@
 		}
 
 		/**
+		 * Calculates admin settings menu slug.
+		 * If plugin's menu slug is a file (e.g. CPT), uses plugin's slug as the menu slug.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
 		 *
@@ -247,11 +254,9 @@
 		 * @return string
 		 */
 		function get_slug( $page = '' ) {
-			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
-				return $this->_menu_slug . ( empty( $page ) ? '' : ( '-' . $page ) );
-			} else {
-				return $this->_plugin_slug . ( empty( $page ) ? '' : ( '-' . $page ) );
-			}
+			return ( ( false === strpos( $this->_menu_slug, '.php?' ) ) ?
+				$this->_menu_slug :
+				$this->_plugin_slug ) . ( empty( $page ) ? '' : ( '-' . $page ) );
 		}
 
 		/**
@@ -281,7 +286,10 @@
 		 * @return bool
 		 */
 		function is_cpt() {
-			return ( 'cpt' === $this->_type );
+			return ( 0 === strpos( $this->_menu_slug, 'edit.php?post_type=' ) ||
+			         // Back compatibility.
+			         'cpt' === $this->_type
+			);
 		}
 
 		/**
@@ -335,7 +343,7 @@
 		function get_top_level_menu_slug() {
 			return $this->has_custom_parent() ?
 				$this->get_parent_slug() :
-				$this->get_original_menu_slug();
+				$this->get_raw_slug();
 		}
 
 		/**
@@ -418,7 +426,7 @@
 			$position   = - 1;
 			$found_menu = false;
 
-			$menu_slug = $this->get_original_menu_slug();
+			$menu_slug = $this->get_raw_slug();
 
 			$hook_name = get_plugin_page_hookname( $menu_slug, '' );
 			foreach ( $menu as $pos => $m ) {
@@ -451,7 +459,7 @@
 		private function remove_all_submenu_items() {
 			global $submenu;
 
-			$menu_slug = $this->get_original_menu_slug();
+			$menu_slug = $this->get_raw_slug();
 
 			if ( ! isset( $submenu[ $menu_slug ] ) ) {
 				return false;
@@ -476,7 +484,7 @@
 			$menu = $this->find_top_level_menu();
 
 			if ( false === $menu ) {
-				return $menu;
+				return false;
 			}
 
 			// Remove it with its actions.
@@ -486,6 +494,32 @@
 			$this->remove_all_submenu_items();
 
 			return $menu;
+		}
+
+		/**
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param callable $function
+		 *
+		 * @return array[string]mixed
+		 */
+		function override_menu_item( $function ) {
+			$menu = $this->remove_menu_item();
+
+			if ( false === $menu ) {
+				return false;
+			}
+
+			$menu_slug = plugin_basename( $this->get_slug() );
+
+			$hookname = get_plugin_page_hookname( $menu_slug, '' );
+
+			// Override menu action.
+			add_action( $hookname, $function );
+
+			return $hookname;
 		}
 
 		#endregion Top level menu Override

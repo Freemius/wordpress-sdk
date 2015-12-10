@@ -2499,7 +2499,8 @@
 			$site = $this->send_install_update( array(), true );
 
 			if ( false !== $site && ! $this->is_api_error( $site ) ) {
-				$this->_site = new FS_Site( $site );
+				$this->_site       = new FS_Site( $site );
+				$this->_site->plan = $this->_get_plan_by_id( $site->plan_id );
 				$this->_store_site( true );
 			}
 		}
@@ -3824,42 +3825,32 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( empty( $page ) && ! $this->_menu->is_top_level() ) {
-				// If not a Top-Level menu and asking for main settings page,
-				// then try to replicate plugin's main setting original page URL.
-				switch ( $this->_menu->get_type() ) {
-					case 'tools':
-						return add_query_arg( array_merge( $params, array(
-							'page' => $this->_menu->get_raw_slug(),
-						) ), admin_url( 'tools.php' ) );
-					case 'settings':
-						return add_query_arg( array_merge( $params, array(
-							'page' => $this->_menu->get_raw_slug(),
-						) ), admin_url( 'options-general.php' ) );
-				}
+			if ( ! $this->_menu->is_top_level() ) {
+				$parent_slug = $this->_menu->get_parent_slug();
+				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
+					$parent_slug :
+					'admin.php';
+
+				return add_query_arg( array_merge( $params, array(
+					'page' => $this->_menu->get_slug( $page ),
+				) ), admin_url( $menu_file, 'admin' ) );
 			}
 
 			if ( $this->_menu->is_cpt() ) {
 				if ( empty( $page ) && $this->is_activation_mode() ) {
 					return add_query_arg( array_merge( $params, array(
-						'page' => $this->_menu->get_raw_slug()
+						'page' => $this->_menu->get_slug()
 					) ), admin_url( 'admin.php', 'admin' ) );
 				} else {
 					if ( ! empty( $page ) ) {
-						$params['page'] = trim( "{$this->_menu->get_raw_slug()}-{$page}", '-' );
+						$params['page'] = $this->_menu->get_slug( $page );
 					}
 
-					return add_query_arg( array_merge( $params, array(
-						'post_type' => $this->_menu->get_raw_slug(),
-					) ), admin_url( 'edit.php', 'admin' ) );
+					return add_query_arg( $params, admin_url( $this->_menu->get_raw_slug(), 'admin' ) );
 				}
-			} else if ( false === strpos( $this->_menu->get_raw_slug(), '.php?' ) ) {
-				return add_query_arg( array_merge( $params, array(
-					'page' => trim( "{$this->_menu->get_raw_slug()}-{$page}", '-' )
-				) ), admin_url( 'admin.php', 'admin' ) );
 			} else {
 				return add_query_arg( array_merge( $params, array(
-					'page' => trim( "{$this->_slug}-{$page}", '-' )
+					'page' => $this->_menu->get_slug( $page ),
 				) ), admin_url( 'admin.php', 'admin' ) );
 			}
 		}
@@ -4532,53 +4523,44 @@
 			$hook = false;
 
 			if ( $this->_menu->is_top_level() ) {
-				$menu = $this->_menu->remove_menu_item();
+				$hook = $this->_menu->override_menu_item( array( &$this, '_connect_page_render' ) );
 
-				if ( false !== $menu ) {
-					// Override menu action.
+				if ( false === $hook ) {
+					// Create new menu item just for the opt-in.
 					$hook = add_menu_page(
-						$menu['menu'][3],
-						$menu['menu'][0],
+						$this->get_plugin_name(),
+						$this->get_plugin_name(),
 						'manage_options',
 						$this->_menu->get_slug(),
-						array( &$this, '_connect_page_render' ),
-						$menu['menu'][6],
-						$menu['position']
+						array( &$this, '_connect_page_render' )
 					);
 				}
 			} else {
-				if ( $this->_menu->has_custom_parent() ) {
-					$menus = array( $this->_menu->get_parent_slug() );
+				$menus = array( $this->_menu->get_parent_slug() );
 
-					if ( $this->_menu->is_override_exact() ) {
-						// Make sure the current page is matching the activation page.
-						$activation_url = strtolower( $this->get_activation_url() );
-						$request_url    = strtolower( $_SERVER['REQUEST_URI'] );
+				if ( $this->_menu->is_override_exact() ) {
+					// Make sure the current page is matching the activation page.
+					$activation_url = strtolower( $this->get_activation_url() );
+					$request_url    = strtolower( $_SERVER['REQUEST_URI'] );
 
-						if ( parse_url( $activation_url, PHP_URL_PATH ) !== parse_url( $request_url, PHP_URL_PATH ) ) {
-							// Different path - DO NOT OVERRIDE PAGE.
+					if ( parse_url( $activation_url, PHP_URL_PATH ) !== parse_url( $request_url, PHP_URL_PATH ) ) {
+						// Different path - DO NOT OVERRIDE PAGE.
+						return;
+					}
+
+					$activation_url_params = array();
+					parse_str( parse_url( $activation_url, PHP_URL_QUERY ), $activation_url_params );
+
+					$request_url_params = array();
+					parse_str( parse_url( $request_url, PHP_URL_QUERY ), $request_url_params );
+
+
+					foreach ( $activation_url_params as $key => $val ) {
+						if ( ! isset( $request_url_params[ $key ] ) || $val != $request_url_params[ $key ] ) {
+							// Not matching query string - DO NOT OVERRIDE PAGE.
 							return;
 						}
-
-						$activation_url_params = array();
-						parse_str( parse_url( $activation_url, PHP_URL_QUERY ), $activation_url_params );
-
-						$request_url_params = array();
-						parse_str( parse_url( $request_url, PHP_URL_QUERY ), $request_url_params );
-
-
-						foreach ( $activation_url_params as $key => $val ) {
-							if ( ! isset( $request_url_params[ $key ] ) || $val != $request_url_params[ $key ] ) {
-								// Not matching query string - DO NOT OVERRIDE PAGE.
-								return;
-							}
-						}
 					}
-				} else {
-					$menus = array(
-						'tools.php',
-						'options-general.php',
-					);
 				}
 
 				foreach ( $menus as $parent_slug ) {
@@ -4689,6 +4671,33 @@
 				}
 			}
 
+
+			if ( 0 < count( $this->_menu_items ) ) {
+				if ( ! $this->_menu->is_top_level() ) {
+					fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+
+					// Append submenu items right after the plugin's submenu item.
+					$this->order_sub_submenu_items();
+				} else {
+					// Append submenu items.
+					$this->embed_submenu_items();
+				}
+			}
+		}
+
+		/**
+		 * Moved the actual submenu item additions to a separated function,
+		 * in order to support sub-submenu items when the plugin's settings
+		 * only have a submenu and not top-level menu item.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 */
+		private function embed_submenu_items() {
+			$item_template = $this->_menu->is_top_level() ?
+				'<span class="fs-submenu-item">%s</span>' :
+				'<span class="fs-submenu-item fs-sub">%s</span>';
+
 			ksort( $this->_menu_items );
 
 			foreach ( $this->_menu_items as $priority => $items ) {
@@ -4699,7 +4708,7 @@
 								$this->get_top_level_menu_slug() :
 								null,
 							$item['page_title'],
-							$item['menu_title'],
+							sprintf( $item_template, $item['menu_title'] ),
 							$item['capability'],
 							$item['menu_slug'],
 							$item['render_function']
@@ -4712,7 +4721,7 @@
 						add_submenu_page(
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
-							$item['menu_title'],
+							sprintf( $item_template, $item['menu_title'] ),
 							$item['capability'],
 							$item['menu_slug'],
 							array( $this, '' )
@@ -4720,6 +4729,50 @@
 					}
 				}
 			}
+		}
+
+		/**
+		 * Re-order the submenu items so all Freemius added new submenu items
+		 * are added right after the plugin's settings submenu item.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 */
+		private function order_sub_submenu_items() {
+			global $submenu;
+
+			$top_level_menu = &$submenu[ $this->_menu->get_top_level_menu_slug() ];
+
+			$all_submenu_items_after = array();
+
+			$found_submenu_item = false;
+
+			foreach ( $top_level_menu as $submenu_id => $meta ) {
+				if ( $found_submenu_item ) {
+					// Remove all submenu items after the plugin's submenu item.
+					$all_submenu_items_after[] = $meta;
+					unset( $top_level_menu[ $submenu_id ] );
+				}
+
+				if ( $this->_menu->get_raw_slug() === $meta[2] ) {
+					// Found the submenu item, put all below.
+					$found_submenu_item = true;
+					continue;
+				}
+			}
+
+			// Embed all plugin's new submenu items.
+			$this->embed_submenu_items();
+
+			// Start with specially high number to make sure it's appended.
+			$i = 10000;
+			foreach ( $all_submenu_items_after as $meta ) {
+				$top_level_menu[ $i ] = $meta;
+				$i ++;
+			}
+
+			// Sort submenu items.
+			ksort( $top_level_menu );
 		}
 
 		function _add_default_submenu_items() {
