@@ -2500,6 +2500,7 @@
 
 			if ( false !== $site && ! $this->is_api_error( $site ) ) {
 				$this->_site = new FS_Site( $site );
+				$this->_site->plan = $this->_get_plan_by_id( $site->plan_id );
 				$this->_store_site( true );
 			}
 		}
