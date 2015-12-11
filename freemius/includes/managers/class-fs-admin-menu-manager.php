@@ -506,18 +506,36 @@
 		 * @return array[string]mixed
 		 */
 		function override_menu_item( $function ) {
-			$menu = $this->remove_menu_item();
+			$found_menu = $this->remove_menu_item();
 
-			if ( false === $menu ) {
+			if ( false === $found_menu ) {
 				return false;
 			}
 
-			$menu_slug = plugin_basename( $this->get_slug() );
+			if ( ! $this->is_top_level() || ! $this->is_cpt() ) {
+				$menu_slug = plugin_basename( $this->get_slug() );
 
-			$hookname = get_plugin_page_hookname( $menu_slug, '' );
+				$hookname = get_plugin_page_hookname( $menu_slug, '' );
 
-			// Override menu action.
-			add_action( $hookname, $function );
+				// Override menu action.
+				add_action( $hookname, $function );
+			} else {
+				global $menu;
+
+				// Create new top-level menu action.
+				$hookname = add_menu_page(
+					$found_menu['menu'][3],
+					$found_menu['menu'][0],
+					'manage_options',
+					$this->get_slug(),
+					$function,
+					$found_menu['menu'][6],
+					$found_menu['position']
+				);
+
+				// Remove original CPT menu.
+				unset( $menu[ $found_menu['position'] ] );
+			}
 
 			return $hookname;
 		}
