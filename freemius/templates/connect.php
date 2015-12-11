@@ -27,6 +27,11 @@
 	if ( false !== $protocol_pos ) {
 		$site_url = substr( $site_url, $protocol_pos + 3 );
 	}
+
+	$freemius_site_url = $fs->has_paid_plan() ?
+		'https://freemius.com/wordpress/' :
+		// Insights platform information.
+		'https://freemius.com/wordpress/insights/';
 ?>
 <div id="fs_connect" class="wrap<?php if ( ! $fs->enable_anonymous() ) {
 	echo ' fs-anonymous-disabled';
@@ -49,8 +54,8 @@
 					$first_name,
 					'<b>' . $fs->get_plugin_name() . '</b>',
 					'<b>' . $current_user->user_login . '</b>',
-					'<a href="' . get_site_url() . '" target="_blank">' . $site_url . '</a>',
-					'<a href="https://freemius.com/wordpress/" target="_blank">freemius.com</a>'
+					'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
+					'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
 				) );
 			?></p>
 	</div>
