@@ -16,7 +16,7 @@
 		 *
 		 * @var string
 		 */
-		public $version = '1.1.4';
+		public $version = '1.1.5';
 
 		#region Plugin Info
 
@@ -2217,6 +2217,8 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
+						if ( $this->is_plugin_new_install() ) {
+							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
 								sprintf(
 									__fs( 'you-are-step-away' ),
@@ -2228,6 +2230,25 @@
 								'',
 								'update-nag'
 							);
+						} else {
+							if ( ! isset( $this->_storage->sticky_optin_added ) ) {
+								$this->_storage->sticky_optin_added = true;
+
+								// Show notice for new plugin installations.
+								$this->_admin_notices->add_sticky(
+									sprintf(
+										__fs( 'few-plugin-tweaks' ),
+										sprintf( '<b><a href="%s">%s</a></b>',
+											$this->get_activation_url(),
+											sprintf( __fs( 'optin-x-now' ), $this->get_plugin_name() )
+										)
+									),
+									'connect_account',
+									'',
+									'update-nag'
+								);
+							}
+						}
 					}
 				}
 			}
