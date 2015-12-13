@@ -310,13 +310,17 @@
 		 * @since  1.0.9
 		 *
 		 * @param null|string $unique_anonymous_id
+		 * @param bool        $is_update False if new plugin installation.
 		 *
 		 * @return object
 		 */
-		function ping( $unique_anonymous_id = null ) {
+		function ping( $unique_anonymous_id = null, $is_update = false ) {
 			return is_null( $unique_anonymous_id ) ?
 				$this->_api->Ping() :
-				$this->_call( 'ping.json?uid=' . $unique_anonymous_id );
+				$this->_call( 'ping.json?' . http_build_query( array(
+						'uid'       => $unique_anonymous_id,
+						'is_update' => $is_update,
+					) ) );
 		}
 
 		/**

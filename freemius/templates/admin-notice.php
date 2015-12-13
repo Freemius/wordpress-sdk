@@ -24,7 +24,7 @@
 	}
 ?> fs-notice<?php if ( $VARS['sticky'] ) {
 	echo ' fs-sticky';
-} ?><?php if ( ! empty( $VARS['title'] ) ) {
+} ?><?php if ( ! empty( $VARS['plugin'] ) ) {
 	echo ' fs-has-title';
 } ?>"><?php if ( ! empty( $VARS['plugin'] ) ) : ?><label
 		class="fs-plugin-title"><?php echo $VARS['plugin'] ?></label><?php endif ?><p>
