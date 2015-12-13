@@ -6,15 +6,11 @@
 	 * @since       1.0.7
 	 */
 
-	wp_enqueue_script( 'jquery' );
-	wp_enqueue_script( 'json2' );
-	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
-	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
-
-	fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
-
 	$slug         = $VARS['slug'];
 	$fs           = freemius( $slug );
+
+	$fs->_enqueue_connect_essentials();
+
 	$current_user = wp_get_current_user();
 
 	$first_name = $current_user->user_firstname;

@@ -2213,6 +2213,21 @@
 		}
 
 		/**
+		 * Enqueue connect requires scripts and styles.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 */
+		function _enqueue_connect_essentials() {
+			wp_enqueue_script( 'jquery' );
+			wp_enqueue_script( 'json2' );
+
+			fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
+			fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
+
+			fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
+		}
+		/**
 		 * Return current page's URL.
 		 *
 		 * @author Vova Feldman (@svovaf)
