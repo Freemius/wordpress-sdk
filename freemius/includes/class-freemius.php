@@ -1632,7 +1632,7 @@
 						add_action( 'install_plugins_pre_plugin-information', 'fs_install_plugin_information' );
 
 						// Override request for plugin information for Add-ons.
-						add_filter( 'fs_plugins_api', array( &$this, '_get_addon_info_filter' ), 10, 3 );
+						add_filter( 'fs_plugins_api', array( &$this, '_get_addon_info_filter' ), WP_FS__DEFAULT_PRIORITY, 3 );
 					} else {
 						if ( $this->is_paying() || $this->_has_addons() ) {
 							new FS_Plugin_Updater( $this );
@@ -4625,7 +4625,7 @@
 							'manage_options',
 							'account',
 							array( &$this, '_account_page_load' ),
-							10,
+							WP_FS__DEFAULT_PRIORITY,
 							$this->_menu->is_submenu_item_visible( 'account' )
 						);
 					}
@@ -4638,7 +4638,7 @@
 						'manage_options',
 						'contact',
 						array( &$this, '_clean_admin_content_section' ),
-						10,
+						WP_FS__DEFAULT_PRIORITY,
 						$this->_menu->is_submenu_item_visible( 'contact' )
 					);
 
@@ -4813,7 +4813,7 @@
 			$capability = 'manage_options',
 			$menu_slug = false,
 			$before_render_function = false,
-			$priority = 10,
+			$priority = WP_FS__DEFAULT_PRIORITY,
 			$show_submenu = true
 		) {
 			$this->_logger->entrance( 'Title = ' . $menu_title );
@@ -4868,7 +4868,7 @@
 			$url,
 			$menu_slug = false,
 			$capability = 'read',
-			$priority = 10
+			$priority = WP_FS__DEFAULT_PRIORITY
 		) {
 			$this->_logger->entrance( 'Title = ' . $menu_title . '; Url = ' . $url );
 
@@ -4943,7 +4943,7 @@
 		 *
 		 * @uses   add_action()
 		 */
-		function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
+		function add_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
 			add_action( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
@@ -4986,7 +4986,7 @@
 		 *
 		 * @uses   add_filter()
 		 */
-		function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
+		function add_filter( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
 			add_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
@@ -7178,11 +7178,11 @@
 			add_filter( 'plugin_action_links_' . $this->_plugin_basename, array(
 				&$this,
 				'_modify_plugin_action_links_hook'
-			), 10, 2 );
+			), WP_FS__DEFAULT_PRIORITY, 2 );
 			add_filter( 'network_admin_plugin_action_links_' . $this->_plugin_basename, array(
 				&$this,
 				'_modify_plugin_action_links_hook'
-			), 10, 2 );
+			), WP_FS__DEFAULT_PRIORITY, 2 );
 		}
 
 		/**
@@ -7197,7 +7197,7 @@
 		 * @param int  $priority
 		 * @param bool $key
 		 */
-		function add_plugin_action_link( $label, $url, $external = false, $priority = 10, $key = false ) {
+		function add_plugin_action_link( $label, $url, $external = false, $priority = WP_FS__DEFAULT_PRIORITY, $key = false ) {
 			$this->_logger->entrance();
 
 			if ( ! isset( $this->_action_links[ $priority ] ) ) {
@@ -7241,7 +7241,7 @@
 						__fs( 'add-ons' ),
 						$this->_get_admin_page_url( 'addons' ),
 						false,
-						10,
+						WP_FS__DEFAULT_PRIORITY,
 						'addons'
 					);
 				}

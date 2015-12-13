@@ -157,4 +157,5 @@
 
 
 	define( 'WP_FS__SCRIPT_START_TIME', time() );
+	define( 'WP_FS__DEFAULT_PRIORITY', 10 );
 	define( 'WP_FS__LOWEST_PRIORITY', 999999999 );
