@@ -4,53 +4,58 @@ $form_width: 480px;
 
 #fs_connect
 {
-    width: $form_width;
-    @include box-shadow(0px 1px 2px rgba(0,0,0,0.3));
+    width:  $form_width;
+    @include box-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
     margin: 20px 0;
 
     @media screen and (max-width: ($form_width - 1)) {
         @include box-shadow(none);
-        width: auto;
-        margin: 0 0 0 -10px;
+        width:                    auto;
+        margin:                   0 0 0 -10px;
     }
 
     .fs-content
     {
         background: #fff;
-        padding: 15px 20px;
+        padding:    15px 20px;
 
         p
         {
-            margin: 0;
-            padding: 0;
+            margin:    0;
+            padding:   0;
             font-size: 1.2em;
         }
     }
 
     .fs-actions
     {
-        padding: 10px 20px;
+        padding:    10px 20px;
         background: #C0C7CA;
 
         .button
         {
-            padding: 0 10px 1px;
-            line-height: 35px;
-            height: 37px;
-            font-size: 16px;
+            padding:       0 10px 1px;
+            line-height:   35px;
+            height:        37px;
+            font-size:     16px;
             margin-bottom: 0;
 
             .dashicons
             {
-                font-size: 37px;
-                margin-left: -8px;
+                font-size:    37px;
+                margin-left:  -8px;
                 margin-right: 12px;
             }
 
             &.button-primary
             {
                 padding-right: 15px;
-                padding-left: 15px;
+                padding-left:  15px;
+
+                &:after
+                {
+                    content: ' \279C';
+                }
             }
 
             &.button-secondary
@@ -59,13 +64,13 @@ $form_width: 480px;
             }
         }
 
-//        .fs-skip
-//        {
-//            line-height: 38px;
-//            vertical-align: middle;
-//            text-decoration: none;
-//            margin-left: 10px;
-//        }
+        //        .fs-skip
+        //        {
+        //            line-height: 38px;
+        //            vertical-align: middle;
+        //            text-decoration: none;
+        //            margin-left: 10px;
+        //        }
     }
 
     &.fs-anonymous-disabled
@@ -148,7 +153,7 @@ $form_width: 480px;
         }
 
         @media screen and (max-width: ($form_width - 1)) {
-            background: #fff;
+            background:               #fff;
 
             .fs-trigger
             {
@@ -169,31 +174,31 @@ $form_width: 480px;
 
     .fs-visual
     {
-        padding: 12px;
+        padding:     12px;
         line-height: 0;
-        background: #fafafa;
-        height: $icon_size;
-        position: relative;
+        background:  #fafafa;
+        height:      $icon_size;
+        position:    relative;
 
         .fs-site-icon
         {
             position: absolute;
-            left: 20px;
-            top: $icons_top;
+            left:     20px;
+            top:      $icons_top;
         }
 
         .fs-connect-logo
         {
             position: absolute;
-            right: 20px;
-            top: $icons_top;
+            right:    20px;
+            top:      $icons_top;
         }
 
         .fs-plugin-icon
         {
-            position: absolute;
-            top: $icons_top;
-            left: 50%;
+            position:    absolute;
+            top:         $icons_top;
+            left:        50%;
             margin-left: - ($icon_size / 2);
         }
 
@@ -218,11 +223,11 @@ $form_width: 480px;
 
         .dashicons-plus
         {
-            position: absolute;
-            top: 50%;
-            font-size: 30px;
+            position:   absolute;
+            top:        50%;
+            font-size:  30px;
             margin-top: -10px;
-            color: #bbb;
+            color:      #bbb;
 
             &.fs-first
             {
@@ -238,8 +243,8 @@ $form_width: 480px;
         .fs-connect-logo,
         .fs-site-icon
         {
-            border: 1px solid #ccc;
-            padding: 1px;
+            border:     1px solid #ccc;
+            padding:    1px;
             background: #fff;
         }
     }
@@ -247,17 +252,154 @@ $form_width: 480px;
     .fs-terms
     {
         text-align: center;
-        font-size: 0.85em;
-        padding: 5px;
-        background: rgba(0,0,0,0.05);
+        font-size:  0.85em;
+        padding:    5px;
+        background: rgba(0, 0, 0, 0.05);
 
         &, a
         {
             color: #999;
         }
 
-        a {
+        a
+        {
             text-decoration: none;
+        }
+    }
+}
+
+.rtl
+{
+    #fs_connect
+    {
+        .fs-actions
+        {
+            padding:    10px 20px;
+            background: #C0C7CA;
+
+            .button
+            {
+                .dashicons
+                {
+                    font-size:    37px;
+                    margin-left:  -8px;
+                    margin-right: 12px;
+                }
+
+                &.button-primary
+                {
+                    &:after
+                    {
+                        content: ' \000bb';
+                    }
+                }
+
+                &.button-secondary
+                {
+                    float: left;
+                }
+            }
+        }
+
+        .fs-permissions
+        {
+            ul
+            {
+                li
+                {
+                    div
+                    {
+                        margin-right: 55px;
+                        margin-left:  0;
+                    }
+
+                    i.dashicons
+                    {
+                        float: right;
+                    }
+
+                }
+            }
+        }
+
+        .fs-visual
+        {
+            .fs-site-icon
+            {
+                right: 20px;
+                left:  auto;
+            }
+
+            .fs-connect-logo
+            {
+                right: auto;
+                left:  20px;
+            }
+        }
+    }
+}
+
+.wp-pointer-content
+{
+    #fs_connect
+    {
+        margin: 0;
+        @include box-shadow(none);
+    }
+}
+
+.fs-opt-in-pointer
+{
+    .wp-pointer-content
+    {
+        padding: 0;
+    }
+
+    &.wp-pointer-top
+    {
+        .wp-pointer-arrow
+        {
+            border-bottom-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-bottom-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-bottom
+    {
+        .wp-pointer-arrow
+        {
+            border-top-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-top-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-left
+    {
+        .wp-pointer-arrow
+        {
+            border-right-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-right-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-right
+    {
+        .wp-pointer-arrow
+        {
+            border-left-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-left-color: #fafafa;
         }
     }
 }
