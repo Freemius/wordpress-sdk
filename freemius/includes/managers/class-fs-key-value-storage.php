@@ -111,7 +111,9 @@
 		function clear_all( $store = true, $exceptions = array() ) {
 			$new_data = array();
 			foreach ( $exceptions as $key ) {
-				$new_data[ $key ] = $this->_data[ $key ];
+				if ( isset( $this->_data[ $key ] ) ) {
+					$new_data[ $key ] = $this->_data[ $key ];
+				}
 			}
 
 			$this->_data = $new_data;
