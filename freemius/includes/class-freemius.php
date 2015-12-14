@@ -2568,6 +2568,8 @@
 		private function skip_connection() {
 			$this->_logger->entrance();
 
+			$this->_admin_notices->remove_sticky( 'connect_account' );
+			
 			$this->set_anonymous_mode();
 
 			// Send anonymous skip event.
@@ -4378,6 +4380,8 @@
 			if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
+				$this->_admin_notices->remove_sticky( 'connect_account' );
+
 				if ( fs_request_has( 'user_secret_key' ) ) {
 					$user             = new FS_User();
 					$user->id         = fs_request_get( 'user_id' );
@@ -4427,6 +4431,9 @@
 
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
+
+				$this->_admin_notices->remove_sticky( 'connect_account' );
+
 				// Get current logged WP user.
 				$current_user = wp_get_current_user();
 
