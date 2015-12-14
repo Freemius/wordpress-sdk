@@ -118,8 +118,7 @@
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 				<?php endforeach ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"><?php _efs( 'opt-in-connect' ) ?>
-					&nbsp;&#10140;</button>
+				        type="submit"><?php _efs( 'opt-in-connect' ) ?></button>
 			</form>
 		<?php endif ?>
 	</div>

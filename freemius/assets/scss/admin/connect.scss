@@ -51,6 +51,10 @@ $form_width: 480px;
             {
                 padding-right: 15px;
                 padding-left: 15px;
+
+                &:after {
+                    content: ' \279C';
+                }
             }
 
             &.button-secondary
@@ -258,6 +262,120 @@ $form_width: 480px;
 
         a {
             text-decoration: none;
+        }
+    }
+}
+
+.rtl
+{
+    #fs_connect
+    {
+        .fs-actions
+        {
+            padding:    10px 20px;
+            background: #C0C7CA;
+
+            .button
+            {
+                .dashicons
+                {
+                    font-size:    37px;
+                    margin-left:  -8px;
+                    margin-right: 12px;
+                }
+
+                &.button-primary
+                {
+                    &:after {
+                        content: ' \000bb';
+                    }
+                }
+
+                &.button-secondary
+                {
+                    float: left;
+                }
+            }
+        }
+
+        .fs-visual
+        {
+            .fs-site-icon
+            {
+                right: 20px;
+                left:  auto;
+            }
+
+            .fs-connect-logo
+            {
+                right: auto;
+                left:  20px;
+            }
+        }
+    }
+}
+
+.wp-pointer-content
+{
+    #fs_connect
+    {
+        margin: 0;
+        @include box-shadow(none);
+    }
+}
+
+.fs-opt-in-pointer
+{
+    .wp-pointer-content
+    {
+        padding: 0;
+    }
+
+    &.wp-pointer-top
+    {
+        .wp-pointer-arrow
+        {
+            border-bottom-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-bottom-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-bottom
+    {
+        .wp-pointer-arrow
+        {
+            border-top-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-top-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-left
+    {
+        .wp-pointer-arrow
+        {
+            border-right-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-right-color: #fafafa;
+        }
+    }
+
+    &.wp-pointer-right
+    {
+        .wp-pointer-arrow
+        {
+            border-left-color: #dfdfdf;
+        }
+        .wp-pointer-arrow-inner
+        {
+            border-left-color: #fafafa;
         }
     }
 }
