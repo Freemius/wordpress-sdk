@@ -2559,6 +2559,9 @@
 				'timestamp' => WP_FS__SCRIPT_START_TIME,
 				'version'   => $this->get_plugin_version(),
 			);
+
+			// Update anonymous mode cache.
+			$this->_is_anonymous = $is_anonymous;
 		}
 
 		/**
@@ -2579,7 +2582,7 @@
 			$this->_logger->entrance();
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
-			
+
 			$this->set_anonymous_mode();
 
 			// Send anonymous skip event.
