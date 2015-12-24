@@ -336,6 +336,16 @@
 		 */
 		abstract function get_upgrade_url( $period = WP_FS__PERIOD_ANNUALLY );
 
+		/**
+		 * Check if Freemius was first added in a plugin update.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.5
+		 *
+		 * @return bool
+		 */
+		abstract function is_plugin_update();
+
 		#region Marketing ------------------------------------------------------------------
 
 		/**

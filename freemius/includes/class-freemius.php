@@ -954,7 +954,7 @@
 				}
 			}
 
-			$is_update = $this->apply_filters( 'is_plugin_update', !$this->is_plugin_new_install() );
+			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
 				$is_connected = false;
@@ -2381,6 +2381,16 @@
 		{
 			return isset($this->_storage->is_plugin_new_install) &&
 			       $this->_storage->is_plugin_new_install;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.5
+		 *
+		 * @return bool
+		 */
+		function is_plugin_update() {
+			return ! $this->is_plugin_new_install();
 		}
 
 		/**
