@@ -5102,6 +5102,21 @@
 			add_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
 		}
 
+		/**
+		 * Check if has filter.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param string        $tag
+		 * @param callable|bool $function_to_check Optional. The callback to check for. Default false.
+		 */
+		function has_filter( $tag, $function_to_check = false ) {
+			$this->_logger->entrance( $tag );
+
+			return has_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_check );
+		}
+
 		/* Account Page
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
