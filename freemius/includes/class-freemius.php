@@ -4768,6 +4768,11 @@
 						);
 					}
 
+					$show_pricing = ($this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ));
+					// If user don't have paid plans, add pricing page
+					// to support add-ons checkout but don't add the submenu item.
+					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
+
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
 						( $this->is_paying() ? __fs( 'pricing' ) : __fs( 'upgrade' ) . '&nbsp;&nbsp;&#x27a4;' ),
@@ -4777,9 +4782,7 @@
 						'pricing',
 						array( &$this, '_clean_admin_content_section' ),
 						WP_FS__LOWEST_PRIORITY,
-						// If user don't have paid plans, add pricing page
-						// to support add-ons checkout but don't add the submenu item.
-						$this->_menu->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page'] ) )
+						$show_pricing
 					);
 				}
 			}
