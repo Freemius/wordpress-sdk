@@ -954,7 +954,7 @@
 				}
 			}
 
-			$is_update = $this->apply_filters( 'is_plugin_update', !$this->is_plugin_new_install() );
+			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
 				$is_connected = false;
@@ -2384,6 +2384,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.5
+		 *
+		 * @return bool
+		 */
+		function is_plugin_update() {
+			return ! $this->is_plugin_new_install();
+		}
+
+		/**
 		 * Plugin activated hook.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -2549,6 +2559,9 @@
 				'timestamp' => WP_FS__SCRIPT_START_TIME,
 				'version'   => $this->get_plugin_version(),
 			);
+
+			// Update anonymous mode cache.
+			$this->_is_anonymous = $is_anonymous;
 		}
 
 		/**
@@ -2569,7 +2582,7 @@
 			$this->_logger->entrance();
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
-			
+
 			$this->set_anonymous_mode();
 
 			// Send anonymous skip event.
@@ -4755,6 +4768,11 @@
 						);
 					}
 
+					$show_pricing = ($this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ));
+					// If user don't have paid plans, add pricing page
+					// to support add-ons checkout but don't add the submenu item.
+					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
+
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
 						( $this->is_paying() ? __fs( 'pricing' ) : __fs( 'upgrade' ) . '&nbsp;&nbsp;&#x27a4;' ),
@@ -4764,9 +4782,7 @@
 						'pricing',
 						array( &$this, '_clean_admin_content_section' ),
 						WP_FS__LOWEST_PRIORITY,
-						// If user don't have paid plans, add pricing page
-						// to support add-ons checkout but don't add the submenu item.
-						$this->_menu->is_submenu_item_visible( 'pricing' ) && ( $this->has_paid_plan() || ( isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page'] ) )
+						$show_pricing
 					);
 				}
 			}
@@ -5090,6 +5106,21 @@
 			$this->_logger->entrance( $tag );
 
 			add_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
+		}
+
+		/**
+		 * Check if has filter.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param string        $tag
+		 * @param callable|bool $function_to_check Optional. The callback to check for. Default false.
+		 */
+		function has_filter( $tag, $function_to_check = false ) {
+			$this->_logger->entrance( $tag );
+
+			return has_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_check );
 		}
 
 		/* Account Page
