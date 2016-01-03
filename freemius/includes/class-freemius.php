@@ -939,7 +939,7 @@
 
 			if (isset( $this->_storage->connectivity_test ) ) {
 				if ( $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
-				     $_SERVER['SERVER_ADDR'] == $this->_storage->connectivity_test['server_ip']
+				     fs_get_ip() == $this->_storage->connectivity_test['server_ip']
 				) {
 					if ( ( $this->_storage->connectivity_test['is_connected'] &&
 					       $this->_storage->connectivity_test['is_active'] ) ||
@@ -982,7 +982,7 @@
 			$this->_storage->connectivity_test = array(
 				'is_connected' => $is_connected,
 				'host'         => $_SERVER['HTTP_HOST'],
-				'server_ip'    => $_SERVER['SERVER_ADDR'],
+				'server_ip'    => fs_get_ip(),
 				'is_active'    => $is_active,
 				'timestamp'    => WP_FS__SCRIPT_START_TIME,
 				// Last version with connectivity attempt.
@@ -1387,6 +1387,8 @@
 				);
 			}
 
+			$server_ip = fs_get_ip();
+
 			// Generate the default email sections.
 			$sections = array(
 				'sdk'     => array(
@@ -1413,7 +1415,7 @@
 						),
 						'server_addr' => array(
 							'SERVER_ADDR',
-							( ! empty( $_SERVER['SERVER_ADDR'] ) ? '<a href="http://www.projecthoneypot.org/ip_' . $_SERVER['SERVER_ADDR'] . '">' . $_SERVER['SERVER_ADDR'] . '</a>' : '' )
+							'<a href="http://www.projecthoneypot.org/ip_' . $server_ip . '">' . $server_ip . '</a>'
 						)
 					)
 				),
@@ -4899,8 +4901,8 @@
 			if ( $this->is_registered() ) {
 				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
-						__fs( 'support-forum' ),
-						'https://wordpress.org/support/plugin/' . $this->_slug,
+						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum' ) ),
+						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
 						'wp-support-forum',
 						'read',
 						50
