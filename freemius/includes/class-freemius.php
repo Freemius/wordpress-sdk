@@ -4901,8 +4901,8 @@
 			if ( $this->is_registered() ) {
 				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
-						__fs( 'support-forum' ),
-						'https://wordpress.org/support/plugin/' . $this->_slug,
+						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum' ) ),
+						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
 						'wp-support-forum',
 						'read',
 						50
