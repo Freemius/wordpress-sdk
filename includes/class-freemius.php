@@ -2489,6 +2489,9 @@
 			}
 
 			$this->_admin_notices->clear_all_sticky();
+			if ( isset( $this->_storage->sticky_optin_added ) ) {
+				unset( $this->_storage->sticky_optin_added );
+			}
 
 			if ( ! $this->has_api_connectivity() ) {
 				// Reset connectivity test cache.
