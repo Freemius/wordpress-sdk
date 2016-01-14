@@ -5328,14 +5328,26 @@
 				$this->_user->last  = $user->last;
 				$this->_user->email = $user->email;
 
-				if ( ( ! isset( $this->_user->is_verified ) || false === $this->_user->is_verified ) && $user->is_verified ) {
-					$this->_user->is_verified = $user->is_verified;
+				$is_menu_item_account_visible = $this->_menu->is_submenu_item_visible( 'account' );
+
+				if ( $user->is_verified &&
+				     ( ! isset( $this->_user->is_verified ) || false === $this->_user->is_verified )
+				) {
+					$this->_user->is_verified = true;
 
 					$this->do_action( 'account_email_verified', $user->email );
 
 					$this->_admin_notices->add(
 						__fs( 'email-verified-message' ),
-						__fs( 'right-on' ) . '!'
+						__fs( 'right-on' ) . '!',
+						'success',
+						// Make admin sticky if account menu item is invisible,
+						// since the page will be auto redirected to the plugin's
+						// main settings page, and the non-sticky message
+						// will disappear.
+						! $is_menu_item_account_visible,
+						false,
+						'email_verified'
 					);
 				}
 
@@ -5343,6 +5355,20 @@
 				$this->_store_user();
 
 				$this->do_action( 'after_account_user_sync', $user );
+
+				/**
+				 * If account menu item is hidden, redirect to plugin's main settings page.
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.6
+				 *
+				 * @link https://github.com/Freemius/wordpress-sdk/issues/6
+				 */
+				if ( ! $is_menu_item_account_visible ) {
+					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
+						exit();
+					}
+				}
 			}
 		}
 
