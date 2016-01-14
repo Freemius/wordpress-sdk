@@ -837,9 +837,11 @@
 		static function add_debug_page() {
 			self::$_static_logger->entrance();
 
+			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
+
 			$hook = add_object_page(
-				__fs( 'freemius-debug' ),
-				__fs( 'freemius-debug' ),
+				$title,
+				$title,
 				'manage_options',
 				'freemius',
 				array( 'Freemius', '_debug_page_render' )

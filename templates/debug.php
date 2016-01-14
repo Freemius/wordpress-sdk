@@ -1,3 +1,28 @@
+<h2><?php _efs( 'sdk-versions' ) ?> / <?php _efs( 'sites' ) ?></h2>
+<?php
+	global $fs_active_plugins;
+?>
+<table id="fs_sdks" class="widefat">
+	<thead>
+	<tr>
+		<th><?php _efs( 'version' ) ?></th>
+		<th><?php _efs( 'plugin-path' ) ?></th>
+		<th><?php _efs( 'sdk-path' ) ?></th>
+		<th><?php _efs( 'is-active' ) ?></th>
+	</tr>
+	</thead>
+	<tbody>
+	<?php foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) : ?>
+		<?php $is_active = (WP_FS__SDK_VERSION == $data->version) ?>
+		<tr<?php if ($is_active) echo ' style="background: #E6FFE6"' ?>>
+			<td><?php echo $data->version ?></td>
+			<td><?php echo $sdk_path ?></td>
+			<td><?php echo $data->plugin_path ?></td>
+			<td><?php echo ($is_active) ? 'Active' : 'Inactive' ?></td>
+		</tr>
+	<?php endforeach ?>
+	</tbody>
+</table>
 <h2><?php _efs( 'plugin-installs' ) ?> / <?php _efs( 'sites' ) ?></h2>
 <?php
 	/**
