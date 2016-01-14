@@ -128,6 +128,7 @@
 		'hey-x'                                    => _x( 'Hey %s,', 'greeting', 'freemius' ),
 		'thanks-x'                                 => _x( 'Thanks %s!', 'a greeting. E.g. Thanks John!', 'freemius' ),
 		'connect-message'                          => __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
+		'connect-message_on-update'                => __( 'Please help us improve %2$s! If you opt-in, some data about your usage of %2$s will be sent to %5$s. If you skip this, that\'s okay! %2$s will still work just fine.', 'freemius' ),
 		'pending-activation-message'               => __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', 'freemius' ),
 		'what-permissions'                         => __( 'What permissions are being granted?', 'freemius' ),
 		'permissions-profile'                      => __( 'Your Profile Overview', 'freemius' ),

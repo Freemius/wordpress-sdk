@@ -44,10 +44,26 @@
 	</div>
 	<div class="fs-content">
 		<p><?php
-				echo $fs->apply_filters( 'connect_message',
+				$filter                = 'connect_message';
+				$default_optin_message = 'connect-message';
+
+				if ( $fs->is_plugin_update() ) {
+					// If Freemius was added on a plugin update, set different
+					// opt-in message.
+					$default_optin_message = 'connect-message_on-update';
+
+					// If user customized the opt-in message on update, use
+					// that message. Otherwise, fallback to regular opt-in
+					// custom message if exist.
+					if ( $fs->has_filter( 'connect_message_on_update' ) ) {
+						$filter = 'connect_message_on_update';
+					}
+				}
+
+				echo $fs->apply_filters( $filter,
 					sprintf(
 						__fs( 'hey-x' ) . '<br>' .
-						__fs( 'connect-message' ),
+						__fs( $default_optin_message ),
 						$first_name,
 						'<b>' . $fs->get_plugin_name() . '</b>',
 						'<b>' . $current_user->user_login . '</b>',
