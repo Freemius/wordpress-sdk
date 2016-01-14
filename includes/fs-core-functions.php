@@ -58,20 +58,6 @@
 		return ob_get_clean();
 	}
 
-	function __fs( $key ) {
-		global $fs_text;
-
-		if ( ! isset( $fs_text ) ) {
-			require_once( dirname( __FILE__ ) . '/i18n.php' );
-		}
-
-		return isset( $fs_text[ $key ] ) ? $fs_text[ $key ] : $key;
-	}
-
-	function _efs( $key ) {
-		echo __fs( $key );
-	}
-
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
@@ -96,8 +82,8 @@
 		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
 	}
 
-	function fs_img_url( $path ) {
-		return plugins_url( plugin_basename( WP_FS__DIR_IMG . '/' . trim( $path, '/' ) ) );
+	function fs_img_url( $path, $img_dir = WP_FS__DIR_IMG ) {
+		return plugins_url( plugin_basename( $img_dir . '/' . trim( $path, '/' ) ) );
 	}
 
 	/* Request handlers.
@@ -194,91 +180,6 @@
 		     href="<?php echo wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
 	}
 
-	/* Core Redirect (copied from BuddyPress).
-	--------------------------------------------------------------------------------------------*/
-	/**
-	 * Redirects to another page, with a workaround for the IIS Set-Cookie bug.
-	 *
-	 * @link  http://support.microsoft.com/kb/q176113/
-	 * @since 1.5.1
-	 * @uses  apply_filters() Calls 'wp_redirect' hook on $location and $status.
-	 *
-	 * @param string $location The path to redirect to
-	 * @param int    $status   Status code to use
-	 *
-	 * @return bool False if $location is not set
-	 */
-	function fs_redirect( $location, $status = 302 ) {
-		global $is_IIS;
-
-		if ( headers_sent() ) {
-			return false;
-		}
-
-		if ( ! $location ) // allows the wp_redirect filter to cancel a redirect
-		{
-			return false;
-		}
-
-		$location = fs_sanitize_redirect( $location );
-
-		if ( $is_IIS ) {
-			header( "Refresh: 0;url=$location" );
-		} else {
-			if ( php_sapi_name() != 'cgi-fcgi' ) {
-				status_header( $status );
-			} // This causes problems on IIS and some FastCGI setups
-			header( "Location: $location" );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Sanitizes a URL for use in a redirect.
-	 *
-	 * @since 2.3
-	 *
-	 * @param string $location
-	 *
-	 * @return string redirect-sanitized URL
-	 */
-	function fs_sanitize_redirect( $location ) {
-		$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!]|i', '', $location );
-		$location = fs_kses_no_null( $location );
-
-		// remove %0d and %0a from location
-		$strip = array( '%0d', '%0a' );
-		$found = true;
-		while ( $found ) {
-			$found = false;
-			foreach ( (array) $strip as $val ) {
-				while ( strpos( $location, $val ) !== false ) {
-					$found    = true;
-					$location = str_replace( $val, '', $location );
-				}
-			}
-		}
-
-		return $location;
-	}
-
-	/**
-	 * Removes any NULL characters in $string.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $string
-	 *
-	 * @return string
-	 */
-	function fs_kses_no_null( $string ) {
-		$string = preg_replace( '/\0+/', '', $string );
-		$string = preg_replace( '/(\\\\0)+/', '', $string );
-
-		return $string;
-	}
-
 	/*function fs_error_handler($errno, $errstr, $errfile, $errline)
 	{
 		if (false === strpos($errfile, 'freemius/'))
@@ -301,29 +202,6 @@
 	}
 
 	set_error_handler('fs_error_handler');*/
-
-	if ( function_exists( 'wp_normalize_path' ) ) {
-		/**
-		 * Normalize a filesystem path.
-		 *
-		 * Replaces backslashes with forward slashes for Windows systems, and ensures
-		 * no duplicate slashes exist.
-		 *
-		 * @param string $path Path to normalize.
-		 *
-		 * @return string Normalized path.
-		 */
-		function fs_normalize_path( $path ) {
-			return wp_normalize_path( $path );
-		}
-	} else {
-		function fs_normalize_path( $path ) {
-			$path = str_replace( '\\', '/', $path );
-			$path = preg_replace( '|/+|', '/', $path );
-
-			return $path;
-		}
-	}
 
 	function fs_nonce_url( $actionurl, $action = - 1, $name = '_wpnonce' ) {
 //		$actionurl = str_replace( '&amp;', '&', $actionurl );

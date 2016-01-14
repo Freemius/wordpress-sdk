@@ -16,7 +16,7 @@
 		 *
 		 * @var string
 		 */
-		public $version = '1.1.5';
+		public $version = WP_FS__SDK_VERSION;
 
 		#region Plugin Info
 
@@ -2536,6 +2536,25 @@
 
 			// Clear API cache on deactivation.
 			FS_Api::clear_cache();
+
+			$this->remove_sdk_reference();
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 */
+		private function remove_sdk_reference() {
+			global $fs_active_plugins;
+
+			foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
+				if ( $this->_plugin_basename == $data->plugin_path ) {
+					unset( $fs_active_plugins->plugins[ $sdk_path ] );
+					break;
+				}
+			}
+
+			fs_fallback_to_newest_active_sdk();
 		}
 
 		/**

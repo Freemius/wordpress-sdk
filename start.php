@@ -10,8 +10,156 @@
 		exit;
 	}
 
+	$this_sdk_version = '1.1.6';
+
+	#region SDK Selection Logic --------------------------------------------------------------------
+
 	/**
+	 * Special logic added on 1.1.6 to make sure that every Freemius powered plugin
+	 * will ALWAYS be loaded with the newest SDK from the active Freemius powered plugins.
+	 *
+	 * Since Freemius SDK is backward compatible, this will make sure that all Freemius powered
+	 * plugins will run correctly.
+	 *
+	 * @since 1.1.6
 	 */
+
+	global $fs_active_plugins;
+
+	$this_sdk_relative_path = plugin_basename( dirname( __FILE__ ) );
+
+	if ( ! isset( $fs_active_plugins ) ) {
+		// Require SDK essentials.
+		require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+
+		// Load all Freemius powered active plugins.
+		$fs_active_plugins = get_option( 'fs_active_plugins', new stdClass() );
+
+		if ( ! isset( $fs_active_plugins->plugins ) ) {
+			$fs_active_plugins->plugins = array();
+		}
+	}
+
+	// Update current SDK info based on the SDK path.
+	if ( ! isset( $fs_active_plugins->plugins[ $this_sdk_relative_path ] ) ||
+	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
+	) {
+		$fs_active_plugins->plugins[ $this_sdk_relative_path ] = (object) array(
+			'version'     => $this_sdk_version,
+			'timestamp'   => time(),
+			'plugin_path' => plugin_basename( fs_find_caller_plugin_file() ),
+		);
+	}
+
+	$is_current_sdk_newest = ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
+
+	if ( ! isset( $fs_active_plugins->newest ) ) {
+		/**
+		 * This will be executed only once, for the first time a Freemius powered plugin is activated.
+		 */
+		fs_update_sdk_newest_version( $this_sdk_relative_path );
+
+		$is_current_sdk_newest = true;
+	} else if ( version_compare( $fs_active_plugins->newest->version, $this_sdk_version, '<' ) ) {
+		/**
+		 * Current SDK is newer than the newest stored SDK.
+		 */
+		fs_update_sdk_newest_version( $this_sdk_relative_path );
+
+		if ( class_exists( 'Freemius' ) ) {
+			// Older SDK version was already loaded.
+
+			if ( ! $fs_active_plugins->newest->in_activation ) {
+				// Re-order plugins to load this plugin first.
+				fs_newest_sdk_plugin_first();
+			}
+
+			// Refresh page.
+			if ( fs_redirect( $_SERVER['REQUEST_URI'] ) ) {
+				exit();
+			}
+		}
+	} else {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		}
+
+		$is_newest_sdk_plugin_activate = is_plugin_active( $fs_active_plugins->newest->plugin_path );
+
+		if ( $is_current_sdk_newest &&
+		     ! $is_newest_sdk_plugin_activate &&
+		     ! $fs_active_plugins->newest->in_activation
+		) {
+			// If current SDK is the newest and the plugin is NOT active, it means
+			// that the current plugin in activation mode.
+			$fs_active_plugins->newest->in_activation = true;
+			update_option( 'fs_active_plugins', $fs_active_plugins );
+		}
+
+		$is_newest_sdk_path_valid = ( $is_newest_sdk_plugin_activate || $fs_active_plugins->newest->in_activation ) && file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' ) );
+
+		if ( ! $is_newest_sdk_path_valid && ! $is_current_sdk_newest ) {
+			// Plugin with newest SDK is no longer active, or SDK was moved to a different location.
+			unset( $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ] );
+		}
+
+		if ( ! ( $is_newest_sdk_plugin_activate || $fs_active_plugins->newest->in_activation ) ||
+		     ! $is_newest_sdk_path_valid ||
+		     // Is newest SDK downgraded.
+		     ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path &&
+		       version_compare( $fs_active_plugins->newest->version, $this_sdk_version, '>' ) )
+		) {
+			/**
+			 * Plugin with newest SDK is no longer active.
+			 *    OR
+			 * The newest SDK was in the current plugin. BUT, seems like the version of
+			 * the SDK was downgraded to a lower SDK.
+			 */
+			// Find the active plugin with the newest SDK version and update the newest reference.
+			fs_fallback_to_newest_active_sdk();
+		} else {
+			if ( $fs_active_plugins->newest->in_activation &&
+			     $is_newest_sdk_plugin_activate &&
+			     $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path
+			) {
+				// Plugin no more in activation.
+				$fs_active_plugins->newest->in_activation = false;
+				update_option( 'fs_active_plugins', $fs_active_plugins );
+
+				// Reorder plugins to load plugin with newest SDK first.
+				if (fs_newest_sdk_plugin_first()) {
+					// Refresh page after re-order to make sure activated plugin loads newest SDK.
+					if ( class_exists( 'Freemius' ) ) {
+						if ( fs_redirect( $_SERVER['REQUEST_URI'] ) ) {
+							exit();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if ( class_exists( 'Freemius' ) ) {
+		// SDK was already loaded.
+		return;
+	}
+
+	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
+		$newest_sdk_starter = fs_normalize_path( WP_PLUGIN_DIR . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
+
+		if ( file_exists( $newest_sdk_starter ) ) {
+			// Reorder plugins to load plugin with newest SDK first.
+			fs_newest_sdk_plugin_first();
+
+			// There's a newer SDK version, load it instead of the current one!
+			require_once $newest_sdk_starter;
+
+			return;
+		}
+	}
+
+	#endregion SDK Selection Logic --------------------------------------------------------------------
+
 	#region Hooks & Filters Collection --------------------------------------------------------------------
 
 	/**
@@ -90,6 +238,10 @@
 	#endregion Hooks & Filters Collection --------------------------------------------------------------------
 
 	if ( ! class_exists( 'Freemius' ) ) {
+
+		if ( ! defined( 'WP_FS__SDK_VERSION' ) ) {
+			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
+		}
 
 		// Configuration should be loaded first.
 		require_once dirname( __FILE__ ) . '/config.php';
