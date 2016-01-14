@@ -30,5 +30,7 @@
 		class="fs-plugin-title"><?php echo $VARS['plugin'] ?></label><?php endif ?><p>
 		<?php if ( ! empty( $VARS['title'] ) ) : ?><b><?php echo $VARS['title'] ?></b> <?php endif ?>
 		<?php echo $VARS['message'] ?>
-	</p><?php if ( $VARS['sticky'] ) : ?><i class="fs-close dashicons dashicons-no"
-                                            title="<?php _efs( 'dismiss' ) ?>"></i><?php endif ?></div>
+	</p><?php if ( $VARS['sticky'] ) : ?>
+		<div class="fs-close"><i class="dashicons dashicons-no"
+		                         title="<?php _efs( 'dismiss' ) ?>"></i> <span><?php _efs( 'dismiss' ) ?></span>
+		</div><?php endif ?></div>

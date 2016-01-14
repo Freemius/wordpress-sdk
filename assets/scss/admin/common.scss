@@ -24,14 +24,25 @@
     .fs-close
     {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 2px;
+        bottom: 2px;
+        right: 2px;
         cursor: pointer;
-        color: #ccc;
+        color: #aaa;
+        min-width: 100px;
+        text-align: center;
+        padding-right: 2px;
 
         &:hover
         {
-            color: #aaa;
+            color: #fff;
+            background: #A9A9A9;
+        }
+
+        > *
+        {
+            margin-top: 7px;
+            display: inline-block;
         }
     }
 
@@ -54,8 +65,10 @@
 
 .rtl .fs-notice .fs-close
 {
-    left: 10px;
+    left: 2px;
     right: auto;
+    padding-right: 0;
+    padding-left: 2px;
 }
 
 .fs-secure-notice
