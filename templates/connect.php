@@ -149,6 +149,17 @@
 					<p><?php _efs( 'permissions-site_desc' ) ?></p>
 				</div>
 			</li>
+			<?php if ( $fs->is_permission_requested( 'newsletter' ) ) : ?>
+				<li>
+					<i class="dashicons dashicons-email-alt"></i>
+
+					<div>
+						<span><?php _efs( 'permissions-newsletter' ) ?></span>
+
+						<p><?php _efs( 'permissions-newsletter_desc' ) ?></p>
+					</div>
+				</li>
+			<?php endif ?>
 			<li>
 				<i class="dashicons dashicons-admin-plugins"></i>
 

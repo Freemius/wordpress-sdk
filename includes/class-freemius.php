@@ -115,6 +115,12 @@
 		private $_has_addons;
 
 		/**
+		 * @since 1.1.6
+		 * @var string[]bool.
+		 */
+		private $_permissions;
+
+		/**
 		 * @var FS_Key_Value_Storage
 		 */
 		private $_storage;
@@ -1525,6 +1531,7 @@
 			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
+			$this->_permissions      = $this->_get_option( $plugin_info, 'permissions', array() );
 
 			if ( ! $this->is_registered() ) {
 				if ( ! $this->has_api_connectivity() ) {
@@ -7579,6 +7586,24 @@
 		}
 
 		#endregion ------------------------------------------------------------------
+
+		#region Permissions ------------------------------------------------------------------
+
+		/**
+		 * Check if specific permission requested.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @param string $permission
+		 *
+		 * @return bool
+		 */
+		function is_permission_requested( $permission ) {
+			return isset( $this->_permissions[ $permission ] ) && ( true === $this->_permissions[ $permission ] );
+		}
+
+		#endregion Permissions ------------------------------------------------------------------
 
 		#region Marketing ------------------------------------------------------------------
 
