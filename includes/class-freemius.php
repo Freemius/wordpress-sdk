@@ -610,9 +610,6 @@
 		 * @return string
 		 */
 		private function _find_caller_plugin_file() {
-			$bt                      = debug_backtrace();
-			$backtrace_entries_count = count( $bt );
-
 			// Try to load the cached value of the file path.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
 				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
@@ -620,33 +617,7 @@
 				}
 			}
 
-			/**
-			 * All the code below will be executed once on activation.
-			 * If the user changes the main plugin's file name, the file_exists()
-			 * will catch it.
-			 */
-			self::require_plugin_essentials();
-
-			$all_plugins       = get_plugins();
-			$all_plugins_paths = array();
-
-			// Get active plugin's main files real full names (might be symlinks).
-			foreach ( $all_plugins as $relative_path => &$data ) {
-				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
-			}
-
-			$plugin_file = null;
-			for ( $i = 1; $i < $backtrace_entries_count; $i ++ ) {
-				if ( in_array( fs_normalize_path( $bt[ $i ]['file'] ), $all_plugins_paths ) ) {
-					$plugin_file = $bt[ $i ]['file'];
-					break;
-				}
-			}
-
-			if ( is_null( $plugin_file ) ) {
-				// Throw an error to the developer in case of some edge case dev environment.
-				wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
-			}
+			$plugin_file = fs_find_caller_plugin_file();
 
 			$this->_storage->plugin_main_file = (object) array(
 				'path' => fs_normalize_path( $plugin_file ),
