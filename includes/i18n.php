@@ -69,6 +69,7 @@
 		'no-secret'                                => _x( 'No Secret', 'as secret encryption key missing', 'freemius' ),
 		'no-id'                                    => __( 'No ID', 'freemius' ),
 		'sync-license'                             => _x( 'Sync License', 'as synchronize license', 'freemius' ),
+		'sync'                                     => _x( 'Sync', 'as synchronize', 'freemius' ),
 		'deactivate-license'                       => __( 'Deactivate License', 'freemius' ),
 		'activate'                                 => __( 'Activate', 'freemius' ),
 		'deactivate'                               => __( 'Deactivate', 'freemius' ),

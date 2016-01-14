@@ -63,6 +63,14 @@
 					?>'))  this.parentNode.submit(); return false;"><?php _efs( 'delete-account' ) ?></a>
 				</form>
 			</li>
+			<li>
+				&nbsp;•&nbsp;
+				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
+					<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
+					<?php wp_nonce_field( $slug . '_sync_license' ) ?>
+					<a href="#" onclick="this.parentNode.submit(); return false;"><?php _efs( 'sync' ) ?></a>
+				</form>
+			</li>
 			<?php if ( $is_paying ) : ?>
 				<li>
 					&nbsp;•&nbsp;
