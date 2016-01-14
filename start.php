@@ -11,9 +11,83 @@
 	}
 
 	/**
-	 * Freemius hooks collection:
-	 *  fs_after_license_loaded
 	 */
+	#region Hooks & Filters Collection --------------------------------------------------------------------
+
+	/**
+	 * Freemius hooks (actions & filters) tags structure:
+	 *
+	 *      fs_{filter/action_name}_{plugin_slug}
+	 *
+	 * --------------------------------------------------------
+	 *
+	 * Usage with WordPress' add_action() / add_filter():
+	 *
+	 *      add_action('fs_{filter/action_name}_{plugin_slug}', $callable);
+	 *
+	 * --------------------------------------------------------
+	 *
+	 * Usage with Freemius' instance add_action() / add_filter():
+	 *
+	 *      // No need to add 'fs_' prefix nor '_{plugin_slug}' suffix.
+	 *      my_freemius()->add_action('{action_name}', $callable);
+	 *
+	 * --------------------------------------------------------
+	 *
+	 * Freemius filters collection:
+	 *
+	 *      fs_connect_url_{plugin_slug}
+	 *      fs_trial_promotion_message_{plugin_slug}
+	 *      fs_is_long_term_user_{plugin_slug}
+	 *      fs_uninstall_reasons_{plugin_slug}
+	 *      fs_is_plugin_update_{plugin_slug}
+	 *      fs_api_domains_{plugin_slug}
+	 *      fs_email_template_sections_{plugin_slug}
+	 *      fs_support_forum_submenu_{plugin_slug}
+	 *      fs_support_forum_url_{plugin_slug}
+	 *      fs_connect_message_{plugin_slug}
+	 *      fs_connect_message_on_update_{plugin_slug}
+	 *      fs_uninstall_confirmation_message_{plugin_slug}
+	 *      fs_pending_activation_message_{plugin_slug}
+	 *
+	 * --------------------------------------------------------
+	 *
+	 * Freemius actions collection:
+	 *
+	 *     fs_after_license_loaded_{plugin_slug}
+	 *      fs_after_license_change_{plugin_slug}
+	 *      fs_after_plans_sync_{plugin_slug}
+	 *
+	 *      fs_after_account_details_{plugin_slug}
+	 *      fs_after_account_user_sync_{plugin_slug}
+	 *      fs_after_account_plan_sync_{plugin_slug}
+	 *      fs_before_account_load_{plugin_slug}
+	 *      fs_after_account_connection_{plugin_slug}
+	 *      fs_account_property_edit_{plugin_slug}
+	 *      fs_account_email_verified_{plugin_slug}
+	 *      fs_account_page_load_before_departure_{plugin_slug}
+	 *      fs_before_account_delete_{plugin_slug}
+	 *      fs_after_account_delete_{plugin_slug}
+	 *
+	 *      fs_sdk_version_update_{plugin_slug}
+	 *      fs_plugin_version_update_{plugin_slug}
+	 *
+	 *      fs_initiated_{plugin_slug}
+	 *      fs_after_init_plugin_registered_{plugin_slug}
+	 *      fs_after_init_plugin_anonymous_{plugin_slug}
+	 *      fs_after_init_plugin_pending_activations_{plugin_slug}
+	 *      fs_after_init_addon_registered_{plugin_slug}
+	 *      fs_after_init_addon_anonymous_{plugin_slug}
+	 *      fs_after_init_addon_pending_activations_{plugin_slug}
+	 *
+	 *      fs_after_premium_version_activation_{plugin_slug}
+	 *      fs_after_free_version_reactivation_{plugin_slug}
+	 *
+	 *      fs_after_uninstall_{plugin_slug}
+	 *      fs_before_admin_menu_init_{plugin_slug}
+	 */
+
+	#endregion Hooks & Filters Collection --------------------------------------------------------------------
 
 	if ( ! class_exists( 'Freemius' ) ) {
 
