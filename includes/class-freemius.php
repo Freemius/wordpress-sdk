@@ -311,9 +311,9 @@
 		 * @param string $sdk_prev_version
 		 * @param string $sdk_version
 		 */
-		function _data_migration($sdk_prev_version, $sdk_version) {
-			if ( version_compare($sdk_prev_version, '1.1.5', '<' )  &&
-			     version_compare($sdk_version, '1.1.5', '>=')
+		function _data_migration( $sdk_prev_version, $sdk_version ) {
+			if ( version_compare( $sdk_prev_version, '1.1.5', '<' ) &&
+			     version_compare( $sdk_version, '1.1.5', '>=' )
 			) {
 				// On version 1.1.5 merged connectivity and is_on data.
 				if ( isset( $this->_storage->connectivity_test ) ) {
@@ -364,7 +364,7 @@
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
-			$this->add_action('sdk_version_update', array(&$this, '_data_migration'), WP_FS__DEFAULT_PRIORITY, 2);
+			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
 		}
 
 		/**
@@ -923,8 +923,8 @@
 		 *
 		 * @return bool
 		 */
-		private function has_api_connectivity($flush = false) {
-			if (!$flush && isset( $this->_has_api_connection ) ) {
+		private function has_api_connectivity( $flush = false ) {
+			if ( ! $flush && isset( $this->_has_api_connection ) ) {
 				return $this->_has_api_connection;
 			}
 
@@ -937,14 +937,14 @@
 				unset( $this->_storage->connectivity_test );
 			}
 
-			if (isset( $this->_storage->connectivity_test ) ) {
+			if ( isset( $this->_storage->connectivity_test ) ) {
 				if ( $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
 				     fs_get_ip() == $this->_storage->connectivity_test['server_ip']
 				) {
 					if ( ( $this->_storage->connectivity_test['is_connected'] &&
 					       $this->_storage->connectivity_test['is_active'] ) ||
-					     (!$flush &&
-					      $version == $this->_storage->connectivity_test['version'])
+					     ( ! $flush &&
+					       $version == $this->_storage->connectivity_test['version'] )
 					) {
 						$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 						$this->_is_on              = $this->_storage->connectivity_test['is_active'];
@@ -2374,25 +2374,16 @@
 		}
 
 		/**
+		 * Check if Freemius was added on new plugin installation.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.5
 		 *
 		 * @return bool
 		 */
-		private function is_plugin_new_install()
-		{
-			return isset($this->_storage->is_plugin_new_install) &&
+		function is_plugin_new_install() {
+			return isset( $this->_storage->is_plugin_new_install ) &&
 			       $this->_storage->is_plugin_new_install;
-		}
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.5
-		 *
-		 * @return bool
-		 */
-		function is_plugin_update() {
-			return ! $this->is_plugin_new_install();
 		}
 
 		/**
@@ -2460,7 +2451,7 @@
 				$this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
 			}
 
-			if ( $this->has_api_connectivity(true) ) {
+			if ( $this->has_api_connectivity( true ) ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
@@ -2531,7 +2522,7 @@
 				unset( $this->_storage->connectivity_test );
 			}
 
-			if (!isset($this->_storage->is_plugin_new_install)) {
+			if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
 				// Remember that plugin was already installed.
 				$this->_storage->is_plugin_new_install = false;
 			}
@@ -4770,7 +4761,7 @@
 						);
 					}
 
-					$show_pricing = ($this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ));
+					$show_pricing = ( $this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ) );
 					// If user don't have paid plans, add pricing page
 					// to support add-ons checkout but don't add the submenu item.
 					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);

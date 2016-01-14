@@ -344,7 +344,19 @@
 		 *
 		 * @return bool
 		 */
-		abstract function is_plugin_update();
+		function is_plugin_update() {
+			return ! $this->is_plugin_new_install();
+		}
+
+		/**
+		 * Check if Freemius was part of the plugin when the user installed it first.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.5
+		 *
+		 * @return bool
+		 */
+		abstract function is_plugin_new_install();
 
 		#region Marketing ------------------------------------------------------------------
 
