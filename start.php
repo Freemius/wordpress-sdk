@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.6';
+	$this_sdk_version = '1.1.6.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -118,16 +118,21 @@
 			// Find the active plugin with the newest SDK version and update the newest reference.
 			fs_fallback_to_newest_active_sdk();
 		} else {
-			if ( $fs_active_plugins->newest->in_activation &&
-			     $is_newest_sdk_plugin_activate &&
-			     $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path
+			if ( $is_newest_sdk_plugin_activate &&
+			     $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path &&
+			     ( $fs_active_plugins->newest->in_activation ||
+			       ( class_exists( 'Freemius' ) && ( ! defined( 'WP_FS__SDK_VERSION' ) || version_compare( WP_FS__SDK_VERSION, $this_sdk_version, '<' ) ) )
+			     )
+
 			) {
-				// Plugin no more in activation.
-				$fs_active_plugins->newest->in_activation = false;
-				update_option( 'fs_active_plugins', $fs_active_plugins );
+				if ( $fs_active_plugins->newest->in_activation ) {
+					// Plugin no more in activation.
+					$fs_active_plugins->newest->in_activation = false;
+					update_option( 'fs_active_plugins', $fs_active_plugins );
+				}
 
 				// Reorder plugins to load plugin with newest SDK first.
-				if (fs_newest_sdk_plugin_first()) {
+				if ( fs_newest_sdk_plugin_first() ) {
 					// Refresh page after re-order to make sure activated plugin loads newest SDK.
 					if ( class_exists( 'Freemius' ) ) {
 						if ( fs_redirect( $_SERVER['REQUEST_URI'] ) ) {
