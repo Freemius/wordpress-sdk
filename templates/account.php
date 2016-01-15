@@ -61,7 +61,7 @@
 						} else {
 							_efs( 'delete-account-confirm', $slug );
 						}
-					?>'))  this.parentNode.submit(); return false;"><?php _efs( 'delete-account', $slug ) ?></a>
+					?>'))  this.parentNode.submit(); return false;"><i class="dashicons dashicons-no"></i> <?php _efs( 'delete-account', $slug ) ?></a>
 				</form>
 			</li>
 			<li>
@@ -69,7 +69,7 @@
 				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 					<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
 					<?php wp_nonce_field( $slug . '_sync_license' ) ?>
-					<a href="#" onclick="this.parentNode.submit(); return false;"><?php _efs( 'sync', $slug ) ?></a>
+					<a href="#" onclick="this.parentNode.submit(); return false;"><i class="dashicons dashicons-image-rotate"></i> <?php _efs( 'sync', $slug ) ?></a>
 				</form>
 			</li>
 			<?php if ( $is_paying ) : ?>
@@ -79,7 +79,7 @@
 						<input type="hidden" name="fs_action" value="deactivate_license">
 						<?php wp_nonce_field( 'deactivate_license' ) ?>
 						<a href="#"
-						   onclick="if (confirm('<?php _efs( 'deactivate-license-confirm', $slug ) ?>')) this.parentNode.submit(); return false;"><?php _efs( 'deactivate-license', $slug ) ?></a>
+						   onclick="if (confirm('<?php _efs( 'deactivate-license-confirm', $slug ) ?>')) this.parentNode.submit(); return false;"><i class="dashicons dashicons-admin-network"></i> <?php _efs( 'deactivate-license', $slug ) ?></a>
 					</form>
 				</li>
 				<?php if ( ! $license->is_lifetime() &&
@@ -95,13 +95,13 @@
 								   printf( __fs( 'after-downgrade-non-blocking', $slug ), $plan->title );
 							   } else {
 								   printf( __fs( 'after-downgrade-blocking', $slug ), $plan->title );
-							   }?> <?php _efs( 'proceed-confirmation', $slug ) ?>')) this.parentNode.submit(); return false;"><?php _efs( 'downgrade', $slug ) ?></a>
+							   }?> <?php _efs( 'proceed-confirmation', $slug ) ?>')) this.parentNode.submit(); return false;"><i class="dashicons dashicons-download"></i> <?php _efs( 'downgrade', $slug ) ?></a>
 						</form>
 					</li>
 				<?php endif ?>
 				<li>
 					&nbsp;•&nbsp;
-					<a href="<?php echo $fs->get_upgrade_url() ?>"><?php _efs( 'change-plan', $slug ) ?></a>
+					<a href="<?php echo $fs->get_upgrade_url() ?>"><i class="dashicons dashicons-grid-view"></i> <?php _efs( 'change-plan', $slug ) ?></a>
 				</li>
 			<?php endif ?>
 		</ul>

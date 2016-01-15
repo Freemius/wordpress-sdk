@@ -6,11 +6,27 @@
         max-width: 700px;
     }
 
+    h3
+    {
+        font-size: 1.3em;
+        padding: 12px 12px 12px 15px;
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+        border-bottom: 1px solid #F1F1F1;
+    }
+
+    i.dashicons
+    {
+        font-size: 1.2em;
+        height: 1.2em;
+        width: 1.2em;
+    }
+
     .fs-header-actions
     {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 17px;
+        right: 15px;
         font-size: 0.9em;
 
         ul
@@ -36,7 +52,7 @@
 
 .rtl #fs_account .fs-header-actions
 {
-    left: 10px;
+    left: 15px;
     right: auto;
 }
 
