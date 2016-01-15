@@ -798,9 +798,7 @@
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
 
-			if ( WP_FS__DEV_MODE ) {
 				add_action( 'admin_menu', array( 'Freemius', 'add_debug_page' ) );
-			}
 
 			self::$_statics_loaded = true;
 		}
@@ -816,6 +814,8 @@
 
 			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
 
+			if ( WP_FS__DEV_MODE ) {
+				// Add top-level debug menu item.
 			$hook = add_object_page(
 				$title,
 				$title,
@@ -823,6 +823,17 @@
 				'freemius',
 				array( 'Freemius', '_debug_page_render' )
 			);
+			} else {
+				// Add hidden debug page.
+				$hook = add_submenu_page(
+					null,
+					$title,
+					$title,
+					'manage_options',
+					'freemius',
+					array( 'Freemius', '_debug_page_render' )
+				);
+			}
 
 			add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
 		}
@@ -832,6 +843,8 @@
 		 * @since  1.0.8
 		 */
 		static function _debug_page_actions() {
+			self::_clean_admin_content_section();
+
 			if ( fs_request_is_action( 'delete_all_accounts' ) ) {
 				check_admin_referer( 'delete_all_accounts' );
 
