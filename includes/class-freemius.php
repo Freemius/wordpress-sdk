@@ -4151,7 +4151,7 @@
 				return;
 			}
 
-			$this->_clean_admin_content_section();
+			self::_clean_admin_content_section();
 
 			if ( fs_request_is_action( 'activate' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_' . $this->_plugin->public_key );
@@ -4718,7 +4718,7 @@
 
 			if ( $this->_menu->is_activation_page() ) {
 				// Clean admin page from distracting content.
-				$this->_clean_admin_content_section();
+				self::_clean_admin_content_section();
 			}
 
 			if ( false !== $hook ) {
@@ -4776,7 +4776,7 @@
 						$this->get_plugin_name() . ' &ndash; ' . __fs( 'contact-us', $this->_slug ),
 						'manage_options',
 						'contact',
-						array( &$this, '_clean_admin_content_section' ),
+						'Freemius::_clean_admin_content_section',
 						WP_FS__DEFAULT_PRIORITY,
 						$this->_menu->is_submenu_item_visible( 'contact' )
 					);
@@ -4806,7 +4806,7 @@
 						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing', $this->_slug ),
 						'manage_options',
 						'pricing',
-						array( &$this, '_clean_admin_content_section' ),
+						'Freemius::_clean_admin_content_section',
 						WP_FS__LOWEST_PRIORITY,
 						$show_pricing
 					);
@@ -7116,15 +7116,15 @@
 		 *
 		 * @uses   remove_all_actions()
 		 */
-		function _hide_admin_notices() {
+		private static function _hide_admin_notices() {
 			remove_all_actions( 'admin_notices' );
 			remove_all_actions( 'network_admin_notices' );
 			remove_all_actions( 'all_admin_notices' );
 			remove_all_actions( 'user_admin_notices' );
 		}
 
-		function _clean_admin_content_section_hook() {
-			$this->_hide_admin_notices();
+		static function _clean_admin_content_section_hook() {
+			self::_hide_admin_notices();
 
 			// Hide footer.
 			echo '<style>#wpfooter { display: none !important; }</style>';
@@ -7136,8 +7136,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.3
 		 */
-		function _clean_admin_content_section() {
-			add_action( 'admin_head', array( &$this, '_clean_admin_content_section_hook' ) );
+		static function _clean_admin_content_section() {
+			add_action( 'admin_head', 'Freemius::_clean_admin_content_section_hook' );
 		}
 
 		/* CSS & JavaScript
