@@ -52,8 +52,8 @@
 	<div class="fs-content">
 		<p><?php
 				echo $fs->apply_filters( 'pending_activation_message', sprintf(
-					__fs( 'thanks-x' ) . '<br>' .
-					__fs( 'pending-activation-message' ),
+					__fs( 'thanks-x', $slug ) . '<br>' .
+					__fs( 'pending-activation-message', $slug ),
 					$first_name,
 					'<b>' . $fs->get_plugin_name() . '</b>',
 					'<b>' . $current_user->user_email . '</b>'
@@ -92,45 +92,56 @@
 				<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 			<?php endforeach ?>
 			<button class="button button-primary" tabindex="1"
-			        type="submit"><?php _efs( 'resend-activation-email' ) ?></button>
+			        type="submit"><?php _efs( 'resend-activation-email', $slug ) ?></button>
 		</form>
 	</div>
 	<div class="fs-permissions">
-		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions' ) ?></a>
+		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
 		<ul>
 			<li>
 				<i class="dashicons dashicons-admin-users"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-profile' ) ?></span>
+					<span><?php _efs( 'permissions-profile', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-profile_desc' ) ?></p>
+					<p><?php _efs( 'permissions-profile_desc', $slug ) ?></p>
 				</div>
 			</li>
 			<li>
 				<i class="dashicons dashicons-wordpress"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-site' ) ?></span>
+					<span><?php _efs( 'permissions-site', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-site_desc' ) ?></p>
+					<p><?php _efs( 'permissions-site_desc', $slug ) ?></p>
 				</div>
 			</li>
+			<?php if ( $fs->is_permission_requested( 'newsletter' ) ) : ?>
+				<li>
+					<i class="dashicons dashicons-email-alt"></i>
+
+					<div>
+						<span><?php _efs( 'permissions-newsletter', $slug ) ?></span>
+
+						<p><?php _efs( 'permissions-newsletter_desc', $slug ) ?></p>
+					</div>
+				</li>
+			<?php endif ?>
 			<li>
 				<i class="dashicons dashicons-admin-plugins"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-events' ) ?></span>
+					<span><?php _efs( 'permissions-events', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-events_desc' ) ?></p>
+					<p><?php _efs( 'permissions-events_desc', $slug ) ?></p>
 				</div>
 			</li>
 		</ul>
 	</div>
 	<div class="fs-terms">
-		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy' ) ?></a>
+		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy', $slug ) ?></a>
 		&nbsp;&nbsp;-&nbsp;&nbsp;
-		<a href="https://freemius.com/terms/" target="_blank"><?php _efs( 'tos' ) ?></a>
+		<a href="https://freemius.com/terms/" target="_blank"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
 <script type="text/javascript">

@@ -123,6 +123,12 @@
 	#region
 
 	if ( ! function_exists( '__fs' ) ) {
+		global $fs_text_overrides;
+
+		if ( ! isset( $fs_text_overrides ) ) {
+			$fs_text_overrides = array();
+		}
+
 		/**
 		 * Retrieve a translated text by key.
 		 *
@@ -133,20 +139,25 @@
 		 * @param string $slug
 		 *
 		 * @return string
+		 *
+		 * @global       $fs_text , $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			global $fs_text;
+			global $fs_text, $fs_text_overrides;
 
 			if ( ! isset( $fs_text ) ) {
 				require_once( dirname( __FILE__ ) . '/i18n.php' );
 			}
 
-			return apply_filters(
-				'i18n_' . $key . '_' . $slug,
-				isset( $fs_text[ $key ] ) ?
-					$fs_text[ $key ] :
-					$key
-			);
+			if ( isset( $fs_text_overrides[ $slug ] ) &&
+			     isset( $fs_text_overrides[ $slug ][ $key ] )
+			) {
+				return $fs_text_overrides[ $slug ][ $key ];
+			}
+
+			return isset( $fs_text[ $key ] ) ?
+				$fs_text[ $key ] :
+				$key;
 		}
 
 		/**
@@ -160,6 +171,29 @@
 		 */
 		function _efs( $key, $slug = 'freemius' ) {
 			echo __fs( $key, $slug );
+		}
+
+		/**
+		 * Override default i18n text phrases.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @param string[] $key_value
+		 * @param string   $slug
+		 *
+		 * @global         $fs_text_overrides
+		 */
+		function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
+			global $fs_text_overrides;
+
+			if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+				$fs_text_overrides[ $slug ] = array();
+			}
+
+			foreach ( $key_value as $key => $value ) {
+				$fs_text_overrides[ $slug ][ $key ] = $value;
+			}
 		}
 	}
 
@@ -213,6 +247,8 @@
 	 *
 	 * @param string      $sdk_relative_path
 	 * @param string|bool $plugin_file
+	 *
+	 * @global            $fs_active_plugins
 	 */
 	function fs_update_sdk_newest_version( $sdk_relative_path, $plugin_file = false ) {
 		global $fs_active_plugins;
@@ -240,6 +276,8 @@
 	 * @since  1.1.6
 	 *
 	 * @return bool Was plugin order changed. Return false if plugin was loaded first anyways.
+	 *
+	 * @global $fs_active_plugins
 	 */
 	function fs_newest_sdk_plugin_first() {
 		global $fs_active_plugins;
@@ -259,9 +297,13 @@
 	}
 
 	/**
+	 * Go over all Freemius SDKs in the system and find and "remember"
+	 * the newest SDK which is associated with an active plugin.
 	 *
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.1.6
+	 *
+	 * @global $fs_active_plugins
 	 */
 	function fs_fallback_to_newest_active_sdk() {
 		global $fs_active_plugins;
@@ -295,16 +337,3 @@
 			fs_update_sdk_newest_version( $newest_sdk_path, $newest_sdk_data->plugin_path );
 		}
 	}
-
-	/*function fs_update_sdk_newest_version_action() {
-		global $fs_active_plugins;
-
-		$plugin_file = substr( current_filter(), strlen( 'activate_' ) );
-
-		foreach ( $fs_active_plugins as $sdk_relative_path => $data ) {
-			if ( $plugin_file == $data->path ) {
-				fs_update_sdk_newest_version( $plugin_file );
-				break;
-			}
-		}
-	}*/

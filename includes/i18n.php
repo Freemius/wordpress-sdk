@@ -1,4 +1,23 @@
 <?php
+	/**
+	 * All strings can now be overridden.
+	 *
+	 * For example, if we want to override:
+	 *      'you-are-step-away' => 'You are just one step away - %s',
+	 *
+	 * We can use the filter:
+	 *      fs_override_i18n( array(
+	 *          'opt-in-connect' => __( "Yes - I'm in!", '{your-text_domain}' ),
+	 *          'skip'           => __( 'Not today', '{your-text_domain}' ),
+	 *      ), '{plugin_slug}' );
+	 *
+	 * Or with the Freemius instance:
+	 *
+	 *      my_freemius->override_i18n( array(
+	 *          'opt-in-connect' => __( "Yes - I'm in!", '{your-text_domain}' ),
+	 *          'skip'           => __( 'Not today', '{your-text_domain}' ),
+	 *      );
+	 */
 	global $fs_text;
 
 	$fs_text = array(
@@ -38,7 +57,7 @@
 		'you-are-step-away'                        => __( 'You are just one step away - %s', 'freemius' ),
 		'activate-x-now'                           => _x( 'Complete "%s" Activation Now', '%s - plugin name. As complete "Jetpack" activation now', 'freemius' ),
 		'few-plugin-tweaks'                        => __( 'We made a few tweaks to the plugin, %s', 'freemius' ),
-		'optin-x-now'                        => __( 'Opt-in to make "%s" Better!', 'freemius' ),
+		'optin-x-now'                              => __( 'Opt-in to make "%s" Better!', 'freemius' ),
 		'error'                                    => __( 'Error', 'freemius' ),
 		'failed-finding-main-path'                 => __( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'freemius' ),
 		#region Account
@@ -57,14 +76,11 @@
 		'verified'                                 => __( 'Verified', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
 		'path'                                     => _x( 'Path', 'as file/folder path', 'freemius' ),
-		'plugin-path'                              => _x( 'Plugin Path', 'as plugin folder path', 'freemius' ),
-		'sdk-path'                                 => _x( 'SDK Path', 'as sdk path', 'freemius' ),
 		'title'                                    => __( 'Title', 'freemius' ),
 		'slug'                                     => _x( 'Slug', 'as WP plugin slug', 'freemius' ),
 		'id'                                       => __( 'ID', 'freemius' ),
 		'users'                                    => __( 'Users', 'freemius' ),
 		'plugin-installs'                          => __( 'Plugin Installs', 'freemius' ),
-		'sdk-versions'                             => _x( 'SDK Versions', 'as software development kit versions', 'freemius' ),
 		'sites'                                    => _x( 'Sites', 'like websites', 'freemius' ),
 		'user-id'                                  => __( 'User ID', 'freemius' ),
 		'site-id'                                  => __( 'Site ID', 'freemius' ),
@@ -153,9 +169,15 @@
 		#endregion Screenshots
 
 		#region Debug
+		'sdk-versions'                             => _x( 'SDK Versions', 'as software development kit versions', 'freemius' ),
+		'plugin-path'                              => _x( 'Plugin Path', 'as plugin folder path', 'freemius' ),
+		'sdk-path'                                 => _x( 'SDK Path', 'as sdk path', 'freemius' ),
 		'addons-of-x'                              => __( 'Add Ons of Plugin %s', 'freemius' ),
 		'delete-all-confirm'                       => __( 'Are you sure you want to delete the all Freemius data?', 'freemius' ),
+		'actions'                                  => __( 'Actions', 'freemius' ),
 		'delete-all-accounts'                      => __( 'Delete All Accounts', 'freemius' ),
+		'clear-api-cache'                          => __( 'Clear API Cache', 'freemius' ),
+		'sync-data-from-server'                    => __( 'Sync Data From Server', 'freemius' ),
 		#endregion Debug
 
 		#region Expressions

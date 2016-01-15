@@ -62,8 +62,8 @@
 
 				echo $fs->apply_filters( $filter,
 					sprintf(
-						__fs( 'hey-x' ) . '<br>' .
-						__fs( $default_optin_message ),
+						__fs( 'hey-x', $slug ) . '<br>' .
+						__fs( $default_optin_message, $slug ),
 						$first_name,
 						'<b>' . $fs->get_plugin_name() . '</b>',
 						'<b>' . $current_user->user_login . '</b>',
@@ -81,7 +81,7 @@
 	<div class="fs-actions">
 		<?php if ( $fs->enable_anonymous() ) : ?>
 			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $slug . '_skip_activation' ) ), $slug . '_skip_activation' ) ?>"
-			   class="button button-secondary" tabindex="2"><?php _efs( 'skip' ) ?></a>
+			   class="button button-secondary" tabindex="2"><?php _efs( 'skip', $slug ) ?></a>
 		<?php endif ?>
 		<?php $fs_user = Freemius::_get_user_by_email( $current_user->user_email ) ?>
 		<?php if ( is_object( $fs_user ) ) : ?>
@@ -89,7 +89,7 @@
 				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"><?php _efs( 'opt-in-connect' ) ?></button>
+				        type="submit"><?php _efs( 'opt-in-connect', $slug ) ?></button>
 			</form>
 		<?php else : ?>
 			<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
@@ -140,29 +140,29 @@
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 				<?php endforeach ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"><?php _efs( 'opt-in-connect' ) ?></button>
+				        type="submit"><?php _efs( 'opt-in-connect', $slug ) ?></button>
 			</form>
 		<?php endif ?>
 	</div>
 	<div class="fs-permissions">
-		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions' ) ?></a>
+		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
 		<ul>
 			<li>
 				<i class="dashicons dashicons-admin-users"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-profile' ) ?></span>
+					<span><?php _efs( 'permissions-profile', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-profile_desc' ) ?></p>
+					<p><?php _efs( 'permissions-profile_desc', $slug ) ?></p>
 				</div>
 			</li>
 			<li>
 				<i class="dashicons dashicons-wordpress"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-site' ) ?></span>
+					<span><?php _efs( 'permissions-site', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-site_desc' ) ?></p>
+					<p><?php _efs( 'permissions-site_desc', $slug ) ?></p>
 				</div>
 			</li>
 			<?php if ( $fs->is_permission_requested( 'newsletter' ) ) : ?>
@@ -170,9 +170,9 @@
 					<i class="dashicons dashicons-email-alt"></i>
 
 					<div>
-						<span><?php _efs( 'permissions-newsletter' ) ?></span>
+						<span><?php _efs( 'permissions-newsletter', $slug ) ?></span>
 
-						<p><?php _efs( 'permissions-newsletter_desc' ) ?></p>
+						<p><?php _efs( 'permissions-newsletter_desc', $slug ) ?></p>
 					</div>
 				</li>
 			<?php endif ?>
@@ -180,17 +180,17 @@
 				<i class="dashicons dashicons-admin-plugins"></i>
 
 				<div>
-					<span><?php _efs( 'permissions-events' ) ?></span>
+					<span><?php _efs( 'permissions-events', $slug ) ?></span>
 
-					<p><?php _efs( 'permissions-events_desc' ) ?></p>
+					<p><?php _efs( 'permissions-events_desc', $slug ) ?></p>
 				</div>
 			</li>
 		</ul>
 	</div>
 	<div class="fs-terms">
-		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy' ) ?></a>
+		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy', $slug ) ?></a>
 		&nbsp;&nbsp;-&nbsp;&nbsp;
-		<a href="https://freemius.com/terms/" target="_blank"><?php _efs( 'tos' ) ?></a>
+		<a href="https://freemius.com/terms/" target="_blank"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
 <script type="text/javascript">
@@ -200,7 +200,7 @@
 			$(document.body).css({'cursor': 'wait'});
 		});
 		$('.button.button-primary').on('click', function () {
-			$(this).html('<?php _efs( 'activating' ) ?>...').css({'cursor': 'wait'});
+			$(this).html('<?php _efs(  'activating' , $slug ) ?>...').css({'cursor': 'wait'});
 		});
 		$('.fs-permissions .fs-trigger').on('click', function () {
 			$('.fs-permissions').toggleClass('fs-open');

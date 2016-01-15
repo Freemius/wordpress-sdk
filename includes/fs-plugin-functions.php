@@ -91,7 +91,6 @@
 			'changelog'    => _x( 'Changelog', 'Plugin installer section title' ),
 			'reviews'      => _x( 'Reviews', 'Plugin installer section title' ),
 			'other_notes'  => _x( 'Other Notes', 'Plugin installer section title' ),
-			'features'     => __fs( 'features-and-pricing' ),
 		);
 
 		// Sanitize HTML
@@ -104,6 +103,9 @@
 				$api->$key = wp_kses( $api->$key, $plugins_allowedtags );
 			}
 		}
+
+		// Add after $api->slug is ready.
+		$plugins_section_titles['features'] = __fs( 'features-and-pricing', $api->slug );
 
 		$_tab = esc_attr( $tab );
 
@@ -170,12 +172,12 @@
 			<?php if ( isset( $api->plans ) ) : ?>
 				<div class="plugin-information-pricing">
 					<?php foreach ($api->plans as $plan) : ?>
-					<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan' ), $plan->title ) ?></h3>
+					<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan', $api->slug ), $plan->title ) ?></h3>
 					<ul>
 						<?php $billing_cycle = 'annual' ?>
 						<?php if ( 1 === count( $plan->pricing ) && 1 == $plan->pricing[0]->licenses ) : ?>
 							<?php $pricing = $plan->pricing[0] ?>
-							<li><label><?php _efs( 'price' ) ?>: $<?php
+							<li><label><?php _efs( 'price', $api->slug ) ?>: $<?php
 										if ( isset( $pricing->annual_price ) ) {
 											echo $pricing->annual_price . ( $plan->is_block_features ? ' / year' : '' );
 											$billing_cycle = 'annual';
@@ -194,13 +196,13 @@
 								                  value="<?php echo $pricing->id ?>"<?php checked( $first, true ) ?>><?php
 											switch ( $pricing->licenses ) {
 												case '1':
-													_efs( 'license-single-site' );
+													_efs( 'license-single-site', $api->slug );
 													break;
 												case null:
-													_efs( 'license-unlimited' );
+													_efs( 'license-unlimited', $api->slug );
 													break;
 												default:
-													printf( __fs( 'license-x-sites' ), $pricing->licenses );
+													printf( __fs( 'license-x-sites', $api->slug ), $pricing->licenses );
 													break;
 											}
 										?> - $<?php
@@ -223,7 +225,7 @@
 							'plan_id'       => $plan->id,
 							'pricing_id'    => $plan->pricing[0]->id,
 							'billing_cycle' => $billing_cycle,
-						), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase' ) . '</a>' ?>
+						), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase', $api->slug ) . '</a>' ?>
 				</div>
 			<?php endforeach ?>
 			<?php wp_enqueue_script( 'jquery' ); ?>
@@ -243,7 +245,7 @@
 				</script>
 			<?php endif ?>
 			<div>
-				<h3><?php _efs( 'details' ) ?></h3>
+				<h3><?php _efs( 'details', $api->slug ) ?></h3>
 				<ul>
 					<?php if ( ! empty( $api->version ) ) { ?>
 						<li><strong><?php _e( 'Version:' ); ?></strong> <?php echo $api->version; ?></li>
@@ -377,7 +379,7 @@
 					'plan_id'       => $plan->id,
 					'pricing_id'    => $plan->pricing[0]->id,
 					'billing_cycle' => $billing_cycle,
-				), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase' ) . '</a>';
+				), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase', $api->slug ) . '</a>';
 
 			// @todo Add Cart concept.
 //			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';

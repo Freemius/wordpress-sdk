@@ -27,11 +27,11 @@
 				+	'	<div class="fs-modal-dialog">'
 				+	'		<div class="fs-modal-body">'
 				+	'			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
-				+	'			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs( 'deactivation-share-reason' ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
+				+	'			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs(  'deactivation-share-reason' , $slug ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
 				+	'		</div>'
 				+	'		<div class="fs-modal-footer">'
 				+	'			<a href="#" class="button button-secondary button-deactivate"></a>'
-				+	'			<a href="#" class="button button-primary button-close"><?php printf( __fs( 'deactivation-modal-button-cancel' ) ); ?></a>'
+				+	'			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ); ?></a>'
 				+	'		</div>'
 				+	'	</div>'
 				+	'</div>',
@@ -100,7 +100,7 @@
 					var _parent = $( this ).parents( 'li:first' );
 					
 					$modal.find( '.reason-input' ).remove();
-					$modal.find( '.button-deactivate').text( '<?php printf( __fs( 'deactivation-modal-button-submit' ) ); ?>' );
+					$modal.find( '.button-deactivate').text( '<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>' );
 					
 					if ( _parent.hasClass( 'has-input' ) ) {
 						var inputType		 = _parent.data( 'input-type' ),
@@ -183,9 +183,9 @@
 				
 				// Reset the deactivate button's text.
 				if ( 'confirm' === getCurrentPanel() ) {
-					$deactivateButton.text( '<?php printf( __fs( 'deactivation-modal-button-confirm' ) ); ?>' );
+					$deactivateButton.text( '<?php printf( __fs(  'deactivation-modal-button-confirm' , $slug ) ); ?>' );
 				} else {
-					$deactivateButton.text( '<?php printf( __fs( 'deactivation-modal-button-deactivate' ) ); ?>' );
+					$deactivateButton.text( '<?php printf( __fs(  'deactivation-modal-button-deactivate' , $slug ) ); ?>' );
 				}
 			}
 			
