@@ -4412,6 +4412,8 @@
 		 * @since  1.0.7
 		 */
 		function _install_with_new_user() {
+			$this->_logger->entrance();
+
 			if ( $this->is_registered() ) {
 				return;
 			}
@@ -4464,6 +4466,8 @@
 		 * @since  1.0.7
 		 */
 		function _install_with_current_user() {
+			$this->_logger->entrance();
+
 			if ( $this->is_registered() ) {
 				return;
 			}
