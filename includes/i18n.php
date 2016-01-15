@@ -75,6 +75,7 @@
 		'email'                                    => __( 'Email', 'freemius' ),
 		'verified'                                 => __( 'Verified', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
+		'plugins'                                  => __( 'Plugins', 'freemius' ),
 		'path'                                     => _x( 'Path', 'as file/folder path', 'freemius' ),
 		'title'                                    => __( 'Title', 'freemius' ),
 		'slug'                                     => _x( 'Slug', 'as WP plugin slug', 'freemius' ),

@@ -1,5 +1,7 @@
 <?php
 	global $fs_active_plugins;
+
+	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 ?>
 <h1><?php echo __fs( 'Freemius Debug' ) . ' - ' . __fs( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <h2><?php _efs( 'actions' ) ?></h2>
@@ -37,8 +39,8 @@
 	<thead>
 	<tr>
 		<th><?php _efs( 'version' ) ?></th>
-		<th><?php _efs( 'plugin-path' ) ?></th>
 		<th><?php _efs( 'sdk-path' ) ?></th>
+		<th><?php _efs( 'plugin-path' ) ?></th>
 		<th><?php _efs( 'is-active' ) ?></th>
 	</tr>
 	</thead>
@@ -56,6 +58,33 @@
 	<?php endforeach ?>
 	</tbody>
 </table>
+<h2><?php _efs( 'plugins' ) ?></h2>
+<table id="fs_plugins" class="widefat">
+	<thead>
+	<tr>
+		<th><?php _efs( 'id' ) ?></th>
+		<th><?php _efs( 'slug' ) ?></th>
+		<th><?php _efs( 'title' ) ?></th>
+		<th><?php _efs( 'plugin-path' ) ?></th>
+		<th><?php _efs( 'version' ) ?></th>
+		<th><?php _efs( 'public-key' ) ?></th>
+	</tr>
+	</thead>
+	<tbody>
+	<?php $plugins = $fs_options->get_option('plugins') ?>
+	<?php foreach ( $plugins as $slug => $data ) : ?>
+		<tr>
+			<td><?php echo $data->id ?></td>
+			<td><?php echo $slug ?></td>
+			<td><?php echo $data->title ?></td>
+			<td><?php echo $data->file ?></td>
+			<td><?php echo $data->version ?></td>
+			<td><?php echo $data->public_key ?></td>
+		</tr>
+	<?php endforeach ?>
+	</tbody>
+</table>
+
 <h2><?php _efs( 'plugin-installs' ) ?> / <?php _efs( 'sites' ) ?></h2>
 <?php
 	/**
@@ -67,17 +96,15 @@
 	<thead>
 	<tr>
 		<th><?php _efs( 'id' ) ?></th>
-		<th><?php _efs( 'plugin' ) ?></th>
 		<th><?php _efs( 'plan' ) ?></th>
 		<th><?php _efs( 'public-key' ) ?></th>
 		<th><?php _efs( 'secret-key' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
-	<?php foreach ( $sites as $plugin_basename => $site ) : ?>
+	<?php foreach ( $sites as $slug => $site ) : ?>
 		<tr>
 			<td><?php echo $site->id ?></td>
-			<td><?php echo dirname( $plugin_basename ) ?></td>
 			<td><?php
 					echo is_object( $site->plan ) ? $site->plan->name : ''
 				?></td>
