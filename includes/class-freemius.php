@@ -892,7 +892,7 @@
 		 *
 		 * @return bool
 		 */
-		private function is_on() {
+		function is_on() {
 			self::$_static_logger->entrance();
 
 			if ( isset( $this->_is_on ) ) {
@@ -917,7 +917,7 @@
 		 *
 		 * @return bool
 		 */
-		private function has_api_connectivity( $flush = false ) {
+		function has_api_connectivity( $flush = false ) {
 			if ( ! $flush && isset( $this->_has_api_connection ) ) {
 				return $this->_has_api_connection;
 			}

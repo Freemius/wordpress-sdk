@@ -170,6 +170,14 @@
 		#endregion Screenshots
 
 		#region Debug
+		'freemius-debug'                           => __( 'Freemius Debug', 'freemius' ),
+		'on'                                       => _x( 'On', 'as turned on', 'freemius' ),
+		'off'                                      => _x( 'Off', 'as turned off', 'freemius' ),
+		'freemius-state'                           => __( 'Freemius State', 'freemius' ),
+		'connected'                                => _x( 'Connected', 'as connection was successful', 'freemius' ),
+		'blocked'                                  => _x( 'Blocked', 'as connection blocked', 'freemius' ),
+		'api'                                      => _x( 'API', 'as application program interface', 'freemius' ),
+		'sdk'                                      => _x( 'SDK', 'as software development kit versions', 'freemius' ),
 		'sdk-versions'                             => _x( 'SDK Versions', 'as software development kit versions', 'freemius' ),
 		'plugin-path'                              => _x( 'Plugin Path', 'as plugin folder path', 'freemius' ),
 		'sdk-path'                                 => _x( 'SDK Path', 'as sdk path', 'freemius' ),
@@ -271,7 +279,6 @@
 		'change-owner-request_owner-confirmed'     => __( 'Thanks for confirming the ownership change. An email was just sent to %s for final approval.', 'freemius' ),
 		'change-owner-request_candidate-confirmed' => __( '%s is the new owner of the account.', 'freemius' ),
 		#endregion Change Owner
-		'freemius-debug'                           => __( 'Freemius Debug', 'freemius' ),
 		'addon-x-cannot-run-without-y'             => _x( '%s cannot run without %s.', 'addonX cannot run without pluginY', 'freemius' ),
 		'addon-x-cannot-run-without-parent'        => _x( '%s cannot run without the plugin.', 'addonX cannot run...', 'freemius' ),
 		'plugin-x-activation-message'              => _x( '%s activation was successfully completed.', 'pluginX activation was successfully...', 'freemius' ),
