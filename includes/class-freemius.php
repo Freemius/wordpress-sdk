@@ -941,7 +941,7 @@
 					       $version == $this->_storage->connectivity_test['version'] )
 					) {
 						$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
-						$this->_is_on              = $this->_storage->connectivity_test['is_active'];
+						$this->_is_on              = $this->_storage->connectivity_test['is_active'] || (WP_FS__DEV_MODE && $this->_has_api_connection);
 
 						return $this->_has_api_connection;
 					}
@@ -984,7 +984,7 @@
 			);
 
 			$this->_has_api_connection = $is_connected;
-			$this->_is_on              = $is_active;
+			$this->_is_on              = $is_active || (WP_FS__DEV_MODE && $is_connected);
 
 			return $this->_has_api_connection;
 		}
