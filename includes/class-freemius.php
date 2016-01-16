@@ -887,6 +887,9 @@
 		/**
 		 * Check if Freemius should be turned on for the current plugin install.
 		 *
+		 * Note:
+		 *  $this->_is_on is updated in has_api_connectivity()
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
@@ -902,9 +905,10 @@
 			// If already installed or pending then sure it's on :)
 			if ( $this->is_registered() || $this->is_pending_activation() ) {
 				$this->_is_on = true;
-
-				return $this->_is_on;
+				return true;
 			}
+
+			return false;
 		}
 
 		/**
