@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.6.1';
+	$this_sdk_version = '1.1.6.2';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -51,7 +51,7 @@
 		);
 	}
 
-	$is_current_sdk_newest = ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
+	$is_current_sdk_newest = isset( $fs_active_plugins->newest ) && ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
 
 	if ( ! isset( $fs_active_plugins->newest ) ) {
 		/**
