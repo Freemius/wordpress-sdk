@@ -6,6 +6,10 @@
 	 * @since       1.0.3
 	 */
 
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	$slug = $VARS['slug'];
 	/**
 	 * @var Freemius

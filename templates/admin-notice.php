@@ -5,6 +5,10 @@
 	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
 	 * @since       1.0.3
 	 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
 ?>
 <div data-id="<?php echo $VARS['id'] ?>" data-slug="<?php echo $VARS['slug'] ?>" class="<?php
 	switch ( $VARS['type'] ) {

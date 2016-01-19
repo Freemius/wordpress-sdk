@@ -6,6 +6,10 @@
 	 * @since       1.0.7
 	 */
 
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 

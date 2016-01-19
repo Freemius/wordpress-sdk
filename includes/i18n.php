@@ -1,5 +1,16 @@
 <?php
 	/**
+	 * @package     Freemius
+	 * @copyright   Copyright (c) 2015, Freemius, Inc.
+	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @since       1.1.4
+	 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
+	/**
 	 * All strings can now be overridden.
 	 *
 	 * For example, if we want to override:

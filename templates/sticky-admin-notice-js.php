@@ -8,6 +8,10 @@
 	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
 	 * @since       1.0.7
 	 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
 ?>
 <script type="text/javascript" >
 	jQuery(document).ready(function($) {

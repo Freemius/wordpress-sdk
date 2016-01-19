@@ -6,6 +6,10 @@
 	 * @since       1.1.1
 	 */
 
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	$sections = $VARS['sections'];
 ?>
 <table>

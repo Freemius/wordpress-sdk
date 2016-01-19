@@ -1,4 +1,15 @@
 <?php
+	/**
+	 * @package     Freemius
+	 * @copyright   Copyright (c) 2015, Freemius, Inc.
+	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @since       1.1.1
+	 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	global $fs_active_plugins;
 
 	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );

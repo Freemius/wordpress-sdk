@@ -5,6 +5,11 @@
 	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
 	 * @since       1.1.4
 	 */
+
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 

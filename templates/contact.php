@@ -6,6 +6,10 @@
 	 * @since       1.0.3
 	 */
 
+	if ( ! defined( 'ABSPATH' ) ) {
+		exit;
+	}
+
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'json2' );
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
