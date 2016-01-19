@@ -56,6 +56,14 @@ $form_width: 480px;
                 {
                     content: ' \279C';
                 }
+
+                &.fs-loading
+                {
+                    &:after
+                    {
+                        content: '';
+                    }
+                }
             }
 
             &.button-secondary
@@ -291,6 +299,14 @@ $form_width: 480px;
                     &:after
                     {
                         content: ' \000bb';
+                    }
+
+                    &.fs-loading
+                    {
+                        &:after
+                        {
+                            content: '';
+                        }
                     }
                 }
 
