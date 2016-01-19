@@ -5116,11 +5116,9 @@
 			$this->_logger->entrance( $tag );
 
 			$args = func_get_args();
+			array_unshift($args, $this->_slug);
 
-			return call_user_func_array( 'apply_filters', array_merge(
-					array( 'fs_' . $tag . '_' . $this->_slug ),
-					array_slice( $args, 1 ) )
-			);
+			return call_user_func_array( 'fs_apply_filter', $args);
 		}
 
 		/**

@@ -239,7 +239,12 @@
 		 * @return bool
 		 */
 		function is_submenu_item_visible( $id, $default = true ) {
-			return $this->get_bool_option( $this->_default_submenu_items, $id, $default );
+			return fs_apply_filter(
+				$this->_plugin_slug,
+				'is_submenu_visible',
+				$id,
+				$this->get_bool_option( $this->_default_submenu_items, $id, $default )
+			);
 		}
 
 		/**

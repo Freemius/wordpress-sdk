@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.6.2';
+	$this_sdk_version = '1.1.6.3';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -202,6 +202,7 @@
 	 *      fs_connect_message_on_update_{plugin_slug}
 	 *      fs_uninstall_confirmation_message_{plugin_slug}
 	 *      fs_pending_activation_message_{plugin_slug}
+	 *      fs_is_submenu_visible_{plugin_slug}
 	 *
 	 * --------------------------------------------------------
 	 *

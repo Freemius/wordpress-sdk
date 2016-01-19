@@ -337,3 +337,30 @@
 			fs_update_sdk_newest_version( $newest_sdk_path, $newest_sdk_data->plugin_path );
 		}
 	}
+
+	#region Actions / Filters -----------------------------------------
+
+	/**
+	 * Apply filter for specific plugin.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.0.9
+	 *
+	 * @param string $slug  Plugin slug
+	 * @param string $tag   The name of the filter hook.
+	 * @param mixed  $value The value on which the filters hooked to `$tag` are applied on.
+	 *
+	 * @return mixed The filtered value after all hooked functions are applied to it.
+	 *
+	 * @uses   apply_filters()
+	 */
+	function fs_apply_filter( $slug, $tag, $value ) {
+		$args = func_get_args();
+
+		return call_user_func_array( 'apply_filters', array_merge(
+				array( 'fs_' . $tag . '_' . $slug ),
+				array_slice( $args, 2 ) )
+		);
+	}
+
+	#endregion Actions / Filters -----------------------------------------
