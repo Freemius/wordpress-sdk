@@ -39,7 +39,7 @@
 	 */
 	if ( ! defined( 'WP_FS__LOCALHOST_IP' ) ) {
 		// VVV default public network IP.
-		define( 'WP_FS__VVV_DEFAULT_PUBLIC_IP', '192.168.50.1' );
+		define( 'WP_FS__VVV_DEFAULT_PUBLIC_IP', '192.168.50.4' );
 
 //		define( 'WP_FS__LOCALHOST_IP', WP_FS__VVV_DEFAULT_PUBLIC_IP );
 	}
@@ -56,8 +56,9 @@
 	 *      THEREFORE, MAKE SURE THAT WHEN USING THIS PARAMETER,YOUR TESTING ENVIRONMENT'S
 	 *      CLOCK IS SYNCED.
 	 */
-	define( 'WP_FS__SKIP_EMAIL_ACTIVATION', false );
-
+	if ( ! defined( 'WP_FS__SKIP_EMAIL_ACTIVATION' ) ) {
+		define( 'WP_FS__SKIP_EMAIL_ACTIVATION', false );
+	}
 
 	/**
 	 * Directories
