@@ -145,8 +145,8 @@
 	/**
 	 * Debugging
 	 */
-	define( 'WP_FS__DEBUG_SDK', ! empty( $_GET['fs_dbg'] ) );
-	define( 'WP_FS__ECHO_DEBUG_SDK', ! empty( $_GET['fs_dbg_echo'] ) );
+	define( 'WP_FS__DEBUG_SDK', WP_FS__DEV_MODE && ! empty( $_GET['fs_dbg'] ) );
+	define( 'WP_FS__ECHO_DEBUG_SDK', WP_FS__DEV_MODE && ! empty( $_GET['fs_dbg_echo'] ) );
 	define( 'WP_FS__LOG_DATETIME_FORMAT', 'Y-n-d H:i:s' );
 
 	if ( WP_FS__ECHO_DEBUG_SDK ) {
