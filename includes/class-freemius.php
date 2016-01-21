@@ -7385,7 +7385,7 @@
 
 			// Add start trial button.
 			$message .= ' ' . sprintf(
-					'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+					'<a style="margin-left: 10px; vertical-align: super;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 					$upgrade_url,
 					__fs( 'start-free-trial', $this->_slug )
 				);
