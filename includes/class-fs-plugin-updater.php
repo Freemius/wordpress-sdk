@@ -52,12 +52,73 @@
 				'pre_set_site_transient_update_plugins_filter'
 			) );
 
+			if ( ! $this->_fs->has_active_license() ) {
+				/**
+				 * If user has the premium plugin's code but do NOT have an active license,
+				 * encourage him to upgrade by showing that there's a new release, but instead
+				 * of showing an update link, show upgrade link to the pricing page.
+				 *
+				 * @since 1.1.6
+				 *
+				 */
+				// WP 2.9+
+				add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+					&$this,
+					'catch_plugin_update_row'
+				), 9 );
+				add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+					&$this,
+					'edit_and_echo_plugin_update_row'
+				), 11, 2 );
+			}
+
 			if ( ! WP_FS__IS_PRODUCTION_MODE ) {
 				add_filter( 'http_request_host_is_external', array(
 					$this,
 					'http_request_host_is_external_filter'
 				), 10, 3 );
 			}
+		}
+
+		/**
+		 * Capture plugin update row by turning output buffering.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 */
+		function catch_plugin_update_row() {
+			ob_start();
+		}
+
+		/**
+		 * Overrides default update message format with "renew your license" message.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 */
+		function edit_and_echo_plugin_update_row( $file, $plugin_data ) {
+			$plugin_update_row = ob_get_clean();
+
+			$current = get_site_transient( 'update_plugins' );
+			if ( ! isset( $current->response[ $file ] ) ) {
+				echo $plugin_update_row;
+
+				return false;
+			}
+
+			$r = $current->response[ $file ];
+
+			$plugin_update_row = preg_replace(
+				'/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
+				'$1 $2 ' . sprintf(
+					__fs( 'renew-license-now' ),
+					'<a href="' . $this->_fs->pricing_url() . '">', '</a>',
+					$r->new_version ) .
+				'$4',
+				$plugin_update_row
+			);
+
+			echo $plugin_update_row;
 		}
 
 		/**
