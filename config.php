@@ -146,7 +146,7 @@
 	/**
 	 * Times in seconds
 	 */
-//	define( 'WP_FS__TIME_5_MIN_IN_SEC', 300 );
+	define( 'WP_FS__TIME_5_MIN_IN_SEC', 300 );
 	define( 'WP_FS__TIME_10_MIN_IN_SEC', 600 );
 //	define( 'WP_FS__TIME_15_MIN_IN_SEC', 900 );
 	define( 'WP_FS__TIME_24_HOURS_IN_SEC', 86400 );
