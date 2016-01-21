@@ -192,6 +192,13 @@
 		private $_admin_notices;
 
 		/**
+		 * @since 1.1.6
+		 *
+		 * @var FS_Admin_Notice_Manager
+		 */
+		private static $_global_admin_notices;
+
+		/**
 		 * @var FS_Logger
 		 * @since 1.0.0
 		 */
@@ -796,6 +803,8 @@
 			self::$_static_logger->entrance();
 
 			self::$_accounts = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+
+			self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
@@ -5851,12 +5860,20 @@
 			$plan_change = 'none';
 
 			if ( $this->is_api_error( $site ) ) {
+				// Show API messages only if not background sync or if paying customer.
+				if ( ! $background || $this->is_paying() ) {
+					// Try to ping API to see if not blocked.
+					if ( ! FS_Api::test() ) {
+						/**
+						 * Failed to ping API - blocked!
+						 *
+						 * @author Vova Feldman (@svovaf)
+						 * @since 1.1.6 Only show message related to one of the Freemius powered plugins. Once it will be resolved it will fix the issue for all plugins anyways. There's no point to scare users with multiple error messages.
+						 */
 				$api = $this->get_api_site_scope();
 
-				// Try to ping API to see if not blocked.
-				if ( ! $api->test() ) {
-					// Failed to ping API - blocked!
-					$this->_admin_notices->add(
+						if (!self::$_global_admin_notices->has_sticky('api_blocked')) {
+							self::$_global_admin_notices->add(
 						sprintf(
 							__fs( 'server-blocking-access', $this->_slug ),
 							$this->get_plugin_name(),
@@ -5864,8 +5881,11 @@
 						) . '<br> ' . __fs( 'server-error-message', $this->_slug ) . var_export( $site->error, true ),
 						__fs( 'oops', $this->_slug ) . '...',
 						'error',
-						$background
+								$background,
+								false,
+								'api_blocked'
 					);
+						}
 				} else {
 					// Authentication params are broken.
 					$this->_admin_notices->add(
@@ -5874,7 +5894,11 @@
 						'error'
 					);
 				}
+				}
 			} else {
+				// Remove sticky API connectivity message.
+				self::$_global_admin_notices->remove_sticky('api_blocked');
+
 				$site = new FS_Site( $site );
 
 				// Sync licenses.

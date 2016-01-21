@@ -154,21 +154,32 @@
 		private function _call( $path, $method = 'GET', $params = array(), $retry = false ) {
 			$this->_logger->entrance();
 
-			$result = $this->_api->Api( $path, $method, $params );
+			if ( self::is_temporary_down() ) {
+				$result = (object) array(
+					'error' => array(
+						'type'    => 'TemporaryDowntime',
+						'message' => 'API is temporary down.',
+						'code'    => 'temporary_downtime',
+						'http'    => 402
+					)
+				);
+			} else {
+				$result = $this->_api->Api( $path, $method, $params );
 
-			if ( null !== $result &&
-			     isset( $result->error ) &&
-			     'request_expired' === $result->error->code
-			) {
-				if ( ! $retry ) {
-					$diff = isset( $result->error->timestamp ) ?
-						( time() - strtotime( $result->error->timestamp ) ) :
-						false;
+				if ( null !== $result &&
+				     isset( $result->error ) &&
+				     'request_expired' === $result->error->code
+				) {
+					if ( ! $retry ) {
+						$diff = isset( $result->error->timestamp ) ?
+							( time() - strtotime( $result->error->timestamp ) ) :
+							false;
 
-					// Try to sync clock diff.
-					if ( false !== $this->_sync_clock_diff( $diff ) ) {
-						// Retry call with new synced clock.
-						return $this->_call( $path, $method, $params, true );
+						// Try to sync clock diff.
+						if ( false !== $this->_sync_clock_diff( $diff ) ) {
+							// Retry call with new synced clock.
+							return $this->_call( $path, $method, $params, true );
+						}
 					}
 				}
 			}
@@ -282,10 +293,10 @@
 				$test = Freemius_Api::Test();
 
 				if ( false === $test && Freemius_Api::IsHttps() ) {
-				// Fallback to HTTP, since HTTPS fails.
+					// Fallback to HTTP, since HTTPS fails.
 					Freemius_Api::SetHttp();
 
-				self::$_options->set_option( 'api_force_http', true, true );
+					self::$_options->set_option( 'api_force_http', true, true );
 
 					$test = Freemius_Api::Test();
 
@@ -307,6 +318,20 @@
 		}
 
 		/**
+		 * Check if API is temporary down.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @return bool
+		 */
+		static function is_temporary_down() {
+			$test = self::$_cache->get_valid( 'ping_test', null );
+
+			return ( false === $test );
+		}
+
+		/**
 		 * Ping API for connectivity test, and return result object.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -318,6 +343,8 @@
 		 * @return object
 		 */
 		function ping( $unique_anonymous_id = null, $is_update = false ) {
+			$this->_logger->entrance();
+
 			return is_null( $unique_anonymous_id ) ?
 				Freemius_Api::Ping() :
 				$this->_call( 'ping.json?' . http_build_query( array(
