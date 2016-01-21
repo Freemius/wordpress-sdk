@@ -120,8 +120,6 @@
 
 	#endregion Core Redirect (copied from BuddyPress) -----------------------------------------
 
-	#region
-
 	if ( ! function_exists( '__fs' ) ) {
 		global $fs_text_overrides;
 
@@ -194,6 +192,36 @@
 			foreach ( $key_value as $key => $value ) {
 				$fs_text_overrides[ $slug ][ $key ] = $value;
 			}
+		}
+	}
+
+	if ( ! function_exists( 'fs_get_ip' ) ) {
+		/**
+		 * Get client IP.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.2
+		 *
+		 * @return string|null
+		 */
+		function fs_get_ip() {
+			$fields = array(
+				'HTTP_CF_CONNECTING_IP',
+				'HTTP_CLIENT_IP',
+				'HTTP_X_FORWARDED_FOR',
+				'HTTP_X_FORWARDED',
+				'HTTP_FORWARDED_FOR',
+				'HTTP_FORWARDED',
+				'REMOTE_ADDR',
+			);
+
+			foreach ( $fields as $ip_field ) {
+				if ( ! empty( $_SERVER[ $ip_field ] ) ) {
+					return $_SERVER[ $ip_field ];
+				}
+			}
+
+			return null;
 		}
 	}
 
