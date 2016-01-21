@@ -31,7 +31,7 @@
 		private static $_options;
 
 		/**
-		 * @var FS_Option_Manager API Caching layer
+		 * @var FS_Cache_Manager API Caching layer
 		 */
 		private static $_cache;
 
@@ -86,7 +86,7 @@
 			}
 
 			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
-			self::$_cache   = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
+			self::$_cache   = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 
 			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
 			Freemius_Api::SetClockDiff( self::$_clock_diff );
@@ -214,6 +214,8 @@
 		 * @return stdClass|mixed
 		 */
 		function get( $path = '/', $flush = false, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+			$this->_logger->entrance();
+
 			$cache_key = $this->get_cache_key( $path );
 
 			// Always flush during development.
@@ -221,30 +223,19 @@
 				$flush = true;
 			}
 
-			// Get result from cache.
-			$cache_entry = self::$_cache->get_option( $cache_key, false );
+			$cached_result = self::$_cache->get( $cache_key );
 
-			$fetch = false;
-			if ( $flush ||
-			     false === $cache_entry ||
-			     ! isset( $cache_entry->timestamp ) ||
-			     ! is_numeric( $cache_entry->timestamp ) ||
-			     $cache_entry->timestamp < WP_FS__SCRIPT_START_TIME
-			) {
-				$fetch = true;
-			}
-
-			if ( $fetch ) {
+			if ( $flush || ! self::$_cache->has_valid( $cache_key ) ) {
 				$result = $this->call( $path );
 
 				if ( ! is_object( $result ) || isset( $result->error ) ) {
-					if ( is_object( $cache_entry ) &&
-					     isset( $cache_entry->result ) &&
-					     ! isset( $cache_entry->result->error )
+					// Api returned an error.
+					if ( is_object( $cached_result ) &&
+					     ! isset( $cached_result )
 					) {
 						// If there was an error during a newer data fetch,
 						// fallback to older data version.
-						$result = $cache_entry->result;
+						$result = $cached_result;
 					} else {
 						// If no older data version, return result without
 						// caching the error.
@@ -252,13 +243,12 @@
 					}
 				}
 
-				$cache_entry            = new stdClass();
-				$cache_entry->result    = $result;
-				$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
-				self::$_cache->set_option( $cache_key, $cache_entry, true );
+				self::$_cache->set( $cache_key, $result, $expiration );
+
+				$cached_result = $result;
 			}
 
-			return $cache_entry->result;
+			return $cached_result;
 		}
 
 		private function get_cache_key( $path, $method = 'GET', $params = array() ) {
@@ -361,7 +351,7 @@
 		 * @since  1.0.9
 		 */
 		static function clear_cache() {
-			self::$_cache = FS_Option_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME, true );
-			self::$_cache->clear( true );
+			self::$_cache = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
+			self::$_cache->clear();
 		}
 	}
