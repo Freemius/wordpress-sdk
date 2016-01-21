@@ -2158,6 +2158,11 @@
 				return false;
 			}
 
+			// Check if API is not down.
+			if ( FS_Api::is_temporary_down() ) {
+				return false;
+			}
+
 			$sync_timestamp = $this->_storage->get( 'sync_timestamp' );
 
 			if ( ! is_numeric( $sync_timestamp ) || $sync_timestamp >= time() ) {
