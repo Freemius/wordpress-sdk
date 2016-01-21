@@ -821,6 +821,10 @@
 		 * @since  1.0.8
 		 */
 		static function add_debug_page() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
 			self::$_static_logger->entrance();
 
 			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
