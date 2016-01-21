@@ -918,6 +918,7 @@
 			// If already installed or pending then sure it's on :)
 			if ( $this->is_registered() || $this->is_pending_activation() ) {
 				$this->_is_on = true;
+
 				return true;
 			}
 
@@ -1681,11 +1682,11 @@
 							&$this,
 							'_get_addon_info_filter'
 						), WP_FS__DEFAULT_PRIORITY, 3 );
-					} else {
-						if ( $this->is_paying() || $this->_has_addons() ) {
-							new FS_Plugin_Updater( $this );
 						}
 					}
+
+				if ( $this->is_premium() ) {
+					new FS_Plugin_Updater( $this );
 				}
 
 //				if ( $this->is_registered() ||
