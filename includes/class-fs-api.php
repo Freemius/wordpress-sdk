@@ -123,7 +123,7 @@
 
 			// Sync clock and store.
 			$new_clock_diff = ( false === $diff ) ?
-				$this->_api->FindClockDiff() :
+				Freemius_Api::FindClockDiff() :
 				$diff;
 
 			if ( $new_clock_diff === self::$_clock_diff ) {
@@ -133,7 +133,7 @@
 			self::$_clock_diff = $new_clock_diff;
 
 			// Update API clock's diff.
-			$this->_api->SetClockDiff( self::$_clock_diff );
+			Freemius_Api::SetClockDiff( self::$_clock_diff );
 
 			// Store new clock diff in storage.
 			self::$_options->set_option( 'api_clock_diff', self::$_clock_diff, true );
@@ -271,33 +271,46 @@
 		/**
 		 * Test API connectivity.
 		 *
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9 If fails, try to fallback to HTTP.
-		 *
-		 * @param null|string $unique_anonymous_id
+		 * @since  1.1.6 Added a 5-min caching mechanism, to prevent from overloading the server if the API if
+		 *         temporary down.
 		 *
 		 * @return bool True if successful connectivity to the API.
 		 */
-		function test( $unique_anonymous_id = null ) {
-			$this->_logger->entrance();
-
+		static function test() {
 			if ( ! function_exists( 'curl_version' ) ) {
 				// cUrl extension is not active.
 				return false;
 			}
 
-			$test = is_null( $unique_anonymous_id ) ?
-				$this->_api->Test() :
-				$this->_api->Test( $this->_call( 'ping.json?uid=' . $unique_anonymous_id ) );
+			$cache_key = 'ping_test';
 
-			if ( false === $test && $this->_api->IsHttps() ) {
+			$test = self::$_cache->get_valid( $cache_key, null );
+
+			if ( is_null( $test ) ) {
+				$test = Freemius_Api::Test();
+
+				if ( false === $test && Freemius_Api::IsHttps() ) {
 				// Fallback to HTTP, since HTTPS fails.
-				$this->_api->SetHttp();
+					Freemius_Api::SetHttp();
 
 				self::$_options->set_option( 'api_force_http', true, true );
 
-				$test = is_null( $unique_anonymous_id ) ?
-					$this->_api->Test() :
-					$this->_api->Test( $this->_call( 'ping.json?uid=' . $unique_anonymous_id ) );
+					$test = Freemius_Api::Test();
+
+					if ( false === $test ) {
+						/**
+						 * API connectivity test fail also in HTTP request, therefore,
+						 * fallback to HTTPS to keep connection secure.
+						 *
+						 * @since 1.1.6
+						 */
+						self::$_options->set_option( 'api_force_http', false, true );
+					}
+				}
+
+				self::$_cache->set( $cache_key, $test, WP_FS__TIME_5_MIN_IN_SEC );
 			}
 
 			return $test;
@@ -316,7 +329,7 @@
 		 */
 		function ping( $unique_anonymous_id = null, $is_update = false ) {
 			return is_null( $unique_anonymous_id ) ?
-				$this->_api->Ping() :
+				Freemius_Api::Ping() :
 				$this->_call( 'ping.json?' . http_build_query( array(
 						'uid'       => $unique_anonymous_id,
 						'is_update' => $is_update,
@@ -334,11 +347,11 @@
 		 * @return bool
 		 */
 		function is_valid_ping( $pong ) {
-			return $this->_api->Test( $pong );
+			return Freemius_Api::Test( $pong );
 		}
 
 		function get_url( $path = '' ) {
-			return $this->_api->GetUrl( $path );
+			return Freemius_Api::GetUrl( $path, $this->_api->IsSandbox() );
 		}
 
 		/**

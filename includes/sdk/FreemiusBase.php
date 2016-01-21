@@ -44,25 +44,25 @@
 		protected $_public;
 		protected $_secret;
 		protected $_scope;
-		protected $_sandbox;
+		protected $_isSandbox;
 
 		/**
-		 * @param string $pScope   'app', 'developer', 'user' or 'install'.
-		 * @param number $pID      Element's id.
-		 * @param string $pPublic  Public key.
-		 * @param string $pSecret  Element's secret key.
-		 * @param bool   $pSandbox Whether or not to run API in sandbox mode.
+		 * @param string $pScope     'app', 'developer', 'user' or 'install'.
+		 * @param number $pID        Element's id.
+		 * @param string $pPublic    Public key.
+		 * @param string $pSecret    Element's secret key.
+		 * @param bool   $pIsSandbox Whether or not to run API in sandbox mode.
 		 */
-		public function Init( $pScope, $pID, $pPublic, $pSecret, $pSandbox = false ) {
-			$this->_id      = $pID;
-			$this->_public  = $pPublic;
-			$this->_secret  = $pSecret;
-			$this->_scope   = $pScope;
-			$this->_sandbox = $pSandbox;
+		public function Init( $pScope, $pID, $pPublic, $pSecret, $pIsSandbox = false ) {
+			$this->_id        = $pID;
+			$this->_public    = $pPublic;
+			$this->_secret    = $pSecret;
+			$this->_scope     = $pScope;
+			$this->_isSandbox = $pIsSandbox;
 		}
 
 		public function IsSandbox() {
-			return $this->_sandbox;
+			return $this->_isSandbox;
 		}
 
 		function CanonizePath( $pPath ) {
@@ -137,45 +137,6 @@
 			}
 
 			return $result;
-		}
-
-		/**
-		 * If successful connectivity to the API endpoint using ping.json endpoint.
-		 *
-		 *      - OR -
-		 *
-		 * Validate if ping result object is valid.
-		 *
-		 * @param mixed $pPong
-		 *
-		 * @return bool
-		 */
-		public function Test( $pPong = null ) {
-			$pong = is_null( $pPong ) ? $this->Ping() : $pPong;
-
-			return ( is_object( $pong ) && isset( $pong->api ) && 'pong' === $pong->api );
-		}
-
-		/**
-		 * Ping API to test connectivity.
-		 *
-		 * @return object
-		 */
-		public function Ping() {
-			return $this->_Api( '/v' . FS_API__VERSION . '/ping.json' );
-		}
-
-		/**
-		 * Find clock diff between current server to API server.
-		 *
-		 * @since 1.0.2
-		 * @return int Clock diff in seconds.
-		 */
-		public function FindClockDiff() {
-			$time = time();
-			$pong = $this->_Api( '/v' . FS_API__VERSION . '/ping.json' );
-
-			return ( $time - strtotime( $pong->timestamp ) );
 		}
 
 		public function Api( $pPath, $pMethod = 'GET', $pParams = array() ) {

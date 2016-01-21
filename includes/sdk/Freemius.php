@@ -75,8 +75,8 @@
 			parent::Init( $pScope, $pID, $pPublic, $pSecret, $pSandbox );
 		}
 
-		public function GetUrl( $pCanonizedPath = '' ) {
-			$address = ( $this->_sandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS );
+		public static function GetUrl( $pCanonizedPath = '', $pIsSandbox = false ) {
+			$address = ( $pIsSandbox ? FS_API__SANDBOX_ADDRESS : FS_API__ADDRESS );
 
 			if ( ':' === $address[0] ) {
 				$address = self::$_protocol . $address;
@@ -84,6 +84,8 @@
 
 			return $address . $pCanonizedPath;
 		}
+
+		#region Servers Clock Diff ------------------------------------------------------
 
 		/**
 		 * @var int Clock diff in seconds between current server to API server.
@@ -100,6 +102,21 @@
 		public static function SetClockDiff( $pSeconds ) {
 			self::$_clock_diff = $pSeconds;
 		}
+
+		/**
+		 * Find clock diff between current server to API server.
+		 *
+		 * @since 1.0.2
+		 * @return int Clock diff in seconds.
+		 */
+		public static function FindClockDiff() {
+			$time = time();
+			$pong = self::Ping();
+
+			return ( $time - strtotime( $pong->timestamp ) );
+		}
+
+		#endregion Servers Clock Diff ------------------------------------------------------
 
 		/**
 		 * @var string http or https
@@ -132,25 +149,25 @@
 		 *      {scope_entity_secret_key}))
 		 *
 		 * @param string $pResourceUrl
-		 * @param array  $opts
+		 * @param array  $pCurlOptions
 		 */
-		protected function SignRequest( $pResourceUrl, &$opts ) {
+		function SignRequest( $pResourceUrl, &$pCurlOptions ) {
 			$eol          = "\n";
 			$content_md5  = '';
 			$now          = ( time() - self::$_clock_diff );
 			$date         = date( 'r', $now );
 			$content_type = '';
 
-			if ( isset( $opts[ CURLOPT_POST ] ) && 0 < $opts[ CURLOPT_POST ] ) {
-				$content_md5                  = md5( $opts[ CURLOPT_POSTFIELDS ] );
-				$opts[ CURLOPT_HTTPHEADER ][] = 'Content-MD5: ' . $content_md5;
-				$content_type                 = 'application/json';
+			if ( isset( $pCurlOptions[ CURLOPT_POST ] ) && 0 < $pCurlOptions[ CURLOPT_POST ] ) {
+				$content_md5                          = md5( $pCurlOptions[ CURLOPT_POSTFIELDS ] );
+				$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Content-MD5: ' . $content_md5;
+				$content_type                         = 'application/json';
 			}
 
-			$opts[ CURLOPT_HTTPHEADER ][] = 'Date: ' . $date;
+			$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Date: ' . $date;
 
 			$string_to_sign = implode( $eol, array(
-				$opts[ CURLOPT_CUSTOMREQUEST ],
+				$pCurlOptions[ CURLOPT_CUSTOMREQUEST ],
 				$content_md5,
 				$content_type,
 				$date,
@@ -162,13 +179,13 @@
 			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
 
 			// Add authorization header.
-			$opts[ CURLOPT_HTTPHEADER ][] = 'Authorization: ' .
-			                                $auth_type . ' ' .
-			                                $this->_id . ':' .
-			                                $this->_public . ':' .
-			                                self::Base64UrlEncode(
-				                                hash_hmac( 'sha256', $string_to_sign, $this->_secret )
-			                                );
+			$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Authorization: ' .
+			                                        $auth_type . ' ' .
+			                                        $this->_id . ':' .
+			                                        $this->_public . ':' .
+			                                        self::Base64UrlEncode(
+				                                        hash_hmac( 'sha256', $string_to_sign, $this->_secret )
+			                                        );
 		}
 
 		/**
@@ -202,7 +219,7 @@
 			// the signature uses public key hash encoding.
 			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
 
-			return $this->GetUrl(
+			return Freemius_Api::GetUrl(
 				$pResourceUrl . '?' .
 				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
 				http_build_query( array(
@@ -212,37 +229,42 @@
 					                   self::Base64UrlEncode( hash_hmac(
 						                   'sha256', $string_to_sign, $this->_secret
 					                   ) )
-				) ) );
+				) ), $this->_isSandbox );
 		}
 
 		/**
-		 * Makes an HTTP request. This method can be overridden by subclasses if
-		 * developers want to do fancier things or use something other than curl to
-		 * make the request.
-		 *
-		 * @param string        $pCanonizedPath The URL to make the request to
-		 * @param string        $pMethod        HTTP method
-		 * @param array         $params         The parameters to use for the POST body
-		 * @param null|resource $ch             Initialized curl handle
+		 * @param string        $pCanonizedPath
+		 * @param string        $pMethod
+		 * @param array         $pParams
+		 * @param null|resource $pCurlHandler
+		 * @param bool          $pIsSandbox
+		 * @param null|callable $pBeforeExecutionFunction
 		 *
 		 * @return object[]|object|null
 		 *
-		 * @throws Freemius_Exception
+		 * @throws \Freemius_Exception
 		 */
-		public function MakeRequest( $pCanonizedPath, $pMethod = 'GET', $params = array(), $ch = null ) {
-			if ( !FS_SDK__HAS_CURL ) {
-				$this->ThrowNoCurlException();
+		private static function MakeStaticRequest(
+			$pCanonizedPath,
+			$pMethod = 'GET',
+			$pParams = array(),
+			$pCurlHandler = null,
+			$pIsSandbox = false,
+			$pBeforeExecutionFunction = null
+		) {
+			if ( ! FS_SDK__HAS_CURL ) {
+				self::ThrowNoCurlException();
 			}
 
 			// Connectivity errors simulation.
 			if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE ) {
-				$this->ThrowCloudFlareDDoSException();
+				self::ThrowCloudFlareDDoSException();
 			} else if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL ) {
-				$this->ThrowSquidAclException();
+				self::ThrowSquidAclException();
 			}
 
-			if ( ! $ch ) {
-				$ch = curl_init();
+			if ( ! $pCurlHandler ) {
+				$pCurlHandler = curl_init();
 			}
 
 			$opts = self::$CURL_OPTS;
@@ -252,24 +274,19 @@
 			}
 
 			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
-				if ( is_array( $params ) && 0 < count( $params ) ) {
+				if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
 					$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
-					$opts[ CURLOPT_POST ]         = count( $params );
-					$opts[ CURLOPT_POSTFIELDS ]   = json_encode( $params );
+					$opts[ CURLOPT_POST ]         = count( $pParams );
+					$opts[ CURLOPT_POSTFIELDS ]   = json_encode( $pParams );
 				}
 
 				$opts[ CURLOPT_RETURNTRANSFER ] = true;
 			}
 
-			$opts[ CURLOPT_URL ]           = $this->GetUrl( $pCanonizedPath );
+			$opts[ CURLOPT_URL ]           = Freemius_Api::GetUrl( $pCanonizedPath, $pIsSandbox );
 			$opts[ CURLOPT_CUSTOMREQUEST ] = $pMethod;
 
 			$resource = explode( '?', $pCanonizedPath );
-
-			// Only sign request if not ping.json connectivity test.
-			if ( '/v1/ping.json' !== strtolower( substr( $resource[0], - strlen( '/v1/ping.json' ) ) ) ) {
-				$this->SignRequest( $resource[0], $opts );
-			}
 
 			// disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
 			// for 2 seconds if the server does not support this header.
@@ -280,8 +297,12 @@
 				$opts[ CURLOPT_SSL_VERIFYPEER ] = false;
 			}
 
-			curl_setopt_array( $ch, $opts );
-			$result = curl_exec( $ch );
+			if ( false !== $pBeforeExecutionFunction && is_callable( $pBeforeExecutionFunction ) ) {
+				$pBeforeExecutionFunction( $resource[0], $opts );
+			}
+
+			curl_setopt_array( $pCurlHandler, $opts );
+			$result = curl_exec( $pCurlHandler );
 
 			/*if (curl_errno($ch) == 60) // CURLE_SSL_CACERT
 			{
@@ -299,33 +320,25 @@
 			if ( false === $result && empty( $opts[ CURLOPT_IPRESOLVE ] ) ) {
 				$matches = array();
 				$regex   = '/Failed to connect to ([^:].*): Network is unreachable/';
-				if ( preg_match( $regex, curl_error( $ch ), $matches ) ) {
+				if ( preg_match( $regex, curl_error( $pCurlHandler ), $matches ) ) {
 					if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
 //						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
 						self::$CURL_OPTS[ CURLOPT_IPRESOLVE ] = CURL_IPRESOLVE_V4;
-						curl_setopt( $ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
-						$result = curl_exec( $ch );
+						curl_setopt( $pCurlHandler, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+						$result = curl_exec( $pCurlHandler );
 					}
 				}
 			}
 
 			if ( $result === false ) {
-				$e = new Freemius_Exception( array(
-					'error' => array(
-						'code'    => curl_errno( $ch ),
-						'message' => curl_error( $ch ),
-						'type'    => 'CurlException',
-					),
-				) );
-
-				curl_close( $ch );
-				throw $e;
+				self::ThrowCurlException( $pCurlHandler );
 			}
 
-			curl_close( $ch );
+			curl_close( $pCurlHandler );
 
-			if (empty($result))
+			if ( empty( $result ) ) {
 				return null;
+			}
 
 			$decoded = json_decode( $result );
 
@@ -333,11 +346,11 @@
 				if ( preg_match( '/Please turn JavaScript on/i', $result ) &&
 				     preg_match( '/text\/javascript/', $result )
 				) {
-					$this->ThrowCloudFlareDDoSException( $result );
+					self::ThrowCloudFlareDDoSException( $result );
 				} else if ( preg_match( '/Access control configuration prevents your request from being allowed at this time. Please contact your service provider if you feel this is incorrect./', $result ) &&
 				            preg_match( '/squid/', $result )
 				) {
-					$this->ThrowSquidAclException( $result );
+					self::ThrowSquidAclException( $result );
 				} else {
 					$decoded = (object) array(
 						'error' => (object) array(
@@ -353,12 +366,121 @@
 			return $decoded;
 		}
 
+
+		/**
+		 * Makes an HTTP request. This method can be overridden by subclasses if
+		 * developers want to do fancier things or use something other than curl to
+		 * make the request.
+		 *
+		 * @param string        $pCanonizedPath The URL to make the request to
+		 * @param string        $pMethod        HTTP method
+		 * @param array         $pParams        The parameters to use for the POST body
+		 * @param null|resource $pCurlHandler   Initialized curl handle
+		 *
+		 * @return object[]|object|null
+		 *
+		 * @throws Freemius_Exception
+		 */
+		public function MakeRequest(
+			$pCanonizedPath,
+			$pMethod = 'GET',
+			$pParams = array(),
+			$pCurlHandler = null
+		) {
+			$resource = explode( '?', $pCanonizedPath );
+
+			// Only sign request if not ping.json connectivity test.
+			$sign_request = ( '/v1/ping.json' !== strtolower( substr( $resource[0], - strlen( '/v1/ping.json' ) ) ) );
+
+			return self::MakeStaticRequest(
+				$pCanonizedPath,
+				$pMethod,
+				$pParams,
+				$pCurlHandler,
+				$this->_isSandbox,
+				$sign_request ? array( &$this, 'SignRequest' ) : null
+			);
+		}
+
+		#region Connectivity Test ------------------------------------------------------
+
+		/**
+		 * If successful connectivity to the API endpoint using ping.json endpoint.
+		 *
+		 *      - OR -
+		 *
+		 * Validate if ping result object is valid.
+		 *
+		 * @param mixed $pPong
+		 *
+		 * @return bool
+		 */
+		public static function Test( $pPong = null ) {
+			$pong = is_null( $pPong ) ?
+				self::Ping() :
+				$pPong;
+
+			return (
+				is_object( $pong ) &&
+				isset( $pong->api ) &&
+				'pong' === $pong->api
+			);
+		}
+
+		/**
+		 * Ping API to test connectivity.
+		 *
+		 * @return object
+		 */
+		public static function Ping() {
+			try {
+				$result = self::MakeStaticRequest( '/v' . FS_API__VERSION . '/ping.json' );
+			} catch ( Freemius_Exception $e ) {
+				// Map to error object.
+				$result = (object) $e->getResult();
+			} catch ( Exception $e ) {
+				// Map to error object.
+				$result = (object) array(
+					'error' => array(
+						'type'    => 'Unknown',
+						'message' => $e->getMessage() . ' (' . $e->getFile() . ': ' . $e->getLine() . ')',
+						'code'    => 'unknown',
+						'http'    => 402
+					)
+				);
+			}
+
+			return $result;
+		}
+
+		#endregion Connectivity Test ------------------------------------------------------
+
+		#region Connectivity Exceptions ------------------------------------------------------
+
+		/**
+		 * @param resource $pCurlHandler
+		 *
+		 * @throws Freemius_Exception
+		 */
+		private static function ThrowCurlException( $pCurlHandler ) {
+			$e = new Freemius_Exception( array(
+				'error' => array(
+					'code'    => curl_errno( $pCurlHandler ),
+					'message' => curl_error( $pCurlHandler ),
+					'type'    => 'CurlException',
+				),
+			) );
+
+			curl_close( $pCurlHandler );
+			throw $e;
+		}
+
 		/**
 		 * @param string $pResult
 		 *
 		 * @throws Freemius_Exception
 		 */
-		private function ThrowNoCurlException( $pResult = '' ) {
+		private static function ThrowNoCurlException( $pResult = '' ) {
 			throw new Freemius_Exception( array(
 				'error' => (object) array(
 					'type'    => 'cUrlMissing',
@@ -374,7 +496,7 @@
 		 *
 		 * @throws Freemius_Exception
 		 */
-		private function ThrowCloudFlareDDoSException( $pResult = '' ) {
+		private static function ThrowCloudFlareDDoSException( $pResult = '' ) {
 			throw new Freemius_Exception( array(
 				'error' => (object) array(
 					'type'    => 'CloudFlareDDoSProtection',
@@ -390,7 +512,7 @@
 		 *
 		 * @throws Freemius_Exception
 		 */
-		private function ThrowSquidAclException( $pResult = '' ) {
+		private static function ThrowSquidAclException( $pResult = '' ) {
 			throw new Freemius_Exception( array(
 				'error' => (object) array(
 					'type'    => 'SquidCacheBlock',
@@ -400,4 +522,6 @@
 				)
 			) );
 		}
+
+		#endregion Connectivity Exceptions ------------------------------------------------------
 	}
