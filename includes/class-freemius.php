@@ -2179,8 +2179,10 @@
 					// Initiate background plan sync.
 					$this->_sync_license( true );
 
+					if ( $this->is_paying() ) {
 					// Check for plugin updates.
 					$this->_check_updates( true );
+				}
 				}
 
 				if ( ! $this->is_addon() ) {
