@@ -2666,16 +2666,16 @@
 		private function update_plugin_version_event() {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			$this->_site->version = $this->get_plugin_version();
-
 			// Send update event.
 			$site = $this->send_install_update( array(), true );
 
 			if ( false !== $site && ! $this->is_api_error( $site ) ) {
 				$this->_site       = new FS_Site( $site );
 				$this->_site->plan = $this->_get_plan_by_id( $site->plan_id );
-				$this->_store_site( true );
 			}
+
+			$this->_site->version = $this->get_plugin_version();
+			$this->_store_site( true );
 		}
 
 		/**
@@ -3279,6 +3279,21 @@
 
 			return $addons[ $this->_plugin->id ];
 		}
+
+		/**
+		 * Check if user has any
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @return bool
+		 */
+		function has_account_addons() {
+			$addons = $this->get_account_addons();
+
+			return is_array( $addons ) && ( 0 < count( $addons ) );
+		}
+
 
 		/**
 		 * Get add-on by ID (from local data).
