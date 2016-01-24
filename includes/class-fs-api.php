@@ -346,12 +346,68 @@
 		function ping( $unique_anonymous_id = null, $is_update = false ) {
 			$this->_logger->entrance();
 
-			return is_null( $unique_anonymous_id ) ?
+			if ( self::is_temporary_down() ) {
+				return $this->get_temporary_unavailable_error();
+			}
+
+			$pong = is_null( $unique_anonymous_id ) ?
 				Freemius_Api::Ping() :
 				$this->_call( 'ping.json?' . http_build_query( array(
 						'uid'       => $unique_anonymous_id,
 						'is_update' => $is_update,
 					) ) );
+
+			if ( $this->is_valid_ping( $pong ) ) {
+				return $pong;
+			}
+
+			if ( self::should_try_with_http( $pong ) ) {
+				// Fallback to HTTP, since HTTPS fails.
+				Freemius_Api::SetHttp();
+
+				self::$_options->set_option( 'api_force_http', true, true );
+
+				$pong = is_null( $unique_anonymous_id ) ?
+				Freemius_Api::Ping() :
+				$this->_call( 'ping.json?' . http_build_query( array(
+						'uid'       => $unique_anonymous_id,
+						'is_update' => $is_update,
+					) ) );
+
+				if ( ! $this->is_valid_ping( $pong ) ) {
+					self::$_options->set_option( 'api_force_http', false, true );
+				}
+			}
+
+			return $pong;
+		}
+
+		/**
+		 * Check if based on the API result we should try
+		 * to re-run the same request with HTTP instead of HTTPS.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @param $result
+		 *
+		 * @return bool
+		 */
+		private static function should_try_with_http($result) {
+			if ( ! Freemius_Api::IsHttps() ) {
+				return false;
+			}
+
+			return ( ! is_object( $result ) ||
+			         ! isset( $result->error ) ||
+			         ! isset( $result->error->code ) ||
+			         ! in_array( $result->error->code, array(
+				         'curl_missing',
+				         'cloudflare_ddos_protection',
+				         'squid_cache_block',
+				         'too_many_requests',
+			         ) ) );
+
 		}
 
 		/**
