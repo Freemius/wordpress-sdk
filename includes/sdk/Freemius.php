@@ -150,8 +150,10 @@
 		 *
 		 * @param string $pResourceUrl
 		 * @param array  $pCurlOptions
+		 *
+		 * @return array
 		 */
-		function SignRequest( $pResourceUrl, &$pCurlOptions ) {
+		function SignRequest( $pResourceUrl, $pCurlOptions ) {
 			$eol          = "\n";
 			$content_md5  = '';
 			$now          = ( time() - self::$_clock_diff );
@@ -186,6 +188,8 @@
 			                                        self::Base64UrlEncode(
 				                                        hash_hmac( 'sha256', $string_to_sign, $this->_secret )
 			                                        );
+
+			return $pCurlOptions;
 		}
 
 		/**
@@ -297,8 +301,10 @@
 				$opts[ CURLOPT_SSL_VERIFYPEER ] = false;
 			}
 
-			if ( false !== $pBeforeExecutionFunction && is_callable( $pBeforeExecutionFunction ) ) {
-				$pBeforeExecutionFunction( $resource[0], $opts );
+			if ( false !== $pBeforeExecutionFunction &&
+			     is_callable( $pBeforeExecutionFunction )
+			) {
+				$opts = call_user_func( $pBeforeExecutionFunction, $resource[0], $opts );
 			}
 
 			curl_setopt_array( $pCurlHandler, $opts );
