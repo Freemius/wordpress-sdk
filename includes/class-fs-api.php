@@ -70,9 +70,7 @@
 			$identifier = md5( $slug . $scope . $id . $public_key . ( is_string( $secret_key ) ? $secret_key : '' ) . json_encode( $is_sandbox ) );
 
 			if ( ! isset( self::$_instances[ $identifier ] ) ) {
-				if ( 0 === count( self::$_instances ) ) {
 					self::_init();
-				}
 
 				self::$_instances[ $identifier ] = new FS_Api( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox );
 			}
@@ -81,6 +79,10 @@
 		}
 
 		private static function _init() {
+			if ( isset( self::$_options ) ) {
+				return;
+			}
+
 			if ( ! class_exists( 'Freemius_Api' ) ) {
 				require_once( WP_FS__DIR_SDK . '/Freemius.php' );
 			}
@@ -280,10 +282,7 @@
 		 * @return bool True if successful connectivity to the API.
 		 */
 		static function test() {
-			if ( ! function_exists( 'curl_version' ) ) {
-				// cUrl extension is not active.
-				return false;
-			}
+			self::_init();
 
 			$cache_key = 'ping_test';
 
@@ -326,6 +325,8 @@
 		 * @return bool
 		 */
 		static function is_temporary_down() {
+			self::_init();
+
 			$test = self::$_cache->get_valid( 'ping_test', null );
 
 			return ( false === $test );
@@ -378,6 +379,8 @@
 		 * @since  1.0.9
 		 */
 		static function clear_cache() {
+			self::_init();
+
 			self::$_cache = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 			self::$_cache->clear();
 		}
