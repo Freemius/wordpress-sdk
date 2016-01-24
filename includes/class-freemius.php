@@ -950,8 +950,9 @@
 			}
 
 			if ( isset( $this->_storage->connectivity_test ) ) {
-				if ( $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
-				     WP_FS__REMOTE_ADDR == $this->_storage->connectivity_test['server_ip']
+				if ( ! WP_FS__IS_HTTP_REQUEST ||
+				     ( $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
+				       WP_FS__REMOTE_ADDR == $this->_storage->connectivity_test['server_ip'] )
 				) {
 					if ( ( $this->_storage->connectivity_test['is_connected'] &&
 					       $this->_storage->connectivity_test['is_active'] ) ||
@@ -959,7 +960,7 @@
 					       $version == $this->_storage->connectivity_test['version'] )
 					) {
 						$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
-						$this->_is_on              = $this->_storage->connectivity_test['is_active'] || (WP_FS__DEV_MODE && $this->_has_api_connection);
+						$this->_is_on              = $this->_storage->connectivity_test['is_active'] || ( WP_FS__DEV_MODE && $this->_has_api_connection );
 
 						return $this->_has_api_connection;
 					}
@@ -1002,7 +1003,7 @@
 			);
 
 			$this->_has_api_connection = $is_connected;
-			$this->_is_on              = $is_active || (WP_FS__DEV_MODE && $is_connected);
+			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected );
 
 			return $this->_has_api_connection;
 		}
@@ -1682,8 +1683,8 @@
 							&$this,
 							'_get_addon_info_filter'
 						), WP_FS__DEFAULT_PRIORITY, 3 );
-						}
 					}
+				}
 
 				if ( $this->is_premium() ) {
 					new FS_Plugin_Updater( $this );
@@ -2180,9 +2181,9 @@
 					$this->_sync_license( true );
 
 					if ( $this->is_paying() ) {
-					// Check for plugin updates.
-					$this->_check_updates( true );
-				}
+						// Check for plugin updates.
+						$this->_check_updates( true );
+					}
 				}
 
 				if ( ! $this->is_addon() ) {
@@ -5880,32 +5881,32 @@
 						 * Failed to ping API - blocked!
 						 *
 						 * @author Vova Feldman (@svovaf)
-						 * @since 1.1.6 Only show message related to one of the Freemius powered plugins. Once it will be resolved it will fix the issue for all plugins anyways. There's no point to scare users with multiple error messages.
+						 * @since  1.1.6 Only show message related to one of the Freemius powered plugins. Once it will be resolved it will fix the issue for all plugins anyways. There's no point to scare users with multiple error messages.
 						 */
-				$api = $this->get_api_site_scope();
+						$api = $this->get_api_site_scope();
 
-						if (!self::$_global_admin_notices->has_sticky('api_blocked')) {
+						if ( ! self::$_global_admin_notices->has_sticky( 'api_blocked' ) ) {
 							self::$_global_admin_notices->add(
-						sprintf(
-							__fs( 'server-blocking-access', $this->_slug ),
-							$this->get_plugin_name(),
-							'<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
-						) . '<br> ' . __fs( 'server-error-message', $this->_slug ) . var_export( $site->error, true ),
-						__fs( 'oops', $this->_slug ) . '...',
-						'error',
+								sprintf(
+									__fs( 'server-blocking-access', $this->_slug ),
+									$this->get_plugin_name(),
+									'<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
+								) . '<br> ' . __fs( 'server-error-message', $this->_slug ) . var_export( $site->error, true ),
+								__fs( 'oops', $this->_slug ) . '...',
+								'error',
 								$background,
 								false,
 								'api_blocked'
-					);
+							);
 						}
-				} else {
-					// Authentication params are broken.
-					$this->_admin_notices->add(
-						__fs( 'wrong-authentication-param-message', $this->_slug ),
-						__fs( 'oops', $this->_slug ) . '...',
-						'error'
-					);
-				}
+					} else {
+						// Authentication params are broken.
+						$this->_admin_notices->add(
+							__fs( 'wrong-authentication-param-message', $this->_slug ),
+							__fs( 'oops', $this->_slug ) . '...',
+							'error'
+						);
+					}
 				}
 			} else {
 				// Remove sticky API connectivity message.
