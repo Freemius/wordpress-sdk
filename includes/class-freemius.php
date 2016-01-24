@@ -4369,10 +4369,12 @@
 		function setup_account( FS_User $user, FS_Site $site, $redirect = true ) {
 			$this->_user = $user;
 			$this->_site = $site;
+
+			$this->_sync_plans();
+
 			$this->_enrich_site_plan( false );
 
 			$this->_set_account( $user, $site );
-			$this->_sync_plans();
 
 			if ( $this->is_trial() ) {
 				// Store trial plan information.
