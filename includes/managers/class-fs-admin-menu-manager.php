@@ -110,7 +110,7 @@
 		}
 
 		private function get_bool_option( &$options, $key, $default = false ) {
-			return isset( $options[ $key ] ) && is_bool( $options[ $key ] ) ? $options[ $key ] : $default;
+			return isset( $options[ $key ] ) &&is_bool( $options[ $key ] )  ? $options[ $key ] : $default;
 		}
 
 		#endregion Helpers
@@ -242,8 +242,8 @@
 			return fs_apply_filter(
 				$this->_plugin_slug,
 				'is_submenu_visible',
-				$id,
-				$this->get_bool_option( $this->_default_submenu_items, $id, $default )
+				$this->get_bool_option( $this->_default_submenu_items, $id, $default ),
+				$id
 			);
 		}
 
