@@ -1,4 +1,4 @@
-'".WP_PLUGIN_URL."/".$vtaggerdir."/tick.png'<?php
+<?php
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
@@ -29,7 +29,7 @@
 
 		/**
 		 * @since 1.0.0
-'".WP_PLUGIN_URL."/".$vtaggerdir."/tick.png'		 * @var string
+		 * @var string
 		 */
 		private $_plugin_basename;
 		/**
