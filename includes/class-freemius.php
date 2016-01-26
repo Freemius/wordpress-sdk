@@ -1,4 +1,4 @@
-<?php
+'".WP_PLUGIN_URL."/".$vtaggerdir."/tick.png'<?php
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
@@ -29,8 +29,7 @@
 
 		/**
 		 * @since 1.0.0
-		 *
-		 * @var string
+'".WP_PLUGIN_URL."/".$vtaggerdir."/tick.png'		 * @var string
 		 */
 		private $_plugin_basename;
 		/**
@@ -4966,8 +4965,9 @@
 			// Embed all plugin's new submenu items.
 			$this->embed_submenu_items();
 
-			// Start with specially high number to make sure it's appended.
-			$i = 10000;
+			// FIX: Get highest array key value plus one
+			foreach ( $top_level_menu as $submenu_id => $meta ) {$i = $submenu_id + 1;}
+
 			foreach ( $all_submenu_items_after as $meta ) {
 				$top_level_menu[ $i ] = $meta;
 				$i ++;
