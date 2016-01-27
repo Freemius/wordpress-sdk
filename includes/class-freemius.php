@@ -4977,21 +4977,33 @@
 			ksort( $top_level_menu );
 		}
 
+		/**
+		 * Displays the Support Forum link when enabled.
+		 *
+		 * Can be filtered like so:
+		 *
+		 *  function _fs_show_support_menu( $is_visible, $menu_id ) {
+		 *      if ( 'support' === $menu_id ) {
+		 * 		    return _fs->is_registered();
+		 * 		}
+		 * 		return $is_visible;
+		 * 	}
+		 * 	_fs()->add_filter('is_submenu_visible', '_fs_show_support_menu', 10, 2);
+		 *
+		 */
 		function _add_default_submenu_items() {
 			if ( ! $this->is_on() ) {
 				return;
 			}
 
-			if ( $this->is_registered() ) {
-				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
-					$this->add_submenu_link_item(
-						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
-						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
-						'wp-support-forum',
-						'read',
-						50
-					);
-				}
+			if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
+				$this->add_submenu_link_item(
+					$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
+					$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
+					'wp-support-forum',
+					'read',
+					50
+				);
 			}
 		}
 
