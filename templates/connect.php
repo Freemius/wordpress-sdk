@@ -151,6 +151,7 @@
 	<div class="fs-permissions">
 		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
 		<ul>
+            <?php $fs->do_action( 'permission_list_top', $slug ); ?>
 			<li>
 				<i class="dashicons dashicons-admin-users"></i>
 
@@ -189,6 +190,7 @@
 					<p><?php _efs( 'permissions-events_desc', $slug ) ?></p>
 				</div>
 			</li>
+            <?php $fs->do_action( 'permission_list_bottom', $slug ); ?>
 		</ul>
 	</div>
 	<div class="fs-terms">
