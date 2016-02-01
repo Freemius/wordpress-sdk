@@ -308,4 +308,36 @@
 		fclose( $fp );
 	}
 
+    /* General Utilities
+    --------------------------------------------------------------------------------------------*/
+
+    /**
+     * Sorts an array by the value of the priority key.
+     *
+     * @author Daniel Iser (@danieliser)
+     * @since  1.1.7
+     *
+     * @param $a
+     * @param $b
+     *
+     * @return int
+     */
+    function fs_sort_by_priority( $a, $b ) {
+
+        // If b has a priority and a does not, b wins.
+        if ( ! isset( $a['priority'] ) && isset( $b['priority'] ) ) {
+            return -1;
+        }
+        // If b has a priority and a does not, b wins.
+        elseif ( isset( $a['priority'] ) && ! isset( $b['priority'] ) ) {
+            return 1;
+        }
+        // If neither has a priority or both priorities are equal its a tie.
+        elseif ( ( ! isset( $a['priority'] ) && ! isset( $b['priority'] ) ) || $a['priority'] === $b['priority'] ) {
+            return 0;
+        }
+
+        // If both have priority return the winner.
+        return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
+    }
 
