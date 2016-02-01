@@ -2638,6 +2638,24 @@
 		}
 
 		/**
+		 * Clears the anonymous mode and redirects to the opt-in screen.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 */
+		function connect_again() {
+			if ( ! $this->is_anonymous() ) {
+				return;
+			}
+
+			$this->reset_anonymous_mode();
+
+			if ( fs_redirect( $this->get_activation_url() ) ) {
+				exit();
+			}
+		}
+
+		/**
 		 * Skip account connect, and set anonymous mode.
 		 *
 		 * @author Vova Feldman (@svovaf)
