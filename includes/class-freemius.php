@@ -4985,7 +4985,7 @@
 			$this->embed_submenu_items();
 
 			// Start with specially high number to make sure it's appended.
-			$i = 10000;
+			$i = max( 10000, max( array_keys( $top_level_menu ) ) + 1 );
 			foreach ( $all_submenu_items_after as $meta ) {
 				$top_level_menu[ $i ] = $meta;
 				$i ++;
