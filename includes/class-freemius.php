@@ -4996,14 +4996,16 @@
 				return;
 			}
 
-			if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
-				$this->add_submenu_link_item(
-					$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
-					$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
-					'wp-support-forum',
-					'read',
-					50
-				);
+			if ( $this->is_registered() || $this->is_anonymous() ) {
+				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
+					$this->add_submenu_link_item(
+						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
+						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
+						'wp-support-forum',
+						'read',
+						50
+					);
+				}
 			}
 		}
 
