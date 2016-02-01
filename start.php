@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.6.5';
+	$this_sdk_version = '1.1.7.0';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
