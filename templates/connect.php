@@ -147,52 +147,63 @@
 				        type="submit"><?php _efs( 'opt-in-connect', $slug ) ?></button>
 			</form>
 		<?php endif ?>
-	</div>
-	<div class="fs-permissions">
-		<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
-		<ul>
-            <?php $fs->do_action( 'permission_list_top', $slug ); ?>
-			<li>
-				<i class="dashicons dashicons-admin-users"></i>
+	</div><?php
 
-				<div>
-					<span><?php _efs( 'permissions-profile', $slug ) ?></span>
+    // Set core permission list items.
+    $permissions = array(
+        'profile'    => array(
+            'icon-class' => 'dashicons dashicons-admin-users',
+            'label'      => __fs( 'permissions-profile' ),
+            'desc'       => __fs( 'permissions-profile_desc' ),
+            'priority'   => 5,
+        ),
+        'site'       => array(
+            'icon-class' => 'dashicons dashicons-wordpress',
+            'label'      => __fs( 'permissions-site' ),
+            'desc'       => __fs( 'permissions-site_desc' ),
+            'priority'   => 10,
+        ),
+        'events'     => array(
+            'icon-class' => 'dashicons dashicons-admin-plugins',
+            'label'      => __fs( 'permissions-events' ),
+            'desc'       => __fs( 'permissions-events_desc' ),
+            'priority'   => 20,
+        ),
+    );
 
-					<p><?php _efs( 'permissions-profile_desc', $slug ) ?></p>
-				</div>
-			</li>
-			<li>
-				<i class="dashicons dashicons-wordpress"></i>
+    // Add newsletter permissions if enabled.
+    if ( $fs->is_permission_requested( 'newsletter' ) ) {
+        $permissions['newsletter'] = array(
+            'icon-class' => 'dashicons dashicons-email-alt',
+            'label'      => __fs( 'permissions-newsletter' ),
+            'desc'       => __fs( 'permissions-newsletter_desc' ),
+            'priority'   => 15,
+        );
+    }
 
-				<div>
-					<span><?php _efs( 'permissions-site', $slug ) ?></span>
+    // Allow filtering of the permissions list.
+    $permissions = $fs->apply_filters( 'permission_list', $permissions );
 
-					<p><?php _efs( 'permissions-site_desc', $slug ) ?></p>
-				</div>
-			</li>
-			<?php if ( $fs->is_permission_requested( 'newsletter' ) ) : ?>
-				<li>
-					<i class="dashicons dashicons-email-alt"></i>
+    // Sort by priority.
+    uasort( $permissions, 'fs_sort_by_priority' );
 
-					<div>
-						<span><?php _efs( 'permissions-newsletter', $slug ) ?></span>
+    if ( ! empty( $permissions ) ) : ?>
+    <div class="fs-permissions">
+        <a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
+        <ul><?php
+            foreach( $permissions as $id => $permission ) : ?>
+                <li id="fs-permission-<?php esc_attr_e( $id ); ?>" class="fs-permission fs-<?php esc_attr_e( $id ); ?>">
+                    <i class="<?php esc_attr_e( $permission['icon-class'] ); ?>"></i>
+                    <div>
+                        <span><?php esc_html_e( $permission['label'] ); ?></span>
+                        <p><?php esc_html_e( $permission['desc'] ); ?></p>
+                    </div>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
 
-						<p><?php _efs( 'permissions-newsletter_desc', $slug ) ?></p>
-					</div>
-				</li>
-			<?php endif ?>
-			<li>
-				<i class="dashicons dashicons-admin-plugins"></i>
-
-				<div>
-					<span><?php _efs( 'permissions-events', $slug ) ?></span>
-
-					<p><?php _efs( 'permissions-events_desc', $slug ) ?></p>
-				</div>
-			</li>
-            <?php $fs->do_action( 'permission_list_bottom', $slug ); ?>
-		</ul>
-	</div>
 	<div class="fs-terms">
 		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy', $slug ) ?></a>
 		&nbsp;&nbsp;-&nbsp;&nbsp;
