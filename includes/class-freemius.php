@@ -465,7 +465,10 @@
 				'slug'    => $this->_slug
 			);
 
-			fs_require_once_template( 'deactivation-feedback-modal.php', $vars );
+			/**
+			 * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
+			 */
+			fs_require_template( 'deactivation-feedback-modal.php', $vars );
 		}
 
 		/**
@@ -2257,10 +2260,10 @@
 				delete_option( "fs_{$this->_slug}_activated" );
 
 				if ( ! function_exists( 'is_network_admin' ) || ! is_network_admin() ) {
-				$this->_redirect_on_activation_hook();
+					$this->_redirect_on_activation_hook();
 
-				return;
-			}
+					return;
+				}
 			}
 
 			if ( fs_request_is_action( $this->_slug . '_skip_activation' ) ) {
@@ -7132,8 +7135,8 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-				fs_require_once_template( 'connect.php', $vars );
-			}
+			fs_require_once_template( 'connect.php', $vars );
+		}
 
 		/**
 		 * Load required resources before add-ons page render.
