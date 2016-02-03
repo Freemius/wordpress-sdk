@@ -7132,12 +7132,8 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			if ( $this->is_pending_activation() ) {
-				fs_require_once_template( 'pending-activation.php', $vars );
-			} else {
 				fs_require_once_template( 'connect.php', $vars );
 			}
-		}
 
 		/**
 		 * Load required resources before add-ons page render.

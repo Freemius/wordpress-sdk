@@ -171,6 +171,7 @@
 		'privacy-policy'                           => __( 'Privacy Policy', 'freemius' ),
 		'tos'                                      => __( 'Terms of Service', 'freemius' ),
 		'activating'                               => _x( 'Activating', 'as activating plugin', 'freemius' ),
+		'sending-email'                            => _x( 'Sending email', 'as in the process of sending an email', 'freemius' ),
 		'opt-in-connect'                           => _x( 'Allow & Continue', 'button label', 'freemius' ),
 		'skip'                                     => _x( 'Skip', 'verb', 'freemius' ),
 		'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
