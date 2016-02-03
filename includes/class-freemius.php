@@ -2248,12 +2248,19 @@
 		 * @since  1.0.7
 		 */
 		function _admin_init_action() {
-			// Automatically redirect to connect/activation page after plugin activation.
+			/**
+			 * Automatically redirect to connect/activation page after plugin activation.
+			 *
+			 * @since 1.1.7 Do NOT redirect to opt-in when running in network admin mode.
+			 */
 			if ( $this->is_plugin_activation() ) {
 				delete_option( "fs_{$this->_slug}_activated" );
+
+				if ( ! function_exists( 'is_network_admin' ) || ! is_network_admin() ) {
 				$this->_redirect_on_activation_hook();
 
 				return;
+			}
 			}
 
 			if ( fs_request_is_action( $this->_slug . '_skip_activation' ) ) {
