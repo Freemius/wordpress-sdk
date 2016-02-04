@@ -144,7 +144,7 @@
 			global $fs_text, $fs_text_overrides;
 
 			if ( ! isset( $fs_text ) ) {
-				require_once( (defined('WP_FS__DIR_INCLUDES') ? WP_FS__DIR_INCLUDES : dirname( __FILE__ )) . '/i18n.php' );
+				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
 			}
 
 			if ( isset( $fs_text_overrides[ $slug ] ) &&
@@ -226,7 +226,7 @@
 	}
 
 	/**
-	 * Leverage backtrace to find caller plugin file path.
+	 * Leverage backtrace to find caller plugin main file path.
 	 *
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.0.6
@@ -311,6 +311,13 @@
 	 */
 	function fs_newest_sdk_plugin_first() {
 		global $fs_active_plugins;
+
+		/**
+		 * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
+		 *
+		 * @link https://github.com/Freemius/wordpress-sdk/issues/26
+		 */
+//		$active_sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
 
 		$active_plugins        = get_option( 'active_plugins' );
 		$newest_sdk_plugin_key = array_search( $fs_active_plugins->newest->plugin_path, $active_plugins );
