@@ -144,7 +144,7 @@
 			global $fs_text, $fs_text_overrides;
 
 			if ( ! isset( $fs_text ) ) {
-				require_once( dirname( __FILE__ ) . '/i18n.php' );
+				require_once( (defined('WP_FS__DIR_INCLUDES') ? WP_FS__DIR_INCLUDES : dirname( __FILE__ )) . '/i18n.php' );
 			}
 
 			if ( isset( $fs_text_overrides[ $slug ] ) &&
