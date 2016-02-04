@@ -267,6 +267,8 @@
 		return $plugin_file;
 	}
 
+	require_once dirname( __FILE__ ) . '/supplements/fs-essential-functions-1.1.7.1.php';
+
 	/**
 	 * Update SDK newest version reference.
 	 *
