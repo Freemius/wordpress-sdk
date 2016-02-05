@@ -960,7 +960,10 @@
 					if ( ( $this->_storage->connectivity_test['is_connected'] &&
 					       $this->_storage->connectivity_test['is_active'] ) ||
 					     ( ! $flush &&
-					       $version == $this->_storage->connectivity_test['version'] )
+					       /**
+					        * @since 1.1.7 Don't check for connectivity on plugin downgrade.
+					        */
+					       version_compare( $version, $this->_storage->connectivity_test['version'], '<=' ) )
 					) {
 						$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 						$this->_is_on              = $this->_storage->connectivity_test['is_active'] || ( WP_FS__DEV_MODE && $this->_has_api_connection );
