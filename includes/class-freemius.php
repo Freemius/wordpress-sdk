@@ -994,9 +994,13 @@
 				}
 			}
 
-			$is_active = ( ! $is_connected ) ?
-				false :
-				( isset( $pong->is_active ) && true == $pong->is_active );
+			$is_active = $this->apply_filters(
+				'is_on',
+				( ! $is_connected ) ? false :
+					( isset( $pong->is_active ) && true == $pong->is_active ),
+				$this->is_plugin_update(),
+				$version
+			);
 
 			$this->_storage->connectivity_test = array(
 				'is_connected' => $is_connected,
