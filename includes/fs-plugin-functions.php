@@ -220,12 +220,16 @@
 								<?php $first = false; endforeach ?>
 						<?php endif ?>
 					</ul>
-					<?php echo ' <a class="button button-primary right" href="' . esc_url( add_query_arg( array(
-							'plugin_id'     => $plan->plugin_id,
-							'plan_id'       => $plan->id,
-							'pricing_id'    => $plan->pricing[0]->id,
-							'billing_cycle' => $billing_cycle,
-						), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase', $api->slug ) . '</a>' ?>
+					<?php if( empty( $plan->pricing ) ) {
+						echo '<a class="button button-primary right" href="' . admin_url( 'plugin-install.php?tab=search&type=term&s=' . $api->slug ) . '" target="_blank">' . __fs( 'download', $api->slug ) . '</a>';
+					} else {
+						echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
+								'plugin_id' => $plan->plugin_id,
+								'plan_id' => $plan->id,
+								'pricing_id' => $plan->pricing[0]->id,
+								'billing_cycle' => $billing_cycle,
+							), $api->checkout_link)) . '" target="_parent">' . __fs('purchase', $api->slug) . '</a>';
+					} ?>
 				</div>
 			<?php endforeach ?>
 			<?php wp_enqueue_script( 'jquery' ); ?>
@@ -374,12 +378,16 @@
 	if ( ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
 
 		if ( ! empty( $api->checkout_link ) && isset( $api->plans ) && 0 < is_array( $api->plans ) ) {
-			echo ' <a class="button button-primary right" href="' . esc_url( add_query_arg( array(
-					'plugin_id'     => $plan->plugin_id,
-					'plan_id'       => $plan->id,
-					'pricing_id'    => $plan->pricing[0]->id,
-					'billing_cycle' => $billing_cycle,
-				), $api->checkout_link ) ) . '" target="_parent">' . __fs( 'purchase', $api->slug ) . '</a>';
+			if( empty( $plan->pricing ) ) {
+				echo '<a class="button button-primary right" href="' . admin_url( 'plugin-install.php?tab=search&type=term&s=' . $api->slug ) . '" target="_blank">' . __fs( 'Download', $api->slug ) . '</a>';
+			} else {
+				echo ' <a class="button button-primary right" href="' . esc_url(add_query_arg(array(
+						'plugin_id' => $plan->plugin_id,
+						'plan_id' => $plan->id,
+						'pricing_id' => $plan->pricing[0]->id,
+						'billing_cycle' => $billing_cycle,
+					), $api->checkout_link)) . '" target="_parent">' . __fs('purchase', $api->slug) . '</a>';
+			}
 
 			// @todo Add Cart concept.
 //			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';
