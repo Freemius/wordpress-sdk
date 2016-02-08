@@ -2367,7 +2367,7 @@
 				 * the first time that the plugin installed on the site, or the plugin was installed
 				 * before but didn't have Freemius integrated.
 				 *
-				 * Since register_activation_hook() do NOT fires since 3.1, and only fires
+				 * Since register_activation_hook() do NOT fires on updates since 3.1, and only fires
 				 * on manual activation via the dashboard, is_plugin_activation() is TRUE
 				 * only after immediate activation.
 				 *
