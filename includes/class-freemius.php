@@ -7482,27 +7482,48 @@
 		function _modify_plugin_action_links_hook( $links, $file ) {
 			$this->_logger->entrance();
 
+			$passed_deactivate = false;
+			$deactivate_link   = '';
+			$before_deactivate = array();
+			$after_deactivate  = array();
+			foreach ( $links as $key => $link ) {
+				if ( 'deactivate' === $key ) {
+					$deactivate_link   = $link;
+					$passed_deactivate = true;
+					continue;
+				}
+
+				if ( ! $passed_deactivate ) {
+					$before_deactivate[ $key ] = $link;
+				} else {
+					$after_deactivate[ $key ] = $link;
+				}
+			}
+
 			ksort( $this->_action_links );
 
 			foreach ( $this->_action_links as $new_links ) {
 				foreach ( $new_links as $link ) {
-					$links[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank"' : '' ) . '>' . $link['label'] . '</a>';
+					$before_deactivate[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank"' : '' ) . '>' . $link['label'] . '</a>';
 				}
 			}
 
+			if ( ! empty( $deactivate_link ) ) {
+				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
 			/*
 			 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
 			 * 
 			 * If user is paying or in trial and have the free version installed,
 			 * assume that the deactivation is for the upgrade process, so this is not needed.
 			 */
-			if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-				if ( isset( $links['deactivate'] ) ) {
-					$links['deactivate'] .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
+					$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
 				}
+
+				// Append deactivation link.
+				$before_deactivate['deactivate'] = $deactivate_link;
 			}
 
-			return $links;
+			return array_merge( $before_deactivate, $after_deactivate );
 		}
 
 		/**
