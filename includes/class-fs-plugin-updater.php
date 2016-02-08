@@ -194,11 +194,11 @@
 		 * @since  1.0.5
 		 *
 		 * @param string $action
-		 * @param array  $args
+		 * @param object $args
 		 *
 		 * @return bool|mixed
 		 */
-		private function _fetch_plugin_info_from_repository( $action, $args ) {
+		static function _fetch_plugin_info_from_repository( $action, $args ) {
 			$url = $http_url = 'http://api.wordpress.org/plugins/info/1.0/';
 			if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
 				$url = set_url_scheme( $url, 'https' );
@@ -266,7 +266,7 @@
 			$plugin_in_repo = false;
 			if ( ! $is_addon ) {
 				// Try to fetch info from .org repository.
-				$data = $this->_fetch_plugin_info_from_repository( $action, $args );
+				$data = self::_fetch_plugin_info_from_repository( $action, $args );
 
 				$plugin_in_repo = ( false !== $data );
 			}
