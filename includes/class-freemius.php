@@ -994,7 +994,7 @@
 					$version
 				);
 
-				if ( $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
+				if ( ! WP_FS__SIMULATE_NO_API_CONNECTIVITY && $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
 					$is_connected = true;
 				} else {
 					// Another API failure.
