@@ -978,13 +978,21 @@
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
 				$is_connected = false;
 			} else {
-				$pong         = $this->get_api_plugin_scope()->ping( $this->get_anonymous_id(), $is_update );
+				$pong         = $this->get_api_plugin_scope()->ping(
+					$this->get_anonymous_id(),
+					$is_update,
+					$version
+				);
 				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 			}
 
 			if ( ! $is_connected ) {
 				// 2nd try of connectivity.
-				$pong = $this->get_api_plugin_scope()->ping( $this->get_anonymous_id(), $is_update );
+				$pong = $this->get_api_plugin_scope()->ping(
+					$this->get_anonymous_id(),
+					$is_update,
+					$version
+				);
 
 				if ( $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
 					$is_connected = true;

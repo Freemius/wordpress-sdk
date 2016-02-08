@@ -351,10 +351,11 @@
 		 *
 		 * @param null|string $unique_anonymous_id
 		 * @param bool        $is_update False if new plugin installation.
+		 * @param string      $version
 		 *
 		 * @return object
 		 */
-		function ping( $unique_anonymous_id = null, $is_update = false ) {
+		function ping( $unique_anonymous_id = null, $is_update = false, $version = '0.0.1' ) {
 			$this->_logger->entrance();
 
 			if ( self::is_temporary_down() ) {
@@ -366,6 +367,7 @@
 				$this->_call( 'ping.json?' . http_build_query( array(
 						'uid'       => $unique_anonymous_id,
 						'is_update' => $is_update,
+						'version'   => $version,
 					) ) );
 
 			if ( $this->is_valid_ping( $pong ) ) {
@@ -383,6 +385,7 @@
 					$this->_call( 'ping.json?' . http_build_query( array(
 							'uid'       => $unique_anonymous_id,
 							'is_update' => $is_update,
+							'version'   => $version,
 						) ) );
 
 				if ( ! $this->is_valid_ping( $pong ) ) {
