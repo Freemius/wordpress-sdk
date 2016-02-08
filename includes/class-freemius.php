@@ -1680,19 +1680,9 @@
 					     'plugin-information' === fs_request_get( 'tab', false ) &&
 					     $this->get_id() == fs_request_get( 'parent_plugin_id', false )
 					) {
-						// Remove default plugin information action.
-						remove_all_actions( 'install_plugins_pre_plugin-information' );
+						require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
 
-						require_once WP_FS__DIR_INCLUDES . '/fs-plugin-functions.php';
-
-						// Override action with custom plugins function for add-ons.
-						add_action( 'install_plugins_pre_plugin-information', 'fs_install_plugin_information' );
-
-						// Override request for plugin information for Add-ons.
-						add_filter( 'fs_plugins_api', array(
-							&$this,
-							'_get_addon_info_filter'
-						), WP_FS__DEFAULT_PRIORITY, 3 );
+						new FS_Plugin_Info_Dialog( $this );
 					}
 				}
 
@@ -1797,145 +1787,6 @@
 		#endregion Initialization ------------------------------------------------------------------
 
 		#region Add-ons -------------------------------------------------------------------------
-
-		/**
-		 * Generate add-on plugin information.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
-		 *
-		 * @param array       $data
-		 * @param string      $action
-		 * @param object|null $args
-		 *
-		 * @return array|null
-		 */
-		function _get_addon_info_filter( $data, $action = '', $args = null ) {
-			$this->_logger->entrance();
-
-			$parent_plugin_id = fs_request_get( 'parent_plugin_id', false );
-
-			if ( $this->get_id() != $parent_plugin_id ||
-			     ( 'plugin_information' !== $action ) ||
-			     ! isset( $args->slug )
-			) {
-				return $data;
-			}
-
-			// Find add-on by slug.
-			$addons         = $this->get_addons();
-			$selected_addon = false;
-			foreach ( $addons as $addon ) {
-				if ( $addon->slug == $args->slug ) {
-					$selected_addon = $addon;
-					break;
-				}
-			}
-
-			if ( false === $selected_addon ) {
-				return $data;
-			}
-
-			if ( ! isset( $selected_addon->info ) ) {
-				// Setup some default info.
-				$selected_addon->info                  = new stdClass();
-				$selected_addon->info->selling_point_0 = 'Selling Point 1';
-				$selected_addon->info->selling_point_1 = 'Selling Point 2';
-				$selected_addon->info->selling_point_2 = 'Selling Point 3';
-				$selected_addon->info->description     = '<p>Tell your users all about your add-on</p>';
-			}
-
-			fs_enqueue_local_style( 'fs_addons', '/admin/add-ons.css' );
-
-			$data = $args;
-
-			// Fetch as much as possible info from local files.
-			$plugin_local_data = $this->get_plugin_data();
-			$data->name        = $selected_addon->title;
-			$data->author      = $plugin_local_data['Author'];
-			$view_vars         = array( 'plugin' => $selected_addon );
-			$data->sections    = array(
-				'description' => fs_get_template( '/plugin-info/description.php', $view_vars ),
-			);
-
-			if ( ! empty( $selected_addon->info->banner_url ) ) {
-				$data->banners = array(
-					'low' => $selected_addon->info->banner_url,
-				);
-			}
-
-			if ( ! empty( $selected_addon->info->screenshots ) ) {
-				$view_vars                     = array(
-					'screenshots' => $selected_addon->info->screenshots,
-					'plugin'      => $selected_addon,
-				);
-				$data->sections['screenshots'] = fs_get_template( '/plugin-info/screenshots.php', $view_vars );
-			}
-
-			// Load add-on pricing.
-			$has_pricing  = false;
-			$has_features = false;
-			$plans        = false;
-			$plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json" );
-			if ( ! isset( $plans_result->error ) ) {
-				$plans = $plans_result->plans;
-				if ( is_array( $plans ) ) {
-					foreach ( $plans as &$plan ) {
-						$pricing_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/pricing.json" );
-						if ( ! isset( $pricing_result->error ) ) {
-							// Update plan's pricing.
-							$plan->pricing = $pricing_result->pricing;
-
-							$has_pricing = true;
-						}
-
-						$features_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/features.json" );
-						if ( ! isset( $features_result->error ) &&
-						     is_array( $features_result->features ) &&
-						     0 < count( $features_result->features )
-						) {
-							// Update plan's pricing.
-							$plan->features = $features_result->features;
-
-							$has_features = true;
-						}
-					}
-				}
-			}
-
-			// Get latest add-on version.
-			$latest = $this->_fetch_latest_version( $selected_addon->id );
-
-			if ( is_object( $latest ) ) {
-				$data->version      = $latest->version;
-				$data->last_updated = ! is_null( $latest->updated ) ? $latest->updated : $latest->created;
-				$data->requires     = $latest->requires_platform_version;
-				$data->tested       = $latest->tested_up_to_version;
-			} else {
-				// Add dummy version.
-				$data->version = '1.0.0';
-
-				// Add message to developer to deploy the plugin through Freemius.
-			}
-
-			$data->checkout_link = $this->checkout_url();
-			$data->download_link = 'https://dummy.com';
-
-			if ( $has_pricing ) {
-				// Add plans to data.
-				$data->plans = $plans;
-
-				if ( $has_features ) {
-					$view_vars                  = array(
-						'plans'  => $plans,
-						'plugin' => $selected_addon,
-					);
-					$data->sections['features'] = fs_get_template( '/plugin-info/features.php', $view_vars );
-				}
-			}
-
-			return $data;
-		}
 
 		/**
 		 * Check if add-on installed and activated on site.
@@ -6469,7 +6320,9 @@
 				$this->_get_latest_version_endpoint( $addon_id, 'json' ),
 				true
 			);
+
 			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
+
 			$this->_logger->departure( 'Latest version ' . $latest_version );
 
 			return ( is_object( $tag ) && isset( $tag->version ) ) ? $tag : false;
