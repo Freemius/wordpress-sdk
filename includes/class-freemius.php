@@ -7411,7 +7411,7 @@
 						__fs( 'upgrade', $this->_slug ),
 						$this->get_upgrade_url(),
 						false,
-						20,
+						7,
 						'upgrade'
 					);
 				}
@@ -7421,7 +7421,7 @@
 						__fs( 'add-ons', $this->_slug ),
 						$this->_get_admin_page_url( 'addons' ),
 						false,
-						WP_FS__DEFAULT_PRIORITY,
+						9,
 						'addons'
 					);
 				}
