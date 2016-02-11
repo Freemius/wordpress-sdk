@@ -1661,7 +1661,7 @@
 					if ( ! $this->is_parent_plugin_installed() ) {
 						$this->_admin_notices->add(
 							( is_string( $parent_name ) ?
-								sprintf( __fs( 'addon-cannot-run-without-x', $this->_slug ), $this->get_plugin_name(), $parent_name ) :
+								sprintf( __fs( 'addon-x-cannot-run-without-y', $this->_slug ), $this->get_plugin_name(), $parent_name ) :
 								sprintf( __fs( 'addon-x-cannot-run-without-parent', $this->_slug ), $this->get_plugin_name() )
 							),
 							__fs( 'oops', $this->_slug ) . '...',
