@@ -350,12 +350,11 @@
 		 * @since  1.0.9
 		 *
 		 * @param null|string $unique_anonymous_id
-		 * @param bool        $is_update False if new plugin installation.
-		 * @param string      $version
+		 * @param array       $params
 		 *
 		 * @return object
 		 */
-		function ping( $unique_anonymous_id = null, $is_update = false, $version = '0.0.1' ) {
+		function ping( $unique_anonymous_id = null, $params = array() ) {
 			$this->_logger->entrance();
 
 			if ( self::is_temporary_down() ) {
@@ -364,11 +363,9 @@
 
 			$pong = is_null( $unique_anonymous_id ) ?
 				Freemius_Api::Ping() :
-				$this->_call( 'ping.json?' . http_build_query( array(
+				$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
 						'uid'       => $unique_anonymous_id,
-						'is_update' => $is_update,
-						'version'   => $version,
-					) ) );
+					) ) ) );
 
 			if ( $this->is_valid_ping( $pong ) ) {
 				return $pong;
@@ -382,11 +379,9 @@
 
 				$pong = is_null( $unique_anonymous_id ) ?
 					Freemius_Api::Ping() :
-					$this->_call( 'ping.json?' . http_build_query( array(
+					$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
 							'uid'       => $unique_anonymous_id,
-							'is_update' => $is_update,
-							'version'   => $version,
-						) ) );
+						) ) ) );
 
 				if ( ! $this->is_valid_ping( $pong ) ) {
 					self::$_options->set_option( 'api_force_http', false, true );

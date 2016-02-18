@@ -975,32 +975,26 @@
 
 			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
+			$pong = null;
+
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
 				$is_connected = false;
 			} else {
 				$pong         = $this->get_api_plugin_scope()->ping(
 					$this->get_anonymous_id(),
-					$is_update,
-					$version
+					array(
+						'is_update' => json_encode( $is_update ),
+						'version'   => $version,
+						'plugin_id' => $this->_plugin->id,
+					)
 				);
 				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 			}
 
 			if ( ! $is_connected ) {
-				// 2nd try of connectivity.
-				$pong = $this->get_api_plugin_scope()->ping(
-					$this->get_anonymous_id(),
-					$is_update,
-					$version
-				);
-
-				if ( ! WP_FS__SIMULATE_NO_API_CONNECTIVITY && $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
-					$is_connected = true;
-				} else {
 					// Another API failure.
 					$this->_add_connectivity_issue_message( $pong );
 				}
-			}
 
 			$is_active = $this->apply_filters(
 				'is_on',
