@@ -50,16 +50,6 @@
 
 	class Freemius_Api extends Freemius_Api_Base {
 		/**
-		 * Default options for curl.
-		 */
-		public static $CURL_OPTS = array(
-			CURLOPT_CONNECTTIMEOUT => 10,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_TIMEOUT        => 60,
-			CURLOPT_USERAGENT      => FS_SDK__USER_AGENT,
-		);
-
-		/**
 		 * @param string      $pScope   'app', 'developer', 'user' or 'install'.
 		 * @param number      $pID      Element's id.
 		 * @param string      $pPublic  Public key.
@@ -271,7 +261,12 @@
 				$pCurlHandler = curl_init();
 			}
 
-			$opts = self::$CURL_OPTS;
+			$opts = array(
+				CURLOPT_CONNECTTIMEOUT => 10,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_TIMEOUT        => 60,
+				CURLOPT_USERAGENT      => FS_SDK__USER_AGENT,
+			);
 
 			if ( ! isset( $opts[ CURLOPT_HTTPHEADER ] ) || ! is_array( $opts[ CURLOPT_HTTPHEADER ] ) ) {
 				$opts[ CURLOPT_HTTPHEADER ] = array();
@@ -329,7 +324,7 @@
 				if ( preg_match( $regex, curl_error( $pCurlHandler ), $matches ) ) {
 					if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
 //						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
-						self::$CURL_OPTS[ CURLOPT_IPRESOLVE ] = CURL_IPRESOLVE_V4;
+						$opts[ CURLOPT_IPRESOLVE ] = CURL_IPRESOLVE_V4;
 						curl_setopt( $pCurlHandler, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
 						$result = curl_exec( $pCurlHandler );
 					}
