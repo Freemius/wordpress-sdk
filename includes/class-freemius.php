@@ -2076,6 +2076,8 @@
 			if ( ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && fs_request_has( 'background_sync' ) ) ||
 			     ( $sync_timestamp <= time() - WP_FS__TIME_24_HOURS_IN_SEC )
 			) {
+				// Update last sync timestamp.
+				$this->_storage->sync_timestamp = time();
 
 				if ( $this->is_registered() ) {
 					// Initiate background plan sync.
@@ -2094,9 +2096,6 @@
 						$this->_sync_addons();
 					}
 				}
-
-				// Update last sync timestamp.
-				$this->_storage->sync_timestamp = time();
 
 				return true;
 			}
