@@ -1600,8 +1600,34 @@
 					return;
 				}
 
+				if ( ! is_admin() ) {
+					/**
+					 * Don't execute connectivity test if not in the admin dashboard.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return;
+				}
+
+				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+					/**
+					 * Don't execute connectivity test if running in AJAX mode, unless there's a
+					 * sticky connectivity issue notice.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return;
+				}
+
+				if ( $this->is_anonymous() ) {
+					// If user skipped, no need to test connectivity.
+					$this->_has_api_connection = true;
+					$this->_is_on              = true;
+				} else {
 				if ( ! $this->has_api_connectivity() ) {
-					if ( is_admin() && $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+						if ( $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
 						if ( ! $this->_enable_anonymous ) {
 							// If anonymous mode is disabled, add firewall admin-notice message.
 							add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
@@ -1614,6 +1640,7 @@
 					}
 
 					return;
+				}
 				}
 
 				// Check if Freemius is on for the current plugin.
