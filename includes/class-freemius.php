@@ -1659,6 +1659,7 @@
 				}
 			}
 
+			if (is_admin() && !$this->is_ajax()) {
 			if ( false === $this->_background_sync() ) {
 				// If background sync wasn't executed,
 				// and if the plugin declared it has add-ons but
@@ -1669,6 +1670,7 @@
 				) {
 					$this->_sync_addons();
 				}
+			}
 			}
 
 			if ( $this->is_addon() ) {
