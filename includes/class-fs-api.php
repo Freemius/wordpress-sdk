@@ -447,6 +447,6 @@
 			self::_init();
 
 			self::$_cache = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
-			self::$_cache->clear();
+			self::$_cache->clear( true );
 		}
 	}
