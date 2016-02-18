@@ -77,7 +77,7 @@
 		}
 
 		function echo_on() {
-			$this->_on;
+			$this->on();
 
 			$this->_echo = true;
 		}
