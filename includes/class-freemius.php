@@ -1167,9 +1167,9 @@
 							)
 						);
 						break;
-					default:
-						$message = __fs( 'connectivity-test-fails-message', $this->_slug );
-						break;
+//					default:
+//						$message = __fs( 'connectivity-test-fails-message', $this->_slug );
+//						break;
 				}
 			}
 
@@ -1252,7 +1252,16 @@
 			$current_user = wp_get_current_user();
 			$admin_email  = $current_user->user_email;
 
-			$ping = $this->get_api_plugin_scope()->ping();
+			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
+
+			$ping = $this->get_api_plugin_scope()->ping(
+				$this->get_anonymous_id(),
+				array(
+					'is_update' => json_encode( $is_update ),
+					'version'   => $this->get_plugin_version(),
+					'plugin_id' => $this->_plugin->id,
+				)
+			);
 
 			$error_type = fs_request_get( 'error_type', 'general' );
 
