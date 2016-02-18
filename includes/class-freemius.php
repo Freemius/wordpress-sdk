@@ -2408,7 +2408,7 @@
 				$this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
 			}
 
-			if ( $this->has_api_connectivity( true ) ) {
+			if ( $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
