@@ -236,7 +236,7 @@
 		 * @return void Any returned value is ignored.
 		 */
 		public function next() {
-			return next( $this->_data );
+			next( $this->_data );
 		}
 
 		/**
