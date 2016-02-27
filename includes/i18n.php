@@ -81,7 +81,9 @@
 		'renews-in'                                => _x( 'Auto renews in %s', 'e.g. auto renews in 2 months', 'freemius' ),
 		'no-expiration'                            => __( 'No expiration', 'freemius' ),
 		'expired'                                  => __( 'Expired', 'freemius' ),
-		'in-x'                                     => __( 'In %s', 'freemius' ),
+		'cancelled'                                => __( 'Cancelled', 'freemius' ),
+		'in-x'                                     => _x( 'In %s', 'e.g. In 2 hours', 'freemius' ),
+		'x-ago'                                    => _x( '%s ago', 'e.g. 2 min ago', 'freemius' ),
 		'version'                                  => _x( 'Version', 'as plugin version', 'freemius' ),
 		'name'                                     => __( 'Name', 'freemius' ),
 		'email'                                    => __( 'Email', 'freemius' ),
@@ -186,6 +188,7 @@
 		'freemius-debug'                           => __( 'Freemius Debug', 'freemius' ),
 		'on'                                       => _x( 'On', 'as turned on', 'freemius' ),
 		'off'                                      => _x( 'Off', 'as turned off', 'freemius' ),
+		'debugging'                                => _x( 'Debugging', 'as code debugging', 'freemius' ),
 		'freemius-state'                           => __( 'Freemius State', 'freemius' ),
 		'connected'                                => _x( 'Connected', 'as connection was successful', 'freemius' ),
 		'blocked'                                  => _x( 'Blocked', 'as connection blocked', 'freemius' ),
@@ -195,11 +198,13 @@
 		'plugin-path'                              => _x( 'Plugin Path', 'as plugin folder path', 'freemius' ),
 		'sdk-path'                                 => _x( 'SDK Path', 'as sdk path', 'freemius' ),
 		'addons-of-x'                              => __( 'Add Ons of Plugin %s', 'freemius' ),
-		'delete-all-confirm'                       => __( 'Are you sure you want to delete the all Freemius data?', 'freemius' ),
+		'delete-all-confirm'                       => __( 'Are you sure you want to delete all Freemius data?', 'freemius' ),
 		'actions'                                  => __( 'Actions', 'freemius' ),
 		'delete-all-accounts'                      => __( 'Delete All Accounts', 'freemius' ),
+		'start-fresh'                              => __( 'Start Fresh', 'freemius' ),
 		'clear-api-cache'                          => __( 'Clear API Cache', 'freemius' ),
 		'sync-data-from-server'                    => __( 'Sync Data From Server', 'freemius' ),
+		'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
 		#endregion Debug
 
 		#region Expressions

@@ -86,6 +86,13 @@
 			return $this->_echo;
 		}
 
+		function get_id() {
+			return $this->_id;
+		}
+
+		function get_file() {
+			return $this->_file_start;
+		}
 
 		private function _log( &$message, $type = 'log', $wrapper ) {
 			if ( ! $this->is_on() ) {
@@ -103,7 +110,7 @@
 			$log = array_merge( $caller, array(
 				'cnt'       => self::$CNT ++,
 				'logger'    => $this,
-				'timestamp' => date( WP_FS__LOG_DATETIME_FORMAT . ':u' ),
+				'timestamp' => microtime(true),
 				'type'      => $type,
 				'msg'       => $message,
 			) );
@@ -111,7 +118,7 @@
 			self::$LOG[] = $log;
 
 			if ( $this->is_echo_on() ) {
-				echo self::_format_html( $log ) . "\n";
+				echo self::format_html( $log ) . "\n";
 			}
 		}
 
@@ -143,11 +150,11 @@
 			$this->_log( $msg, 'log', $wrapper );
 		}
 
-		private static function _format( $log, $show_type = true ) {
+		private static function format( $log, $show_type = true ) {
 			return '[' . str_pad( $log['cnt'], strlen( self::$CNT ), '0', STR_PAD_LEFT ) . '] [' . $log['logger']->_id . '] ' . ( $show_type ? '[' . $log['type'] . ']' : '' ) . $log['function'] . ' >> ' . $log['msg'] . ( isset( $log['file'] ) ? ' (' . substr( $log['file'], $log['logger']->_file_start ) . ' ' . $log['line'] . ') ' : '' ) . ' [' . $log['timestamp'] . ']';
 		}
 
-		private static function _format_html( $log ) {
+		private static function format_html( $log ) {
 			return '<div style="font-size: 11px; padding: 3px; background: #ccc; margin-bottom: 3px;">[' . $log['cnt'] . '] [' . $log['logger']->_id . '] [' . $log['type'] . '] <b><code style="color: blue;">' . $log['function'] . '</code> >> <b style="color: darkorange;">' . $log['msg'] . '</b></b>' . ( isset( $log['file'] ) ? ' (' . substr( $log['file'], $log['logger']->_file_start ) . ' ' . $log['line'] . ')' : '' ) . ' [' . $log['timestamp'] . ']</div>';
 		}
 
@@ -158,11 +165,15 @@
 				<?php
 					foreach (self::$LOG as $log)
 					{
-						echo 'console.' . $log['type'] . '(' . json_encode(self::_format($log, false)) . ')' . "\n";
+						echo 'console.' . $log['type'] . '(' . json_encode(self::format($log, false)) . ')' . "\n";
 					}
 				?>
 			</script>
 			<!-- END: Freemius PHP Console Log -->
 		<?php
+		}
+
+		static function get_log() {
+			return self::$LOG;
 		}
 	}

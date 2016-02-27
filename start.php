@@ -258,6 +258,7 @@
 
 		// Logger must be loaded before any other.
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-logger.php';
+		require_once WP_FS__DIR_INCLUDES . '/debug/debug-bar-start.php';
 
 		require_once WP_FS__DIR_INCLUDES . '/fs-core-functions.php';
 //		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-abstract-manager.php';
