@@ -969,17 +969,17 @@
 			}
 
 			if ( WP_FS__PING_API_ON_IP_OR_HOST_CHANGES ) {
-			if ( WP_FS__IS_HTTP_REQUEST ) {
-				if ( $_SERVER['HTTP_HOST'] != $this->_storage->connectivity_test['host'] ) {
-					// Domain changed.
-					return true;
-				}
+				if ( WP_FS__IS_HTTP_REQUEST ) {
+					if ( $_SERVER['HTTP_HOST'] != $this->_storage->connectivity_test['host'] ) {
+						// Domain changed.
+						return true;
+					}
 
-				if ( WP_FS__REMOTE_ADDR != $this->_storage->connectivity_test['server_ip'] ) {
-					// Server IP changed.
-					return true;
+					if ( WP_FS__REMOTE_ADDR != $this->_storage->connectivity_test['server_ip'] ) {
+						// Server IP changed.
+						return true;
+					}
 				}
-			}
 			}
 
 			if ( $this->_storage->connectivity_test['is_connected'] &&
@@ -1036,14 +1036,14 @@
 
 			if ( ! $this->should_run_connectivity_test( $flush_if_no_connectivity ) ) {
 				$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
-					       /**
+				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
-					        */
+				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
 				                ( WP_FS__DEV_MODE && $this->_has_api_connection );
 
-						return $this->_has_api_connection;
-					}
+				return $this->_has_api_connection;
+			}
 
 			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
@@ -1068,9 +1068,9 @@
 			}
 
 			if ( ! $is_connected ) {
-					// Another API failure.
-					$this->_add_connectivity_issue_message( $pong );
-				}
+				// Another API failure.
+				$this->_add_connectivity_issue_message( $pong );
+			}
 
 			$is_active = $this->apply_filters(
 				'is_on',
@@ -1719,21 +1719,21 @@
 					$this->_has_api_connection = true;
 					$this->_is_on              = true;
 				} else {
-				if ( ! $this->has_api_connectivity() ) {
+					if ( ! $this->has_api_connectivity() ) {
 						if ( $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
-						if ( ! $this->_enable_anonymous ) {
-							// If anonymous mode is disabled, add firewall admin-notice message.
-							add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+							if ( ! $this->_enable_anonymous ) {
+								// If anonymous mode is disabled, add firewall admin-notice message.
+								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
-							add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
-								&$this,
-								'_email_about_firewall_issue'
-							) );
+								add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
+									&$this,
+									'_email_about_firewall_issue'
+								) );
+							}
 						}
-					}
 
-					return;
-				}
+						return;
+					}
 				}
 
 				// Check if Freemius is on for the current plugin.
@@ -1763,8 +1763,8 @@
 
 					if ( ! $this->is_sync_cron_on() ) {
 						$this->schedule_sync_cron();
+					}
 				}
-			}
 
 				/**
 				 * Check if requested for manual blocking background sync.
@@ -2242,7 +2242,7 @@
 			$this->clear_sync_cron();
 
 			$this->schedule_sync_cron( time() + WP_FS__TIME_24_HOURS_IN_SEC, false );
-			}
+		}
 
 		/**
 		 * Data sync cron job. Replaces the background sync non blocking HTTP request
@@ -2264,7 +2264,7 @@
 
 			// @todo Add logic that identifies API latency, and reschedule the next background sync randomly between 8-16 hours.
 
-				if ( $this->is_registered() ) {
+			if ( $this->is_registered() ) {
 				if ( $this->has_paid_plan() ) {
 					// Initiate background plan sync.
 					$this->_sync_license( true );
@@ -2277,13 +2277,13 @@
 					// Sync install (only if something changed locally).
 					$this->sync_install();
 				}
-				}
+			}
 
 			if ( ! $this->is_addon() && $this->_has_addons ) {
 				// Sync add-ons collection.
 				$this->_sync_addons( true );
-					}
-				}
+			}
+		}
 
 		/**
 		 * Check if sync was executed in the last $period of seconds.
@@ -2387,8 +2387,8 @@
 			$this->_logger->entrance();
 
 			if ( ! $this->is_sync_cron_on() ) {
-			return false;
-		}
+				return false;
+			}
 
 			return wp_next_scheduled( $this->get_action_tag( 'data_sync' ) );
 		}
@@ -3735,6 +3735,10 @@
 				return false;
 			}
 
+			if ( ! $this->has_paid_plan() ) {
+				return false;
+			}
+
 			return (
 				! $this->is_trial() &&
 				'free' !== $this->_site->plan->name &&
@@ -3750,6 +3754,10 @@
 		 */
 		function is_free_plan() {
 			if ( ! $this->is_registered() ) {
+				return true;
+			}
+
+			if ( ! $this->has_paid_plan() ) {
 				return true;
 			}
 
@@ -3793,6 +3801,10 @@
 		 */
 		function _get_available_premium_license() {
 			$this->_logger->entrance();
+
+			if ( ! $this->has_paid_plan() ) {
+				return false;
+			}
 
 			if ( is_array( $this->_licenses ) ) {
 				foreach ( $this->_licenses as $license ) {
@@ -4182,8 +4194,8 @@
 		/**
 		 * Checkout page URL.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.6
 		 *
 		 * @param string $billing_cycle Billing cycle
 		 * @param bool   $is_trial
@@ -5327,11 +5339,11 @@
 		 *
 		 *  function _fs_show_support_menu( $is_visible, $menu_id ) {
 		 *      if ( 'support' === $menu_id ) {
-		 * 		    return _fs->is_registered();
-		 * 		}
-		 * 		return $is_visible;
-		 * 	}
-		 * 	_fs()->add_filter('is_submenu_visible', '_fs_show_support_menu', 10, 2);
+		 *            return _fs->is_registered();
+		 *        }
+		 *        return $is_visible;
+		 *    }
+		 *    _fs()->add_filter('is_submenu_visible', '_fs_show_support_menu', 10, 2);
 		 *
 		 */
 		function _add_default_submenu_items() {
@@ -5537,9 +5549,9 @@
 			$this->_logger->entrance( $tag );
 
 			$args = func_get_args();
-			array_unshift($args, $this->_slug);
+			array_unshift( $args, $this->_slug );
 
-			return call_user_func_array( 'fs_apply_filter', $args);
+			return call_user_func_array( 'fs_apply_filter', $args );
 		}
 
 		/**
@@ -6298,31 +6310,32 @@
 				}
 			} else {
 				// Remove sticky API connectivity message.
-				self::$_global_admin_notices->remove_sticky('api_blocked');
+				self::$_global_admin_notices->remove_sticky( 'api_blocked' );
 
 				$site = new FS_Site( $site );
-
-				// Sync licenses.
-				$this->_sync_licenses();
 
 				// Sync plans.
 				$this->_sync_plans();
 
-				// Check if plan / license changed.
-				if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
-				     // Check if trial started.
-				     $site->trial_plan_id != $this->_site->trial_plan_id ||
-				     $site->trial_ends != $this->_site->trial_ends ||
-				     // Check if license changed.
-				     $site->license_id != $this->_site->license_id
-				) {
-						if ( $site->is_trial() && ( ! $this->_site->is_trial() || $site->trial_ends != $this->_site->trial_ends ) ) {
-						// New trial started.
-						$this->_site = $site;
-						$plan_change = 'trial_started';
+				if ( $this->has_paid_plan() ) {
+					// Sync licenses.
+					$this->_sync_licenses();
 
-						// Store trial plan information.
-						$this->_enrich_site_trial_plan( true );
+					// Check if plan / license changed.
+					if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
+					     // Check if trial started.
+					     $site->trial_plan_id != $this->_site->trial_plan_id ||
+					     $site->trial_ends != $this->_site->trial_ends ||
+					     // Check if license changed.
+					     $site->license_id != $this->_site->license_id
+					) {
+						if ( $site->is_trial() && ( ! $this->_site->is_trial() || $site->trial_ends != $this->_site->trial_ends ) ) {
+							// New trial started.
+							$this->_site = $site;
+							$plan_change = 'trial_started';
+
+							// Store trial plan information.
+							$this->_enrich_site_trial_plan( true );
 
 							// For trial with subscription use-case.
 							$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
@@ -6335,160 +6348,164 @@
 
 								$this->_sync_site_subscription( $this->_license );
 							}
-					} else if ( $this->_site->is_trial() && ! $site->is_trial() && ! is_numeric( $site->license_id ) ) {
-						// Was in trial, but now trial expired and no license ID.
-						// New trial started.
-						$this->_site = $site;
-						$plan_change = 'trial_expired';
-
-						// Clear trial plan information.
-						$this->_storage->trial_plan = null;
-
-					} else {
-						$is_free = $this->is_free_plan();
-
-						// Make sure license exist and not expired.
-						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
-
-						if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
-							// The license is expired, so ignore upgrade method.
-						} else {
-							// License changed.
+						} else if ( $this->_site->is_trial() && ! $site->is_trial() && ! is_numeric( $site->license_id ) ) {
+							// Was in trial, but now trial expired and no license ID.
+							// New trial started.
 							$this->_site = $site;
-							$this->_update_site_license( $new_license );
-							$this->_store_licenses();
-							$this->_enrich_site_plan( true );
+							$plan_change = 'trial_expired';
 
-							$plan_change = $is_free ?
-								'upgraded' :
-								( is_object( $new_license ) ?
-									'changed' :
-									'downgraded' );
-						}
-					}
+							// Clear trial plan information.
+							$this->_storage->trial_plan = null;
 
-					// Store updated site info.
-					$this->_store_site();
-				} else {
-					if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
-						if ( ! $this->has_features_enabled_license() ) {
-							$this->_deactivate_license();
-							$plan_change = 'downgraded';
 						} else {
-							$plan_change = 'expired';
-						}
-					}
+							$is_free = $this->is_free_plan();
 
-					if ( is_numeric( $site->license_id ) && is_object( $this->_license ) ) {
-						$this->_sync_site_subscription( $this->_license );
+							// Make sure license exist and not expired.
+							$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+
+							if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
+								// The license is expired, so ignore upgrade method.
+							} else {
+								// License changed.
+								$this->_site = $site;
+								$this->_update_site_license( $new_license );
+								$this->_store_licenses();
+								$this->_enrich_site_plan( true );
+
+								$plan_change = $is_free ?
+									'upgraded' :
+									( is_object( $new_license ) ?
+										'changed' :
+										'downgraded' );
+							}
+						}
+
+						// Store updated site info.
+						$this->_store_site();
+					} else {
+						if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
+							if ( ! $this->has_features_enabled_license() ) {
+								$this->_deactivate_license();
+								$plan_change = 'downgraded';
+							} else {
+								$plan_change = 'expired';
+							}
+						}
+
+						if ( is_numeric( $site->license_id ) && is_object( $this->_license ) ) {
+							$this->_sync_site_subscription( $this->_license );
+						}
 					}
 				}
 			}
 
-			switch ( $plan_change ) {
-				case 'none':
-					if ( ! $background && is_admin() ) {
-						$this->_admin_notices->add(
-							sprintf(
-								__fs( 'plan-did-not-change-message', $this->_slug ) . ' ' .
+			if ( $this->has_paid_plan() ) {
+				switch ( $plan_change ) {
+					case 'none':
+						if ( ! $background && is_admin() ) {
+							$this->_admin_notices->add(
 								sprintf(
-									'<a href="%s">%s</a>',
-									$this->contact_url(
-										'bug',
-										sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
-											strtoupper( $this->_site->plan->name )
-										)
+									__fs( 'plan-did-not-change-message', $this->_slug ) . ' ' .
+									sprintf(
+										'<a href="%s">%s</a>',
+										$this->contact_url(
+											'bug',
+											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
+												strtoupper( $this->_site->plan->name )
+											)
+										),
+										__fs( 'contact-us-here', $this->_slug )
 									),
-									__fs( 'contact-us-here', $this->_slug )
-								)
+									'<i>' . $this->_site->plan->title . '</i>'
+								),
+								__fs( 'hmm', $this->_slug ) . '...',
+								'error'
+							);
+						}
+						break;
+					case 'upgraded':
+						$this->_admin_notices->add_sticky(
+							sprintf(
+								__fs( 'plan-upgraded-message', $this->_slug ),
+								'<i>' . $this->get_plugin_name() . '</i>'
+							) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
+									__fs( 'download-latest-x-version', $this->_slug ),
+									$this->_site->plan->title
+								) )
 							),
-							__fs( 'hmm', $this->_slug ) . '...',
-							'error'
+							'plan_upgraded',
+							__fs( 'yee-haw', $this->_slug ) . '!'
 						);
-					}
-					break;
-				case 'upgraded':
-					$this->_admin_notices->add_sticky(
-						sprintf(
-							__fs( 'plan-upgraded-message', $this->_slug ),
-							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__fs( 'download-latest-x-version', $this->_slug ),
+
+						$this->_admin_notices->remove_sticky( array(
+							'trial_started',
+							'trial_promotion',
+							'trial_expired',
+							'activation_complete',
+						) );
+						break;
+					case 'changed':
+						$this->_admin_notices->add_sticky(
+							sprintf(
+								__fs( 'plan-changed-to-x-message', $this->_slug ),
 								$this->_site->plan->title
-							) )
-						),
-						'plan_upgraded',
-						__fs( 'yee-haw', $this->_slug ) . '!'
-					);
+							),
+							'plan_changed'
+						);
 
-					$this->_admin_notices->remove_sticky( array(
-						'trial_started',
-						'trial_promotion',
-						'trial_expired',
-						'activation_complete',
-					) );
-					break;
-				case 'changed':
-					$this->_admin_notices->add_sticky(
-						sprintf(
-							__fs( 'plan-changed-to-x-message', $this->_slug ),
-							$this->_site->plan->title
-						),
-						'plan_changed'
-					);
+						$this->_admin_notices->remove_sticky( array(
+							'trial_started',
+							'trial_promotion',
+							'trial_expired',
+							'activation_complete',
+						) );
+						break;
+					case 'downgraded':
+						$this->_admin_notices->add_sticky(
+							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ) ),
+							'license_expired',
+							__fs( 'hmm', $this->_slug ) . '...'
+						);
+						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
+						break;
+					case 'expired':
+						$this->_admin_notices->add_sticky(
+							sprintf( __fs( 'license-expired-non-blocking-message', $this->_slug ), $this->_site->plan->title ),
+							'license_expired',
+							__fs( 'hmm', $this->_slug ) . '...'
+						);
+						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
+						break;
+					case 'trial_started':
+						$this->_admin_notices->add_sticky(
+							sprintf(
+								__fs( 'trial-started-message', $this->_slug ),
+								'<i>' . $this->get_plugin_name() . '</i>'
+							) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
+									__fs( 'download-latest-x-version', $this->_slug ),
+									$this->_storage->trial_plan->title
+								) ) ),
+							'trial_started',
+							__fs( 'yee-haw', $this->_slug ) . '!'
+						);
 
-					$this->_admin_notices->remove_sticky( array(
-						'trial_started',
-						'trial_promotion',
-						'trial_expired',
-						'activation_complete',
-					) );
-					break;
-				case 'downgraded':
-					$this->_admin_notices->add_sticky(
-						sprintf( __fs( 'license-expired-blocking-message', $this->_slug ) ),
-						'license_expired',
-						__fs( 'hmm', $this->_slug ) . '...'
-					);
-					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
-					break;
-				case 'expired':
-					$this->_admin_notices->add_sticky(
-						sprintf( __fs( 'license-expired-non-blocking-message', $this->_slug ), $this->_site->plan->title ),
-						'license_expired',
-						__fs( 'hmm', $this->_slug ) . '...'
-					);
-					$this->_admin_notices->remove_sticky( 'plan_upgraded' );
-					break;
-				case 'trial_started':
-					$this->_admin_notices->add_sticky(
-						sprintf(
-							__fs( 'trial-started-message', $this->_slug ),
-							'<i>' . $this->get_plugin_name() . '</i>'
-						) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-								__fs( 'download-latest-x-version', $this->_slug ),
-								$this->_storage->trial_plan->title
-							) ) ),
-						'trial_started',
-						__fs( 'yee-haw', $this->_slug ) . '!'
-					);
-
-					$this->_admin_notices->remove_sticky( array(
-						'trial_promotion',
-					) );
-					break;
-				case 'trial_expired':
-					$this->_admin_notices->add_sticky(
-						__fs( 'trial-expired-message', $this->_slug ),
-						'trial_expired',
-						__fs( 'hmm', $this->_slug ) . '...'
-					);
-					$this->_admin_notices->remove_sticky( array(
-						'trial_started',
-						'trial_promotion',
-						'plan_upgraded',
-					) );
-					break;
+						$this->_admin_notices->remove_sticky( array(
+							'trial_promotion',
+						) );
+						break;
+					case 'trial_expired':
+						$this->_admin_notices->add_sticky(
+							__fs( 'trial-expired-message', $this->_slug ),
+							'trial_expired',
+							__fs( 'hmm', $this->_slug ) . '...'
+						);
+						$this->_admin_notices->remove_sticky( array(
+							'trial_started',
+							'trial_promotion',
+							'plan_upgraded',
+						) );
+						break;
+				}
 			}
 
 			if ( 'none' !== $plan_change ) {
@@ -7032,12 +7049,12 @@
 
 			$addons = array();
 			if ( ! $this->is_api_error( $result ) ) {
-			for ( $i = 0, $len = count( $result->plugins ); $i < $len; $i ++ ) {
-				$addons[ $i ] = new FS_Plugin( $result->plugins[ $i ] );
-			}
+				for ( $i = 0, $len = count( $result->plugins ); $i < $len; $i ++ ) {
+					$addons[ $i ] = new FS_Plugin( $result->plugins[ $i ] );
+				}
 
-			$this->_store_addons( $addons, true );
-		}
+				$this->_store_addons( $addons, true );
+			}
 
 			return $addons;
 		}
@@ -7411,7 +7428,7 @@
 
 				case 'cancel_trial':
 					if ( $plugin_id == $this->get_id() ) {
-					$this->_cancel_trial();
+						$this->_cancel_trial();
 					} else {
 						if ( $this->is_addon_activated( $plugin_id ) ) {
 							$fs_addon = self::get_instance_by_id( $plugin_id );
@@ -8045,12 +8062,12 @@
 
 			if ( ! empty( $deactivate_link ) ) {
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-			/*
-			 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
-			 * 
-			 * If user is paying or in trial and have the free version installed,
-			 * assume that the deactivation is for the upgrade process, so this is not needed.
-			 */
+					/*
+					 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
+					 *
+					 * If user is paying or in trial and have the free version installed,
+					 * assume that the deactivation is for the upgrade process, so this is not needed.
+					 */
 					$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
 				}
 
