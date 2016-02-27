@@ -18,10 +18,18 @@
 	/**
 	 * API Connectivity Simulation
 	 */
-	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false && WP_FS__DEV_MODE );
-	define( 'WP_FS__SIMULATE_NO_CURL', false && WP_FS__DEV_MODE );
-	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE', false && WP_FS__DEV_MODE );
-	define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false && WP_FS__DEV_MODE );
+	if ( ! defined( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY' ) ) {
+		define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY', false );
+	}
+	if ( ! defined( 'WP_FS__SIMULATE_NO_CURL' ) ) {
+		define( 'WP_FS__SIMULATE_NO_CURL', false );
+	}
+	if ( ! defined( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE' ) ) {
+		define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE', false );
+	}
+	if ( ! defined( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL' ) ) {
+		define( 'WP_FS__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
+	}
 	if ( WP_FS__SIMULATE_NO_CURL ) {
 		define( 'FS_SDK__SIMULATE_NO_CURL', true );
 	}
