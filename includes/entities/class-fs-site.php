@@ -18,6 +18,14 @@
 		/**
 		 * @var number
 		 */
+		public $site_id;
+		/**
+		 * @var number
+		 */
+		public $plugin_id;
+		/**
+		 * @var number
+		 */
 		public $user_id;
 		/**
 		 * @var string
