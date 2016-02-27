@@ -154,7 +154,7 @@
 		 * @return array|mixed|string|void
 		 */
 		private function _call( $path, $method = 'GET', $params = array(), $retry = false ) {
-			$this->_logger->entrance();
+			$this->_logger->entrance( $method . ':' . $path );
 
 			if ( self::is_temporary_down() ) {
 				$result = $this->get_temporary_unavailable_error();
@@ -221,7 +221,7 @@
 		 * @return stdClass|mixed
 		 */
 		function get( $path = '/', $flush = false, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
-			$this->_logger->entrance();
+			$this->_logger->entrance( $path );
 
 			$cache_key = $this->get_cache_key( $path );
 
@@ -346,8 +346,8 @@
 		/**
 		 * Ping API for connectivity test, and return result object.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.0.9
 		 *
 		 * @param null|string $unique_anonymous_id
 		 * @param array       $params
@@ -364,7 +364,7 @@
 			$pong = is_null( $unique_anonymous_id ) ?
 				Freemius_Api::Ping() :
 				$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
-						'uid'       => $unique_anonymous_id,
+						'uid' => $unique_anonymous_id,
 					) ) ) );
 
 			if ( $this->is_valid_ping( $pong ) ) {
@@ -380,7 +380,7 @@
 				$pong = is_null( $unique_anonymous_id ) ?
 					Freemius_Api::Ping() :
 					$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
-							'uid'       => $unique_anonymous_id,
+							'uid' => $unique_anonymous_id,
 						) ) ) );
 
 				if ( ! $this->is_valid_ping( $pong ) ) {
@@ -413,6 +413,7 @@
 			         ! in_array( $result->error->code, array(
 				         'curl_missing',
 				         'cloudflare_ddos_protection',
+				         'maintenance_mode',
 				         'squid_cache_block',
 				         'too_many_requests',
 			         ) ) );
