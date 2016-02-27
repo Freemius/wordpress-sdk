@@ -1816,7 +1816,7 @@
 				} else {
 					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
 
-					if ( $this->_has_addons() &&
+					if ( $this->has_addons() &&
 					     'plugin-information' === fs_request_get( 'tab', false ) &&
 					     $this->get_id() == fs_request_get( 'parent_plugin_id', false )
 					) {
@@ -2006,7 +2006,7 @@
 		 * @return bool
 		 */
 		function has_installed_addons() {
-			if ( ! $this->_has_addons() ) {
+			if ( ! $this->has_addons() ) {
 				return false;
 			}
 
@@ -4081,12 +4081,14 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
+		 * @since  1.1.7.3 Base logic only on the parameter provided by the developer in the init function.
+		 *
 		 * @return bool
 		 */
-		function _has_addons() {
+		function has_addons() {
 			$this->_logger->entrance();
 
-			return ( $this->_has_addons || false !== $this->get_addons() );
+			return $this->_has_addons;
 		}
 
 		/**
@@ -5013,7 +5015,7 @@
 						$this->_menu->is_submenu_item_visible( 'contact' )
 					);
 
-					if ( $this->_has_addons() ) {
+					if ( $this->has_addons() ) {
 						$this->add_submenu_item(
 							__fs( 'add-ons', $this->_slug ),
 							array( &$this, '_addons_page_render' ),
@@ -7252,7 +7254,7 @@
 
 			fs_enqueue_local_style( 'fs_account', '/admin/account.css' );
 
-			if ( $this->_has_addons() ) {
+			if ( $this->has_addons() ) {
 				wp_enqueue_script( 'plugin-install' );
 				add_thickbox();
 
@@ -7706,7 +7708,7 @@
 					);
 				}
 
-				if ( $this->_has_addons() ) {
+				if ( $this->has_addons() ) {
 					$this->add_plugin_action_link(
 						__fs( 'add-ons', $this->_slug ),
 						$this->_get_admin_page_url( 'addons' ),
