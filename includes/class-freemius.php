@@ -2752,6 +2752,13 @@
 
 			self::$_accounts->store();
 
+			/**
+			 * IMPORTANT:
+			 *  Clear sync-cron must be executed before clearing all storage.
+			 *  Otherwise, the cron will not be cleared.
+			 */
+			$this->clear_sync_cron();
+
 			// Clear all storage data.
 			$this->_storage->clear_all( true, array(
 				'connectivity_test',
