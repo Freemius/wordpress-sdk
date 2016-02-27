@@ -37,6 +37,9 @@
 		 */
 		function has_premium_license( $licenses ) {
 			if ( is_array( $licenses ) ) {
+				/**
+				 * @var FS_Plugin_License[] $licenses
+				 */
 				foreach ( $licenses as $license ) {
 					if ( ! $license->is_utilized() && $license->is_features_enabled() ) {
 						return true;
@@ -62,6 +65,9 @@
 				return false;
 			}
 
+			/**
+			 * @var FS_Plugin_Plan[] $plans
+			 */
 			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
 				if ( ! $plans[ $i ]->is_free() ) {
 					return true;
@@ -88,6 +94,9 @@
 				return true;
 			}
 
+			/**
+			 * @var FS_Plugin_Plan[] $plans
+			 */
 			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
 				if ( $plans[ $i ]->is_free() ) {
 					return true;
@@ -111,6 +120,9 @@
 			$trial_plans = array();
 
 			if ( is_array( $plans ) && 0 < count( $plans ) ) {
+				/**
+				 * @var FS_Plugin_Plan[] $plans
+				 */
 				for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
 					if ( $plans[ $i ]->has_trial() ) {
 						$trial_plans[] = $plans[ $i ];
@@ -136,6 +148,9 @@
 				return true;
 			}
 
+			/**
+			 * @var FS_Plugin_Plan[] $plans
+			 */
 			for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
 				if ( $plans[ $i ]->has_trial() ) {
 					return true;
