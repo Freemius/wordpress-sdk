@@ -327,6 +327,13 @@
 		 * @param string $sdk_version
 		 */
 		function _data_migration( $sdk_prev_version, $sdk_version ) {
+			/**
+			 * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
+			 */
+			if ( empty( $sdk_prev_version ) ) {
+				return;
+			}
+
 			if ( version_compare( $sdk_prev_version, '1.1.5', '<' ) &&
 			     version_compare( $sdk_version, '1.1.5', '>=' )
 			) {
