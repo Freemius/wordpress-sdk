@@ -140,11 +140,99 @@
 
 	/* Core UI.
 	--------------------------------------------------------------------------------------------*/
-	function fs_ui_action_button( $slug, $page, $action, $title, $params = array(), $is_primary = true ) {
-		?><a class="button<?php if ( $is_primary ) {
-			echo ' button-primary';
-		} ?>"
-		     href="<?php echo wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
+	/**
+	 * @param string      $slug
+	 * @param string      $page
+	 * @param string      $action
+	 * @param string      $title
+	 * @param array       $params
+	 * @param bool        $is_primary
+	 * @param string|bool $icon_class   Optional class for an icon (since 1.1.7).
+	 * @param string|bool $confirmation Optional confirmation message before submit (since 1.1.7).
+	 * @param string      $method       Since 1.1.7
+	 *
+	 * @uses fs_ui_get_action_button()
+	 */
+	function fs_ui_action_button(
+		$slug,
+		$page,
+		$action,
+		$title,
+		$params = array(),
+		$is_primary = true,
+		$icon_class = false,
+		$confirmation = false,
+		$method = 'GET'
+	) {
+		echo fs_ui_get_action_button(
+			$slug,
+			$page,
+			$action,
+			$title,
+			$params,
+			$is_primary,
+			$icon_class,
+			$confirmation,
+			$method
+		);
+	}
+
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.1.7
+	 *
+	 * @param string      $slug
+	 * @param string      $page
+	 * @param string      $action
+	 * @param string      $title
+	 * @param array       $params
+	 * @param bool        $is_primary
+	 * @param string|bool $icon_class   Optional class for an icon.
+	 * @param string|bool $confirmation Optional confirmation message before submit.
+	 * @param string      $method
+	 *
+	 * @return string
+	 */
+	function fs_ui_get_action_button(
+		$slug,
+		$page,
+		$action,
+		$title,
+		$params = array(),
+		$is_primary = true,
+		$icon_class = false,
+		$confirmation = false,
+		$method = 'GET'
+	) {
+		// Prepend icon (if set).
+		$title = ( is_string( $icon_class ) ? '<i class="' . $icon_class . '"></i> ' : '' ) . $title;
+
+		if ( is_string( $confirmation ) ) {
+			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="if (confirm(\'%s\')) this.parentNode.submit(); return false;">%s</a></form>',
+				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				$method,
+				$action,
+				wp_nonce_field( $action, '_wpnonce', true, false ),
+				'button' . ( $is_primary ? ' button-primary' : '' ),
+				$confirmation,
+				$title
+			);
+		} else if ('GET' !== strtoupper($method)) {
+			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="this.parentNode.submit(); return false;">%s</a></form>',
+				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				$method,
+				$action,
+				wp_nonce_field( $action, '_wpnonce', true, false ),
+				'button' . ( $is_primary ? ' button-primary' : '' ),
+				$title
+			);
+		} else {
+			return sprintf( '<a href="%s" class="%s">%s</a></form>',
+				wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
+				'button' . ( $is_primary ? ' button-primary' : '' ),
+				$title
+			);
+		}
 	}
 
 	function fs_ui_action_link( $slug, $page, $action, $title, $params = array() ) {
@@ -308,36 +396,34 @@
 		fclose( $fp );
 	}
 
-    /* General Utilities
-    --------------------------------------------------------------------------------------------*/
+	/* General Utilities
+	--------------------------------------------------------------------------------------------*/
 
-    /**
-     * Sorts an array by the value of the priority key.
-     *
-     * @author Daniel Iser (@danieliser)
-     * @since  1.1.7
-     *
-     * @param $a
-     * @param $b
-     *
-     * @return int
-     */
-    function fs_sort_by_priority( $a, $b ) {
+	/**
+	 * Sorts an array by the value of the priority key.
+	 *
+	 * @author Daniel Iser (@danieliser)
+	 * @since  1.1.7
+	 *
+	 * @param $a
+	 * @param $b
+	 *
+	 * @return int
+	 */
+	function fs_sort_by_priority( $a, $b ) {
 
-        // If b has a priority and a does not, b wins.
-        if ( ! isset( $a['priority'] ) && isset( $b['priority'] ) ) {
-            return 1;
-        }
-        // If b has a priority and a does not, b wins.
-        elseif ( isset( $a['priority'] ) && ! isset( $b['priority'] ) ) {
-            return -1;
-        }
-        // If neither has a priority or both priorities are equal its a tie.
-        elseif ( ( ! isset( $a['priority'] ) && ! isset( $b['priority'] ) ) || $a['priority'] === $b['priority'] ) {
-            return 0;
-        }
+		// If b has a priority and a does not, b wins.
+		if ( ! isset( $a['priority'] ) && isset( $b['priority'] ) ) {
+			return 1;
+		} // If b has a priority and a does not, b wins.
+		elseif ( isset( $a['priority'] ) && ! isset( $b['priority'] ) ) {
+			return - 1;
+		} // If neither has a priority or both priorities are equal its a tie.
+		elseif ( ( ! isset( $a['priority'] ) && ! isset( $b['priority'] ) ) || $a['priority'] === $b['priority'] ) {
+			return 0;
+		}
 
-        // If both have priority return the winner.
-        return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
-    }
+		// If both have priority return the winner.
+		return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
+	}
 
