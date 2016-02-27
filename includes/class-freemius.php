@@ -2166,7 +2166,7 @@
 			// Reschedule next cron to run 24 hours from now (performance optimization).
 			$this->clear_sync_cron();
 
-			$this->schedule_sync_cron( time() + WP_FS__TIME_5_MIN_IN_SEC, false );
+			$this->schedule_sync_cron( time() + WP_FS__TIME_24_HOURS_IN_SEC, false );
 			}
 
 		/**
