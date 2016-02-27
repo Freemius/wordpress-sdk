@@ -955,17 +955,73 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @param bool $flush_if_no_connectivity
+		 *
+		 * @return bool
+		 */
+		private function should_run_connectivity_test( $flush_if_no_connectivity = false ) {
+			if ( ! isset( $this->_storage->connectivity_test ) ) {
+				// Connectivity test was never executed, or cache was cleared.
+				return true;
+			}
+
+			if ( WP_FS__PING_API_ON_IP_OR_HOST_CHANGES ) {
+			if ( WP_FS__IS_HTTP_REQUEST ) {
+				if ( $_SERVER['HTTP_HOST'] != $this->_storage->connectivity_test['host'] ) {
+					// Domain changed.
+					return true;
+				}
+
+				if ( WP_FS__REMOTE_ADDR != $this->_storage->connectivity_test['server_ip'] ) {
+					// Server IP changed.
+					return true;
+				}
+			}
+			}
+
+			if ( $this->_storage->connectivity_test['is_connected'] &&
+			     $this->_storage->connectivity_test['is_active']
+			) {
+				// API connected and Freemius is active - no need to run connectivity check.
+				return false;
+			}
+
+			if ( $flush_if_no_connectivity ) {
+				/**
+				 * If explicitly asked to flush when no connectivity - do it only
+				 * if at least 10 sec passed from the last API connectivity test.
+				 */
+				return ( isset( $this->_storage->connectivity_test['timestamp'] ) &&
+				         ( WP_FS__SCRIPT_START_TIME - $this->_storage->connectivity_test['timestamp'] ) > 10 );
+			}
+
+			/**
+			 * @since 1.1.7 Don't check for connectivity on plugin downgrade.
+			 */
+			$version = $this->get_plugin_version();
+			if ( version_compare( $version, $this->_storage->connectivity_test['version'], '>' ) ) {
+				// If it's a plugin version upgrade and Freemius is off or no connectivity, run connectivity test.
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
 		 * Check if there's any connectivity issue to Freemius API.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param bool $flush
+		 * @param bool $flush_if_no_connectivity
 		 *
 		 * @return bool
 		 */
-		function has_api_connectivity( $flush = false ) {
-			if ( ! $flush && isset( $this->_has_api_connection ) ) {
+		function has_api_connectivity( $flush_if_no_connectivity = false ) {
+			if ( isset( $this->_has_api_connection ) && ( $this->_has_api_connection || ! $flush_if_no_connectivity ) ) {
 				return $this->_has_api_connection;
 			}
 
@@ -978,26 +1034,16 @@
 				unset( $this->_storage->connectivity_test );
 			}
 
-			if ( isset( $this->_storage->connectivity_test ) ) {
-				if ( ! WP_FS__IS_HTTP_REQUEST ||
-				     ( $_SERVER['HTTP_HOST'] == $this->_storage->connectivity_test['host'] &&
-				       WP_FS__REMOTE_ADDR == $this->_storage->connectivity_test['server_ip'] )
-				) {
-					if ( ( $this->_storage->connectivity_test['is_connected'] &&
-					       $this->_storage->connectivity_test['is_active'] ) ||
-					     ( ! $flush &&
+			if ( ! $this->should_run_connectivity_test( $flush_if_no_connectivity ) ) {
+				$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 					       /**
-					        * @since 1.1.7 Don't check for connectivity on plugin downgrade.
+				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
 					        */
-					       version_compare( $version, $this->_storage->connectivity_test['version'], '<=' ) )
-					) {
-						$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
-						$this->_is_on              = $this->_storage->connectivity_test['is_active'] || ( WP_FS__DEV_MODE && $this->_has_api_connection );
+				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
+				                ( WP_FS__DEV_MODE && $this->_has_api_connection );
 
 						return $this->_has_api_connection;
 					}
-				}
-			}
 
 			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 

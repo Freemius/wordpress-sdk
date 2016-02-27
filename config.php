@@ -32,6 +32,20 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
 	}
 
+	if ( ! defined( 'WP_FS__PING_API_ON_IP_OR_HOST_CHANGES' ) ) {
+		/**
+		 * @since  1.1.7.3
+		 * @author Vova Feldman (@svovaf)
+		 *
+		 * I'm not sure if shared servers periodically change IP, or the subdomain of the
+		 * admin dashboard. Also, I've seen sites that have strange loop of switching
+		 * between domains on a daily basis. Therefore, to eliminate the risk of
+		 * multiple unwanted connectivity test pings, temporary ignore domain or
+		 * server IP changes.
+		 */
+		define( 'WP_FS__PING_API_ON_IP_OR_HOST_CHANGES', false );
+	}
+
 	/**
 	 * If your dev environment supports custom public network IP setup
 	 * like VVV, please update WP_FS__LOCALHOST_IP with your public IP
