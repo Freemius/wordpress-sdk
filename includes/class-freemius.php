@@ -1645,7 +1645,7 @@
 				'parent_plugin_id' => $parent_id,
 				'version'          => $this->get_plugin_version(),
 				'title'            => $this->get_plugin_name(),
-				'file'             => $this->_free_plugin_basename,
+				'file'             => $this->_plugin_basename,
 				'is_premium'       => $this->_get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'          => $this->_get_bool_option( $plugin_info, 'is_live', true ),
 //				'secret_key' => $secret_key,
