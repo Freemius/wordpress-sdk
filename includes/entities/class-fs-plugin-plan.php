@@ -15,13 +15,38 @@
 		#region Properties
 
 		/**
+		 * @var number
+		 */
+		public $plugin_id;
+		/**
+		 * @var string
+		 */
+		public $name;
+		/**
 		 * @var string
 		 */
 		public $title;
 		/**
 		 * @var string
 		 */
-		public $name;
+		public $description;
+		/**
+		 * @var bool Defaults to true. If true, allow unlimited localhost installs with the same license.
+		 */
+		public $is_free_localhost;
+		/**
+		 * @var bool Defaults to true. If false, don't block features after license expiry - only block updates and
+		 *      support.
+		 */
+		public $is_block_features;
+		/**
+		 * @var int
+		 */
+		public $license_type;
+		/**
+		 * @var bool
+		 */
+		public $is_https_support;
 		/**
 		 * @var int Trial days.
 		 */
@@ -30,6 +55,34 @@
 		 * @var string If true, require payment for trial.
 		 */
 		public $is_require_subscription;
+		/**
+		 * @var string Knowledge Base URL.
+		 */
+		public $support_kb;
+		/**
+		 * @var string Support Forum URL.
+		 */
+		public $support_forum;
+		/**
+		 * @var string Support email address.
+		 */
+		public $support_email;
+		/**
+		 * @var string Support phone.
+		 */
+		public $support_phone;
+		/**
+		 * @var string Support skype username.
+		 */
+		public $support_skype;
+		/**
+		 * @var bool Is personal success manager supported with the plan.
+		 */
+		public $is_success_manager;
+		/**
+		 * @var bool Is featured plan.
+		 */
+		public $is_featured;
 
 		#endregion Properties
 
