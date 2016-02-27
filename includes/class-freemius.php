@@ -1701,6 +1701,17 @@
 					return;
 				}
 
+				if ( $this->is_cron() ) {
+					/**
+					 * If in activation mode, don't execute Freemius during wp crons
+					 * (wp crons have HTTP context - called as HTTP request).
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return;
+				}
+
 				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
 					/**
 					 * During activation, if running in AJAX mode, unless there's a sticky
@@ -2513,6 +2524,20 @@
 									'update-nag'
 								);
 							}
+
+							if ( $this->has_filter( 'optin_pointer_element' ) ) {
+								// Don't show admin nag if plugin update.
+								wp_enqueue_script( 'wp-pointer' );
+								wp_enqueue_style( 'wp-pointer' );
+
+								$this->_enqueue_connect_essentials();
+
+								add_action( 'admin_print_footer_scripts', array(
+									$this,
+									'_add_connect_pointer_script'
+								) );
+							}
+
 						}
 					}
 				}
@@ -2536,6 +2561,55 @@
 
 			fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
 		}
+
+		/**
+		 * Add connect / opt-in pointer.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 */
+		function _add_connect_pointer_script() {
+			$vars            = array( 'slug' => $this->_slug );
+			$pointer_content = fs_get_template( 'connect.php', $vars );
+			?>
+			<script type="text/javascript">// <![CDATA[
+				jQuery(document).ready(function ($) {
+					if ('undefined' !== typeof(jQuery().pointer)) {
+
+						var element = <?php echo $this->apply_filters('optin_pointer_element', '$("#non_existing_element");') ?>;
+
+						if (element.length > 0) {
+							var optin = $(element).pointer($.extend(true, {}, {
+								content     : <?php echo json_encode($pointer_content) ?>,
+								position    : {
+									edge : 'left',
+									align: 'center'
+								},
+								buttons     : function () {
+									// Don't show pointer buttons.
+									return '';
+								},
+								pointerWidth: 482
+							}, <?php echo $this->apply_filters('optin_pointer_options_json', '{}') ?>));
+
+							<?php
+							echo $this->apply_filters('optin_pointer_execute', "
+
+							optin.pointer('open');
+
+							// Tag the opt-in pointer with custom class.
+							$('.wp-pointer #fs_connect')
+								.parents('.wp-pointer.wp-pointer-top')
+								.addClass('fs-opt-in-pointer');
+
+							", 'element', 'optin') ?>
+						}
+					}
+				});
+				// ]]></script>
+		<?php
+		}
+
 		/**
 		 * Return current page's URL.
 		 *
