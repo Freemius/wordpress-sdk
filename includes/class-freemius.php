@@ -1675,41 +1675,44 @@
 			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
 			$this->_permissions      = $this->_get_option( $plugin_info, 'permissions', array() );
 
-			if ( ! $this->is_registered() ) {
+			if ( $this->is_activation_mode() ) {
+				if ( ! is_admin() ) {
+					/**
+					 * If in activation mode, don't execute Freemius outside of the
+					 * admin dashboard.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return;
+				}
+
 				if ( ! WP_FS__IS_HTTP_REQUEST ) {
 					/**
-					 * If not registered and executed without HTTP context (e.g. CLI, Cronjob),
+					 * If in activation and executed without HTTP context (e.g. CLI, Cronjob),
 					 * then don't start Freemius.
 					 *
 					 * @author Vova Feldman (@svovaf)
 					 * @since  1.1.6.3
 					 *
-					 * @link https://wordpress.org/support/topic/errors-in-the-freemius-class-when-running-in-wordpress-in-cli
-					 */
-					return;
-				}
-
-				if ( ! is_admin() ) {
-					/**
-					 * Don't execute connectivity test if not in the admin dashboard.
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since  1.1.7.3
+					 * @link   https://wordpress.org/support/topic/errors-in-the-freemius-class-when-running-in-wordpress-in-cli
 					 */
 					return;
 				}
 
 				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
 					/**
-					 * Don't execute connectivity test if running in AJAX mode, unless there's a
-					 * sticky connectivity issue notice.
+					 * During activation, if running in AJAX mode, unless there's a sticky
+					 * connectivity issue notice, don't run Freemius.
 					 *
 					 * @author Vova Feldman (@svovaf)
 					 * @since  1.1.7.3
 					 */
 					return;
 				}
+			}
 
+			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
 					// If user skipped, no need to test connectivity.
 					$this->_has_api_connection = true;
@@ -1780,7 +1783,7 @@
 				}
 			}
 
-			if ( is_admin() ) {
+			if ( $this->is_user_in_admin() ) {
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
