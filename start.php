@@ -278,6 +278,7 @@
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-info.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-tag.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-plan.php';
+		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-pricing.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-license.php';
 		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-subscription.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-api.php';

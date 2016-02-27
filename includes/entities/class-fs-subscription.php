@@ -114,4 +114,12 @@
 		function is_first_payment_pending() {
 			return ( WP_FS__TIME_24_HOURS_IN_SEC >= strtotime( $this->next_payment ) - strtotime( $this->created ) );
 		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 */
+		function has_trial() {
+			return ! is_null( $this->trial_ends );
+		}
 	}

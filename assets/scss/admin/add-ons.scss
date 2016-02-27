@@ -217,7 +217,7 @@
     {
         background: #FFFEEC;
         margin: -16px;
-        padding: 20px 20px 50px 20px;
+        padding: 20px;
         border-bottom: 1px solid #DDD;
 
         h3
@@ -237,6 +237,20 @@
         label
         {
             white-space: nowrap;
+        }
+
+        ul.fs-trial-terms
+        {
+            font-size: 0.9em;
+
+            i {
+                float: left;
+                margin: 0 0 0 -15px;
+            }
+
+            li {
+                margin: 10px 0 0 0;
+            }
         }
     }
 

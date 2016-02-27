@@ -45,7 +45,11 @@
 		'price'                                    => _x( 'Price', 'noun', 'freemius' ),
 		'unlimited-updates'                        => __( 'Unlimited Updates', 'freemius' ),
 		'downgrade'                                => _x( 'Downgrade', 'verb', 'freemius' ),
+		'cancel-trial'                             => __( 'Cancel Trial', 'freemius' ),
 		'free-trial'                               => __( 'Free Trial', 'freemius' ),
+		'start-free-x'                             => __( 'Start my free %s', 'freemius' ),
+		'no-commitment-x'                          => __( 'No commitment for %s - cancel anytime', 'freemius' ),
+		'after-x-pay-as-little-y'                  => __( 'After your free %s, pay as little as %s', 'freemius' ),
 		'details'                                  => __( 'Details', 'freemius' ),
 		'account-details'                          => __( 'Account Details', 'freemius' ),
 		'delete'                                   => _x( 'Delete', 'verb', 'freemius' ),
@@ -61,6 +65,9 @@
 		'free'                                     => __( 'Free', 'freemius' ),
 		'trial'                                    => _x( 'Trial', 'as trial plan', 'freemius' ),
 		'purchase'                                 => _x( 'Purchase', 'verb', 'freemius' ),
+		'purchase-license'                         => __( 'Purchase License', 'freemius' ),
+		'buy'                                      => _x( 'Buy', 'verb', 'freemius' ),
+		'buy-license'                              => __( 'Buy License', 'freemius' ),
 		'license-single-site'                      => __( 'Single Site License', 'freemius' ),
 		'license-unlimited'                        => __( 'Unlimited Licenses', 'freemius' ),
 		'license-x-sites'                          => __( 'Up to %s Sites', 'freemius' ),
@@ -75,6 +82,7 @@
 		#region Account
 
 		'expiration'                               => _x( 'Expiration', 'as expiration date', 'freemius' ),
+		'license'                                  => _x( 'License', 'as software license', 'freemius' ),
 		'not-verified'                             => __( 'not verified', 'freemius' ),
 		'verify-email'                             => __( 'Verify Email', 'freemius' ),
 		'expires-in'                               => _x( 'Expires in %s', 'e.g. expires in 2 months', 'freemius' ),
@@ -121,6 +129,7 @@
 		'delete-account-x-confirm'                 => __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', 'freemius' ),
 		'delete-account-confirm'                   => __( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', 'freemius' ),
 		'downgrade-x-confirm'                      => __( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'freemius' ),
+		'cancel-trial-confirm'                     => __( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'freemius' ),
 		'after-downgrade-non-blocking'             => __( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', 'freemius' ),
 		'after-downgrade-blocking'                 => __( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
 		'proceed-confirmation'                     => __( 'Are you sure you want to proceed?', 'freemius' ),
@@ -253,7 +262,7 @@
 		'plan-x-downgraded-message'                => __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'freemius' ),
 		'plan-downgraded-failure-message'          => __( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'freemius' ),
 		'trial-cancel-no-trial-message'            => __( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'freemius' ),
-		'trial-cancel-message'                     => __( 'Your %s Plan trial was successfully cancelled.', 'freemius' ),
+		'trial-cancel-message'                     => __( 'Your %s free trial was successfully cancelled.', 'freemius' ),
 		'version-x-released'                       => _x( 'Version %s was released.', '%s - numeric version number', 'freemius' ),
 		'please-download-x'                        => __( 'Please download %s.', 'freemius' ),
 		'latest-x-version'                         => _x( 'the latest %s version here', '%s - plan name, as the latest professional version here', 'freemius' ),
@@ -301,4 +310,10 @@
 		'addon-x-cannot-run-without-parent'        => _x( '%s cannot run without the plugin.', 'addonX cannot run...', 'freemius' ),
 		'plugin-x-activation-message'              => _x( '%s activation was successfully completed.', 'pluginX activation was successfully...', 'freemius' ),
 		'features-and-pricing'                     => _x( 'Features & Pricing', 'Plugin installer section title', 'freemius' ),
+		'free-addon-not-deployed'                  => __( 'Add-on must be deployed to WordPress.org or Freemius.', 'freemius' ),
+		'paid-addon-not-deployed'                  => __( 'Paid add-on must be deployed to Freemius.', 'freemius' ),
+		#region Add-On Licensing
+		'addon-no-license-message'                 => __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.', 'freemius' ),
+		'addon-trial-cancelled-message'            => __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.', 'freemius' ),
+		#endregion Add-On Licensing
 	);

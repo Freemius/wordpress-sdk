@@ -1812,6 +1812,8 @@
 							// Remove add-on download admin-notice.
 							$this->_parent->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
 						}
+
+						$this->deactivate_premium_only_addon_without_license();
 					}
 				} else {
 					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
@@ -1943,6 +1945,39 @@
 		}
 
 		/**
+		 * Check if add-on was connected to install
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @param string $slug
+		 *
+		 * @return bool
+		 */
+		function is_addon_connected( $slug ) {
+			$sites = self::get_all_sites();
+
+			if ( ! isset( $sites[ $slug ] ) ) {
+				return false;
+			}
+
+			$site = $sites[ $slug ];
+
+			$plugin = FS_Plugin_Manager::instance( $slug )->get();
+
+			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
+				// The given slug do NOT belong to any of the plugin's add-ons.
+				return false;
+			}
+
+			return ( is_object( $site ) &&
+			         is_numeric( $site->id ) &&
+			         is_numeric( $site->user_id ) &&
+			         is_object( $site->plan )
+			);
+		}
+
+		/**
 		 * Determines if add-on installed.
 		 *
 		 * NOTE: This is a heuristic and only works if the folder/file named as the slug.
@@ -2049,6 +2084,45 @@
 		 */
 		function is_addon() {
 			return isset( $this->_plugin->parent_plugin_id ) && is_numeric( $this->_plugin->parent_plugin_id );
+		}
+
+		/**
+		 * Deactivate add-on if it's premium only and the user does't have a valid license.
+		 *
+		 * @param bool $is_after_trial_cancel
+		 *
+		 * @return bool If add-on was deactivated.
+		 */
+		private function deactivate_premium_only_addon_without_license( $is_after_trial_cancel = false ) {
+			if ( ! $this->has_free_plan() &&
+			     ! $this->has_features_enabled_license() &&
+			     ! $this->_has_premium_license()
+			) {
+				deactivate_plugins( array( $this->_plugin_basename ), true );
+
+				$this->_parent->_admin_notices->add_sticky(
+					sprintf(
+						__fs( ( $is_after_trial_cancel ?
+								'addon-trial-cancelled-message' :
+								'addon-no-license-message' ),
+							$this->_parent->_slug
+						),
+						'<b>' . $this->_plugin->title . '</b>'
+					) . ' ' . sprintf(
+						'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
+						$this->_parent->addon_url( $this->_slug ),
+						esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
+						__fs( 'purchase-license', $this->_parent->_slug )
+					),
+					'no_addon_license',
+					( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
+					( $is_after_trial_cancel ? 'success' : 'error' )
+				);
+
+				return true;
+			}
+
+			return false;
 		}
 
 		#endregion ------------------------------------------------------------------
@@ -3566,8 +3640,25 @@
 				return false;
 			}
 
-			// Paid plan beats trial.
-			return $this->is_free_plan() && $this->_site->is_trial();
+			return $this->_site->is_trial();
+		}
+
+		/**
+		 * Check if currently in a trial with payment method (credit card or paypal).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		function is_paid_trial() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_trial() ) {
+				return false;
+			}
+
+			return $this->has_active_license() && ( $this->_site->trial_plan_id == $this->_license->plan_id );
 		}
 
 		/**
@@ -3658,6 +3749,18 @@
 		}
 
 		/**
+		 * Check if user has any licenses associated with the plugin (including expired or blocking).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return bool
+		 */
+		private function has_any_license() {
+			return is_array( $this->_licenses ) && ( 0 < count( $this->_licenses ) );
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
@@ -3731,7 +3834,7 @@
 		 */
 		function _sync_licenses() {
 			$licenses = $this->_fetch_licenses();
-			if ( ! isset( $licenses->error ) ) {
+			if ( ! $this->is_api_error( $licenses ) ) {
 				$this->_licenses = $licenses;
 				$this->_store_licenses();
 			}
@@ -4002,26 +4105,27 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.2
 		 *
-		 * @uses   pricing_url
+		 * @uses   pricing_url()
 		 *
 		 * @param string $period Billing cycle
+		 * @param bool   $is_trial
 		 *
 		 * @return string
 		 */
-		function get_upgrade_url( $period = WP_FS__PERIOD_ANNUALLY ) {
-			return $this->pricing_url( $period );
+		function get_upgrade_url( $period = WP_FS__PERIOD_ANNUALLY, $is_trial = false ) {
+			return $this->pricing_url( $period, $is_trial );
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @uses   get_upgrade_url
+		 * @uses   get_upgrade_url()
 		 *
 		 * @return string
 		 */
 		function get_trial_url() {
-			return $this->get_upgrade_url( 'trial' );
+			return $this->get_upgrade_url( WP_FS__PERIOD_ANNUALLY, true );
 		}
 
 		/**
@@ -4030,14 +4134,24 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
-		 * @param string $period Billing cycle
+		 * @param string $billing_cycle Billing cycle
+		 *
+		 * @param bool   $is_trial
 		 *
 		 * @return string
 		 */
-		function pricing_url( $period = WP_FS__PERIOD_ANNUALLY ) {
+		function pricing_url( $billing_cycle = WP_FS__PERIOD_ANNUALLY, $is_trial = false ) {
 			$this->_logger->entrance();
 
-			return $this->_get_admin_page_url( 'pricing', array( 'billing_cycle' => $period ) );
+			$params = array(
+				'billing_cycle' => $billing_cycle
+			);
+
+			if ( $is_trial ) {
+				$params['trial'] = 'true';
+			}
+
+			return $this->_get_admin_page_url( 'pricing', $params );
 		}
 
 		/**
@@ -4046,37 +4160,59 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param string      $period Billing cycle
-		 * @param bool|string $plan_name
-		 * @param bool|number $plan_id
-		 * @param bool|int    $licenses
+		 * @param string $billing_cycle Billing cycle
+		 * @param bool   $is_trial
+		 * @param array  $extra         (optional) Extra parameters, override other query params.
 		 *
 		 * @return string
 		 */
 		function checkout_url(
-			$period = WP_FS__PERIOD_ANNUALLY,
-			$plan_name = false,
-			$plan_id = false,
-			$licenses = false
+			$billing_cycle = WP_FS__PERIOD_ANNUALLY,
+			$is_trial = false,
+			$extra = array()
 		) {
 			$this->_logger->entrance();
 
 			$params = array(
 				'checkout'      => 'true',
-				'billing_cycle' => $period,
+				'billing_cycle' => $billing_cycle,
 			);
 
-			if ( false !== $plan_name ) {
-				$params['plan_name'] = $plan_name;
-			}
-			if ( false !== $plan_id ) {
-				$params['plan_id'] = $plan_id;
-			}
-			if ( false !== $licenses ) {
-				$params['licenses'] = $licenses;
+			if ( $is_trial ) {
+				$params['trial'] = 'true';
 			}
 
+			/**
+			 * Params in extra override other params.
+			 */
+			$params = array_merge( $params, $extra );
+
 			return $this->_get_admin_page_url( 'pricing', $params );
+		}
+
+		/**
+		 * Add-on checkout URL.
+		 *
+		 * @author   Vova Feldman (@svovaf)
+		 * @since    1.1.7
+		 *
+		 * @param number $addon_id
+		 * @param number $pricing_id
+		 * @param string $billing_cycle
+		 * @param bool   $is_trial
+		 *
+		 * @return string
+		 */
+		function addon_checkout_url(
+			$addon_id,
+			$pricing_id,
+			$billing_cycle = WP_FS__PERIOD_ANNUALLY,
+			$is_trial = false
+		) {
+			return $this->checkout_url( $billing_cycle, $is_trial, array(
+				'plugin_id'  => $addon_id,
+				'pricing_id' => $pricing_id,
+			) );
 		}
 
 		#endregion
@@ -6155,7 +6291,7 @@
 				     // Check if license changed.
 				     $site->license_id != $this->_site->license_id
 				) {
-					if ( $site->is_trial() && ! $this->_site->is_trial() ) {
+						if ( $site->is_trial() && ( ! $this->_site->is_trial() || $site->trial_ends != $this->_site->trial_ends ) ) {
 						// New trial started.
 						$this->_site = $site;
 						$plan_change = 'trial_started';
@@ -6163,6 +6299,17 @@
 						// Store trial plan information.
 						$this->_enrich_site_trial_plan( true );
 
+							// For trial with subscription use-case.
+							$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+
+							if ( is_object( $new_license ) && ! $new_license->is_expired() ) {
+								$this->_site = $site;
+								$this->_update_site_license( $new_license );
+								$this->_store_licenses();
+								$this->_enrich_site_plan( true );
+
+								$this->_sync_site_subscription( $this->_license );
+							}
 					} else if ( $this->_site->is_trial() && ! $site->is_trial() && ! is_numeric( $site->license_id ) ) {
 						// Was in trial, but now trial expired and no license ID.
 						// New trial started.
@@ -6333,7 +6480,16 @@
 		protected function _activate_license( $background = false ) {
 			$this->_logger->entrance();
 
-			$premium_license = $this->_get_available_premium_license();
+			$license_id = fs_request_get( 'license_id' );
+
+			if ( FS_Plugin_License::is_valid_id( $license_id ) && $license_id == $this->_site->license_id ) {
+				// License is already activated.
+				return;
+			}
+
+			$premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+				$this->_get_license_by_id( $license_id ) :
+				$this->_get_available_premium_license();
 
 			if ( ! is_object( $premium_license ) ) {
 				return;
@@ -6342,11 +6498,11 @@
 			$api     = $this->get_api_site_scope();
 			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put' );
 
-			if ( isset( $license->error ) ) {
+			if ( $this->is_api_error( $license ) ) {
 				if ( ! $background ) {
 					$this->_admin_notices->add(
 						__fs( 'license-activation-failed-message', $this->_slug ) . '<br> ' .
-						__fs( 'server-error-message', $this->_slug ) . ' ' . var_export( $license->error, true ),
+						__fs( 'server-error-message', $this->_slug ) . ' ' . var_export( $license, true ),
 						__fs( 'hmm', $this->_slug ) . '...',
 						'error'
 					);
@@ -6358,7 +6514,10 @@
 			$premium_license = new FS_Plugin_License( $license );
 
 			// Updated site plan.
-			$this->_site->plan->id = $premium_license->plan_id;
+			$site = $this->get_api_site_scope()->get( '/', true );
+			if ( ! $this->is_api_error( $site ) ) {
+				$this->_site = new FS_Site( $site );
+			}
 			$this->_update_site_license( $premium_license );
 			$this->_enrich_site_plan( false );
 
@@ -6524,11 +6683,22 @@
 
 			$trial_cancelled = false;
 
-			if ( ! isset( $site->error ) ) {
+			if ( ! $this->is_api_error( $site ) ) {
 				$prev_trial_ends = $this->_site->trial_ends;
 
-				// Update new site plan id.
-				$this->_site->trial_ends = $site->trial_ends;
+				if ( $this->is_paid_trial() ) {
+					$this->_license->expiration   = $site->trial_ends;
+					$this->_license->is_cancelled = true;
+					$this->_update_site_license( $this->_license );
+					$this->_store_licenses();
+
+					// Clear subscription reference.
+					$this->_sync_site_subscription( null );
+				}
+
+				// Update site info.
+				$this->_site = new FS_Site( $site );
+				$this->_enrich_site_plan();
 
 				$trial_cancelled = ( $prev_trial_ends != $site->trial_ends );
 			} else {
@@ -6537,13 +6707,7 @@
 			}
 
 			if ( $trial_cancelled ) {
-				// Remove previous sticky message about upgrade (if exist).
-				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
-
-				$this->_admin_notices->add(
-					sprintf( __fs( 'trial-cancel-message', $this->_slug ), $this->_storage->trial_plan->title )
-				);
-
+				// Remove previous sticky messages about upgrade or trial (if exist).
 				$this->_admin_notices->remove_sticky( array(
 					'trial_started',
 					'trial_promotion',
@@ -6555,6 +6719,14 @@
 
 				// Clear trial plan information.
 				unset( $this->_storage->trial_plan );
+
+				if ( ! $this->is_addon() ||
+				     ! $this->deactivate_premium_only_addon_without_license( true )
+				) {
+					$this->_admin_notices->add(
+						sprintf( __fs( 'trial-cancel-message', $this->_slug ), $this->_storage->trial_plan->title )
+					);
+				}
 			} else {
 				$this->_admin_notices->add(
 					__fs( 'trial-cancel-failure-message', $this->_slug ),
@@ -7210,7 +7382,14 @@
 				#region Actions that might be called from external links (e.g. email)
 
 				case 'cancel_trial':
+					if ( $plugin_id == $this->get_id() ) {
 					$this->_cancel_trial();
+					} else {
+						if ( $this->is_addon_activated( $plugin_id ) ) {
+							$fs_addon = self::get_instance_by_id( $plugin_id );
+							$fs_addon->_cancel_trial();
+						}
+					}
 
 					return;
 
