@@ -5901,11 +5901,12 @@
 		 * @since  1.0.4
 		 *
 		 * @param bool|number $plugin_id
+		 * @param bool        $flush Since 1.1.7.3
 		 *
 		 * @return object|false New plugin tag info if exist.
 		 */
-		private function _fetch_newer_version( $plugin_id = false ) {
-			$latest_tag = $this->_fetch_latest_version( $plugin_id );
+		private function _fetch_newer_version( $plugin_id = false, $flush = true ) {
+			$latest_tag = $this->_fetch_latest_version( $plugin_id, $flush );
 
 			if ( ! is_object( $latest_tag ) ) {
 				return false;
@@ -5928,17 +5929,18 @@
 		 * @since  1.0.5
 		 *
 		 * @param bool|number $plugin_id
+		 * @param bool        $flush Since 1.1.7.3
 		 *
 		 * @return bool|FS_Plugin_Tag
 		 */
-		function get_update( $plugin_id = false ) {
+		function get_update( $plugin_id = false, $flush = true ) {
 			$this->_logger->entrance();
 
 			if ( ! is_numeric( $plugin_id ) ) {
 				$plugin_id = $this->_plugin->id;
 			}
 
-			$this->_check_updates( true, $plugin_id );
+			$this->_check_updates( true, $plugin_id, $flush );
 			$updates = $this->get_all_updates();
 
 			return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -6620,13 +6622,25 @@
 		 * @since  1.0.4
 		 *
 		 * @param bool|number $addon_id
+		 * @param bool        $flush Since 1.1.7.3
 		 *
 		 * @return object|false Plugin latest tag info.
 		 */
-		function _fetch_latest_version( $addon_id = false ) {
-			$tag            = $this->get_api_site_or_plugin_scope()->get(
+		function _fetch_latest_version( $addon_id = false, $flush = true ) {
+			$this->_logger->entrance();
+
+			/**
+			 * Check for plugin updates from Freemius only if opted-in.
+			 *
+			 * @since 1.1.7.3
+			 */
+			if ( ! $this->is_registered() ) {
+				return false;
+			}
+
+			$tag = $this->get_api_site_scope()->get(
 				$this->_get_latest_version_endpoint( $addon_id, 'json' ),
-				true
+				$flush
 			);
 
 			$latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
@@ -6768,12 +6782,13 @@
 		 * @param bool        $background Hints the method if it's a background updates check. If false, it means that
 		 *                                was initiated by the admin.
 		 * @param bool|number $plugin_id
+		 * @param bool        $flush      Since 1.1.7.3
 		 */
-		private function _check_updates( $background = false, $plugin_id = false ) {
+		private function _check_updates( $background = false, $plugin_id = false, $flush = true ) {
 			$this->_logger->entrance();
 
 			// Check if there's a newer version for download.
-			$new_version = $this->_fetch_newer_version( $plugin_id );
+			$new_version = $this->_fetch_newer_version( $plugin_id, $flush );
 
 			$update = null;
 			if ( is_object( $new_version ) ) {

@@ -19,7 +19,7 @@
 	/**
 	 * @var FS_Plugin_Tag $update
 	 */
-	$update = $fs->get_update();
+	$update = $fs->get_update(false, false);
 
 	$is_paying              = $fs->is_paying();
 	$user                   = $fs->get_user();
