@@ -7002,24 +7002,27 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
-		 * @uses   FS_Api
+		 * @param bool $flush Since 1.1.7.3 by default add 24 hour cache.
 		 *
+		 * @return FS_Plugin[]
+		 *
+		 * @uses   FS_Api
 		 */
-		private function _sync_addons() {
+		private function _sync_addons( $flush = false ) {
 			$this->_logger->entrance();
 
-			$result = $this->get_api_site_or_plugin_scope()->get( '/addons.json?enriched=true', true );
-
-			if ( isset( $result->error ) ) {
-				return;
-			}
+			$result = $this->get_api_site_or_plugin_scope()->get( '/addons.json?enriched=true', $flush );
 
 			$addons = array();
+			if ( ! $this->is_api_error( $result ) ) {
 			for ( $i = 0, $len = count( $result->plugins ); $i < $len; $i ++ ) {
 				$addons[ $i ] = new FS_Plugin( $result->plugins[ $i ] );
 			}
 
 			$this->_store_addons( $addons, true );
+		}
+
+			return $addons;
 		}
 
 		/**
