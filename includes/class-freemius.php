@@ -1739,18 +1739,35 @@
 				}
 			}
 
-			if (is_admin() && !$this->is_ajax()) {
-			if ( false === $this->_background_sync() ) {
-				// If background sync wasn't executed,
-				// and if the plugin declared it has add-ons but
-				// no add-ons found in the local data, then try to sync add-ons.
-				if ( $this->_has_addons &&
-				     ! $this->is_addon() &&
-				     ( false === $this->get_addons() )
+			if ( $this->has_api_connectivity() && $this->is_user_in_admin() ) {
+				/**
+				 * Schedule daily data sync cron if:
+				 *
+				 *  1. User opted-in (for tracking).
+				 *  2. If plugin has add-ons (update add-ons data).
+				 *  3. If skipped, but later upgraded (opted-in via upgrade).
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.7.3
+				 *
+				 */
+				if ( $this->is_registered() ||
+				     ( ! $this->is_activation_mode() && $this->_has_addons )
 				) {
-					$this->_sync_addons();
+
+					$this->hook_callback_to_sync_cron();
+
+					if ( ! $this->is_sync_cron_on() ) {
+						$this->schedule_sync_cron();
 				}
 			}
+
+				/**
+				 * Check if requested for manual blocking background sync.
+				 */
+				if ( fs_request_has( 'background_sync' ) ) {
+					$this->run_manual_sync();
+				}
 			}
 
 			if ( $this->is_addon() ) {
@@ -2119,69 +2136,192 @@
 			return $this->_is_org_compliant;
 		}
 
+		#region Daily Sync Cron ------------------------------------------------------------------
+
 		/**
-		 * Background sync every 24 hours.
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function run_manual_sync() {
+			$this->require_pluggable_essentials();
+
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
+			// Run manual sync.
+			$this->_sync_cron();
+
+			// Reschedule next cron to run 24 hours from now (performance optimization).
+			$this->clear_sync_cron();
+
+			$this->schedule_sync_cron( time() + WP_FS__TIME_5_MIN_IN_SEC, false );
+			}
+
+		/**
+		 * Data sync cron job. Replaces the background sync non blocking HTTP request
+		 * that doesn't halt page loading.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.4
-		 *
-		 * @return bool If function actually executed the sync in this iteration.
+		 * @since  1.1.7.3
 		 */
-		private function _background_sync() {
+		function _sync_cron() {
 			$this->_logger->entrance();
 
-			// Don't sync license on AJAX calls.
-			if ( $this->is_ajax() ) {
-				return false;
-			}
+			// Store the last time data sync was executed.
+			$this->_storage->sync_timestamp = time();
 
-			// Asked to sync explicitly, no need for background sync.
-			if ( fs_request_is_action( $this->_slug . '_sync_license' ) ) {
-				return false;
-			}
-
-			// Check if API is not down.
+			// Check if API is temporary down.
 			if ( FS_Api::is_temporary_down() ) {
-				return false;
+				return;
 			}
 
-			$sync_timestamp = $this->_storage->get( 'sync_timestamp' );
-
-			if ( ! is_numeric( $sync_timestamp ) || $sync_timestamp >= time() ) {
-				// If updated not set or happens to be in the future, set as if was 24 hours earlier.
-				$sync_timestamp                 = time() - WP_FS__TIME_24_HOURS_IN_SEC;
-				$this->_storage->sync_timestamp = $sync_timestamp;
-			}
-
-			if ( ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE && fs_request_has( 'background_sync' ) ) ||
-			     ( $sync_timestamp <= time() - WP_FS__TIME_24_HOURS_IN_SEC )
-			) {
-				// Update last sync timestamp.
-				$this->_storage->sync_timestamp = time();
+			// @todo Add logic that identifies API latency, and reschedule the next background sync randomly between 8-16 hours.
 
 				if ( $this->is_registered() ) {
+				if ( $this->has_paid_plan() ) {
 					// Initiate background plan sync.
 					$this->_sync_license( true );
 
 					if ( $this->is_paying() ) {
-						// Check for plugin updates.
+						// Check for premium plugin updates.
 						$this->_check_updates( true );
 					}
+				} else {
+					// Sync install (only if something changed locally).
+					$this->sync_install();
+				}
 				}
 
-				if ( ! $this->is_addon() ) {
-					if ( $this->is_registered() || $this->_has_addons ) {
-						// Try to fetch add-ons if registered or if plugin
-						// declared that it has add-ons.
-						$this->_sync_addons();
+			if ( ! $this->is_addon() && $this->_has_addons ) {
+				// Sync add-ons collection.
+				$this->_sync_addons( true );
 					}
 				}
 
-				return true;
+		/**
+		 * Check if sync was executed in the last $period of seconds.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @param int $period In seconds
+		 *
+		 * @return bool
+		 */
+		private function is_sync_executed( $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
+			if ( ! isset( $this->_storage->sync_timestamp ) ) {
+				return false;
 			}
 
+			return ( $this->_storage->sync_timestamp > ( WP_FS__SCRIPT_START_TIME - $period ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return bool
+		 */
+		private function is_sync_cron_on() {
+			/**
+			 * @var object $sync_cron_data
+			 */
+			$sync_cron_data = $this->_storage->get( 'sync_cron', null );
+
+			return ( ! is_null( $sync_cron_data ) && true === $sync_cron_data->on );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @param int  $start_at        Defaults to now.
+		 * @param bool $randomize_start If true, schedule first job randomly during the next 12 hours. Otherwise,
+		 *                              schedule job to start right away.
+		 */
+		private function schedule_sync_cron( $start_at = WP_FS__SCRIPT_START_TIME, $randomize_start = true ) {
+			$this->_logger->entrance();
+
+			if ( $randomize_start ) {
+				// Schedule first sync with a random 12 hour time range from now.
+				$start_at += rand( 0, ( WP_FS__TIME_24_HOURS_IN_SEC / 2 ) );
+			}
+
+			// Schedule daily WP cron.
+			wp_schedule_event(
+				$start_at,
+				'daily',
+				$this->get_action_tag( 'data_sync' )
+			);
+
+			$this->_storage->store( 'sync_cron', (object) array(
+				'version'     => $this->get_plugin_version(),
+				'sdk_version' => $this->version,
+				'timestamp'   => WP_FS__SCRIPT_START_TIME,
+				'on'          => true,
+			) );
+		}
+
+		/**
+		 * Add the actual sync function to the cron job hook.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function hook_callback_to_sync_cron() {
+			$this->add_action( 'data_sync', array( &$this, '_sync_cron' ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function clear_sync_cron() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_sync_cron_on() ) {
+				return;
+			}
+
+			$this->_storage->remove( 'sync_cron' );
+
+			wp_clear_scheduled_hook( $this->get_action_tag( 'data_sync' ) );
+		}
+
+		/**
+		 * Unix timestamp for next sync cron execution or false if not scheduled.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return int|false
+		 */
+		function next_sync_cron() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_sync_cron_on() ) {
 			return false;
 		}
+
+			return wp_next_scheduled( $this->get_action_tag( 'data_sync' ) );
+		}
+
+		/**
+		 * Unix timestamp for previous sync cron execution or false if never executed.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return int|false
+		 */
+		function last_sync_cron() {
+			$this->_logger->entrance();
+
+			return $this->_storage->get('sync_timestamp');
+		}
+
+		#endregion Daily Sync Cron ------------------------------------------------------------------
 
 		/**
 		 * Show a notice that activation is currently pending.
@@ -2566,6 +2706,8 @@
 				// Remember that plugin was already installed.
 				$this->_storage->is_plugin_new_install = false;
 			}
+
+			$this->clear_sync_cron();
 
 			if ( $this->is_registered() ) {
 				// Send deactivation event.
@@ -3995,6 +4137,28 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		function is_cron() {
+			return ( defined( 'DOING_CRON' ) && DOING_CRON );
+		}
+
+		/**
+		 * Check if a real user is visiting the admin dashboard.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		function is_user_in_admin() {
+			return is_admin() && ! $this->is_ajax() && ! $this->is_cron();
+		}
+
+		/**
 		 * Check if running in HTTPS and if site's plan matching the specified plan.
 		 *
 		 * @param string $plan
@@ -5129,6 +5293,18 @@
 		/* Actions / Hooks / Filters
 		------------------------------------------------------------------------------------------------------------------*/
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @param string $tag
+		 *
+		 * @return string
+		 */
+		private function get_action_tag( $tag ) {
+			return 'fs_' . $tag . '_' . $this->_slug;
+		}
+
+		/**
 		 * Do action, specific for the current context plugin.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5146,7 +5322,7 @@
 			$args = func_get_args();
 
 			call_user_func_array( 'do_action', array_merge(
-					array( 'fs_' . $tag . '_' . $this->_slug ),
+					array( $this->get_action_tag( $tag ) ),
 					array_slice( $args, 1 ) )
 			);
 		}
@@ -5167,7 +5343,7 @@
 		function add_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
-			add_action( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
+			add_action( $this->get_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
 		}
 
 		/**
@@ -5208,7 +5384,7 @@
 		function add_filter( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
-			add_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_add, $priority, $accepted_args );
+			add_filter( $this->get_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
 		}
 
 		/**
@@ -5227,7 +5403,7 @@
 		function has_filter( $tag, $function_to_check = false ) {
 			$this->_logger->entrance( $tag );
 
-			return has_filter( 'fs_' . $tag . '_' . $this->_slug, $function_to_check );
+			return has_filter( $this->get_action_tag( $tag ), $function_to_check );
 		}
 
 		/**
