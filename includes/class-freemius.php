@@ -1973,7 +1973,15 @@
 				self::instance( $slug )->get_plugin_basename();
 			}
 
-			return $slug . '/' . $slug . '.php';
+			$premium_basename = $slug . '-premium/' . $slug . '.php';
+
+			if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_basename ) ) ) {
+				return $premium_basename;
+			}
+
+			$free_basename = $slug . '/' . $slug . '.php';
+
+			return $free_basename;
 		}
 
 		/**
