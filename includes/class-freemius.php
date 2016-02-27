@@ -1057,7 +1057,11 @@
 					array(
 						'is_update' => json_encode( $is_update ),
 						'version'   => $version,
-						'plugin_id' => $this->_plugin->id,
+						'sdk'       => $this->version,
+						'is_admin'  => json_encode( is_admin() ),
+						'is_ajax'   => json_encode( $this->is_ajax() ),
+						'is_cron'   => json_encode( $this->is_cron() ),
+						'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
 					)
 				);
 				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
@@ -1331,7 +1335,11 @@
 				array(
 					'is_update' => json_encode( $is_update ),
 					'version'   => $this->get_plugin_version(),
-					'plugin_id' => $this->_plugin->id,
+					'sdk'       => $this->version,
+					'is_admin'  => json_encode( is_admin() ),
+					'is_ajax'   => json_encode( $this->is_ajax() ),
+					'is_cron'   => json_encode( $this->is_cron() ),
+					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
 				)
 			);
 
