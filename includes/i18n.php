@@ -273,7 +273,7 @@
 		'license-expired-non-blocking-message'     => __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'freemius' ),
 		'could-not-activate-x'                     => __( 'Couldn\'t activate %s.', 'freemius' ),
 		'contact-us-with-error-message'            => __( 'Please contact us with the following message:', 'freemius' ),
-		'plan-did-not-change-message'              => __( 'It looks like your plan did\'t change. If you did upgrade, it\'s probably an issue on our side - sorry.', 'freemius' ),
+		'plan-did-not-change-message'              => __( 'It looks like you are still on the %s plan. If you did upgrade or change your plan, it\'s probably an issue on our side - sorry.', 'freemius' ),
 		'contact-us-here'                          => __( 'Please contact us here', 'freemius' ),
 		'plan-did-not-change-email-message'        => __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', 'freemius' ),
 		#endregion Admin Notices
