@@ -27,6 +27,11 @@
 		 * @since 1.0.4
 		 */
 		private $_logger;
+		/**
+		 * @var bool
+		 * @since 1.1.7
+		 */
+		private $_update_checked = false;
 
 		function __construct( Freemius $freemius ) {
 			$this->_fs = $freemius;
@@ -162,13 +167,22 @@
 			$this->_logger->entrance();
 
 			if ( empty( $transient_data ) ||
-			     defined( 'WP_FS__UNINSTALL_MODE' )
+			     defined( 'WP_FS__UNINSTALL_MODE' ) ||
+			     /**
+			      * From some reason 'pre_set_site_transient_update_plugins' filter
+			      * is called four times in a row.
+			      *
+			      * @since 1.1.7.3
+			      */
+			     $this->_update_checked
 			) {
 				return $transient_data;
 			}
 
 			// Get plugin's newest update.
-			$new_version = $this->_fs->get_update();
+			$new_version = $this->_fs->get_update(false, false);
+
+			$this->_update_checked = true;
 
 			if ( is_object( $new_version ) ) {
 				$this->_logger->log( 'Found newer plugin version ' . $new_version->version );
