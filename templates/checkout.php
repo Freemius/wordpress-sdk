@@ -29,8 +29,18 @@
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
+		$site = $fs->get_site();
+		$plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
+
+		if ($plugin_id != $fs->get_id()) {
+			if ( $fs->is_addon_activated( $plugin_id ) ) {
+				$fs_addon = Freemius::get_instance_by_id( $plugin_id );
+				$site = $fs_addon->get_site();
+			}
+		}
+
 		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-			$fs->get_site(),
+			$site,
 			$timestamp,
 			'checkout'
 		) );
