@@ -7275,6 +7275,19 @@
 				add_filter( 'admin_body_class', 'fs_addons_body_class' );
 			}
 
+			if ( $this->has_paid_plan() &&
+			     ! $this->has_any_license() &&
+			     ! $this->is_sync_executed()
+			) {
+				/**
+				 * If no licenses found and no sync job was executed during the last 24 hours,
+				 * just execute the sync job right away (blocking execution).
+				 *
+				 * @since 1.1.7.3
+				 */
+				$this->run_manual_sync();
+			}
+
 			$this->_handle_account_edits();
 
 			$this->do_action( 'account_page_load_before_departure' );
