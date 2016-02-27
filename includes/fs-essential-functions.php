@@ -147,10 +147,15 @@
 				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
 			}
 
-			if ( isset( $fs_text_overrides[ $slug ] ) &&
-			     isset( $fs_text_overrides[ $slug ][ $key ] )
-			) {
-				return $fs_text_overrides[ $slug ][ $key ];
+			if ( isset( $fs_text_overrides[ $slug ] ) ) {
+				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $key ];
+				}
+
+				$lower_key = strtolower( $key );
+				if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $lower_key ];
+				}
 			}
 
 			return isset( $fs_text[ $key ] ) ?
