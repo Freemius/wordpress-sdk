@@ -68,13 +68,21 @@
 		}
 	}
 
-	if ( $fs->is_payments_sandbox() ) // Append plugin secure token for sandbox mode authentication.)
+	if ( $fs->is_payments_sandbox() )
 	{
+		// Append plugin secure token for sandbox mode authentication.
 		$context_params['sandbox'] = FS_Security::instance()->get_secure_token(
 			$fs->get_plugin(),
 			$timestamp,
 			'checkout'
 		);
+
+		/**
+		 * @since 1.1.7.3 Add security timestamp for sandbox even for anonymous user.
+		 */
+		if ( empty( $context_params['s_ctx_ts'] ) ) {
+			$context_params['s_ctx_ts'] = $timestamp;
+		}
 	}
 
 	$return_url = fs_nonce_url( $fs->_get_admin_page_url(
