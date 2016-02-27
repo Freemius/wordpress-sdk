@@ -814,6 +814,8 @@
 
 			add_action( 'admin_menu', array( 'Freemius', 'add_debug_page' ) );
 
+			add_action("wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ));
+
 			self::$_statics_loaded = true;
 		}
 
@@ -858,15 +860,28 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		static function _toggle_debug_mode() {
+			if ( in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
+				update_option( 'fs_debug_mode', $_POST['is_on'] );
+			}
+
+			exit;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.8
 		 */
 		static function _debug_page_actions() {
 			self::_clean_admin_content_section();
 
-			if ( fs_request_is_action( 'delete_all_accounts' ) ) {
-				check_admin_referer( 'delete_all_accounts' );
+			if ( fs_request_is_action( 'restart_freemius' ) ) {
+				check_admin_referer( 'restart_freemius' );
 
 				self::$_accounts->clear( true );
+
 
 				return;
 			}
@@ -893,6 +908,8 @@
 				'addons'         => $addons,
 				'account_addons' => $account_addons,
 			);
+
+			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
 			fs_require_once_template( 'debug.php', $vars );
 		}
 

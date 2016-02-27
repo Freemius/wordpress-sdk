@@ -15,6 +15,38 @@
 	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 ?>
 	<h1><?php echo __fs( 'Freemius Debug' ) . ' - ' . __fs( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
+	<div>
+		<!-- Debugging Switch -->
+		<?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
+		<span class="switch-label"><?php _efs('debugging') ?></span>
+		<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
+			<div class="toggle"></div>
+			<span class="on"><?php _efs('on') ?></span>
+			<span class="off"><?php _efs('off') ?></span>
+		</div>
+		<script type="text/javascript">
+			(function($){
+				$(document).ready(function() {
+					// Switch toggle
+					$('.switch').click(function() {
+						$(this)
+							.toggleClass('on')
+							.toggleClass('off');
+
+						$.post(ajaxurl, {
+							action: 'fs_toggle_debug_mode',
+							is_on: ($(this).hasClass('off') ? 1 : 0)
+						}, function (response) {
+							if (1 == response) {
+								// Refresh page on success.
+								location.reload();
+							}
+						});
+					});
+				});
+			}(jQuery));
+		</script>
+	</div>
 	<h2><?php _efs( 'actions' ) ?></h2>
 	<table>
 		<tbody>
@@ -22,8 +54,8 @@
 			<td>
 				<!-- Delete All Accounts -->
 				<form action="" method="POST">
-					<input type="hidden" name="fs_action" value="delete_all_accounts">
-					<?php wp_nonce_field( 'delete_all_accounts' ) ?>
+					<input type="hidden" name="fs_action" value="restart_freemius">
+					<?php wp_nonce_field( 'restart_freemius' ) ?>
 					<button class="button button-primary"
 					        onclick="if (confirm('<?php _efs( 'delete-all-confirm' ) ?>')) this.parentNode.submit(); return false;"><?php _efs( 'delete-all-accounts' ) ?></button>
 				</form>
@@ -125,6 +157,7 @@
 		<thead>
 		<tr>
 			<th><?php _efs( 'id' ) ?></th>
+			<th><?php _efs( 'slug' ) ?></th>
 			<th><?php _efs( 'plan' ) ?></th>
 			<th><?php _efs( 'public-key' ) ?></th>
 			<th><?php _efs( 'secret-key' ) ?></th>
@@ -134,6 +167,7 @@
 		<?php foreach ( $sites as $slug => $site ) : ?>
 			<tr>
 				<td><?php echo $site->id ?></td>
+				<td><?php echo $slug ?></td>
 				<td><?php
 						echo is_object( $site->plan ) ? $site->plan->name : ''
 					?></td>
