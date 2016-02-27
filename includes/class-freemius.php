@@ -4718,7 +4718,7 @@
 				$this->_plans = $plans;
 			}
 
-			$this->send_install_update( array(), true );
+			$this->send_install_update();
 
 			$this->_store_account();
 
