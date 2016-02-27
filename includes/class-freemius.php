@@ -1655,6 +1655,7 @@
 				// Update plugin details.
 				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
 			}
+			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
 
 			if ( ! isset( $plugin_info['menu'] ) ) {
@@ -2190,7 +2191,7 @@
 					// Upgrade stored data format to 1.1.3 format.
 					$this->set_anonymous_mode( $this->_storage->is_anonymous );
 				} else {
-					// Version 1.1.3 and higher.
+					// Version 1.1.3 and later.
 					$this->_is_anonymous = $this->_storage->is_anonymous['is'];
 				}
 			}
@@ -2789,11 +2790,6 @@
 				unset( $this->_storage->sticky_optin_added );
 			}
 
-			if ( ! $this->has_api_connectivity() ) {
-				// Reset connectivity test cache.
-				unset( $this->_storage->connectivity_test );
-			}
-
 			if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
 				// Remember that plugin was already installed.
 				$this->_storage->is_plugin_new_install = false;
@@ -2806,6 +2802,11 @@
 				$this->sync_install( array(
 					'is_active' => false,
 				) );
+			} else {
+				if ( ! $this->has_api_connectivity() ) {
+					// Reset connectivity test cache.
+					unset( $this->_storage->connectivity_test );
+				}
 			}
 
 			// Clear API cache on deactivation.
