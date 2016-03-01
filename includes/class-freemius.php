@@ -6661,6 +6661,10 @@
 				switch ( $plan_change ) {
 					case 'none':
 						if ( ! $background && is_admin() ) {
+							$plan = $this->is_trial() ?
+								$this->_storage->trial_plan :
+								$this->_site->plan;
+
 							$this->_admin_notices->add(
 								sprintf(
 									__fs( 'plan-did-not-change-message', $this->_slug ) . ' ' .
@@ -6669,12 +6673,12 @@
 										$this->contact_url(
 											'bug',
 											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
-												strtoupper( $this->_site->plan->name )
+												strtoupper( $plan->name )
 											)
 										),
 										__fs( 'contact-us-here', $this->_slug )
 									),
-									'<i>' . $this->_site->plan->title . '</i>'
+									'<i>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</i>'
 								),
 								__fs( 'hmm', $this->_slug ) . '...',
 								'error'
