@@ -86,6 +86,10 @@
 		 * @param bool   $flush
 		 */
 		function store( $key, $value, $flush = true ) {
+			if ( $this->_logger->is_on() ) {
+				$this->_logger->entrance( $key . ' = ' . var_export( $value, true ) );
+			}
+
 			if ( array_key_exists( $key, $this->_data ) && $value === $this->_data[ $key ] ) {
 				// No need to store data if the value wasn't changed.
 				return;
