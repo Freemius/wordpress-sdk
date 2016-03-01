@@ -1601,115 +1601,11 @@
 		function dynamic_init( array $plugin_info ) {
 			$this->_logger->entrance();
 
-			$id          = $this->_get_numeric_option( $plugin_info, 'id', false );
-			$public_key  = $this->_get_option( $plugin_info, 'public_key', false );
-			$secret_key  = $this->_get_option( $plugin_info, 'secret_key', null );
-			$parent_id   = $this->_get_numeric_option( $plugin_info, 'parent_id', null );
-			$parent_name = $this->_get_option( $plugin_info, 'parent_name', null );
+			$this->parse_settings( $plugin_info );
 
-			if ( isset( $plugin_info['parent'] ) ) {
-				$parent_id = $this->_get_numeric_option( $plugin_info['parent'], 'id', null );
-//				$parent_slug       = $this->get_option( $plugin_info['parent'], 'slug', null );
-//				$parent_public_key = $this->get_option( $plugin_info['parent'], 'public_key', null );
-				$parent_name = $this->_get_option( $plugin_info['parent'], 'name', null );
-			}
-
-			if ( false === $id ) {
-				throw new Freemius_Exception( 'Plugin id parameter is not set.' );
-			}
-			if ( false === $public_key ) {
-				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
-			}
-
-			$plugin = ( $this->_plugin instanceof FS_Plugin ) ?
-				$this->_plugin :
-				new FS_Plugin();
-
-			$plugin->update( array(
-				'id'               => $id,
-				'public_key'       => $public_key,
-				'slug'             => $this->_slug,
-				'parent_plugin_id' => $parent_id,
-				'version'          => $this->get_plugin_version(),
-				'title'            => $this->get_plugin_name(),
-				'file'             => $this->_plugin_basename,
-				'is_premium'       => $this->_get_bool_option( $plugin_info, 'is_premium', true ),
-				'is_live'          => $this->_get_bool_option( $plugin_info, 'is_live', true ),
-//				'secret_key' => $secret_key,
-			) );
-
-			if ( $plugin->is_updated() ) {
-				// Update plugin details.
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
-			}
-			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
-			$this->_plugin->secret_key = $secret_key;
-
-			if ( ! isset( $plugin_info['menu'] ) ) {
-				// Back compatibility to 1.1.2
-				$plugin_info['menu'] = array(
-					'slug' => isset( $plugin_info['menu_slug'] ) ?
-						$plugin_info['menu_slug'] :
-						$this->_slug
-				);
-			}
-
-			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
-			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
-
-			$this->_has_addons       = $this->_get_bool_option( $plugin_info, 'has_addons', false );
-			$this->_has_paid_plans   = $this->_get_bool_option( $plugin_info, 'has_paid_plans', true );
-			$this->_is_org_compliant = $this->_get_bool_option( $plugin_info, 'is_org_compliant', true );
-			$this->_enable_anonymous = $this->_get_bool_option( $plugin_info, 'enable_anonymous', true );
-			$this->_permissions      = $this->_get_option( $plugin_info, 'permissions', array() );
-
-			if ( $this->is_activation_mode() ) {
-				if ( ! is_admin() ) {
-					/**
-					 * If in activation mode, don't execute Freemius outside of the
-					 * admin dashboard.
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since  1.1.7.3
-					 */
+			if ( $this->should_stop_execution() ) {
 					return;
 				}
-
-				if ( ! WP_FS__IS_HTTP_REQUEST ) {
-					/**
-					 * If in activation and executed without HTTP context (e.g. CLI, Cronjob),
-					 * then don't start Freemius.
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since  1.1.6.3
-					 *
-					 * @link   https://wordpress.org/support/topic/errors-in-the-freemius-class-when-running-in-wordpress-in-cli
-					 */
-					return;
-				}
-
-				if ( $this->is_cron() ) {
-					/**
-					 * If in activation mode, don't execute Freemius during wp crons
-					 * (wp crons have HTTP context - called as HTTP request).
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since  1.1.7.3
-					 */
-					return;
-				}
-
-				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
-					/**
-					 * During activation, if running in AJAX mode, unless there's a sticky
-					 * connectivity issue notice, don't run Freemius.
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since  1.1.7.3
-					 */
-					return;
-				}
-			}
 
 			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
@@ -1731,6 +1627,8 @@
 						}
 
 						return;
+					} else {
+						$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 					}
 				}
 
@@ -1775,7 +1673,7 @@
 			if ( $this->is_addon() ) {
 				if ( $this->is_parent_plugin_installed() ) {
 					// Link to parent FS.
-					$this->_parent = self::get_instance_by_id( $parent_id );
+					$this->_parent = self::get_instance_by_id( $this->_plugin->parent_plugin_id );
 
 					// Get parent plugin reference.
 					$this->_parent_plugin = $this->_parent->get_plugin();
@@ -1790,8 +1688,14 @@
 
 				if ( $this->is_addon() ) {
 					if ( ! $this->is_parent_plugin_installed() ) {
+						$parent_name = $this->get_option( $plugin_info, 'parent_name', null );
+
+						if ( isset( $plugin_info['parent'] ) ) {
+							$parent_name = $this->get_option( $plugin_info['parent'], 'name', null );
+						}
+
 						$this->_admin_notices->add(
-							( is_string( $parent_name ) ?
+							( ! empty( $parent_name ) ?
 								sprintf( __fs( 'addon-x-cannot-run-without-y', $this->_slug ), $this->get_plugin_name(), $parent_name ) :
 								sprintf( __fs( 'addon-x-cannot-run-without-parent', $this->_slug ), $this->get_plugin_name() )
 							),
@@ -1877,6 +1781,81 @@
 		}
 
 		/**
+		 * Parse plugin's settings (as defined by the plugin dev).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @param array $plugin_info
+		 *
+		 * @throws \Freemius_Exception
+		 */
+		private function parse_settings( &$plugin_info ) {
+			$this->_logger->entrance();
+
+			$id          = $this->get_numeric_option( $plugin_info, 'id', false );
+			$public_key  = $this->get_option( $plugin_info, 'public_key', false );
+			$secret_key  = $this->get_option( $plugin_info, 'secret_key', null );
+			$parent_id   = $this->get_numeric_option( $plugin_info, 'parent_id', null );
+			$parent_name = $this->get_option( $plugin_info, 'parent_name', null );
+
+			if ( isset( $plugin_info['parent'] ) ) {
+				$parent_id = $this->get_numeric_option( $plugin_info['parent'], 'id', null );
+//				$parent_slug       = $this->get_option( $plugin_info['parent'], 'slug', null );
+//				$parent_public_key = $this->get_option( $plugin_info['parent'], 'public_key', null );
+				$parent_name = $this->get_option( $plugin_info['parent'], 'name', null );
+			}
+
+			if ( false === $id ) {
+				throw new Freemius_Exception( 'Plugin id parameter is not set.' );
+			}
+			if ( false === $public_key ) {
+				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
+			}
+
+			$plugin = ( $this->_plugin instanceof FS_Plugin ) ?
+				$this->_plugin :
+				new FS_Plugin();
+
+			$plugin->update( array(
+				'id'               => $id,
+				'public_key'       => $public_key,
+				'slug'             => $this->_slug,
+				'parent_plugin_id' => $parent_id,
+				'version'          => $this->get_plugin_version(),
+				'title'            => $this->get_plugin_name(),
+				'file'             => $this->_plugin_basename,
+				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
+//				'secret_key' => $secret_key,
+			) );
+
+			if ( $plugin->is_updated() ) {
+				// Update plugin details.
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
+			}
+			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
+			$this->_plugin->secret_key = $secret_key;
+
+			if ( ! isset( $plugin_info['menu'] ) ) {
+				// Back compatibility to 1.1.2
+				$plugin_info['menu'] = array(
+					'slug' => isset( $plugin_info['menu_slug'] ) ?
+						$plugin_info['menu_slug'] :
+						$this->_slug
+				);
+			}
+
+			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
+			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
+
+			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
+			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
+			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
+			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
+			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
+		}
+
 		/**
 		 * @param string[] $options
 		 * @param string   $key
@@ -1896,6 +1875,67 @@
 			return isset( $options[ $key ] ) && is_numeric( $options[ $key ] ) ? $options[ $key ] : $default;
 		}
 
+		/**
+		 * Gate keeper.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return bool
+		 */
+		private function should_stop_execution() {
+			if ( $this->is_activation_mode() ) {
+				if ( ! is_admin() ) {
+					/**
+					 * If in activation mode, don't execute Freemius outside of the
+					 * admin dashboard.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return true;
+				}
+
+				if ( ! WP_FS__IS_HTTP_REQUEST ) {
+					/**
+					 * If in activation and executed without HTTP context (e.g. CLI, Cronjob),
+					 * then don't start Freemius.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.6.3
+					 *
+					 * @link   https://wordpress.org/support/topic/errors-in-the-freemius-class-when-running-in-wordpress-in-cli
+					 */
+					return true;
+				}
+
+				if ( $this->is_cron() ) {
+					/**
+					 * If in activation mode, don't execute Freemius during wp crons
+					 * (wp crons have HTTP context - called as HTTP request).
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return true;
+				}
+
+				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+					/**
+					 * During activation, if running in AJAX mode, unless there's a sticky
+					 * connectivity issue notice, don't run Freemius.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 */
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * Handles plugin's code type change (free <--> premium).
 		 *
 		 * @author Vova Feldman (@svovaf)
