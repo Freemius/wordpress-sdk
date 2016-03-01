@@ -1172,7 +1172,8 @@
 
 			$message = false;
 			if ( is_object( $api_result ) &&
-			     isset( $api_result->error )
+			     isset( $api_result->error ) &&
+			     isset( $api_result->error->code )
 			) {
 				switch ( $api_result->error->code ) {
 					case 'curl_missing':
