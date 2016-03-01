@@ -424,6 +424,36 @@
 		}
 
 		/**
+		 * Leverage backtrace to find caller plugin file path.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.6
+		 *
+		 * @return string
+		 *
+		 * @uses   fs_find_caller_plugin_file
+		 */
+		private function _find_caller_plugin_file() {
+			// Try to load the cached value of the file path.
+			if ( isset( $this->_storage->plugin_main_file ) ) {
+				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
+					return $this->_storage->plugin_main_file->path;
+				}
+			}
+
+			$plugin_file = fs_find_caller_plugin_file();
+
+			$this->_storage->plugin_main_file = (object) array(
+				'path' => fs_normalize_path( $plugin_file ),
+			);
+
+			return $plugin_file;
+		}
+
+
+		#region Deactivation Feedback Form ------------------------------------------------------------------
+
+		/**
 		 * Displays a confirmation and feedback dialog box when the user clicks on the "Deactivate" link on the plugins
 		 * page.
 		 *
@@ -626,32 +656,7 @@
 			exit;
 		}
 
-		/**
-		 * Leverage backtrace to find caller plugin file path.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
-		 *
-		 * @return string
-		 *
-		 * @uses   fs_find_caller_plugin_file
-		 */
-		private function _find_caller_plugin_file() {
-			// Try to load the cached value of the file path.
-			if ( isset( $this->_storage->plugin_main_file ) ) {
-				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
-					return $this->_storage->plugin_main_file->path;
-				}
-			}
-
-			$plugin_file = fs_find_caller_plugin_file();
-
-			$this->_storage->plugin_main_file = (object) array(
-				'path' => fs_normalize_path( $plugin_file ),
-			);
-
-			return $plugin_file;
-		}
+		#endregion Deactivation Feedback Form ------------------------------------------------------------------
 
 		#region Instance ------------------------------------------------------------------
 
@@ -795,6 +800,28 @@
 				( ! $this->enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
 			);
+		}
+
+		/**
+		 * Get collection of all active plugins.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.9
+		 *
+		 * @return array[string]array
+		 */
+		private function get_active_plugins() {
+			self::require_plugin_essentials();
+
+			$active_plugin            = array();
+			$all_plugins              = get_plugins();
+			$active_plugins_basenames = get_option( 'active_plugins' );
+
+			foreach ( $active_plugins_basenames as $plugin_basename ) {
+				$active_plugin[ $plugin_basename ] = $all_plugins[ $plugin_basename ];
+			}
+
+			return $active_plugin;
 		}
 
 		private static $_statics_loaded = false;
@@ -1291,28 +1318,6 @@
 		}
 
 		/**
-		 * Get collection of all active plugins.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
-		 *
-		 * @return array[string]array
-		 */
-		private function get_active_plugins() {
-			self::require_plugin_essentials();
-
-			$active_plugin            = array();
-			$all_plugins              = get_plugins();
-			$active_plugins_basenames = get_option( 'active_plugins' );
-
-			foreach ( $active_plugins_basenames as $plugin_basename ) {
-				$active_plugin[ $plugin_basename ] = $all_plugins[ $plugin_basename ];
-			}
-
-			return $active_plugin;
-		}
-
-		/**
 		 * Handle user request to resolve connectivity issue.
 		 * This method will send an email to Freemius API technical staff for resolution.
 		 * The email will contain server's info and installed plugins (might be caching issue).
@@ -1579,25 +1584,6 @@
 				'is_live'    => $is_live,
 				'is_premium' => $is_premium,
 			) );
-		}
-
-		/**
-		 * @param string[] $options
-		 * @param string   $key
-		 * @param mixed    $default
-		 *
-		 * @return bool
-		 */
-		private function _get_option( &$options, $key, $default = false ) {
-			return ! empty( $options[ $key ] ) ? $options[ $key ] : $default;
-		}
-
-		private function _get_bool_option( &$options, $key, $default = false ) {
-			return isset( $options[ $key ] ) && is_bool( $options[ $key ] ) ? $options[ $key ] : $default;
-		}
-
-		private function _get_numeric_option( &$options, $key, $default = false ) {
-			return isset( $options[ $key ] ) && is_numeric( $options[ $key ] ) ? $options[ $key ] : $default;
 		}
 
 		/**
@@ -1890,6 +1876,25 @@
 		}
 
 		/**
+		/**
+		 * @param string[] $options
+		 * @param string   $key
+		 * @param mixed    $default
+		 *
+		 * @return bool
+		 */
+		private function get_option( &$options, $key, $default = false ) {
+			return ! empty( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
+		private function get_bool_option( &$options, $key, $default = false ) {
+			return isset( $options[ $key ] ) && is_bool( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
+		private function get_numeric_option( &$options, $key, $default = false ) {
+			return isset( $options[ $key ] ) && is_numeric( $options[ $key ] ) ? $options[ $key ] : $default;
+		}
+
 		 * Handles plugin's code type change (free <--> premium).
 		 *
 		 * @author Vova Feldman (@svovaf)
