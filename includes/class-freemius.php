@@ -6401,6 +6401,18 @@
 		}
 
 		/**
+		 * Check if user is a trial or have feature enabled license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		function can_use_premium_code() {
+			return $this->is_trial() || $this->has_features_enabled_license();
+		}
+
+		/**
 		 * Sync site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
