@@ -138,6 +138,7 @@
 		#endregion Account
 
 		'add-ons-for-x'                            => __( 'Add Ons for %s', 'freemius' ),
+		'add-ons-missing'                          => __( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'freemius' ),
 		#region Plugin Deactivation
 		'deactivation-share-reason'                => __( 'If you have a moment, please let us know why you are deactivating', 'freemius' ),
 		'deactivation-modal-button-deactivate'     => __( 'Deactivate', 'freemius' ),
