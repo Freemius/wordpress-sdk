@@ -3510,7 +3510,7 @@
 
 			$this->_logger->departure( 'Version = ' . $plugin_data['Version'] );
 
-			return $plugin_data['Version'];
+			return $this->apply_filters( 'plugin_version', $plugin_data['Version'] );
 		}
 
 		/**
