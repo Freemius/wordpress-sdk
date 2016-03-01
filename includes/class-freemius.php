@@ -6559,7 +6559,11 @@
 						);
 					}
 				}
-			} else {
+
+				// No reason to continue with license sync while there are API issues.
+				return;
+			}
+
 			// Remove sticky API connectivity message.
 			self::$_global_admin_notices->remove_sticky( 'api_blocked' );
 
@@ -6568,7 +6572,11 @@
 			// Sync plans.
 			$this->_sync_plans();
 
-				if ( $this->has_paid_plan() ) {
+			if ( ! $this->has_paid_plan() ) {
+				$this->_site = $site;
+				$this->_enrich_site_plan( true );
+				$this->_store_site();
+			} else {
 				// Sync licenses.
 				$this->_sync_licenses();
 
@@ -6647,7 +6655,6 @@
 						$this->_sync_site_subscription( $this->_license );
 					}
 				}
-			}
 			}
 
 			if ( $this->has_paid_plan() ) {
