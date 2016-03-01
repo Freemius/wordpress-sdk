@@ -336,7 +336,7 @@
 			return (object) array(
 				'error' => array(
 					'type'    => 'TemporaryUnavailable',
-					'message' => 'API is temporary unavailable.',
+					'message' => 'API is temporary unavailable, please retry in ' . ( self::$_cache->get_record_expiration( 'ping_test' ) - WP_FS__SCRIPT_START_TIME ) . ' sec.',
 					'code'    => 'temporary_unavailable',
 					'http'    => 503
 				)
@@ -402,7 +402,7 @@
 		 *
 		 * @return bool
 		 */
-		private static function should_try_with_http($result) {
+		private static function should_try_with_http( $result ) {
 			if ( ! Freemius_Api::IsHttps() ) {
 				return false;
 			}

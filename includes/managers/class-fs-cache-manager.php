@@ -196,6 +196,32 @@
 		}
 
 		/**
+		 * Get cached record expiration, or false if not cached or expired.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @param string $key
+		 *
+		 * @return bool|int
+		 */
+		function get_record_expiration( $key ) {
+			$this->_logger->entrance( 'key = ' . $key );
+
+			$cache_entry = $this->_options->get_option( $key, false );
+
+			if ( is_object( $cache_entry ) &&
+			     isset( $cache_entry->timestamp ) &&
+			     is_numeric( $cache_entry->timestamp ) &&
+			     $cache_entry->timestamp > WP_FS__SCRIPT_START_TIME
+			) {
+				return $cache_entry->timestamp;
+			}
+
+			return false;
+		}
+
+		/**
 		 * Purge cached item.
 		 *
 		 * @author Vova Feldman (@svovaf)
