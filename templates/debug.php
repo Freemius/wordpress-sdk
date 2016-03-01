@@ -18,24 +18,25 @@
 	<div>
 		<!-- Debugging Switch -->
 		<?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
-		<span class="switch-label"><?php _efs('debugging') ?></span>
+		<span class="switch-label"><?php _efs( 'debugging' ) ?></span>
+
 		<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
 			<div class="toggle"></div>
-			<span class="on"><?php _efs('on') ?></span>
-			<span class="off"><?php _efs('off') ?></span>
+			<span class="on"><?php _efs( 'on' ) ?></span>
+			<span class="off"><?php _efs( 'off' ) ?></span>
 		</div>
 		<script type="text/javascript">
-			(function($){
-				$(document).ready(function() {
+			(function ($) {
+				$(document).ready(function () {
 					// Switch toggle
-					$('.switch').click(function() {
+					$('.switch').click(function () {
 						$(this)
 							.toggleClass('on')
 							.toggleClass('off');
 
 						$.post(ajaxurl, {
 							action: 'fs_toggle_debug_mode',
-							is_on: ($(this).hasClass('off') ? 1 : 0)
+							is_on : ($(this).hasClass('off') ? 1 : 0)
 						}, function (response) {
 							if (1 == response) {
 								// Refresh page on success.
@@ -169,7 +170,9 @@
 				<td><?php echo $site->id ?></td>
 				<td><?php echo $slug ?></td>
 				<td><?php
-						echo is_object( $site->plan ) ? $site->plan->name : ''
+						echo is_object( $site->plan ) ?
+							base64_decode( $site->plan->name ) :
+							''
 					?></td>
 				<td><?php echo $site->public_key ?></td>
 				<td><?php echo $site->secret_key ?></td>
@@ -236,7 +239,7 @@
 			<tr>
 				<td><?php echo $user->id ?></td>
 				<td><?php echo $user->get_name() ?></td>
-				<td><?php echo $user->email ?></td>
+				<td><a href="mailto:<?php esc_attr_e($user->email) ?>"><?php echo $user->email ?></a></td>
 				<td><?php echo json_encode( $user->is_verified ) ?></td>
 				<td><?php echo $user->public_key ?></td>
 				<td><?php echo $user->secret_key ?></td>
