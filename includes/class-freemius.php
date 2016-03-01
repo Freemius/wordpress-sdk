@@ -850,7 +850,7 @@
 
 			add_action( 'admin_menu', array( 'Freemius', 'add_debug_page' ) );
 
-			add_action("wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ));
+			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
 			self::$_statics_loaded = true;
 		}
@@ -1604,8 +1604,8 @@
 			$this->parse_settings( $plugin_info );
 
 			if ( $this->should_stop_execution() ) {
-					return;
-				}
+				return;
+			}
 
 			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
@@ -1668,6 +1668,10 @@
 				if ( fs_request_has( 'background_sync' ) ) {
 					$this->run_manual_sync();
 				}
+			}
+
+			if ($this->is_registered()){
+				$this->hook_callback_to_install_sync();
 			}
 
 			if ( $this->is_addon() ) {
@@ -1942,8 +1946,9 @@
 		 * @since  1.0.9
 		 */
 		function _plugin_code_type_changed() {
-			// Send code type changes event.
-			$this->sync_install();
+			// Schedule code type changes event.
+//			$this->sync_install();
+			$this->schedule_install_sync();
 
 			if ( $this->is_premium() ) {
 				// Activated premium code.
@@ -2461,10 +2466,127 @@
 		function last_sync_cron() {
 			$this->_logger->entrance();
 
-			return $this->_storage->get('sync_timestamp');
+			return $this->_storage->get( 'sync_timestamp' );
 		}
 
 		#endregion Daily Sync Cron ------------------------------------------------------------------
+
+		#region Async Install Sync ------------------------------------------------------------------
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return bool
+		 */
+		private function is_install_sync_scheduled() {
+			/**
+			 * @var object $cron_data
+			 */
+			$cron_data = $this->_storage->get( 'install_sync_cron', null );
+
+			return ( ! is_null( $cron_data ) && true === $cron_data->on );
+		}
+
+		/**
+		 * Instead of running blocking install sync event, execute non blocking scheduled wp-cron.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function schedule_install_sync() {
+			$this->_logger->entrance();
+
+			$this->clear_install_sync_cron();
+
+			// Schedule immediate install sync.
+			wp_schedule_single_event(
+				WP_FS__SCRIPT_START_TIME,
+				$this->get_action_tag( 'install_sync' )
+			);
+
+			$this->_storage->store( 'install_sync_cron', (object) array(
+				'version'     => $this->get_plugin_version(),
+				'sdk_version' => $this->version,
+				'timestamp'   => WP_FS__SCRIPT_START_TIME,
+				'on'          => true,
+			) );
+		}
+
+		/**
+		 * Unix timestamp for previous install sync cron execution or false if never executed.
+		 *
+		 * @todo There's some very strange bug that $this->_storage->install_sync_timestamp value is not being updated. But for sure the sync event is working.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return int|false
+		 */
+		function last_install_sync() {
+			$this->_logger->entrance();
+
+			return $this->_storage->get( 'install_sync_timestamp' );
+		}
+
+		/**
+		 * Unix timestamp for next install sync cron execution or false if not scheduled.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 *
+		 * @return int|false
+		 */
+		function next_install_sync() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_install_sync_scheduled() ) {
+				return false;
+			}
+
+			return wp_next_scheduled( $this->get_action_tag( 'install_sync' ) );
+		}
+
+		/**
+		 * Add the actual install sync function to the cron job hook.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function hook_callback_to_install_sync() {
+			$this->add_action( 'install_sync', array( &$this, '_run_sync_install' ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		private function clear_install_sync_cron() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_install_sync_scheduled() ) {
+				return;
+			}
+
+			$this->_storage->remove( 'install_sync_cron' );
+
+			wp_clear_scheduled_hook( $this->get_action_tag( 'install_sync' ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.3
+		 */
+		public function _run_sync_install() {
+			$this->_logger->entrance();
+
+			// Update last install sync timestamp.
+			$this->_storage->install_sync_timestamp = time();
+
+			$this->sync_install( array(), true );
+		}
+
+		#endregion Async Install Sync ------------------------------------------------------------------
 
 		/**
 		 * Show a notice that activation is currently pending.
@@ -2788,8 +2910,9 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
-				// Send re-activation event and sync.
-				$this->sync_install( array(), true );
+				// Schedule re-activation event and sync.
+//				$this->sync_install( array(), true );
+				$this->schedule_install_sync();
 
 				/**
 				 * @todo Work on automatic deactivation of the Free plugin version. It doesn't work since the slug of the free & premium versions is identical. Therefore, only one instance of Freemius is created and the activation hook of the premium version is not being added.
@@ -2875,10 +2998,11 @@
 
 			/**
 			 * IMPORTANT:
-			 *  Clear sync-cron must be executed before clearing all storage.
+			 *  Clear crons must be executed before clearing all storage.
 			 *  Otherwise, the cron will not be cleared.
 			 */
 			$this->clear_sync_cron();
+			$this->clear_install_sync_cron();
 
 			// Clear all storage data.
 			$this->_storage->clear_all( true, array(
@@ -2916,6 +3040,7 @@
 			}
 
 			$this->clear_sync_cron();
+			$this->clear_install_sync_cron();
 
 			if ( $this->is_registered() ) {
 				// Send deactivation event.
@@ -3024,18 +3149,14 @@
 		 * @since  1.0.4
 		 */
 		private function update_plugin_version_event() {
-			$this->_logger->entrance( 'slug = ' . $this->_slug );
+			$this->_logger->entrance();
 
-			// Send update event.
-			$site = $this->send_install_update( array(), true );
-
-			if ( false !== $site && ! $this->is_api_error( $site ) ) {
-				$this->_site       = new FS_Site( $site );
-				$this->_site->plan = $this->_get_plan_by_id( $site->plan_id );
+			if ( ! $this->is_registered() ) {
+				return;
 			}
 
-			$this->_site->version = $this->get_plugin_version();
-			$this->_store_site( true );
+			$this->schedule_install_sync();
+//			$this->sync_install( array(), true );
 		}
 
 		/**
@@ -3114,8 +3235,18 @@
 			}
 
 			if ( 0 < count( $params ) ) {
+				// Update last install sync timestamp.
+				$this->_storage->install_sync_timestamp = time();
+
 				// Send updated values to FS.
-				return $this->get_api_site_scope()->call( '/', 'put', $params );
+				$site = $this->get_api_site_scope()->call( '/', 'put', $params );
+
+				if ( ! $this->is_api_error( $site ) ) {
+					// I successfully sent install update, clear scheduled sync if exist.
+					$this->clear_install_sync_cron();
+				}
+
+				return $site;
 			}
 
 			return false;
@@ -6429,94 +6560,94 @@
 					}
 				}
 			} else {
-				// Remove sticky API connectivity message.
-				self::$_global_admin_notices->remove_sticky( 'api_blocked' );
+			// Remove sticky API connectivity message.
+			self::$_global_admin_notices->remove_sticky( 'api_blocked' );
 
-				$site = new FS_Site( $site );
+			$site = new FS_Site( $site );
 
-				// Sync plans.
-				$this->_sync_plans();
+			// Sync plans.
+			$this->_sync_plans();
 
 				if ( $this->has_paid_plan() ) {
-					// Sync licenses.
-					$this->_sync_licenses();
+				// Sync licenses.
+				$this->_sync_licenses();
 
-					// Check if plan / license changed.
-					if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
-					     // Check if trial started.
-					     $site->trial_plan_id != $this->_site->trial_plan_id ||
-					     $site->trial_ends != $this->_site->trial_ends ||
-					     // Check if license changed.
-					     $site->license_id != $this->_site->license_id
-					) {
-						if ( $site->is_trial() && ( ! $this->_site->is_trial() || $site->trial_ends != $this->_site->trial_ends ) ) {
-							// New trial started.
+				// Check if plan / license changed.
+				if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
+				     // Check if trial started.
+				     $site->trial_plan_id != $this->_site->trial_plan_id ||
+				     $site->trial_ends != $this->_site->trial_ends ||
+				     // Check if license changed.
+				     $site->license_id != $this->_site->license_id
+				) {
+					if ( $site->is_trial() && ( ! $this->_site->is_trial() || $site->trial_ends != $this->_site->trial_ends ) ) {
+						// New trial started.
+						$this->_site = $site;
+						$plan_change = 'trial_started';
+
+						// Store trial plan information.
+						$this->_enrich_site_trial_plan( true );
+
+						// For trial with subscription use-case.
+						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+
+						if ( is_object( $new_license ) && ! $new_license->is_expired() ) {
 							$this->_site = $site;
-							$plan_change = 'trial_started';
+							$this->_update_site_license( $new_license );
+							$this->_store_licenses();
+							$this->_enrich_site_plan( true );
 
-							// Store trial plan information.
-							$this->_enrich_site_trial_plan( true );
-
-							// For trial with subscription use-case.
-							$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
-
-							if ( is_object( $new_license ) && ! $new_license->is_expired() ) {
-								$this->_site = $site;
-								$this->_update_site_license( $new_license );
-								$this->_store_licenses();
-								$this->_enrich_site_plan( true );
-
-								$this->_sync_site_subscription( $this->_license );
-							}
-						} else if ( $this->_site->is_trial() && ! $site->is_trial() && ! is_numeric( $site->license_id ) ) {
-							// Was in trial, but now trial expired and no license ID.
-							// New trial started.
-							$this->_site = $site;
-							$plan_change = 'trial_expired';
-
-							// Clear trial plan information.
-							$this->_storage->trial_plan = null;
-
-						} else {
-							$is_free = $this->is_free_plan();
-
-							// Make sure license exist and not expired.
-							$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
-
-							if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
-								// The license is expired, so ignore upgrade method.
-							} else {
-								// License changed.
-								$this->_site = $site;
-								$this->_update_site_license( $new_license );
-								$this->_store_licenses();
-								$this->_enrich_site_plan( true );
-
-								$plan_change = $is_free ?
-									'upgraded' :
-									( is_object( $new_license ) ?
-										'changed' :
-										'downgraded' );
-							}
-						}
-
-						// Store updated site info.
-						$this->_store_site();
-					} else {
-						if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
-							if ( ! $this->has_features_enabled_license() ) {
-								$this->_deactivate_license();
-								$plan_change = 'downgraded';
-							} else {
-								$plan_change = 'expired';
-							}
-						}
-
-						if ( is_numeric( $site->license_id ) && is_object( $this->_license ) ) {
 							$this->_sync_site_subscription( $this->_license );
 						}
+					} else if ( $this->_site->is_trial() && ! $site->is_trial() && ! is_numeric( $site->license_id ) ) {
+						// Was in trial, but now trial expired and no license ID.
+						// New trial started.
+						$this->_site = $site;
+						$plan_change = 'trial_expired';
+
+						// Clear trial plan information.
+						$this->_storage->trial_plan = null;
+
+					} else {
+						$is_free = $this->is_free_plan();
+
+						// Make sure license exist and not expired.
+						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+
+						if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
+							// The license is expired, so ignore upgrade method.
+						} else {
+							// License changed.
+							$this->_site = $site;
+							$this->_update_site_license( $new_license );
+							$this->_store_licenses();
+							$this->_enrich_site_plan( true );
+
+							$plan_change = $is_free ?
+								'upgraded' :
+								( is_object( $new_license ) ?
+									'changed' :
+									'downgraded' );
+						}
+					}
+
+					// Store updated site info.
+					$this->_store_site();
+				} else {
+					if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
+						if ( ! $this->has_features_enabled_license() ) {
+							$this->_deactivate_license();
+							$plan_change = 'downgraded';
+						} else {
+							$plan_change = 'expired';
+						}
+					}
+
+					if ( is_numeric( $site->license_id ) && is_object( $this->_license ) ) {
+						$this->_sync_site_subscription( $this->_license );
 					}
 				}
+			}
 			}
 
 			if ( $this->has_paid_plan() ) {
