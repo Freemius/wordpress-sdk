@@ -19,7 +19,7 @@
 	/**
 	 * @var FS_Plugin_Tag $update
 	 */
-	$update = $fs->get_update(false, false);
+	$update = $fs->get_update( false, false );
 
 	$is_paying              = $fs->is_paying();
 	$user                   = $fs->get_user();
@@ -176,7 +176,7 @@
 					)
 				);
 
-				if ($fs->has_paid_plan()) {
+				if ( $fs->has_paid_plan() ) {
 					if ( $fs->is_trial() ) {
 						$trial_plan = $fs->get_trial_plan();
 
@@ -239,7 +239,14 @@
 										class="fs-tag fs-warn"><?php printf( __fs( 'expires-in', $slug ), human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ?></label>
 								<?php endif ?>
 							<?php endif ?>
-
+							<?php if ( 'version' === $p['id'] && $fs->has_paid_plan() ) : ?>
+								<?php if ( $fs->is_premium() ) : ?>
+									<label
+										class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php _efs( 'premium-version' ) ?></label>
+								<?php elseif ( $fs->can_use_premium_code() ) : ?>
+									<label class="fs-tag fs-warn"><?php _efs( 'free-version' ) ?></label>
+								<?php endif ?>
+							<?php endif ?>
 						</td>
 						<td class="fs-right">
 							<?php if ( 'email' === $p['id'] && ! $user->is_verified() ) : ?>

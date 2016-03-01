@@ -100,6 +100,8 @@
 		'plugins'                                  => __( 'Plugins', 'freemius' ),
 		'path'                                     => _x( 'Path', 'as file/folder path', 'freemius' ),
 		'title'                                    => __( 'Title', 'freemius' ),
+		'free-version'                             => __( 'Free version', 'freemius' ),
+		'premium-version'                          => __( 'Premium version', 'freemius' ),
 		'slug'                                     => _x( 'Slug', 'as WP plugin slug', 'freemius' ),
 		'id'                                       => __( 'ID', 'freemius' ),
 		'users'                                    => __( 'Users', 'freemius' ),
