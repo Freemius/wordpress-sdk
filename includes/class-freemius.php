@@ -5085,7 +5085,24 @@
 			) );
 
 			if ( $response instanceof WP_Error ) {
-				return false;
+				if ( 'https://' === substr( $url, 0, 8 ) &&
+				     isset( $response->errors ) &&
+				     isset( $response->errors['http_request_failed'] ) &&
+				     false !== strpos( $response->errors['http_request_failed'][0], 'sslv3 alert handshake' )
+				) {
+					// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+					$url = 'http://' . substr( $url, 8 );
+
+					$response = wp_remote_post( $url, array(
+						'method'  => 'POST',
+						'body'    => $params,
+						'timeout' => 15,
+					) );
+				}
+
+				if ( $response instanceof WP_Error ) {
+					return false;
+				}
 			}
 
 			if ( is_wp_error( $response ) ) {
@@ -5339,7 +5356,7 @@
 		 *
 		 * @param bool $redirect
 		 */
-		private function install_with_current_user($redirect = true) {
+		private function install_with_current_user( $redirect = true ) {
 			$this->_admin_notices->remove_sticky( 'connect_account' );
 
 			// Get current logged WP user.
