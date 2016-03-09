@@ -3894,14 +3894,22 @@
 		}
 
 		/**
+		 * Get the current plan for this site
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @return FS_Plugin_Plan
+		 * @return FS_Plugin_Plan|bool
 		 */
-		function get_plan() {
-			return is_object( $this->_site->plan ) ? $this->_site->plan : false;
+		public function get_plan() {
+			if ( $this->_site ) {
+				return is_object( $this->_site->plan ) ? $this->_site->plan : false;
+			}
+
+			return false;
+
 		}
+
 
 		/**
 		 * @author Vova Feldman (@svovaf)
