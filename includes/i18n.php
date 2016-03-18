@@ -256,7 +256,7 @@
 		'license-expired-blocking-message'         => __( 'Your license has expired. You can still continue using the free plugin forever.', 'freemius' ),
 		'trial-started-message'                    => __( 'Your trial has been successfully started.', 'freemius' ),
 		'license-activated-message'                => __( 'Your license was successfully activated.', 'freemius' ),
-		'no-active-license-message'                => __( 'It looks like your site currently don\'t have an active license.', 'freemius' ),
+		'no-active-license-message'                => __( 'It looks like your site currently doesn\'t have an active license.', 'freemius' ),
 		'license-deactivation-message'             => __( 'Your license was successfully deactivated, you are back to the %s plan.', 'freemius' ),
 		'license-deactivation-failed-message'      => __( 'It looks like the license deactivation failed.', 'freemius' ),
 		'license-activation-failed-message'        => __( 'It looks like the license could not be activated.', 'freemius' ),
