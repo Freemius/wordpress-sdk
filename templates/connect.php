@@ -16,7 +16,7 @@
 
 	$fs->_enqueue_connect_essentials();
 
-	$current_user = wp_get_current_user();
+	$current_user = Freemius::_get_current_wp_user();
 
 	$first_name = $current_user->user_firstname;
 	if ( empty( $first_name ) ) {
@@ -109,49 +109,7 @@
 			</form>
 		<?php else : ?>
 			<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
-				<?php
-					$params = array(
-						'user_firstname'    => $current_user->user_firstname,
-						'user_lastname'     => $current_user->user_lastname,
-						'user_nickname'     => $current_user->user_nicename,
-						'user_email'        => $current_user->user_email,
-						'user_ip'           => WP_FS__REMOTE_ADDR,
-						'plugin_slug'       => $slug,
-						'plugin_id'         => $fs->get_id(),
-						'plugin_public_key' => $fs->get_public_key(),
-						'plugin_version'    => $fs->get_plugin_version(),
-						'return_url'        => wp_nonce_url( $fs->_get_admin_page_url(
-							'',
-							array( 'fs_action' => $slug . '_activate_new' )
-						), $slug . '_activate_new' ),
-						'account_url'       => wp_nonce_url( $fs->_get_admin_page_url(
-							'account',
-							array( 'fs_action' => 'sync_user' )
-						), 'sync_user' ),
-						'site_uid'          => $fs->get_anonymous_id(),
-						'site_url'          => get_site_url(),
-						'site_name'         => get_bloginfo( 'name' ),
-						'platform_version'  => get_bloginfo( 'version' ),
-						'php_version'       => phpversion(),
-						'language'          => get_bloginfo( 'language' ),
-						'charset'           => get_bloginfo( 'charset' ),
-					);
-
-					if ( WP_FS__SKIP_EMAIL_ACTIVATION && $fs->has_secret_key() ) {
-						// Even though rand() is known for its security issues,
-						// the timestamp adds another layer of protection.
-						// It would be very hard for an attacker to get the secret key form here.
-						// Plus, this should never run in production since the secret should never
-						// be included in the production version.
-						$params['ts']     = WP_FS__SCRIPT_START_TIME;
-						$params['salt']   = md5( uniqid( rand() ) );
-						$params['secure'] = md5(
-							$params['ts'] .
-							$params['salt'] .
-							$fs->get_secret_key()
-						);
-					}
-				?>
+				<?php $params = $fs->get_opt_in_params() ?>
 				<?php foreach ( $params as $name => $value ) : ?>
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 				<?php endforeach ?>

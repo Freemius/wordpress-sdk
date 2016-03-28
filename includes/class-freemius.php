@@ -1038,6 +1038,35 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @return object|false
+		 */
+		private function ping() {
+			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
+				return false;
+			}
+
+			$version = $this->get_plugin_version();
+
+			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
+
+			return $this->get_api_plugin_scope()->ping(
+				$this->get_anonymous_id(),
+				array(
+					'is_update' => json_encode( $is_update ),
+					'version'   => $version,
+					'sdk'       => $this->version,
+					'is_admin'  => json_encode( is_admin() ),
+					'is_ajax'   => json_encode( $this->is_ajax() ),
+					'is_cron'   => json_encode( $this->is_cron() ),
+					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
+				)
+			);
+		}
+
+		/**
 		 * Check if there's any connectivity issue to Freemius API.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -1048,11 +1077,11 @@
 		 * @return bool
 		 */
 		function has_api_connectivity( $flush_if_no_connectivity = false ) {
+			$this->_logger->entrance();
+
 			if ( isset( $this->_has_api_connection ) && ( $this->_has_api_connection || ! $flush_if_no_connectivity ) ) {
 				return $this->_has_api_connection;
 			}
-
-			$version = $this->get_plugin_version();
 
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
 			     isset( $this->_storage->connectivity_test ) &&
@@ -1072,32 +1101,30 @@
 				return $this->_has_api_connection;
 			}
 
-			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-			$pong = null;
-
-			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
-				$is_connected = false;
-			} else {
-				$pong         = $this->get_api_plugin_scope()->ping(
-					$this->get_anonymous_id(),
-					array(
-						'is_update' => json_encode( $is_update ),
-						'version'   => $version,
-						'sdk'       => $this->version,
-						'is_admin'  => json_encode( is_admin() ),
-						'is_ajax'   => json_encode( $this->is_ajax() ),
-						'is_cron'   => json_encode( $this->is_cron() ),
-						'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
-					)
-				);
-				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
-			}
+			$pong         = $this->ping();
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
 			if ( ! $is_connected ) {
-				// Another API failure.
+				// API failure.
 				$this->_add_connectivity_issue_message( $pong );
 			}
+
+			$this->store_connectivity_info( $pong, $is_connected );
+
+			return $this->_has_api_connection;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @param object $pong
+		 * @param bool   $is_connected
+		 */
+		private function store_connectivity_info( $pong, $is_connected ) {
+			$this->_logger->entrance();
+
+			$version = $this->get_plugin_version();
 
 			$is_active = $this->apply_filters(
 				'is_on',
@@ -1119,8 +1146,6 @@
 
 			$this->_has_api_connection = $is_connected;
 			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected );
-
-			return $this->_has_api_connection;
 		}
 
 		/**
@@ -1147,14 +1172,27 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @return \WP_User
+		 */
+		static function _get_current_wp_user() {
+			self::require_pluggable_essentials();
+
+			return wp_get_current_user();
+		}
+
+		/**
 		 * Generate API connectivity issue message.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
 		 * @param mixed $api_result
+		 * @param bool  $is_first_failure
 		 */
-		function _add_connectivity_issue_message( $api_result ) {
+		function _add_connectivity_issue_message( $api_result, $is_first_failure = true ) {
 			if ( $this->_enable_anonymous ) {
 				// Don't add message if can run anonymously.
 				return;
@@ -1164,9 +1202,7 @@
 				require_once( ABSPATH . 'wp-includes/functions.php' );
 			}
 
-			self::require_pluggable_essentials();
-
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 //			$admin_email = get_option( 'admin_email' );
 			$admin_email = $current_user->user_email;
 
@@ -1277,44 +1313,74 @@
 				}
 			}
 
+			$message_id = 'failed_connect_api';
+			$type       = 'error';
+
 			if ( false === $message ) {
-				$message = sprintf(
-					__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-					__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-					__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
-					' %s',
-					'<b>' . $this->get_plugin_name() . '</b>',
-					sprintf(
-						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+				if ( $is_first_failure ) {
+					// First attempt failed.
+					$message = sprintf(
+						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-maybe-temporary', $this->_slug ) . '<br><br>' .
+						'%s',
+						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
-							'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-							__fs( 'fix-issue-title', $this->_slug ),
-							' - ' . sprintf(
-								__fs( 'fix-issue-desc', $this->_slug ),
-								'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+							'<div id="fs_firewall_issue_options">%s %s</div>',
+							sprintf(
+								'<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
+								__fs( 'yes-do-your-thing', $this->_slug )
+							),
+							sprintf(
+								'<a href="%s" class="button">%s</a>',
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								__fs( 'no-deactivate', $this->_slug )
 							)
-						),
-						sprintf(
-							'<a href="%s" target="_blank"><b>%s</b></a>%s',
-							sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-							__fs( 'install-previous-title', $this->_slug ),
-							' - ' . __fs( 'install-previous-desc', $this->_slug )
-						),
-						sprintf(
-							'<a href="%s"><b>%s</b></a>%s',
-							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-							__fs( 'deactivate-plugin-title', $this->_slug ),
-							' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
 						)
-					)
-				);
+					);
+
+					$message_id = 'failed_connect_api_first';
+					$type       = 'promotion';
+				} else {
+					// Second connectivity attempt failed.
+					$message = sprintf(
+						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+						__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
+						' %s',
+						'<b>' . $this->get_plugin_name() . '</b>',
+						sprintf(
+							'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+							sprintf(
+								'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
+								__fs( 'fix-issue-title', $this->_slug ),
+								' - ' . sprintf(
+									__fs( 'fix-issue-desc', $this->_slug ),
+									'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+								)
+							),
+							sprintf(
+								'<a href="%s" target="_blank"><b>%s</b></a>%s',
+								sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+								__fs( 'install-previous-title', $this->_slug ),
+								' - ' . __fs( 'install-previous-desc', $this->_slug )
+							),
+							sprintf(
+								'<a href="%s"><b>%s</b></a>%s',
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								__fs( 'deactivate-plugin-title', $this->_slug ),
+								' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+							)
+						)
+					);
+				}
 			}
 
 			$this->_admin_notices->add_sticky(
 				$message,
-				'failed_connect_api',
+				$message_id,
 				__fs( 'oops', $this->_slug ) . '...',
-				'error'
+				$type
 			);
 		}
 
@@ -1329,25 +1395,19 @@
 		function _email_about_firewall_issue() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-			self::require_pluggable_essentials();
+			$pong = $this->ping();
 
-			$current_user = wp_get_current_user();
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+
+			if ( $is_connected ) {
+				$this->store_connectivity_info( $pong, $is_connected );
+
+				echo $this->get_after_plugin_activation_redirect_url();
+				exit;
+			}
+
+			$current_user = self::_get_current_wp_user();
 			$admin_email  = $current_user->user_email;
-
-			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-			$ping = $this->get_api_plugin_scope()->ping(
-				$this->get_anonymous_id(),
-				array(
-					'is_update' => json_encode( $is_update ),
-					'version'   => $this->get_plugin_version(),
-					'sdk'       => $this->version,
-					'is_admin'  => json_encode( is_admin() ),
-					'is_ajax'   => json_encode( $this->is_ajax() ),
-					'is_cron'   => json_encode( $this->is_cron() ),
-					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
-				)
-			);
 
 			$error_type = fs_request_get( 'error_type', 'general' );
 
@@ -1378,7 +1438,7 @@
 			$custom_email_sections['api_error'] = array(
 				'title' => 'API Error',
 				'rows'  => array(
-					'ping' => array( is_string( $ping ) ? htmlentities( $ping ) : json_encode( $ping ) )
+					'ping' => array( is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong ) )
 				)
 			);
 
@@ -1401,6 +1461,33 @@
 			// Action was taken, tell that API connectivity troubleshooting should be off now.
 
 			echo "1";
+			exit;
+		}
+
+		/**
+		 * Handle connectivity test retry approved by the user.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 */
+		function _retry_connectivity_test() {
+			$this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
+
+			$pong = $this->ping();
+
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+
+			if ( $is_connected ) {
+				$this->store_connectivity_info( $pong, $is_connected );
+
+				echo $this->get_after_plugin_activation_redirect_url();
+			} else {
+				// Add connectivity issue message after 2nd failed attempt.
+				$this->_add_connectivity_issue_message( $pong, false );
+
+				echo "1";
+			}
+
 			exit;
 		}
 
@@ -1486,10 +1573,8 @@
 		 * @return array
 		 */
 		private function get_email_sections() {
-			self::require_pluggable_essentials();
-
 			// Retrieve the current user's information so that we can get the user's email, first name, and last name below.
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 
 			// Retrieve the cURL version information so that we can get the version number below.
 			$curl_version_information = curl_version();
@@ -1614,7 +1699,9 @@
 					$this->_is_on              = true;
 				} else {
 					if ( ! $this->has_api_connectivity() ) {
-						if ( $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
+						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
+						) {
 							if ( ! $this->_enable_anonymous ) {
 								// If anonymous mode is disabled, add firewall admin-notice message.
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
@@ -1623,12 +1710,20 @@
 									&$this,
 									'_email_about_firewall_issue'
 								) );
+
+								add_action( "wp_ajax_{$this->_slug}_retry_connectivity_test", array(
+									&$this,
+									'_retry_connectivity_test'
+								) );
 							}
 						}
 
 						return;
 					} else {
-						$this->_admin_notices->remove_sticky( 'failed_connect_api' );
+						$this->_admin_notices->remove_sticky( array(
+							'failed_connect_api_first',
+							'failed_connect_api',
+						) );
 					}
 				}
 
@@ -1670,7 +1765,7 @@
 				}
 			}
 
-			if ($this->is_registered()){
+			if ( $this->is_registered() ) {
 				$this->hook_callback_to_install_sync();
 			}
 
@@ -1924,7 +2019,10 @@
 					return true;
 				}
 
-				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+				if ( $this->is_ajax() &&
+				     ! $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) &&
+				     ! $this->_admin_notices->has_sticky( 'failed_connect_api' )
+				) {
 					/**
 					 * During activation, if running in AJAX mode, unless there's a sticky
 					 * connectivity issue notice, don't run Freemius.
@@ -2516,7 +2614,8 @@
 		/**
 		 * Unix timestamp for previous install sync cron execution or false if never executed.
 		 *
-		 * @todo There's some very strange bug that $this->_storage->install_sync_timestamp value is not being updated. But for sure the sync event is working.
+		 * @todo   There's some very strange bug that $this->_storage->install_sync_timestamp value is not being
+		 *         updated. But for sure the sync event is working.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.3
@@ -2598,7 +2697,7 @@
 		 */
 		function _add_pending_activation_notice( $email = false ) {
 			if ( ! is_string( $email ) ) {
-				$current_user = wp_get_current_user();
+				$current_user = self::_get_current_wp_user();
 				$email        = $current_user->user_email;
 			}
 
@@ -3510,7 +3609,7 @@
 
 			$this->_logger->departure( 'Version = ' . $plugin_data['Version'] );
 
-			return $plugin_data['Version'];
+			return $this->apply_filters( 'plugin_version', $plugin_data['Version'] );
 		}
 
 		/**
@@ -3740,30 +3839,34 @@
 		function get_addons() {
 			$this->_logger->entrance();
 
-			$addons = self::get_all_addons();
+			$all_addons = self::get_all_addons();
 
 			/**
 			 * @since 1.1.7.3 If not yet loaded, fetch data from the API.
 			 */
-			if ( ! is_array( $addons ) ||
-			     ! isset( $addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $addons[ $this->_plugin->id ] ) ||
-			     empty( $addons[ $this->_plugin->id ] )
+			if ( ! is_array( $all_addons ) ||
+			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
+			     empty( $all_addons[ $this->_plugin->id ] )
 			) {
 				if ( $this->_has_addons ) {
 					$addons = $this->_sync_addons();
+
+					if ( ! empty( $addons ) ) {
+						$all_addons = self::get_all_addons();
+					}
 				}
 			}
 
-			if ( ! is_array( $addons ) ||
-			     ! isset( $addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $addons[ $this->_plugin->id ] ) ||
-			     empty( $addons[ $this->_plugin->id ] )
+			if ( ! is_array( $all_addons ) ||
+			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
+			     empty( $all_addons[ $this->_plugin->id ] )
 			) {
 				return false;
 			}
 
-			return $addons[ $this->_plugin->id ];
+			return $all_addons[ $this->_plugin->id ];
 		}
 
 		/**
@@ -4976,6 +5079,169 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param array $override_with
+		 *
+		 * @return array
+		 */
+		function get_opt_in_params( $override_with = array() ) {
+			$this->_logger->entrance();
+
+			$current_user = self::_get_current_wp_user();
+
+			$params = array(
+				'user_firstname'    => $current_user->user_firstname,
+				'user_lastname'     => $current_user->user_lastname,
+				'user_nickname'     => $current_user->user_nicename,
+				'user_email'        => $current_user->user_email,
+				'user_ip'           => WP_FS__REMOTE_ADDR,
+				'plugin_slug'       => $this->_slug,
+				'plugin_id'         => $this->get_id(),
+				'plugin_public_key' => $this->get_public_key(),
+				'plugin_version'    => $this->get_plugin_version(),
+				'return_url'        => wp_nonce_url( $this->_get_admin_page_url(
+					'',
+					array( 'fs_action' => $this->_slug . '_activate_new' )
+				), $this->_slug . '_activate_new' ),
+				'account_url'       => wp_nonce_url( $this->_get_admin_page_url(
+					'account',
+					array( 'fs_action' => 'sync_user' )
+				), 'sync_user' ),
+				'site_uid'          => $this->get_anonymous_id(),
+				'site_url'          => get_site_url(),
+				'site_name'         => get_bloginfo( 'name' ),
+				'platform_version'  => get_bloginfo( 'version' ),
+				'php_version'       => phpversion(),
+				'language'          => get_bloginfo( 'language' ),
+				'charset'           => get_bloginfo( 'charset' ),
+			);
+
+			if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
+				// Even though rand() is known for its security issues,
+				// the timestamp adds another layer of protection.
+				// It would be very hard for an attacker to get the secret key form here.
+				// Plus, this should never run in production since the secret should never
+				// be included in the production version.
+				$params['ts']     = WP_FS__SCRIPT_START_TIME;
+				$params['salt']   = md5( uniqid( rand() ) );
+				$params['secure'] = md5(
+					$params['ts'] .
+					$params['salt'] .
+					$this->get_secret_key()
+				);
+			}
+
+			return array_merge( $params, $override_with );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param string|bool $email
+		 * @param string|bool $first
+		 * @param string|bool $last
+		 *
+		 * @return bool Is successful opt-in (or set to pending).
+		 */
+		function opt_in( $email = false, $first = false, $last = false ) {
+			$this->_logger->entrance();
+
+			if ( false === $email ) {
+				$current_user = self::_get_current_wp_user();
+				$email        = $current_user->user_email;
+			}
+
+			$fs_user = Freemius::_get_user_by_email( $email );
+			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
+				$this->install_with_current_user( false );
+
+				return true;
+			}
+
+			$user_info = array();
+			if ( ! empty( $email ) ) {
+				$user_info['user_email'] = $email;
+			}
+			if ( ! empty( $first ) ) {
+				$user_info['user_firstname'] = $first;
+			}
+			if ( ! empty( $last ) ) {
+				$user_info['user_lastname'] = $last;
+			}
+
+			$params           = $this->get_opt_in_params( $user_info );
+			$params['format'] = 'json';
+
+			$url = WP_FS__ADDRESS . '/action/service/user/install/';
+			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+				$url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+			}
+
+			$response = wp_remote_post( $url, array(
+				'method'  => 'POST',
+				'body'    => $params,
+				'timeout' => 15,
+			) );
+
+			if ( $response instanceof WP_Error ) {
+				if ( 'https://' === substr( $url, 0, 8 ) &&
+				     isset( $response->errors ) &&
+				     isset( $response->errors['http_request_failed'] ) &&
+				     false !== strpos( $response->errors['http_request_failed'][0], 'sslv3 alert handshake' )
+				) {
+					// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+					$url = 'http://' . substr( $url, 8 );
+
+					$response = wp_remote_post( $url, array(
+						'method'  => 'POST',
+						'body'    => $params,
+						'timeout' => 15,
+					) );
+				}
+
+				if ( $response instanceof WP_Error ) {
+				return false;
+			}
+			}
+
+			if ( is_wp_error( $response ) ) {
+				return false;
+			}
+
+			$decoded = @json_decode( $response['body'] );
+
+			if ( empty( $decoded ) ) {
+				return false;
+			}
+
+			if ( isset( $decoded->error ) ) {
+				return false;
+			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
+				// Pending activation, add message.
+				$this->set_pending_confirmation( false, false );
+
+				return true;
+			} else if ( isset( $decoded->install_secret_key ) ) {
+				$this->install_with_new_user(
+					$decoded->user_id,
+					$decoded->user_public_key,
+					$decoded->user_secret_key,
+					$decoded->install_id,
+					$decoded->install_public_key,
+					$decoded->install_secret_key,
+					false
+				);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
 		 * Set user and site identities.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5086,38 +5352,82 @@
 				$this->_admin_notices->remove_sticky( 'connect_account' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
-					$user             = new FS_User();
-					$user->id         = fs_request_get( 'user_id' );
-					$user->public_key = fs_request_get( 'user_public_key' );
-					$user->secret_key = fs_request_get( 'user_secret_key' );
-
-					$this->_user = $user;
-					$user_result = $this->get_api_user_scope()->get();
-					$user        = new FS_User( $user_result );
-					$this->_user = $user;
-
-					$site             = new FS_Site();
-					$site->id         = fs_request_get( 'install_id' );
-					$site->public_key = fs_request_get( 'install_public_key' );
-					$site->secret_key = fs_request_get( 'install_secret_key' );
-
-					$this->_site = $site;
-					$site_result = $this->get_api_site_scope()->get();
-					$site        = new FS_Site( $site_result );
-					$this->_site = $site;
-
-					$this->setup_account( $this->_user, $this->_site );
+					$this->install_with_new_user(
+						fs_request_get( 'user_id' ),
+						fs_request_get( 'user_public_key' ),
+						fs_request_get( 'user_secret_key' ),
+						fs_request_get( 'install_id' ),
+						fs_request_get( 'install_public_key' ),
+						fs_request_get( 'install_secret_key' )
+					);
 				} else if ( fs_request_has( 'pending_activation' ) ) {
-					// Install must be activated via email since
-					// user with the same email already exist.
-					$this->_storage->is_pending_activation = true;
-					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
-
-					// Reload the page with with pending activation message.
-					if ( fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
-						exit();
-					}
+					$this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
 				}
+			}
+		}
+
+		/**
+		 * Install plugin with new user.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param number $user_id
+		 * @param string $user_public_key
+		 * @param string $user_secret_key
+		 * @param number $install_id
+		 * @param string $install_public_key
+		 * @param string $install_secret_key
+		 * @param bool   $redirect
+		 */
+		private function install_with_new_user(
+			$user_id,
+			$user_public_key,
+			$user_secret_key,
+			$install_id,
+			$install_public_key,
+			$install_secret_key,
+			$redirect = true
+		) {
+			$user             = new FS_User();
+			$user->id         = $user_id;
+			$user->public_key = $user_public_key;
+			$user->secret_key = $user_secret_key;
+
+			$this->_user = $user;
+			$user_result = $this->get_api_user_scope()->get();
+			$user        = new FS_User( $user_result );
+			$this->_user = $user;
+
+			$site             = new FS_Site();
+			$site->id         = $install_id;
+			$site->public_key = $install_public_key;
+			$site->secret_key = $install_secret_key;
+
+			$this->_site = $site;
+			$site_result = $this->get_api_site_scope()->get();
+			$site        = new FS_Site( $site_result );
+			$this->_site = $site;
+
+			$this->setup_account( $this->_user, $this->_site, $redirect );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param bool $email
+		 * @param bool $redirect
+		 */
+		private function set_pending_confirmation( $email = false, $redirect = true ) {
+			// Install must be activated via email since
+			// user with the same email already exist.
+			$this->_storage->is_pending_activation = true;
+			$this->_add_pending_activation_notice( $email );
+
+			// Reload the page with with pending activation message.
+			if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
+				exit();
 			}
 		}
 
@@ -5137,46 +5447,57 @@
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
 
-				$this->_admin_notices->remove_sticky( 'connect_account' );
+				$this->install_with_current_user();
+			}
+		}
 
-				// Get current logged WP user.
-				$current_user = wp_get_current_user();
 
-				// Find the relevant FS user by the email.
-				$user = self::_get_user_by_email( $current_user->user_email );
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param bool $redirect
+		 */
+		private function install_with_current_user( $redirect = true ) {
+			$this->_admin_notices->remove_sticky( 'connect_account' );
 
-				// We have to set the user before getting user scope API handler.
-				$this->_user = $user;
+			// Get current logged WP user.
+			$current_user = self::_get_current_wp_user();
 
-				// Install the plugin.
-				$install = $this->get_api_user_scope()->call(
-					"/plugins/{$this->get_id()}/installs.json",
-					'post',
-					$this->get_install_data_for_api( array(
-						'uid' => $this->get_anonymous_id(),
-					) )
+			// Find the relevant FS user by the email.
+			$user = self::_get_user_by_email( $current_user->user_email );
+
+			// We have to set the user before getting user scope API handler.
+			$this->_user = $user;
+
+			// Install the plugin.
+			$install = $this->get_api_user_scope()->call(
+				"/plugins/{$this->get_id()}/installs.json",
+				'post',
+				$this->get_install_data_for_api( array(
+					'uid' => $this->get_anonymous_id(),
+				) )
+			);
+
+			if ( isset( $install->error ) ) {
+				$this->_admin_notices->add(
+					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
+					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
 				);
 
-				if ( isset( $install->error ) ) {
-					$this->_admin_notices->add(
-						sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
-						__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
-						__fs( 'oops', $this->_slug ) . '...',
-						'error'
-					);
+				return;
+			}
 
-					return;
-				}
-
-				$site        = new FS_Site( $install );
-				$this->_site = $site;
+			$site        = new FS_Site( $install );
+			$this->_site = $site;
 //				$this->_enrich_site_plan( false );
 
 //				$this->_set_account( $user, $site );
 //				$this->_sync_plans();
 
-				$this->setup_account( $this->_user, $this->_site );
-			}
+			$this->setup_account( $this->_user, $this->_site, $redirect );
 		}
 
 		/**
@@ -5420,7 +5741,7 @@
 			$this->do_action( 'before_admin_menu_init' );
 
 			if ( ! $this->is_addon() ) {
-				if ( $this->is_registered() || $this->is_anonymous() ) {
+				if ( ! $this->is_activation_mode() ) {
 					if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
@@ -7118,15 +7439,16 @@
 			$this->_logger->entrance();
 
 			/**
-			 * Check for plugin updates from Freemius only if opted-in.
-			 *
-			 * @since 1.1.7.3
+			 * @since 1.1.7.3 Check for plugin updates from Freemius only if opted-in.
+			 * @since 1.1.7.4 Also check updates for add-ons.
 			 */
-			if ( ! $this->is_registered() ) {
+			if ( ! $this->is_registered() &&
+			     ! $this->_is_addon_id( $addon_id )
+			) {
 				return false;
 			}
 
-			$tag = $this->get_api_site_scope()->get(
+			$tag = $this->get_api_site_or_plugin_scope()->get(
 				$this->_get_latest_version_endpoint( $addon_id, 'json' ),
 				$flush
 			);
@@ -7520,6 +7842,8 @@
 		}
 
 		/**
+		 * Get the URL of the page that should be loaded after the user connect or skip in the opt-in screen.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
 		 *
@@ -8255,12 +8579,14 @@
 		}
 
 		/**
-		 * Forward page to activation page.
+		 * Get the URL of the page that should be loaded right after the plugin activation.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
+		 * @since  1.7.4
+		 *
+		 * @return string
 		 */
-		function _redirect_on_activation_hook() {
+		function get_after_plugin_activation_redirect_url() {
 			$url       = false;
 			$plugin_fs = false;
 
@@ -8287,6 +8613,18 @@
 					}
 				}
 			}
+
+			return $url;
+		}
+
+		/**
+		 * Forward page to activation page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 */
+		function _redirect_on_activation_hook() {
+			$url = $this->get_after_plugin_activation_redirect_url();
 
 			if ( is_string( $url ) ) {
 				fs_redirect( $url );
