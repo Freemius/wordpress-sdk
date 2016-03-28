@@ -45,7 +45,7 @@
 			'checkout'
 		) );
 	} else {
-		$current_user = wp_get_current_user();
+		$current_user = Freemius::_get_current_wp_user();
 
 		// Add site and user info to the request, this information
 		// is NOT being stored unless the user complete the purchase

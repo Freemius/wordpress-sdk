@@ -1147,6 +1147,18 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @return \WP_User
+		 */
+		static function _get_current_wp_user(){
+			self::require_pluggable_essentials();
+
+			return wp_get_current_user();
+		}
+
+		/**
 		 * Generate API connectivity issue message.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -1164,9 +1176,7 @@
 				require_once( ABSPATH . 'wp-includes/functions.php' );
 			}
 
-			self::require_pluggable_essentials();
-
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 //			$admin_email = get_option( 'admin_email' );
 			$admin_email = $current_user->user_email;
 
@@ -1329,9 +1339,7 @@
 		function _email_about_firewall_issue() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-			self::require_pluggable_essentials();
-
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 			$admin_email  = $current_user->user_email;
 
 			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
@@ -1486,10 +1494,8 @@
 		 * @return array
 		 */
 		private function get_email_sections() {
-			self::require_pluggable_essentials();
-
 			// Retrieve the current user's information so that we can get the user's email, first name, and last name below.
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 
 			// Retrieve the cURL version information so that we can get the version number below.
 			$curl_version_information = curl_version();
@@ -2599,7 +2605,7 @@
 		 */
 		function _add_pending_activation_notice( $email = false ) {
 			if ( ! is_string( $email ) ) {
-				$current_user = wp_get_current_user();
+				$current_user = self::_get_current_wp_user();
 				$email        = $current_user->user_email;
 			}
 
