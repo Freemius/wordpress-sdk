@@ -5088,9 +5088,7 @@
 		function get_opt_in_params( $override_with = array() ) {
 			$this->_logger->entrance();
 
-			self::require_pluggable_essentials();
-
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 
 			$params = array(
 				'user_firstname'    => $current_user->user_firstname,
@@ -5150,10 +5148,8 @@
 		function opt_in( $email = false, $first = false, $last = false ) {
 			$this->_logger->entrance();
 
-			self::require_pluggable_essentials();
-
 			if ( false === $email ) {
-				$current_user = wp_get_current_user();
+				$current_user = self::_get_current_wp_user();
 				$email        = $current_user->user_email;
 			}
 
@@ -5465,7 +5461,7 @@
 			$this->_admin_notices->remove_sticky( 'connect_account' );
 
 			// Get current logged WP user.
-			$current_user = wp_get_current_user();
+			$current_user = self::_get_current_wp_user();
 
 			// Find the relevant FS user by the email.
 			$user = self::_get_user_by_email( $current_user->user_email );
