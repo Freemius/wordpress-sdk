@@ -39,6 +39,10 @@
 				}
 			}
 
+			if ('retry_ping' === error_type) {
+				data.action = slug + '_retry_connectivity_test';
+			}
+
 			$(this).css({'cursor': 'wait'});
 
 			// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
@@ -46,6 +50,9 @@
 				if (1 == response) {
 					// Refresh page on success.
 					location.reload();
+				} else if ('http' === response.substr(0, 4)) {
+					// Ping actually worked, redirect.
+					window.location = response;
 				}
 			});
 		});

@@ -1038,6 +1038,35 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @return object|false
+		 */
+		private function ping(){
+			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
+				return false;
+			}
+
+			$version = $this->get_plugin_version();
+
+			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
+
+			return $this->get_api_plugin_scope()->ping(
+				$this->get_anonymous_id(),
+				array(
+					'is_update' => json_encode( $is_update ),
+					'version'   => $version,
+					'sdk'       => $this->version,
+					'is_admin'  => json_encode( is_admin() ),
+					'is_ajax'   => json_encode( $this->is_ajax() ),
+					'is_cron'   => json_encode( $this->is_cron() ),
+					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
+				)
+			);
+		}
+
+		/**
 		 * Check if there's any connectivity issue to Freemius API.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -1048,11 +1077,11 @@
 		 * @return bool
 		 */
 		function has_api_connectivity( $flush_if_no_connectivity = false ) {
+			$this->_logger->entrance();
+
 			if ( isset( $this->_has_api_connection ) && ( $this->_has_api_connection || ! $flush_if_no_connectivity ) ) {
 				return $this->_has_api_connection;
 			}
-
-			$version = $this->get_plugin_version();
 
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY &&
 			     isset( $this->_storage->connectivity_test ) &&
@@ -1072,32 +1101,30 @@
 				return $this->_has_api_connection;
 			}
 
-			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-			$pong = null;
-
-			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
-				$is_connected = false;
-			} else {
-				$pong         = $this->get_api_plugin_scope()->ping(
-					$this->get_anonymous_id(),
-					array(
-						'is_update' => json_encode( $is_update ),
-						'version'   => $version,
-						'sdk'       => $this->version,
-						'is_admin'  => json_encode( is_admin() ),
-						'is_ajax'   => json_encode( $this->is_ajax() ),
-						'is_cron'   => json_encode( $this->is_cron() ),
-						'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
-					)
-				);
+			$pong         = $this->ping();
 				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
-			}
 
 			if ( ! $is_connected ) {
-				// Another API failure.
+				// API failure.
 				$this->_add_connectivity_issue_message( $pong );
 			}
+
+			$this->store_connectivity_info($pong, $is_connected);
+
+			return $this->_has_api_connection;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 *
+		 * @param object $pong
+		 * @param bool $is_connected
+		 */
+		private function store_connectivity_info($pong, $is_connected){
+			$this->_logger->entrance();
+
+			$version = $this->get_plugin_version();
 
 			$is_active = $this->apply_filters(
 				'is_on',
@@ -1119,8 +1146,6 @@
 
 			$this->_has_api_connection = $is_connected;
 			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected );
-
-			return $this->_has_api_connection;
 		}
 
 		/**
@@ -1165,8 +1190,9 @@
 		 * @since  1.0.9
 		 *
 		 * @param mixed $api_result
+		 * @param bool  $is_first_failure
 		 */
-		function _add_connectivity_issue_message( $api_result ) {
+		function _add_connectivity_issue_message( $api_result, $is_first_failure = true ) {
 			if ( $this->_enable_anonymous ) {
 				// Don't add message if can run anonymously.
 				return;
@@ -1287,7 +1313,38 @@
 				}
 			}
 
+			$message_id = 'failed_connect_api';
+			$type = 'error';
+
 			if ( false === $message ) {
+				if ($is_first_failure)
+				{
+					// First attempt failed.
+					$message = sprintf(
+						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-maybe-temporary', $this->_slug ) . '<br><br>' .
+						'%s',
+						'<b>' . $this->get_plugin_name() . '</b>',
+						sprintf(
+							'<div id="fs_firewall_issue_options">%s %s</div>',
+							sprintf(
+								'<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
+								__fs( 'yes-do-your-thing', $this->_slug )
+							),
+							sprintf(
+								'<a href="%s" class="button">%s</a>',
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								__fs( 'no-deactivate', $this->_slug )
+							)
+						)
+					);
+
+					$message_id = 'failed_connect_api_first';
+					$type = 'promotion';
+				}
+				else {
+					// Second connectivity attempt failed.
 				$message = sprintf(
 					__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
 					__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
@@ -1319,12 +1376,13 @@
 					)
 				);
 			}
+			}
 
 			$this->_admin_notices->add_sticky(
 				$message,
-				'failed_connect_api',
+				$message_id,
 				__fs( 'oops', $this->_slug ) . '...',
-				'error'
+				$type
 			);
 		}
 
@@ -1339,23 +1397,19 @@
 		function _email_about_firewall_issue() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
+			$pong = $this->ping();
+
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+
+			if ( $is_connected ) {
+				$this->store_connectivity_info($pong, $is_connected);
+
+				echo $this->get_after_plugin_activation_redirect_url();
+				exit;
+			}
+
 			$current_user = self::_get_current_wp_user();
 			$admin_email  = $current_user->user_email;
-
-			$is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-			$ping = $this->get_api_plugin_scope()->ping(
-				$this->get_anonymous_id(),
-				array(
-					'is_update' => json_encode( $is_update ),
-					'version'   => $this->get_plugin_version(),
-					'sdk'       => $this->version,
-					'is_admin'  => json_encode( is_admin() ),
-					'is_ajax'   => json_encode( $this->is_ajax() ),
-					'is_cron'   => json_encode( $this->is_cron() ),
-					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
-				)
-			);
 
 			$error_type = fs_request_get( 'error_type', 'general' );
 
@@ -1386,7 +1440,7 @@
 			$custom_email_sections['api_error'] = array(
 				'title' => 'API Error',
 				'rows'  => array(
-					'ping' => array( is_string( $ping ) ? htmlentities( $ping ) : json_encode( $ping ) )
+					'ping' => array( is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong ) )
 				)
 			);
 
@@ -1409,6 +1463,34 @@
 			// Action was taken, tell that API connectivity troubleshooting should be off now.
 
 			echo "1";
+			exit;
+		}
+
+		/**
+		 * Handle connectivity test retry approved by the user.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.7.4
+		 */
+		function _retry_connectivity_test(){
+			$this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
+
+			$pong = $this->ping();
+
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+
+			if ( $is_connected ) {
+				$this->store_connectivity_info($pong, $is_connected);
+
+				echo $this->get_after_plugin_activation_redirect_url();
+			}
+			else {
+				// Add connectivity issue message after 2nd failed attempt.
+				$this->_add_connectivity_issue_message( $pong, false );
+
+				echo "1";
+			}
+
 			exit;
 		}
 
@@ -1620,7 +1702,9 @@
 					$this->_is_on              = true;
 				} else {
 					if ( ! $this->has_api_connectivity() ) {
-						if ( $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
+						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
+						) {
 							if ( ! $this->_enable_anonymous ) {
 								// If anonymous mode is disabled, add firewall admin-notice message.
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
@@ -1629,12 +1713,20 @@
 									&$this,
 									'_email_about_firewall_issue'
 								) );
+
+								add_action( "wp_ajax_{$this->_slug}_retry_connectivity_test", array(
+									&$this,
+									'_retry_connectivity_test'
+								) );
 							}
 						}
 
 						return;
 					} else {
-						$this->_admin_notices->remove_sticky( 'failed_connect_api' );
+						$this->_admin_notices->remove_sticky( array(
+							'failed_connect_api_first',
+							'failed_connect_api',
+						) );
 					}
 				}
 
@@ -1930,7 +2022,10 @@
 					return true;
 				}
 
-				if ( $this->is_ajax() && ! $this->_admin_notices->has_sticky( 'failed_connect_api' ) ) {
+				if ( $this->is_ajax() &&
+				     ! $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) &&
+				     ! $this->_admin_notices->has_sticky( 'failed_connect_api' )
+				) {
 					/**
 					 * During activation, if running in AJAX mode, unless there's a sticky
 					 * connectivity issue notice, don't run Freemius.
@@ -7749,6 +7844,8 @@
 		}
 
 		/**
+		 * Get the URL of the page that should be loaded after the user connect or skip in the opt-in screen.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
 		 *
@@ -8484,12 +8581,14 @@
 		}
 
 		/**
-		 * Forward page to activation page.
+		 * Get the URL of the page that should be loaded right after the plugin activation.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
+		 * @since  1.7.4
+		 *
+		 * @return string
 		 */
-		function _redirect_on_activation_hook() {
+		function get_after_plugin_activation_redirect_url(){
 			$url       = false;
 			$plugin_fs = false;
 
@@ -8516,6 +8615,18 @@
 					}
 				}
 			}
+
+			return $url;
+		}
+
+		/**
+		 * Forward page to activation page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.3
+		 */
+		function _redirect_on_activation_hook() {
+			$url = $this->get_after_plugin_activation_redirect_url();
 
 			if ( is_string( $url ) ) {
 				fs_redirect( $url );

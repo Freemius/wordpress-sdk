@@ -118,6 +118,8 @@
 		'deactivate-license'                       => __( 'Deactivate License', 'freemius' ),
 		'activate'                                 => __( 'Activate', 'freemius' ),
 		'deactivate'                               => __( 'Deactivate', 'freemius' ),
+		'no-deactivate'                            => __( 'No - just deactivate', 'freemius' ),
+		'yes-do-your-thing'                        => __( 'Yes - do your thing', 'freemius' ),
 		'active'                                   => _x( 'Active', 'active mode', 'freemius' ),
 		'is-active'                                => _x( 'Is Active', 'is active mode?', 'freemius' ),
 		'install-now'                              => __( 'Install Now', 'freemius' ),
@@ -281,7 +283,8 @@
 		'plan-did-not-change-email-message'        => __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', 'freemius' ),
 		#endregion Admin Notices
 		#region Connectivity Issues
-		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test fails.', 'freemius' ),
+		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test failed.', 'freemius' ),
+		'connectivity-test-maybe-temporary'        => __( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?', 'freemius' ),
 		'curl-missing-message'                     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.', 'freemius' ),
 		'cloudflare-blocks-connection-message'     => __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'freemius' ),
 		'x-requires-access-to-api'                 => _x( '%s requires an access to our API.', 'as pluginX requires an access to our API', 'freemius' ),
