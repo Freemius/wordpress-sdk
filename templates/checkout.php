@@ -221,11 +221,7 @@
 						// and then click the purchase button, the context information
 						// of the user will be shared with Freemius in order to complete the
 						// purchase workflow and activate the license for the right user.
-						<?php $current_user = wp_get_current_user() ?>
 						FS.PostMessage.post('context', {
-//						user_firstname: '<?php //echo $current_user->user_firstname ?>//',
-//						user_lastname: '<?php //echo $current_user->user_lastname ?>//',
-//						user_email: '<?php //echo $current_user->user_email ?>//'
 							plugin_id        : '<?php echo $fs->get_id() ?>',
 							plugin_public_key: '<?php echo $fs->get_public_key() ?>',
 							plugin_version   : '<?php echo $fs->get_plugin_version() ?>',
