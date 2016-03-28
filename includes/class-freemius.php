@@ -1043,7 +1043,7 @@
 		 *
 		 * @return object|false
 		 */
-		private function ping(){
+		private function ping() {
 			if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
 				return false;
 			}
@@ -1102,14 +1102,14 @@
 			}
 
 			$pong         = $this->ping();
-				$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
 			if ( ! $is_connected ) {
 				// API failure.
 				$this->_add_connectivity_issue_message( $pong );
 			}
 
-			$this->store_connectivity_info($pong, $is_connected);
+			$this->store_connectivity_info( $pong, $is_connected );
 
 			return $this->_has_api_connection;
 		}
@@ -1119,9 +1119,9 @@
 		 * @since  1.7.4
 		 *
 		 * @param object $pong
-		 * @param bool $is_connected
+		 * @param bool   $is_connected
 		 */
-		private function store_connectivity_info($pong, $is_connected){
+		private function store_connectivity_info( $pong, $is_connected ) {
 			$this->_logger->entrance();
 
 			$version = $this->get_plugin_version();
@@ -1177,7 +1177,7 @@
 		 *
 		 * @return \WP_User
 		 */
-		static function _get_current_wp_user(){
+		static function _get_current_wp_user() {
 			self::require_pluggable_essentials();
 
 			return wp_get_current_user();
@@ -1314,11 +1314,10 @@
 			}
 
 			$message_id = 'failed_connect_api';
-			$type = 'error';
+			$type       = 'error';
 
 			if ( false === $message ) {
-				if ($is_first_failure)
-				{
+				if ( $is_first_failure ) {
 					// First attempt failed.
 					$message = sprintf(
 						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
@@ -1341,41 +1340,40 @@
 					);
 
 					$message_id = 'failed_connect_api_first';
-					$type = 'promotion';
-				}
-				else {
+					$type       = 'promotion';
+				} else {
 					// Second connectivity attempt failed.
-				$message = sprintf(
-					__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-					__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-					__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
-					' %s',
-					'<b>' . $this->get_plugin_name() . '</b>',
-					sprintf(
-						'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+					$message = sprintf(
+						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+						__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
+						' %s',
+						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
-							'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-							__fs( 'fix-issue-title', $this->_slug ),
-							' - ' . sprintf(
-								__fs( 'fix-issue-desc', $this->_slug ),
-								'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+							'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+							sprintf(
+								'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
+								__fs( 'fix-issue-title', $this->_slug ),
+								' - ' . sprintf(
+									__fs( 'fix-issue-desc', $this->_slug ),
+									'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+								)
+							),
+							sprintf(
+								'<a href="%s" target="_blank"><b>%s</b></a>%s',
+								sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+								__fs( 'install-previous-title', $this->_slug ),
+								' - ' . __fs( 'install-previous-desc', $this->_slug )
+							),
+							sprintf(
+								'<a href="%s"><b>%s</b></a>%s',
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								__fs( 'deactivate-plugin-title', $this->_slug ),
+								' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
 							)
-						),
-						sprintf(
-							'<a href="%s" target="_blank"><b>%s</b></a>%s',
-							sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-							__fs( 'install-previous-title', $this->_slug ),
-							' - ' . __fs( 'install-previous-desc', $this->_slug )
-						),
-						sprintf(
-							'<a href="%s"><b>%s</b></a>%s',
-							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-							__fs( 'deactivate-plugin-title', $this->_slug ),
-							' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
 						)
-					)
-				);
-			}
+					);
+				}
 			}
 
 			$this->_admin_notices->add_sticky(
@@ -1402,7 +1400,7 @@
 			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
 			if ( $is_connected ) {
-				$this->store_connectivity_info($pong, $is_connected);
+				$this->store_connectivity_info( $pong, $is_connected );
 
 				echo $this->get_after_plugin_activation_redirect_url();
 				exit;
@@ -1472,7 +1470,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.7.4
 		 */
-		function _retry_connectivity_test(){
+		function _retry_connectivity_test() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
 
 			$pong = $this->ping();
@@ -1480,11 +1478,10 @@
 			$is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
 			if ( $is_connected ) {
-				$this->store_connectivity_info($pong, $is_connected);
+				$this->store_connectivity_info( $pong, $is_connected );
 
 				echo $this->get_after_plugin_activation_redirect_url();
-			}
-			else {
+			} else {
 				// Add connectivity issue message after 2nd failed attempt.
 				$this->_add_connectivity_issue_message( $pong, false );
 
@@ -5202,8 +5199,8 @@
 				}
 
 				if ( $response instanceof WP_Error ) {
-					return false;
-				}
+				return false;
+			}
 			}
 
 			if ( is_wp_error( $response ) ) {
@@ -8585,7 +8582,7 @@
 		 *
 		 * @return string
 		 */
-		function get_after_plugin_activation_redirect_url(){
+		function get_after_plugin_activation_redirect_url() {
 			$url       = false;
 			$plugin_fs = false;
 
