@@ -242,7 +242,7 @@
 		'x-updated'                                => __( 'You have successfully updated your %s.', 'freemius' ),
 		'name-update-failed-message'               => __( 'Please provide your full name.', 'freemius' ),
 		'verification-email-sent-message'          => __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', 'freemius' ),
-		'addons-info-external-message'             => __( 'Just letting you know that the add-ons information of %s is being pulled from external server.', 'freemius' ),
+		'addons-info-external-message'             => __( 'Just letting you know that the add-ons information of %s is being pulled from an external server.', 'freemius' ),
 		'no-cc-required'                           => __( 'No credit card required', 'freemius' ),
 		'premium-activated-message'                => __( 'Premium plugin version was successfully activated.', 'freemius' ),
 		'successful-version-upgrade-message'       => __( 'The upgrade of %s was successfully completed.', 'freemius' ),
