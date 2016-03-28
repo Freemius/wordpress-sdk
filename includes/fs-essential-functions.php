@@ -72,49 +72,53 @@
 			return true;
 		}
 
-		/**
-		 * Sanitizes a URL for use in a redirect.
-		 *
-		 * @since 2.3
-		 *
-		 * @param string $location
-		 *
-		 * @return string redirect-sanitized URL
-		 */
-		function fs_sanitize_redirect( $location ) {
-			$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!]|i', '', $location );
-			$location = fs_kses_no_null( $location );
+		if ( ! function_exists( 'fs_sanitize_redirect' ) ) {
+			/**
+			 * Sanitizes a URL for use in a redirect.
+			 *
+			 * @since 2.3
+			 *
+			 * @param string $location
+			 *
+			 * @return string redirect-sanitized URL
+			 */
+			function fs_sanitize_redirect( $location ) {
+				$location = preg_replace( '|[^a-z0-9-~+_.?#=&;,/:%!]|i', '', $location );
+				$location = fs_kses_no_null( $location );
 
-			// remove %0d and %0a from location
-			$strip = array( '%0d', '%0a' );
-			$found = true;
-			while ( $found ) {
-				$found = false;
-				foreach ( (array) $strip as $val ) {
-					while ( strpos( $location, $val ) !== false ) {
-						$found    = true;
-						$location = str_replace( $val, '', $location );
+				// remove %0d and %0a from location
+				$strip = array( '%0d', '%0a' );
+				$found = true;
+				while ( $found ) {
+					$found = false;
+					foreach ( (array) $strip as $val ) {
+						while ( strpos( $location, $val ) !== false ) {
+							$found    = true;
+							$location = str_replace( $val, '', $location );
+						}
 					}
 				}
-			}
 
-			return $location;
+				return $location;
+			}
 		}
 
-		/**
-		 * Removes any NULL characters in $string.
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param string $string
-		 *
-		 * @return string
-		 */
-		function fs_kses_no_null( $string ) {
-			$string = preg_replace( '/\0+/', '', $string );
-			$string = preg_replace( '/(\\\\0)+/', '', $string );
+		if ( ! function_exists( 'fs_kses_no_null' ) ) {
+			/**
+			 * Removes any NULL characters in $string.
+			 *
+			 * @since 1.0.0
+			 *
+			 * @param string $string
+			 *
+			 * @return string
+			 */
+			function fs_kses_no_null( $string ) {
+				$string = preg_replace( '/\0+/', '', $string );
+				$string = preg_replace( '/(\\\\0)+/', '', $string );
 
-			return $string;
+				return $string;
+			}
 		}
 	}
 

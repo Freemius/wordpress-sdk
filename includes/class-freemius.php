@@ -1676,7 +1676,7 @@
 				}
 			}
 
-			if ($this->is_registered()){
+			if ( $this->is_registered() ) {
 				$this->hook_callback_to_install_sync();
 			}
 
@@ -2522,7 +2522,8 @@
 		/**
 		 * Unix timestamp for previous install sync cron execution or false if never executed.
 		 *
-		 * @todo There's some very strange bug that $this->_storage->install_sync_timestamp value is not being updated. But for sure the sync event is working.
+		 * @todo   There's some very strange bug that $this->_storage->install_sync_timestamp value is not being
+		 *         updated. But for sure the sync event is working.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.3
@@ -3516,7 +3517,7 @@
 
 			$this->_logger->departure( 'Version = ' . $plugin_data['Version'] );
 
-			return $plugin_data['Version'];
+			return $this->apply_filters( 'plugin_version', $plugin_data['Version'] );
 		}
 
 		/**
@@ -4982,6 +4983,173 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param array $override_with
+		 *
+		 * @return array
+		 */
+		function get_opt_in_params( $override_with = array() ) {
+			$this->_logger->entrance();
+
+			self::require_pluggable_essentials();
+
+			$current_user = wp_get_current_user();
+
+			$params = array(
+				'user_firstname'    => $current_user->user_firstname,
+				'user_lastname'     => $current_user->user_lastname,
+				'user_nickname'     => $current_user->user_nicename,
+				'user_email'        => $current_user->user_email,
+				'user_ip'           => WP_FS__REMOTE_ADDR,
+				'plugin_slug'       => $this->_slug,
+				'plugin_id'         => $this->get_id(),
+				'plugin_public_key' => $this->get_public_key(),
+				'plugin_version'    => $this->get_plugin_version(),
+				'return_url'        => wp_nonce_url( $this->_get_admin_page_url(
+					'',
+					array( 'fs_action' => $this->_slug . '_activate_new' )
+				), $this->_slug . '_activate_new' ),
+				'account_url'       => wp_nonce_url( $this->_get_admin_page_url(
+					'account',
+					array( 'fs_action' => 'sync_user' )
+				), 'sync_user' ),
+				'site_uid'          => $this->get_anonymous_id(),
+				'site_url'          => get_site_url(),
+				'site_name'         => get_bloginfo( 'name' ),
+				'platform_version'  => get_bloginfo( 'version' ),
+				'php_version'       => phpversion(),
+				'language'          => get_bloginfo( 'language' ),
+				'charset'           => get_bloginfo( 'charset' ),
+			);
+
+			if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
+				// Even though rand() is known for its security issues,
+				// the timestamp adds another layer of protection.
+				// It would be very hard for an attacker to get the secret key form here.
+				// Plus, this should never run in production since the secret should never
+				// be included in the production version.
+				$params['ts']     = WP_FS__SCRIPT_START_TIME;
+				$params['salt']   = md5( uniqid( rand() ) );
+				$params['secure'] = md5(
+					$params['ts'] .
+					$params['salt'] .
+					$this->get_secret_key()
+				);
+			}
+
+			return array_merge( $params, $override_with );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param string|bool $email
+		 * @param string|bool $first
+		 * @param string|bool $last
+		 *
+		 * @return bool Is successful opt-in (or set to pending).
+		 */
+		function opt_in( $email = false, $first = false, $last = false ) {
+			$this->_logger->entrance();
+
+			self::require_pluggable_essentials();
+
+			if ( false === $email ) {
+				$current_user = wp_get_current_user();
+				$email        = $current_user->user_email;
+			}
+
+			$fs_user = Freemius::_get_user_by_email( $email );
+			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
+				$this->install_with_current_user( false );
+
+				return true;
+			}
+
+			$user_info = array();
+			if ( ! empty( $email ) ) {
+				$user_info['user_email'] = $email;
+			}
+			if ( ! empty( $first ) ) {
+				$user_info['user_firstname'] = $first;
+			}
+			if ( ! empty( $last ) ) {
+				$user_info['user_lastname'] = $last;
+			}
+
+			$params           = $this->get_opt_in_params( $user_info );
+			$params['format'] = 'json';
+
+			$url = WP_FS__ADDRESS . '/action/service/user/install/';
+			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+				$url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+			}
+
+			$response = wp_remote_post( $url, array(
+				'method'  => 'POST',
+				'body'    => $params,
+				'timeout' => 15,
+			) );
+
+			if ( $response instanceof WP_Error ) {
+				if ( 'https://' === substr( $url, 0, 8 ) &&
+				     isset( $response->errors ) &&
+				     isset( $response->errors['http_request_failed'] ) &&
+				     false !== strpos( $response->errors['http_request_failed'][0], 'sslv3 alert handshake' )
+				) {
+					// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+					$url = 'http://' . substr( $url, 8 );
+
+					$response = wp_remote_post( $url, array(
+						'method'  => 'POST',
+						'body'    => $params,
+						'timeout' => 15,
+					) );
+				}
+
+				if ( $response instanceof WP_Error ) {
+					return false;
+				}
+			}
+
+			if ( is_wp_error( $response ) ) {
+				return false;
+			}
+
+			$decoded = @json_decode( $response['body'] );
+
+			if ( empty( $decoded ) ) {
+				return false;
+			}
+
+			if ( isset( $decoded->error ) ) {
+				return false;
+			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
+				// Pending activation, add message.
+				$this->set_pending_confirmation( false, false );
+
+				return true;
+			} else if ( isset( $decoded->install_secret_key ) ) {
+				$this->install_with_new_user(
+					$decoded->user_id,
+					$decoded->user_public_key,
+					$decoded->user_secret_key,
+					$decoded->install_id,
+					$decoded->install_public_key,
+					$decoded->install_secret_key,
+					false
+				);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		/**
 		 * Set user and site identities.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5092,38 +5260,82 @@
 				$this->_admin_notices->remove_sticky( 'connect_account' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
-					$user             = new FS_User();
-					$user->id         = fs_request_get( 'user_id' );
-					$user->public_key = fs_request_get( 'user_public_key' );
-					$user->secret_key = fs_request_get( 'user_secret_key' );
-
-					$this->_user = $user;
-					$user_result = $this->get_api_user_scope()->get();
-					$user        = new FS_User( $user_result );
-					$this->_user = $user;
-
-					$site             = new FS_Site();
-					$site->id         = fs_request_get( 'install_id' );
-					$site->public_key = fs_request_get( 'install_public_key' );
-					$site->secret_key = fs_request_get( 'install_secret_key' );
-
-					$this->_site = $site;
-					$site_result = $this->get_api_site_scope()->get();
-					$site        = new FS_Site( $site_result );
-					$this->_site = $site;
-
-					$this->setup_account( $this->_user, $this->_site );
+					$this->install_with_new_user(
+						fs_request_get( 'user_id' ),
+						fs_request_get( 'user_public_key' ),
+						fs_request_get( 'user_secret_key' ),
+						fs_request_get( 'install_id' ),
+						fs_request_get( 'install_public_key' ),
+						fs_request_get( 'install_secret_key' )
+					);
 				} else if ( fs_request_has( 'pending_activation' ) ) {
-					// Install must be activated via email since
-					// user with the same email already exist.
-					$this->_storage->is_pending_activation = true;
-					$this->_add_pending_activation_notice( fs_request_get( 'user_email' ) );
-
-					// Reload the page with with pending activation message.
-					if ( fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
-						exit();
-					}
+					$this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
 				}
+			}
+		}
+
+		/**
+		 * Install plugin with new user.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param number $user_id
+		 * @param string $user_public_key
+		 * @param string $user_secret_key
+		 * @param number $install_id
+		 * @param string $install_public_key
+		 * @param string $install_secret_key
+		 * @param bool   $redirect
+		 */
+		private function install_with_new_user(
+			$user_id,
+			$user_public_key,
+			$user_secret_key,
+			$install_id,
+			$install_public_key,
+			$install_secret_key,
+			$redirect = true
+		) {
+			$user             = new FS_User();
+			$user->id         = $user_id;
+			$user->public_key = $user_public_key;
+			$user->secret_key = $user_secret_key;
+
+			$this->_user = $user;
+			$user_result = $this->get_api_user_scope()->get();
+			$user        = new FS_User( $user_result );
+			$this->_user = $user;
+
+			$site             = new FS_Site();
+			$site->id         = $install_id;
+			$site->public_key = $install_public_key;
+			$site->secret_key = $install_secret_key;
+
+			$this->_site = $site;
+			$site_result = $this->get_api_site_scope()->get();
+			$site        = new FS_Site( $site_result );
+			$this->_site = $site;
+
+			$this->setup_account( $this->_user, $this->_site, $redirect );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param bool $email
+		 * @param bool $redirect
+		 */
+		private function set_pending_confirmation( $email = false, $redirect = true ) {
+			// Install must be activated via email since
+			// user with the same email already exist.
+			$this->_storage->is_pending_activation = true;
+			$this->_add_pending_activation_notice( $email );
+
+			// Reload the page with with pending activation message.
+			if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
+				exit();
 			}
 		}
 
@@ -5143,46 +5355,57 @@
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
 
-				$this->_admin_notices->remove_sticky( 'connect_account' );
+				$this->install_with_current_user();
+			}
+		}
 
-				// Get current logged WP user.
-			$current_user = self::_get_current_wp_user();
 
-				// Find the relevant FS user by the email.
-				$user = self::_get_user_by_email( $current_user->user_email );
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7.4
+		 *
+		 * @param bool $redirect
+		 */
+		private function install_with_current_user( $redirect = true ) {
+			$this->_admin_notices->remove_sticky( 'connect_account' );
 
-				// We have to set the user before getting user scope API handler.
-				$this->_user = $user;
+			// Get current logged WP user.
+			$current_user = wp_get_current_user();
 
-				// Install the plugin.
-				$install = $this->get_api_user_scope()->call(
-					"/plugins/{$this->get_id()}/installs.json",
-					'post',
-					$this->get_install_data_for_api( array(
-						'uid' => $this->get_anonymous_id(),
-					) )
+			// Find the relevant FS user by the email.
+			$user = self::_get_user_by_email( $current_user->user_email );
+
+			// We have to set the user before getting user scope API handler.
+			$this->_user = $user;
+
+			// Install the plugin.
+			$install = $this->get_api_user_scope()->call(
+				"/plugins/{$this->get_id()}/installs.json",
+				'post',
+				$this->get_install_data_for_api( array(
+					'uid' => $this->get_anonymous_id(),
+				) )
+			);
+
+			if ( isset( $install->error ) ) {
+				$this->_admin_notices->add(
+					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
+					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
 				);
 
-				if ( isset( $install->error ) ) {
-					$this->_admin_notices->add(
-						sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
-						__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
-						__fs( 'oops', $this->_slug ) . '...',
-						'error'
-					);
+				return;
+			}
 
-					return;
-				}
-
-				$site        = new FS_Site( $install );
-				$this->_site = $site;
+			$site        = new FS_Site( $install );
+			$this->_site = $site;
 //				$this->_enrich_site_plan( false );
 
 //				$this->_set_account( $user, $site );
 //				$this->_sync_plans();
 
-				$this->setup_account( $this->_user, $this->_site );
-			}
+			$this->setup_account( $this->_user, $this->_site, $redirect );
 		}
 
 		/**
