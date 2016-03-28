@@ -5740,7 +5740,7 @@
 			$this->do_action( 'before_admin_menu_init' );
 
 			if ( ! $this->is_addon() ) {
-				if ( $this->is_registered() || $this->is_anonymous() ) {
+				if ( ! $this->is_activation_mode() ) {
 					if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
@@ -7438,15 +7438,16 @@
 			$this->_logger->entrance();
 
 			/**
-			 * Check for plugin updates from Freemius only if opted-in.
-			 *
-			 * @since 1.1.7.3
+			 * @since 1.1.7.3 Check for plugin updates from Freemius only if opted-in.
+			 * @since 1.1.7.4 Also check updates for add-ons.
 			 */
-			if ( ! $this->is_registered() ) {
+			if ( ! $this->is_registered() &&
+			     ! $this->_is_addon_id( $addon_id )
+			) {
 				return false;
 			}
 
-			$tag = $this->get_api_site_scope()->get(
+			$tag = $this->get_api_site_or_plugin_scope()->get(
 				$this->_get_latest_version_endpoint( $addon_id, 'json' ),
 				$flush
 			);
