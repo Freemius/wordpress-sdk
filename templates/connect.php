@@ -16,7 +16,7 @@
 
 	$fs->_enqueue_connect_essentials();
 
-	$current_user = wp_get_current_user();
+	$current_user = Freemius::_get_current_wp_user();
 
 	$first_name = $current_user->user_firstname;
 	if ( empty( $first_name ) ) {

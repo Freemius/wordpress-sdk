@@ -217,7 +217,7 @@
 				$confirmation,
 				$title
 			);
-		} else if ('GET' !== strtoupper($method)) {
+		} else if ( 'GET' !== strtoupper( $method ) ) {
 			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="this.parentNode.submit(); return false;">%s</a></form>',
 				freemius( $slug )->_get_admin_page_url( $page, $params ),
 				$method,
