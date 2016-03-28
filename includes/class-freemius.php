@@ -3839,30 +3839,34 @@
 		function get_addons() {
 			$this->_logger->entrance();
 
-			$addons = self::get_all_addons();
+			$all_addons = self::get_all_addons();
 
 			/**
 			 * @since 1.1.7.3 If not yet loaded, fetch data from the API.
 			 */
-			if ( ! is_array( $addons ) ||
-			     ! isset( $addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $addons[ $this->_plugin->id ] ) ||
-			     empty( $addons[ $this->_plugin->id ] )
+			if ( ! is_array( $all_addons ) ||
+			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
+			     empty( $all_addons[ $this->_plugin->id ] )
 			) {
 				if ( $this->_has_addons ) {
 					$addons = $this->_sync_addons();
+
+					if ( ! empty( $addons ) ) {
+						$all_addons = self::get_all_addons();
+					}
 				}
 			}
 
-			if ( ! is_array( $addons ) ||
-			     ! isset( $addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $addons[ $this->_plugin->id ] ) ||
-			     empty( $addons[ $this->_plugin->id ] )
+			if ( ! is_array( $all_addons ) ||
+			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
+			     empty( $all_addons[ $this->_plugin->id ] )
 			) {
 				return false;
 			}
 
-			return $addons[ $this->_plugin->id ];
+			return $all_addons[ $this->_plugin->id ];
 		}
 
 		/**
