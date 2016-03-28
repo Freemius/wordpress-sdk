@@ -28,10 +28,11 @@
 
 	$icons = glob( fs_normalize_path( $img_dir . '/icon.*' ) );
 	if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
-		$icon_found = false;
-		$local_path = fs_normalize_path( $img_dir . '/icon.png' );
+		$icon_found             = false;
+		$local_path             = fs_normalize_path( $img_dir . '/icon.png' );
+		$have_write_permissions = is_writable( fs_normalize_path( $img_dir ) );
 
-		if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() ) {
+		if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() && $have_write_permissions ) {
 			/**
 			 * IMPORTANT: THIS CODE WILL NEVER RUN AFTER THE PLUGIN IS IN THE REPO.
 			 *
@@ -63,7 +64,13 @@
 
 		if ( ! $icon_found ) {
 			// No icons found, fallback to default icon.
-			copy( fs_normalize_path( $img_dir . '/plugin-icon.png' ), $local_path );
+			if ( $have_write_permissions ) {
+				// If have write permissions, copy default icon.
+				copy( fs_normalize_path( $img_dir . '/plugin-icon.png' ), $local_path );
+			} else {
+				// If doesn't have write permissions, use default icon path.
+				$local_path = fs_normalize_path( $img_dir . '/plugin-icon.png' );
+			}
 		}
 
 		$icons = array( $local_path );
