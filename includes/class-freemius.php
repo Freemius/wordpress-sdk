@@ -1963,7 +1963,7 @@
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
-			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', true );
+			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
 			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
 		}
 
@@ -3851,34 +3851,30 @@
 		function get_addons() {
 			$this->_logger->entrance();
 
-			$all_addons = self::get_all_addons();
+			$addons = self::get_all_addons();
 
 			/**
 			 * @since 1.1.7.3 If not yet loaded, fetch data from the API.
 			 */
-			if ( ! is_array( $all_addons ) ||
-			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
-			     empty( $all_addons[ $this->_plugin->id ] )
+			if ( ! is_array( $addons ) ||
+			     ! isset( $addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $addons[ $this->_plugin->id ] ) ||
+			     empty( $addons[ $this->_plugin->id ] )
 			) {
 				if ( $this->_has_addons ) {
 					$addons = $this->_sync_addons();
-
-					if ( ! empty( $addons ) ) {
-						$all_addons = self::get_all_addons();
-					}
 				}
 			}
 
-			if ( ! is_array( $all_addons ) ||
-			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
-			     empty( $all_addons[ $this->_plugin->id ] )
+			if ( ! is_array( $addons ) ||
+			     ! isset( $addons[ $this->_plugin->id ] ) ||
+			     ! is_array( $addons[ $this->_plugin->id ] ) ||
+			     empty( $addons[ $this->_plugin->id ] )
 			) {
 				return false;
 			}
 
-			return $all_addons[ $this->_plugin->id ];
+			return $addons[ $this->_plugin->id ];
 		}
 
 		/**
