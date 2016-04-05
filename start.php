@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.7.4';
+	$this_sdk_version = '1.1.7.5';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -207,12 +207,13 @@
 	 *      fs_uninstall_confirmation_message_{plugin_slug}
 	 *      fs_pending_activation_message_{plugin_slug}
 	 *      fs_is_submenu_visible_{plugin_slug}
+	 *      fs_plugin_icon_{plugin_slug}
 	 *
 	 * --------------------------------------------------------
 	 *
 	 * Freemius actions collection:
 	 *
-	 *     fs_after_license_loaded_{plugin_slug}
+	 *      fs_after_license_loaded_{plugin_slug}
 	 *      fs_after_license_change_{plugin_slug}
 	 *      fs_after_plans_sync_{plugin_slug}
 	 *

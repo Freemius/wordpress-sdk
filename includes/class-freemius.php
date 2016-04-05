@@ -97,6 +97,12 @@
 		private $_enable_anonymous;
 
 		/**
+		 * @since 1.7.5
+		 * @var bool Hints the SDK if plugin should run in anonymous mode (only adds feedback form).
+		 */
+		private $_anonymous_mode;
+
+		/**
 		 * @since 1.0.8
 		 * @var bool Hints the SDK if the plugin has any paid plans.
 		 */
@@ -1724,6 +1730,11 @@
 							'failed_connect_api_first',
 							'failed_connect_api',
 						) );
+
+						if ( $this->_anonymous_mode ) {
+							// Simulate anonymous mode.
+							$this->_is_anonymous = true;
+						}
 					}
 				}
 
@@ -1952,6 +1963,7 @@
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
+			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
 			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
 		}
 
@@ -3056,7 +3068,7 @@
 				$this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
 			}
 
-			if ( $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
+			if ( ! $this->_anonymous_mode && $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
