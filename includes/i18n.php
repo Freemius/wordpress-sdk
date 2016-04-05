@@ -154,6 +154,7 @@
 		'reason-cant-pay-anymore'                  => __( "I can't pay for it anymore", 'freemius' ),
 		'reason-temporary-deactivation'            => __( "It's a temporary deactivation. I'm just debugging an issue.", 'freemius' ),
 		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.', 'freemius' ),
+		'ask-for-reason-message'                   => __( 'Kindly tell us the reason so we can improve.', 'freemius' ),
 		'placeholder-plugin-name'                  => __( "What's the plugin's name?", 'freemius' ),
 		'placeholder-comfortable-price'            => __( 'What price would you feel comfortable paying?', 'freemius' ),
 		'reason-couldnt-make-it-work'              => __( "I couldn't understand how to make it work", 'freemius' ),

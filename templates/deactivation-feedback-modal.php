@@ -41,7 +41,8 @@
 			    + '	</div>'
 			    + '</div>',
 		    $modal = $(modalHtml),
-		    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev();
+		    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
+			selectedReasonID = false;
 
 		$modal.appendTo($('body'));
 
@@ -52,6 +53,42 @@
 				evt.preventDefault();
 
 				showModal();
+			});
+
+			$modal.on( 'input propertychange', '.reason-input input', function() {
+				if ( ! isOtherReasonSelected() ) {
+					return;
+				}
+
+				var reason = $( this ).val().trim();
+
+				/**
+				 * If reason is not empty, remove the error-message class of the message container
+				 * to change the message color back to default.
+				 */
+				if ( reason.length > 0 ) {
+					$( '.message' ).removeClass( 'error-message' );
+					enableDeactivateButton();
+				}
+			});
+
+			$modal.on( 'blur', '.reason-input input', function() {
+				var $userReason = $( this );
+
+				setTimeout(function() {
+					if ( ! isOtherReasonSelected() ) {
+						return;
+					}
+
+					/**
+					 * If reason is empty, add the error-message class to the message container
+					 * to change the message color to red.
+					 */
+					if ( 0 === $userReason.val().trim().length ) {
+						$( '.message' ).addClass( 'error-message' );
+						disableDeactivateButton();
+					}
+				}, 150);
 			});
 
 			$modal.on('click', '.button', function (evt) {
@@ -74,7 +111,12 @@
 					}
 
 					var $selected_reason = $radio.parents('li:first'),
-					    $input = $selected_reason.find('textarea, input[type="text"]');
+						$input = $selected_reason.find('textarea, input[type="text"]'),
+						userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
+
+					if ( isOtherReasonSelected() && ( '' === userReason ) ) {
+						return;
+					}
 
 					$.ajax({
 						url       : ajaxurl,
@@ -82,7 +124,7 @@
 						data      : {
 							'action'     : 'submit-uninstall-reason',
 							'reason_id'  : $radio.val(),
-							'reason_info': ( 0 !== $input.length ) ? $input.val().trim() : ''
+							'reason_info' : userReason
 						},
 						beforeSend: function () {
 							_parent.find('.button').addClass('disabled');
@@ -102,18 +144,33 @@
 			});
 
 			$modal.on('click', 'input[type="radio"]', function () {
+				var $selectedReasonOption = $( this );
+
+				// If the selection has not changed, do not proceed.
+				if ( selectedReasonID === $selectedReasonOption.val() )
+					return;
+
+				selectedReasonID = $selectedReasonOption.val();
+
 				var _parent = $(this).parents('li:first');
 
 				$modal.find('.reason-input').remove();
 				$modal.find('.button-deactivate').text('<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>');
 
+				enableDeactivateButton();
+
 				if (_parent.hasClass('has-input')) {
 					var inputType = _parent.data('input-type'),
 					    inputPlaceholder = _parent.data('input-placeholder'),
-					    reasonInputHtml = '<div class="reason-input">' + ( ( 'textfield' === inputType ) ? '<input type="text" />' : '<textarea rows="5"></textarea>' ) + '</div>';
+					    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" />' : '<textarea rows="5"></textarea>' ) + '</div>';
 
 					_parent.append($(reasonInputHtml));
 					_parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();
+
+					if ( isOtherReasonSelected() ) {
+						showMessage( '<?php printf( __fs(  'ask-for-reason-message' , $slug ) ); ?>' );
+						disableDeactivateButton();
+					}
 				}
 			});
 
@@ -135,6 +192,14 @@
 			});
 		}
 
+		function isOtherReasonSelected() {
+			// Get the selected radio input element.
+			var $selectedReasonOption = $modal.find( 'input[type="radio"]:checked' ),
+				selectedReason        = $selectedReasonOption.parent().next().text().trim();
+
+			return ( 'Other' === selectedReason );
+		}
+
 		function showModal() {
 			resetModal();
 
@@ -151,13 +216,17 @@
 		}
 
 		function resetModal() {
-			$modal.find('.button').removeClass('disabled');
+			selectedReasonID = false;
+
+			enableDeactivateButton();
 
 			// Uncheck all radio buttons.
 			$modal.find('input[type="radio"]').prop('checked', false);
 
 			// Remove all input fields ( textfield, textarea ).
 			$modal.find('.reason-input').remove();
+
+			$modal.find( '.message' ).hide();
 
 			var $deactivateButton = $modal.find('.button-deactivate');
 
@@ -174,6 +243,18 @@
 
 				showPanel('confirm');
 			}
+		}
+
+		function showMessage( message ) {
+			$modal.find( '.message' ).text( message ).show();
+		}
+
+		function enableDeactivateButton() {
+			$modal.find( '.button-deactivate' ).removeClass( 'disabled' );
+		}
+
+		function disableDeactivateButton() {
+			$modal.find( '.button-deactivate' ).addClass( 'disabled' );
 		}
 
 		function showPanel(panelType) {
