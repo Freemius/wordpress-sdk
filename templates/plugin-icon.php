@@ -14,7 +14,7 @@
 	$fs   = freemius( $slug );
 
 	/**
-	 * @since 1.7.5
+	 * @since 1.1.7.5
 	 */
 	$local_path = $fs->apply_filters( 'plugin_icon', false );
 

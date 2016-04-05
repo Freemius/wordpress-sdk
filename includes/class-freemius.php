@@ -97,7 +97,7 @@
 		private $_enable_anonymous;
 
 		/**
-		 * @since 1.7.5
+		 * @since 1.1.7.5
 		 * @var bool Hints the SDK if plugin should run in anonymous mode (only adds feedback form).
 		 */
 		private $_anonymous_mode;
@@ -1045,7 +1045,7 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.7.4
+		 * @since  1.1.7.4
 		 *
 		 * @return object|false
 		 */
@@ -1122,7 +1122,7 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.7.4
+		 * @since  1.1.7.4
 		 *
 		 * @param object $pong
 		 * @param bool   $is_connected
@@ -1179,7 +1179,7 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.7.4
+		 * @since  1.1.7.4
 		 *
 		 * @return \WP_User
 		 */
@@ -1474,7 +1474,7 @@
 		 * Handle connectivity test retry approved by the user.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.7.4
+		 * @since  1.1.7.4
 		 */
 		function _retry_connectivity_test() {
 			$this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
@@ -8594,7 +8594,7 @@
 		 * Get the URL of the page that should be loaded right after the plugin activation.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.7.4
+		 * @since  1.1.7.4
 		 *
 		 * @return string
 		 */
