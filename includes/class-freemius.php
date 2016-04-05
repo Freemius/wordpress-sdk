@@ -532,6 +532,13 @@
 				'input_placeholder' => __fs( 'placeholder-plugin-name', $this->_slug )
 			);
 
+			$reason_temporary_deactivation = array(
+				'id'                => 15,
+				'text'              => __fs( 'reason-temporary-deactivation', $this->_slug ),
+				'input_type'        => '',
+				'input_placeholder' => ''
+			);
+
 			$reason_other = array(
 				'id'                => 7,
 				'text'              => __fs( 'reason-other', $this->_slug ),
@@ -576,6 +583,7 @@
 				);
 			}
 
+			$long_term_user_reasons[] = $reason_temporary_deactivation;
 			$long_term_user_reasons[] = $reason_other;
 
 			$uninstall_reasons = array(
@@ -594,6 +602,7 @@
 						'input_placeholder' => ''
 					),
 					$reason_found_better_plugin,
+					$reason_temporary_deactivation,
 					$reason_other
 				),
 				'short-term'                                  => array(
@@ -628,6 +637,7 @@
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
 					),
+					$reason_temporary_deactivation,
 					$reason_other
 				)
 			);

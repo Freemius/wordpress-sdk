@@ -152,6 +152,7 @@
 		'reason-broke-my-site'                     => __( 'The plugin broke my site', 'freemius' ),
 		'reason-suddenly-stopped-working'          => __( 'The plugin suddenly stopped working', 'freemius' ),
 		'reason-cant-pay-anymore'                  => __( "I can't pay for it anymore", 'freemius' ),
+		'reason-temporary-deactivation'            => __( "It's a temporary deactivation. I'm just debugging an issue.", 'freemius' ),
 		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.', 'freemius' ),
 		'placeholder-plugin-name'                  => __( "What's the plugin's name?", 'freemius' ),
 		'placeholder-comfortable-price'            => __( 'What price would you feel comfortable paying?', 'freemius' ),
