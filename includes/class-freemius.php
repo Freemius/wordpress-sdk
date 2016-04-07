@@ -5639,7 +5639,7 @@
 			foreach ( $this->_menu_items as $priority => $items ) {
 				foreach ( $items as $item ) {
 					if ( isset( $item['url'] ) ) {
-						if ( $page === $item['menu_slug'] ) {
+						if ( $page === strtolower( $item['menu_slug'] ) ) {
 							$this->_logger->log( 'Redirecting to ' . $item['url'] );
 
 							fs_redirect( $item['url'] );
