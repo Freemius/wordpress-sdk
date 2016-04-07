@@ -5935,7 +5935,7 @@
 				return;
 			}
 
-			if ( $this->is_registered() || $this->is_anonymous() ) {
+			if ( ! $this->is_activation_mode() ) {
 				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
