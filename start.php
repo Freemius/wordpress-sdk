@@ -10,7 +10,12 @@
 		exit;
 	}
 
-	$this_sdk_version = '1.1.7.5';
+	/**
+	 * Freemius SDK Version.
+	 *
+	 * @var string
+	 */
+	$this_sdk_version = '1.1.8';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
