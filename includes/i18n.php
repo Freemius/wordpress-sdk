@@ -98,6 +98,7 @@
 		'verified'                                 => __( 'Verified', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
 		'plugins'                                  => __( 'Plugins', 'freemius' ),
+		'themes'                                   => __( 'Themes', 'freemius' ),
 		'path'                                     => _x( 'Path', 'as file/folder path', 'freemius' ),
 		'title'                                    => __( 'Title', 'freemius' ),
 		'free-version'                             => __( 'Free version', 'freemius' ),
@@ -220,6 +221,7 @@
 		'clear-api-cache'                          => __( 'Clear API Cache', 'freemius' ),
 		'sync-data-from-server'                    => __( 'Sync Data From Server', 'freemius' ),
 		'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
+		'plugins-themes-sync'                      => __( 'Plugins & Themes Sync', 'freemius' ),
 		#endregion Debug
 
 		#region Expressions
