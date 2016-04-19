@@ -1257,18 +1257,25 @@
 		 * @return string
 		 */
 		function get_anonymous_id() {
-			if ( ! self::$_accounts->has_option( 'unique_id' ) ) {
+			$unique_id = self::$_accounts->get_option( 'unique_id' );
+
+			if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
 				$key = get_site_url();
 
 				// If localhost, assign microtime instead of domain.
-				if ( WP_FS__IS_LOCALHOST || false !== strpos( $key, 'localhost' ) ) {
+				if ( WP_FS__IS_LOCALHOST ||
+				     false !== strpos( $key, 'localhost' ) ||
+				     false === strpos( $key, '.' )
+				) {
 					$key = microtime();
 				}
 
-				self::$_accounts->set_option( 'unique_id', md5( $key ), true );
+				$unique_id = md5( $key );
+
+				self::$_accounts->set_option( 'unique_id', $unique_id, true );
 			}
 
-			return self::$_accounts->get_option( 'unique_id' );
+			return $unique_id;
 		}
 
 		/**
