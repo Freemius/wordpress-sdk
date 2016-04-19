@@ -327,4 +327,15 @@
 		'addon-no-license-message'                 => __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.', 'freemius' ),
 		'addon-trial-cancelled-message'            => __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.', 'freemius' ),
 		#endregion Add-On Licensing
+		#region Billing Cycles
+		'monthly'                                  => _x( 'Monthly', 'as every month', 'freemius' ),
+		'mo'                                       => _x( 'mo', 'as monthly period', 'freemius' ),
+		'annual'                                   => _x( 'Annual', 'as once a year', 'freemius' ),
+		'annually'                                 => _x( 'Annually', 'as once a year', 'freemius' ),
+		'once'                                     => _x( 'Once', 'as once a year', 'freemius' ),
+		'year'                                     => _x( 'year', 'as annual period', 'freemius' ),
+		'lifetime'                                 => __( 'Lifetime', 'freemius' ),
+		'best'                                     => _x( 'Best', 'e.g. the best product', 'freemius' ),
+		'billed-x'                                 => _x( 'Billed %s', 'e.g. billed monthly', 'freemius' ),
+		#endregion Billing Cycles
 	);
