@@ -972,7 +972,7 @@
 
 			if ( WP_FS__DEV_MODE ) {
 				// Add top-level debug menu item.
-				$hook = add_object_page(
+				$hook = add_menu_page(
 					$title,
 					$title,
 					'manage_options',
