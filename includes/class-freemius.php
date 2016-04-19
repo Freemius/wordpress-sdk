@@ -1551,6 +1551,17 @@
 				)
 			);
 
+			// Add PHP info for deeper investigation.
+			ob_start();
+			phpinfo();
+			$php_info = ob_get_clean();
+			$custom_email_sections['php_info'] = array(
+				'title' => 'PHP Info',
+				'rows'  => array(
+					'info' => array( $php_info )
+				)
+			);
+
 			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
 			$this->send_email(
 				'api@freemius.com',                              // recipient
@@ -1722,6 +1733,7 @@
 				'site'    => array(
 					'title' => 'Site',
 					'rows'  => array(
+						'unique_id'   => array( 'Address', $this->get_anonymous_id() ),
 						'address'     => array( 'Address', site_url() ),
 						'host'        => array(
 							'HTTP_HOST',
