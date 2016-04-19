@@ -363,9 +363,10 @@
 
 			$pong = is_null( $unique_anonymous_id ) ?
 				Freemius_Api::Ping() :
-				$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
-						'uid' => $unique_anonymous_id,
-					) ) ) );
+				$this->_call( 'ping.json?' . http_build_query( array_merge(
+						array( 'uid' => $unique_anonymous_id ),
+						$params
+					) ) );
 
 			if ( $this->is_valid_ping( $pong ) ) {
 				return $pong;
@@ -379,9 +380,10 @@
 
 				$pong = is_null( $unique_anonymous_id ) ?
 					Freemius_Api::Ping() :
-					$this->_call( 'ping.json?' . http_build_query( array_merge( $params, array(
-							'uid' => $unique_anonymous_id,
-						) ) ) );
+					$this->_call( 'ping.json?' . http_build_query( array_merge(
+							array( 'uid' => $unique_anonymous_id ),
+							$params
+						) ) );
 
 				if ( ! $this->is_valid_ping( $pong ) ) {
 					self::$_options->set_option( 'api_force_http', false, true );

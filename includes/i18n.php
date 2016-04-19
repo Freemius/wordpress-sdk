@@ -98,6 +98,7 @@
 		'verified'                                 => __( 'Verified', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
 		'plugins'                                  => __( 'Plugins', 'freemius' ),
+		'themes'                                   => __( 'Themes', 'freemius' ),
 		'path'                                     => _x( 'Path', 'as file/folder path', 'freemius' ),
 		'title'                                    => __( 'Title', 'freemius' ),
 		'free-version'                             => __( 'Free version', 'freemius' ),
@@ -152,7 +153,9 @@
 		'reason-broke-my-site'                     => __( 'The plugin broke my site', 'freemius' ),
 		'reason-suddenly-stopped-working'          => __( 'The plugin suddenly stopped working', 'freemius' ),
 		'reason-cant-pay-anymore'                  => __( "I can't pay for it anymore", 'freemius' ),
+		'reason-temporary-deactivation'            => __( "It's a temporary deactivation. I'm just debugging an issue.", 'freemius' ),
 		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.', 'freemius' ),
+		'ask-for-reason-message'                   => __( 'Kindly tell us the reason so we can improve.', 'freemius' ),
 		'placeholder-plugin-name'                  => __( "What's the plugin's name?", 'freemius' ),
 		'placeholder-comfortable-price'            => __( 'What price would you feel comfortable paying?', 'freemius' ),
 		'reason-couldnt-make-it-work'              => __( "I couldn't understand how to make it work", 'freemius' ),
@@ -178,9 +181,11 @@
 		'permissions-profile'                      => __( 'Your Profile Overview', 'freemius' ),
 		'permissions-profile_desc'                 => __( 'Name and email address', 'freemius' ),
 		'permissions-site'                         => __( 'Your Site Overview', 'freemius' ),
-		'permissions-site_desc'                    => __( 'Site address, WordPress version, PHP Version', 'freemius' ),
-		'permissions-events'                       => __( 'Plugin Events', 'freemius' ),
+		'permissions-site_desc'                    => __( 'Site URL, WP version, PHP info, plugins & themes', 'freemius' ),
+		'permissions-events'                       => __( 'Current Plugin Events', 'freemius' ),
 		'permissions-events_desc'                  => __( 'Activation, deactivation and uninstall', 'freemius' ),
+		'permissions-plugins_themes'               => __( 'Plugins & Themes', 'freemius' ),
+		'permissions-plugins_themes_desc'          => __( 'Titles, versions and state.', 'freemius' ),
 		'permissions-newsletter'                   => __( 'Newsletter', 'freemius' ),
 		'permissions-newsletter_desc'              => __( 'Updates, announcements, marketing, no spam', 'freemius' ),
 		'privacy-policy'                           => __( 'Privacy Policy', 'freemius' ),
@@ -218,6 +223,7 @@
 		'clear-api-cache'                          => __( 'Clear API Cache', 'freemius' ),
 		'sync-data-from-server'                    => __( 'Sync Data From Server', 'freemius' ),
 		'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
+		'plugins-themes-sync'                      => __( 'Plugins & Themes Sync', 'freemius' ),
 		#endregion Debug
 
 		#region Expressions
@@ -321,4 +327,17 @@
 		'addon-no-license-message'                 => __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.', 'freemius' ),
 		'addon-trial-cancelled-message'            => __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.', 'freemius' ),
 		#endregion Add-On Licensing
+		#region Billing Cycles
+		'monthly'                                  => _x( 'Monthly', 'as every month', 'freemius' ),
+		'mo'                                       => _x( 'mo', 'as monthly period', 'freemius' ),
+		'annual'                                   => _x( 'Annual', 'as once a year', 'freemius' ),
+		'annually'                                 => _x( 'Annually', 'as once a year', 'freemius' ),
+		'once'                                     => _x( 'Once', 'as once a year', 'freemius' ),
+		'year'                                     => _x( 'year', 'as annual period', 'freemius' ),
+		'lifetime'                                 => __( 'Lifetime', 'freemius' ),
+		'best'                                     => _x( 'Best', 'e.g. the best product', 'freemius' ),
+		'billed-x'                                 => _x( 'Billed %s', 'e.g. billed monthly', 'freemius' ),
+		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
+		#endregion Billing Cycles
+		'view-details'                             => __( 'View details', 'freemius' ),
 	);

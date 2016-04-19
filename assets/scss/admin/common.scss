@@ -59,8 +59,8 @@
         color:       #fff;
         padding:     2px 10px;
         position:    absolute;
-        bottom:      -22px;
-        top:         auto;
+        top:         100%;
+        bottom:      auto;
         right:       auto;
         @include border-radius(0 0 3px 3px);
         left:        10px;

@@ -100,6 +100,11 @@
 			$option_name = $this->_get_option_manager_name();
 
 			if ( $flush || ! isset( $this->_options ) ) {
+				if ( isset( $this->_options ) ) {
+					// Clear prev options.
+					$this->clear();
+				}
+
 				if ( ! WP_FS__DEBUG_SDK ) {
 					$this->_options = wp_cache_get( $option_name, WP_FS__SLUG );
 				}
