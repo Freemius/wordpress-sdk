@@ -24,29 +24,33 @@
 	 * @var FS_Plugin[]
 	 */
 	$addons = $fs->get_addons();
+
+	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 ?>
 	<div id="fs_addons" class="wrap">
 		<h2><?php printf( __fs( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
 
 		<div id="poststuff">
-			<?php if ( ! is_array( $addons ) || 0 == count( $addons ) ) : ?>
+			<?php if ( ! $has_addons ) : ?>
 				<h3><?php printf(
 						'%s... %s',
 						__fs( 'oops', $slug ),
 						__fs( 'add-ons-missing', $slug )
 					) ?></h3>
-			<?php else : ?>
-				<ul class="fs-cards-list">
+			<?php endif ?>
+			<ul class="fs-cards-list">
+				<?php if ( $has_addons ) : ?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
 						$price        = 0;
+						$plan         = null;
 						$plans_result = $fs->get_api_site_or_plugin_scope()->get( "/addons/{$addon->id}/plans.json" );
 						if ( ! isset( $plans_result->error ) ) {
 							$plans = $plans_result->plans;
 							if ( is_array( $plans ) && 0 < count( $plans ) ) {
-								$plan           = $plans[0];
+								$plan           = new FS_Plugin_Plan( $plans[0] );
 								$pricing_result = $fs->get_api_site_or_plugin_scope()->get( "/addons/{$addon->id}/plans/{$plan->id}/pricing.json" );
 								if ( ! isset( $pricing_result->error ) ) {
 									// Update plan's pricing.
@@ -70,7 +74,7 @@
 							}
 						}
 						?>
-						<li class="fs-card" data-slug="<?php echo $addon->slug ?>">
+						<li class="fs-card fs-addon" data-slug="<?php echo $addon->slug ?>">
 							<?php
 								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 									esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
@@ -94,23 +98,26 @@
 								<ul>
 									<li class="fs-card-banner"
 									    style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"></li>
+<!--									<li class="fs-tag"></li>-->
 									<li class="fs-title"><?php echo $addon->title ?></li>
 									<li class="fs-offer">
 									<span
-										class="fs-price"><?php echo ( 0 == $price ) ? __fs( 'free', $slug ) : '$' . number_format( $price, 2 ) ?></span>
+										class="fs-price"><?php echo ( 0 == $price ) ? __fs( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . __fs('trial', $slug) : '')) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
+									<li class="fs-cta"><a class="button"><?php _efs( 'view-details', $slug ) ?></a></li>
 								</ul>
 							</div>
 						</li>
 					<?php endforeach ?>
-				</ul>
-			<?php endif ?>
+				<?php endif ?>
+			</ul>
 		</div>
 	</div>
-<?php if ( $open_addon ) : ?>
 	<script type="text/javascript">
 		(function ($) {
+			<?php if ( $open_addon ) : ?>
+
 			var interval = setInterval(function () {
 				// Open add-on information page.
 				$('.fs-card[data-slug=<?php echo $open_addon_slug ?>] a').click();
@@ -119,7 +126,19 @@
 					interval = null;
 				}
 			}, 200);
+
+			<?php else : ?>
+
+
+			$('.fs-card.fs-addon').mouseover(function(){
+				$(this).find('.fs-cta .button').addClass('button-primary');
+			});
+
+			$('.fs-card.fs-addon').mouseout(function(){
+				$(this).find('.fs-cta .button').removeClass('button-primary');
+			});
+
+			<?php endif ?>
 		})(jQuery);
 	</script>
-<?php endif ?>
 <?php fs_require_template( 'powered-by.php' ) ?>

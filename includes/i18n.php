@@ -338,4 +338,5 @@
 		'best'                                     => _x( 'Best', 'e.g. the best product', 'freemius' ),
 		'billed-x'                                 => _x( 'Billed %s', 'e.g. billed monthly', 'freemius' ),
 		#endregion Billing Cycles
+		'view-details'                                 => __( 'View details', 'freemius' ),
 	);
