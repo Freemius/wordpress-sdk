@@ -1275,6 +1275,8 @@
 				self::$_accounts->set_option( 'unique_id', $unique_id, true );
 			}
 
+			$this->_logger->departure( $unique_id );
+
 			return $unique_id;
 		}
 
