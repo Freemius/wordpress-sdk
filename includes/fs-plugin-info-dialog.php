@@ -567,20 +567,20 @@
 		<div id="<?php echo $_tab; ?>-content" class='<?php echo $_with_banner; ?>'>
 			<div class="fyi">
 			<?php if ( $api->is_paid ) : ?>
-			<?php if ( isset( $api->plans ) ) : ?>
-				<div class="plugin-information-pricing">
-				<?php foreach ( $api->plans as $plan ) : ?>
-					<?php
-					/**
-					 * @var FS_Plugin_Plan $plan
-					 */
-					?>
-					<?php $first_pricing = $plan->pricing[0] ?>
-					<?php $is_multi_cycle = $first_pricing->is_multi_cycle() ?>
-					<div class="fs-plan<?php if ( ! $is_multi_cycle ) {
-						echo ' fs-single-cycle';
-					} ?>" data-plan-id="<?php echo $plan->id ?>">
-						<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan', $api->slug ), $plan->title ) ?></h3>
+				<?php if ( isset( $api->plans ) ) : ?>
+					<div class="plugin-information-pricing">
+					<?php foreach ( $api->plans as $plan ) : ?>
+						<?php
+						/**
+						 * @var FS_Plugin_Plan $plan
+						 */
+						?>
+						<?php $first_pricing = $plan->pricing[0] ?>
+						<?php $is_multi_cycle = $first_pricing->is_multi_cycle() ?>
+						<div class="fs-plan<?php if ( ! $is_multi_cycle ) {
+							echo ' fs-single-cycle';
+						} ?>" data-plan-id="<?php echo $plan->id ?>">
+							<h3 data-plan="<?php echo $plan->id ?>"><?php printf( __fs( 'x-plan', $api->slug ), $plan->title ) ?></h3>
 							<?php $has_annual = $first_pricing->has_annual() ?>
 							<?php $has_monthly = $first_pricing->has_monthly() ?>
 							<div class="nav-tab-wrapper">
@@ -659,14 +659,13 @@
 
 												return _formatLicensesTitle(pricing) + ' - <var class="fs-price">$' + pricing.price + priceCycle + '</var>';
 											},
-											_checkoutUrl = function (plan, pricing, cycle){
+											_checkoutUrl = function (plan, pricing, cycle) {
 												return '<?php echo esc_url_raw(remove_query_arg('billing_cycle', add_query_arg(array('plugin_id' => $plan->plugin_id), $api->checkout_link))) ?>' +
 												'&plan_id=' + plan +
 												'&pricing_id=' + pricing +
 												'&billing_cycle=' + cycle<?php if ($plan->has_trial()) { echo " + '&trial=true'"; }?>;
 											},
-											_updateCtaUrl = function (plan, pricing, cycle)
-											{
+											_updateCtaUrl = function (plan, pricing, cycle) {
 												$('.plugin-information-pricing .button, #plugin-information-footer .button').attr('href', _checkoutUrl(plan, pricing, cycle));
 											};
 
@@ -714,8 +713,7 @@
 													// Select first license option.
 													$pricesList.find('li:first input').click();
 												}
-												else
-												{
+												else {
 													_updateCtaUrl(
 														$plan.attr('data-plan-id'),
 														pricing[0].id,
@@ -726,9 +724,9 @@
 												// Update billing frequency.
 												$plan.find('.fs-billing-frequency').html(_formatBillingFrequency(billingCycle));
 
-												if ('annual' === billingCycle){
+												if ('annual' === billingCycle) {
 													$plan.find('.fs-annual-discount').show();
-												}else{
+												} else {
 													$plan.find('.fs-annual-discount').hide();
 												}
 											});
@@ -746,9 +744,10 @@
 							</div>
 							<div class="fs-pricing-body">
 								<span class="fs-billing-frequency"></span>
-								<?php $annual_discount = ($has_annual && $has_monthly ) ? $plan->pricing[0]->annual_discount_percentage() : 0 ?>
+								<?php $annual_discount = ( $has_annual && $has_monthly ) ? $plan->pricing[0]->annual_discount_percentage() : 0 ?>
 								<?php if ( $annual_discount > 0 ) : ?>
-								<span class="fs-annual-discount"><?php echo $annual_discount ?>%</span>
+									<span
+										class="fs-annual-discount"><?php printf( __fs( 'save-x', $api->slug ), $annual_discount . '%' ) ?></span>
 								<?php endif ?>
 								<ul class="fs-licenses">
 								</ul>
@@ -766,10 +765,10 @@
 									</ul>
 								<?php endif ?>
 							</div>
-					</div>
-					</div>
-				<?php endforeach ?>
-			<?php endif ?>
+						</div>
+						</div>
+					<?php endforeach ?>
+				<?php endif ?>
 			<?php endif ?>
 			<div>
 				<h3><?php _efs( 'details', $api->slug ) ?></h3>

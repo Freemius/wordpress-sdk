@@ -337,6 +337,7 @@
 		'lifetime'                                 => __( 'Lifetime', 'freemius' ),
 		'best'                                     => _x( 'Best', 'e.g. the best product', 'freemius' ),
 		'billed-x'                                 => _x( 'Billed %s', 'e.g. billed monthly', 'freemius' ),
+		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
 		#endregion Billing Cycles
-		'view-details'                                 => __( 'View details', 'freemius' ),
+		'view-details'                             => __( 'View details', 'freemius' ),
 	);
