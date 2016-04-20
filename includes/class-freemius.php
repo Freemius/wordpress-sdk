@@ -1255,6 +1255,30 @@
 			$this->_has_api_connection = $is_connected;
 			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 		}
+
+		/**
+		 * Force turning Freemius on.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @return bool TRUE if successfully turned on.
+		 */
+		private function turn_on() {
+			$this->_logger->entrance();
+
+			if ($this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
+				return false;
+			}
+
+			$updated_connectivity              = $this->_storage->connectivity_test;
+			$updated_connectivity['is_active'] = true;
+			$updated_connectivity['timestamp'] = WP_FS__SCRIPT_START_TIME;
+			$this->_storage->connectivity_test = $updated_connectivity;
+
+			$this->_is_on = true;
+
+			return true;
 		}
 
 		/**
@@ -5676,6 +5700,9 @@
 				// Store trial plan information.
 				$this->_enrich_site_trial_plan( true );
 			}
+
+			// If Freemius was OFF before, turn it on.
+			$this->turn_on();
 
 			$this->do_action( 'after_account_connection', $user, $site );
 
