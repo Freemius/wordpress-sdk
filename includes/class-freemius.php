@@ -1196,7 +1196,7 @@
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
-				                ( WP_FS__DEV_MODE && $this->_has_api_connection );
+				                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 
 				return $this->_has_api_connection;
 			}
@@ -1226,10 +1226,15 @@
 
 			$version = $this->get_plugin_version();
 
+			if ( ! $is_connected || WP_FS__SIMULATE_FREEMIUS_OFF ) {
+				$is_active = false;
+			} else {
+				$is_active = ( isset( $pong->is_active ) && true == $pong->is_active );
+			}
+
 			$is_active = $this->apply_filters(
 				'is_on',
-				( ! $is_connected ) ? false :
-					( isset( $pong->is_active ) && true == $pong->is_active ),
+				$is_active,
 				$this->is_plugin_update(),
 				$version
 			);
@@ -1245,7 +1250,8 @@
 			);
 
 			$this->_has_api_connection = $is_connected;
-			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected );
+			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected && ! WP_FS__SIMULATE_FREEMIUS_OFF );
+		}
 		}
 
 		/**

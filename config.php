@@ -40,6 +40,10 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
 	}
 
+	if ( ! defined( 'WP_FS__SIMULATE_FREEMIUS_OFF' ) ) {
+		define( 'WP_FS__SIMULATE_FREEMIUS_OFF', false );
+	}
+
 	if ( ! defined( 'WP_FS__PING_API_ON_IP_OR_HOST_CHANGES' ) ) {
 		/**
 		 * @since  1.1.7.3
