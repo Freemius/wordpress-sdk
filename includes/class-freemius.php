@@ -812,6 +812,7 @@
 		 */
 		function is_activation_mode() {
 			return (
+				$this->is_on() &&
 				! $this->is_registered() &&
 				( ! $this->enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
@@ -839,6 +840,7 @@
 
 			return $active_plugin;
 		}
+
 		/**
 		 * Get collection of all plugins.
 		 *
@@ -880,6 +882,7 @@
 		 * @var object
 		 */
 		private static $_plugins_info;
+
 		/**
 		 * Helper function to get specified plugin's slug.
 		 *
@@ -890,7 +893,7 @@
 		 *
 		 * @return string
 		 */
-		private static function get_plugin_slug($basename) {
+		private static function get_plugin_slug( $basename ) {
 			if ( ! isset( self::$_plugins_info ) ) {
 				self::$_plugins_info = get_site_transient( 'update_plugins' );
 			}
@@ -1560,7 +1563,7 @@
 			// Add PHP info for deeper investigation.
 			ob_start();
 			phpinfo();
-			$php_info = ob_get_clean();
+			$php_info                          = ob_get_clean();
 			$custom_email_sections['php_info'] = array(
 				'title' => 'PHP Info',
 				'rows'  => array(
@@ -3420,9 +3423,9 @@
 
 			$time = time();
 
-			if (!empty($all_cached_plugins->timestamp) &&
-			    ($time - $all_cached_plugins->timestamp) < WP_FS__TIME_5_MIN_IN_SEC
-			){
+			if ( ! empty( $all_cached_plugins->timestamp ) &&
+			     ( $time - $all_cached_plugins->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
+			) {
 				// Don't send plugin updates if last update was in the past 5 min.
 				return false;
 			}
@@ -3432,11 +3435,10 @@
 			self::$_accounts->set_option( $option_name, $all_cached_plugins, true );
 
 			// Reload options from DB.
-			self::$_accounts->load(true);
+			self::$_accounts->load( true );
 			$all_cached_plugins = self::$_accounts->get_option( $option_name );
 
-			if ($time != $all_cached_plugins->timestamp)
-			{
+			if ( $time != $all_cached_plugins->timestamp ) {
 				// If timestamp is different, then another thread captured the lock.
 				return false;
 			}
@@ -3477,10 +3479,10 @@
 					            $data['version'] !== $all_plugins[ $basename ]['Version']
 					) {
 						// Plugin activated or deactivated, or version changed.
-						$all_cached_plugins->plugins[$basename]['is_active'] = $all_plugins[ $basename ]['is_active'];
-						$all_cached_plugins->plugins[$basename]['version']   = $all_plugins[ $basename ]['Version'];
+						$all_cached_plugins->plugins[ $basename ]['is_active'] = $all_plugins[ $basename ]['is_active'];
+						$all_cached_plugins->plugins[ $basename ]['version']   = $all_plugins[ $basename ]['Version'];
 
-						$plugins_update_data[] = $all_cached_plugins->plugins[$basename];
+						$plugins_update_data[] = $all_cached_plugins->plugins[ $basename ];
 					}
 				}
 
@@ -3519,7 +3521,7 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.8
-		 *         
+		 *
 		 * @return array|false
 		 */
 		private function get_themes_data_for_api() {
@@ -3538,9 +3540,9 @@
 
 			$time = time();
 
-			if (!empty($all_cached_themes->timestamp) &&
-			    ($time - $all_cached_themes->timestamp) < WP_FS__TIME_5_MIN_IN_SEC
-			){
+			if ( ! empty( $all_cached_themes->timestamp ) &&
+			     ( $time - $all_cached_themes->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
+			) {
 				// Don't send theme updates if last update was in the past 5 min.
 				return false;
 			}
@@ -3550,11 +3552,10 @@
 			self::$_accounts->set_option( $option_name, $all_cached_themes, true );
 
 			// Reload options from DB.
-			self::$_accounts->load(true);
+			self::$_accounts->load( true );
 			$all_cached_themes = self::$_accounts->get_option( $option_name );
 
-			if ($time != $all_cached_themes->timestamp)
-			{
+			if ( $time != $all_cached_themes->timestamp ) {
 				// If timestamp is different, then another thread captured the lock.
 				return false;
 			}
@@ -3602,10 +3603,10 @@
 					) {
 						// Plugin activated or deactivated, or version changed.
 
-						$all_cached_themes->themes[$slug]['is_active'] = $is_active;
-						$all_cached_themes->themes[$slug]['version']   = $all_themes[ $slug ]->version;
+						$all_cached_themes->themes[ $slug ]['is_active'] = $is_active;
+						$all_cached_themes->themes[ $slug ]['version']   = $all_themes[ $slug ]->version;
 
-						$themes_update_data[] = $all_cached_themes->themes[$slug];
+						$themes_update_data[] = $all_cached_themes->themes[ $slug ];
 					}
 				}
 
@@ -3693,7 +3694,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param string[]string $override
+		 * @param string[] string $override
 		 * @param bool     $flush
 		 *
 		 * @return false|object|string
@@ -3722,7 +3723,7 @@
 						$special[ $p ] = $v;
 
 						if ( isset( $override[ $p ] ) ||
-						     'plugins' === $p  ||
+						     'plugins' === $p ||
 						     'themes' === $p
 						) {
 							$special_override = true;
@@ -5611,8 +5612,8 @@
 				}
 
 				if ( $response instanceof WP_Error ) {
-				return false;
-			}
+					return false;
+				}
 			}
 
 			if ( is_wp_error( $response ) ) {
@@ -5985,9 +5986,9 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-			if ( ! $this->is_on() ) {
-				return;
-			}
+//			if ( ! $this->is_on() ) {
+//				return;
+//			}
 
 			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
