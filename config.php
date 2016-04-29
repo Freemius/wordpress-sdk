@@ -200,7 +200,13 @@
 	 * Debugging
 	 */
 	if ( ! defined( 'WP_FS__DEBUG_SDK' ) ) {
-		$debug_mode = get_option( 'fs_debug_mode' );
+		$debug_mode = get_option( 'fs_debug_mode', null );
+
+		if ( $debug_mode === null ) {
+			$debug_mode = false;
+			add_option( 'fs_debug_mode', $debug_mode );
+		}
+
 		define( 'WP_FS__DEBUG_SDK', is_numeric( $debug_mode ) ? ( 0 < $debug_mode ) : WP_FS__DEV_MODE );
 	}
 
