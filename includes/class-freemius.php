@@ -4649,6 +4649,30 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @param string $name
+		 *
+		 * @return FS_Plugin_Plan|false
+		 */
+		private function get_plan_by_name( $name ) {
+			$this->_logger->entrance();
+
+			if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
+				$this->_sync_plans();
+			}
+
+			foreach ( $this->_plans as $plan ) {
+				if ( $name == $plan->name ) {
+					return $plan;
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * Sync local plugin plans with remote server.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -7728,6 +7752,100 @@
 					'error'
 				);
 			}
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @param bool|string $plan_name
+		 *
+		 * @return bool If trial was successfully started.
+		 */
+		function start_trial($plan_name = false) {
+			$this->_logger->entrance();
+
+			if ( $this->is_trial() ) {
+				// Already in trial mode.
+				$this->_admin_notices->add(
+					__fs( 'in-trial-mode', $this->_slug ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			if ( $this->_site->is_trial_utilized() ) {
+				// Trial was already utilized.
+				$this->_admin_notices->add(
+					__fs( 'trial-utilized', $this->_slug ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			if ( false !== $plan_name ) {
+				$plan = $this->get_plan_by_name( $plan_name );
+
+				if ( false === $plan ) {
+					// Plan doesn't exist.
+					$this->_admin_notices->add(
+						sprintf( __fs( 'trial-plan-x-not-exist', $this->_slug ), $plan_name ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+
+				if ( ! $plan->has_trial() ) {
+					// Plan doesn't exist.
+					$this->_admin_notices->add(
+						sprintf( __fs( 'plan-x-no-trial', $this->_slug ), $plan_name ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+			} else {
+				if ( ! $this->has_trial_plan() ) {
+					// None of the plans have a trial.
+					$this->_admin_notices->add(
+						__fs( 'no-trials', $this->_slug ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+
+				$plans_with_trial = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
+
+				$plan = $plans_with_trial[0];
+			}
+
+			$api  = $this->get_api_site_scope();
+			$plan = $api->call( "plans/{$plan->id}/trials.json", 'post' );
+
+			if ( $this->is_api_error( $plan ) ) {
+				// Some API error while trying to start the trial.
+				$this->_admin_notices->add(
+					__fs( 'unexpected-api-error', $this->_slug ) . ' ' . var_export( $plan, true ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			// Sync license.
+			$this->_sync_license();
+
+			return $this->is_trial();
 		}
 
 		/**
