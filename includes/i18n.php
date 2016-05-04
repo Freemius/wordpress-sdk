@@ -129,6 +129,8 @@
 		'more-information-about-x'                 => __( 'More information about %s', 'freemius' ),
 		'localhost'                                => __( 'Localhost', 'freemius' ),
 		'activate-x-plan'                          => _x( 'Activate %s Plan', 'as activate Professional plan', 'freemius' ),
+		'x-left'                                   => _x( '%s left', 'as 5 licenses left', 'freemius' ),
+		'last-license'                             => __( 'Last license', 'freemius' ),
 		'what-is-your-x'                           => __( 'What is your %s?', 'freemius' ),
 		'activate-this-addon'                      => __( 'Activate this add-on', 'freemius' ),
 		'deactivate-license-confirm'               => __( 'Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', 'freemius' ),
