@@ -402,7 +402,7 @@
 		private function _register_account_hooks() {
 			if ( is_admin() ) {
 				if ( ! $this->is_ajax() ) {
-					if ( $this->has_trial_plan() ) {
+					if ( $this->apply_filters( 'show_trial', true ) && $this->has_trial_plan() ) {
 						$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
 						if ( ! $this->_site->is_trial_utilized() &&
 						     (
@@ -812,6 +812,7 @@
 		 */
 		function is_activation_mode() {
 			return (
+				$this->is_on() &&
 				! $this->is_registered() &&
 				( ! $this->enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
@@ -839,6 +840,7 @@
 
 			return $active_plugin;
 		}
+
 		/**
 		 * Get collection of all plugins.
 		 *
@@ -880,6 +882,7 @@
 		 * @var object
 		 */
 		private static $_plugins_info;
+
 		/**
 		 * Helper function to get specified plugin's slug.
 		 *
@@ -890,7 +893,7 @@
 		 *
 		 * @return string
 		 */
-		private static function get_plugin_slug($basename) {
+		private static function get_plugin_slug( $basename ) {
 			if ( ! isset( self::$_plugins_info ) ) {
 				self::$_plugins_info = get_site_transient( 'update_plugins' );
 			}
@@ -1196,7 +1199,7 @@
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
-				                ( WP_FS__DEV_MODE && $this->_has_api_connection );
+				                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 
 				return $this->_has_api_connection;
 			}
@@ -1226,10 +1229,15 @@
 
 			$version = $this->get_plugin_version();
 
+			if ( ! $is_connected || WP_FS__SIMULATE_FREEMIUS_OFF ) {
+				$is_active = false;
+			} else {
+				$is_active = ( isset( $pong->is_active ) && true == $pong->is_active );
+			}
+
 			$is_active = $this->apply_filters(
 				'is_on',
-				( ! $is_connected ) ? false :
-					( isset( $pong->is_active ) && true == $pong->is_active ),
+				$is_active,
 				$this->is_plugin_update(),
 				$version
 			);
@@ -1245,7 +1253,32 @@
 			);
 
 			$this->_has_api_connection = $is_connected;
-			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected );
+			$this->_is_on              = $is_active || ( WP_FS__DEV_MODE && $is_connected && ! WP_FS__SIMULATE_FREEMIUS_OFF );
+		}
+
+		/**
+		 * Force turning Freemius on.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @return bool TRUE if successfully turned on.
+		 */
+		private function turn_on() {
+			$this->_logger->entrance();
+
+			if ($this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
+				return false;
+			}
+
+			$updated_connectivity              = $this->_storage->connectivity_test;
+			$updated_connectivity['is_active'] = true;
+			$updated_connectivity['timestamp'] = WP_FS__SCRIPT_START_TIME;
+			$this->_storage->connectivity_test = $updated_connectivity;
+
+			$this->_is_on = true;
+
+			return true;
 		}
 
 		/**
@@ -1554,7 +1587,7 @@
 			// Add PHP info for deeper investigation.
 			ob_start();
 			phpinfo();
-			$php_info = ob_get_clean();
+			$php_info                          = ob_get_clean();
 			$custom_email_sections['php_info'] = array(
 				'title' => 'PHP Info',
 				'rows'  => array(
@@ -3414,9 +3447,9 @@
 
 			$time = time();
 
-			if (!empty($all_cached_plugins->timestamp) &&
-			    ($time - $all_cached_plugins->timestamp) < WP_FS__TIME_5_MIN_IN_SEC
-			){
+			if ( ! empty( $all_cached_plugins->timestamp ) &&
+			     ( $time - $all_cached_plugins->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
+			) {
 				// Don't send plugin updates if last update was in the past 5 min.
 				return false;
 			}
@@ -3426,11 +3459,10 @@
 			self::$_accounts->set_option( $option_name, $all_cached_plugins, true );
 
 			// Reload options from DB.
-			self::$_accounts->load(true);
+			self::$_accounts->load( true );
 			$all_cached_plugins = self::$_accounts->get_option( $option_name );
 
-			if ($time != $all_cached_plugins->timestamp)
-			{
+			if ( $time != $all_cached_plugins->timestamp ) {
 				// If timestamp is different, then another thread captured the lock.
 				return false;
 			}
@@ -3471,10 +3503,10 @@
 					            $data['version'] !== $all_plugins[ $basename ]['Version']
 					) {
 						// Plugin activated or deactivated, or version changed.
-						$all_cached_plugins->plugins[$basename]['is_active'] = $all_plugins[ $basename ]['is_active'];
-						$all_cached_plugins->plugins[$basename]['version']   = $all_plugins[ $basename ]['Version'];
+						$all_cached_plugins->plugins[ $basename ]['is_active'] = $all_plugins[ $basename ]['is_active'];
+						$all_cached_plugins->plugins[ $basename ]['version']   = $all_plugins[ $basename ]['Version'];
 
-						$plugins_update_data[] = $all_cached_plugins->plugins[$basename];
+						$plugins_update_data[] = $all_cached_plugins->plugins[ $basename ];
 					}
 				}
 
@@ -3513,7 +3545,7 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.8
-		 *         
+		 *
 		 * @return array|false
 		 */
 		private function get_themes_data_for_api() {
@@ -3532,9 +3564,9 @@
 
 			$time = time();
 
-			if (!empty($all_cached_themes->timestamp) &&
-			    ($time - $all_cached_themes->timestamp) < WP_FS__TIME_5_MIN_IN_SEC
-			){
+			if ( ! empty( $all_cached_themes->timestamp ) &&
+			     ( $time - $all_cached_themes->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
+			) {
 				// Don't send theme updates if last update was in the past 5 min.
 				return false;
 			}
@@ -3544,11 +3576,10 @@
 			self::$_accounts->set_option( $option_name, $all_cached_themes, true );
 
 			// Reload options from DB.
-			self::$_accounts->load(true);
+			self::$_accounts->load( true );
 			$all_cached_themes = self::$_accounts->get_option( $option_name );
 
-			if ($time != $all_cached_themes->timestamp)
-			{
+			if ( $time != $all_cached_themes->timestamp ) {
 				// If timestamp is different, then another thread captured the lock.
 				return false;
 			}
@@ -3596,10 +3627,10 @@
 					) {
 						// Plugin activated or deactivated, or version changed.
 
-						$all_cached_themes->themes[$slug]['is_active'] = $is_active;
-						$all_cached_themes->themes[$slug]['version']   = $all_themes[ $slug ]->version;
+						$all_cached_themes->themes[ $slug ]['is_active'] = $is_active;
+						$all_cached_themes->themes[ $slug ]['version']   = $all_themes[ $slug ]->version;
 
-						$themes_update_data[] = $all_cached_themes->themes[$slug];
+						$themes_update_data[] = $all_cached_themes->themes[ $slug ];
 					}
 				}
 
@@ -3687,7 +3718,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param string[]string $override
+		 * @param string[] string $override
 		 * @param bool     $flush
 		 *
 		 * @return false|object|string
@@ -3716,7 +3747,7 @@
 						$special[ $p ] = $v;
 
 						if ( isset( $override[ $p ] ) ||
-						     'plugins' === $p  ||
+						     'plugins' === $p ||
 						     'themes' === $p
 						) {
 							$special_override = true;
@@ -4610,6 +4641,30 @@
 
 			foreach ( $this->_plans as $plan ) {
 				if ( $id == $plan->id ) {
+					return $plan;
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @param string $name
+		 *
+		 * @return FS_Plugin_Plan|false
+		 */
+		private function get_plan_by_name( $name ) {
+			$this->_logger->entrance();
+
+			if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
+				$this->_sync_plans();
+			}
+
+			foreach ( $this->_plans as $plan ) {
+				if ( $name == $plan->name ) {
 					return $plan;
 				}
 			}
@@ -5605,8 +5660,8 @@
 				}
 
 				if ( $response instanceof WP_Error ) {
-				return false;
-			}
+					return false;
+				}
 			}
 
 			if ( is_wp_error( $response ) ) {
@@ -5669,6 +5724,9 @@
 				// Store trial plan information.
 				$this->_enrich_site_trial_plan( true );
 			}
+
+			// If Freemius was OFF before, turn it on.
+			$this->turn_on();
 
 			$this->do_action( 'after_account_connection', $user, $site );
 
@@ -5979,9 +6037,9 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-			if ( ! $this->is_on() ) {
-				return;
-			}
+//			if ( ! $this->is_on() ) {
+//				return;
+//			}
 
 			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
@@ -7694,6 +7752,100 @@
 					'error'
 				);
 			}
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @param bool|string $plan_name
+		 *
+		 * @return bool If trial was successfully started.
+		 */
+		function start_trial($plan_name = false) {
+			$this->_logger->entrance();
+
+			if ( $this->is_trial() ) {
+				// Already in trial mode.
+				$this->_admin_notices->add(
+					__fs( 'in-trial-mode', $this->_slug ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			if ( $this->_site->is_trial_utilized() ) {
+				// Trial was already utilized.
+				$this->_admin_notices->add(
+					__fs( 'trial-utilized', $this->_slug ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			if ( false !== $plan_name ) {
+				$plan = $this->get_plan_by_name( $plan_name );
+
+				if ( false === $plan ) {
+					// Plan doesn't exist.
+					$this->_admin_notices->add(
+						sprintf( __fs( 'trial-plan-x-not-exist', $this->_slug ), $plan_name ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+
+				if ( ! $plan->has_trial() ) {
+					// Plan doesn't exist.
+					$this->_admin_notices->add(
+						sprintf( __fs( 'plan-x-no-trial', $this->_slug ), $plan_name ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+			} else {
+				if ( ! $this->has_trial_plan() ) {
+					// None of the plans have a trial.
+					$this->_admin_notices->add(
+						__fs( 'no-trials', $this->_slug ),
+						__fs( 'oops', $this->_slug ) . '...',
+						'error'
+					);
+
+					return false;
+				}
+
+				$plans_with_trial = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
+
+				$plan = $plans_with_trial[0];
+			}
+
+			$api  = $this->get_api_site_scope();
+			$plan = $api->call( "plans/{$plan->id}/trials.json", 'post' );
+
+			if ( $this->is_api_error( $plan ) ) {
+				// Some API error while trying to start the trial.
+				$this->_admin_notices->add(
+					__fs( 'unexpected-api-error', $this->_slug ) . ' ' . var_export( $plan, true ),
+					__fs( 'oops', $this->_slug ) . '...',
+					'error'
+				);
+
+				return false;
+			}
+
+			// Sync license.
+			$this->_sync_license();
+
+			return $this->is_trial();
 		}
 
 		/**

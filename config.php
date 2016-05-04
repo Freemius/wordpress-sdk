@@ -40,6 +40,10 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', true );
 	}
 
+	if ( ! defined( 'WP_FS__SIMULATE_FREEMIUS_OFF' ) ) {
+		define( 'WP_FS__SIMULATE_FREEMIUS_OFF', false );
+	}
+
 	if ( ! defined( 'WP_FS__PING_API_ON_IP_OR_HOST_CHANGES' ) ) {
 		/**
 		 * @since  1.1.7.3
@@ -196,7 +200,13 @@
 	 * Debugging
 	 */
 	if ( ! defined( 'WP_FS__DEBUG_SDK' ) ) {
-		$debug_mode = get_option( 'fs_debug_mode' );
+		$debug_mode = get_option( 'fs_debug_mode', null );
+
+		if ( $debug_mode === null ) {
+			$debug_mode = false;
+			add_option( 'fs_debug_mode', $debug_mode );
+		}
+
 		define( 'WP_FS__DEBUG_SDK', is_numeric( $debug_mode ) ? ( 0 < $debug_mode ) : WP_FS__DEV_MODE );
 	}
 

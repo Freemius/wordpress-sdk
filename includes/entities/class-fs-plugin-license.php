@@ -31,7 +31,7 @@
 		 */
 		public $pricing_id;
 		/**
-		 * @var int
+		 * @var int|null
 		 */
 		public $quota;
 		/**
@@ -88,6 +88,18 @@
 			}
 
 			return ( $this->quota - $this->activated - ( $this->is_free_localhost ? 0 : $this->activated_local ) );
+		}
+
+		/**
+		 * Check if single site license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.1
+		 *
+		 * @return bool
+		 */
+		function is_single_site() {
+			return ( is_numeric( $this->quota ) && 1 == $this->quota );
 		}
 
 		/**
