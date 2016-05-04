@@ -129,6 +129,13 @@
 		function _admin_notices_hook() {
 			$notice_type = 'admin_notices';
 
+			if ( function_exists( 'current_user_can' ) &&
+			     ! current_user_can( 'manage_options' )
+			) {
+				// Only show messages to admins.
+				return;
+			}
+
 			if ( ! isset( $this->_admin_messages[ $notice_type ] ) || ! is_array( $this->_admin_messages[ $notice_type ] ) ) {
 				return;
 			}
