@@ -42,7 +42,7 @@
 		<?php endif ?>
 		<?php if ( $fs->is_not_paying() && $fs->has_paid_plan() ) : ?>
 			<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _efs( 'upgrade', $slug ) ?></a>
-			<?php if ( ! $fs->is_trial_utilized() && $fs->has_trial_plan() ) : ?>
+		<?php if ( $fs->apply_filters( 'show_trial', true ) && ! $fs->is_trial_utilized() && $fs->has_trial_plan() ) : ?>
 				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _efs( 'free-trial', $slug ) ?></a>
 			<?php endif ?>
 		<?php endif ?>

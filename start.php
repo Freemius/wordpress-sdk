@@ -213,6 +213,7 @@
 	 *      fs_pending_activation_message_{plugin_slug}
 	 *      fs_is_submenu_visible_{plugin_slug}
 	 *      fs_plugin_icon_{plugin_slug}
+	 *      fs_show_trial_{plugin_slug}
 	 *
 	 * --------------------------------------------------------
 	 *

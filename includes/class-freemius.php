@@ -402,7 +402,7 @@
 		private function _register_account_hooks() {
 			if ( is_admin() ) {
 				if ( ! $this->is_ajax() ) {
-					if ( $this->has_trial_plan() ) {
+					if ( $this->apply_filters( 'show_trial', true ) && $this->has_trial_plan() ) {
 						$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
 						if ( ! $this->_site->is_trial_utilized() &&
 						     (
