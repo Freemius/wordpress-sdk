@@ -119,6 +119,7 @@
 		'deactivate-license'                       => __( 'Deactivate License', 'freemius' ),
 		'activate'                                 => __( 'Activate', 'freemius' ),
 		'deactivate'                               => __( 'Deactivate', 'freemius' ),
+		'skip-deactivate'                          => __( 'Skip & Deactivate', 'freemius' ),
 		'no-deactivate'                            => __( 'No - just deactivate', 'freemius' ),
 		'yes-do-your-thing'                        => __( 'Yes - do your thing', 'freemius' ),
 		'active'                                   => _x( 'Active', 'active mode', 'freemius' ),
