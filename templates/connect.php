@@ -32,7 +32,7 @@
 	$freemius_site_url = $fs->has_paid_plan() ?
 		'https://freemius.com/wordpress/' :
 		// Insights platform information.
-		'https://freemius.com/wordpress/insights/';
+		'https://freemius.com/wordpress/usage-tracking/';
 ?>
 <div id="fs_connect" class="wrap<?php if ( ! $fs->enable_anonymous() || $is_pending_activation ) {
 	echo ' fs-anonymous-disabled';
