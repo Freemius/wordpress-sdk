@@ -47,9 +47,12 @@
 		'downgrade'                                => _x( 'Downgrade', 'verb', 'freemius' ),
 		'cancel-trial'                             => __( 'Cancel Trial', 'freemius' ),
 		'free-trial'                               => __( 'Free Trial', 'freemius' ),
-		'start-free-x'                             => __( 'Start my free %s', 'freemius' ),
-		'no-commitment-x'                          => __( 'No commitment for %s - cancel anytime', 'freemius' ),
-		'after-x-pay-as-little-y'                  => __( 'After your free %s, pay as little as %s', 'freemius' ),
+		'start-free-x'                             => /* translators: %s: Trial name */
+		                                              __( 'Start my free %s', 'freemius' ),
+		'no-commitment-x'                          => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'No commitment for %s - cancel anytime', 'freemius' ),
+		'after-x-pay-as-little-y'                  => /* translators: 1: Trial name 2: Price */
+		                                              __( 'After your free %s, pay as little as %s', 'freemius' ),
 		'details'                                  => __( 'Details', 'freemius' ),
 		'account-details'                          => __( 'Account Details', 'freemius' ),
 		'delete'                                   => _x( 'Delete', 'verb', 'freemius' ),
@@ -57,10 +60,13 @@
 		'dismiss'                                  => _x( 'Dismiss', 'as close a window', 'freemius' ),
 		'plan'                                     => _x( 'Plan', 'as product pricing plan', 'freemius' ),
 		'change-plan'                              => __( 'Change Plan', 'freemius' ),
-		'download-x-version'                       => _x( 'Download %s Version', 'as download professional version', 'freemius' ),
-		'download-x-version-now'                   => _x( 'Download %s version now', 'as download professional version now', 'freemius' ),
+		'download-x-version'                       => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Download %s Version', 'freemius' ),
+		'download-x-version-now'                   => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Download %s version now', 'freemius' ),
 		'download-latest'                          => _x( 'Download Latest', 'as download latest version', 'freemius' ),
-		'you-have-x-license'                       => _x( 'You have a %s license.', 'E.g. you have a professional license.', 'freemius' ),
+		'you-have-x-license'                       => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'You have a %s license.', 'freemius' ),
 		'new'                                      => __( 'New', 'freemius' ),
 		'free'                                     => __( 'Free', 'freemius' ),
 		'trial'                                    => _x( 'Trial', 'as trial plan', 'freemius' ),
@@ -70,13 +76,20 @@
 		'buy-license'                              => __( 'Buy License', 'freemius' ),
 		'license-single-site'                      => __( 'Single Site License', 'freemius' ),
 		'license-unlimited'                        => __( 'Unlimited Licenses', 'freemius' ),
-		'license-x-sites'                          => __( 'Up to %s Sites', 'freemius' ),
-		'renew-license-now'                        => __( '%sRenew your license now%s to access version %s features and support.', 'freemius' ),
-		'x-plan'                                   => _x( '%s Plan', 'e.g. Professional Plan', 'freemius' ),
-		'you-are-step-away'                        => __( 'You are just one step away - %s', 'freemius' ),
-		'activate-x-now'                           => _x( 'Complete "%s" Activation Now', '%s - plugin name. As complete "Jetpack" activation now', 'freemius' ),
-		'few-plugin-tweaks'                        => __( 'We made a few tweaks to the plugin, %s', 'freemius' ),
-		'optin-x-now'                              => __( 'Opt-in to make "%s" Better!', 'freemius' ),
+		'license-x-sites'                          => /* translators: %s: Number of licenses */
+		                                              __( 'Up to %s Sites', 'freemius' ),
+		'renew-license-now'                        => /* translators: 1: Starting HTML tag 2: Starting HTML tag 3: Plan name */
+		                                              __( '%sRenew your license now%s to access version %s features and support.', 'freemius' ),
+		'x-plan'                                   => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( '%s Plan', 'freemius' ),
+		'you-are-step-away'                        => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'You are just one step away - %s', 'freemius' ),
+		'activate-x-now'                           => /* translators: %s: Plugin name */
+		                                              __( 'Complete "%s" Activation Now', 'freemius' ),
+		'few-plugin-tweaks'                        => /* translators: %s: Plugin name */
+		                                              __( 'We made a few tweaks to the plugin, %s', 'freemius' ),
+		'optin-x-now'                              => /* translators: %s: Plugin name */
+		                                              __( 'Opt-in to make "%s" Better!', 'freemius' ),
 		'error'                                    => __( 'Error', 'freemius' ),
 		'failed-finding-main-path'                 => __( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'freemius' ),
 		#region Account
@@ -85,13 +98,17 @@
 		'license'                                  => _x( 'License', 'as software license', 'freemius' ),
 		'not-verified'                             => __( 'not verified', 'freemius' ),
 		'verify-email'                             => __( 'Verify Email', 'freemius' ),
-		'expires-in'                               => _x( 'Expires in %s', 'e.g. expires in 2 months', 'freemius' ),
-		'renews-in'                                => _x( 'Auto renews in %s', 'e.g. auto renews in 2 months', 'freemius' ),
+		'expires-in'                               => /* translators: %s: Time period (e.g. 2 months) */
+		                                              __( 'Expires in %s', 'freemius' ),
+		'renews-in'                                => /* translators: %s: Time period (e.g. 2 months) */
+		                                              __( 'Auto renews in %s', 'freemius' ),
 		'no-expiration'                            => __( 'No expiration', 'freemius' ),
 		'expired'                                  => __( 'Expired', 'freemius' ),
 		'cancelled'                                => __( 'Cancelled', 'freemius' ),
-		'in-x'                                     => _x( 'In %s', 'e.g. In 2 hours', 'freemius' ),
-		'x-ago'                                    => _x( '%s ago', 'e.g. 2 min ago', 'freemius' ),
+		'in-x'                                     => /* translators: %s: Time period (e.g. 2 hours) */
+		                                              __( 'In %s', 'freemius' ),
+		'x-ago'                                    => /* translators: %s: Time period (e.g. 2 min) */
+		                                              __( '%s ago', 'freemius' ),
 		'version'                                  => _x( 'Version', 'as plugin version', 'freemius' ),
 		'name'                                     => __( 'Name', 'freemius' ),
 		'email'                                    => __( 'Email', 'freemius' ),
@@ -126,24 +143,33 @@
 		'is-active'                                => _x( 'Is Active', 'is active mode?', 'freemius' ),
 		'install-now'                              => __( 'Install Now', 'freemius' ),
 		'install-update-now'                       => __( 'Install Update Now', 'freemius' ),
-		'more-information-about-x'                 => __( 'More information about %s', 'freemius' ),
+		'more-information-about-x'                 => /* translators: %s: Plugin name */
+		                                              __( 'More information about %s', 'freemius' ),
 		'localhost'                                => __( 'Localhost', 'freemius' ),
-		'activate-x-plan'                          => _x( 'Activate %s Plan', 'as activate Professional plan', 'freemius' ),
-		'x-left'                                   => _x( '%s left', 'as 5 licenses left', 'freemius' ),
+		'activate-x-plan'                          => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Activate %s Plan', 'freemius' ),
+		'x-left'                                   => /* translators: %s: Number of... (e.g. 5 licenses) */
+		                                              __( '%s left', 'freemius' ),
 		'last-license'                             => __( 'Last license', 'freemius' ),
-		'what-is-your-x'                           => __( 'What is your %s?', 'freemius' ),
+		'what-is-your-x'                           => /* translators: %s: ??? */
+		                                              __( 'What is your %s?', 'freemius' ),
 		'activate-this-addon'                      => __( 'Activate this add-on', 'freemius' ),
 		'deactivate-license-confirm'               => __( 'Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', 'freemius' ),
-		'delete-account-x-confirm'                 => __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', 'freemius' ),
+		'delete-account-x-confirm'                 => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', 'freemius' ),
 		'delete-account-confirm'                   => __( 'Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to continue with the deletion?', 'freemius' ),
-		'downgrade-x-confirm'                      => __( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'freemius' ),
+		'downgrade-x-confirm'                      => /* translators: 1: Plan name (e.g. professional) 2: Time period (e.g. 2 months) */
+		                                              __( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'freemius' ),
 		'cancel-trial-confirm'                     => __( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'freemius' ),
-		'after-downgrade-non-blocking'             => __( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', 'freemius' ),
-		'after-downgrade-blocking'                 => __( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
+		'after-downgrade-non-blocking'             => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', 'freemius' ),
+		'after-downgrade-blocking'                 => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
 		'proceed-confirmation'                     => __( 'Are you sure you want to proceed?', 'freemius' ),
 		#endregion Account
 
-		'add-ons-for-x'                            => __( 'Add Ons for %s', 'freemius' ),
+		'add-ons-for-x'                            => /* translators: %s: Plugin name */
+		                                              __( 'Add Ons for %s', 'freemius' ),
 		'add-ons-missing'                          => __( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'freemius' ),
 		#region Plugin Deactivation
 		'deactivation-share-reason'                => __( 'If you have a moment, please let us know why you are deactivating', 'freemius' ),
@@ -175,11 +201,16 @@
 		#endregion Plugin Deactivation
 
 		#region Connect
-		'hey-x'                                    => _x( 'Hey %s,', 'greeting', 'freemius' ),
-		'thanks-x'                                 => _x( 'Thanks %s!', 'a greeting. E.g. Thanks John!', 'freemius' ),
-		'connect-message'                          => __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
-		'connect-message_on-update'                => __( 'Please help us improve %2$s! If you opt-in, some data about your usage of %2$s will be sent to %5$s. If you skip this, that\'s okay! %2$s will still work just fine.', 'freemius' ),
-		'pending-activation-message'               => __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', 'freemius' ),
+		'hey-x'                                    => /* translators: %s: User name (e.g. John) */
+		                                              __( 'Hey %s,', 'freemius' ),
+		'thanks-x'                                 => /* translators: %s: User name (e.g. John) */
+		                                              __( 'Thanks %s!', 'freemius' ),
+		'connect-message'                          => /* translators: 1: Plugin name 2: ??? 3: ??? 4: ??? */
+		                                              __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
+		'connect-message_on-update'                => /* translators: 2: Plugin name 5: Email Address */
+		                                              __( 'Please help us improve %2$s! If you opt-in, some data about your usage of %2$s will be sent to %5$s. If you skip this, that\'s okay! %2$s will still work just fine.', 'freemius' ),
+		'pending-activation-message'               => /* translators: 1: Plugin name 2: Email Address */
+		                                              __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', 'freemius' ),
 		'what-permissions'                         => __( 'What permissions are being granted?', 'freemius' ),
 		'permissions-profile'                      => __( 'Your Profile Overview', 'freemius' ),
 		'permissions-profile_desc'                 => __( 'Name and email address', 'freemius' ),
@@ -202,7 +233,8 @@
 
 		#region Screenshots
 		'screenshots'                              => __( 'Screenshots', 'freemius' ),
-		'view-full-size-x'                         => __( 'Click to view full-size screenshot %d', 'freemius' ),
+		'view-full-size-x'                         => /* translators: %s: Screenshot number */
+		                                              __( 'Click to view full-size screenshot %d', 'freemius' ),
 		#endregion Screenshots
 
 		#region Debug
@@ -218,7 +250,8 @@
 		'sdk-versions'                             => _x( 'SDK Versions', 'as software development kit versions', 'freemius' ),
 		'plugin-path'                              => _x( 'Plugin Path', 'as plugin folder path', 'freemius' ),
 		'sdk-path'                                 => _x( 'SDK Path', 'as sdk path', 'freemius' ),
-		'addons-of-x'                              => __( 'Add Ons of Plugin %s', 'freemius' ),
+		'addons-of-x'                              => /* translators: %s: Plugin name */
+		                                              __( 'Add Ons of Plugin %s', 'freemius' ),
 		'delete-all-confirm'                       => __( 'Are you sure you want to delete all Freemius data?', 'freemius' ),
 		'actions'                                  => __( 'Actions', 'freemius' ),
 		'delete-all-accounts'                      => __( 'Delete All Accounts', 'freemius' ),
@@ -245,96 +278,135 @@
 		'you-have-latest'                          => __( 'Seems like you got the latest release.', 'freemius' ),
 		'you-are-good'                             => __( 'You are all good!', 'freemius' ),
 		'user-exist-message'                       => __( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'freemius' ),
-		'user-exist-message_ownership'             => __( 'If you would like to give up the ownership of the plugin\'s account to %s click the Change Ownership button.', 'freemius' ),
+		'user-exist-message_ownership'             => /* translators: %s: User name */
+		                                              __( 'If you would like to give up the ownership of the plugin\'s account to %s click the Change Ownership button.', 'freemius' ),
 		'email-updated-message'                    => __( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', 'freemius' ),
 		'name-updated-message'                     => __( 'Your name was successfully updated.', 'freemius' ),
-		'x-updated'                                => __( 'You have successfully updated your %s.', 'freemius' ),
+		'x-updated'                                => /* translators: %s: The updated item */
+		                                              __( 'You have successfully updated your %s.', 'freemius' ),
 		'name-update-failed-message'               => __( 'Please provide your full name.', 'freemius' ),
-		'verification-email-sent-message'          => __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', 'freemius' ),
-		'addons-info-external-message'             => __( 'Just letting you know that the add-ons information of %s is being pulled from an external server.', 'freemius' ),
+		'verification-email-sent-message'          => /* translators: %s: Email Address */
+		                                              __( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', 'freemius' ),
+		'addons-info-external-message'             => /* translators: %s: Plugin name */
+		                                              __( 'Just letting you know that the add-ons information of %s is being pulled from an external server.', 'freemius' ),
 		'no-cc-required'                           => __( 'No credit card required', 'freemius' ),
 		'premium-activated-message'                => __( 'Premium plugin version was successfully activated.', 'freemius' ),
-		'successful-version-upgrade-message'       => __( 'The upgrade of %s was successfully completed.', 'freemius' ),
-		'activation-with-plan-x-message'           => __( 'Your account was successfully activated with the %s plan.', 'freemius' ),
-		'download-latest-x-version'                => __( 'Download the latest %s version now', 'freemius' ),
+		'successful-version-upgrade-message'       => /* translators: %s: Plugin name */
+		                                              __( 'The upgrade of %s was successfully completed.', 'freemius' ),
+		'activation-with-plan-x-message'           => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Your account was successfully activated with the %s plan.', 'freemius' ),
+		'download-latest-x-version'                => /* translators: %s: Plugin name */
+		                                              __( 'Download the latest %s version now', 'freemius' ),
 		'download-latest-version'                  => __( 'Download the latest version now', 'freemius' ),
-		'addon-successfully-purchased-message'     => _x( '%s Add-on was successfully purchased.', '%s - product name, e.g. Facebook add-on was successfully...', 'freemius' ),
-		'addon-successfully-upgraded-message'      => __( 'Your %s Add-on plan was successfully upgraded.', 'freemius' ),
+		'addon-successfully-purchased-message'     => /* translators: %s: Add-on name */
+		                                              __( '%s Add-on was successfully purchased.', 'freemius' ),
+		'addon-successfully-upgraded-message'      => /* translators: %s: Add-on name */
+		                                              __( 'Your %s Add-on plan was successfully upgraded.', 'freemius' ),
 		'email-verified-message'                   => __( 'Your email has been successfully verified - you are AWESOME!', 'freemius' ),
 		'plan-upgraded-message'                    => __( 'Your plan was successfully upgraded.', 'freemius' ),
-		'plan-changed-to-x-message'                => __( 'Your plan was successfully changed to %s.', 'freemius' ),
+		'plan-changed-to-x-message'                => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Your plan was successfully changed to %s.', 'freemius' ),
 		'license-expired-blocking-message'         => __( 'Your license has expired. You can still continue using the free plugin forever.', 'freemius' ),
 		'trial-started-message'                    => __( 'Your trial has been successfully started.', 'freemius' ),
 		'license-activated-message'                => __( 'Your license was successfully activated.', 'freemius' ),
 		'no-active-license-message'                => __( 'It looks like your site currently doesn\'t have an active license.', 'freemius' ),
-		'license-deactivation-message'             => __( 'Your license was successfully deactivated, you are back to the %s plan.', 'freemius' ),
+		'license-deactivation-message'             => /* translators: %s: Plan name */
+		                                              __( 'Your license was successfully deactivated, you are back to the %s plan.', 'freemius' ),
 		'license-deactivation-failed-message'      => __( 'It looks like the license deactivation failed.', 'freemius' ),
 		'license-activation-failed-message'        => __( 'It looks like the license could not be activated.', 'freemius' ),
 		'server-error-message'                     => __( 'Error received from the server:', 'freemius' ),
 		'trial-expired-message'                    => __( 'Your trial has expired. You can still continue using all our free features.', 'freemius' ),
-		'plan-x-downgraded-message'                => __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'freemius' ),
+		'plan-x-downgraded-message'                => /* translators: 1: Plan name 2: Plan expiration date */
+		                                              __( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'freemius' ),
 		'plan-downgraded-failure-message'          => __( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'freemius' ),
 		'trial-cancel-no-trial-message'            => __( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'freemius' ),
-		'trial-cancel-message'                     => __( 'Your %s free trial was successfully cancelled.', 'freemius' ),
-		'version-x-released'                       => _x( 'Version %s was released.', '%s - numeric version number', 'freemius' ),
-		'please-download-x'                        => __( 'Please download %s.', 'freemius' ),
-		'latest-x-version'                         => _x( 'the latest %s version here', '%s - plan name, as the latest professional version here', 'freemius' ),
-		'trial-x-promotion-message'                => __( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.', 'freemius' ),
+		'trial-cancel-message'                     => /* translators: %s: Plugin name */
+		                                              __( 'Your %s free trial was successfully cancelled.', 'freemius' ),
+		'version-x-released'                       => /* translators: %s: Numeric version number */
+		                                              __( 'Version %s was released.', 'freemius' ),
+		'please-download-x'                        => /* translators: %s: Plugin name */
+		                                              __( 'Please download %s.', 'freemius' ),
+		'latest-x-version'                         => /* translators: %s: Plan name (e.g. professional) */
+		                                              _x( 'the latest %s version here', 'freemius' ),
+		'trial-x-promotion-message'                => /* translators: %s: Plugin name %d: Days */
+		                                              __( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.', 'freemius' ),
 		'start-free-trial'                         => _x( 'Start free trial', 'call to action', 'freemius' ),
 		'trial-cancel-failure-message'             => __( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'freemius' ),
 		'trial-utilized'                           => __( 'You already utilized a trial before.', 'freemius' ),
 		'in-trial-mode'                            => __( 'You are already running the plugin in a trial mode.', 'freemius' ),
-		'trial-plan-x-not-exist'                   => __( 'Plan %s do not exist, therefore, can\'t start a trial.', 'freemius' ),
-		'plan-x-no-trial'                          => __( 'Plan %s does not support a trial period.', 'freemius' ),
+		'trial-plan-x-not-exist'                   => /* translators: %s: Plan name */
+		                                              __( 'Plan %s do not exist, therefore, can\'t start a trial.', 'freemius' ),
+		'plan-x-no-trial'                          => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Plan %s does not support a trial period.', 'freemius' ),
 		'no-trials'                                => __( 'None of the plugin\'s plans supports a trial period.', 'freemius' ),
 		'unexpected-api-error'                     => __( 'Unexpected API error. Please contact the plugin\'s author with the following error.', 'freemius' ),
-		'no-commitment-for-x-days'                 => __( 'No commitment for %s days - cancel anytime!', 'freemius' ),
-		'license-expired-non-blocking-message'     => __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'freemius' ),
-		'could-not-activate-x'                     => __( 'Couldn\'t activate %s.', 'freemius' ),
+		'no-commitment-for-x-days'                 => /* translators: %s: Numeric time period in days */
+		                                              __( 'No commitment for %s days - cancel anytime!', 'freemius' ),
+		'license-expired-non-blocking-message'     => /* translators: %s: Plan name (e.g. professional) */
+		                                              __( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'freemius' ),
+		'could-not-activate-x'                     => /* translators: %s: Plugin name */
+		                                              __( 'Couldn\'t activate %s.', 'freemius' ),
 		'contact-us-with-error-message'            => __( 'Please contact us with the following message:', 'freemius' ),
-		'plan-did-not-change-message'              => __( 'It looks like you are still on the %s plan. If you did upgrade or change your plan, it\'s probably an issue on our side - sorry.', 'freemius' ),
+		'plan-did-not-change-message'              => /* translators: %s: Plan name */
+		                                              __( 'It looks like you are still on the %s plan. If you did upgrade or change your plan, it\'s probably an issue on our side - sorry.', 'freemius' ),
 		'contact-us-here'                          => __( 'Please contact us here', 'freemius' ),
-		'plan-did-not-change-email-message'        => __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', 'freemius' ),
+		'plan-did-not-change-email-message'        => /* translators: %s: Plan name */
+		                                              __( 'I have upgraded my account but when I try to Sync the License, the plan remains %s.', 'freemius' ),
 		#endregion Admin Notices
 		#region Connectivity Issues
 		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test failed.', 'freemius' ),
 		'connectivity-test-maybe-temporary'        => __( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?', 'freemius' ),
 		'curl-missing-message'                     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.', 'freemius' ),
 		'cloudflare-blocks-connection-message'     => __( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'freemius' ),
-		'x-requires-access-to-api'                 => _x( '%s requires an access to our API.', 'as pluginX requires an access to our API', 'freemius' ),
+		'x-requires-access-to-api'                 => /* translators: %s: Plugin name */
+		                                              __( '%s requires an access to our API.', 'freemius' ),
 		'squid-blocks-connection-message'          => __( 'It looks like your server is using Squid ACL (access control lists), which blocks the connection.', 'freemius' ),
 		'squid-no-clue-title'                      => __( 'I don\'t know what is Squid or ACL, help me!', 'freemius' ),
-		'squid-no-clue-desc'                       => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'freemius' ),
+		'squid-no-clue-desc'                       => /* translators: %s: Email Address */
+		                                              __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'freemius' ),
 		'sysadmin-title'                           => __( 'I\'m a system administrator', 'freemius' ),
-		'squid-sysadmin-desc'                      => __( 'Great, please whitelist the following domains: %s. Once you done, deactivate the plugin and activate it again.', 'freemius' ),
+		'squid-sysadmin-desc'                      => /* translators: %s: Domain names */
+		                                              __( 'Great, please whitelist the following domains: %s. Once you done, deactivate the plugin and activate it again.', 'freemius' ),
 		'curl-missing-no-clue-title'               => __( 'I don\'t know what is cURL or how to install it, help me!', 'freemius' ),
-		'curl-missing-no-clue-desc'                => __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'freemius' ),
+		'curl-missing-no-clue-desc'                => /* translators: %s: Email Address */
+		                                              __( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'freemius' ),
 		'curl-missing-sysadmin-desc'               => __( 'Great, please install cURL and enable it in your php.ini file. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the plugin and reactivate it back again.', 'freemius' ),
 		'happy-to-resolve-issue-asap'              => __( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'freemius' ),
 		'fix-issue-title'                          => __( 'Yes - I\'m giving you a chance to fix it', 'freemius' ),
-		'fix-issue-desc'                           => __( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'freemius' ),
+		'fix-issue-desc'                           => /* translators: %s: Email Address */
+		                                              __( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'freemius' ),
 		'install-previous-title'                   => __( 'Let\'s try your previous version', 'freemius' ),
 		'install-previous-desc'                    => __( 'Uninstall this version and install the previous one.', 'freemius' ),
 		'deactivate-plugin-title'                  => __( 'That\'s exhausting, please deactivate', 'freemius' ),
 		'deactivate-plugin-desc'                   => __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', 'freemius' ),
-		'fix-request-sent-message'                 => __( 'Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', 'freemius' ),
-		'server-blocking-access'                   => _x( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s', '%1s - plugin title, %2s - API domain', 'freemius' ),
+		'fix-request-sent-message'                 => /* translators: %s: Issue */
+		                                              __( 'Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', 'freemius' ),
+		'server-blocking-access'                   => /* translators: 1: Plugin name 2: API domain */
+		                                              __( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s', 'freemius' ),
 		'wrong-authentication-param-message'       => __( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'freemius' ),
 		#endregion Connectivity Issues
 		#region Change Owner
-		'change-owner-request-sent-x'              => __( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'freemius' ),
-		'change-owner-request_owner-confirmed'     => __( 'Thanks for confirming the ownership change. An email was just sent to %s for final approval.', 'freemius' ),
-		'change-owner-request_candidate-confirmed' => __( '%s is the new owner of the account.', 'freemius' ),
+		'change-owner-request-sent-x'              => /* translators: %s: Email Address */
+		                                              __( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'freemius' ),
+		'change-owner-request_owner-confirmed'     => /* translators: %s: Email Address */
+		                                              __( 'Thanks for confirming the ownership change. An email was just sent to %s for final approval.', 'freemius' ),
+		'change-owner-request_candidate-confirmed' => /* translators: %s: Owner name */
+		                                              __( '%s is the new owner of the account.', 'freemius' ),
 		#endregion Change Owner
-		'addon-x-cannot-run-without-y'             => _x( '%s cannot run without %s.', 'addonX cannot run without pluginY', 'freemius' ),
-		'addon-x-cannot-run-without-parent'        => _x( '%s cannot run without the plugin.', 'addonX cannot run...', 'freemius' ),
-		'plugin-x-activation-message'              => _x( '%s activation was successfully completed.', 'pluginX activation was successfully...', 'freemius' ),
+		'addon-x-cannot-run-without-y'             => /* translators: 1: Add-on name 2: Plugin name */
+		                                              __( '%s cannot run without %s.', 'freemius' ),
+		'addon-x-cannot-run-without-parent'        => /* translators: %s: Add-on name */
+		                                              __( '%s cannot run without the plugin.', 'freemius' ),
+		'plugin-x-activation-message'              => /* translators: %s: Plugin name */
+		                                              __( '%s activation was successfully completed.', 'freemius' ),
 		'features-and-pricing'                     => _x( 'Features & Pricing', 'Plugin installer section title', 'freemius' ),
 		'free-addon-not-deployed'                  => __( 'Add-on must be deployed to WordPress.org or Freemius.', 'freemius' ),
 		'paid-addon-not-deployed'                  => __( 'Paid add-on must be deployed to Freemius.', 'freemius' ),
 		#region Add-On Licensing
-		'addon-no-license-message'                 => __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.', 'freemius' ),
-		'addon-trial-cancelled-message'            => __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.', 'freemius' ),
+		'addon-no-license-message'                 => /* translators: %s: Add-on name */
+		                                              __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.', 'freemius' ),
+		'addon-trial-cancelled-message'            => /* translators: %s: Add-on name */
+		                                              __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.', 'freemius' ),
 		#endregion Add-On Licensing
 		#region Billing Cycles
 		'monthly'                                  => _x( 'Monthly', 'as every month', 'freemius' ),
@@ -345,8 +417,10 @@
 		'year'                                     => _x( 'year', 'as annual period', 'freemius' ),
 		'lifetime'                                 => __( 'Lifetime', 'freemius' ),
 		'best'                                     => _x( 'Best', 'e.g. the best product', 'freemius' ),
-		'billed-x'                                 => _x( 'Billed %s', 'e.g. billed monthly', 'freemius' ),
-		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
+		'billed-x'                                 => /* translators: %s: Billing time period (e.g. monthly) */
+		                                              __( 'Billed %s', 'freemius' ),
+		'save-x'                                   => /* translators: %s: Discount (e.g. discount of $5 or 10%) */
+		                                              __( 'Save %s', 'freemius' ),
 		#endregion Billing Cycles
 		'view-details'                             => __( 'View details', 'freemius' ),
 	);
