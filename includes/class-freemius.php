@@ -5111,12 +5111,24 @@
 		 * @since  1.0.9
 		 *
 		 * @return bool
+		 *
+		 * @deprecated Please use is_enable_anonymous() instead
 		 */
 		function enable_anonymous() {
 			return $this->_enable_anonymous;
 		}
 
 		/**
+		 * Check if plugin can work in anonymous mode.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.2
+		 *
+		 * @return bool
+		 */
+		function is_enable_anonymous() {
+			return $this->_enable_anonymous;
+		}
 
 		/**
 		 * Check if plugin is premium only (no free plans).
@@ -6088,7 +6100,7 @@
 //				return;
 //			}
 
-			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
+			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
 			} else {
 				$this->add_submenu_items();
