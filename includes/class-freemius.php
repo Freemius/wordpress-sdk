@@ -5833,6 +5833,14 @@
 
 				}
 			} else {
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since 1.1.8.2 If site installed with a valid license, sync license.
+				 */
+				if ( $this->is_paying() ) {
+					$this->_sync_plugin_license( true );
+				}
+
 				// Reload the page with the keys.
 				if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) ) ) {
 					exit();
@@ -7530,10 +7538,9 @@
 										),
 										__fs( 'contact-us-here', $this->_slug )
 									),
-									'<i>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</i>'
+									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
 								),
-								__fs( 'hmm', $this->_slug ) . '...',
-								'error'
+								__fs( 'hmm', $this->_slug ) . '...'
 							);
 						}
 						break;
