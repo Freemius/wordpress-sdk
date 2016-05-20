@@ -152,7 +152,7 @@
 		/**
 		 * @since 1.0.4
 		 *
-		 * @var FS_Plugin
+		 * @var FS_Plugin|false
 		 */
 		private $_parent_plugin = false;
 		/**

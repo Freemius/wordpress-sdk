@@ -231,7 +231,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
-		 * @param string $ids
+		 * @param string|string[] $ids
 		 */
 		function remove_sticky( $ids ) {
 			if ( ! is_array( $ids ) ) {
