@@ -2063,6 +2063,14 @@
 			$parent_id   = $this->get_numeric_option( $plugin_info, 'parent_id', null );
 			$parent_name = $this->get_option( $plugin_info, 'parent_name', null );
 
+			/**
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.1.8.2 Try to pull secret key from external config.
+			 */
+			if ( is_null( $secret_key ) && defined( "WP_FS__{$this->_slug}_SECRET_KEY" ) ) {
+				$secret_key = constant( "WP_FS__{$this->_slug}_SECRET_KEY" );
+			}
+
 			if ( isset( $plugin_info['parent'] ) ) {
 				$parent_id = $this->get_numeric_option( $plugin_info['parent'], 'id', null );
 //				$parent_slug       = $this->get_option( $plugin_info['parent'], 'slug', null );
