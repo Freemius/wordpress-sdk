@@ -292,6 +292,7 @@
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-plugin-updater.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-freemius-abstract.php';
+		require_once WP_FS__DIR_INCLUDES . '/sdk/Exceptions/Exception.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-freemius.php';
 
 		/**
