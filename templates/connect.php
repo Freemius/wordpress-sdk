@@ -13,6 +13,7 @@
 	$slug                  = $VARS['slug'];
 	$fs                    = freemius( $slug );
 	$is_pending_activation = $fs->is_pending_activation();
+	$is_premium_only       = $fs->is_premium_only();
 
 	$fs->_enqueue_connect_essentials();
 
@@ -33,8 +34,12 @@
 		'https://freemius.com/wordpress/' :
 		// Insights platform information.
 		'https://freemius.com/wordpress/usage-tracking/';
+
+	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>';
+
+	$error = fs_request_get('error');
 ?>
-<div id="fs_connect" class="wrap<?php if ( ! $fs->enable_anonymous() || $is_pending_activation ) {
+<div id="fs_connect" class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation ) {
 	echo ' fs-anonymous-disabled';
 } ?>">
 	<div class="fs-visual">
@@ -48,8 +53,15 @@
 		<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/connect-logo.png"/>
 	</div>
 	<div class="fs-content">
+		<?php if (!empty($error)) : ?>
+		<p class="fs-error"><?php echo $error ?></p>
+		<?php endif ?>
 		<p><?php
+				$button_label = 'opt-in-connect';
+
 				if ( $is_pending_activation ) {
+					$button_label = 'resend-activation-email';
+
 					echo $fs->apply_filters( 'pending_activation_message', sprintf(
 						__fs( 'thanks-x', $slug ) . '<br>' .
 						__fs( 'pending-activation-message', $slug ),
@@ -57,6 +69,15 @@
 						'<b>' . $fs->get_plugin_name() . '</b>',
 						'<b>' . $current_user->user_email . '</b>'
 					) );
+				} else if ( $is_premium_only ) {
+					$button_label = 'agree-activate-license';
+
+					echo $fs->apply_filters( 'connect-message_on-premium',
+						sprintf( __fs( 'hey-x', $slug ), $first_name ) . '<br>' .
+						sprintf( __fs( 'thanks-for-purchasing', $slug ), '<b>' . $fs->get_plugin_name() . '</b>' ),
+						$first_name,
+						$fs->get_plugin_name()
+					);
 				} else {
 					$filter                = 'connect_message';
 					$default_optin_message = 'connect-message';
@@ -82,19 +103,25 @@
 							'<b>' . $fs->get_plugin_name() . '</b>',
 							'<b>' . $current_user->user_login . '</b>',
 							'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
-							'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
+							$freemius_link
 						),
 						$first_name,
 						$fs->get_plugin_name(),
 						$current_user->user_login,
 						'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
-						'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
+						$freemius_link
 					);
 				}
 			?></p>
+		<?php if ( $is_premium_only ) : ?>
+			<div class="fs-license-key-container">
+				<input id="fs_license_key" name="fs_key" type="text" maxlength="32" placeholder="<?php _efs('license-key', $slug) ?>"/>
+				<i class="dashicons dashicons-admin-network"></i>
+			</div>
+		<?php endif ?>
 	</div>
 	<div class="fs-actions">
-		<?php if ( $fs->enable_anonymous() && ! $is_pending_activation ) : ?>
+		<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation ) : ?>
 			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $slug . '_skip_activation' ) ), $slug . '_skip_activation' ) ?>"
 			   class="button button-secondary" tabindex="2"><?php _efs( 'skip', $slug ) ?></a>
 		<?php endif ?>
@@ -105,7 +132,8 @@
 				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"><?php _efs( 'opt-in-connect', $slug ) ?></button>
+				        type="submit"<?php if ( $is_premium_only ) {
+					echo ' disabled="disabled"'; } ?>><?php _efs( $button_label, $slug ) ?></button>
 			</form>
 		<?php else : ?>
 			<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
@@ -114,31 +142,38 @@
 					<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 				<?php endforeach ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"><?php _efs( $is_pending_activation ? 'resend-activation-email' : 'opt-in-connect', $slug ) ?></button>
+				        type="submit"<?php if ( $is_premium_only ) {
+					echo ' disabled="disabled"'; } ?>><?php _efs( $button_label, $slug ) ?></button>
 			</form>
 		<?php endif ?>
 	</div><?php
 
 		// Set core permission list items.
 		$permissions = array(
-			'profile'        => array(
+			'profile' => array(
 				'icon-class' => 'dashicons dashicons-admin-users',
 				'label'      => __fs( 'permissions-profile' ),
 				'desc'       => __fs( 'permissions-profile_desc' ),
 				'priority'   => 5,
 			),
-			'site'           => array(
+			'site'    => array(
 				'icon-class' => 'dashicons dashicons-admin-settings',
 				'label'      => __fs( 'permissions-site' ),
 				'desc'       => __fs( 'permissions-site_desc' ),
 				'priority'   => 10,
 			),
-			'events'         => array(
+			'events'  => array(
 				'icon-class' => 'dashicons dashicons-admin-plugins',
 				'label'      => __fs( 'permissions-events' ),
 				'desc'       => __fs( 'permissions-events_desc' ),
 				'priority'   => 20,
 			),
+//			'plugins_themes' => array(
+//				'icon-class' => 'dashicons dashicons-admin-settings',
+//				'label'      => __fs( 'permissions-plugins_themes' ),
+//				'desc'       => __fs( 'permissions-plugins_themes_desc' ),
+//				'priority'   => 30,
+//			),
 		);
 
 		// Add newsletter permissions if enabled.
@@ -159,6 +194,9 @@
 
 		if ( ! empty( $permissions ) ) : ?>
 			<div class="fs-permissions">
+				<?php if ( $is_premium_only ) : ?>
+					<p class="fs-license-sync-disclaimer"><?php printf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link ) ?></p>
+				<?php endif ?>
 				<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
 				<ul><?php
 						foreach ( $permissions as $id => $permission ) : ?>
@@ -175,7 +213,7 @@
 						<?php endforeach; ?>
 				</ul>
 			</div>
-		<?php endif; ?>
+		<?php endif ?>
 
 	<div class="fs-terms">
 		<a href="https://freemius.com/privacy/" target="_blank"><?php _efs( 'privacy-policy', $slug ) ?></a>
@@ -185,16 +223,53 @@
 </div>
 <script type="text/javascript">
 	(function ($) {
-		$('.button').on('click', function () {
+		var $primaryCta = $('.fs-actions .button.button-primary'),
+			$form = $('.fs-actions form'),
+			isPremiumOnly = <?php echo $is_premium_only ? 'true' : 'false' ?>,
+			$licenseSecret;
+
+		$('.fs-actions .button').on('click', function () {
 			// Set loading mode.
 			$(document.body).css({'cursor': 'wait'});
 		});
-		$('.button.button-primary').on('click', function () {
+
+		$form.on('submit', function () {
+			/**
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.1.8.2
+			 */
+			if (isPremiumOnly) {
+				if (null == $licenseSecret) {
+					$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
+					$form.append($licenseSecret);
+				}
+
+				// Update secret key if premium only plugin.
+				$licenseSecret.val($('#fs_license_key').val());
+			}
+
+			return true;
+		});
+
+		$primaryCta.on('click', function () {
 			$(this).addClass('fs-loading');
 			$(this).html('<?php _efs( $is_pending_activation ? 'sending-email' : 'activating' , $slug ) ?>...').css({'cursor': 'wait'});
 		});
+
 		$('.fs-permissions .fs-trigger').on('click', function () {
 			$('.fs-permissions').toggleClass('fs-open');
 		});
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.1.8.2
+		 */
+		$('#fs_license_key').on('keyup', function(){
+			if ('' === $(this).val()) {
+				$primaryCta.attr('disabled', 'disabled');
+			}else{
+				$primaryCta.prop('disabled', false);
+			}
+		}).focus();
 	})(jQuery);
 </script>

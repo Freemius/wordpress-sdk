@@ -103,6 +103,12 @@
 		private $_anonymous_mode;
 
 		/**
+		 * @since 1.1.8.2
+		 * @var bool Hints the SDK if plugin have any free plans.
+		 */
+		private $_is_premium_only;
+
+		/**
 		 * @since 1.0.8
 		 * @var bool Hints the SDK if the plugin has any paid plans.
 		 */
@@ -2110,8 +2116,15 @@
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
+			$this->_is_premium_only    = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
+			if ( $this->_is_premium_only ) {
+				// If premium only plugin, disable anonymous mode.
+				$this->_enable_anonymous = false;
+				$this->_anonymous_mode   = false;
+			} else {
 			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
 			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
+			}
 			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
 		}
 
@@ -2920,7 +2933,7 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
-						if ( $this->is_plugin_new_install() ) {
+						if ( $this->is_plugin_new_install() || $this->is_premium_only() ) {
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
 								sprintf(
@@ -4942,7 +4955,7 @@
 		 * @return bool
 		 */
 		function has_free_plan() {
-			return FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+			return ! $this->is_premium_only() && FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
 		}
 
 		#region URL Generators
@@ -5093,6 +5106,20 @@
 		 */
 		function enable_anonymous() {
 			return $this->_enable_anonymous;
+		}
+
+		/**
+
+		/**
+		 * Check if plugin is premium only (no free plans).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.2
+		 *
+		 * @return bool
+		 */
+		function is_premium_only() {
+			return $this->_is_premium_only;
 		}
 
 		/**
@@ -5930,13 +5957,25 @@
 			// We have to set the user before getting user scope API handler.
 			$this->_user = $user;
 
+			$extra_install_params = array(
+				'uid' => $this->get_anonymous_id(),
+			);
+
+			/**
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.1.8.2 Add license key if given.
+			 */
+			$license_key = fs_request_get('license_secret_key');
+
+			if (!empty($license_key)){
+				$extra_install_params['license_secret_key'] = $license_key;
+			}
+
 			// Install the plugin.
 			$install = $this->get_api_user_scope()->call(
 				"/plugins/{$this->get_id()}/installs.json",
 				'post',
-				$this->get_install_data_for_api( array(
-					'uid' => $this->get_anonymous_id(),
-				), false, false )
+				$this->get_install_data_for_api( $extra_install_params, false, false )
 			);
 
 			if ( isset( $install->error ) ) {
