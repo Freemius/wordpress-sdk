@@ -33,7 +33,7 @@
 	);
 
 	foreach ( $exceptions as $e ) {
-		require FS_SDK__EXCEPTIONS_PATH . $e . '.php';
+		require_once FS_SDK__EXCEPTIONS_PATH . $e . '.php';
 	}
 
 	abstract class Freemius_Api_Base {
