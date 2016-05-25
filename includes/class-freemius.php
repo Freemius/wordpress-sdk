@@ -2042,6 +2042,18 @@
 					$this->do_action( 'after_init_addon_pending_activations' );
 				}
 			}
+
+			// Add license activation link and AJAX request handler.
+			if ( $this->has_paid_plan() ) {
+				$this->_add_license_action_link();
+
+				global $pagenow;
+				if ( 'plugins.php' === $pagenow ) {
+					add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+				}
+
+				add_action( 'wp_ajax_activate-license', array( &$this, '_activate_license_ajax_action' ) );
+			}
 		}
 
 		/**
@@ -4966,6 +4978,54 @@
 			return ! $this->is_premium_only() && FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
 		}
 
+		/**
+		 * Displays a license activation dialog box when the user clicks on the "Activate License"
+		 * or "Change License" link on the plugins
+		 * page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.8.2
+		 */
+		function _add_license_activation_dialog_box() {
+			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
+
+			$vars = array(
+				'slug' => $this->_slug
+			);
+
+			fs_require_template( 'license-activation-modal.php', $vars );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.8.2
+		 */
+		function _activate_license_ajax_action() {
+			if ( ! isset( $_POST['license-key'] ) ) {
+				exit;
+			}
+
+			$license_key = trim( $_POST['license-key'] );
+			if ( empty( $license_key ) ) {
+				exit;
+			}
+
+			if ( $this->is_registered() ) {
+				$api = $this->get_api_site_scope();
+				$api->call('/', 'put',
+					array(
+						'license_key' => $license_key
+					)
+				);
+			} else {
+				$this->opt_in(false, false, false, $license_key);
+			}
+
+			// Print '1' for successful operation.
+			echo 1;
+			exit;
+		}
+
 		#region URL Generators
 
 		/**
@@ -5647,10 +5707,11 @@
 		 * @param string|bool $email
 		 * @param string|bool $first
 		 * @param string|bool $last
+		 * @param string|bool $license_key
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
-		function opt_in( $email = false, $first = false, $last = false ) {
+		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false ) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -5677,6 +5738,11 @@
 			}
 
 			$params           = $this->get_opt_in_params( $user_info );
+
+			if ( is_string( $license_secret_key ) ) {
+				$params['license_secret_key'] = $license_secret_key;
+			}
+
 			$params['format'] = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
@@ -9196,6 +9262,26 @@
 					);
 				}
 			}
+		}
+
+		/**
+		 * Adds "Activate License" or "Change License" link to the main Plugins page link actions collection.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.8.2
+		 */
+		function _add_license_action_link() {
+			$this->_logger->entrance();
+
+			$link_text = __fs( $this->is_free_plan() ? 'activate-license' : 'change-license', $this->_slug );
+
+			$this->add_plugin_action_link(
+				$link_text,
+				'#',
+				false,
+				11,
+				( 'activate-license ' . $this->_slug )
+			);
 		}
 
 		/**
