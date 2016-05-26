@@ -1977,7 +1977,10 @@
 						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
 						if ( $this->is_premium() ) {
 							// Remove add-on download admin-notice.
-							$this->_parent->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
+							$this->_parent->_admin_notices->remove_sticky( array(
+                                'addon_plan_upgraded_' . $this->_slug,
+                                'no_addon_license_' . $this->_slug,
+                            ) );
 						}
 
 						$this->deactivate_premium_only_addon_without_license();
@@ -2456,7 +2459,7 @@
 							esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
 							__fs( 'purchase-license', $this->_parent->_slug )
 						),
-						'no_addon_license',
+						'no_addon_license_' . $this->_slug,
 						( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
 						( $is_after_trial_cancel ? 'success' : 'error' )
 					);
