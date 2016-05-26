@@ -7667,6 +7667,20 @@
 				return;
 			}
 
+            /**
+             * If the premium license is already associated with the install, just
+             * update the license reference (activation is not required).
+             *
+             * @since 1.1.8.2
+             */
+            if ( $premium_license->id == $this->_site->license_id ) {
+                // License is already activated.
+                $this->_update_site_license( $premium_license );
+                $this->_enrich_site_plan( false );
+                $this->_store_account();
+                return;
+            }
+
 			$api     = $this->get_api_site_scope();
 			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put' );
 
