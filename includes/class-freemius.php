@@ -2130,10 +2130,10 @@
 				$this->_enable_anonymous = false;
 				$this->_anonymous_mode   = false;
 			} else {
-			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
-			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
+				$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
+				$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
 			}
-			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
+			$this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
 		}
 
 		/**
@@ -2440,29 +2440,29 @@
 			     ! $this->has_features_enabled_license() &&
 			     ! $this->_has_premium_license()
 			) {
-				deactivate_plugins( array( $this->_plugin_basename ), true );
+					deactivate_plugins( array( $this->_plugin_basename ), true );
 
-				$this->_parent->_admin_notices->add_sticky(
-					sprintf(
-						__fs( ( $is_after_trial_cancel ?
-								'addon-trial-cancelled-message' :
-								'addon-no-license-message' ),
-							$this->_parent->_slug
+					$this->_parent->_admin_notices->add_sticky(
+						sprintf(
+							__fs( ( $is_after_trial_cancel ?
+									'addon-trial-cancelled-message' :
+									'addon-no-license-message' ),
+								$this->_parent->_slug
+							),
+							'<b>' . $this->_plugin->title . '</b>'
+						) . ' ' . sprintf(
+							'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
+							$this->_parent->addon_url( $this->_slug ),
+							esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
+							__fs( 'purchase-license', $this->_parent->_slug )
 						),
-						'<b>' . $this->_plugin->title . '</b>'
-					) . ' ' . sprintf(
-						'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
-						$this->_parent->addon_url( $this->_slug ),
-						esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
-						__fs( 'purchase-license', $this->_parent->_slug )
-					),
-					'no_addon_license',
-					( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
-					( $is_after_trial_cancel ? 'success' : 'error' )
-				);
+						'no_addon_license',
+						( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
+						( $is_after_trial_cancel ? 'success' : 'error' )
+					);
 
-				return true;
-			}
+					return true;
+				}
 
 			return false;
 		}
@@ -6394,42 +6394,48 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
 		 */
-		private function order_sub_submenu_items() {
-			global $submenu;
+		private function order_sub_submenu_items()
+        {
+            global $submenu;
 
-			$top_level_menu = &$submenu[ $this->_menu->get_top_level_menu_slug() ];
+            $menu_slug = $this->_menu->get_top_level_menu_slug();
 
-			$all_submenu_items_after = array();
+            if (empty($submenu[$menu_slug]))
+                return;
 
-			$found_submenu_item = false;
+            $top_level_menu = &$submenu[$menu_slug];
 
-			foreach ( $top_level_menu as $submenu_id => $meta ) {
-				if ( $found_submenu_item ) {
-					// Remove all submenu items after the plugin's submenu item.
-					$all_submenu_items_after[] = $meta;
-					unset( $top_level_menu[ $submenu_id ] );
-				}
+            $all_submenu_items_after = array();
 
-				if ( $this->_menu->get_raw_slug() === $meta[2] ) {
-					// Found the submenu item, put all below.
-					$found_submenu_item = true;
-					continue;
-				}
-			}
+            $found_submenu_item = false;
 
-			// Embed all plugin's new submenu items.
-			$this->embed_submenu_items();
+            foreach ($top_level_menu as $submenu_id => $meta) {
+                if ($found_submenu_item) {
+                    // Remove all submenu items after the plugin's submenu item.
+                    $all_submenu_items_after[] = $meta;
+                    unset($top_level_menu[$submenu_id]);
+                }
 
-			// Start with specially high number to make sure it's appended.
-			$i = max( 10000, max( array_keys( $top_level_menu ) ) + 1 );
-			foreach ( $all_submenu_items_after as $meta ) {
-				$top_level_menu[ $i ] = $meta;
-				$i ++;
-			}
+                if ($this->_menu->get_raw_slug() === $meta[2]) {
+                    // Found the submenu item, put all below.
+                    $found_submenu_item = true;
+                    continue;
+                }
+            }
 
-			// Sort submenu items.
-			ksort( $top_level_menu );
-		}
+            // Embed all plugin's new submenu items.
+            $this->embed_submenu_items();
+
+            // Start with specially high number to make sure it's appended.
+            $i = max(10000, max(array_keys($top_level_menu)) + 1);
+            foreach ($all_submenu_items_after as $meta) {
+                $top_level_menu[$i] = $meta;
+                $i++;
+            }
+
+            // Sort submenu items.
+            ksort($top_level_menu);
+        }
 
 		/**
 		 * Displays the Support Forum link when enabled.
