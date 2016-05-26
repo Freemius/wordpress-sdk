@@ -2443,6 +2443,28 @@
 			     ! $this->has_features_enabled_license() &&
 			     ! $this->_has_premium_license()
 			) {
+					// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
+//                if (empty($this->_storage->activation_timestamp) ||
+//                    (WP_FS__SCRIPT_START_TIME - $this->_storage->activation_timestamp) > 30
+//                ) {
+                    /**
+                     * @todo When it's first fail, there's no reason to try and re-sync because the licenses were just synced after initial activation.
+                     *
+                     * Retry syncing the user add-on licenses.
+                     */
+                    // Sync licenses.
+                    $this->_sync_licenses();
+//                }
+
+				// Try to activate premium license.
+				$this->_activate_license( true );
+
+				if ( ! $this->has_free_plan() &&
+				     ! $this->has_features_enabled_license() &&
+				     ! $this->_has_premium_license()
+				) {
+					// @todo Check if deactivate plugins also call the deactivation hook.
+
 					deactivate_plugins( array( $this->_plugin_basename ), true );
 
 					$this->_parent->_admin_notices->add_sticky(
@@ -2466,6 +2488,7 @@
 
 					return true;
 				}
+			}
 
 			return false;
 		}
