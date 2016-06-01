@@ -109,6 +109,16 @@
 			return ( $this->is_paying() || $this->is_trial() );
 		}
 
+		/**
+		 * Check if user in a trial or have feature enabled license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		abstract function can_use_premium_code();
+
 		#region Premium Only ------------------------------------------------------------------
 
 		/**
@@ -199,6 +209,20 @@
 		 */
 		function is_paying__fs__() {
 			return $this->is_paying__premium_only();
+		}
+
+		/**
+		 * Check if user in a trial or have feature enabled license.
+		 *
+		 * All code wrapped in this statement will be only included in the premium code.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.2
+		 *
+		 * @return bool
+		 */
+		function can_use_premium_code__premium_only() {
+			return $this->is_premium() && $this->can_use_premium_code();
 		}
 
 		#endregion Premium Only ------------------------------------------------------------------
