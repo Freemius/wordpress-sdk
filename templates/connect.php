@@ -35,6 +35,10 @@
 		// Insights platform information.
 		'https://freemius.com/wordpress/usage-tracking/';
 
+	$freemius_site_url .= '?' . http_build_query(array(
+			'plugin_id' => $fs->get_id(),
+		));
+
 	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>';
 
 	$error = fs_request_get('error');
