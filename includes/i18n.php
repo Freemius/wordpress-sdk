@@ -268,6 +268,7 @@
 		'plan-upgraded-message'                    => __( 'Your plan was successfully upgraded.', 'freemius' ),
 		'plan-changed-to-x-message'                => __( 'Your plan was successfully changed to %s.', 'freemius' ),
 		'license-expired-blocking-message'         => __( 'Your license has expired. You can still continue using the free plugin forever.', 'freemius' ),
+		'license-cancelled'                        => __( 'Your license has been cancelled. If you think it\'s a mistake, please contact support.', 'freemius' ),
 		'trial-started-message'                    => __( 'Your trial has been successfully started.', 'freemius' ),
 		'license-activated-message'                => __( 'Your license was successfully activated.', 'freemius' ),
 		'no-active-license-message'                => __( 'It looks like your site currently doesn\'t have an active license.', 'freemius' ),

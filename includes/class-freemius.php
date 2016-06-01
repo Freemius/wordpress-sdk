@@ -7512,9 +7512,19 @@
 						$is_free = $this->is_free_plan();
 
 						// Make sure license exist and not expired.
-						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+						$new_license = is_null( $site->license_id ) ?
+							null :
+							$this->_get_license_by_id( $site->license_id );
 
-						if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
+						if ( $is_free && is_null( $new_license ) && $this->has_license() && $this->_license->is_cancelled ) {
+							// License cancelled.
+							$this->_site = $site;
+							$this->_update_site_license( $new_license );
+							$this->_store_licenses();
+							$this->_enrich_site_plan( true );
+
+							$plan_change = 'cancelled';
+						} else if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
 							// The license is expired, so ignore upgrade method.
 						} else {
 							// License changed.
@@ -7618,6 +7628,19 @@
 							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ) ),
 							'license_expired',
 							__fs( 'hmm', $this->_slug ) . '...'
+						);
+						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
+						break;
+					case 'cancelled':
+						$this->_admin_notices->add(
+							__fs( 'license-cancelled', $this->_slug ) . ' ' .
+							sprintf(
+								'<a href="%s">%s</a>',
+								$this->contact_url( 'bug' ),
+								__fs( 'contact-us-here', $this->_slug )
+							),
+							__fs( 'hmm', $this->_slug ) . '...',
+							'error'
 						);
 						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 						break;
