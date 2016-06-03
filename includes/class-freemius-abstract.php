@@ -25,7 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class Freemius_Abstract {
 
 	// Region Identity ------------------------------------------------------------------
-
 	/**
 	 * Check if user registered with Freemius by connecting his account.
 	 *
@@ -53,9 +52,7 @@ abstract class Freemius_Abstract {
 	abstract function is_activation_mode();
 
 	// End region Identity ------------------------------------------------------------------
-
 	// Region Permissions ------------------------------------------------------------------
-
 	/**
 	 * Check if plugin must be WordPress.org compliant.
 	 *
@@ -78,7 +75,6 @@ abstract class Freemius_Abstract {
 	}
 
 	// End region Permissions ------------------------------------------------------------------
-
 	/**
 	 * Check if user in trial or in free plan (not paying).
 	 *
@@ -112,7 +108,6 @@ abstract class Freemius_Abstract {
 	}
 
 	// Region Premium Only ------------------------------------------------------------------
-
 	/**
 	 * All logic wrapped in methods with "__premium_only()" suffix will be only
 	 * included in the premium code.
@@ -140,7 +135,6 @@ abstract class Freemius_Abstract {
 	 * @since 1.0.9
 	 *
 	 * @return bool
-	 *
 	 */
 	function is_paying__premium_only() {
 		return ( $this->is__premium_only() && $this->is_paying() );
@@ -151,8 +145,8 @@ abstract class Freemius_Abstract {
 	 *
 	 * @since  1.0.9
 	 *
-	 * @param string  $plan  Plan name
-	 * @param bool    $exact If true, looks for exact plan. If false, also check "higher" plans.
+	 * @param string $plan  Plan name
+	 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 	 *
 	 * @return bool
 	 */
@@ -167,8 +161,8 @@ abstract class Freemius_Abstract {
 	 *
 	 * @since  1.0.9
 	 *
-	 * @param string  $plan  Plan name
-	 * @param bool    $exact If true, looks for exact plan. If false, also check "higher" plans.
+	 * @param string $plan  Plan name
+	 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 	 *
 	 * @return bool
 	 */
@@ -204,9 +198,7 @@ abstract class Freemius_Abstract {
 	}
 
 	// End region Premium Only ------------------------------------------------------------------
-
 	// Region Trial ------------------------------------------------------------------
-
 	/**
 	 * Check if the user in a trial.
 	 *
@@ -226,9 +218,7 @@ abstract class Freemius_Abstract {
 	abstract function is_trial_utilized();
 
 	// End region Trial ------------------------------------------------------------------
-
 	// Region Plans ------------------------------------------------------------------
-
 	/**
 	 * Check if plugin using the free plan.
 	 *
@@ -243,8 +233,8 @@ abstract class Freemius_Abstract {
 	 *
 	 * @since  1.0.2
 	 *
-	 * @param string  $plan  Plan name
-	 * @param bool    $exact If true, looks for exact plan. If false, also check "higher" plans.
+	 * @param string $plan  Plan name
+	 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 	 *
 	 * @return bool
 	 */
@@ -255,8 +245,8 @@ abstract class Freemius_Abstract {
 	 *
 	 * @since  1.0.9
 	 *
-	 * @param string  $plan  Plan name
-	 * @param bool    $exact If true, looks for exact plan. If false, also check "higher" plans.
+	 * @param string $plan  Plan name
+	 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 	 *
 	 * @return bool
 	 */
@@ -267,8 +257,8 @@ abstract class Freemius_Abstract {
 	 *
 	 * @since  1.0.9
 	 *
-	 * @param string  $plan  Plan name
-	 * @param bool    $exact If true, looks for exact plan. If false, also check "higher" plans.
+	 * @param string $plan  Plan name
+	 * @param bool   $exact If true, looks for exact plan. If false, also check "higher" plans.
 	 *
 	 * @return bool
 	 */
@@ -300,7 +290,6 @@ abstract class Freemius_Abstract {
 	abstract function has_free_plan();
 
 	// End region Plans ------------------------------------------------------------------
-
 	/**
 	 * Check if running payments in sandbox mode.
 	 *
@@ -334,7 +323,7 @@ abstract class Freemius_Abstract {
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.0.2
 	 *
-	 * @param string  $period Billing cycle
+	 * @param string $period Billing cycle
 	 *
 	 * @return string
 	 */
@@ -363,7 +352,6 @@ abstract class Freemius_Abstract {
 	abstract function is_plugin_new_install();
 
 	// Region Marketing ------------------------------------------------------------------
-
 	/**
 	 * Check if current user purchased any other plugins before.
 	 *

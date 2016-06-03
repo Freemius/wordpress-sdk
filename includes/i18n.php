@@ -82,7 +82,6 @@ $fs_text = array(
 	'error'                                    => __( 'Error', 'freemius' ),
 	'failed-finding-main-path'                 => __( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'freemius' ),
 	// Region Account
-
 	'expiration'                               => _x( 'Expiration', 'as expiration date', 'freemius' ),
 	'license'                                  => _x( 'License', 'as software license', 'freemius' ),
 	'not-verified'                             => __( 'not verified', 'freemius' ),
@@ -144,7 +143,6 @@ $fs_text = array(
 	'after-downgrade-blocking'                 => __( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
 	'proceed-confirmation'                     => __( 'Are you sure you want to proceed?', 'freemius' ),
 	// End region Account
-
 	'add-ons-for-x'                            => __( 'Add Ons for %s', 'freemius' ),
 	'add-ons-missing'                          => __( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'freemius' ),
 	// Region Plugin Deactivation
@@ -171,11 +169,10 @@ $fs_text = array(
 	'placeholder-feature'                      => __( 'What feature?', 'freemius' ),
 	'placeholder-share-what-didnt-work'        => __( "Kindly share what didn't work so we can fix it for future users...", 'freemius' ),
 	'placeholder-what-youve-been-looking-for'  => __( "What you've been looking for?", 'freemius' ),
-	'placeholder-what-did-you-expect'          => __( "What did you expect?", 'freemius' ),
+	'placeholder-what-did-you-expect'          => __( 'What did you expect?', 'freemius' ),
 	'reason-didnt-work'                        => __( "The plugin didn't work", 'freemius' ),
 	'reason-dont-like-to-share-my-information' => __( "I don't like to share my information with you", 'freemius' ),
 	// End region Plugin Deactivation
-
 	// Region Connect
 	'hey-x'                                    => _x( 'Hey %s,', 'greeting', 'freemius' ),
 	'thanks-x'                                 => _x( 'Thanks %s!', 'a greeting. E.g. Thanks John!', 'freemius' ),
@@ -201,12 +198,10 @@ $fs_text = array(
 	'skip'                                     => _x( 'Skip', 'verb', 'freemius' ),
 	'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
 	// End region Connect
-
 	// Region Screenshots
 	'screenshots'                              => __( 'Screenshots', 'freemius' ),
 	'view-full-size-x'                         => __( 'Click to view full-size screenshot %d', 'freemius' ),
 	// End region Screenshots
-
 	// Region Debug
 	'freemius-debug'                           => __( 'Freemius Debug', 'freemius' ),
 	'on'                                       => _x( 'On', 'as turned on', 'freemius' ),
@@ -230,7 +225,6 @@ $fs_text = array(
 	'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
 	'plugins-themes-sync'                      => __( 'Plugins & Themes Sync', 'freemius' ),
 	// End region Debug
-
 	// Region Expressions
 	'congrats'                                 => _x( 'Congrats', 'as congratulations', 'freemius' ),
 	'oops'                                     => _x( 'Oops', 'exclamation', 'freemius' ),
@@ -242,7 +236,6 @@ $fs_text = array(
 	'hey'                                      => _x( 'Hey', 'exclamation', 'freemius' ),
 	'heads-up'                                 => _x( 'Heads up', 'advance notice of something that will need attention.', 'freemius' ),
 	// End region Expressions
-
 	// Region Admin Notices
 	'you-have-latest'                          => __( 'Seems like you got the latest release.', 'freemius' ),
 	'you-are-good'                             => __( 'You are all good!', 'freemius' ),
