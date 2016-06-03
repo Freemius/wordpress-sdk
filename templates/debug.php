@@ -6,9 +6,9 @@
 	 * @since       1.1.1
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	global $fs_active_plugins;
 
@@ -17,7 +17,7 @@
 	<h1><?php echo __fs( 'Freemius Debug' ) . ' - ' . __fs( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 	<div>
 		<!-- Debugging Switch -->
-		<?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
+		<?php // $debug_mode = get_option( 'fs_debug_mode', null ) ?>
 		<span class="switch-label"><?php _efs( 'debugging' ) ?></span>
 
 		<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
@@ -93,7 +93,7 @@
 			<?php $is_active = ( WP_FS__SDK_VERSION == $data->version ) ?>
 			<tr<?php if ( $is_active ) {
 				echo ' style="background: #E6FFE6; font-weight: bold"';
-			} ?>>
+} ?>>
 				<td><?php echo $data->version ?></td>
 				<td><?php echo $sdk_path ?></td>
 				<td><?php echo $data->plugin_path ?></td>
@@ -124,7 +124,7 @@
 			<?php $fs = $is_active ? freemius( $slug ) : null ?>
 			<tr<?php if ( $is_active ) {
 				echo ' style="background: #E6FFE6; font-weight: bold"';
-			} ?>>
+} ?>>
 				<td><?php echo $data->id ?></td>
 				<td><?php echo $slug ?></td>
 				<td><?php echo $data->version ?></td>
@@ -133,12 +133,12 @@
 						echo $fs->has_api_connectivity() ?
 							__fs( 'connected' ) :
 							__fs( 'blocked' );
-					} ?></td>
+} ?></td>
 				<td><?php if ( $is_active ) {
 						echo $fs->is_on() ?
 							__fs( 'on' ) :
 							__fs( 'off' );
-					} ?></td>
+} ?></td>
 				<td><?php echo $data->file ?></td>
 				<td><?php echo $data->public_key ?></td>
 			</tr>
@@ -202,7 +202,7 @@
 			/**
 			 * @var FS_Plugin[] $plugin_addons
 			 */
-			foreach ( $plugin_addons as $addon ) : ?>
+		foreach ( $plugin_addons as $addon ) : ?>
 				<tr>
 					<td><?php echo $addon->id ?></td>
 					<td><?php echo $addon->title ?></td>
@@ -239,7 +239,7 @@
 			<tr>
 				<td><?php echo $user->id ?></td>
 				<td><?php echo $user->get_name() ?></td>
-				<td><a href="mailto:<?php esc_attr_e($user->email) ?>"><?php echo $user->email ?></a></td>
+				<td><a href="mailto:<?php esc_attr_e( $user->email ) ?>"><?php echo $user->email ?></a></td>
 				<td><?php echo json_encode( $user->is_verified ) ?></td>
 				<td><?php echo $user->public_key ?></td>
 				<td><?php echo $user->secret_key ?></td>

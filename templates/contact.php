@@ -6,9 +6,9 @@
 	 * @since       1.0.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'json2' );
@@ -39,7 +39,7 @@
 		'plugin_version' => $fs->get_plugin_version(),
 		'wp_login_url'   => wp_login_url(),
 		'site_url'       => get_site_url(),
-//		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
+		// 'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) ) );
 ?>
 	<div class="fs-secure-notice">
@@ -56,7 +56,7 @@
 					// Keep track of the iframe height.
 					iframe_height = 800,
 					base_url = '<?php echo WP_FS__ADDRESS ?>',
-					src = base_url + '/contact/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+					src = base_url + '/contact/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 					// Append the Iframe into the DOM.
 					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')

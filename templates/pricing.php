@@ -6,9 +6,9 @@
 	 * @since       1.0.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'json2' );
@@ -34,8 +34,7 @@
 		) );
 	}
 
-	if ( $fs->is_payments_sandbox() ) // Append plugin secure token for sandbox mode authentication.)
-	{
+	if ( $fs->is_payments_sandbox() ) {
 		$context_params['sandbox'] = FS_Security::instance()->get_secure_token(
 			$fs->get_plugin(),
 			$timestamp,
@@ -71,7 +70,7 @@
 					base_url = '<?php echo WP_FS__ADDRESS ?>',
 					// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
 					// passed via query string or hard coded into the child page, it depends on your needs).
-					src = base_url + '/pricing/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+					src = base_url + '/pricing/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 					// Append the Iframe into the DOM.
 					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')

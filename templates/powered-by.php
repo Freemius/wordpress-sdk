@@ -6,9 +6,9 @@
 	 * @since       1.0.5
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * KEEP THE POWERED BY TAB AND GET ADDITIONAL - 1% - OFF THE COMMISSION

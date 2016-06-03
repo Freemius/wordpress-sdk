@@ -19,9 +19,9 @@
 	define( 'FS_SDK__PATH', dirname( __FILE__ ) );
 	define( 'FS_SDK__EXCEPTIONS_PATH', FS_SDK__PATH . '/Exceptions/' );
 
-	if ( ! function_exists( 'json_decode' ) ) {
-		throw new Exception( 'Freemius needs the JSON PHP extension.' );
-	}
+if ( ! function_exists( 'json_decode' ) ) {
+	throw new Exception( 'Freemius needs the JSON PHP extension.' );
+}
 
 	// Include all exception files.
 	$exceptions = array(
@@ -29,7 +29,7 @@
 		'InvalidArgumentException',
 		'ArgumentNotExistException',
 		'EmptyArgumentException',
-		'OAuthException'
+		'OAuthException',
 	);
 
 	foreach ( $exceptions as $e ) {
@@ -77,7 +77,7 @@
 
 			// Trim '.json' suffix.
 			$format_length = strlen( '.' . self::FORMAT );
-			$start         = $format_length * ( - 1 ); //negative
+			$start         = $format_length * ( - 1 ); // negative
 			if ( substr( strtolower( $pPath ), $start ) === ( '.' . self::FORMAT ) ) {
 				$pPath = substr( $pPath, 0, strlen( $pPath ) - $format_length );
 			}
@@ -131,8 +131,8 @@
 						'type'    => 'Unknown',
 						'message' => $e->getMessage() . ' (' . $e->getFile() . ': ' . $e->getLine() . ')',
 						'code'    => 'unknown',
-						'http'    => 402
-					)
+						'http'    => 402,
+					),
 				);
 			}
 
@@ -174,5 +174,4 @@
 
 			return $str;
 		}
-
 	}

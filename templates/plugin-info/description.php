@@ -6,29 +6,29 @@
 	 * @since       1.0.6
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var FS_Plugin $plugin
 	 */
 	$plugin = $VARS['plugin'];
 
-	if ( ! empty( $plugin->info->selling_point_0 ) ||
+if ( ! empty( $plugin->info->selling_point_0 ) ||
 	     ! empty( $plugin->info->selling_point_1 ) ||
 	     ! empty( $plugin->info->selling_point_2 )
 	) : ?>
 		<div class="fs-selling-points">
-			<ul>
-				<?php for ( $i = 0; $i < 3; $i ++ ) : ?>
+		<ul>
+		<?php for ( $i = 0; $i < 3; $i ++ ) : ?>
 					<?php if ( ! empty( $plugin->info->{'selling_point_' . $i} ) ) : ?>
 						<li><i class="dashicons dashicons-yes"></i>
 
 							<h3><?php echo $plugin->info->{'selling_point_' . $i} ?></h3></li>
 					<?php endif ?>
 				<?php endfor ?>
-			</ul>
+		</ul>
 		</div>
 	<?php endif ?>
 	<div>
@@ -43,7 +43,7 @@
 				'h3'         => array(),
 				'ul'         => array(),
 				'ol'         => array(),
-				'li'         => array()
+				'li'         => array(),
 			) );
 		?>
 	</div>
@@ -53,7 +53,7 @@
 		<h2><?php _efs( 'screenshots', $plugin->slug ) ?></h2>
 		<ul>
 			<?php $i = 0;
-				foreach ( $screenshots as $s => $url ) : ?>
+			foreach ( $screenshots as $s => $url ) : ?>
 					<?php
 					// Relative URLs are replaced with WordPress.org base URL
 					// therefore we need to set absolute URLs.

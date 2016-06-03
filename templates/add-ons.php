@@ -6,9 +6,9 @@
 	 * @since       1.0.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	$slug = $VARS['slug'];
 	/**
@@ -33,10 +33,10 @@
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
 				<h3><?php printf(
-						'%s... %s',
-						__fs( 'oops', $slug ),
-						__fs( 'add-ons-missing', $slug )
-					) ?></h3>
+					'%s... %s',
+					__fs( 'oops', $slug ),
+					__fs( 'add-ons-missing', $slug )
+				) ?></h3>
 			<?php endif ?>
 			<ul class="fs-cards-list">
 				<?php if ( $has_addons ) : ?>
@@ -78,21 +78,21 @@
 							<?php
 								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 									esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
-									                            '&TB_iframe=true&width=600&height=550' ) ),
+									'&TB_iframe=true&width=600&height=550' ) ),
 									esc_attr( sprintf( __fs( 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
 								);
 							?>
 							<?php
-								if ( is_null( $addon->info ) ) {
-									$addon->info = new stdClass();
-								}
-								if ( ! isset( $addon->info->card_banner_url ) ) {
-									$addon->info->card_banner_url = '//dashboard.freemius.com/assets/img/marketing/blueprint-300x100.jpg';
-								}
-								if ( ! isset( $addon->info->short_description ) ) {
-									$addon->info->short_description = 'What\'s the one thing your add-on does really, really well?';
-								}
+							if ( is_null( $addon->info ) ) {
+								$addon->info = new stdClass();
+							}
+							if ( ! isset( $addon->info->card_banner_url ) ) {
+								$addon->info->card_banner_url = '//dashboard.freemius.com/assets/img/marketing/blueprint-300x100.jpg';
+							}
+							if ( ! isset( $addon->info->short_description ) ) {
+								$addon->info->short_description = 'What\'s the one thing your add-on does really, really well?';
+							}
 							?>
 							<div class="fs-inner">
 								<ul>
@@ -102,7 +102,7 @@
 									<li class="fs-title"><?php echo $addon->title ?></li>
 									<li class="fs-offer">
 									<span
-										class="fs-price"><?php echo ( 0 == $price ) ? __fs( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . __fs('trial', $slug) : '')) ?></span>
+										class="fs-price"><?php echo ( 0 == $price ) ? __fs( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . __fs( 'trial', $slug ) : '')) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
 									<li class="fs-cta"><a class="button"><?php _efs( 'view-details', $slug ) ?></a></li>
