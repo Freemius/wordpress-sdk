@@ -21,33 +21,33 @@ Copy the code below and paste it into the top of your main plugin's PHP file, ri
 
 ```php
 <?php
-    // Create a helper function for easy SDK access.
-    function my_prefix_fs() {
-        global $my_prefix_fs;
-        if ( ! isset( $my_prefix_fs ) ) {
-            // Include Freemius SDK.
-            require_once dirname(__FILE__) . '/freemius/start.php';
-    
-            $my_prefix_fs = fs_dynamic_init( array(
-                'id'                => '1234',
-                'slug'              => 'my-plugin-slug',
-                'menu_slug'         => 'my_menu_slug', // You can also use __FILE__
-                'public_key'        => 'pk_MY_PUBLIC_KEY',
-                'is_live'           => true,
-                'is_premium'        => true,
-                'has_addons'        => false,
-                'has_paid_plans'    => false,
-                // Set the SDK to work in a sandbox mode (for development & testing).
-                // IMPORTANT: MAKE SURE TO REMOVE SECRET KEY BEFORE DEPLOYMENT.
-                'secret_key'  => 'sk_MY_SECRET_KEY',
-            ) );
-        }
-    
-        return $my_prefix_fs;
-    }
-    
-    // Init Freemius.
-    my_prefix_fs();
+	// Create a helper function for easy SDK access.
+function my_prefix_fs() {
+	global $my_prefix_fs;
+	if ( ! isset( $my_prefix_fs ) ) {
+		// Include Freemius SDK.
+		require_once dirname( __FILE__ ) . '/freemius/start.php';
+
+		$my_prefix_fs = fs_dynamic_init( array(
+			'id'                => '1234',
+			'slug'              => 'my-plugin-slug',
+			'menu_slug'         => 'my_menu_slug', // You can also use __FILE__
+			'public_key'        => 'pk_MY_PUBLIC_KEY',
+			'is_live'           => true,
+			'is_premium'        => true,
+			'has_addons'        => false,
+			'has_paid_plans'    => false,
+			// Set the SDK to work in a sandbox mode (for development & testing).
+			// IMPORTANT: MAKE SURE TO REMOVE SECRET KEY BEFORE DEPLOYMENT.
+			'secret_key'  => 'sk_MY_SECRET_KEY',
+		) );
+	}
+
+	return $my_prefix_fs;
+}
+
+	// Init Freemius.
+	my_prefix_fs();
 ?>
 ```
 
@@ -70,8 +70,8 @@ Or when calling Freemius multiple times in a scope, it's recommended to use it w
 
 ```php
 <?php
-    global $my_prefix_fs;
-    $my_prefix_fs->get_account_url();
+	global $my_prefix_fs;
+	$my_prefix_fs->get_account_url();
 ?>
 ```
 
@@ -81,13 +81,13 @@ Add marketing content to encourage your users to upgrade for your paid version:
 
 ```php
 <?php
-    if ( my_prefix_fs()->is_not_paying() ) {
-        echo '<section><h1>' . esc_html__('Awesome Premium Features', 'my-plugin-slug') . '</h1>';
-        echo '<a href="' . my_prefix_fs()->get_upgrade_url() . '">' .
-            esc_html__('Upgrade Now!', 'my-plugin-slug') .
-            '</a>';
-        echo '</section>';
-    }
+if ( my_prefix_fs()->is_not_paying() ) {
+	echo '<section><h1>' . esc_html__( 'Awesome Premium Features', 'my-plugin-slug' ) . '</h1>';
+	echo '<a href="' . my_prefix_fs()->get_upgrade_url() . '">' .
+	esc_html__( 'Upgrade Now!', 'my-plugin-slug' ) .
+	'</a>';
+	echo '</section>';
+}
 ?>
 ```
 
@@ -95,12 +95,11 @@ Add logic which will only be available in your premium plugin version:
 
 ```php
 <?php
-    // This "if" block will be auto removed from the Free version.
-    if ( my_prefix_fs()->is__premium_only() ) {
-    
-        // ... premium only logic ...
-        
-    }
+	// This "if" block will be auto removed from the Free version.
+if ( my_prefix_fs()->is__premium_only() ) {
+
+	// ... premium only logic ...
+}
 ?>
 ```
 
@@ -108,31 +107,31 @@ To add a function which will only be available in your premium plugin version, s
 
 ```php
 <?php
-    class My_Plugin {
-        function init() {
-            ...
+class My_Plugin {
+	function init() {
+		...
 
-            // This "if" block will be auto removed from the free version.
-            if ( my_prefix_fs()->is__premium_only() ) {
-                // Init premium version.
-                $this->admin_init__premium_only();
+		// This "if" block will be auto removed from the free version.
+		if ( my_prefix_fs()->is__premium_only() ) {
+			// Init premium version.
+			$this->admin_init__premium_only();
 
-                add_action( 'admin_init', array( &$this, 'admin_init_hook__premium_only' );
-            }
+			add_action( 'admin_init', array( &$this, 'admin_init_hook__premium_only' );
+		}
 
-            ...
-        }
+		...
+	}
 
-        // This method will be only included in the premium version.
-        function admin_init__premium_only() {
-            ...
-        }
+	// This method will be only included in the premium version.
+	function admin_init__premium_only() {
+		...
+	}
 
-        // This method will be only included in the premium version.
-        function admin_init_hook__premium_only() {
-            ...
-        }
-    }
+	// This method will be only included in the premium version.
+	function admin_init_hook__premium_only() {
+		...
+	}
+}
 ?>
 ```
 
@@ -140,9 +139,9 @@ Add logic which will only be executed for customers in your 'professional' plan:
 
 ```php
 <?php
-    if ( my_prefix_fs()->is_plan('professional', true) ) {
-        // .. logic related to Professional plan only ...
-    }
+if ( my_prefix_fs()->is_plan( 'professional', true ) ) {
+	// .. logic related to Professional plan only ...
+}
 ?>
 ```
 
@@ -150,9 +149,9 @@ Add logic which will only be executed for customers in your 'professional' plan 
 
 ```php
 <?php
-    if ( my_prefix_fs()->is_plan('professional') ) {
-        // ... logic related to Professional plan and higher plans ...
-    }
+if ( my_prefix_fs()->is_plan( 'professional' ) ) {
+	// ... logic related to Professional plan and higher plans ...
+}
 ?>
 ```
 
@@ -160,10 +159,10 @@ Add logic which will only be available in your premium plugin version AND will o
 
 ```php
 <?php
-    // This "if" block will be auto removed from the Free version.
-    if ( my_prefix_fs()->is_plan__premium_only('professional') ) {
-        // ... logic related to Professional plan and higher plans ...
-    }
+	// This "if" block will be auto removed from the Free version.
+if ( my_prefix_fs()->is_plan__premium_only( 'professional' ) ) {
+	// ... logic related to Professional plan and higher plans ...
+}
 ?>
 ```
 
@@ -171,9 +170,9 @@ Add logic only for users in trial:
 
 ```php
 <?php
-    if ( my_prefix_fs()->is_trial() ) {
-        // ... logic for users in trial ...
-    }
+if ( my_prefix_fs()->is_trial() ) {
+	// ... logic for users in trial ...
+}
 ?>
 ```
 
@@ -181,18 +180,16 @@ Add logic for specified paid plan:
 
 ```php
 <?php
-    // This "if" block will be auto removed from the Free version.
-    if ( my_prefix_fs()->is__premium_only() ) {
-        if ( my_prefix_fs()->is_plan( 'professional', true ) ) {
+	// This "if" block will be auto removed from the Free version.
+if ( my_prefix_fs()->is__premium_only() ) {
+	if ( my_prefix_fs()->is_plan( 'professional', true ) ) {
 
-            // ... logic related to Professional plan only ...
+		// ... logic related to Professional plan only ...
+	} else if ( my_prefix_fs()->is_plan( 'business' ) ) {
 
-        } else if ( my_prefix_fs()->is_plan( 'business' ) ) {
-
-            // ... logic related to Business plan and higher plans ...
-
-        }
-    }
+		// ... logic related to Business plan and higher plans ...
+	}
+}
 ?>
 ```
 
@@ -217,11 +214,11 @@ There are two ways to exclude files from your free version.
 	 * @fs_premium_only /lib/functions.php, /premium-files/
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
-    
-    // ... my code ...
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+	// ... my code ...
 ?>
 ```
 The file `/lib/functions.php` and the directory `/premium-files/` will be removed from the free plugin version.
