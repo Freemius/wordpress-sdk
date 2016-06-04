@@ -49,11 +49,11 @@ abstract class Freemius_Api_Base {
 	/**
 	 *
 	 *
-	 * @param string  $pScope     'app', 'developer', 'user' or 'install'.
-	 * @param number  $pID        Element's id.
-	 * @param string  $pPublic    Public key.
-	 * @param string  $pSecret    Element's secret key.
-	 * @param bool    $pIsSandbox Whether or not to run API in sandbox mode.
+	 * @param string $pScope     'app', 'developer', 'user' or 'install'.
+	 * @param number $pID        Element's id.
+	 * @param string $pPublic    Public key.
+	 * @param string $pSecret    Element's secret key.
+	 * @param bool   $pIsSandbox Whether or not to run API in sandbox mode.
 	 */
 	public function Init( $pScope, $pID, $pPublic, $pSecret, $pIsSandbox = false ) {
 		$this->_id        = $pID;
@@ -85,22 +85,22 @@ abstract class Freemius_Api_Base {
 		}
 
 		switch ( $this->_scope ) {
-		case 'app':
-			$base = '/apps/' . $this->_id;
+			case 'app':
+				$base = '/apps/' . $this->_id;
 			break;
-		case 'developer':
-			$base = '/developers/' . $this->_id;
+			case 'developer':
+				$base = '/developers/' . $this->_id;
 			break;
-		case 'user':
-			$base = '/users/' . $this->_id;
+			case 'user':
+				$base = '/users/' . $this->_id;
 			break;
-		case 'plugin':
-			$base = '/plugins/' . $this->_id;
+			case 'plugin':
+				$base = '/plugins/' . $this->_id;
 			break;
-		case 'install':
-			$base = '/installs/' . $this->_id;
+			case 'install':
+				$base = '/installs/' . $this->_id;
 			break;
-		default:
+			default:
 			throw new Freemius_Exception( 'Scope not implemented.' );
 		}
 
@@ -114,9 +114,9 @@ abstract class Freemius_Api_Base {
 	/**
 	 *
 	 *
-	 * @param string  $pPath
-	 * @param string  $pMethod
-	 * @param array   $pParams
+	 * @param string $pPath
+	 * @param string $pMethod
+	 * @param array  $pParams
 	 *
 	 * @return object[]|object|null
 	 */
@@ -154,7 +154,7 @@ abstract class Freemius_Api_Base {
 	 *   _ instead of /
 	 *   No padded =
 	 *
-	 * @param string  $input base64UrlEncoded string
+	 * @param string $input base64UrlEncoded string
 	 *
 	 * @return string
 	 */
@@ -168,7 +168,7 @@ abstract class Freemius_Api_Base {
 	 *   - instead of +
 	 *   _ instead of /
 	 *
-	 * @param string  $input string.
+	 * @param string $input string.
 	 *
 	 * @return string base64Url encoded string
 	 */
