@@ -42,10 +42,10 @@ if ( $fs->is_registered() ) {
 	}
 
 	$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-			$site,
-			$timestamp,
-			'checkout'
-		) );
+		$site,
+		$timestamp,
+		'checkout'
+	) );
 } else {
 	$current_user = Freemius::_get_current_wp_user();
 
@@ -56,27 +56,27 @@ if ( $fs->is_registered() ) {
 			'user_firstname' => $current_user->user_firstname,
 			'user_lastname'  => $current_user->user_lastname,
 			'user_email'     => $current_user->user_email,
-			//   'user_nickname'    => $current_user->user_nicename,
-			//   'plugin_slug'      => $slug,
-			//   'site_url'         => get_site_url(),
-			//   'site_name'        => get_bloginfo( 'name' ),
-			//   'platform_version' => get_bloginfo( 'version' ),
-			//   'language'         => get_bloginfo( 'language' ),
-			//   'charset'          => get_bloginfo( 'charset' ),
-			//   'account_url'      => fs_nonce_url( $fs->_get_admin_page_url(
-			//    'account',
-			//    array( 'fs_action' => 'sync_user' )
-			//   ), 'sync_user' ),
-		) );
+			// 'user_nickname'    => $current_user->user_nicename,
+			// 'plugin_slug'      => $slug,
+			// 'site_url'         => get_site_url(),
+			// 'site_name'        => get_bloginfo( 'name' ),
+			// 'platform_version' => get_bloginfo( 'version' ),
+			// 'language'         => get_bloginfo( 'language' ),
+			// 'charset'          => get_bloginfo( 'charset' ),
+			// 'account_url'      => fs_nonce_url( $fs->_get_admin_page_url(
+			// 'account',
+			// array( 'fs_action' => 'sync_user' )
+			// ), 'sync_user' ),
+	) );
 
 	$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
 
 	if ( is_object( $fs_user ) ) {
 		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-				$fs_user,
-				$timestamp,
-				'checkout'
-			) );
+			$fs_user,
+			$timestamp,
+			'checkout'
+		) );
 	}
 }
 
@@ -99,21 +99,22 @@ if ( $fs->is_payments_sandbox() ) {
 }
 
 $return_url = fs_nonce_url( $fs->_get_admin_page_url(
-		'account',
-		array(
+	'account',
+	array(
 			'fs_action' => $slug . '_sync_license',
-			'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
+			'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id(),
 		)
-	), $slug . '_sync_license' );
+), $slug . '_sync_license' );
 
 $query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
 		'return_url'     => $return_url,
 		// Admin CSS URL for style/design competability.
-		//  'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
-	) );
+		// 'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
+) );
 ?>
+
 	<div class="fs-secure-notice">
 		<i class="dashicons dashicons-lock"></i>
 		<span><b>Secure HTTPS Checkout</b> - PCI compliant, running via iframe from external domain</span>
@@ -194,9 +195,9 @@ $query_params = array_merge( $context_params, $_GET, array(
 					FS.PostMessage.receiveOnce('install', function (data) {
 						// Post data to activation URL.
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-			'fs_action' => $slug . '_activate_new',
-			'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
-		) ), $slug . '_activate_new' ) ?>', {
+							'fs_action' => $slug . '_activate_new',
+							'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id(),
+						) ), $slug . '_activate_new' ) ?>', {
 							user_id           : data.user.id,
 							user_secret_key   : data.user.secret_key,
 							user_public_key   : data.user.public_key,
@@ -208,10 +209,10 @@ $query_params = array_merge( $context_params, $_GET, array(
 
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-			'fs_action' => $slug . '_activate_new',
-			'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
-			'pending_activation' => true,
-		) ), $slug . '_activate_new' ) ?>', {
+							'fs_action' => $slug . '_activate_new',
+							'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
+							'pending_activation' => true,
+						) ), $slug . '_activate_new' ) ?>', {
 							user_email: data.user_email
 						}).submit();
 					});
@@ -235,16 +236,16 @@ $query_params = array_merge( $context_params, $_GET, array(
 							charset          : '<?php echo get_bloginfo( 'charset' ) ?>',
 							return_url       : '<?php echo $return_url ?>',
 							account_url      : '<?php echo fs_nonce_url( $fs->_get_admin_page_url(
-		'account',
-		array( 'fs_action' => 'sync_user' )
-	), 'sync_user' ) ?>',
+								'account',
+								array( 'fs_action' => 'sync_user' )
+							), 'sync_user' ) ?>',
 							activation_url   : '<?php echo fs_nonce_url( $fs->_get_admin_page_url( '',
-		array(
-			'fs_action' => $slug . '_activate_new',
-			'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
-
-		) ),
-	$slug . '_activate_new' ) ?>'
+								array(
+									'fs_action' => $slug . '_activate_new',
+									'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
+								)
+							),
+							$slug . '_activate_new' ) ?>'
 						}, iframe[0]);
 					});
 
@@ -258,6 +259,8 @@ $query_params = array_merge( $context_params, $_GET, array(
 					});
 				});
 			})(jQuery);
+
 		</script>
 	</div>
-<?php fs_require_template( 'powered-by.php' )
+
+<?php fs_require_template( 'powered-by.php' );
