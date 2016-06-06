@@ -10,9 +10,9 @@
 	 * @since       1.0.9
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 ?>
 <script type="text/javascript">
 	jQuery(document).ready(function ($) {

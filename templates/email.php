@@ -6,9 +6,9 @@
 	 * @since       1.1.1
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	$sections = $VARS['sections'];
 ?>

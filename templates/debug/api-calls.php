@@ -6,21 +6,21 @@
 	 * @since       1.1.7.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
-	if ( class_exists( 'Freemius_Api' ) ) {
-		$logger = Freemius_Api::GetLogger();
-	} else {
-		$logger = array();
-	}
+if ( class_exists( 'Freemius_Api' ) ) {
+	$logger = Freemius_Api::GetLogger();
+} else {
+	$logger = array();
+}
 
 	$counters = array(
 		'GET'    => 0,
 		'POST'   => 0,
 		'PUT'    => 0,
-		'DELETE' => 0
+		'DELETE' => 0,
 	);
 
 	$show_body = false;
@@ -80,10 +80,10 @@
 							<td><?php echo( $len - $i ) ?></td>
 							<td><?php if ( isset( $bt[ $i ]['function'] ) ) {
 									echo ( isset( $bt[ $i ]['class'] ) ? $bt[ $i ]['class'] . $bt[ $i ]['type'] : '' ) . $bt[ $i ]['function'];
-								} ?></td>
+} ?></td>
 							<td><?php if ( isset( $bt[ $i ]['file'] ) ) {
 									echo substr( $bt[ $i ]['file'], $root_path_len ) . ':' . $bt[ $i ]['line'];
-								} ?></td>
+} ?></td>
 						</tr>
 					<?php endfor ?>
 					</tbody>
@@ -112,21 +112,21 @@
 
 					$is_not_empty_result = ( is_string( $result ) && ! empty( $result ) );
 
-					if ( $is_not_empty_result ) {
-						printf(
-							'<a href="#" onclick="jQuery(this).parent().find(\'pre\').toggle(); return false;">%s</a>',
-							substr( $result, 0, 32 ) . ( 32 < strlen( $result ) ? '...' : '' )
-						);
-					}
+				if ( $is_not_empty_result ) {
+					printf(
+						'<a href="#" onclick="jQuery(this).parent().find(\'pre\').toggle(); return false;">%s</a>',
+						substr( $result, 0, 32 ) . ( 32 < strlen( $result ) ? '...' : '' )
+					);
+				}
 
-					if ( $is_not_empty_result && $pretty_print ) {
-						$decoded = json_decode( $result );
-						if ( ! is_null( $decoded ) ) {
-							$result = json_encode( $decoded, JSON_PRETTY_PRINT );
-						}
-					} else {
-						$result = is_string( $result ) ? $result : json_encode( $result );
+				if ( $is_not_empty_result && $pretty_print ) {
+					$decoded = json_decode( $result );
+					if ( ! is_null( $decoded ) ) {
+						$result = json_encode( $decoded, JSON_PRETTY_PRINT );
 					}
+				} else {
+					$result = is_string( $result ) ? $result : json_encode( $result );
+				}
 				?>
 				<pre<?php if ( $is_not_empty_result ) : ?> style="display: none"<?php endif ?>><code><?php echo esc_html( $result ) ?></code></pre>
 			</td>

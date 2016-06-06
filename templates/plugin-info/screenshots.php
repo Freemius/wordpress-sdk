@@ -6,9 +6,9 @@
 	 * @since       1.0.6
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var FS_Plugin $plugin
@@ -19,7 +19,7 @@
 ?>
 <ol>
 	<?php $i = 0;
-		foreach ( $screenshots as $s => $url ) : ?>
+	foreach ( $screenshots as $s => $url ) : ?>
 			<?php
 			// Relative URLs are replaced with WordPress.org base URL
 			// therefore we need to set absolute URLs.

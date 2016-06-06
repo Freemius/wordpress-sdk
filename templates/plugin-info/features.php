@@ -6,9 +6,9 @@
 	 * @since       1.0.6
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	/**
 	 * @var FS_Plugin $plugin
@@ -18,42 +18,42 @@
 	$plans = $VARS['plans'];
 
 	$features_plan_map = array();
-	foreach ( $plans as $plan ) {
-		foreach ( $plan->features as $feature ) {
-			if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
-				$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
-			}
-
-			$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+foreach ( $plans as $plan ) {
+	foreach ( $plan->features as $feature ) {
+		if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
+			$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
 		}
 
-		// Add support as a feature.
-		if ( ! empty( $plan->support_email ) ||
-		     ! empty( $plan->support_skype ) ||
-		     ! empty( $plan->support_phone ) ||
-		     true === $plan->is_success_manager
-		) {
-			if ( ! isset( $features_plan_map['support'] ) ) {
-				$support_feature        = new stdClass();
-				$support_feature->id    = 'support';
-				$support_feature->title = __fs( 'Support', $plugin->slug );
-				$features_plan_map[ $support_feature->id ] = array( 'feature' => $support_feature, 'plans' => array() );
-			} else {
-				$support_feature = $features_plan_map['support'];
-			}
-
-			$features_plan_map[ $support_feature->id ]['plans'][ $plan->id ] = $support_feature;
-		}
+		$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
 	}
+
+	// Add support as a feature.
+	if ( ! empty( $plan->support_email ) ||
+	 ! empty( $plan->support_skype ) ||
+	 ! empty( $plan->support_phone ) ||
+	 true === $plan->is_success_manager
+	) {
+		if ( ! isset( $features_plan_map['support'] ) ) {
+			$support_feature        = new stdClass();
+			$support_feature->id    = 'support';
+			$support_feature->title = __fs( 'Support', $plugin->slug );
+			$features_plan_map[ $support_feature->id ] = array( 'feature' => $support_feature, 'plans' => array() );
+		} else {
+			$support_feature = $features_plan_map['support'];
+		}
+
+		$features_plan_map[ $support_feature->id ]['plans'][ $plan->id ] = $support_feature;
+	}
+}
 
 	// Add updates as a feature for all plans.
 	$updates_feature        = new stdClass();
 	$updates_feature->id    = 'updates';
 	$updates_feature->title = __fs( 'unlimited-updates', $plugin->slug );
 	$features_plan_map[ $updates_feature->id ] = array( 'feature' => $updates_feature, 'plans' => array() );
-	foreach ( $plans as $plan ) {
-		$features_plan_map[ $updates_feature->id ]['plans'][ $plan->id ] = $updates_feature;
-	}
+foreach ( $plans as $plan ) {
+	$features_plan_map[ $updates_feature->id ]['plans'][ $plan->id ] = $updates_feature;
+}
 ?>
 <div class="fs-features">
 	<table>
@@ -76,7 +76,7 @@
 		</thead>
 		<tbody>
 		<?php $odd = true;
-			foreach ( $features_plan_map as $feature_id => $data ) : ?>
+		foreach ( $features_plan_map as $feature_id => $data ) : ?>
 				<tr class="fs-<?php echo $odd ? 'odd' : 'even' ?>">
 					<td><?php echo ucfirst( $data['feature']->title ) ?></td>
 					<?php foreach ( $plans as $plan ) : ?>

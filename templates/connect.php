@@ -6,9 +6,9 @@
 	 * @since       1.0.7
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	$slug                  = $VARS['slug'];
 	$fs                    = freemius( $slug );
@@ -19,15 +19,15 @@
 	$current_user = Freemius::_get_current_wp_user();
 
 	$first_name = $current_user->user_firstname;
-	if ( empty( $first_name ) ) {
-		$first_name = $current_user->nickname;
-	}
+if ( empty( $first_name ) ) {
+	$first_name = $current_user->nickname;
+}
 
 	$site_url     = get_site_url();
 	$protocol_pos = strpos( $site_url, '://' );
-	if ( false !== $protocol_pos ) {
-		$site_url = substr( $site_url, $protocol_pos + 3 );
-	}
+if ( false !== $protocol_pos ) {
+	$site_url = substr( $site_url, $protocol_pos + 3 );
+}
 
 	$freemius_site_url = $fs->has_paid_plan() ?
 		'https://freemius.com/wordpress/' :
@@ -49,48 +49,48 @@
 	</div>
 	<div class="fs-content">
 		<p><?php
-				if ( $is_pending_activation ) {
-					echo $fs->apply_filters( 'pending_activation_message', sprintf(
-						__fs( 'thanks-x', $slug ) . '<br>' .
-						__fs( 'pending-activation-message', $slug ),
-						$first_name,
-						'<b>' . $fs->get_plugin_name() . '</b>',
-						'<b>' . $current_user->user_email . '</b>'
-					) );
-				} else {
-					$filter                = 'connect_message';
-					$default_optin_message = 'connect-message';
+		if ( $is_pending_activation ) {
+			echo $fs->apply_filters( 'pending_activation_message', sprintf(
+				__fs( 'thanks-x', $slug ) . '<br>' .
+				__fs( 'pending-activation-message', $slug ),
+				$first_name,
+				'<b>' . $fs->get_plugin_name() . '</b>',
+				'<b>' . $current_user->user_email . '</b>'
+			) );
+		} else {
+			$filter                = 'connect_message';
+			$default_optin_message = 'connect-message';
 
-					if ( $fs->is_plugin_update() ) {
-						// If Freemius was added on a plugin update, set different
-						// opt-in message.
-						$default_optin_message = 'connect-message_on-update';
+			if ( $fs->is_plugin_update() ) {
+				// If Freemius was added on a plugin update, set different
+				// opt-in message.
+				$default_optin_message = 'connect-message_on-update';
 
-						// If user customized the opt-in message on update, use
-						// that message. Otherwise, fallback to regular opt-in
-						// custom message if exist.
-						if ( $fs->has_filter( 'connect_message_on_update' ) ) {
-							$filter = 'connect_message_on_update';
-						}
-					}
-
-					echo $fs->apply_filters( $filter,
-						sprintf(
-							__fs( 'hey-x', $slug ) . '<br>' .
-							__fs( $default_optin_message, $slug ),
-							$first_name,
-							'<b>' . $fs->get_plugin_name() . '</b>',
-							'<b>' . $current_user->user_login . '</b>',
-							'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
-							'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
-						),
-						$first_name,
-						$fs->get_plugin_name(),
-						$current_user->user_login,
-						'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
-						'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
-					);
+				// If user customized the opt-in message on update, use
+				// that message. Otherwise, fallback to regular opt-in
+				// custom message if exist.
+				if ( $fs->has_filter( 'connect_message_on_update' ) ) {
+					$filter = 'connect_message_on_update';
 				}
+			}
+
+			echo $fs->apply_filters( $filter,
+				sprintf(
+					__fs( 'hey-x', $slug ) . '<br>' .
+					__fs( $default_optin_message, $slug ),
+					$first_name,
+					'<b>' . $fs->get_plugin_name() . '</b>',
+					'<b>' . $current_user->user_login . '</b>',
+					'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
+					'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
+				),
+				$first_name,
+				$fs->get_plugin_name(),
+				$current_user->user_login,
+				'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
+				'<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>'
+			);
+		}
 			?></p>
 	</div>
 	<div class="fs-actions">
@@ -161,7 +161,7 @@
 			<div class="fs-permissions">
 				<a class="fs-trigger" href="#"><?php _efs( 'what-permissions', $slug ) ?></a>
 				<ul><?php
-						foreach ( $permissions as $id => $permission ) : ?>
+				foreach ( $permissions as $id => $permission ) : ?>
 							<li id="fs-permission-<?php esc_attr_e( $id ); ?>"
 							    class="fs-permission fs-<?php esc_attr_e( $id ); ?>">
 								<i class="<?php esc_attr_e( $permission['icon-class'] ); ?>"></i>

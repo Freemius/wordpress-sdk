@@ -6,9 +6,9 @@
 	 * @since       1.1.7.3
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 	$log_book = FS_Logger::get_log();
 ?>
@@ -29,30 +29,30 @@
 	<tbody>
 
 	<?php $i = 0;
-		foreach ( $log_book as $log ) : ?>
+	foreach ( $log_book as $log ) : ?>
 			<tr<?php if ( $i % 2 ) {
 				echo ' class="alternate"';
-			} ?>>
+} ?>>
 				<td><?php echo $log['cnt'] ?>.</td>
 				<td><?php echo $log['logger']->get_id() ?></td>
 				<td><?php echo $log['type'] ?></td>
 				<td><b><code style="color: blue;"><?php echo $log['function'] ?></code></b></td>
 				<td>
-					<?php
-						printf(
-							'<a href="#" style="color: darkorange !important;" onclick="jQuery(this).parent().find(\'div\').toggle(); return false;"><nobr>%s</nobr></a>',
-							substr( $log['msg'], 0, 32 ) . ( 32 < strlen( $log['msg'] ) ? '...' : '' )
-						);
-					?>
-					<div style="display: none;">
-						<b style="color: darkorange;"><?php echo $log['msg'] ?></b>
+				<?php
+				printf(
+					'<a href="#" style="color: darkorange !important;" onclick="jQuery(this).parent().find(\'div\').toggle(); return false;"><nobr>%s</nobr></a>',
+					substr( $log['msg'], 0, 32 ) . ( 32 < strlen( $log['msg'] ) ? '...' : '' )
+				);
+				?>
+				<div style="display: none;">
+				<b style="color: darkorange;"><?php echo $log['msg'] ?></b>
 					</div>
 				</td>
 				<td><?php
-						if ( isset( $log['file'] ) ) {
-							echo substr( $log['file'], $log['logger']->get_file() ) . ':' . $log['line'] . ')';
-						}
-					?></td>
+				if ( isset( $log['file'] ) ) {
+					echo substr( $log['file'], $log['logger']->get_file() ) . ':' . $log['line'] . ')';
+				}
+				?></td>
 				<td><?php echo number_format( 100 * ( $log['timestamp'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . __fs( 'ms' ) ?></td>
 			</tr>
 			<?php $i ++; endforeach ?>

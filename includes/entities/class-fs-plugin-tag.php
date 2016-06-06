@@ -6,19 +6,19 @@
 	 * @since       1.0.4
 	 */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class FS_Plugin_Tag extends FS_Entity {
+	public $version;
+	public $url;
+
+	function __construct( $tag = false ) {
+		parent::__construct( $tag );
 	}
 
-	class FS_Plugin_Tag extends FS_Entity {
-		public $version;
-		public $url;
-
-		function __construct( $tag = false ) {
-			parent::__construct( $tag );
-		}
-
-		static function get_type() {
-			return 'tag';
-		}
+	static function get_type() {
+		return 'tag';
 	}
+}
