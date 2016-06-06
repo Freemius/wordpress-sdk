@@ -213,7 +213,7 @@ class FS_Plugin_Info_Dialog
 			if ( is_object( $latest ) ) {
 				$data->version      = $latest->version;
 				$data->last_updated = ! is_null( $latest->updated ) ? $latest->updated : $latest->created;
-				$data->require_once 's     = $latest->requires_platform_version';
+				$data->requires     = $latest->requires_platform_version;
 				$data->tested       = $latest->tested_up_to_version;
 			} else {
 				// Add dummy version.
@@ -791,7 +791,7 @@ if ( ! empty( $api->last_updated ) ) {
 if ( ! empty( $api->requires ) ) {
 ?>
 	<li>
-		<strong><?php _e('Require_once 's WordPress Version:' '; ?></strong> <?php printf(__( '%s or higher' ), $api->require_once 's '; ?>
+		<strong><?php _e( 'Requires WordPress Version:' ); ?></strong> <?php printf( __( '%s or higher' ), $api->requires ); ?>
 	</li>
 <?php
 }
@@ -917,7 +917,7 @@ if ( ! empty( $api->contributors ) ) {
 				'id'      => md5( microtime() ),
 				'message' => __fs( ( $api->is_paid ? 'paid-addon-not-deployed' : 'free-addon-not-deployed' ), $api->slug ),
 			);
-			fs_require_once '_template( 'admin -notice.php', $missing_notice ';
+			fs_require_template( 'admin-notice.php', $missing_notice );
 		}
 		echo "\t<div id='section-{$san_section}' class='section' style='display: {$display};'>\n";
 		echo $content;
