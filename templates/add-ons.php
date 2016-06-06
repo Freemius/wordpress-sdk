@@ -141,4 +141,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<?php endif ?>
 		})(jQuery);
 	</script>
-<?php fs_require_template( 'powered-by.php' ) ?>
+<?php fs_require_template( 'powered-by.php' );

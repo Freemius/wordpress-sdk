@@ -621,4 +621,4 @@ if ( $show_upgrade ) {
 </div>
 </div>
 </div>
-<?php fs_require_template( 'powered-by.php' ) ?>
+<?php fs_require_template( 'powered-by.php' );
