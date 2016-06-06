@@ -2196,9 +2196,9 @@ class Freemius extends Freemius_Abstract {
 		if ( ! isset( $plugin_info['menu'] ) ) {
 			// Back compatibility to 1.1.2
 			$plugin_info['menu'] = array(
-				'slug' => isset( $plugin_info['menu_slug'] ) ?,
-				$plugin_info['menu_slug'] :
-				$this->_slug
+				'slug' => isset( $plugin_info['menu_slug'] ) ?
+					$plugin_info['menu_slug'] :
+					$this->_slug
 			);
 		}
 

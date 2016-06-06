@@ -143,7 +143,7 @@ if ( ! function_exists( '__fs' ) ) {
 		global $fs_text, $fs_text_overrides;
 
 		if ( ! isset( $fs_text ) ) {
-			require_once ' ( defined('WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname(__FILE__ )) . ' / i18n.php' ';
+			require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
 		}
 
 		if ( isset( $fs_text_overrides[ $slug ] ) ) {
@@ -241,7 +241,7 @@ function fs_find_caller_plugin_file() {
 	 * will catch it.
 	 */
 	if ( ! function_exists( 'get_plugins' ) ) {
-		require_once ' ABSPATH . 'wp -admin / includes / plugin.php' ';
+		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 
 	$all_plugins       = get_plugins();
@@ -268,35 +268,35 @@ function fs_find_caller_plugin_file() {
 	return $plugin_file;
 }
 
-require_once 'dirname(__FILE__) . ' / supplements / fs -essential -functions -1.1.7.1.php';
+require_once dirname( __FILE__ ) . '/supplements/fs-essential-functions-1.1.7.1.php';
 
 /**
  * Update SDK newest version reference.
  *
  * @author    Vova Feldman (@svovaf)
- * @param string $sdk_relative_path __comment_missing__
+ * @param string      $sdk_relative_path __comment_missing__
  * @param string|bool $plugin_file
  *
  * @since 1.1.6
  * @global            $fs_active_plugins
  */
-function fs_update_sdk_newest_version($sdk_relative_path, $plugin_file = false)
-{
+function fs_update_sdk_newest_version( $sdk_relative_path, $plugin_file = false ) {
 	global $fs_active_plugins;
 
-	if (! is_string($plugin_file)) {
-		$plugin_file = plugin_basename(fs_find_caller_plugin_file());
+	if ( ! is_string( $plugin_file ) ) {
+		$plugin_file = plugin_basename( fs_find_caller_plugin_file() );
 	}
 
 	$fs_active_plugins->newest = (object) array(
 		'plugin_path'   => $plugin_file,
 		'sdk_path'      => $sdk_relative_path,
 		'version'       => $fs_active_plugins->plugins[ $sdk_relative_path ]->version,
-		'in_activation' => ! is_plugin_active($plugin_file),
-		'timestamp'     => time(),);
+		'in_activation' => ! is_plugin_active( $plugin_file ),
+		'timestamp'     => time(),
+	);
 
 	// Update DB with latest SDK version and path.
-	update_option('fs_active_plugins', $fs_active_plugins);
+	update_option( 'fs_active_plugins', $fs_active_plugins );
 }
 
 /**
@@ -307,31 +307,26 @@ function fs_update_sdk_newest_version($sdk_relative_path, $plugin_file = false)
  * @since 1.1.6
  * @global $fs_active_plugins
  */
-function fs_newest_sdk_plugin_first()
-{
+function fs_newest_sdk_plugin_first() {
 	global $fs_active_plugins;
-
 	/**
+	 * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
 	 *
-	 *
-	 * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs -essential -functions.php will be loaded from the older SDK. Same thing about MU plugins( loaded even before network activated plugins ).
-	 *
-	 * @link      https:// github.com/Freemius/wordpress-sdk/issues/26
-	 * /
-	// $active_sitewide_plugins = get_site_option('active_sitewide_plugins');
+	 * @link https://github.com/Freemius/wordpress-sdk/issues/26
+	 */
+	// $active_sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
 	$active_plugins        = get_option( 'active_plugins' );
 	$newest_sdk_plugin_key = array_search( $fs_active_plugins->newest->plugin_path, $active_plugins );
-if ( 0 == $newest_sdk_plugin_key ) {
-	// if it's 0 it's the first plugin already, no need to continue
-	return false;
-}
-
+	if ( 0 == $newest_sdk_plugin_key ) {
+		// if it's 0 it's the first plugin already, no need to continue
+		return false;
+	}
 	array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
 	array_unshift( $active_plugins, $fs_active_plugins->newest->plugin_path );
 	update_option( 'active_plugins', $active_plugins );
-
 	return true;
 }
+
 
 /**
  * Go over all Freemius SDKs in the system and find and "remember"
