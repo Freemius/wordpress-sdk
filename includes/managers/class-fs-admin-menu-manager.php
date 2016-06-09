@@ -527,19 +527,24 @@
 			} else {
 				global $menu;
 
+				$menu_slug = $this->get_slug();
+
+				// Remove original CPT menu.
+				remove_menu_page( $menu_slug );
+
 				// Create new top-level menu action.
 				$hookname = add_menu_page(
 					$found_menu['menu'][3],
 					$found_menu['menu'][0],
 					'manage_options',
-					$this->get_slug(),
+					$menu_slug,
 					$function,
 					$found_menu['menu'][6],
 					$found_menu['position']
 				);
 
 				// Remove original CPT menu.
-				unset( $menu[ $found_menu['position'] ] );
+				//unset( $menu[ $found_menu['position'] ] );
 			}
 
 			return $hookname;
