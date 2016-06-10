@@ -109,6 +109,16 @@
 			return ( $this->is_paying() || $this->is_trial() );
 		}
 
+		/**
+		 * Check if user in a trial or have feature enabled license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.7
+		 *
+		 * @return bool
+		 */
+		abstract function can_use_premium_code();
+
 		#region Premium Only ------------------------------------------------------------------
 
 		/**
@@ -199,6 +209,20 @@
 		 */
 		function is_paying__fs__() {
 			return $this->is_paying__premium_only();
+		}
+
+		/**
+		 * Check if user in a trial or have feature enabled license.
+		 *
+		 * All code wrapped in this statement will be only included in the premium code.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		function can_use_premium_code__premium_only() {
+			return $this->is_premium() && $this->can_use_premium_code();
 		}
 
 		#endregion Premium Only ------------------------------------------------------------------
@@ -294,6 +318,32 @@
 		 * @return bool
 		 */
 		abstract function has_free_plan();
+
+		/**
+		 * Check if plugin is premium only (no free plans).
+		 *
+		 * NOTE: is__premium_only() is very different method, don't get confused.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		abstract function is_only_premium();
+
+		/**
+		 * Checks if it's a freemium plugin.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		function is_freemium() {
+			return ! $this->is_only_premium() &&
+			       $this->has_paid_plan() &&
+			       $this->has_free_plan();
+		}
 
 		#endregion Plans ------------------------------------------------------------------
 

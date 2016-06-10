@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '1.1.8.1';
+	$this_sdk_version = '1.1.9';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -292,6 +292,7 @@
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-plugin-updater.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-freemius-abstract.php';
+		require_once WP_FS__DIR_INCLUDES . '/sdk/Exceptions/Exception.php';
 		require_once WP_FS__DIR_INCLUDES . '/class-freemius.php';
 
 		/**

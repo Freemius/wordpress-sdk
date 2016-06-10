@@ -19,11 +19,37 @@ $form_width: 480px;
         background: #fff;
         padding:    15px 20px;
 
+        .fs-error {
+            background: snow;
+            color: $fs-logo-magenta-color;
+            border: 1px solid $fs-logo-magenta-color;
+            @include box-shadow(0 1px 1px 0 rgba(0,0,0,.1));
+            text-align: center;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
         p
         {
             margin:    0;
             padding:   0;
             font-size: 1.2em;
+        }
+    }
+
+    .fs-license-key-container {
+        position: relative;
+        width: 280px;
+        margin: 10px auto 0 auto;
+
+        input {
+            width: 100%;
+        }
+
+        .dashicons {
+            position: absolute;
+            top: 5px;
+            right: 5px;
         }
     }
 
@@ -99,6 +125,11 @@ $form_width: 480px;
         //        background: #F1F1F1;
         @include transition(background 0.5s ease);
 
+        .fs-license-sync-disclaimer {
+            text-align: center;
+            margin-top: 0;
+        }
+
         .fs-trigger
         {
             font-size:       0.9em;
@@ -173,6 +204,25 @@ $form_width: 480px;
                 height: auto;
                 margin: 20px;
             }
+        }
+    }
+
+    .fs-freemium-licensing {
+        padding: 8px;
+//        background: #0085BA;
+        background: #777;
+        color: #fff;
+
+        p {
+            text-align: center;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            color: #C2EEFF;
+            text-decoration: underline;
         }
     }
 

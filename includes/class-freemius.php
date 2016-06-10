@@ -103,6 +103,12 @@
 		private $_anonymous_mode;
 
 		/**
+		 * @since 1.1.9
+		 * @var bool Hints the SDK if plugin have any free plans.
+		 */
+		private $_is_premium_only;
+
+		/**
 		 * @since 1.0.8
 		 * @var bool Hints the SDK if the plugin has any paid plans.
 		 */
@@ -146,7 +152,7 @@
 		/**
 		 * @since 1.0.4
 		 *
-		 * @var FS_Plugin
+		 * @var FS_Plugin|false
 		 */
 		private $_parent_plugin = false;
 		/**
@@ -364,6 +370,54 @@
 		}
 
 		/**
+		 * This action is connected to the 'plugins_loaded' hook and helps to determine
+		 * if this is a new plugin installation or a plugin update.
+		 *
+		 * There are 3 different use-cases:
+		 *    1) New plugin installation right with Freemius:
+		 *       1.1 _activate_plugin_event_hook() will be executed first
+		 *       1.2 Since $this->_storage->is_plugin_new_install is not set,
+		 *           and $this->_storage->plugin_last_version is not set,
+		 *           $this->_storage->is_plugin_new_install will be set to TRUE.
+		 *       1.3 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install will
+		 *           be already set to TRUE.
+		 *
+		 *    2) Plugin update, didn't have Freemius before, and now have the SDK:
+		 *       2.1 _activate_plugin_event_hook() will not be executed, because
+		 *           the activation hook do NOT fires on updates since WP 3.1.
+		 *       2.2 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install will
+		 *           be empty, therefore, it will be set to FALSE.
+		 *
+		 *    3) Plugin update, had Freemius in prev version as well:
+		 *       3.1 _version_updates_handler() will be executed 1st, since FS was installed
+		 *           before, $this->_storage->plugin_last_version will NOT be empty,
+		 *           therefore, $this->_storage->is_plugin_new_install will be set to FALSE.
+		 *       3.2 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install is
+		 *           already set, therefore, it will not be modified.
+		 *
+		 *    Use-case #3 is backward compatible, #3.1 will be executed since 1.0.9.
+		 *
+		 * NOTE:
+		 *    The only fallback of this mechanism is if an admin updates a plugin based on use-case #2,
+		 *    and then, the next immediate PageView is the plugin's main settings page, it will not
+		 *    show the opt-in right away. The reason it will happen is because Freemius execution
+		 *    will be turned off till the plugin is fully loaded at least once
+		 *    (till $this->_storage->was_plugin_loaded is TRUE).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 */
+		function _plugins_loaded() {
+			// Update flag that plugin was loaded with Freemius at least once.
+			$this->_storage->was_plugin_loaded = true;
+
+			if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
+				$this->_storage->is_plugin_new_install = false;
+			}
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
@@ -374,6 +428,21 @@
 					&$this,
 					'_activate_plugin_event_hook'
 				) );
+
+				/**
+				 * Part of the mechanism to identify new plugin install vs. plugin update.
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.9
+				 */
+				if ( empty( $this->_storage->was_plugin_loaded ) ) {
+					if ( $this->is_activation_mode( false ) ) {
+						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
+					} else {
+						// If was activated before, then it was already loaded before.
+						$this->_plugins_loaded();
+					}
+				}
 
 				// Hook to plugin uninstall.
 				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
@@ -808,13 +877,15 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
+		 * @param bool $and_on
+		 *
 		 * @return bool
 		 */
-		function is_activation_mode() {
+		function is_activation_mode( $and_on = true ) {
 			return (
-				$this->is_on() &&
+				( $this->is_on() || ! $and_on ) &&
 				! $this->is_registered() &&
-				( ! $this->enable_anonymous() ||
+				( ! $this->is_enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
 			);
 		}
@@ -1267,7 +1338,7 @@
 		private function turn_on() {
 			$this->_logger->entrance();
 
-			if ($this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
+			if ( $this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
 				return false;
 			}
 
@@ -1971,7 +2042,10 @@
 						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
 						if ( $this->is_premium() ) {
 							// Remove add-on download admin-notice.
-							$this->_parent->_admin_notices->remove_sticky( 'addon_plan_upgraded_' . $this->_slug );
+							$this->_parent->_admin_notices->remove_sticky( array(
+								'addon_plan_upgraded_' . $this->_slug,
+								'no_addon_license_' . $this->_slug,
+							) );
 						}
 
 						$this->deactivate_premium_only_addon_without_license();
@@ -2036,6 +2110,18 @@
 					$this->do_action( 'after_init_addon_pending_activations' );
 				}
 			}
+
+			// Add license activation link and AJAX request handler.
+			if ( $this->has_paid_plan() ) {
+				$this->_add_license_action_link();
+
+				global $pagenow;
+				if ( 'plugins.php' === $pagenow ) {
+					add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+				}
+
+				add_action( 'wp_ajax_activate-license', array( &$this, '_activate_license_ajax_action' ) );
+			}
 		}
 
 		/**
@@ -2056,6 +2142,14 @@
 			$secret_key  = $this->get_option( $plugin_info, 'secret_key', null );
 			$parent_id   = $this->get_numeric_option( $plugin_info, 'parent_id', null );
 			$parent_name = $this->get_option( $plugin_info, 'parent_name', null );
+
+			/**
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.1.9 Try to pull secret key from external config.
+			 */
+			if ( is_null( $secret_key ) && defined( "WP_FS__{$this->_slug}_SECRET_KEY" ) ) {
+				$secret_key = constant( "WP_FS__{$this->_slug}_SECRET_KEY" );
+			}
 
 			if ( isset( $plugin_info['parent'] ) ) {
 				$parent_id = $this->get_numeric_option( $plugin_info['parent'], 'id', null );
@@ -2110,9 +2204,16 @@
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
-			$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
-			$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
-			$this->_permissions      = $this->get_option( $plugin_info, 'permissions', array() );
+			$this->_is_premium_only  = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
+			if ( $this->_is_premium_only ) {
+				// If premium only plugin, disable anonymous mode.
+				$this->_enable_anonymous = false;
+				$this->_anonymous_mode   = false;
+			} else {
+				$this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
+				$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
+			}
+			$this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
 		}
 
 		/**
@@ -2143,6 +2244,19 @@
 		 * @return bool
 		 */
 		private function should_stop_execution() {
+			if ( empty( $this->_storage->was_plugin_loaded ) ) {
+				/**
+				 * Don't execute Freemius until plugin was fully loaded at least once,
+				 * to give the opportunity for the activation hook to run before pinging
+				 * the API for connectivity test. This logic is relevant for the
+				 * identification of new plugin install vs. plugin update.
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.9
+				 */
+				return true;
+			}
+
 			if ( $this->is_activation_mode() ) {
 				if ( ! is_admin() ) {
 					/**
@@ -2419,28 +2533,51 @@
 			     ! $this->has_features_enabled_license() &&
 			     ! $this->_has_premium_license()
 			) {
-				deactivate_plugins( array( $this->_plugin_basename ), true );
+				// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
+//                if (empty($this->_storage->activation_timestamp) ||
+//                    (WP_FS__SCRIPT_START_TIME - $this->_storage->activation_timestamp) > 30
+//                ) {
+				/**
+				 * @todo When it's first fail, there's no reason to try and re-sync because the licenses were just synced after initial activation.
+				 *
+				 * Retry syncing the user add-on licenses.
+				 */
+				// Sync licenses.
+				$this->_sync_licenses();
+//                }
 
-				$this->_parent->_admin_notices->add_sticky(
-					sprintf(
-						__fs( ( $is_after_trial_cancel ?
-								'addon-trial-cancelled-message' :
-								'addon-no-license-message' ),
-							$this->_parent->_slug
+				// Try to activate premium license.
+				$this->_activate_license( true );
+
+				if ( ! $this->has_free_plan() &&
+				     ! $this->has_features_enabled_license() &&
+				     ! $this->_has_premium_license()
+				) {
+					// @todo Check if deactivate plugins also call the deactivation hook.
+
+					deactivate_plugins( array( $this->_plugin_basename ), true );
+
+					$this->_parent->_admin_notices->add_sticky(
+						sprintf(
+							__fs( ( $is_after_trial_cancel ?
+									'addon-trial-cancelled-message' :
+									'addon-no-license-message' ),
+								$this->_parent->_slug
+							),
+							'<b>' . $this->_plugin->title . '</b>'
+						) . ' ' . sprintf(
+							'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
+							$this->_parent->addon_url( $this->_slug ),
+							esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
+							__fs( 'purchase-license', $this->_parent->_slug )
 						),
-						'<b>' . $this->_plugin->title . '</b>'
-					) . ' ' . sprintf(
-						'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
-						$this->_parent->addon_url( $this->_slug ),
-						esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
-						__fs( 'purchase-license', $this->_parent->_slug )
-					),
-					'no_addon_license',
-					( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
-					( $is_after_trial_cancel ? 'success' : 'error' )
-				);
+						'no_addon_license_' . $this->_slug,
+						( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
+						( $is_after_trial_cancel ? 'success' : 'error' )
+					);
 
-				return true;
+					return true;
+				}
 			}
 
 			return false;
@@ -2920,7 +3057,7 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
-						if ( $this->is_plugin_new_install() ) {
+						if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
 								sprintf(
@@ -3220,6 +3357,16 @@
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
+
+			/**
+			 * Activation hook is executed after the plugin's main file is loaded, therefore,
+			 * after the plugin was loaded. The logic is located at activate_plugin()
+			 * ./wp-admin/includes/plugin.php.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.1.9
+			 */
+			$this->_storage->was_plugin_loaded = true;
 		}
 
 		/**
@@ -4942,7 +5089,55 @@
 		 * @return bool
 		 */
 		function has_free_plan() {
-			return FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+			return ! $this->is_only_premium() && FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+		}
+
+		/**
+		 * Displays a license activation dialog box when the user clicks on the "Activate License"
+		 * or "Change License" link on the plugins
+		 * page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.9
+		 */
+		function _add_license_activation_dialog_box() {
+			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
+
+			$vars = array(
+				'slug' => $this->_slug
+			);
+
+			fs_require_template( 'license-activation-modal.php', $vars );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.9
+		 */
+		function _activate_license_ajax_action() {
+			if ( ! isset( $_POST['license-key'] ) ) {
+				exit;
+			}
+
+			$license_key = trim( $_POST['license-key'] );
+			if ( empty( $license_key ) ) {
+				exit;
+			}
+
+			if ( $this->is_registered() ) {
+				$api = $this->get_api_site_scope();
+				$api->call( '/', 'put',
+					array(
+						'license_key' => $license_key
+					)
+				);
+			} else {
+				$this->opt_in( false, false, false, $license_key );
+			}
+
+			// Print '1' for successful operation.
+			echo 1;
+			exit;
 		}
 
 		#region URL Generators
@@ -5086,13 +5281,39 @@
 		/**
 		 * Check if plugin can work in anonymous mode.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.0.9
 		 *
 		 * @return bool
+		 *
+		 * @deprecated Please use is_enable_anonymous() instead
 		 */
 		function enable_anonymous() {
 			return $this->_enable_anonymous;
+		}
+
+		/**
+		 * Check if plugin can work in anonymous mode.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		function is_enable_anonymous() {
+			return $this->_enable_anonymous;
+		}
+
+		/**
+		 * Check if plugin is premium only (no free plans).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		function is_only_premium() {
+			return $this->_is_premium_only;
 		}
 
 		/**
@@ -5600,10 +5821,11 @@
 		 * @param string|bool $email
 		 * @param string|bool $first
 		 * @param string|bool $last
+		 * @param string|bool $license_key
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
-		function opt_in( $email = false, $first = false, $last = false ) {
+		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false ) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -5629,7 +5851,12 @@
 				$user_info['user_lastname'] = $last;
 			}
 
-			$params           = $this->get_opt_in_params( $user_info );
+			$params = $this->get_opt_in_params( $user_info );
+
+			if ( is_string( $license_secret_key ) ) {
+				$params['license_secret_key'] = $license_secret_key;
+			}
+
 			$params['format'] = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
@@ -5786,6 +6013,14 @@
 
 				}
 			} else {
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.9 If site installed with a valid license, sync license.
+				 */
+				if ( $this->is_paying() ) {
+					$this->_sync_plugin_license( true );
+				}
+
 				// Reload the page with the keys.
 				if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) ) ) {
 					exit();
@@ -5930,13 +6165,25 @@
 			// We have to set the user before getting user scope API handler.
 			$this->_user = $user;
 
+			$extra_install_params = array(
+				'uid' => $this->get_anonymous_id(),
+			);
+
+			/**
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.1.9 Add license key if given.
+			 */
+			$license_key = fs_request_get( 'license_secret_key' );
+
+			if ( ! empty( $license_key ) ) {
+				$extra_install_params['license_secret_key'] = $license_key;
+			}
+
 			// Install the plugin.
 			$install = $this->get_api_user_scope()->call(
 				"/plugins/{$this->get_id()}/installs.json",
 				'post',
-				$this->get_install_data_for_api( array(
-					'uid' => $this->get_anonymous_id(),
-				), false, false )
+				$this->get_install_data_for_api( $extra_install_params, false, false )
 			);
 
 			if ( isset( $install->error ) ) {
@@ -6041,11 +6288,11 @@
 //				return;
 //			}
 
-			if ( ! $this->has_api_connectivity() && ! $this->enable_anonymous() ) {
+			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
 			} else {
-				$this->add_submenu_items();
 				$this->add_menu_action();
+				$this->add_submenu_items();
 			}
 		}
 
@@ -6330,7 +6577,13 @@
 		private function order_sub_submenu_items() {
 			global $submenu;
 
-			$top_level_menu = &$submenu[ $this->_menu->get_top_level_menu_slug() ];
+			$menu_slug = $this->_menu->get_top_level_menu_slug();
+
+			if ( empty( $submenu[ $menu_slug ] ) ) {
+				return;
+			}
+
+			$top_level_menu = &$submenu[ $menu_slug ];
 
 			$all_submenu_items_after = array();
 
@@ -7413,9 +7666,19 @@
 						$is_free = $this->is_free_plan();
 
 						// Make sure license exist and not expired.
-						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
+						$new_license = is_null( $site->license_id ) ?
+							null :
+							$this->_get_license_by_id( $site->license_id );
 
-						if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
+						if ( $is_free && is_null( $new_license ) && $this->has_license() && $this->_license->is_cancelled ) {
+							// License cancelled.
+							$this->_site = $site;
+							$this->_update_site_license( $new_license );
+							$this->_store_licenses();
+							$this->_enrich_site_plan( true );
+
+							$plan_change = 'cancelled';
+						} else if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
 							// The license is expired, so ignore upgrade method.
 						} else {
 							// License changed.
@@ -7471,10 +7734,9 @@
 										),
 										__fs( 'contact-us-here', $this->_slug )
 									),
-									'<i>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</i>'
+									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
 								),
-								__fs( 'hmm', $this->_slug ) . '...',
-								'error'
+								__fs( 'hmm', $this->_slug ) . '...'
 							);
 						}
 						break;
@@ -7520,6 +7782,19 @@
 							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ) ),
 							'license_expired',
 							__fs( 'hmm', $this->_slug ) . '...'
+						);
+						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
+						break;
+					case 'cancelled':
+						$this->_admin_notices->add(
+							__fs( 'license-cancelled', $this->_slug ) . ' ' .
+							sprintf(
+								'<a href="%s">%s</a>',
+								$this->contact_url( 'bug' ),
+								__fs( 'contact-us-here', $this->_slug )
+							),
+							__fs( 'hmm', $this->_slug ) . '...',
+							'error'
 						);
 						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 						break;
@@ -7589,6 +7864,21 @@
 				$this->_get_available_premium_license();
 
 			if ( ! is_object( $premium_license ) ) {
+				return;
+			}
+
+			/**
+			 * If the premium license is already associated with the install, just
+			 * update the license reference (activation is not required).
+			 *
+			 * @since 1.1.9
+			 */
+			if ( $premium_license->id == $this->_site->license_id ) {
+				// License is already activated.
+				$this->_update_site_license( $premium_license );
+				$this->_enrich_site_plan( false );
+				$this->_store_account();
+
 				return;
 			}
 
@@ -7762,7 +8052,7 @@
 		 *
 		 * @return bool If trial was successfully started.
 		 */
-		function start_trial($plan_name = false) {
+		function start_trial( $plan_name = false ) {
 			$this->_logger->entrance();
 
 			if ( $this->is_trial() ) {
@@ -9130,6 +9420,26 @@
 					);
 				}
 			}
+		}
+
+		/**
+		 * Adds "Activate License" or "Change License" link to the main Plugins page link actions collection.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.1.9
+		 */
+		function _add_license_action_link() {
+			$this->_logger->entrance();
+
+			$link_text = __fs( $this->is_free_plan() ? 'activate-license' : 'change-license', $this->_slug );
+
+			$this->add_plugin_action_link(
+				$link_text,
+				'#',
+				false,
+				11,
+				( 'activate-license ' . $this->_slug )
+			);
 		}
 
 		/**
