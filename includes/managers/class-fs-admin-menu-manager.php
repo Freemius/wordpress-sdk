@@ -110,7 +110,7 @@
 		}
 
 		private function get_bool_option( &$options, $key, $default = false ) {
-			return isset( $options[ $key ] ) &&is_bool( $options[ $key ] )  ? $options[ $key ] : $default;
+			return isset( $options[ $key ] ) && is_bool( $options[ $key ] ) ? $options[ $key ] : $default;
 		}
 
 		#endregion Helpers
@@ -527,6 +527,9 @@
 			} else {
 				global $menu;
 
+				// Remove original CPT menu.
+				unset( $menu[ $found_menu['position'] ] );
+
 				// Create new top-level menu action.
 				$hookname = add_menu_page(
 					$found_menu['menu'][3],
@@ -537,9 +540,6 @@
 					$found_menu['menu'][6],
 					$found_menu['position']
 				);
-
-				// Remove original CPT menu.
-				unset( $menu[ $found_menu['position'] ] );
 			}
 
 			return $hookname;
