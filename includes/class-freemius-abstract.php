@@ -319,6 +319,20 @@
 		 */
 		abstract function has_free_plan();
 
+		/**
+		 * Checks if it's a freemium plugin.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		function is_freemium() {
+			return ! $this->is_only_premium() &&
+			       $this->has_paid_plan() &&
+			       $this->has_free_plan();
+		}
+
 		#endregion Plans ------------------------------------------------------------------
 
 		/**
