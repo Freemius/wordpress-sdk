@@ -6203,8 +6203,8 @@
 			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
 			} else {
-				$this->add_submenu_items();
 				$this->add_menu_action();
+				$this->add_submenu_items();
 			}
 		}
 
