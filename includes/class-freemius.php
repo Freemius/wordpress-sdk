@@ -103,7 +103,7 @@
 		private $_anonymous_mode;
 
 		/**
-		 * @since 1.1.8.2
+		 * @since 1.1.9
 		 * @var bool Hints the SDK if plugin have any free plans.
 		 */
 		private $_is_premium_only;
@@ -405,7 +405,7 @@
 		 *    (till $this->_storage->was_plugin_loaded is TRUE).
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 *
 		 */
 		function _plugins_loaded() {
@@ -433,7 +433,7 @@
 				 * Part of the mechanism to identify new plugin install vs. plugin update.
 				 *
 				 * @author Vova Feldman (@svovaf)
-				 * @since  1.1.8.2
+				 * @since  1.1.9
 				 */
 				if ( empty( $this->_storage->was_plugin_loaded ) ) {
 					if ( $this->is_activation_mode( false ) ) {
@@ -2145,7 +2145,7 @@
 
 			/**
 			 * @author Vova Feldman (@svovaf)
-			 * @since  1.1.8.2 Try to pull secret key from external config.
+			 * @since  1.1.9 Try to pull secret key from external config.
 			 */
 			if ( is_null( $secret_key ) && defined( "WP_FS__{$this->_slug}_SECRET_KEY" ) ) {
 				$secret_key = constant( "WP_FS__{$this->_slug}_SECRET_KEY" );
@@ -2252,7 +2252,7 @@
 				 * identification of new plugin install vs. plugin update.
 				 *
 				 * @author Vova Feldman (@svovaf)
-				 * @since  1.1.8.2
+				 * @since  1.1.9
 				 */
 				return true;
 			}
@@ -3364,7 +3364,7 @@
 			 * ./wp-admin/includes/plugin.php.
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since  1.1.8.2
+			 * @since  1.1.9
 			 */
 			$this->_storage->was_plugin_loaded = true;
 		}
@@ -5098,7 +5098,7 @@
 		 * page.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 */
 		function _add_license_activation_dialog_box() {
 			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
@@ -5112,7 +5112,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 */
 		function _activate_license_ajax_action() {
 			if ( ! isset( $_POST['license-key'] ) ) {
@@ -5296,7 +5296,7 @@
 		 * Check if plugin can work in anonymous mode.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 *
 		 * @return bool
 		 */
@@ -5308,7 +5308,7 @@
 		 * Check if plugin is premium only (no free plans).
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 *
 		 * @return bool
 		 */
@@ -6015,7 +6015,7 @@
 			} else {
 				/**
 				 * @author Vova Feldman (@svovaf)
-				 * @since  1.1.8.2 If site installed with a valid license, sync license.
+				 * @since  1.1.9 If site installed with a valid license, sync license.
 				 */
 				if ( $this->is_paying() ) {
 					$this->_sync_plugin_license( true );
@@ -6171,7 +6171,7 @@
 
 			/**
 			 * @author Vova Feldman (@svovaf)
-			 * @since  1.1.8.2 Add license key if given.
+			 * @since  1.1.9 Add license key if given.
 			 */
 			$license_key = fs_request_get( 'license_secret_key' );
 
@@ -7870,7 +7870,7 @@
              * If the premium license is already associated with the install, just
              * update the license reference (activation is not required).
              *
-             * @since 1.1.8.2
+			 * @since 1.1.9
              */
             if ( $premium_license->id == $this->_site->license_id ) {
                 // License is already activated.
@@ -9424,7 +9424,7 @@
 		 * Adds "Activate License" or "Change License" link to the main Plugins page link actions collection.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 */
 		function _add_license_action_link() {
 			$this->_logger->entrance();
