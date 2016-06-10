@@ -370,6 +370,54 @@
 		}
 
 		/**
+		 * This action is connected to the 'plugins_loaded' hook and helps to determine
+		 * if this is a new plugin installation or a plugin update.
+		 *
+		 * There are 3 different use-cases:
+		 *    1) New plugin installation right with Freemius:
+		 *       1.1 _activate_plugin_event_hook() will be executed first
+		 *       1.2 Since $this->_storage->is_plugin_new_install is not set,
+		 *           and $this->_storage->plugin_last_version is not set,
+		 *           $this->_storage->is_plugin_new_install will be set to TRUE.
+		 *       1.3 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install will
+		 *           be already set to TRUE.
+		 *
+		 *    2) Plugin update, didn't have Freemius before, and now have the SDK:
+		 *       2.1 _activate_plugin_event_hook() will not be executed, because
+		 *           the activation hook do NOT fires on updates since WP 3.1.
+		 *       2.2 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install will
+		 *           be empty, therefore, it will be set to FALSE.
+		 *
+		 *    3) Plugin update, had Freemius in prev version as well:
+		 *       3.1 _version_updates_handler() will be executed 1st, since FS was installed
+		 *           before, $this->_storage->plugin_last_version will NOT be empty,
+		 *           therefore, $this->_storage->is_plugin_new_install will be set to FALSE.
+		 *       3.2 When _plugins_loaded() will be executed, $this->_storage->is_plugin_new_install is
+		 *           already set, therefore, it will not be modified.
+		 *
+		 *    Use-case #3 is backward compatible, #3.1 will be executed since 1.0.9.
+		 *
+		 * NOTE:
+		 *    The only fallback of this mechanism is if an admin updates a plugin based on use-case #2,
+		 *    and then, the next immediate PageView is the plugin's main settings page, it will not
+		 *    show the opt-in right away. The reason it will happen is because Freemius execution
+		 *    will be turned off till the plugin is fully loaded at least once
+		 *    (till $this->_storage->was_plugin_loaded is TRUE).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.8.2
+		 *
+		 */
+		function _plugins_loaded() {
+			// Update flag that plugin was loaded with Freemius at least once.
+			$this->_storage->was_plugin_loaded = true;
+
+			if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
+				$this->_storage->is_plugin_new_install = false;
+			}
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
@@ -380,6 +428,21 @@
 					&$this,
 					'_activate_plugin_event_hook'
 				) );
+
+				/**
+				 * Part of the mechanism to identify new plugin install vs. plugin update.
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.8.2
+				 */
+				if ( empty( $this->_storage->was_plugin_loaded ) ) {
+					if ( $this->is_activation_mode( false ) ) {
+						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
+					} else {
+						// If was activated before, then it was already loaded before.
+						$this->_plugins_loaded();
+					}
+				}
 
 				// Hook to plugin uninstall.
 				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
@@ -814,13 +877,15 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.7
 		 *
+		 * @param bool $and_on
+		 *
 		 * @return bool
 		 */
-		function is_activation_mode() {
+		function is_activation_mode( $and_on = true ) {
 			return (
-				$this->is_on() &&
+				( $this->is_on() || ! $and_on ) &&
 				! $this->is_registered() &&
-				( ! $this->enable_anonymous() ||
+				( ! $this->is_enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
 			);
 		}
@@ -1273,7 +1338,7 @@
 		private function turn_on() {
 			$this->_logger->entrance();
 
-			if ($this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
+			if ( $this->is_on() || ! isset( $this->_storage->connectivity_test['is_active'] ) ) {
 				return false;
 			}
 
@@ -2080,7 +2145,7 @@
 
 			/**
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.1.8.2 Try to pull secret key from external config.
+			 * @since  1.1.8.2 Try to pull secret key from external config.
 			 */
 			if ( is_null( $secret_key ) && defined( "WP_FS__{$this->_slug}_SECRET_KEY" ) ) {
 				$secret_key = constant( "WP_FS__{$this->_slug}_SECRET_KEY" );
@@ -2139,7 +2204,7 @@
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
-			$this->_is_premium_only    = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
+			$this->_is_premium_only  = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
 			if ( $this->_is_premium_only ) {
 				// If premium only plugin, disable anonymous mode.
 				$this->_enable_anonymous = false;
@@ -2179,6 +2244,19 @@
 		 * @return bool
 		 */
 		private function should_stop_execution() {
+			if ( empty( $this->_storage->was_plugin_loaded ) ) {
+				/**
+				 * Don't execute Freemius until plugin was fully loaded at least once,
+				 * to give the opportunity for the activation hook to run before pinging
+				 * the API for connectivity test. This logic is relevant for the
+				 * identification of new plugin install vs. plugin update.
+				 *
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.8.2
+				 */
+				return true;
+			}
+
 			if ( $this->is_activation_mode() ) {
 				if ( ! is_admin() ) {
 					/**
@@ -2477,29 +2555,29 @@
 				) {
 					// @todo Check if deactivate plugins also call the deactivation hook.
 
-					deactivate_plugins( array( $this->_plugin_basename ), true );
+				deactivate_plugins( array( $this->_plugin_basename ), true );
 
-					$this->_parent->_admin_notices->add_sticky(
-						sprintf(
-							__fs( ( $is_after_trial_cancel ?
-									'addon-trial-cancelled-message' :
-									'addon-no-license-message' ),
-								$this->_parent->_slug
-							),
-							'<b>' . $this->_plugin->title . '</b>'
-						) . ' ' . sprintf(
-							'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
-							$this->_parent->addon_url( $this->_slug ),
-							esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
-							__fs( 'purchase-license', $this->_parent->_slug )
+				$this->_parent->_admin_notices->add_sticky(
+					sprintf(
+						__fs( ( $is_after_trial_cancel ?
+								'addon-trial-cancelled-message' :
+								'addon-no-license-message' ),
+							$this->_parent->_slug
 						),
+						'<b>' . $this->_plugin->title . '</b>'
+					) . ' ' . sprintf(
+						'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
+						$this->_parent->addon_url( $this->_slug ),
+						esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
+						__fs( 'purchase-license', $this->_parent->_slug )
+					),
 						'no_addon_license_' . $this->_slug,
-						( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
-						( $is_after_trial_cancel ? 'success' : 'error' )
-					);
+					( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
+					( $is_after_trial_cancel ? 'success' : 'error' )
+				);
 
-					return true;
-				}
+				return true;
+			}
 			}
 
 			return false;
@@ -3279,6 +3357,16 @@
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
+
+			/**
+			 * Activation hook is executed after the plugin's main file is loaded, therefore,
+			 * after the plugin was loaded. The logic is located at activate_plugin()
+			 * ./wp-admin/includes/plugin.php.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.1.8.2
+			 */
+			$this->_storage->was_plugin_loaded = true;
 		}
 
 		/**
@@ -5038,13 +5126,13 @@
 
 			if ( $this->is_registered() ) {
 				$api = $this->get_api_site_scope();
-				$api->call('/', 'put',
+				$api->call( '/', 'put',
 					array(
 						'license_key' => $license_key
 					)
 				);
 			} else {
-				$this->opt_in(false, false, false, $license_key);
+				$this->opt_in( false, false, false, $license_key );
 			}
 
 			// Print '1' for successful operation.
@@ -5193,8 +5281,8 @@
 		/**
 		 * Check if plugin can work in anonymous mode.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.0.9
 		 *
 		 * @return bool
 		 *
@@ -5763,7 +5851,7 @@
 				$user_info['user_lastname'] = $last;
 			}
 
-			$params           = $this->get_opt_in_params( $user_info );
+			$params = $this->get_opt_in_params( $user_info );
 
 			if ( is_string( $license_secret_key ) ) {
 				$params['license_secret_key'] = $license_secret_key;
@@ -5927,7 +6015,7 @@
 			} else {
 				/**
 				 * @author Vova Feldman (@svovaf)
-				 * @since 1.1.8.2 If site installed with a valid license, sync license.
+				 * @since  1.1.8.2 If site installed with a valid license, sync license.
 				 */
 				if ( $this->is_paying() ) {
 					$this->_sync_plugin_license( true );
@@ -6083,11 +6171,11 @@
 
 			/**
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.1.8.2 Add license key if given.
+			 * @since  1.1.8.2 Add license key if given.
 			 */
-			$license_key = fs_request_get('license_secret_key');
+			$license_key = fs_request_get( 'license_secret_key' );
 
-			if (!empty($license_key)){
+			if ( ! empty( $license_key ) ) {
 				$extra_install_params['license_secret_key'] = $license_key;
 			}
 
@@ -6486,9 +6574,8 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
 		 */
-		private function order_sub_submenu_items()
-        {
-            global $submenu;
+		private function order_sub_submenu_items() {
+			global $submenu;
 
             $menu_slug = $this->_menu->get_top_level_menu_slug();
 
@@ -6497,37 +6584,37 @@
 
             $top_level_menu = &$submenu[$menu_slug];
 
-            $all_submenu_items_after = array();
+			$all_submenu_items_after = array();
 
-            $found_submenu_item = false;
+			$found_submenu_item = false;
 
-            foreach ($top_level_menu as $submenu_id => $meta) {
-                if ($found_submenu_item) {
-                    // Remove all submenu items after the plugin's submenu item.
-                    $all_submenu_items_after[] = $meta;
-                    unset($top_level_menu[$submenu_id]);
-                }
+			foreach ( $top_level_menu as $submenu_id => $meta ) {
+				if ( $found_submenu_item ) {
+					// Remove all submenu items after the plugin's submenu item.
+					$all_submenu_items_after[] = $meta;
+					unset( $top_level_menu[ $submenu_id ] );
+				}
 
-                if ($this->_menu->get_raw_slug() === $meta[2]) {
-                    // Found the submenu item, put all below.
-                    $found_submenu_item = true;
-                    continue;
-                }
-            }
+				if ( $this->_menu->get_raw_slug() === $meta[2] ) {
+					// Found the submenu item, put all below.
+					$found_submenu_item = true;
+					continue;
+				}
+			}
 
-            // Embed all plugin's new submenu items.
-            $this->embed_submenu_items();
+			// Embed all plugin's new submenu items.
+			$this->embed_submenu_items();
 
-            // Start with specially high number to make sure it's appended.
-            $i = max(10000, max(array_keys($top_level_menu)) + 1);
-            foreach ($all_submenu_items_after as $meta) {
-                $top_level_menu[$i] = $meta;
-                $i++;
-            }
+			// Start with specially high number to make sure it's appended.
+			$i = max( 10000, max( array_keys( $top_level_menu ) ) + 1 );
+			foreach ( $all_submenu_items_after as $meta ) {
+				$top_level_menu[ $i ] = $meta;
+				$i ++;
+			}
 
-            // Sort submenu items.
-            ksort($top_level_menu);
-        }
+			// Sort submenu items.
+			ksort( $top_level_menu );
+		}
 
 		/**
 		 * Displays the Support Forum link when enabled.
@@ -7963,7 +8050,7 @@
 		 *
 		 * @return bool If trial was successfully started.
 		 */
-		function start_trial($plan_name = false) {
+		function start_trial( $plan_name = false ) {
 			$this->_logger->entrance();
 
 			if ( $this->is_trial() ) {
