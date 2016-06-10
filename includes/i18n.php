@@ -117,6 +117,7 @@
 		'sync-license'                             => _x( 'Sync License', 'as synchronize license', 'freemius' ),
 		'sync'                                     => _x( 'Sync', 'as synchronize', 'freemius' ),
 		'activate-license'                         => __( 'Activate License', 'freemius' ),
+		'activate-free-version'                    => __( 'Activate Free Version', 'freemius' ),
 		'activate-license-message'                 => __( 'Please enter the license key that you received in the email right after the purchase:', 'freemius' ),
 		'activating-license'                       => __( 'Activating license...', 'freemius' ),
 		'change-license'                           => __( 'Change License', 'freemius' ),
@@ -185,7 +186,7 @@
 		'connect-message'                          => __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
 		'connect-message_on-update'                => __( 'Please help us improve %2$s! If you opt-in, some data about your usage of %2$s will be sent to %5$s. If you skip this, that\'s okay! %2$s will still work just fine.', 'freemius' ),
 		'pending-activation-message'               => __( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to complete the install.', 'freemius' ),
-		'thanks-for-purchasing'               => __( 'Thanks for purchasing %s! To get started, please enter your license key:', 'freemius' ),
+		'thanks-for-purchasing'                    => __( 'Thanks for purchasing %s! To get started, please enter your license key:', 'freemius' ),
 		'license-sync-disclaimer'                  => __( 'The plugin will be periodically sending data to %s to check for plugin updates and verify the validity of your license.', 'freemius' ),
 		'what-permissions'                         => __( 'What permissions are being granted?', 'freemius' ),
 		'permissions-profile'                      => __( 'Your Profile Overview', 'freemius' ),
@@ -206,7 +207,9 @@
 		'agree-activate-license'                   => _x( 'Agree & Activate License', 'button label', 'freemius' ),
 		'skip'                                     => _x( 'Skip', 'verb', 'freemius' ),
 		'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
-		'license-key'                  => __( 'License key', 'freemius' ),
+		'license-key'                              => __( 'License key', 'freemius' ),
+		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
+		'dont-have-license-key'                    => __( 'Don\'t have a license key?', 'freemius' ),
 		#endregion Connect
 
 		#region Screenshots

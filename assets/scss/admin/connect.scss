@@ -207,6 +207,25 @@ $form_width: 480px;
         }
     }
 
+    .fs-freemium-licensing {
+        padding: 8px;
+//        background: #0085BA;
+        background: #777;
+        color: #fff;
+
+        p {
+            text-align: center;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            color: #C2EEFF;
+            text-decoration: underline;
+        }
+    }
+
     $icon_size: 80px;
     $wp_logo_padding: $icon_size / 10;
     $icons_top: 10px;
