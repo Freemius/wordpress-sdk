@@ -107,7 +107,19 @@
 	}
 
 	function fs_request_get_bool( $key, $def = false ) {
-		return ( isset( $_REQUEST[ $key ] ) && ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) ) ? true : $def;
+		if ( ! isset( $_REQUEST[ $key ] ) ) {
+			return $def;
+		}
+
+		if ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) {
+			return true;
+		}
+
+		if ( 0 == $_REQUEST[ $key ] || 'false' === strtolower( $_REQUEST[ $key ] ) ) {
+			return false;
+		}
+
+		return $def;
 	}
 
 	function fs_request_is_post() {
