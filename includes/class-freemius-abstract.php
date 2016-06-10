@@ -217,7 +217,7 @@
 		 * All code wrapped in this statement will be only included in the premium code.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.8.2
+		 * @since  1.1.9
 		 *
 		 * @return bool
 		 */
@@ -318,6 +318,18 @@
 		 * @return bool
 		 */
 		abstract function has_free_plan();
+
+		/**
+		 * Check if plugin is premium only (no free plans).
+		 *
+		 * NOTE: is__premium_only() is very different method, don't get confused.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9
+		 *
+		 * @return bool
+		 */
+		abstract function is_only_premium();
 
 		/**
 		 * Checks if it's a freemium plugin.

@@ -13,7 +13,7 @@
 	$slug                  = $VARS['slug'];
 	$fs                    = freemius( $slug );
 	$is_pending_activation = $fs->is_pending_activation();
-	$is_premium_only       = $fs->is_premium_only();
+	$is_premium_only       = $fs->is_only_premium();
 
 	$fs->_enqueue_connect_essentials();
 

@@ -3057,7 +3057,7 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
-						if ( $this->is_plugin_new_install() || $this->is_premium_only() ) {
+						if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
 								sprintf(
@@ -5089,7 +5089,7 @@
 		 * @return bool
 		 */
 		function has_free_plan() {
-			return ! $this->is_premium_only() && FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+			return ! $this->is_only_premium() && FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
 		}
 
 		/**
@@ -5312,7 +5312,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_premium_only() {
+		function is_only_premium() {
 			return $this->_is_premium_only;
 		}
 
