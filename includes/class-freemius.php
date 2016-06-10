@@ -6330,7 +6330,13 @@
 		private function order_sub_submenu_items() {
 			global $submenu;
 
-			$top_level_menu = &$submenu[ $this->_menu->get_top_level_menu_slug() ];
+			$menu_slug = $this->_menu->get_top_level_menu_slug();
+
+			if ( empty( $menu_slug ) ) {
+				return;
+			}
+
+			$top_level_menu = &$submenu[$menu_slug];
 
 			$all_submenu_items_after = array();
 
