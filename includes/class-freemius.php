@@ -5845,7 +5845,7 @@
 		 * @param string|bool $email
 		 * @param string|bool $first
 		 * @param string|bool $last
-		 * @param string|bool $license_key
+		 * @param string|bool $license_secret_key
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
