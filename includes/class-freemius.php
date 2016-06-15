@@ -5430,6 +5430,30 @@
 			}
 		}
 
+		/**
+		 * Plugin's account page + sync license URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9.1
+		 *
+		 * @param bool $plugin_id
+		 * @param bool $add_action_nonce
+		 *
+		 * @return string
+		 */
+		function _get_sync_license_url( $plugin_id = false, $add_action_nonce = true ) {
+			$params = array();
+
+			if ( is_numeric( $plugin_id ) ) {
+				$params['plugin_id'] = $plugin_id;
+			}
+
+			return $this->get_account_url(
+				$this->_slug . '_sync_license',
+				$params,
+				$add_action_nonce
+			);
+		}
 
 		/**
 		 * Plugin's account URL.
@@ -6000,13 +6024,7 @@
 			if ( is_numeric( $plugin_id ) ) {
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
-					if ( $redirect && fs_redirect( fs_nonce_url( $this->_get_admin_page_url(
-							'account',
-							array(
-								'fs_action' => $this->_slug . '_sync_license',
-								'plugin_id' => $plugin_id
-							)
-						), $this->_slug . '_sync_license' ) )
+					if ( $redirect && fs_redirect( $this->_get_sync_license_url($plugin_id) )
 					) {
 						exit();
 					}

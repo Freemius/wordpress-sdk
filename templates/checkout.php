@@ -95,13 +95,7 @@
 		}
 	}
 
-	$return_url = fs_nonce_url( $fs->_get_admin_page_url(
-		'account',
-		array(
-			'fs_action' => $slug . '_sync_license',
-			'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
-		)
-	), $slug . '_sync_license' );
+	$return_url = $this->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
