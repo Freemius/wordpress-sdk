@@ -7688,7 +7688,7 @@
 							null :
 							$this->_get_license_by_id( $site->license_id );
 
-						if ( $is_free && is_null( $new_license ) && $this->has_license() && $this->_license->is_cancelled ) {
+						if ( $is_free && is_null( $new_license ) && $this->has_any_license() && $this->_license->is_cancelled ) {
 							// License cancelled.
 							$this->_site = $site;
 							$this->_update_site_license( $new_license );
