@@ -4857,7 +4857,7 @@
 				return false;
 			}
 
-			if ( ! is_array( $this->_licenses ) || 0 === count( $this->_licenses ) ) {
+			if ( ! $this->has_any_license() ) {
 				$this->_sync_licenses();
 			}
 
@@ -6024,7 +6024,7 @@
 			if ( is_numeric( $plugin_id ) ) {
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
-					if ( $redirect && fs_redirect( $this->_get_sync_license_url($plugin_id) )
+					if ( $redirect && fs_redirect( $this->_get_sync_license_url( $plugin_id ) )
 					) {
 						exit();
 					}
