@@ -13,6 +13,9 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
+	// The URL to redirect to after successfully activating the license from the "Plugins" page.
+	$sync_license_url = $VARS['sync-license-url'];
+
 	$message_above_input_field = __fs( 'activate-license-message', $slug );
 	$message_below_input_field = '';
 
@@ -60,7 +63,9 @@ HTML;
 			$activateLicenseLink      = $('span.activate-license.<?php echo $VARS['slug']; ?>').find('a'),
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
-			$licenseActivationMessage = $modal.find('.license-activation-message');
+			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
+			pluginSlug                = '<?php echo $slug; ?>',
+			syncLicenseUrl            = '<?php echo $sync_license_url; ?>';
 
 		$modal.appendTo($('body'));
 
@@ -116,6 +121,7 @@ HTML;
 					method: 'POST',
 					data: {
 						'action'     : 'activate-license',
+						'slug'       : pluginSlug,
 						'license-key': licenseKey
 					},
 					beforeSend: function () {
@@ -125,6 +131,9 @@ HTML;
 						var resultObj = $.parseJSON( result );
 						if ( resultObj.success ) {
 							closeModal();
+
+							// Redirect to the "Account" page and sync the license.
+							window.location.href = syncLicenseUrl;
 						} else {
 							showError( resultObj.error );
 							resetActivateLicenseButton();
