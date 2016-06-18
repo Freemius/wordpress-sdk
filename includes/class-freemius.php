@@ -5010,19 +5010,33 @@
 				exit;
 			}
 
+			$error = false;
+
 			if ( $this->is_registered() ) {
 				$api = $this->get_api_site_scope();
-				$api->call('/', 'put',
+				$install = $api->call( '/', 'put',
 					array(
 						'license_key' => $license_key
 					)
 				);
+
+				if ( isset( $install->error ) ) {
+					$error = $install->error->message;
+				}
 			} else {
 				$this->opt_in(false, false, false, $license_key);
 			}
 
-			// Print '1' for successful operation.
-			echo 1;
+			$result = array(
+				'success' => ( false === $error )
+			);
+
+			if ( false !== $error ) {
+				$result['error'] = $error;
+			}
+
+			echo json_encode( $result );
+
 			exit;
 		}
 
@@ -5707,7 +5721,7 @@
 		 * @param string|bool $email
 		 * @param string|bool $first
 		 * @param string|bool $last
-		 * @param string|bool $license_key
+		 * @param string|bool $license_secret_key
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
