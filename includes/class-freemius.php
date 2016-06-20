@@ -7961,8 +7961,14 @@
 				return;
 			}
 
+			if ( $this->_site->user_id != $premium_license->user_id ) {
+				$api_request_params = array( 'license_key' => $premium_license->secret_key );
+			} else {
+				$api_request_params = array();
+			}
+
 			$api     = $this->get_api_site_scope();
-			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put' );
+			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put', $api_request_params );
 
 			if ( $this->is_api_error( $license ) ) {
 				if ( ! $background ) {
