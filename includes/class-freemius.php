@@ -9499,6 +9499,10 @@
 		function _add_license_action_link() {
 			$this->_logger->entrance();
 
+			if ( $this->is_free_plan() && $this->is_addon() ) {
+				return;
+			}
+
 			$link_text = __fs( $this->is_free_plan() ? 'activate-license' : 'change-license', $this->_slug );
 
 			$this->add_plugin_action_link(
