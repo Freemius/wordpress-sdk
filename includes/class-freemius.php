@@ -4825,10 +4825,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
+		 * @param number|bool $site_license_id
+		 *
 		 * @return FS_Plugin_License[]|object
 		 */
-		function _sync_licenses() {
-			$licenses = $this->_fetch_licenses();
+		function _sync_licenses( $site_license_id = false ) {
+			$licenses = $this->_fetch_licenses( false, $site_license_id );
 			if ( ! $this->is_api_error( $licenses ) ) {
 				$this->_licenses = $licenses;
 				$this->_store_licenses();
@@ -5103,8 +5105,16 @@
 		function _add_license_activation_dialog_box() {
 			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
 
+			if ( $this->is_addon() ) {
+				$sync_license_url = $this->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
+			} else {
+				$sync_license_url = $this->_get_sync_license_url( $this->_plugin->id, true );
+			}
+
 			$vars = array(
-				'slug' => $this->_slug
+				'slug'             => $this->_slug,
+				// Avoid having HTML entity like "&amp;" in the URL which breaks the redirection to the "Account" page.
+				'sync-license-url' => html_entity_decode( $sync_license_url )
 			);
 
 			fs_require_template( 'license-activation-modal.php', $vars );
@@ -5124,19 +5134,35 @@
 				exit;
 			}
 
+			$slug  = $_POST['slug'];
+			$fs    = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
+			$error = false;
+
 			if ( $this->is_registered() ) {
-				$api = $this->get_api_site_scope();
-				$api->call( '/', 'put',
+				$api     = $fs->get_api_site_scope();
+				$install = $api->call( '/', 'put',
 					array(
 						'license_key' => $license_key
 					)
 				);
+
+				if ( isset( $install->error ) ) {
+					$error = $install->error->message;
+				}
 			} else {
 				$this->opt_in( false, false, false, $license_key );
 			}
 
-			// Print '1' for successful operation.
-			echo 1;
+			$result = array(
+				'success' => ( false === $error )
+			);
+
+			if ( false !== $error ) {
+				$result['error'] = $error;
+			}
+
+			echo json_encode( $result );
+
 			exit;
 		}
 
@@ -7310,10 +7336,11 @@
 		 * @uses   FS_Api
 		 *
 		 * @param number|bool $plugin_id
+		 * @param number|bool $site_license_id
 		 *
 		 * @return FS_Plugin_License[]|object
 		 */
-		private function _fetch_licenses( $plugin_id = false ) {
+		private function _fetch_licenses( $plugin_id = false, $site_license_id = false ) {
 			$this->_logger->entrance();
 
 			$api = $this->get_api_user_scope();
@@ -7324,12 +7351,32 @@
 
 			$result = $api->get( "/plugins/{$plugin_id}/licenses.json", true );
 
+			$is_site_license_synced = false;
+
 			if ( ! isset( $result->error ) ) {
 				for ( $i = 0, $len = count( $result->licenses ); $i < $len; $i ++ ) {
 					$result->licenses[ $i ] = new FS_Plugin_License( $result->licenses[ $i ] );
+
+					if ( ( ! $is_site_license_synced ) && is_numeric( $site_license_id ) ) {
+						$is_site_license_synced = ( $site_license_id == $result->licenses[ $i ]->id );
+					}
 				}
 
 				$result = $result->licenses;
+			}
+
+			if ( ! $is_site_license_synced ) {
+				// Fetch foreign license (license owned by a different user).
+				$api        = $this->get_api_site_scope();
+				$api_result = $api->call('/licenses.json');
+
+				if ( ! isset( $api_result->error ) ) {
+					$licenses = $api_result->licenses;
+
+					if ( ! empty( $licenses ) ) {
+						$result[] = new FS_Plugin_License( $licenses[0] );
+					}
+				}
 			}
 
 			return $result;
@@ -7641,8 +7688,11 @@
 				$this->_enrich_site_plan( true );
 				$this->_store_site();
 			} else {
-				// Sync licenses.
-				$this->_sync_licenses();
+				/**
+				 * Sync licenses. Pass the site's license ID so that the foreign licenses will be fetched if the license
+				 * associated with that ID is not included in the user's licenses collection.
+				 */
+				$this->_sync_licenses( $site->license_id );
 
 				// Check if plan / license changed.
 				if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||

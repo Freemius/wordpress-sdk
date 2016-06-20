@@ -53,6 +53,11 @@
 	.fs-modal-body {
 		border-bottom: 0;
 
+		.license-activation-message {
+			margin: 0;
+			display: none;
+		}
+
 		input.license_key {
 			width: 100%;
 		}
