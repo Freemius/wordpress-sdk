@@ -7366,19 +7366,19 @@
 			}
 
 			if ( ! $is_site_license_synced ) {
-				$api        = $this->get_api_site_scope();
+				$api = $this->get_api_site_scope();
 
 				if ( is_numeric( $site_license_id ) ) {
 					// Try to retrieve a foreign license that is linked to the install.
-				$api_result = $api->call('/licenses.json');
+					$api_result = $api->call( '/licenses.json' );
 
-				if ( ! isset( $api_result->error ) ) {
-					$licenses = $api_result->licenses;
+					if ( ! isset( $api_result->error ) ) {
+						$licenses = $api_result->licenses;
 
-					if ( ! empty( $licenses ) ) {
-						$result[] = new FS_Plugin_License( $licenses[0] );
+						if ( ! empty( $licenses ) ) {
+							$result[] = new FS_Plugin_License( $licenses[0] );
+						}
 					}
-				}
 				} else if ( is_object( $this->_license ) ) {
 					// Fetch foreign license by ID and license key.
 					$license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
