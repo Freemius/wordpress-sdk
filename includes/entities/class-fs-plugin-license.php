@@ -47,6 +47,10 @@
 		 */
 		public $expiration;
 		/**
+		 * @var string
+		 */
+		public $secret_key;
+		/**
 		 * @var bool $is_free_localhost Defaults to true. If true, allow unlimited localhost installs with the same
 		 *      license.
 		 */
