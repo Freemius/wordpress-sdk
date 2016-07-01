@@ -1885,15 +1885,21 @@
 		 * @param string $public_key
 		 * @param bool   $is_live
 		 * @param bool   $is_premium
+		 * @param string $type
 		 */
-		function init( $id, $public_key, $is_live = true, $is_premium = true ) {
+		function init( $id, $public_key, $is_live = true, $is_premium = true, $type = 'plugin' ) {
 			$this->_logger->entrance();
+
+			if ( ! in_array( $type, array( 'plugin', 'theme' ) ) ) {
+				$type = 'plugin';
+			}
 
 			$this->dynamic_init( array(
 				'id'         => $id,
 				'public_key' => $public_key,
 				'is_live'    => $is_live,
 				'is_premium' => $is_premium,
+				'type'       => $type
 			) );
 		}
 
@@ -2179,6 +2185,7 @@
 				'file'             => $this->_plugin_basename,
 				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
+				'type'             => $this->get_option( $plugin_info, 'type', 'plugin' ),
 //				'secret_key' => $secret_key,
 			) );
 
