@@ -55,6 +55,10 @@
 		 * @var bool
 		 */
 		public $is_live;
+		/**
+		 * @var string
+		 */
+		public $type;
 
 		#endregion Install Specific Properties
 
@@ -82,6 +86,17 @@
 		 */
 		function is_addon() {
 			return isset( $this->parent_plugin_id ) && is_numeric( $this->parent_plugin_id );
+		}
+
+		/**
+		 * Returns "true" if the type is not "theme".
+		 *
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @return bool
+		 */
+		function is_plugin() {
+			return ( 'theme' !== $this->type );
 		}
 
 		static function get_type() {
