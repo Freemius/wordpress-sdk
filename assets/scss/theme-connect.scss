@@ -21,5 +21,15 @@
         position: relative;
         top: 10%;
         margin: auto;
+
+        .fs-terms
+        {
+            background: rgba(140, 140, 140, 0.64);
+
+            &, a
+            {
+                color: #c5c5c5;
+            }
+        }
     }
 }
