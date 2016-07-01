@@ -66,13 +66,25 @@
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
 		global $fs_core_logger;
+
+		$css_path    = fs_normalize_path( WP_FS__DIR_CSS );
+		$content_dir = fs_normalize_path( WP_CONTENT_DIR );
+
+		$css_relative_path = str_replace( $content_dir, '', $css_path );
+		$content_url       = content_url();
+
+		$css_url           = $content_url . fs_normalize_path( $css_relative_path );
+
 		if ( $fs_core_logger->is_on() ) {
 			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'plugin_basename = ' . plugins_url( WP_FS__DIR_CSS . trim( $path, '/' ) ) );
-			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ) );
+			$fs_core_logger->info( 'css_path = ' . $css_path );
+			$fs_core_logger->info( 'content_dir = ' . $content_dir );
+			$fs_core_logger->info( 'css_relative_path = ' . $css_relative_path );
+			$fs_core_logger->info( 'content_url = ' . $content_url );
+			$fs_core_logger->info( 'css_url = ' . $css_url );
 		}
 
-		wp_enqueue_style( $handle, plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $media );
+		wp_enqueue_style( $handle, $css_url . '/' . trim( $path, '/' ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
@@ -87,7 +99,15 @@
 	}
 
 	function fs_img_url( $path, $img_dir = WP_FS__DIR_IMG ) {
-		return plugins_url( plugin_basename( $img_dir . '/' . trim( $path, '/' ) ) );
+		$img_path    = fs_normalize_path( WP_FS__DIR_IMG );
+		$content_dir = fs_normalize_path( WP_CONTENT_DIR );
+
+		$img_relative_path = str_replace( $content_dir, '', $img_path );
+		$content_url       = content_url();
+
+		$img_url           = $content_url . fs_normalize_path( $img_relative_path );
+
+		return ( $img_url . '/' . trim( $path, '/' ) );
 	}
 
 	/* Request handlers.
