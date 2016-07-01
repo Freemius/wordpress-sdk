@@ -9460,7 +9460,6 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 *
 		 * @since  1.2.0
 		 */
 		function hook_theme_actions() {
@@ -9469,7 +9468,6 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 *
 		 * @since  1.2.0
 		 */
 		function _theme_changed() {
@@ -9481,7 +9479,6 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 *
 		 * @since  1.2.0
 		 */
 		function _add_fs_theme_activation_dialog() {
