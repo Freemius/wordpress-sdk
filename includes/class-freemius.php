@@ -240,7 +240,7 @@
 
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
-			$this->_plugin_basename       = plugin_basename( $this->_plugin_main_file_path );
+			$this->_plugin_basename       = $this->_get_plugin_basename( $this->_plugin_main_file_path );
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
@@ -280,6 +280,37 @@
 			$this->_load_account();
 
 			$this->_version_updates_handler();
+		}
+
+		/**
+		 * Checks if the caller is a plugin. If it is not a plugin, then it should be a theme.
+		 *
+		 * @author Leo Fajardo (leorw)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		private function _is_caller_plugin() {
+			$plugin_main_file_path = fs_normalize_path( $this->_plugin_main_file_path );
+			$plugins_dir_path      = fs_normalize_path( WP_PLUGIN_DIR );
+			
+			return ( 0 === strpos( $plugin_main_file_path, $plugins_dir_path ) );
+		}
+
+		/**
+		 * @author Leo Fajardo (leorw)
+		 * @since  1.2.0
+		 *
+		 * @param  string $file_path
+		 *
+		 * @return string
+		 */
+		private function _get_plugin_basename( $file_path ) {
+			if ( $this->_is_caller_plugin() ) {
+				return plugin_basename( $file_path );
+			} else {
+				return ( basename( dirname( $file_path ) ) . '/' . basename( $file_path ) );
+			}
 		}
 
 		/**
@@ -516,7 +547,11 @@
 				}
 			}
 
-			$plugin_file = fs_find_caller_plugin_file();
+			if ( $this->_is_caller_plugin() ) {
+				$plugin_file = fs_find_caller_plugin_file();
+			} else {
+				$plugin_file = dirname( WP_FS__DIR ) . '/functions.php';
+			}
 
 			$this->_storage->plugin_main_file = (object) array(
 				'path' => fs_normalize_path( $plugin_file ),
@@ -4097,7 +4132,17 @@
 			if ( ! isset( $this->_plugin_data ) ) {
 				self::require_plugin_essentials();
 
-				$this->_plugin_data = get_plugin_data( $this->_plugin_main_file_path );
+				if ( $this->_is_caller_plugin() ) {
+					$plugin_data = get_plugin_data( $this->_plugin_main_file_path );
+				} else {
+					$theme_data  = wp_get_theme();
+					$plugin_data = array(
+						'Name'    => $theme_data->get('Name'),
+						'Version' => $theme_data->get('Version')
+					);
+				}
+
+				$this->_plugin_data = $plugin_data;
 			}
 
 			return $this->_plugin_data;
