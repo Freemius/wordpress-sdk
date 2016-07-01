@@ -2019,6 +2019,9 @@
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
+				} else if ( ( 'themes.php' === $pagenow ) && ( ! $this->_plugin->is_plugin() ) ) {
+					// Display the theme activation opt-in dialog box.
+					$this->hook_theme_actions();
 				}
 
 				if ( $this->is_addon() ) {
@@ -9408,6 +9411,37 @@
 			);
 
 			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
+		}
+
+		/**
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @since  1.2.0
+		 */
+		function hook_theme_actions() {
+			add_action( 'after_switch_theme', array( &$this, '_theme_changed' ) );
+		}
+
+		/**
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @since  1.2.0
+		 */
+		function _theme_changed() {
+			fs_enqueue_local_style( 'fs-connect', '/admin/connect.css' );
+			fs_enqueue_local_style( 'fs-theme-connect', '/admin/theme-connect.css' );
+
+			add_action( 'admin_footer-themes.php', array( &$this, '_add_fs_theme_activation_dialog' ) );
+		}
+
+		/**
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @since  1.2.0
+		 */
+		function _add_fs_theme_activation_dialog() {
+			$vars = array( 'slug' => $this->_slug );
+			fs_require_once_template( 'theme-connect.php', $vars );
 		}
 
 		/* Action Links
