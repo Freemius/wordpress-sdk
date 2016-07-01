@@ -1,0 +1,25 @@
+#fs_theme_connect_wrapper {
+    position: fixed;
+    top: 32px;
+    height: 100%;
+    width: 100%;
+    z-index: 99990;
+    background: rgba(0, 0, 0, 0.75);
+
+    > button.close {
+        color: white;
+        cursor: pointer;
+        height: 40px;
+        width: 40px;
+        position: absolute;
+        right: 0;
+        border: 0;
+        background-color: transparent;
+    }
+
+    #fs_connect {
+        position: relative;
+        top: 10%;
+        margin: auto;
+    }
+}
