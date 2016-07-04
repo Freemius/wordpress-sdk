@@ -2055,8 +2055,10 @@
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
 				} else if ( ( 'themes.php' === $pagenow ) && ( ! $this->_plugin->is_plugin() ) ) {
-					// Display the theme activation opt-in dialog box.
-					$this->hook_theme_actions();
+					if ( $this->is_activation_mode() ) {
+						// Display the theme activation opt-in dialog box.
+						$this->hook_theme_actions();
+					}
 				}
 
 				if ( $this->is_addon() ) {
