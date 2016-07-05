@@ -275,7 +275,17 @@
 				FS_Api::clear_cache();
 			}
 
-			$this->_register_hooks();
+			if ( is_object( $this->_plugin ) ) {
+				if ( $this->_plugin->is_plugin() ) {
+					$this->_register_hooks();
+				} else {
+					if ( ! $this->is_registered() &&
+					     fs_request_is_action( $this->_slug . '_activate_new' )
+					) {
+						$this->_install_with_new_user();
+					}
+				}
+			}
 
 			$this->_load_account();
 
@@ -5483,6 +5493,10 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
+			if ( ! $this->_plugin->is_plugin() ) {
+				return add_query_arg( $params, admin_url( 'themes.php' ) );
+			}
+
 			if ( ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
@@ -8838,6 +8852,10 @@
 		 * @return string
 		 */
 		private function get_after_activation_url( $filter ) {
+			if ( ! $this->_plugin->is_plugin() ) {
+				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
+			}
+
 			$first_time_path = $this->_menu->get_first_time_path();
 
 			return $this->apply_filters(
