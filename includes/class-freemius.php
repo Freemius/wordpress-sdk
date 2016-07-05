@@ -781,6 +781,11 @@
 
 			$this->_storage->store( 'uninstall_reason', $reason );
 
+			if ( ! $this->_plugin->is_plugin() ) {
+				// @todo Check slug/instance.
+				$this->_uninstall_plugin_event( false );
+			}
+
 			// Print '1' for successful operation.
 			echo 1;
 			exit;
