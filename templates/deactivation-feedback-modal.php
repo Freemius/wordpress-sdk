@@ -42,18 +42,34 @@
 		    + '</div>',
 	    $modal = $(modalHtml),
 	    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
-	    selectedReasonID = false;
+		selectedReasonID = false,
+		redirectLink = '';
 
 	$modal.appendTo($('body'));
 
 	registerEventHandlers();
 
 	function registerEventHandlers() {
+		<?php
+		if ( $fs->get_plugin()->is_plugin() ) { ?>
 		$deactivateLink.click(function (evt) {
 			evt.preventDefault();
 
+			redirectLink = $( this ).attr( 'href' );
+
 			showModal();
 		});
+		<?php
+		} else { ?>
+		$( 'body' ).on( 'click', '.theme-actions .button.activate', function( evt ) {
+			evt.preventDefault();
+
+			redirectLink = $( this ).attr( 'href' );
+
+			showModal();
+		});
+		<?php
+		} ?>
 
 		$modal.on('input propertychange', '.reason-input input', function () {
 			if (!isOtherReasonSelected()) {
@@ -106,7 +122,7 @@
 
 				if (0 === $radio.length) {
 					// If no selected reason, just deactivate the plugin.
-					window.location.href = $deactivateLink.attr('href');
+					window.location.href = redirectLink;
 					return;
 				}
 
@@ -132,7 +148,7 @@
 					},
 					complete  : function () {
 						// Do not show the dialog box, deactivate the plugin.
-						window.location.href = $deactivateLink.attr('href');
+						window.location.href = redirectLink;
 					}
 				});
 			} else if (_this.hasClass('button-deactivate')) {

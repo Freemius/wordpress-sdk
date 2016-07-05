@@ -532,7 +532,7 @@
 					add_action( 'wp_ajax_submit-uninstall-reason', array( &$this, '_submit_uninstall_reason_action' ) );
 
 					global $pagenow;
-					if ( 'plugins.php' === $pagenow ) {
+					if ( in_array( $pagenow, array( 'plugins.php', 'themes.php' ) ) ) {
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
 				}
