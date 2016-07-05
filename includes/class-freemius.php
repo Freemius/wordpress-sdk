@@ -639,11 +639,13 @@
 		 * @return array The uninstall reasons for the specified user type.
 		 */
 		function _get_uninstall_reasons( $user_type = 'long-term' ) {
+			$plugin_type = ( $this->_plugin->is_plugin() ? 'plugin' : 'theme' );
+
 			$reason_found_better_plugin = array(
 				'id'                => 2,
-				'text'              => __fs( 'reason-found-a-better-plugin', $this->_slug ),
+				'text'              => sprintf( __fs( 'reason-found-a-better-plugin', $this->_slug ), $plugin_type ),
 				'input_type'        => 'textfield',
-				'input_placeholder' => __fs( 'placeholder-plugin-name', $this->_slug )
+				'input_placeholder' => sprintf( __fs( 'placeholder-plugin-name', $this->_slug ), $plugin_type ),
 			);
 
 			$reason_temporary_deactivation = array(
@@ -663,26 +665,26 @@
 			$long_term_user_reasons = array(
 				array(
 					'id'                => 1,
-					'text'              => __fs( 'reason-no-longer-needed', $this->_slug ),
+					'text'              => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $plugin_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				$reason_found_better_plugin,
 				array(
 					'id'                => 3,
-					'text'              => __fs( 'reason-needed-for-a-short-period', $this->_slug ),
+					'text'              => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $plugin_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 4,
-					'text'              => __fs( 'reason-broke-my-site', $this->_slug ),
+					'text'              => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $plugin_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 5,
-					'text'              => __fs( 'reason-suddenly-stopped-working', $this->_slug ),
+					'text'              => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $plugin_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				)
@@ -705,7 +707,7 @@
 				'non-registered-and-non-anonymous-short-term' => array(
 					array(
 						'id'                => 8,
-						'text'              => __fs( 'reason-didnt-work', $this->_slug ),
+						'text'              => sprintf( __fs( 'reason-didnt-work', $this->_slug ), $plugin_type ),
 						'input_type'        => '',
 						'input_placeholder' => ''
 					),
@@ -729,13 +731,14 @@
 					$reason_found_better_plugin,
 					array(
 						'id'                => 11,
-						'text'              => __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
+						'text'              => sprintf( __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
+							$plugin_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
 					),
 					array(
 						'id'                => 12,
-						'text'              => __fs( 'reason-not-working', $this->_slug ),
+						'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $plugin_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
 					),
@@ -747,7 +750,7 @@
 					),
 					array(
 						'id'                => 14,
-						'text'              => __fs( 'reason-didnt-work-as-expected', $this->_slug ),
+						'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $plugin_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
 					),
