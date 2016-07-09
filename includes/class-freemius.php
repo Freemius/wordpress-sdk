@@ -3143,6 +3143,7 @@
 								$this->_admin_notices->add_sticky(
 									sprintf(
 										__fs( 'few-plugin-tweaks', $this->_slug ),
+										( $this->_plugin->is_plugin() ? 'plugin' : 'theme' ),
 										sprintf( '<b><a href="%s">%s</a></b>',
 											$this->get_activation_url(),
 											sprintf( __fs( 'optin-x-now', $this->_slug ), $this->get_plugin_name() )
