@@ -360,9 +360,16 @@
 		 * @return bool
 		 */
 		function is_activation_page() {
-			return isset( $_GET['page'] ) &&
-			       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
-			         ( strtolower( $this->_plugin_slug ) === strtolower( $_GET['page'] ) ) );
+			$fs = freemius( $this->_plugin_slug );
+
+			if ( $fs->get_plugin()->is_plugin() ) {
+				return isset( $_GET['page'] ) &&
+				       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
+				         ( strtolower( $this->_plugin_slug ) === strtolower( $_GET['page'] ) ) );
+			}
+
+			global $pagenow;
+			return ( 'themes.php' === $pagenow );
 		}
 
 		#region Submenu Override

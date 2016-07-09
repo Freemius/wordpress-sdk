@@ -3169,6 +3169,10 @@
 							}
 
 						}
+					} else {
+						if ( ! $this->_plugin->is_plugin() ) {
+							$this->_show_theme_activation_optin_dialog();
+						}
 					}
 				}
 			}
