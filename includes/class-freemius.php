@@ -9491,14 +9491,14 @@
 		 * @since  1.2.0
 		 */
 		function hook_theme_actions() {
-			add_action( 'after_switch_theme', array( &$this, '_theme_changed' ) );
+			add_action( 'after_switch_theme', array( &$this, '_show_theme_activation_optin_dialog' ) );
 		}
 
 		/**
 		 * @author Leo Fajardo (leorw)
 		 * @since  1.2.0
 		 */
-		function _theme_changed() {
+		function _show_theme_activation_optin_dialog() {
 			fs_enqueue_local_style( 'fs-connect', '/admin/connect.css' );
 			fs_enqueue_local_style( 'fs-theme-connect', '/admin/theme-connect.css' );
 
