@@ -275,15 +275,25 @@
 				FS_Api::clear_cache();
 			}
 
-			if ( is_object( $this->_plugin ) ) {
-				if ( $this->_plugin->is_plugin() ) {
-					$this->_register_hooks();
-				} else {
-					if ( ! $this->is_registered() &&
-					     fs_request_is_action( $this->_slug . '_activate_new' )
-					) {
-						$this->_install_with_new_user();
+			if ( $this->_is_caller_plugin() ) {
+				$this->_register_hooks();
+			} else {
+				if ( is_admin() && empty( $this->_storage->was_plugin_loaded ) ) {
+					$this->_storage->was_plugin_loaded = true;
+
+					if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
+						global $pagenow;
+
+						$this->_storage->is_plugin_new_install = ( 'themes.php' === $pagenow
+						                                           && isset( $_GET['activated'] )
+						                                           && true == $_GET['activated']);
 					}
+				}
+				
+				if ( ! $this->is_registered() &&
+				     fs_request_is_action( $this->_slug . '_activate_new' )
+				) {
+					$this->_install_with_new_user();
 				}
 			}
 
