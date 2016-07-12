@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '1.1.9';
+	$this_sdk_version = '1.2.0';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -31,11 +31,36 @@
 
 	global $fs_active_plugins;
 
-	$this_sdk_relative_path = plugin_basename( dirname( __FILE__ ) );
+    $paths = array(
+        'file_path'          => __FILE__,
+        'current_theme_path' => trailingslashit( get_stylesheet_directory() ),
+        'themes_directory'   => trailingslashit( get_theme_root() )
+    );
+
+    if ( function_exists( 'wp_normalize_path' ) ) {
+        $paths = array_map( 'wp_normalize_path', $paths );
+    } else {
+        foreach ( $paths as $type => $path ) {
+            $paths[ $type ] = str_replace( '\\', '/', $path );
+            $paths[ $type ] = preg_replace( '|/+|', '/', $path );
+        }
+    }
+
+    $fs_root_path = dirname( $paths[ 'file_path'] );
+
+    if ( false !== strpos( $fs_root_path, $paths['current_theme_path'] ) ) {
+        $this_sdk_relative_path = str_replace( $paths['themes_directory'], '', $fs_root_path );
+        $fs_for_themes = true;
+    } else {
+        $this_sdk_relative_path = plugin_basename( $fs_root_path );
+        $fs_for_themes = false;
+    }
 
 	if ( ! isset( $fs_active_plugins ) ) {
-		// Require SDK essentials.
-		require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+		if ( ! function_exists( 'fs_find_caller_plugin_file' ) ) {
+            // Require SDK essentials.
+            require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+		}
 
 		// Load all Freemius powered active plugins.
 		$fs_active_plugins = get_option( 'fs_active_plugins', new stdClass() );
@@ -53,10 +78,17 @@
 	if ( ! isset( $fs_active_plugins->plugins[ $this_sdk_relative_path ] ) ||
 	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
 	) {
+		if ( $fs_for_themes ) {
+			$plugin_path = dirname( $this_sdk_relative_path );
+		} else {
+			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $paths[ 'file_path'] ) );
+		}
+
 		$fs_active_plugins->plugins[ $this_sdk_relative_path ] = (object) array(
-			'version'     => $this_sdk_version,
-			'timestamp'   => time(),
-			'plugin_path' => plugin_basename( fs_find_direct_caller_plugin_file( __FILE__ ) ),
+			'version'       => $this_sdk_version,
+			'fs_for_themes' => $fs_for_themes,
+			'timestamp'     => time(),
+			'plugin_path'   => $plugin_path,
 		);
 	}
 
@@ -93,10 +125,18 @@
 			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 		}
 
-		$is_newest_sdk_plugin_activate = is_plugin_active( $fs_active_plugins->newest->plugin_path );
+        $fs_newest_sdk = $fs_active_plugins->newest;
+        $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_newest_sdk->sdk_path ];
+
+        if ( isset( $fs_newest_sdk->fs_for_themes ) && ( ! $fs_newest_sdk->fs_for_themes ) ) {
+            $is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
+        } else {
+            $current_theme = wp_get_theme();
+            $is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
+        }
 
 		if ( $is_current_sdk_newest &&
-		     ! $is_newest_sdk_plugin_activate &&
+		     ! $is_newest_sdk_plugin_active &&
 		     ! $fs_active_plugins->newest->in_activation
 		) {
 			// If current SDK is the newest and the plugin is NOT active, it means
@@ -105,14 +145,20 @@
 			update_option( 'fs_active_plugins', $fs_active_plugins );
 		}
 
-		$is_newest_sdk_path_valid = ( $is_newest_sdk_plugin_activate || $fs_active_plugins->newest->in_activation ) && file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' ) );
+        if ( ! $fs_for_themes ) {
+            $sdk_starter_path = fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' );
+        } else {
+            $sdk_starter_path = fs_normalize_path( get_theme_root() . '/' . $this_sdk_relative_path . '/start.php' );
+        }
+
+        $is_newest_sdk_path_valid = ( $is_newest_sdk_plugin_active || $fs_active_plugins->newest->in_activation ) && file_exists( $sdk_starter_path );
 
 		if ( ! $is_newest_sdk_path_valid && ! $is_current_sdk_newest ) {
 			// Plugin with newest SDK is no longer active, or SDK was moved to a different location.
 			unset( $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ] );
 		}
 
-		if ( ! ( $is_newest_sdk_plugin_activate || $fs_active_plugins->newest->in_activation ) ||
+		if ( ! ( $is_newest_sdk_plugin_active || $fs_active_plugins->newest->in_activation ) ||
 		     ! $is_newest_sdk_path_valid ||
 		     // Is newest SDK downgraded.
 		     ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path &&
@@ -127,7 +173,7 @@
 			// Find the active plugin with the newest SDK version and update the newest reference.
 			fs_fallback_to_newest_active_sdk();
 		} else {
-			if ( $is_newest_sdk_plugin_activate &&
+			if ( $is_newest_sdk_plugin_active &&
 			     $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path &&
 			     ( $fs_active_plugins->newest->in_activation ||
 			       ( class_exists( 'Freemius' ) && ( ! defined( 'WP_FS__SDK_VERSION' ) || version_compare( WP_FS__SDK_VERSION, $this_sdk_version, '<' ) ) )
@@ -159,7 +205,13 @@
 	}
 
 	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
-		$newest_sdk_starter = fs_normalize_path( WP_PLUGIN_DIR . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
+		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
+
+		if ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) {
+			$newest_sdk_starter = fs_normalize_path( WP_PLUGIN_DIR . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
+		} else {
+			$newest_sdk_starter = fs_normalize_path( get_theme_root() . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
+		}
 
 		if ( file_exists( $newest_sdk_starter ) ) {
 			// Reorder plugins to load plugin with newest SDK first.

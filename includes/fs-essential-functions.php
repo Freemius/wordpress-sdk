@@ -292,15 +292,25 @@
 	function fs_update_sdk_newest_version( $sdk_relative_path, $plugin_file = false ) {
 		global $fs_active_plugins;
 
+		$newest_sdk = $fs_active_plugins->plugins[ $sdk_relative_path ];
+
 		if ( ! is_string( $plugin_file ) ) {
 			$plugin_file = plugin_basename( fs_find_caller_plugin_file() );
+		}
+
+		if ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) {
+			$in_activation = ( ! is_plugin_active( $plugin_file ) );
+		} else {
+			$theme = wp_get_theme();
+			$in_activation = ( $newest_sdk->plugin_path != $theme->stylesheet );
 		}
 
 		$fs_active_plugins->newest = (object) array(
 			'plugin_path'   => $plugin_file,
 			'sdk_path'      => $sdk_relative_path,
-			'version'       => $fs_active_plugins->plugins[ $sdk_relative_path ]->version,
-			'in_activation' => ! is_plugin_active( $plugin_file ),
+			'version'       => $newest_sdk->version,
+			'fs_for_themes' => ( isset( $newest_sdk->fs_for_themes ) ? $newest_sdk->fs_for_themes : false ),
+			'in_activation' => $in_activation,
 			'timestamp'     => time(),
 		);
 
