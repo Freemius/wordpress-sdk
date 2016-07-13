@@ -57,6 +57,11 @@
 				'pre_set_site_transient_update_plugins_filter'
 			) );
 
+			add_filter( 'pre_set_site_transient_update_themes', array(
+				&$this,
+				'pre_set_site_transient_update_plugins_filter'
+			) );
+
 			if ( ! $this->_fs->has_active_license() ) {
 				/**
 				 * If user has the premium plugin's code but do NOT have an active license,
@@ -186,7 +191,12 @@
 					$plugin_details->new_version = $new_version->version;
 					$plugin_details->url         = WP_FS__ADDRESS;
 					$plugin_details->package     = $new_version->url;
-					$plugin_details->plugin      = $this->_fs->get_plugin_basename();
+
+					if ( $this->_fs->get_plugin()->is_plugin() ) {
+						$plugin_details->plugin  = $this->_fs->get_plugin_basename();
+					} else {
+						$plugin_details->theme   = dirname( $this->_fs->get_plugin_basename() );
+					}
 
 					/**
 					 * Cache plugin details locally since set_site_transient( 'update_plugins' )
@@ -201,7 +211,11 @@
 
 			if ( is_object( $this->_update_details ) ) {
 				// Add plugin to transient data.
-				$transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_update_details;
+				if ( $this->_fs->get_plugin()->is_plugin() ) {
+					$transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_update_details;
+				} else {
+					$transient_data->response[ $this->_update_details->theme ] = (array) $this->_update_details;
+				}
 			}
 
 			return $transient_data;
