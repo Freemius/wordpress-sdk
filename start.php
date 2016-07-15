@@ -49,7 +49,7 @@
     $fs_root_path = dirname( $paths[ 'file_path'] );
 
     if ( false !== strpos( $fs_root_path, $paths['current_theme_path'] ) ) {
-        $this_sdk_relative_path = str_replace( $paths['themes_directory'], '', $fs_root_path );
+	    $this_sdk_relative_path = '../themes/' . str_replace( $paths['themes_directory'], '', $fs_root_path );
         $fs_for_themes = true;
     } else {
         $this_sdk_relative_path = plugin_basename( $fs_root_path );
@@ -148,7 +148,11 @@
         if ( ! $fs_for_themes ) {
             $sdk_starter_path = fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' );
         } else {
-            $sdk_starter_path = fs_normalize_path( get_theme_root() . '/' . $this_sdk_relative_path . '/start.php' );
+	        $sdk_starter_path = fs_normalize_path(
+		        get_theme_root()
+		        . '/'
+		        . str_replace( '../themes/', '', $this_sdk_relative_path )
+		        . '/start.php' );
         }
 
         $is_newest_sdk_path_valid = ( $is_newest_sdk_plugin_active || $fs_active_plugins->newest->in_activation ) && file_exists( $sdk_starter_path );
