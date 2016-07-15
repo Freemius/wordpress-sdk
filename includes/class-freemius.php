@@ -275,7 +275,7 @@
 				FS_Api::clear_cache();
 			}
 
-			if ( $this->_is_caller_plugin() ) {
+			if ( $this->_caller_is_plugin() ) {
 				$this->_register_hooks();
 			} else {
 				if ( is_admin() && empty( $this->_storage->was_plugin_loaded ) ) {
@@ -310,7 +310,7 @@
 		 *
 		 * @return bool
 		 */
-		private function _is_caller_plugin() {
+		private function _caller_is_plugin() {
 			$plugin_main_file_path = fs_normalize_path( $this->_plugin_main_file_path );
 			$plugins_dir_path      = fs_normalize_path( WP_PLUGIN_DIR );
 			
@@ -326,7 +326,7 @@
 		 * @return string
 		 */
 		private function _get_plugin_basename( $file_path ) {
-			if ( $this->_is_caller_plugin() ) {
+			if ( $this->_caller_is_plugin() ) {
 				return plugin_basename( $file_path );
 			} else {
 				return ( basename( dirname( $file_path ) ) . '/' . basename( $file_path ) );
@@ -567,7 +567,7 @@
 				}
 			}
 
-			if ( $this->_is_caller_plugin() ) {
+			if ( $this->_caller_is_plugin() ) {
 				$plugin_file = fs_find_caller_plugin_file();
 			} else {
 				$plugin_file = dirname( WP_FS__DIR ) . '/functions.php';
@@ -4167,7 +4167,7 @@
 			if ( ! isset( $this->_plugin_data ) ) {
 				self::require_plugin_essentials();
 
-				if ( $this->_is_caller_plugin() ) {
+				if ( $this->_caller_is_plugin() ) {
 					$plugin_data = get_plugin_data( $this->_plugin_main_file_path );
 				} else {
 					$theme_data  = wp_get_theme();
