@@ -128,7 +128,9 @@
         $fs_newest_sdk = $fs_active_plugins->newest;
         $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_newest_sdk->sdk_path ];
 
-        if ( isset( $fs_newest_sdk->fs_for_themes ) && ( ! $fs_newest_sdk->fs_for_themes ) ) {
+		$is_fs_for_themes = ( isset( $fs_newest_sdk->fs_for_themes ) && $fs_newest_sdk->fs_for_themes );
+
+		if ( ! $is_fs_for_themes ) {
             $is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
         } else {
             $current_theme = wp_get_theme();
@@ -184,7 +186,7 @@
 			     )
 
 			) {
-				if ( $fs_active_plugins->newest->in_activation ) {
+				if ( $fs_active_plugins->newest->in_activation && ! $is_fs_for_themes ) {
 					// Plugin no more in activation.
 					$fs_active_plugins->newest->in_activation = false;
 					update_option( 'fs_active_plugins', $fs_active_plugins );
