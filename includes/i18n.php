@@ -75,7 +75,7 @@
 		'x-plan'                                   => _x( '%s Plan', 'e.g. Professional Plan', 'freemius' ),
 		'you-are-step-away'                        => __( 'You are just one step away - %s', 'freemius' ),
 		'activate-x-now'                           => _x( 'Complete "%s" Activation Now', '%s - plugin name. As complete "Jetpack" activation now', 'freemius' ),
-		'few-plugin-tweaks'                        => __( 'We made a few tweaks to the %, %s', 'freemius' ),
+		'few-plugin-tweaks'                        => __( 'We made a few tweaks to the %s, %s', 'freemius' ),
 		'optin-x-now'                              => __( 'Opt-in to make "%s" Better!', 'freemius' ),
 		'error'                                    => __( 'Error', 'freemius' ),
 		'failed-finding-main-path'                 => __( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'freemius' ),
