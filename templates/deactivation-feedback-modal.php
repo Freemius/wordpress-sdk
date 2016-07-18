@@ -60,6 +60,11 @@
 			showModal();
 		});
 		<?php
+		/**
+		 * For "theme" plugin type, the modal is shown when the current user clicks on the "Activate" button of any
+		 * other theme. The "Activate" button is actually a link to the "Themes" page (/wp-admin/themes.php) containing query
+		 * params that tell WordPress to deactivate the current theme and activate a different theme.
+		 */
 		} else { ?>
 		$( 'body' ).on( 'click', '.theme-actions .button.activate', function( evt ) {
 			evt.preventDefault();
