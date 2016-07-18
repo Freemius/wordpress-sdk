@@ -213,11 +213,15 @@
 	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
 		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
 
-		if ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) {
-			$newest_sdk_starter = fs_normalize_path( WP_PLUGIN_DIR . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
-		} else {
-			$newest_sdk_starter = fs_normalize_path( get_theme_root() . '/' . $fs_active_plugins->newest->sdk_path . '/start.php' );
-		}
+		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) ?
+			WP_PLUGIN_DIR :
+			get_theme_root();
+
+		$newest_sdk_starter = fs_normalize_path(
+			$plugins_or_theme_dir_path
+			. '/'
+			. str_replace( '../themes/', '', $fs_active_plugins->newest->sdk_path )
+			. '/start.php' );
 
 		if ( file_exists( $newest_sdk_starter ) ) {
 			// Reorder plugins to load plugin with newest SDK first.
