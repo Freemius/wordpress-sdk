@@ -50,10 +50,10 @@
 
     if ( false !== strpos( $fs_root_path, $paths['current_theme_path'] ) ) {
 	    $this_sdk_relative_path = '../themes/' . str_replace( $paths['themes_directory'], '', $fs_root_path );
-        $fs_for_themes = true;
+        $is_theme = true;
     } else {
         $this_sdk_relative_path = plugin_basename( $fs_root_path );
-        $fs_for_themes = false;
+        $is_theme = false;
     }
 
 	if ( ! isset( $fs_active_plugins ) ) {
@@ -78,17 +78,17 @@
 	if ( ! isset( $fs_active_plugins->plugins[ $this_sdk_relative_path ] ) ||
 	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
 	) {
-		if ( $fs_for_themes ) {
+		if ( $is_theme ) {
 			$plugin_path = dirname( $this_sdk_relative_path );
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $paths[ 'file_path'] ) );
 		}
 
 		$fs_active_plugins->plugins[ $this_sdk_relative_path ] = (object) array(
-			'version'       => $this_sdk_version,
-			'fs_for_themes' => $fs_for_themes,
-			'timestamp'     => time(),
-			'plugin_path'   => $plugin_path,
+			'version'     => $this_sdk_version,
+			'type'        => ( $is_theme ? 'theme' : 'plugin' ),
+			'timestamp'   => time(),
+			'plugin_path' => $plugin_path,
 		);
 	}
 
@@ -128,13 +128,13 @@
         $fs_newest_sdk = $fs_active_plugins->newest;
         $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_newest_sdk->sdk_path ];
 
-		$is_fs_for_themes = ( isset( $fs_newest_sdk->fs_for_themes ) && $fs_newest_sdk->fs_for_themes );
+		$is_newest_sdk_type_theme = ( isset( $fs_newest_sdk->type ) && 'theme' === $fs_newest_sdk->type );
 
-		if ( ! $is_fs_for_themes ) {
+		if ( ! $is_newest_sdk_type_theme ) {
             $is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
         } else {
-            $current_theme = wp_get_theme();
-            $is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
+			$current_theme = wp_get_theme();
+			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === basename( $fs_newest_sdk->plugin_path ) );
         }
 
 		if ( $is_current_sdk_newest &&
@@ -147,7 +147,7 @@
 			update_option( 'fs_active_plugins', $fs_active_plugins );
 		}
 
-        if ( ! $fs_for_themes ) {
+        if ( ! $is_theme ) {
             $sdk_starter_path = fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' );
         } else {
 	        $sdk_starter_path = fs_normalize_path(
@@ -186,7 +186,7 @@
 			     )
 
 			) {
-				if ( $fs_active_plugins->newest->in_activation && ! $is_fs_for_themes ) {
+				if ( $fs_active_plugins->newest->in_activation && ! $is_newest_sdk_type_theme ) {
 					// Plugin no more in activation.
 					$fs_active_plugins->newest->in_activation = false;
 					update_option( 'fs_active_plugins', $fs_active_plugins );
@@ -213,7 +213,7 @@
 	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
 		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
 
-		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) ?
+		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) ?
 			WP_PLUGIN_DIR :
 			get_theme_root();
 

@@ -298,7 +298,7 @@
 			$plugin_file = plugin_basename( fs_find_caller_plugin_file() );
 		}
 
-		if ( ! isset( $newest_sdk->fs_for_themes ) || ! $newest_sdk->fs_for_themes ) {
+		if ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) {
 			$in_activation = ( ! is_plugin_active( $plugin_file ) );
 		} else {
 			$theme = wp_get_theme();
@@ -309,7 +309,6 @@
 			'plugin_path'   => $plugin_file,
 			'sdk_path'      => $sdk_relative_path,
 			'version'       => $newest_sdk->version,
-			'fs_for_themes' => ( isset( $newest_sdk->fs_for_themes ) ? $newest_sdk->fs_for_themes : false ),
 			'in_activation' => $in_activation,
 			'timestamp'     => time(),
 		);
