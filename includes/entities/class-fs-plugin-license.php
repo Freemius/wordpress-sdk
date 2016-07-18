@@ -91,6 +91,10 @@
 				return 0;
 			}
 
+			if ( $this->is_unlimited() ) {
+				return 999;
+			}
+
 			return ( $this->quota - $this->activated - ( $this->is_free_localhost ? 0 : $this->activated_local ) );
 		}
 
@@ -127,6 +131,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		function is_unlimited() {
+			return is_null( $this->quota );
+		}
+
+		/**
 		 * Check if license is fully utilized.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -139,6 +153,10 @@
 		function is_utilized( $is_localhost = null ) {
 			if ( is_null( $is_localhost ) ) {
 				$is_localhost = WP_FS__IS_LOCALHOST_FOR_SERVER;
+			}
+
+			if ( $this->is_unlimited() ) {
+				return false;
 			}
 
 			return ! ( $this->is_free_localhost && $is_localhost ) &&
