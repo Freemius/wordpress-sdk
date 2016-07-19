@@ -275,7 +275,7 @@
 				FS_Api::clear_cache();
 			}
 
-			if ( $this->_caller_is_plugin() ) {
+			if ( $this->is_caller_plugin() ) {
 				$this->_register_hooks();
 			} else {
 				if ( is_admin() && empty( $this->_storage->was_plugin_loaded ) ) {
@@ -567,17 +567,29 @@
 				}
 			}
 
-			if ( $this->is_caller_plugin() ) {
-				$plugin_file = fs_find_caller_plugin_file();
-			} else {
-				$plugin_file = dirname( WP_FS__DIR ) . '/functions.php';
+			// Check if this Freemius instance is being called by the current theme.
+			$current_theme_path   = fs_normalize_path( get_stylesheet_directory() );
+			$plugin_or_theme_file = null;
+			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
+				if ( ! isset( $bt[ $i ]['file'] ) ) {
+					continue;
+				}
+
+				if ( dirname( fs_normalize_path( $bt[ $i ]['file'] ) ) === $current_theme_path ) {
+					$plugin_or_theme_file = $bt[ $i ]['file'];
+					break;
+				}
+			}
+
+			if ( is_null( $plugin_or_theme_file ) ) {
+				$plugin_or_theme_file = fs_find_caller_plugin_file();
 			}
 
 			$this->_storage->plugin_main_file = (object) array(
-				'path' => fs_normalize_path( $plugin_file ),
+				'path' => fs_normalize_path( $plugin_or_theme_file ),
 			);
 
-			return $plugin_file;
+			return $plugin_or_theme_file;
 		}
 
 
