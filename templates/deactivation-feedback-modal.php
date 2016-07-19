@@ -51,7 +51,7 @@
 
 	function registerEventHandlers() {
 		<?php
-		if ( $fs->get_plugin()->is_plugin() ) { ?>
+		if ( $fs->is_plugin() ) { ?>
 		$deactivateLink.click(function (evt) {
 			evt.preventDefault();
 

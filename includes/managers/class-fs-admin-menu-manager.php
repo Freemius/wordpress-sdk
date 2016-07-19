@@ -362,7 +362,7 @@
 		function is_activation_page() {
 			$fs = freemius( $this->_plugin_slug );
 
-			if ( $fs->get_plugin()->is_plugin() ) {
+			if ( $fs->is_plugin() ) {
 				return isset( $_GET['page'] ) &&
 				       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
 				         ( strtolower( $this->_plugin_slug ) === strtolower( $_GET['page'] ) ) );

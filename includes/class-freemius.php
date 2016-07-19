@@ -661,7 +661,7 @@
 		 * @return array The uninstall reasons for the specified user type.
 		 */
 		function _get_uninstall_reasons( $user_type = 'long-term' ) {
-			$plugin_type = ( $this->_plugin->is_plugin() ? 'plugin' : 'theme' );
+			$plugin_type = ( $this->is_plugin() ? 'plugin' : 'theme' );
 
 			$reason_found_better_plugin = array(
 				'id'                => 2,
@@ -806,7 +806,7 @@
 
 			$this->_storage->store( 'uninstall_reason', $reason );
 
-			if ( ! $this->_plugin->is_plugin() ) {
+			if ( ! $this->is_plugin() ) {
 				// @todo Check slug/instance.
 				$this->_uninstall_plugin_event( false );
 			}
@@ -2094,7 +2094,7 @@
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
-				} else if ( ( 'themes.php' === $pagenow ) && ( ! $this->_plugin->is_plugin() ) ) {
+				} else if ( ( 'themes.php' === $pagenow ) && ( ! $this->is_plugin() ) ) {
 					if ( $this->is_activation_mode() ) {
 						// Display the theme activation opt-in dialog box.
 						$this->hook_theme_actions();
@@ -3165,7 +3165,7 @@
 								$this->_admin_notices->add_sticky(
 									sprintf(
 										__fs( 'few-plugin-tweaks', $this->_slug ),
-										( $this->_plugin->is_plugin() ? 'plugin' : 'theme' ),
+										( $this->is_plugin() ? 'plugin' : 'theme' ),
 										sprintf( '<b><a href="%s">%s</a></b>',
 											$this->get_activation_url(),
 											sprintf( __fs( 'optin-x-now', $this->_slug ), $this->get_plugin_name() )
@@ -3192,7 +3192,7 @@
 
 						}
 					} else {
-						if ( ! $this->_plugin->is_plugin() ) {
+						if ( ! $this->is_plugin() ) {
 							$this->_show_theme_activation_optin_dialog();
 						}
 					}
@@ -5445,6 +5445,18 @@
 		}
 
 		/**
+		 * Checks if the plugin's type is "plugin". The other type is "theme".
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		function is_plugin() {
+			return $this->_plugin->is_plugin();
+		}
+
+		/**
 		 * Check if feature supported with current site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5528,7 +5540,7 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( ! $this->_plugin->is_plugin() ) {
+			if ( ! $this->is_plugin() ) {
 				return add_query_arg( $params, admin_url( 'themes.php' ) );
 			}
 
@@ -8887,7 +8899,7 @@
 		 * @return string
 		 */
 		private function get_after_activation_url( $filter ) {
-			if ( ! $this->_plugin->is_plugin() ) {
+			if ( ! $this->is_plugin() ) {
 				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
 			}
 

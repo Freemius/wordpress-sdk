@@ -192,7 +192,7 @@
 					$plugin_details->url         = WP_FS__ADDRESS;
 					$plugin_details->package     = $new_version->url;
 
-					if ( $this->_fs->get_plugin()->is_plugin() ) {
+					if ( $this->_fs->is_plugin() ) {
 						$plugin_details->plugin  = $this->_fs->get_plugin_basename();
 					} else {
 						$plugin_details->theme   = dirname( $this->_fs->get_plugin_basename() );
@@ -211,7 +211,7 @@
 
 			if ( is_object( $this->_update_details ) ) {
 				// Add plugin to transient data.
-				if ( $this->_fs->get_plugin()->is_plugin() ) {
+				if ( $this->_fs->is_plugin() ) {
 					$transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_update_details;
 				} else {
 					$transient_data->response[ $this->_update_details->theme ] = (array) $this->_update_details;
