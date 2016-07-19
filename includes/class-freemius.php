@@ -9550,7 +9550,7 @@
 		 */
 		function _add_fs_theme_activation_dialog() {
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'theme-connect.php', $vars );
+			fs_require_once_template( 'connect.php', $vars );
 		}
 
 		/* Action Links

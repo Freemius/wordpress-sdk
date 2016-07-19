@@ -49,6 +49,13 @@
 	$require_license_key = $is_premium_only ||
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
 ?>
+<?php
+if ( ! $fs->is_plugin() ) { ?>
+	<div id="fs_theme_connect_wrapper">
+		<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close connect dialog</span></button>
+	<?php
+}
+?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
 	     echo ' fs-anonymous-disabled';
@@ -248,8 +255,25 @@
 		<a href="https://freemius.com/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
+<?php
+	if ( ! $fs->is_plugin() ) { ?>
+		</div>
+		<?php
+	}
+?>
 <script type="text/javascript">
 	(function ($) {
+		<?php
+			if ( ! $fs->is_plugin() ) { ?>
+				var $themeConnectWrapper = $( '#fs_theme_connect_wrapper' );
+
+				$themeConnectWrapper.find( 'button.close' ).on( 'click', function() {
+					$themeConnectWrapper.remove();
+				});
+				<?php
+			}
+		?>
+
 		var $primaryCta = $('.fs-actions .button.button-primary'),
 		    $form = $('.fs-actions form'),
 		    requireLicenseKey = <?php echo $require_license_key ? 'true' : 'false' ?>,
@@ -325,9 +349,18 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.1.9
 		 */
-		var $connectLicenseModeTrigger = $('#fs_connect .fs-freemium-licensing a');
+		var
+			$connectLicenseModeTrigger = $('#fs_connect .fs-freemium-licensing a'),
+			href = window.location.href;
+
+		if ( -1 === href.indexOf( '?' ) ) {
+			href += '?';
+		} else {
+			href += '&';
+		}
+
 		if ($connectLicenseModeTrigger.length > 0) {
-			$connectLicenseModeTrigger.attr('href', window.location.href + '&require_license=' + $connectLicenseModeTrigger.attr('data-require-license'))
+			$connectLicenseModeTrigger.attr('href', href + 'require_license=' + $connectLicenseModeTrigger.attr('data-require-license'))
 		}
 	})(jQuery);
 </script>
