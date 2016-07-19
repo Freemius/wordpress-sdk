@@ -31,37 +31,26 @@
 
 	global $fs_active_plugins;
 
-    $paths = array(
-        'file_path'          => __FILE__,
-        'current_theme_path' => trailingslashit( get_stylesheet_directory() ),
-        'themes_directory'   => trailingslashit( get_theme_root() )
-    );
+	if ( ! function_exists( 'fs_find_caller_plugin_file' ) ) {
+		// Require SDK essentials.
+		require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+	}
 
-    if ( function_exists( 'wp_normalize_path' ) ) {
-        $paths = array_map( 'wp_normalize_path', $paths );
-    } else {
-        foreach ( $paths as $type => $path ) {
-            $paths[ $type ] = str_replace( '\\', '/', $path );
-            $paths[ $type ] = preg_replace( '|/+|', '/', $path );
-        }
-    }
+	$file_path          = fs_normalize_path( __FILE__ );
+	$current_theme_path = fs_normalize_path( trailingslashit( get_stylesheet_directory() ) );
+	$themes_directory   = fs_normalize_path( trailingslashit( get_theme_root() ) );
 
-    $fs_root_path = dirname( $paths[ 'file_path'] );
+	$fs_root_path = dirname( $file_path );
 
-    if ( false !== strpos( $fs_root_path, $paths['current_theme_path'] ) ) {
-	    $this_sdk_relative_path = '../themes/' . str_replace( $paths['themes_directory'], '', $fs_root_path );
-        $is_theme = true;
-    } else {
-        $this_sdk_relative_path = plugin_basename( $fs_root_path );
-        $is_theme = false;
-    }
+	if ( false !== strpos( $fs_root_path, $current_theme_path ) ) {
+		$this_sdk_relative_path = '../themes/' . str_replace( $themes_directory, '', $fs_root_path );
+		$is_theme = true;
+	} else {
+		$this_sdk_relative_path = plugin_basename( $fs_root_path );
+		$is_theme = false;
+	}
 
 	if ( ! isset( $fs_active_plugins ) ) {
-		if ( ! function_exists( 'fs_find_caller_plugin_file' ) ) {
-            // Require SDK essentials.
-            require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
-		}
-
 		// Load all Freemius powered active plugins.
 		$fs_active_plugins = get_option( 'fs_active_plugins', new stdClass() );
 
@@ -81,7 +70,7 @@
 		if ( $is_theme ) {
 			$plugin_path = dirname( $this_sdk_relative_path );
 		} else {
-			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $paths[ 'file_path'] ) );
+			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
 
 		$fs_active_plugins->plugins[ $this_sdk_relative_path ] = (object) array(
