@@ -96,7 +96,7 @@
 		 * @return bool
 		 */
 		function is_plugin() {
-			return ( 'theme' !== $this->type );
+			return ( ! isset( $this->type ) || 'theme' !== $this->type );
 		}
 
 		static function get_type() {
