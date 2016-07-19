@@ -49,24 +49,54 @@
 				 * already exist in the assets folder when the plugin is deployed to
 				 * the repository.
 				 */
-				$suffixes = array(
-					'-128x128.png',
-					'-128x128.jpg',
-					'-256x256.png',
-					'-256x256.jpg',
-					'.svg',
+				$fields = array(
+					'sections' => false,
+					'tags'     => false
 				);
 
-				$base_url = 'https://plugins.svn.wordpress.org/' . $slug . '/assets/icon';
-
-				foreach ( $suffixes as $s ) {
-					$headers = get_headers( $base_url . $s );
-					if ( strpos( $headers[0], '200' ) ) {
-						$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . substr( $s, strpos( $s, '.' ) + 1 ) );
-						fs_download_image( $base_url . $s, $local_path );
-						$icon_found = true;
-						break;
+				if ( $fs->is_plugin() ) {
+					if ( ! function_exists( 'plugins_api' ) ) {
+						require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
 					}
+
+					$fields['icons'] = true;
+					$plugin_or_theme_information = plugins_api( 'plugin_information', array(
+						'slug'   => $slug,
+						'fields' => $fields
+					) );
+				} else {
+					if ( ! function_exists( 'themes_api' ) ) {
+						require_once( ABSPATH . 'wp-admin/includes/theme-install.php' );
+					}
+
+					$fields['screenshots'] = true;
+					$plugin_or_theme_information = themes_api( 'theme_information', array(
+						'slug'   => $slug,
+						'fields' => $fields
+					) );
+				}
+
+				if ( ! is_wp_error( $plugin_or_theme_information ) ) {
+					// Not sure if "icons" or "screenshots" will always be set.
+					if ( isset( $plugin_or_theme_information->icons ) && ! empty( $plugin_or_theme_information->icons ) ) {
+						// Get the smallest icon.
+						$icon = end( $plugin_or_theme_information->icons );
+					} else if ( isset( $plugin_or_theme_information->screenshots ) && ! empty( $plugin_or_theme_information->screenshots ) ) {
+						// Get the first screenshot.
+						$icon = $plugin_or_theme_information->screenshots[0];
+					}
+
+					if ( 0 !== strpos( $icon, 'http' ) ) {
+						$icon = 'http:' . $icon;
+					}
+
+					// Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+					$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
+
+					$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );
+					fs_download_image( $icon, $local_path );
+
+					$icon_found = true;
 				}
 			}
 
