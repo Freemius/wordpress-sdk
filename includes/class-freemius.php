@@ -9531,8 +9531,7 @@
 		 */
 		function _show_theme_activation_optin_dialog() {
 			fs_enqueue_local_style( 'fs-connect', '/admin/connect.css' );
-			fs_enqueue_local_style( 'fs-theme-connect', '/admin/theme-connect.css' );
-
+			
 			add_action( 'admin_footer-themes.php', array( &$this, '_add_fs_theme_activation_dialog' ) );
 		}
 
