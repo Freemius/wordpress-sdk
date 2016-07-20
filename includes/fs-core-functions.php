@@ -64,27 +64,33 @@
 
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
+	function fs_asset_url( $asset_abs_path ) {
+		global $fs_core_logger;
+
+		$wp_content_dir = fs_normalize_path( WP_CONTENT_DIR );
+		$asset_abs_path = fs_normalize_path( $asset_abs_path );
+		$asset_rel_path = str_replace( $wp_content_dir, '', $asset_abs_path );
+
+		$asset_url = content_url( fs_normalize_path( $asset_rel_path ) );
+
+		if ( $fs_core_logger->is_on() ) {
+			$fs_core_logger->info( 'content_dir = ' . $wp_content_dir );
+			$fs_core_logger->info( 'asset_abs_path = ' . $asset_abs_path );
+			$fs_core_logger->info( 'asset_rel_path = ' . $asset_rel_path );
+			$fs_core_logger->info( 'asset_url = ' . $asset_url );
+		}
+
+		return $asset_url;
+	}
+
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
 		global $fs_core_logger;
 
-		$css_path    = fs_normalize_path( WP_FS__DIR_CSS );
-		$content_dir = fs_normalize_path( WP_CONTENT_DIR );
-
-		$css_relative_path = str_replace( $content_dir, '', $css_path );
-		$content_url       = content_url();
-
-		$css_url           = $content_url . fs_normalize_path( $css_relative_path );
-
 		if ( $fs_core_logger->is_on() ) {
 			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'css_path = ' . $css_path );
-			$fs_core_logger->info( 'content_dir = ' . $content_dir );
-			$fs_core_logger->info( 'css_relative_path = ' . $css_relative_path );
-			$fs_core_logger->info( 'content_url = ' . $content_url );
-			$fs_core_logger->info( 'css_url = ' . $css_url );
 		}
 
-		wp_enqueue_style( $handle, $css_url . '/' . trim( $path, '/' ), $deps, $ver, $media );
+		wp_enqueue_style( $handle, fs_asset_url( WP_FS__DIR_CSS . '/' . trim( $path, '/' )  ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
@@ -95,19 +101,11 @@
 			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ) );
 		}
 
-		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
+		wp_enqueue_script( $handle, fs_asset_url( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ), $deps, $ver, $in_footer );
 	}
 
 	function fs_img_url( $path, $img_dir = WP_FS__DIR_IMG ) {
-		$img_path    = fs_normalize_path( WP_FS__DIR_IMG );
-		$content_dir = fs_normalize_path( WP_CONTENT_DIR );
-
-		$img_relative_path = str_replace( $content_dir, '', $img_path );
-		$content_url       = content_url();
-
-		$img_url           = $content_url . fs_normalize_path( $img_relative_path );
-
-		return ( $img_url . '/' . trim( $path, '/' ) );
+		return ( fs_asset_url( $img_dir . '/' . trim( $path, '/' ) ) );
 	}
 
 	/* Request handlers.
