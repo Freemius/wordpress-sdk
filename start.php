@@ -68,7 +68,7 @@
 	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
 	) {
 		if ( $is_theme ) {
-			$plugin_path = dirname( $this_sdk_relative_path );
+			$plugin_path = basename( dirname( $this_sdk_relative_path ) );
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
@@ -123,7 +123,7 @@
             $is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
         } else {
 			$current_theme = wp_get_theme();
-			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === basename( $fs_newest_sdk->plugin_path ) );
+			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
         }
 
 		if ( $is_current_sdk_newest &&

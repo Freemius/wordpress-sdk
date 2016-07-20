@@ -240,7 +240,7 @@
 
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
-			$this->_plugin_basename       = $this->_get_plugin_basename( $this->_plugin_main_file_path );
+			$this->_plugin_basename       = $this->get_plugin_basename();
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
@@ -315,22 +315,6 @@
 			$plugins_dir_path      = fs_normalize_path( WP_PLUGIN_DIR );
 			
 			return ( 0 === strpos( $plugin_main_file_path, $plugins_dir_path ) );
-		}
-
-		/**
-		 * @author Leo Fajardo (leorw)
-		 * @since  1.2.0
-		 *
-		 * @param  string $file_path
-		 *
-		 * @return string
-		 */
-		private function _get_plugin_basename( $file_path ) {
-			if ( $this->is_caller_plugin() ) {
-				return plugin_basename( $file_path );
-			} else {
-				return ( basename( dirname( $file_path ) ) . '/' . basename( $file_path ) );
-			}
 		}
 
 		/**
@@ -4301,6 +4285,14 @@
 		 * @return string
 		 */
 		function get_plugin_basename() {
+			if ( ! is_string( $this->_plugin_basename ) ) {
+				if ( $this->is_caller_plugin() ) {
+					$this->_plugin_basename = plugin_basename( $this->_plugin_main_file_path );
+				} else {
+					$this->_plugin_basename = basename( dirname( $this->_plugin_main_file_path ) );
+				}
+			}
+
 			return $this->_plugin_basename;
 		}
 
