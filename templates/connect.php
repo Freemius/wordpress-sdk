@@ -50,7 +50,7 @@
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
 ?>
 <?php
-if ( ! $fs->is_plugin() ) { ?>
+if ( $fs->is_theme() ) { ?>
 	<div id="fs_theme_connect_wrapper">
 		<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close connect dialog</span></button>
 	<?php
@@ -256,7 +256,7 @@ if ( ! $fs->is_plugin() ) { ?>
 	</div>
 </div>
 <?php
-	if ( ! $fs->is_plugin() ) { ?>
+	if ( $fs->is_theme() ) { ?>
 		</div>
 		<?php
 	}
@@ -264,7 +264,7 @@ if ( ! $fs->is_plugin() ) { ?>
 <script type="text/javascript">
 	(function ($) {
 		<?php
-			if ( ! $fs->is_plugin() ) { ?>
+			if ( $fs->is_theme() ) { ?>
 				var $themeConnectWrapper = $( '#fs_theme_connect_wrapper' );
 
 				$themeConnectWrapper.find( 'button.close' ).on( 'click', function() {

@@ -790,7 +790,11 @@
 
 			$this->_storage->store( 'uninstall_reason', $reason );
 
-			if ( ! $this->is_plugin() ) {
+			/**
+			 * If the software type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
+			 * not support uninstall hook.
+			 */
+			if ( $this->is_theme() ) {
 				// @todo Check slug/instance.
 				$this->_uninstall_plugin_event( false );
 			}
@@ -2078,7 +2082,7 @@
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
-				} else if ( ( 'themes.php' === $pagenow ) && ( ! $this->is_plugin() ) ) {
+				} else if ( ( 'themes.php' === $pagenow ) && $this->is_theme() ) {
 					if ( $this->is_activation_mode() ) {
 						// Display the theme activation opt-in dialog box.
 						$this->hook_theme_actions();
@@ -3176,7 +3180,7 @@
 
 						}
 					} else {
-						if ( ! $this->is_plugin() ) {
+						if ( $this->is_theme() ) {
 							$this->_show_theme_activation_optin_dialog();
 						}
 					}
@@ -5449,6 +5453,18 @@
 		}
 
 		/**
+		 * Checks if the software type is "theme". The other type is "plugin".
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		function is_theme() {
+			return ( ! $this->is_plugin() );
+		}
+
+		/**
 		 * Check if feature supported with current site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5532,7 +5548,7 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( ! $this->is_plugin() ) {
+			if ( $this->is_theme() ) {
 				return add_query_arg( $params, admin_url( 'themes.php' ) );
 			}
 
@@ -8891,7 +8907,7 @@
 		 * @return string
 		 */
 		private function get_after_activation_url( $filter ) {
-			if ( ! $this->is_plugin() ) {
+			if ( $this->is_theme() ) {
 				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
 			}
 
@@ -9531,7 +9547,7 @@
 		 */
 		function _show_theme_activation_optin_dialog() {
 			fs_enqueue_local_style( 'fs-connect', '/admin/connect.css' );
-			
+
 			add_action( 'admin_footer-themes.php', array( &$this, '_add_fs_theme_activation_dialog' ) );
 		}
 

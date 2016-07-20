@@ -99,6 +99,17 @@
 			return ( ! isset( $this->type ) || 'theme' !== $this->type );
 		}
 
+		/**
+		 * Returns "true" if the type is "theme".
+		 *
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @return bool
+		 */
+		function is_theme() {
+			return ( ! $this->is_plugin() );
+		}
+
 		static function get_type() {
 			return 'plugin';
 		}
