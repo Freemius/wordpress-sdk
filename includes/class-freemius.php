@@ -523,7 +523,7 @@
 				// If user is paying or in trial and have the free version installed,
 				// assume that the deactivation is for the upgrade process.
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-					add_action( 'wp_ajax_submit-uninstall-reason', array( &$this, '_submit_uninstall_reason_action' ) );
+					add_action( "wp_ajax_{$this->_slug}_submit_uninstall_reason", array( &$this, '_submit_uninstall_reason_action' ) );
 
 					global $pagenow;
 					if ( in_array( $pagenow, array( 'plugins.php', 'themes.php' ) ) ) {
@@ -795,7 +795,6 @@
 			 * not support uninstall hook.
 			 */
 			if ( $this->is_theme() ) {
-				// @todo Check slug/instance.
 				$this->_uninstall_plugin_event( false );
 			}
 

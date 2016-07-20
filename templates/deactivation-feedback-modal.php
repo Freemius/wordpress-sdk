@@ -40,10 +40,11 @@
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
-	    $modal = $(modalHtml),
-	    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
+	    $modal           = $(modalHtml),
+	    $deactivateLink  = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
 		selectedReasonID = false,
-		redirectLink = '';
+		pluginSlug       = '<?php echo $slug; ?>',
+		redirectLink     = '';
 
 	$modal.appendTo($('body'));
 
@@ -143,7 +144,7 @@
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						'action'     : 'submit-uninstall-reason',
+						'action'     : pluginSlug + '_submit_uninstall_reason',
 						'reason_id'  : $radio.val(),
 						'reason_info': userReason
 					},
