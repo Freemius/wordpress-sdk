@@ -26,9 +26,15 @@
 		$img_dir = WP_FS__DIR_IMG;
 
 		if ( 1 < count( $fs_active_plugins->plugins ) ) {
+            $plugin_or_theme_img_dir = ( $fs->is_plugin() ? WP_PLUGIN_DIR : get_theme_root() );
+
 			foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
 				if ( $data->plugin_path == $fs->get_plugin_basename() ) {
-					$img_dir = WP_PLUGIN_DIR . '/' . $sdk_path . '/assets/img';
+					$img_dir = $plugin_or_theme_img_dir
+					           . '/'
+					           . str_replace( '../themes/', '', $sdk_path )
+					           . '/assets/img';
+					
 					break;
 				}
 			}
