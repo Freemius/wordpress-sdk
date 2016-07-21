@@ -275,27 +275,7 @@
 				FS_Api::clear_cache();
 			}
 
-			if ( $this->is_caller_plugin() ) {
-				$this->_register_hooks();
-			} else {
-				if ( is_admin() && empty( $this->_storage->was_plugin_loaded ) ) {
-					$this->_storage->was_plugin_loaded = true;
-
-					if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
-						global $pagenow;
-
-						$this->_storage->is_plugin_new_install = ( 'themes.php' === $pagenow
-						                                           && isset( $_GET['activated'] )
-						                                           && true == $_GET['activated']);
-					}
-				}
-				
-				if ( ! $this->is_registered() &&
-				     fs_request_is_action( $this->_slug . '_activate_new' )
-				) {
-					$this->_install_with_new_user();
-				}
-			}
+			$this->_register_hooks();
 
 			$this->_load_account();
 
@@ -470,11 +450,15 @@
 		 */
 		private function _register_hooks() {
 			if ( is_admin() ) {
-				// Hook to plugin activation
-				register_activation_hook( $this->_plugin_main_file_path, array(
-					&$this,
-					'_activate_plugin_event_hook'
-				) );
+				if ( $this->is_caller_plugin() ) {
+					// Hook to plugin activation
+					register_activation_hook( $this->_plugin_main_file_path, array(
+						&$this,
+						'_activate_plugin_event_hook'
+					) );
+				} else {
+					add_action( 'after_switch_theme', array( &$this, '_activate_plugin_event_hook' ) );
+				}
 
 				/**
 				 * Part of the mechanism to identify new plugin install vs. plugin update.
@@ -483,7 +467,7 @@
 				 * @since  1.1.9
 				 */
 				if ( empty( $this->_storage->was_plugin_loaded ) ) {
-					if ( $this->is_activation_mode( false ) ) {
+					if ( $this->is_caller_plugin() && $this->is_activation_mode( false ) ) {
 						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
 					} else {
 						// If was activated before, then it was already loaded before.
@@ -491,8 +475,10 @@
 					}
 				}
 
-				// Hook to plugin uninstall.
-				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+				if ( $this->is_caller_plugin() ) {
+					// Hook to plugin uninstall.
+					register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+				}
 
 				if ( ! $this->is_ajax() ) {
 					if ( ! $this->is_addon() ) {
@@ -2093,11 +2079,6 @@
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
 					$this->hook_plugin_action_links();
-				} else if ( ( 'themes.php' === $pagenow ) && $this->is_theme() ) {
-					if ( $this->is_activation_mode() ) {
-						// Display the theme activation opt-in dialog box.
-						$this->hook_theme_actions();
-					}
 				}
 
 				if ( $this->is_addon() ) {
@@ -3191,7 +3172,7 @@
 
 						}
 					} else {
-						if ( $this->is_theme() ) {
+						if ( $this->is_theme() && fs_request_is_action( $this->_slug . '_show_optin' ) ) {
 							$this->_show_theme_activation_optin_dialog();
 						}
 					}
@@ -3389,7 +3370,11 @@
 		function _activate_plugin_event_hook() {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( $this->is_caller_plugin() && ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
+			if ( ! $this->is_caller_plugin() && ! current_user_can( 'switch_themes' ) ) {
 				return;
 			}
 
@@ -5559,7 +5544,7 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( $this->is_theme() ) {
+			if ( ! $this->has_settings_menu() && $this->is_theme() ) {
 				return add_query_arg( $params, admin_url( 'themes.php' ) );
 			}
 
@@ -6473,7 +6458,10 @@
 				$this->_menu->remove_menu_item();
 			} else {
 				$this->add_menu_action();
-				$this->add_submenu_items();
+
+				if ( $this->has_settings_menu() ) {
+					$this->add_submenu_items();
+				}
 			}
 		}
 
@@ -6488,7 +6476,15 @@
 		 */
 		private function add_menu_action() {
 			if ( $this->is_activation_mode() ) {
-				$this->override_plugin_menu_with_activation();
+				if ( $this->has_settings_menu() ) {
+					$this->override_plugin_menu_with_activation();
+				} else if ( $this->is_theme() ) {
+					if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
+						add_action( "load-themes.php", array( &$this, '_install_with_current_user' ) );
+					} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+						add_action( "load-themes.php", array( &$this, '_install_with_new_user' ) );
+					}
+				}
 			} else {
 				// If not registered try to install user.
 				if ( ! $this->is_registered() &&
@@ -8904,7 +8900,13 @@
 		 * @return string
 		 */
 		private function get_activation_url() {
-			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url() );
+			$query_params = array();
+
+			if ( $this->is_theme() && ! $this->has_settings_menu() ) {
+				$query_params = array( 'fs_action' => $this->_slug . '_show_optin' );
+			}
+
+			return $this->apply_filters('connect_url', $this->_get_admin_page_url( '', $query_params ) );
 		}
 
 		/**
@@ -9542,14 +9544,6 @@
 			);
 
 			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
-		}
-
-		/**
-		 * @author Leo Fajardo (leorw)
-		 * @since  1.2.0
-		 */
-		function hook_theme_actions() {
-			add_action( 'after_switch_theme', array( &$this, '_show_theme_activation_optin_dialog' ) );
 		}
 
 		/**
