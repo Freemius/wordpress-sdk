@@ -67,6 +67,12 @@
 		 * @var string
 		 */
 		private $_first_time_path;
+		/**
+		 * @since 1.2.0
+		 *
+		 * @var bool
+		 */
+		private $_menu_exists;
 
 		#endregion Properties
 
@@ -120,7 +126,13 @@
 		 * @param bool  $is_addon
 		 */
 		function init( $menu, $is_addon = false ) {
-			$this->_menu_slug = $menu['slug'];
+			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
+
+			if ( $this->_menu_exists ) {
+				$this->_menu_slug = $menu['slug'];
+			} else {
+				$this->_menu_slug = $this->_plugin_slug;
+			}
 
 			$this->_default_submenu_items = array();
 			// @deprecated
@@ -217,6 +229,16 @@
 		 */
 		function has_custom_parent() {
 			return ! $this->_is_top_level && is_string( $this->_parent_slug );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		function menu_exists() {
+			return $this->_menu_exists;
 		}
 
 		/**

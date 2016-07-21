@@ -318,6 +318,18 @@
 		}
 
 		/**
+		 * Checks whether this plugin or theme has settings menu.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		private function has_settings_menu() {
+			return $this->_menu->menu_exists();
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
