@@ -382,16 +382,18 @@
 		 * @return bool
 		 */
 		function is_activation_page() {
-			$fs = freemius( $this->_plugin_slug );
+			$is_plugin_or_theme_page = ( $this->_menu_exists && fs_is_plugin_page( $this->_menu_slug ) );
 
-			if ( $fs->is_plugin() ) {
-				return isset( $_GET['page'] ) &&
-				       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
-				         ( strtolower( $this->_plugin_slug ) === strtolower( $_GET['page'] ) ) );
+			if ( ! $is_plugin_or_theme_page ) {
+				global $pagenow;
+
+				$fs = freemius( $this->_plugin_slug );
+				if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
+					$is_plugin_or_theme_page = fs_request_is_action( $this->_plugin_slug . '_show_optin' );
+				}
 			}
 
-			global $pagenow;
-			return ( 'themes.php' === $pagenow );
+			return $is_plugin_or_theme_page;
 		}
 
 		#region Submenu Override
