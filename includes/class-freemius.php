@@ -663,13 +663,13 @@
 		 * @return array The uninstall reasons for the specified user type.
 		 */
 		function _get_uninstall_reasons( $user_type = 'long-term' ) {
-			$plugin_type = ( $this->is_plugin() ? 'plugin' : 'theme' );
+			$module_type = $this->get_module_type();
 
 			$reason_found_better_plugin = array(
 				'id'                => 2,
-				'text'              => sprintf( __fs( 'reason-found-a-better-plugin', $this->_slug ), $plugin_type ),
+				'text'              => sprintf( __fs( 'reason-found-a-better-plugin', $this->_slug ), $module_type ),
 				'input_type'        => 'textfield',
-				'input_placeholder' => sprintf( __fs( 'placeholder-plugin-name', $this->_slug ), $plugin_type ),
+				'input_placeholder' => sprintf( __fs( 'placeholder-plugin-name', $this->_slug ), $module_type ),
 			);
 
 			$reason_temporary_deactivation = array(
@@ -689,26 +689,26 @@
 			$long_term_user_reasons = array(
 				array(
 					'id'                => 1,
-					'text'              => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $plugin_type ),
+					'text'              => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $module_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				$reason_found_better_plugin,
 				array(
 					'id'                => 3,
-					'text'              => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $plugin_type ),
+					'text'              => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $module_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 4,
-					'text'              => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $plugin_type ),
+					'text'              => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $module_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 5,
-					'text'              => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $plugin_type ),
+					'text'              => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $module_type ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				)
@@ -731,7 +731,7 @@
 				'non-registered-and-non-anonymous-short-term' => array(
 					array(
 						'id'                => 8,
-						'text'              => sprintf( __fs( 'reason-didnt-work', $this->_slug ), $plugin_type ),
+						'text'              => sprintf( __fs( 'reason-didnt-work', $this->_slug ), $module_type ),
 						'input_type'        => '',
 						'input_placeholder' => ''
 					),
@@ -756,13 +756,13 @@
 					array(
 						'id'                => 11,
 						'text'              => sprintf( __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
-							$plugin_type ),
+							$module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
 					),
 					array(
 						'id'                => 12,
-						'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $plugin_type ),
+						'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
 					),
@@ -774,7 +774,7 @@
 					),
 					array(
 						'id'                => 14,
-						'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $plugin_type ),
+						'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
 					),
@@ -1967,11 +1967,11 @@
 		 * @param bool   $is_premium
 		 * @param string $type
 		 */
-		function init( $id, $public_key, $is_live = true, $is_premium = true, $type = 'plugin' ) {
+		function init( $id, $public_key, $is_live = true, $is_premium = true, $type = Freemius::MODULE_TYPE_PLUGIN ) {
 			$this->_logger->entrance();
 
-			if ( ! in_array( $type, array( 'plugin', 'theme' ) ) ) {
-				$type = 'plugin';
+			if ( ! in_array( $type, array( Freemius::MODULE_TYPE_PLUGIN, Freemius::MODULE_TYPE_THEME ) ) ) {
+				$type = Freemius::MODULE_TYPE_PLUGIN;
 			}
 
 			$this->dynamic_init( array(
@@ -3165,7 +3165,7 @@
 								$this->_admin_notices->add_sticky(
 									sprintf(
 										__fs( 'few-plugin-tweaks', $this->_slug ),
-										( $this->is_plugin() ? 'plugin' : 'theme' ),
+										$this->get_module_type(),
 										sprintf( '<b><a href="%s">%s</a></b>',
 											$this->get_activation_url(),
 											sprintf( __fs( 'optin-x-now', $this->_slug ), $this->get_plugin_name() )
