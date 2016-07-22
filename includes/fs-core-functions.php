@@ -169,7 +169,7 @@
 	}
 
 	function fs_is_plugin_page( $menu_slug ) {
-		return ( is_admin() && $_REQUEST['page'] === $menu_slug );
+		return ( is_admin() && isset( $_REQUEST['page'] ) && $_REQUEST['page'] === $menu_slug );
 	}
 
 	/* Core UI.
