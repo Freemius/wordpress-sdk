@@ -288,21 +288,6 @@
 		}
 
 		/**
-		 * Checks if the caller is a plugin. If it is not a plugin, then it should be a theme.
-		 *
-		 * @author Leo Fajardo (leorw)
-		 * @since  1.2.0
-		 *
-		 * @return bool
-		 */
-		private function is_caller_plugin() {
-			$plugin_main_file_path = fs_normalize_path( $this->_plugin_main_file_path );
-			$plugins_dir_path      = fs_normalize_path( WP_PLUGIN_DIR );
-			
-			return ( 0 === strpos( $plugin_main_file_path, $plugins_dir_path ) );
-		}
-
-		/**
 		 * Checks whether this plugin or theme has settings menu.
 		 *
 		 * @author Leo Fajardo (@leorw)
@@ -455,7 +440,7 @@
 		 */
 		private function _register_hooks() {
 			if ( is_admin() ) {
-				if ( $this->is_caller_plugin() ) {
+				if ( $this->is_plugin() ) {
 					// Hook to plugin activation
 					register_activation_hook( $this->_plugin_main_file_path, array(
 						&$this,
@@ -472,7 +457,7 @@
 				 * @since  1.1.9
 				 */
 				if ( empty( $this->_storage->was_plugin_loaded ) ) {
-					if ( $this->is_caller_plugin() && $this->is_activation_mode( false ) ) {
+					if ( $this->is_plugin() && $this->is_activation_mode( false ) ) {
 						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
 					} else {
 						// If was activated before, then it was already loaded before.
@@ -480,7 +465,7 @@
 					}
 				}
 
-				if ( $this->is_caller_plugin() ) {
+				if ( $this->is_plugin() ) {
 					// Hook to plugin uninstall.
 					register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
 				}
@@ -3405,11 +3390,11 @@
 		function _activate_plugin_event_hook() {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( $this->is_caller_plugin() && ! current_user_can( 'activate_plugins' ) ) {
+			if ( $this->is_plugin() && ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
-			if ( ! $this->is_caller_plugin() && ! current_user_can( 'switch_themes' ) ) {
+			if ( $this->is_theme() && ! current_user_can( 'switch_themes' ) ) {
 				return;
 			}
 
@@ -4198,7 +4183,7 @@
 			if ( ! isset( $this->_plugin_data ) ) {
 				self::require_plugin_essentials();
 
-				if ( $this->is_caller_plugin() ) {
+				if ( $this->is_plugin() ) {
 					$plugin_data = get_plugin_data( $this->_plugin_main_file_path );
 				} else {
 					$theme_data  = wp_get_theme();
@@ -4321,7 +4306,7 @@
 		 */
 		function get_plugin_basename() {
 			if ( ! is_string( $this->_plugin_basename ) ) {
-				if ( $this->is_caller_plugin() ) {
+				if ( $this->is_plugin() ) {
 					$this->_plugin_basename = plugin_basename( $this->_plugin_main_file_path );
 				} else {
 					$this->_plugin_basename = basename( dirname( $this->_plugin_main_file_path ) );

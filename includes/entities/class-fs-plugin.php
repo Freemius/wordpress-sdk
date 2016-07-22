@@ -88,28 +88,6 @@
 			return isset( $this->parent_plugin_id ) && is_numeric( $this->parent_plugin_id );
 		}
 
-		/**
-		 * Returns "true" if the type is not "theme".
-		 *
-		 * @author Leo Fajardo (leorw)
-		 *
-		 * @return bool
-		 */
-		function is_plugin() {
-			return ( ! isset( $this->type ) || 'theme' !== $this->type );
-		}
-
-		/**
-		 * Returns "true" if the type is "theme".
-		 *
-		 * @author Leo Fajardo (leorw)
-		 *
-		 * @return bool
-		 */
-		function is_theme() {
-			return ( ! $this->is_plugin() );
-		}
-
 		static function get_type() {
 			return 'plugin';
 		}
