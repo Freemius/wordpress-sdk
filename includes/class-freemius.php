@@ -269,9 +269,24 @@
 
 			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
 
+			/**
+			 * @todo Check if there is a better way to set $this->_storage->was_plugin_loaded to true for "theme" module.
+			 * If there is a better way to do that, the following if-else block will not be needed anymore and the original
+			 * code can be brought back.
+			 *
+			 * Since the current code immediately sets $this->_storage->was_plugin_loaded to "true" for "theme" module,
+			 * should_stop_execution() will return "false" and the "few-plugin-tweaks" admin notice can be added with an
+			 * empty title. So the following if-else block ensures that the admin notice will always have a title.
+			 */
+			if ( ! is_object( $this->_plugin ) && $this->is_theme() ) {
+				$plugin_title = $this->get_plugin_name();
+			} else {
+				$plugin_title = $this->_plugin->title;
+			}
+
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
 				$slug,
-				is_object( $this->_plugin ) ? $this->_plugin->title : ''
+				$plugin_title
 			);
 
 			if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ||
