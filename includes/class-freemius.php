@@ -227,6 +227,9 @@
 		 */
 		private static $_instances = array();
 
+		// Module types
+		const MODULE_TYPE_PLUGIN = 'plugin';
+		const MODULE_TYPE_THEME  = 'theme';
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -237,6 +240,8 @@
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_storage = FS_Key_Value_Storage::instance( 'plugin_data', $this->_slug );
+
+			$this->identify_caller_main_file_and_type();
 
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
@@ -542,38 +547,68 @@
 		 * @uses   fs_find_caller_plugin_file
 		 */
 		private function _find_caller_plugin_file() {
-			// Try to load the cached value of the file path.
+			return $this->_storage->plugin_main_file->path;
+		}
+
+
+		/**
+		 * Identifies the caller type: plugin or theme.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return string
+		 */
+		private function identify_caller_main_file_and_type() {
+			// Try to load the cached data.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
-				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
-					return $this->_storage->plugin_main_file->path;
+				$plugin_main_file = $this->_storage->plugin_main_file;
+
+				$type = ( isset( $plugin_main_file->type ) && ! empty( $plugin_main_file->type ) ) ?
+					$plugin_main_file->type : '';
+
+				if ( ! empty( $type ) && file_exists( $plugin_main_file->path ) ) {
+					return;
 				}
 			}
 
-			// Check if this Freemius instance is being called by the current theme.
-			$current_theme_path   = fs_normalize_path( get_stylesheet_directory() );
-			$plugin_or_theme_file = null;
+			if ( ! function_exists( 'get_plugins' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+
+			$all_plugins        = get_plugins();
+			$all_plugins_paths  = array();
+
+			// Get active plugin's main files real full names (might be symlinks).
+			foreach ( $all_plugins as $relative_path => &$data ) {
+				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
+			}
+
+			$current_theme_path = fs_normalize_path( get_stylesheet_directory() );
+
 			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
 				if ( ! isset( $bt[ $i ]['file'] ) ) {
 					continue;
 				}
 
-				if ( dirname( fs_normalize_path( $bt[ $i ]['file'] ) ) === $current_theme_path ) {
-					$plugin_or_theme_file = $bt[ $i ]['file'];
+				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
+
+				if ( dirname( $caller_file_path ) === $current_theme_path ) {
+					$module_type = Freemius::MODULE_TYPE_THEME;
+					break;
+				}
+
+				if ( in_array( $caller_file_path, $all_plugins_paths ) ) {
+					$module_type = Freemius::MODULE_TYPE_PLUGIN;
 					break;
 				}
 			}
 
-			if ( is_null( $plugin_or_theme_file ) ) {
-				$plugin_or_theme_file = fs_find_caller_plugin_file();
-			}
-
 			$this->_storage->plugin_main_file = (object) array(
-				'path' => fs_normalize_path( $plugin_or_theme_file ),
+				'module_type' => $module_type,
+				'path'        => $caller_file_path
 			);
-
-			return $plugin_or_theme_file;
 		}
-
 
 		#region Deactivation Feedback Form ------------------------------------------------------------------
 
@@ -5445,7 +5480,7 @@
 		 * @return bool
 		 */
 		function is_plugin() {
-			return $this->_plugin->is_plugin();
+			return ( Freemius::MODULE_TYPE_PLUGIN === $this->_storage->plugin_main_file->module_type );
 		}
 
 		/**
@@ -5458,6 +5493,16 @@
 		 */
 		function is_theme() {
 			return ( ! $this->is_plugin() );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return string
+		 */
+		function get_module_type() {
+			return $this->_storage->plugin_main_file->module_type;
 		}
 
 		/**
