@@ -307,8 +307,11 @@
 									<a target="_blank" class="button button-primary"
 									   href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __fs( 'download-x-version', $slug ), $site->plan->title ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
 								<?php elseif ( is_object( $update ) ) : ?>
+									<?php
+										$module_type = $fs->get_module_type();
+									?>
 									<a class="button button-primary"
-									   href="<?php echo wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename() ), 'upgrade-plugin_' . $fs->get_plugin_basename() ) ?>"><?php echo __fs( 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
+									   href="<?php echo wp_nonce_url( self_admin_url( "update.php?action=upgrade-{$module_type}&$module_type=" . $fs->get_plugin_basename() ), "upgrade-{$module_type}_" . $fs->get_plugin_basename() ) ?>"><?php echo __fs( 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
 								<?php endif ?>
 							<?php endif; ?>
 						</div>

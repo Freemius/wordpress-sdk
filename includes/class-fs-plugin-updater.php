@@ -171,6 +171,14 @@
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
 
+			// "plugins" or "themes".
+			$module_type = $this->_fs->get_module_type() . 's';
+
+			// Ensure that we don't mix plugins update info with themes update info.
+			if ( "pre_set_site_transient_update_{$module_type}" !== current_filter() ) {
+				return $transient_data;
+			}
+
 			if ( empty( $transient_data ) ||
 			     defined( 'WP_FS__UNINSTALL_MODE' )
 			) {
@@ -191,12 +199,7 @@
 					$plugin_details->new_version = $new_version->version;
 					$plugin_details->url         = WP_FS__ADDRESS;
 					$plugin_details->package     = $new_version->url;
-
-					if ( $this->_fs->is_plugin() ) {
-						$plugin_details->plugin  = $this->_fs->get_plugin_basename();
-					} else {
-						$plugin_details->theme   = dirname( $this->_fs->get_plugin_basename() );
-					}
+					$plugin_details->{ $this->_fs->get_module_type() } = $this->_fs->get_plugin_basename();
 
 					/**
 					 * Cache plugin details locally since set_site_transient( 'update_plugins' )
