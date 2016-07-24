@@ -37,12 +37,11 @@
 	}
 
 	$file_path          = fs_normalize_path( __FILE__ );
-	$current_theme_path = fs_normalize_path( trailingslashit( get_stylesheet_directory() ) );
 	$themes_directory   = fs_normalize_path( trailingslashit( get_theme_root() ) );
 
 	$fs_root_path = dirname( $file_path );
 
-	if ( false !== strpos( $fs_root_path, $current_theme_path ) ) {
+	if ( false !== strpos( $fs_root_path, $themes_directory ) ) {
 		$this_sdk_relative_path = '../themes/' . str_replace( $themes_directory, '', $fs_root_path );
 		$is_theme = true;
 	} else {
