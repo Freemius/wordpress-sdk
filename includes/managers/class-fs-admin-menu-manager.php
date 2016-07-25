@@ -128,11 +128,7 @@
 		function init( $menu, $is_addon = false ) {
 			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
 
-			if ( $this->_menu_exists ) {
-				$this->_menu_slug = $menu['slug'];
-			} else {
-				$this->_menu_slug = $this->_plugin_slug;
-			}
+			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_plugin_slug );
 
 			$this->_default_submenu_items = array();
 			// @deprecated
