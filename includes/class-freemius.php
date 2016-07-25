@@ -2740,6 +2740,8 @@
 				// Sync add-ons collection.
 				$this->_sync_addons( true );
 			}
+
+			$this->do_action('after_sync_cron');
 		}
 
 		/**
