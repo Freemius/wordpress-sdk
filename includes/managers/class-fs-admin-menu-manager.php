@@ -233,7 +233,7 @@
 		 *
 		 * @return bool
 		 */
-		function menu_exists() {
+		function has_menu() {
 			return $this->_menu_exists;
 		}
 

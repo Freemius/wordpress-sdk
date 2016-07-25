@@ -311,7 +311,7 @@
 		 * @return bool
 		 */
 		private function has_settings_menu() {
-			return $this->_menu->menu_exists();
+			return $this->_menu->has_menu();
 		}
 
 		/**
