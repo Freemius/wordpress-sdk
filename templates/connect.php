@@ -39,7 +39,8 @@
 		'https://freemius.com/wordpress/usage-tracking/';
 
 	$freemius_site_url .= '?' . http_build_query( array(
-			'plugin_id' => $fs->get_id(),
+			'id'   => $fs->get_id(),
+			'slug' => $slug,
 		) );
 
 	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="1">freemius.com</a>';
