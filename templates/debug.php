@@ -239,11 +239,56 @@
 			<tr>
 				<td><?php echo $user->id ?></td>
 				<td><?php echo $user->get_name() ?></td>
-				<td><a href="mailto:<?php esc_attr_e($user->email) ?>"><?php echo $user->email ?></a></td>
+				<td><a href="mailto:<?php esc_attr_e( $user->email ) ?>"><?php echo $user->email ?></a></td>
 				<td><?php echo json_encode( $user->is_verified ) ?></td>
 				<td><?php echo $user->public_key ?></td>
 				<td><?php echo $user->secret_key ?></td>
 			</tr>
+		<?php endforeach ?>
+		</tbody>
+	</table>
+<?php endif ?>
+<?php
+	/**
+	 * @var FS_Plugin_License[] $licenses
+	 */
+	$licenses = $VARS['licenses'];
+?>
+<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
+	<h2><?php _efs( 'licenses' ) ?></h2>
+	<table id="fs_users" class="widefat">
+		<thead>
+		<tr>
+			<th><?php _efs( 'id' ) ?></th>
+			<th><?php _efs( 'plugin-id' ) ?></th>
+			<th><?php _efs( 'user-id' ) ?></th>
+			<th><?php _efs( 'plan-id' ) ?></th>
+			<th><?php _efs( 'quota' ) ?></th>
+			<th><?php _efs( 'activated' ) ?></th>
+			<th><?php _efs( 'blocking' ) ?></th>
+			<th><?php _efs( 'license-key' ) ?></th>
+			<th><?php _efs( 'expiration' ) ?></th>
+		</tr>
+		</thead>
+		<tbody>
+		<?php foreach ( $licenses as $slug => $module_licenses ) : ?>
+			<?php foreach ( $module_licenses as $id => $licenses ) : ?>
+				<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
+					<?php foreach ( $licenses as $license ) : ?>
+						<tr>
+							<td><?php echo $license->id ?></td>
+							<td><?php echo $license->plugin_id ?></td>
+							<td><?php echo $license->user_id ?></td>
+							<td><?php echo $license->plan_id ?></td>
+							<td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
+							<td><?php echo $license->activated ?></td>
+							<td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+							<td><?php echo htmlentities( $license->secret_key ) ?></td>
+							<td><?php echo $license->expiration ?></td>
+						</tr>
+					<?php endforeach ?>
+				<?php endif ?>
+			<?php endforeach ?>
 		<?php endforeach ?>
 		</tbody>
 	</table>
