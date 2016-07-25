@@ -9092,7 +9092,11 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
+			if ( 'billing' === fs_request_get( 'tab' ) ) {
+				fs_require_once_template( 'billing.php', $vars );
+			} else {
 			fs_require_once_template( 'account.php', $vars );
+		}
 		}
 
 		/**
