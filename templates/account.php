@@ -35,7 +35,7 @@
 
 	<div class="wrap">
 	<h2 class="nav-tab-wrapper">
-		<a href="<?php $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _efs( 'account', $slug ) ?></a>
+		<a href="<?php echo $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _efs( 'account', $slug ) ?></a>
 		<?php if ( $fs->has_addons() ) : ?>
 			<a href="<?php echo $fs->_get_admin_page_url( 'addons' ) ?>"
 			   class="nav-tab"><?php _efs( 'add-ons', $slug ) ?></a>
