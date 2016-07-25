@@ -277,24 +277,24 @@
 					<?php endif ?>
 					<?php if ( 'plan' === $p['id'] ) : ?>
 						<div class="button-group">
-							<?php $license = $fs->is_free_plan() ? $fs->_get_available_premium_license() : false ?>
-							<?php if ( false !== $license && ( $license->left() > 0 || ( $site->is_localhost() && $license->is_free_localhost ) ) ) : ?>
-								<?php $premium_plan = $fs->_get_plan_by_id( $license->plan_id ) ?>
+							<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license() : false ?>
+							<?php if ( false !== $available_license && ( $available_license->left() > 0 || ( $site->is_localhost() && $available_license->is_free_localhost ) ) ) : ?>
+								<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
 								<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 								      method="POST">
 									<input type="hidden" name="fs_action" value="activate_license">
-									<input type="hidden" name="license_id" value="<?php echo $license->id ?>">
+									<input type="hidden" name="license_id" value="<?php echo $available_license->id ?>">
 									<?php wp_nonce_field( 'activate_license' ) ?>
 									<input type="submit" class="button button-primary"
 									       value="<?php printf(
 										       __fs( 'activate-x-plan', $slug ) . '%s',
 										       $premium_plan->title,
-										       ( $site->is_localhost() && $license->is_free_localhost ) ?
+										       ( $site->is_localhost() && $available_license->is_free_localhost ) ?
 											       ' [' . __fs( 'localhost', $slug ) . ']' :
-											       ( $license->is_single_site() ?
+											       ( $available_license->is_single_site() ?
 												       '' :
-												       ' [' . ( 1 < $license->left() ?
-													       sprintf( __fs( 'x-left', $slug ), $license->left() ) :
+												       ' [' . ( 1 < $available_license->left() ?
+													       sprintf( __fs( 'x-left', $slug ), $available_license->left() ) :
 													       strtolower( __fs( 'last-license', $slug ) ) ) . ']'
 											       )
 									       ) ?> ">
