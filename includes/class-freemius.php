@@ -8494,6 +8494,24 @@
 		}
 
 		/**
+		 * Get payment invoice URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @param bool|number $payment_id
+		 *
+		 * @return string
+		 */
+		function _get_invoice_api_url( $payment_id = false ) {
+			$this->_logger->entrance();
+
+			return $this->get_api_user_scope()->get_signed_url(
+				"/payments/{$payment_id}/invoice.pdf"
+			);
+		}
+
+		/**
 		 * Get latest plugin download link.
 		 *
 		 * @author Vova Feldman (@svovaf)
