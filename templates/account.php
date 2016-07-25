@@ -65,7 +65,7 @@
 						if ( $is_active_subscription ) {
 							echo esc_attr( sprintf( __fs( 'delete-account-x-confirm', $slug ), $plan->title ) );
 						} else {
-							_efs( 'delete-account-confirm', $slug );
+							echo sprintf( __fs( 'delete-account-confirm', $slug ), $fs->get_module_type() );
 						}
 					?>'))  this.parentNode.submit(); return false;"><i
 							class="dashicons dashicons-no"></i> <?php _efs( 'delete-account', $slug ) ?></a>
@@ -93,7 +93,7 @@
 							<?php wp_nonce_field( 'downgrade_account' ) ?>
 							<a href="#"
 							   onclick="if (confirm('<?php printf( __fs( 'downgrade-x-confirm', $slug ), $plan->title, human_time_diff( time(), strtotime( $license->expiration ) ) ) ?> <?php if ( ! $license->is_block_features ) {
-								   printf( __fs( 'after-downgrade-non-blocking', $slug ), $plan->title );
+								   printf( __fs( 'after-downgrade-non-blocking', $slug ), $plan->title, $fs->get_module_type() );
 							   } else {
 								   printf( __fs( 'after-downgrade-blocking', $slug ), $plan->title );
 							   }?> <?php _efs( 'proceed-confirmation', $slug ) ?>')) this.parentNode.submit(); return false;"><i

@@ -188,7 +188,7 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 			),
 			'events'  => array(
 				'icon-class' => 'dashicons dashicons-admin-plugins',
-				'label'      => __fs( 'permissions-events' ),
+				'label'      => sprintf( __fs( 'permissions-events' ), ucfirst( $fs->get_module_type() ) ),
 				'desc'       => __fs( 'permissions-events_desc' ),
 				'priority'   => 20,
 			),
@@ -219,7 +219,12 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 		if ( ! empty( $permissions ) ) : ?>
 			<div class="fs-permissions">
 				<?php if ( $require_license_key ) : ?>
-					<p class="fs-license-sync-disclaimer"><?php printf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link ) ?></p>
+					<p class="fs-license-sync-disclaimer"><?php
+						printf( __fs( 'license-sync-disclaimer', $slug ),
+							$fs->get_module_type(),
+							$freemius_link,
+							$fs->get_module_type()
+						) ?></p>
 				<?php endif ?>
 				<a class="fs-trigger" href="#" tabindex="1"><?php _efs( 'what-permissions', $slug ) ?></a>
 				<ul><?php
