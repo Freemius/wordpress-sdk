@@ -208,11 +208,11 @@
 				);
 
 				if ( is_object( $license ) ) {
-		$profile[] = array(
+					$profile[] = array(
 						'id'    => 'license_key',
 						'title' => __fs( 'License Key', $slug ),
 						'value' => $license->secret_key,
-		);
+					);
 				}
 			}
 		}
@@ -236,7 +236,7 @@
 						<input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
 						       readonly/>
 					<?php else : ?>
-					<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
+						<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
 					<?php endif ?>
 					<?php if ( 'email' === $p['id'] && ! $user->is_verified() ) : ?>
 						<label class="fs-tag fs-warn"><?php _efs( 'not-verified', $slug ) ?></label>
@@ -397,6 +397,7 @@
 		$addons_to_show = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
 	?>
 	<?php if ( 0 < count( $addons_to_show ) ) : ?>
+		<!-- Add-Ons -->
 		<div class="postbox">
 		<div class="">
 		<!--				<div class="inside">-->
