@@ -46,6 +46,10 @@
 				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _efs( 'free-trial', $slug ) ?></a>
 			<?php endif ?>
 		<?php endif ?>
+		<?php if ( !$plan->is_free() ) : ?>
+			<a href="<?php echo $fs->get_account_tab_url( 'billing' ) ?>"
+			   class="nav-tab"><?php _efs( 'billing', $slug ) ?></a>
+		<?php endif ?>
 	</h2>
 
 	<div id="poststuff">
