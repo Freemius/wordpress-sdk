@@ -5511,6 +5511,25 @@
 		}
 
 		/**
+		 * @author  Vova Feldman (@svovaf)
+		 * @since   1.2.0
+		 *
+		 * @param string $tab
+		 * @param bool   $action
+		 * @param array  $params
+		 * @param bool   $add_action_nonce
+		 *
+		 * @return string
+		 *
+		 * @uses    get_account_url()
+		 */
+		function get_account_tab_url( $tab, $action = false, $params = array(), $add_action_nonce = true ) {
+			$params['tab'] = $tab;
+
+			return $this->get_account_url( $action, $params, $add_action_nonce );
+		}
+
+		/**
 		 * Plugin's account URL.
 		 *
 		 * @author Vova Feldman (@svovaf)
