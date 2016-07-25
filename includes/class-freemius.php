@@ -1108,6 +1108,7 @@
 			$users          = self::get_all_users();
 			$addons         = self::get_all_addons();
 			$account_addons = self::get_all_account_addons();
+			$licenses       = self::get_all_licenses();
 
 //			$plans    = self::get_all_plans();
 //			$licenses = self::get_all_licenses();
@@ -1117,6 +1118,7 @@
 				'users'          => $users,
 				'addons'         => $addons,
 				'account_addons' => $account_addons,
+				'licenses'       => $licenses,
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
