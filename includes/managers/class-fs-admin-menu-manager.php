@@ -382,18 +382,23 @@
 		 * @return bool
 		 */
 		function is_activation_page() {
-			$is_plugin_or_theme_page = ( $this->_menu_exists && fs_is_plugin_page( $this->_menu_slug ) );
-
-			if ( ! $is_plugin_or_theme_page ) {
-				global $pagenow;
-
-				$fs = freemius( $this->_plugin_slug );
-				if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
-					$is_plugin_or_theme_page = fs_request_is_action( $this->_plugin_slug . '_show_optin' );
-				}
+			if ($this->_menu_exists &&
+			   ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_plugin_slug ) )
+			) {
+				// Module have a settings menu and the context page is the main settings page,
+				// so assume it's in activation (doesn't really check if already opted-in/skipped or not).
+				return true;
 			}
 
-			return $is_plugin_or_theme_page;
+			global $pagenow;
+
+			$fs = freemius( $this->_plugin_slug );
+			if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
+				// In activation only when show_optin query string param is given.
+				return fs_request_is_action( $this->_plugin_slug . '_show_optin' );
+			}
+
+			return false;
 		}
 
 		#region Submenu Override
