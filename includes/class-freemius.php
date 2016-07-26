@@ -281,6 +281,12 @@
 			if ( ! is_object( $this->_plugin ) && $this->is_theme() ) {
 				$plugin_title = $this->get_plugin_name();
 			} else {
+				/**
+				 * get_plugin_name() will do more work if $this->_plugin_name is not yet set. So if $this->_plugin is
+				 * already set and $this->_plugin_name is not yet set, that "more work" can be avoided if we will just
+				 * use $this->_plugin. A further investigation may be needed in order to understand why this behavior
+				 * only happens with plugins ($this->_plugin already set and $this->_plugin_name not yet set).
+				 */
 				$plugin_title = $this->_plugin->title;
 			}
 
@@ -556,8 +562,6 @@
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.0
-		 *
-		 * @return string
 		 */
 		private function identify_caller_main_file_and_type() {
 			// Try to load the cached data.
@@ -824,7 +828,7 @@
 			$this->_storage->store( 'uninstall_reason', $reason );
 
 			/**
-			 * If the software type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
+			 * If the module type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
 			 * not support uninstall hook.
 			 */
 			if ( $this->is_theme() ) {
@@ -5478,7 +5482,7 @@
 		}
 
 		/**
-		 * Checks if the software type is "theme". The other type is "plugin".
+		 * Checks if the module type is "theme". The other type is "plugin".
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.0
