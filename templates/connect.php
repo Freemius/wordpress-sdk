@@ -361,10 +361,10 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 			$connectLicenseModeTrigger = $('#fs_connect .fs-freemium-licensing a'),
 			href = window.location.href;
 
-		if ( -1 === href.indexOf( '?' ) ) {
-			href += '?';
-		} else {
+		if ( href.indexOf( '?' ) > 0 ) {
 			href += '&';
+		} else {
+			href += '?';
 		}
 
 		if ($connectLicenseModeTrigger.length > 0) {
