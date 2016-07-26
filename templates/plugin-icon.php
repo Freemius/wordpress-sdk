@@ -40,84 +40,75 @@
 			}
 		}
 
-		$icons = glob( fs_normalize_path( $img_dir . '/' . $slug . '.*' ) );
-		if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
-			$icon_found             = false;
-			$local_path             = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
-			$have_write_permissions = is_writable( fs_normalize_path( $img_dir ) );
+		if ( $fs->is_theme() ) {
+			$icons = array(
+				fs_normalize_path( $img_dir . '/theme-icon.png' )
+			);
+		} else {
+			$icons = glob( fs_normalize_path( $img_dir . '/' . $slug . '.*' ) );
+			if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
+				$icon_found             = false;
+				$local_path             = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
+				$have_write_permissions = is_writable( fs_normalize_path( $img_dir ) );
 
-			if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() && $have_write_permissions ) {
-				/**
-				 * IMPORTANT: THIS CODE WILL NEVER RUN AFTER THE PLUGIN IS IN THE REPO.
-				 *
-				 * This code will only be executed once during the testing
-				 * of the plugin in a local environment. The plugin icon file WILL
-				 * already exist in the assets folder when the plugin is deployed to
-				 * the repository.
-				 */
-				$fields = array(
-					'sections' => false,
-					'tags'     => false
-				);
-
-				if ( $fs->is_plugin() ) {
+				if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() && $have_write_permissions ) {
+					/**
+					 * IMPORTANT: THIS CODE WILL NEVER RUN AFTER THE PLUGIN IS IN THE REPO.
+					 *
+					 * This code will only be executed once during the testing
+					 * of the plugin in a local environment. The plugin icon file WILL
+					 * already exist in the assets folder when the plugin is deployed to
+					 * the repository.
+					 */
 					if ( ! function_exists( 'plugins_api' ) ) {
 						require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
 					}
 
-					$fields['icons'] = true;
-					$plugin_or_theme_information = plugins_api( 'plugin_information', array(
+					$plugin_information = plugins_api( 'plugin_information', array(
 						'slug'   => $slug,
-						'fields' => $fields
+						'fields' => array(
+							'sections' => false,
+							'tags'     => false,
+							'icons'    => true
+						)
 					) );
-				} else {
-					if ( ! function_exists( 'themes_api' ) ) {
-						require_once( ABSPATH . 'wp-admin/includes/theme-install.php' );
-					}
 
-					$fields['screenshots'] = true;
-					$plugin_or_theme_information = themes_api( 'theme_information', array(
-						'slug'   => $slug,
-						'fields' => $fields
-					) );
-				}
-
-				if ( ! is_wp_error( $plugin_or_theme_information ) ) {
-					// Not sure if "icons" or "screenshots" will always be set.
-					if ( isset( $plugin_or_theme_information->icons ) && ! empty( $plugin_or_theme_information->icons ) ) {
+					if (
+						! is_wp_error( $plugin_information )
+						&& isset( $plugin_information->icons )
+						&& ! empty( $plugin_information->icons )
+					) {
 						// Get the smallest icon.
-						$icon = end( $plugin_or_theme_information->icons );
-					} else if ( isset( $plugin_or_theme_information->screenshots ) && ! empty( $plugin_or_theme_information->screenshots ) ) {
-						// Get the first screenshot.
-						$icon = $plugin_or_theme_information->screenshots[0];
+						$icon = end( $plugin_information->icons );
+
+						if ( 0 !== strpos( $icon, 'http' ) ) {
+							$icon = 'http:' . $icon;
+						}
+
+						// Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+						$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
+
+						$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );
+						fs_download_image( $icon, $local_path );
+
+						$icon_found = true;
 					}
+				}
 
-					if ( 0 !== strpos( $icon, 'http' ) ) {
-						$icon = 'http:' . $icon;
+				if ( ! $icon_found ) {
+					// No icons found, fallback to default icon.
+					if ( $have_write_permissions ) {
+						// If have write permissions, copy default icon.
+						copy( fs_normalize_path( $img_dir . '/plugin-icon.png' ), $local_path );
 					}
-
-					// Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
-					$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
-
-					$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );
-					fs_download_image( $icon, $local_path );
-
-					$icon_found = true;
+					else {
+						// If doesn't have write permissions, use default icon path.
+						$local_path = fs_normalize_path( $img_dir . '/plugin-icon.png' );
+					}
 				}
-			}
 
-			if ( ! $icon_found ) {
-				// No icons found, fallback to default icon.
-				if ( $have_write_permissions ) {
-					// If have write permissions, copy default icon.
-					copy( fs_normalize_path( $img_dir . '/plugin-icon.png' ), $local_path );
-				} else {
-					// If doesn't have write permissions, use default icon path.
-					$local_path = fs_normalize_path( $img_dir . '/plugin-icon.png' );
-				}
+				$icons = array( $local_path );
 			}
-
-			$icons = array( $local_path );
 		}
 	}
 
