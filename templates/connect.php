@@ -55,7 +55,12 @@
 <?php
 if ( $fs->is_theme() && $is_theme_page ) { ?>
 	<div id="fs_theme_connect_wrapper">
-		<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close connect dialog</span></button>
+		<?php
+			if ( ! $fs->is_premium() ) { ?>
+				<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close connect dialog</span></button>
+				<?php
+			}
+		?>
 	<?php
 }
 ?>
