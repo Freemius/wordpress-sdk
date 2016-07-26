@@ -311,7 +311,7 @@
 										$module_type = $fs->get_module_type();
 									?>
 									<a class="button button-primary"
-									   href="<?php echo wp_nonce_url( self_admin_url( "update.php?action=upgrade-{$module_type}&$module_type=" . $fs->get_plugin_basename() ), "upgrade-{$module_type}_" . $fs->get_plugin_basename() ) ?>"><?php echo __fs( 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
+									   href="<?php echo wp_nonce_url( self_admin_url( "update.php?action=upgrade-{$module_type}&{$module_type}=" . $fs->get_plugin_basename() ), "upgrade-{$module_type}_" . $fs->get_plugin_basename() ) ?>"><?php echo __fs( 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
 								<?php endif ?>
 							<?php endif; ?>
 						</div>
