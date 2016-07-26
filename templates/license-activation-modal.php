@@ -29,7 +29,11 @@
 
 		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>';
 
-		$message_below_input_field = sprintf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link );
+		$message_below_input_field = sprintf( __fs( 'license-sync-disclaimer', $slug ),
+				$fs->get_module_type(),
+				$freemius_link,
+				$fs->get_module_type()
+			);
 
 		$activate_button_text = __fs( 'agree-activate-license', $slug );
 	}
