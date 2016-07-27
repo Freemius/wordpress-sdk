@@ -20,8 +20,30 @@
 	$reasons_list_items_html = '';
 
 	foreach ( $reasons as $reason ) {
-		$list_item_classes = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
-		$reasons_list_items_html .= '<li class="' . $list_item_classes . '" data-input-type="' . $reason['input_type'] . '" data-input-placeholder="' . $reason['input_placeholder'] . '"><label><span><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/></span><span>' . $reason['text'] . '</span></label></li>';
+		$list_item_classes    = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
+
+		if ( isset( $reason['extra_message'] ) && ! empty( $reason['extra_message'] ) ) {
+			$list_item_classes .= ' has-extra-message';
+			$reason_extra_message = html_entity_decode( $reason['extra_message'] );
+		} else {
+			$reason_extra_message = '';
+		}
+
+		$reason_list_item_html = <<< HTML
+			<li class="{$list_item_classes}"
+			 	data-input-type="{$reason['input_type']}"
+			 	data-input-placeholder="{$reason['input_placeholder']}">
+	            <label>
+	            	<span>
+	            		<input type="radio" name="selected-reason" value="{$reason['id']}"/>
+                    </span>
+                    <span>{$reason['text']}</span>
+                </label>
+                <div class="extra-message">{$reason_extra_message}</div>
+            </li>
+HTML;
+
+		$reasons_list_items_html .= $reason_list_item_html;
 	}
 ?>
 <script type="text/javascript">
@@ -91,7 +113,7 @@
 			}, 150);
 		});
 
-		$modal.on('click', '.button', function (evt) {
+		$modal.on('click', '.fs-modal-footer .button', function (evt) {
 			evt.preventDefault();
 
 			if ($(this).hasClass('disabled')) {
@@ -158,6 +180,12 @@
 			$modal.find('.button-deactivate').text('<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>');
 
 			enableDeactivateButton();
+
+			if ( _parent.hasClass( 'has-extra-message' ) ) {
+				$modal.find( '.extra-message' ).show();
+			} else {
+				$modal.find( '.extra-message' ).hide();
+			}
 
 			if (_parent.hasClass('has-input')) {
 				var inputType = _parent.data('input-type'),

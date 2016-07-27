@@ -652,6 +652,18 @@
 				);
 			}
 
+			$template_var = array(
+				'slug' => $this->_slug
+			);
+
+			$reason_dont_share_info   = array(
+				'id'                => 9,
+				'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
+				'input_type'        => '',
+				'extra_message'     => htmlentities( fs_get_template( 'reason-dont-share-data-skip-option.php', $template_var ) ),
+				'input_placeholder' => ''
+			);
+
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
 			$long_term_user_reasons[] = $reason_other;
 
@@ -664,12 +676,7 @@
 						'input_type'        => '',
 						'input_placeholder' => ''
 					),
-					array(
-						'id'                => 9,
-						'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
-						'input_type'        => '',
-						'input_placeholder' => ''
-					),
+					$reason_dont_share_info,
 					$reason_found_better_plugin,
 					$reason_temporary_deactivation,
 					$reason_other

@@ -31,8 +31,9 @@
 			
 			li.reason {
 				margin-bottom: 10px;
-				
-				.reason-input {
+
+
+				.reason-input, .extra-message {
 					margin-left: 29px;
 				}
 				
@@ -102,12 +103,18 @@
 		display: none;
 	}
 	
-	.reason-input {
+	.reason-input, .extra-message {
 		margin:	3px 0 3px 22px;
 		
 		input, textarea {
 			width: 100%;
 		}
+	}
+
+	li.reason.has-extra-message .extra-message {
+		border: 1px solid #ccc;
+		padding: 7px;
+		display: none;
 	}
 }
 
