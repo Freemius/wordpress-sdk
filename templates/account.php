@@ -246,9 +246,9 @@
 							<label class="fs-tag fs-success"><?php _efs( 'trial', $slug ) ?></label>
 						<?php endif ?>
 						<?php if ( is_object( $license ) && ! $license->is_lifetime() ) : ?>
-							<?php if ( ! $is_active_subscription && ! $available_license->is_first_payment_pending() ) : ?>
+							<?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
 								<label
-									class="fs-tag fs-warn"><?php printf( __fs( 'expires-in', $slug ), human_time_diff( time(), strtotime( $available_license->expiration ) ) ) ?></label>
+									class="fs-tag fs-warn"><?php printf( __fs( 'expires-in', $slug ), human_time_diff( time(), strtotime( $license->expiration ) ) ) ?></label>
 							<?php elseif ( $is_active_subscription && ! $subscription->is_first_payment_pending() ) : ?>
 								<label
 									class="fs-tag fs-success"><?php printf( __fs( 'renews-in', $slug ), human_time_diff( time(), strtotime( $subscription->next_payment ) ) ) ?></label>
