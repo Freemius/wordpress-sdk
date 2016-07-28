@@ -35,7 +35,7 @@
 
 	<div class="wrap">
 	<h2 class="nav-tab-wrapper">
-		<a href="<?php $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _efs( 'account', $slug ) ?></a>
+		<a href="<?php echo $fs->get_account_url() ?>" class="nav-tab nav-tab-active"><?php _efs( 'account', $slug ) ?></a>
 		<?php if ( $fs->has_addons() ) : ?>
 			<a href="<?php echo $fs->_get_admin_page_url( 'addons' ) ?>"
 			   class="nav-tab"><?php _efs( 'add-ons', $slug ) ?></a>
@@ -45,6 +45,10 @@
 			<?php if ( $fs->apply_filters( 'show_trial', true ) && ! $fs->is_trial_utilized() && $fs->has_trial_plan() ) : ?>
 				<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php _efs( 'free-trial', $slug ) ?></a>
 			<?php endif ?>
+		<?php endif ?>
+		<?php if ( !$plan->is_free() ) : ?>
+			<a href="<?php echo $fs->get_account_tab_url( 'billing' ) ?>"
+			   class="nav-tab"><?php _efs( 'billing', $slug ) ?></a>
 		<?php endif ?>
 	</h2>
 
@@ -145,6 +149,7 @@
 			'title' => __fs( 'email', $slug ),
 			'value' => $user->email
 		);
+
 		if ( is_numeric( $user->id ) ) {
 			$profile[] = array(
 				'id'    => 'user_id',
@@ -176,6 +181,12 @@
 			)
 		);
 
+		$profile[] = array(
+			'id'    => 'version',
+			'title' => __fs( 'version', $slug ),
+			'value' => $fs->get_plugin_version()
+		);
+
 		if ( $fs->has_paid_plan() ) {
 			if ( $fs->is_trial() ) {
 				$trial_plan = $fs->get_trial_plan();
@@ -195,14 +206,16 @@
 						strtoupper( $site->plan->title ) :
 						strtoupper( __fs( 'free', $slug ) )
 				);
+
+				if ( is_object( $license ) ) {
+					$profile[] = array(
+						'id'    => 'license_key',
+						'title' => __fs( 'License Key', $slug ),
+						'value' => $license->secret_key,
+					);
+				}
 			}
 		}
-
-		$profile[] = array(
-			'id'    => 'version',
-			'title' => __fs( 'version', $slug ),
-			'value' => $fs->get_plugin_version()
-		);
 	?>
 	<?php $odd = true;
 		foreach ( $profile as $p ) : ?>
@@ -218,7 +231,13 @@
 					<nobr><?php echo $p['title'] ?>:</nobr>
 				</td>
 				<td>
-					<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
+					<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
+						<code><?php echo htmlspecialchars( substr( $p['value'], 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $p['value'], - 3 ) ) ?></code>
+						<input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
+						       readonly/>
+					<?php else : ?>
+						<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
+					<?php endif ?>
 					<?php if ( 'email' === $p['id'] && ! $user->is_verified() ) : ?>
 						<label class="fs-tag fs-warn"><?php _efs( 'not-verified', $slug ) ?></label>
 					<?php endif ?>
@@ -238,8 +257,7 @@
 							<label
 								class="fs-tag fs-warn"><?php printf( __fs( 'expires-in', $slug ), human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ?></label>
 						<?php endif ?>
-					<?php endif ?>
-					<?php if ( 'version' === $p['id'] && $fs->has_paid_plan() ) : ?>
+					<?php elseif ( 'version' === $p['id'] && $fs->has_paid_plan() ) : ?>
 						<?php if ( $fs->is_premium() ) : ?>
 							<label
 								class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php _efs( 'premium-version' ) ?></label>
@@ -259,24 +277,24 @@
 					<?php endif ?>
 					<?php if ( 'plan' === $p['id'] ) : ?>
 						<div class="button-group">
-							<?php $license = $fs->is_free_plan() ? $fs->_get_available_premium_license() : false ?>
-							<?php if ( false !== $license && ( $license->left() > 0 || ( $site->is_localhost() && $license->is_free_localhost ) ) ) : ?>
-								<?php $premium_plan = $fs->_get_plan_by_id( $license->plan_id ) ?>
+							<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license() : false ?>
+							<?php if ( false !== $available_license && ( $available_license->left() > 0 || ( $site->is_localhost() && $available_license->is_free_localhost ) ) ) : ?>
+								<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
 								<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 								      method="POST">
 									<input type="hidden" name="fs_action" value="activate_license">
-									<input type="hidden" name="license_id" value="<?php echo $license->id ?>">
+									<input type="hidden" name="license_id" value="<?php echo $available_license->id ?>">
 									<?php wp_nonce_field( 'activate_license' ) ?>
 									<input type="submit" class="button button-primary"
 									       value="<?php printf(
 										       __fs( 'activate-x-plan', $slug ) . '%s',
 										       $premium_plan->title,
-										       ( $site->is_localhost() && $license->is_free_localhost ) ?
+										       ( $site->is_localhost() && $available_license->is_free_localhost ) ?
 											       ' [' . __fs( 'localhost', $slug ) . ']' :
-											       ( $license->is_single_site() ?
+											       ( $available_license->is_single_site() ?
 												       '' :
-												       ' [' . ( 1 < $license->left() ?
-													       sprintf( __fs( 'x-left', $slug ), $license->left() ) :
+												       ' [' . ( 1 < $available_license->left() ?
+													       sprintf( __fs( 'x-left', $slug ), $available_license->left() ) :
 													       strtolower( __fs( 'last-license', $slug ) ) ) . ']'
 											       )
 									       ) ?> ">
@@ -316,6 +334,9 @@
 							<?php endif; ?>
 						</div>
 					<?php
+					elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
+						<button class="button button-small"><?php _efs( 'show', $slug ) ?></button>
+					<?php
 					elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/
 					( is_string( $user->secret_key ) && in_array( $p['id'], array(
 							'email',
@@ -329,7 +350,7 @@
 							       value="">
 							<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
 							<input type="submit" class="button button-small"
-							       value="<?php _ex( 'Edit', 'verb', 'freemius' ) ?>">
+							       value="<?php _efs( 'edit', $slug ) ?>">
 						</form>
 					<?php endif ?>
 				</td>
@@ -339,6 +360,31 @@
 	</table>
 	</div>
 	</div>
+	<script type="text/javascript">
+		(function ($) {
+			$('.fs-field-license_key button, .fs-field-site_secret_key button').click(function () {
+				var
+					$this = $(this),
+					$parent = $this.closest('tr'),
+					$input = $parent.find('input');
+
+				$parent.find('code').toggle();
+				$input.toggle();
+
+				if ($input.is(':visible')) {
+					$this.html('<?php _efs( 'hide', $slug ) ?>');
+					setTimeout(function () {
+						$input.select().focus();
+					}, 100);
+				}
+				else {
+					$this.html('<?php _efs( 'show', $slug ) ?>');
+				}
+			});
+		}(jQuery));
+
+	</script>
+
 	<?php
 		$account_addons = $fs->get_account_addons();
 		if ( ! is_array( $account_addons ) ) {
@@ -354,6 +400,7 @@
 		$addons_to_show = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
 	?>
 	<?php if ( 0 < count( $addons_to_show ) ) : ?>
+		<!-- Add-Ons -->
 		<div class="postbox">
 		<div class="">
 		<!--				<div class="inside">-->
@@ -625,4 +672,12 @@
 	</div>
 	</div>
 	</div>
-<?php fs_require_template( 'powered-by.php' ) ?>
+<?php
+	$params = array(
+		'page'           => 'account',
+		'module_id'      => $fs->get_id(),
+		'module_slug'    => $slug,
+		'module_version' => $fs->get_plugin_version(),
+	);
+	fs_require_template( 'powered-by.php', $params );
+?>

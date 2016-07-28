@@ -539,6 +539,12 @@
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
 				}
+
+				if ( ! $this->is_addon() ) {
+					if ( $this->is_registered() ) {
+						$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
+					}
+				}
 			}
 		}
 
@@ -1207,6 +1213,7 @@
 			$users          = self::get_all_users();
 			$addons         = self::get_all_addons();
 			$account_addons = self::get_all_account_addons();
+			$licenses       = self::get_all_licenses();
 
 //			$plans    = self::get_all_plans();
 //			$licenses = self::get_all_licenses();
@@ -1216,6 +1223,7 @@
 				'users'          => $users,
 				'addons'         => $addons,
 				'account_addons' => $account_addons,
+				'licenses'       => $licenses,
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
@@ -2177,22 +2185,24 @@
 
 			$this->do_action( 'initiated' );
 
+					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+						if ( isset( $this->_storage->prev_is_premium ) ) {
+					$this->apply_filters(
+						'after_code_type_change',
+						// New code type.
+						$this->_plugin->is_premium
+					);
+						} else {
+							// Set for code type for the first time.
+							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
+						}
+					}
+
 			if ( ! $this->is_addon() ) {
 				if ( $this->is_registered() ) {
 					// Fix for upgrade from versions < 1.0.9.
 					if ( ! isset( $this->_storage->activation_timestamp ) ) {
 						$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
-					}
-					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
-						if ( isset( $this->_storage->prev_is_premium ) ) {
-							add_action( is_admin() ? 'admin_init' : 'init', array(
-								&$this,
-								'_plugin_code_type_changed'
-							) );
-						} else {
-							// Set for code type for the first time.
-							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
-						}
 					}
 
 					$this->do_action( 'after_init_plugin_registered' );
@@ -2412,12 +2422,34 @@
 		}
 
 		/**
+		 * Triggered after code type has changed.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9.1
+		 */
+		function _after_code_type_change() {
+			$this->_logger->entrance();
+
+			/**
+			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
+			 */
+			unset( $this->_storage->plugin_main_file );
+
+			add_action( is_admin() ? 'admin_init' : 'init', array(
+				&$this,
+				'_plugin_code_type_changed'
+			) );
+		}
+
+		/**
 		 * Handles plugin's code type change (free <--> premium).
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
 		function _plugin_code_type_changed() {
+			$this->_logger->entrance();
+
 			// Schedule code type changes event.
 //			$this->sync_install();
 			$this->schedule_install_sync();
@@ -2840,6 +2872,8 @@
 				// Sync add-ons collection.
 				$this->_sync_addons( true );
 			}
+
+			$this->do_action('after_sync_cron');
 		}
 
 		/**
@@ -5669,6 +5703,25 @@
 			return ( $add_action_nonce && is_string( $action ) ) ?
 				wp_nonce_url( $this->_get_admin_page_url( 'account', $params ), $action ) :
 				$this->_get_admin_page_url( 'account', $params );
+		}
+
+		/**
+		 * @author  Vova Feldman (@svovaf)
+		 * @since   1.2.0
+		 *
+		 * @param string $tab
+		 * @param bool   $action
+		 * @param array  $params
+		 * @param bool   $add_action_nonce
+		 *
+		 * @return string
+		 *
+		 * @uses    get_account_url()
+		 */
+		function get_account_tab_url( $tab, $action = false, $params = array(), $add_action_nonce = true ) {
+			$params['tab'] = $tab;
+
+			return $this->get_account_url( $action, $params, $add_action_nonce );
 		}
 
 		/**
@@ -8648,6 +8701,24 @@
 		}
 
 		/**
+		 * Get payment invoice URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @param bool|number $payment_id
+		 *
+		 * @return string
+		 */
+		function _get_invoice_api_url( $payment_id = false ) {
+			$this->_logger->entrance();
+
+			return $this->get_api_user_scope()->get_signed_url(
+				"/payments/{$payment_id}/invoice.pdf"
+			);
+		}
+
+		/**
 		 * Get latest plugin download link.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -9256,7 +9327,11 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
+			if ( 'billing' === fs_request_get( 'tab' ) ) {
+				fs_require_once_template( 'billing.php', $vars );
+			} else {
 			fs_require_once_template( 'account.php', $vars );
+		}
 		}
 
 		/**
