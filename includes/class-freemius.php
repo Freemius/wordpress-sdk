@@ -495,6 +495,12 @@
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
 				}
+
+				if ( ! $this->is_addon() ) {
+					if ( $this->is_registered() ) {
+						$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
+					}
+				}
 			}
 		}
 
@@ -2079,22 +2085,24 @@
 
 			$this->do_action( 'initiated' );
 
+					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+						if ( isset( $this->_storage->prev_is_premium ) ) {
+					$this->apply_filters(
+						'after_code_type_change',
+						// New code type.
+						$this->_plugin->is_premium
+					);
+						} else {
+							// Set for code type for the first time.
+							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
+						}
+					}
+
 			if ( ! $this->is_addon() ) {
 				if ( $this->is_registered() ) {
 					// Fix for upgrade from versions < 1.0.9.
 					if ( ! isset( $this->_storage->activation_timestamp ) ) {
 						$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
-					}
-					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
-						if ( isset( $this->_storage->prev_is_premium ) ) {
-							add_action( is_admin() ? 'admin_init' : 'init', array(
-								&$this,
-								'_plugin_code_type_changed'
-							) );
-						} else {
-							// Set for code type for the first time.
-							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
-						}
 					}
 
 					$this->do_action( 'after_init_plugin_registered' );
@@ -2314,12 +2322,34 @@
 		}
 
 		/**
+		 * Triggered after code type has changed.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.9.1
+		 */
+		function _after_code_type_change() {
+			$this->_logger->entrance();
+
+			/**
+			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
+			 */
+			unset( $this->_storage->plugin_main_file );
+
+			add_action( is_admin() ? 'admin_init' : 'init', array(
+				&$this,
+				'_plugin_code_type_changed'
+			) );
+		}
+
+		/**
 		 * Handles plugin's code type change (free <--> premium).
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
 		function _plugin_code_type_changed() {
+			$this->_logger->entrance();
+
 			// Schedule code type changes event.
 //			$this->sync_install();
 			$this->schedule_install_sync();
