@@ -149,8 +149,8 @@ HTML;
 						'reason_info': userReason
 					},
 					beforeSend: function () {
-						_parent.find('.button').addClass('disabled');
-						_parent.find('.button-secondary').text('Processing...');
+						_parent.find('.fs-modal-footer .button').addClass('disabled');
+						_parent.find('.fs-modal-footer .button-secondary').text('Processing...');
 					},
 					complete  : function () {
 						// Do not show the dialog box, deactivate the plugin.
