@@ -24,7 +24,7 @@
 
 		if ( isset( $reason['extra_message'] ) && ! empty( $reason['extra_message'] ) ) {
 			$list_item_classes .= ' has-extra-message';
-			$reason_extra_message = html_entity_decode( $reason['extra_message'] );
+			$reason_extra_message = $reason['extra_message'];
 		} else {
 			$reason_extra_message = '';
 		}

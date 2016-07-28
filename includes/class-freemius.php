@@ -671,7 +671,7 @@
 					'slug' => $this->_slug
 				);
 
-				$reason_dont_share_info['extra_message'] = htmlentities( fs_get_template( 'reason-dont-share-data-skip-option.php', $template_var ) );
+				$reason_dont_share_info['extra_message'] = fs_get_template( 'reason-dont-share-data-skip-option.php', $template_var );
 			}
 			
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
