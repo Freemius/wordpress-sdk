@@ -658,6 +658,28 @@
 				);
 			}
 
+			$reason_dont_share_info   = array(
+				'id'                => 9,
+				'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
+				'input_type'        => '',
+				'input_placeholder' => ''
+			);
+
+			/**
+			 * If the current user has selected the "don't share data" reason in the deactivation feedback modal, inform the
+			 * user by showing additional message that he doesn't have to share data and can just choose to skip the opt-in
+			 * (the Skip button is included in the message to show). This message will only be shown if anonymous mode is
+			 * enabled and the user's account is currently not in pending activation state (similar to the way the Skip
+			 * button in the opt-in form is shown/hidden).
+			 */
+			if ( $this->is_enable_anonymous() && ! $this->is_pending_activation() ) {
+				$template_var = array(
+					'slug' => $this->_slug
+				);
+
+				$reason_dont_share_info['internal_message'] = fs_get_template( 'reason-dont-share-data-skip-option.php', $template_var );
+			}
+			
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
 			$long_term_user_reasons[] = $reason_other;
 
@@ -670,12 +692,7 @@
 						'input_type'        => '',
 						'input_placeholder' => ''
 					),
-					array(
-						'id'                => 9,
-						'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
-						'input_type'        => '',
-						'input_placeholder' => ''
-					),
+					$reason_dont_share_info,
 					$reason_found_better_plugin,
 					$reason_temporary_deactivation,
 					$reason_other

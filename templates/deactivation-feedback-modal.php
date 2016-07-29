@@ -20,8 +20,30 @@
 	$reasons_list_items_html = '';
 
 	foreach ( $reasons as $reason ) {
-		$list_item_classes = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
-		$reasons_list_items_html .= '<li class="' . $list_item_classes . '" data-input-type="' . $reason['input_type'] . '" data-input-placeholder="' . $reason['input_placeholder'] . '"><label><span><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/></span><span>' . $reason['text'] . '</span></label></li>';
+		$list_item_classes    = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
+
+		if ( isset( $reason['internal_message'] ) && ! empty( $reason['internal_message'] ) ) {
+			$list_item_classes .= ' has-internal-message';
+			$reason_internal_message = $reason['internal_message'];
+		} else {
+			$reason_internal_message = '';
+		}
+
+		$reason_list_item_html = <<< HTML
+			<li class="{$list_item_classes}"
+			 	data-input-type="{$reason['input_type']}"
+			 	data-input-placeholder="{$reason['input_placeholder']}">
+	            <label>
+	            	<span>
+	            		<input type="radio" name="selected-reason" value="{$reason['id']}"/>
+                    </span>
+                    <span>{$reason['text']}</span>
+                </label>
+                <div class="internal-message">{$reason_internal_message}</div>
+            </li>
+HTML;
+
+		$reasons_list_items_html .= $reason_list_item_html;
 	}
 ?>
 <script type="text/javascript">
@@ -91,7 +113,7 @@
 			}, 150);
 		});
 
-		$modal.on('click', '.button', function (evt) {
+		$modal.on('click', '.fs-modal-footer .button', function (evt) {
 			evt.preventDefault();
 
 			if ($(this).hasClass('disabled')) {
@@ -127,8 +149,8 @@
 						'reason_info': userReason
 					},
 					beforeSend: function () {
-						_parent.find('.button').addClass('disabled');
-						_parent.find('.button-secondary').text('Processing...');
+						_parent.find('.fs-modal-footer .button').addClass('disabled');
+						_parent.find('.fs-modal-footer .button-secondary').text('Processing...');
 					},
 					complete  : function () {
 						// Do not show the dialog box, deactivate the plugin.
@@ -158,6 +180,12 @@
 			$modal.find('.button-deactivate').text('<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>');
 
 			enableDeactivateButton();
+
+			if ( _parent.hasClass( 'has-internal-message' ) ) {
+				$modal.find( '.internal-message' ).show();
+			} else {
+				$modal.find( '.internal-message' ).hide();
+			}
 
 			if (_parent.hasClass('has-input')) {
 				var inputType = _parent.data('input-type'),

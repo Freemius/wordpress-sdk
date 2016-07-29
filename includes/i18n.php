@@ -186,6 +186,7 @@
 		'placeholder-what-did-you-expect'          => __( "What did you expect?", 'freemius' ),
 		'reason-didnt-work'                        => __( "The plugin didn't work", 'freemius' ),
 		'reason-dont-like-to-share-my-information' => __( "I don't like to share my information with you", 'freemius' ),
+		'dont-have-to-share-any-data'              => __( "You might have missed it, but you don't have to share any data and can just %s the opt-in.", 'freemius' ),
 		#endregion Plugin Deactivation
 
 		#region Connect
@@ -214,6 +215,7 @@
 		'opt-in-connect'                           => _x( 'Allow & Continue', 'button label', 'freemius' ),
 		'agree-activate-license'                   => _x( 'Agree & Activate License', 'button label', 'freemius' ),
 		'skip'                                     => _x( 'Skip', 'verb', 'freemius' ),
+		'click-here-to-use-plugin-anonymously'     => __( 'Click here to use the plugin anonymously', 'freemius' ),
 		'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
 		'license-key'                              => __( 'License key', 'freemius' ),
 		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
