@@ -186,7 +186,7 @@
 		'placeholder-what-did-you-expect'          => __( "What did you expect?", 'freemius' ),
 		'reason-didnt-work'                        => __( "The plugin didn't work", 'freemius' ),
 		'reason-dont-like-to-share-my-information' => __( "I don't like to share my information with you", 'freemius' ),
-		'dont-have-to-share-any-data'              => __( "You might have missed it, but you don't have to share any data and can just %s the opt-in", 'freemius' ),
+		'dont-have-to-share-any-data'              => __( "You might have missed it, but you don't have to share any data and can just %s the opt-in.", 'freemius' ),
 		#endregion Plugin Deactivation
 
 		#region Connect
