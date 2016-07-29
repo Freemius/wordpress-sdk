@@ -22,11 +22,11 @@
 	foreach ( $reasons as $reason ) {
 		$list_item_classes    = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
 
-		if ( isset( $reason['extra_message'] ) && ! empty( $reason['extra_message'] ) ) {
-			$list_item_classes .= ' has-extra-message';
-			$reason_extra_message = $reason['extra_message'];
+		if ( isset( $reason['internal_message'] ) && ! empty( $reason['internal_message'] ) ) {
+			$list_item_classes .= ' has-internal-message';
+			$reason_internal_message = $reason['internal_message'];
 		} else {
-			$reason_extra_message = '';
+			$reason_internal_message = '';
 		}
 
 		$reason_list_item_html = <<< HTML
@@ -39,7 +39,7 @@
                     </span>
                     <span>{$reason['text']}</span>
                 </label>
-                <div class="extra-message">{$reason_extra_message}</div>
+                <div class="internal-message">{$reason_internal_message}</div>
             </li>
 HTML;
 
@@ -181,10 +181,10 @@ HTML;
 
 			enableDeactivateButton();
 
-			if ( _parent.hasClass( 'has-extra-message' ) ) {
-				$modal.find( '.extra-message' ).show();
+			if ( _parent.hasClass( 'has-internal-message' ) ) {
+				$modal.find( '.internal-message' ).show();
 			} else {
-				$modal.find( '.extra-message' ).hide();
+				$modal.find( '.internal-message' ).hide();
 			}
 
 			if (_parent.hasClass('has-input')) {
