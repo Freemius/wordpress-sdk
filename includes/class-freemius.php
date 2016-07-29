@@ -2330,11 +2330,6 @@
 		function _after_code_type_change() {
 			$this->_logger->entrance();
 
-			/**
-			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
-			 */
-			unset( $this->_storage->plugin_main_file );
-
 			add_action( is_admin() ? 'admin_init' : 'init', array(
 				&$this,
 				'_plugin_code_type_changed'
@@ -2388,6 +2383,11 @@
 					);
 				}
 			}
+
+			/**
+			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
+			 */
+			unset( $this->_storage->plugin_main_file );
 
 			// Update is_premium of latest version.
 			$this->_storage->prev_is_premium = $this->_plugin->is_premium;
