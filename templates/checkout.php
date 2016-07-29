@@ -95,7 +95,7 @@
 		}
 	}
 
-	$return_url = $this->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
+	$return_url = $fs->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
