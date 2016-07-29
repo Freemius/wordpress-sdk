@@ -444,9 +444,6 @@
 					}
 				}
 
-				// Hook to plugin uninstall.
-				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
-
 				if ( ! $this->is_ajax() ) {
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
@@ -462,6 +459,31 @@
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
+		}
+
+		/**
+		 * Keeping the uninstall hook registered for free or premium plugin version may result to a fatal error that
+		 * could happen when a user tries to uninstall either version while one of them is still active. Uninstalling a
+		 * plugin will trigger inclusion of the free or premium version and if one of them is active during the
+		 * uninstallation, a fatal error may occur in case the plugin's class or functions are already defined.
+		 *
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @since 1.2.0
+		 */
+		private function unregister_uninstall_hook() {
+			$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
+			unset( $uninstallable_plugins[ $this->_free_plugin_basename ] );
+			unset( $uninstallable_plugins[ $this->premium_plugin_basename() ] );
+
+			update_option( 'uninstall_plugins', $uninstallable_plugins );
+		}
+
+		/**
+		 * @since 1.2.0 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not fetch updates.
+		 */
+		private function clear_module_main_file_cache() {
+			unset( $this->_storage->plugin_main_file );
 		}
 
 		/**
@@ -2347,11 +2369,6 @@
 		function _after_code_type_change() {
 			$this->_logger->entrance();
 
-			/**
-			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
-			 */
-			unset( $this->_storage->plugin_main_file );
-
 			add_action( is_admin() ? 'admin_init' : 'init', array(
 				&$this,
 				'_plugin_code_type_changed'
@@ -2405,6 +2422,19 @@
 					);
 				}
 			}
+
+			/**
+			 * Unregister the uninstall hook for the other version of the plugin (with different code type) to avoid
+			 * triggering a fatal error when uninstalling that plugin. For example, after deactivating the "free" version
+			 * of a specific plugin, its uninstall hook should be unregistered after the "premium" version has been
+			 * activated. If we don't do that, a fatal error will occur when we try to uninstall the "free" version since
+			 * the main file of the "free" version will be loaded first before calling the hooked callback. Since the
+			 * free and premium versions are almost identical (same class or have same functions), a fatal error like
+			 * "Cannot redeclare class MyClass" or "Cannot redeclare my_function()" will occur.
+			 */
+			$this->unregister_uninstall_hook();
+
+			$this->clear_module_main_file_cache();
 
 			// Update is_premium of latest version.
 			$this->_storage->prev_is_premium = $this->_plugin->is_premium;
@@ -3353,6 +3383,8 @@
 				return;
 			}
 
+			$this->unregister_uninstall_hook();
+
 			// Clear API cache on activation.
 			FS_Api::clear_cache();
 
@@ -3496,6 +3528,10 @@
 				$this->_storage->is_plugin_new_install = false;
 			}
 
+			// Hook to plugin uninstall.
+			register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+
+			$this->clear_module_main_file_cache();
 			$this->clear_sync_cron();
 			$this->clear_install_sync_cron();
 
