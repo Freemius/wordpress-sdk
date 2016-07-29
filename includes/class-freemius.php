@@ -7465,6 +7465,36 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 * @uses   FS_Api
+		 *
+		 * @param number|bool $plugin_id
+		 *
+		 * @return FS_Payment[]|object
+		 */
+		function _fetch_payments( $plugin_id = false ) {
+			$this->_logger->entrance();
+
+			$api = $this->get_api_user_scope();
+
+			if ( ! is_numeric( $plugin_id ) ) {
+				$plugin_id = $this->_plugin->id;
+			}
+
+			$result = $api->get( "/plugins/{$plugin_id}/payments.json", true );
+
+			if ( ! isset( $result->error ) ) {
+				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
+					$result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
+				}
+				$result = $result->payments;
+			}
+
+			return $result;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
 		 * @param FS_Plugin_Plan $plan
