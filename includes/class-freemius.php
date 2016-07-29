@@ -444,9 +444,6 @@
 					}
 				}
 
-				// Hook to plugin uninstall.
-				register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
-
 				if ( ! $this->is_ajax() ) {
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
@@ -465,22 +462,28 @@
 		}
 
 		/**
+		 * Keeping the uninstall hook registered for free or premium plugin version may result to a fatal error that
+		 * could happen when a user tries to uninstall either version while one of them is still active. Uninstalling a
+		 * plugin will trigger inclusion of the free or premium version and if one of them is active during the
+		 * uninstallation, a fatal error may occur in case the plugin's class or functions are already defined.
+		 *
 		 * @author Leo Fajardo (leorw)
 		 *
 		 * @since 1.2.0
 		 */
 		private function unregister_uninstall_hook() {
-			/**
-			 * If the current plugin is premium, we need to unregister the uninstall hook for the free plugin in order to
-			 * avoid a fatal error that could happen when a user tries to uninstall the free plugin. The same for the other
-			 * case (if the current plugin is free, unregister the uninstall hook for the premium).
-			 */
-			$plugin_basename = ( $this->is_premium() ? $this->_free_plugin_basename : $this->_plugin_basename );
-
-			$uninstallable_plugins = (array) get_option('uninstall_plugins');
-			unset( $uninstallable_plugins[ $plugin_basename ] );
+			$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
+			unset( $uninstallable_plugins[ $this->_free_plugin_basename ] );
+			unset( $uninstallable_plugins[ $this->premium_plugin_basename() ] );
 
 			update_option( 'uninstall_plugins', $uninstallable_plugins );
+		}
+
+		/**
+		 * @since 1.2.0 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not fetch updates.
+		 */
+		private function clear_module_main_file_cache() {
+			unset( $this->_storage->plugin_main_file );
 		}
 
 		/**
@@ -2414,10 +2417,7 @@
 			 */
 			$this->unregister_uninstall_hook();
 
-			/**
-			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
-			 */
-			unset( $this->_storage->plugin_main_file );
+			$this->clear_module_main_file_cache();
 
 			// Update is_premium of latest version.
 			$this->_storage->prev_is_premium = $this->_plugin->is_premium;
@@ -3366,6 +3366,8 @@
 				return;
 			}
 
+			$this->unregister_uninstall_hook();
+
 			// Clear API cache on activation.
 			FS_Api::clear_cache();
 
@@ -3509,6 +3511,10 @@
 				$this->_storage->is_plugin_new_install = false;
 			}
 
+			// Hook to plugin uninstall.
+			register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+
+			$this->clear_module_main_file_cache();
 			$this->clear_sync_cron();
 			$this->clear_install_sync_cron();
 
