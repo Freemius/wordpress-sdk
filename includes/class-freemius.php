@@ -465,6 +465,25 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (leorw)
+		 *
+		 * @since 1.2.0
+		 */
+		private function unregister_uninstall_hook() {
+			/**
+			 * If the current plugin is premium, we need to unregister the uninstall hook for the free plugin in order to
+			 * avoid a fatal error that could happen when a user tries to uninstall the free plugin. The same for the other
+			 * case (if the current plugin is free, unregister the uninstall hook for the premium).
+			 */
+			$plugin_basename = ( $this->is_premium() ? $this->_free_plugin_basename : $this->_plugin_basename );
+
+			$uninstallable_plugins = (array) get_option('uninstall_plugins');
+			unset( $uninstallable_plugins[ $plugin_basename ] );
+
+			update_option( 'uninstall_plugins', $uninstallable_plugins );
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
@@ -2383,6 +2402,17 @@
 					);
 				}
 			}
+
+			/**
+			 * Unregister the uninstall hook for the other version of the plugin (with different code type) to avoid
+			 * triggering a fatal error when uninstalling that plugin. For example, after deactivating the "free" version
+			 * of a specific plugin, its uninstall hook should be unregistered after the "premium" version has been
+			 * activated. If we don't do that, a fatal error will occur when we try to uninstall the "free" version since
+			 * the main file of the "free" version will be loaded first before calling the hooked callback. Since the
+			 * free and premium versions are almost identical (same class or have same functions), a fatal error like
+			 * "Cannot redeclare class MyClass" or "Cannot redeclare my_function()" will occur.
+			 */
+			$this->unregister_uninstall_hook();
 
 			/**
 			 * @since 1.1.9.1 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not to fetch updates.
