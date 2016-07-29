@@ -5466,7 +5466,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.9.1
 		 *
-		 * @param bool $plugin_id
+		 * @param bool|number $plugin_id
 		 * @param bool $add_action_nonce
 		 *
 		 * @return string
