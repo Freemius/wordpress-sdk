@@ -49,6 +49,9 @@
 
 	$require_license_key = $is_premium_only ||
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
+
+	if ($is_pending_activation)
+		$require_license_key = false;
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
