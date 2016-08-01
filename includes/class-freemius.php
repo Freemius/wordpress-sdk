@@ -706,9 +706,13 @@
 
 			$reason_temporary_deactivation = array(
 				'id'                => 15,
-				'text'              => __fs( 'reason-temporary-deactivation', $this->_slug ),
-				'input_type'        => '',
-				'input_placeholder' => ''
+				'text' => sprintf(
+					__fs( 'reason-temporary-x', $this->_slug ),
+					strtolower( $this->is_plugin() ?
+						__fs( 'deactivation', $this->_slug ) :
+						__fs( 'theme-switch', $this->_slug )
+					)
+				)
 			);
 
 			$reason_other = array(
@@ -722,27 +726,19 @@
 				array(
 					'id'                => 1,
 					'text'              => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $module_type ),
-					'input_type'        => '',
-					'input_placeholder' => ''
 				),
 				$reason_found_better_plugin,
 				array(
 					'id'                => 3,
 					'text'              => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $module_type ),
-					'input_type'        => '',
-					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 4,
 					'text'              => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $module_type ),
-					'input_type'        => '',
-					'input_placeholder' => ''
 				),
 				array(
 					'id'                => 5,
 					'text'              => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $module_type ),
-					'input_type'        => '',
-					'input_placeholder' => ''
 				)
 			);
 
@@ -758,61 +754,63 @@
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
 			$long_term_user_reasons[] = $reason_other;
 
-			$uninstall_reasons = array(
-				'long-term'                                   => $long_term_user_reasons,
-				'non-registered-and-non-anonymous-short-term' => array(
-					array(
-						'id'                => 8,
-						'text'              => sprintf( __fs( 'reason-didnt-work', $this->_slug ), $module_type ),
-						'input_type'        => '',
-						'input_placeholder' => ''
-					),
-					array(
-						'id'                => 9,
-						'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
-						'input_type'        => '',
-						'input_placeholder' => ''
-					),
-					$reason_found_better_plugin,
-					$reason_temporary_deactivation,
-					$reason_other
-				),
-				'short-term'                                  => array(
-					array(
+			$short_term_reasons = array();
+			if ( $this->is_plugin() ) {
+				// Themes are automatically working, so "I couldn't understand how to make it work"
+				// only relevant for plugins.
+				$short_term_reasons[] = array(
 						'id'                => 10,
 						'text'              => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
-						'input_type'        => '',
-						'input_placeholder' => ''
-					),
-					$reason_found_better_plugin,
-					array(
+				);
+			}
+			$short_term_reasons[] = $reason_found_better_plugin;
+			$short_term_reasons[] = array(
 						'id'                => 11,
 						'text'              => sprintf( __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
 							$module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
-					),
-					array(
+			);
+			if ( $this->is_plugin() ) {
+				$short_term_reasons[] = array(
 						'id'                => 12,
 						'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
-					),
-					array(
+				);
+			}
+			$short_term_reasons[] = array(
 						'id'                => 13,
 						'text'              => __fs( 'reason-not-what-i-was-looking-for', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for', $this->_slug )
-					),
-					array(
+			);
+			$short_term_reasons[] = array(
 						'id'                => 14,
 						'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $module_type ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
+			);
+			$short_term_reasons[] = $reason_temporary_deactivation;
+			$short_term_reasons[] = $reason_other;
+
+
+			$uninstall_reasons = array(
+				'long-term'                                   => $long_term_user_reasons,
+				'non-registered-and-non-anonymous-short-term' => array(
+					array(
+						'id'   => 8,
+						'text' => sprintf( __fs( 'reason-didnt-work', $this->_slug ), $module_type ),
 					),
+					array(
+						'id'   => 9,
+						'text' => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
+					),
+					$reason_found_better_plugin,
 					$reason_temporary_deactivation,
 					$reason_other
-				)
+				),
+				'short-term'                                  => $short_term_reasons
 			);
 
 			$uninstall_reasons = $this->apply_filters( 'uninstall_reasons', $uninstall_reasons );

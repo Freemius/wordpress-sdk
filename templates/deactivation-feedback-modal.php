@@ -21,7 +21,13 @@
 
 	foreach ( $reasons as $reason ) {
 		$list_item_classes = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
-		$reasons_list_items_html .= '<li class="' . $list_item_classes . '" data-input-type="' . $reason['input_type'] . '" data-input-placeholder="' . $reason['input_placeholder'] . '"><label><span><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/></span><span>' . $reason['text'] . '</span></label></li>';
+
+		$reasons_list_items_html .= '<li
+	class="' . $list_item_classes . '"
+	data-input-type="' . ( ! empty( $reason['input_type'] ) ? $reason['input_type'] : '' ) . '"
+	data-input-placeholder="' . ( ! empty( $reason['input_placeholder'] ) ? $reason['input_placeholder'] : '' ) . '">
+		<label><span><input type="radio" name="selected-reason" value="' . $reason['id'] . '"/></span><span>' . $reason['text'] . '</span></label>
+</li>';
 	}
 ?>
 <script type="text/javascript">
@@ -32,7 +38,7 @@
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
-		    + '			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs(  'deactivation-share-reason' , $slug ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
+		    + '			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs(  'deactivation-share-reason' , $slug ), __fs(($fs->is_plugin() ? 'deactivating' : 'switching') , $slug) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
@@ -40,11 +46,11 @@
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
-	    $modal           = $(modalHtml),
-	    $deactivateLink  = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
-		selectedReasonID = false,
-		moduleSlug       = '<?php echo $slug; ?>',
-		redirectLink     = '';
+	    $modal = $(modalHtml),
+	    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
+	    selectedReasonID = false,
+	    moduleSlug = '<?php echo $slug; ?>',
+	    redirectLink = '';
 
 	$modal.appendTo($('body'));
 
@@ -56,7 +62,7 @@
 		$deactivateLink.click(function (evt) {
 			evt.preventDefault();
 
-			redirectLink = $( this ).attr( 'href' );
+			redirectLink = $(this).attr('href');
 
 			showModal();
 		});
@@ -67,10 +73,10 @@
 		 * params that tell WordPress to deactivate the current theme and activate a different theme.
 		 */
 		} else { ?>
-		$( 'body' ).on( 'click', '.theme-actions .button.activate', function( evt ) {
+		$('body').on('click', '.theme-actions .button.activate', function (evt) {
 			evt.preventDefault();
 
-			redirectLink = $( this ).attr( 'href' );
+			redirectLink = $(this).attr('href');
 
 			showModal();
 		});
@@ -177,7 +183,12 @@
 			var _parent = $(this).parents('li:first');
 
 			$modal.find('.reason-input').remove();
-			$modal.find('.button-deactivate').text('<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>');
+			$modal.find('.button-deactivate').text('<?php printf(
+				__fs(  'deactivation-modal-button-submit' , $slug ),
+				$fs->is_plugin() ?
+					__fs('deactivate', $slug) :
+					sprintf( __fs( 'activate-x', $slug), __fs( 'theme', $slug) )
+			) ?>');
 
 			enableDeactivateButton();
 
@@ -291,9 +302,19 @@
 
 		// Reset the deactivate button's text.
 		if ('confirm' === getCurrentPanel()) {
-			$deactivateButton.text('<?php printf( __fs( 'deactivation-modal-button-confirm' , $slug ) ); ?>');
+			$deactivateButton.text('<?php printf(
+				__fs( 'deactivation-modal-button-confirm' , $slug ),
+				$fs->is_plugin() ?
+					__fs('deactivate', $slug) :
+					sprintf( __fs( 'activate-x', $slug), __fs( 'theme', $slug) )
+			) ?>');
 		} else {
-			$deactivateButton.text('<?php printf( __fs( 'skip-deactivate' , $slug ) ); ?>');
+			$deactivateButton.text('<? printf(
+				__fs('skip-and-x', $slug),
+				$fs->is_plugin() ?
+					__fs('deactivate', $slug) :
+					sprintf( __fs( 'activate-x', $slug), __fs( 'theme', $slug) )
+			) ?>');
 		}
 	}
 
