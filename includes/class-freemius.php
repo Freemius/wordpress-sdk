@@ -622,6 +622,12 @@
 		 * @return array The uninstall reasons for the specified user type.
 		 */
 		function _get_uninstall_reasons( $user_type = 'long-term' ) {
+			$internal_message_template_var = array(
+				'slug' => $this->_slug
+			);
+
+			$contact_support_template = fs_get_template( 'contact-support-before-deactivation.php', $internal_message_template_var );
+
 			$reason_found_better_plugin = array(
 				'id'                => 2,
 				'text'              => __fs( 'reason-found-a-better-plugin', $this->_slug ),
@@ -661,13 +667,15 @@
 					'id'                => 4,
 					'text'              => __fs( 'reason-broke-my-site', $this->_slug ),
 					'input_type'        => '',
-					'input_placeholder' => ''
+					'input_placeholder' => '',
+					'internal_message'  => $contact_support_template
 				),
 				array(
 					'id'                => 5,
 					'text'              => __fs( 'reason-suddenly-stopped-working', $this->_slug ),
 					'input_type'        => '',
-					'input_placeholder' => ''
+					'input_placeholder' => '',
+					'internal_message'  => $contact_support_template
 				)
 			);
 
@@ -695,11 +703,7 @@
 			 * button in the opt-in form is shown/hidden).
 			 */
 			if ( $this->is_enable_anonymous() && ! $this->is_pending_activation() ) {
-				$template_var = array(
-					'slug' => $this->_slug
-				);
-
-				$reason_dont_share_info['internal_message'] = fs_get_template( 'reason-dont-share-data-skip-option.php', $template_var );
+				$reason_dont_share_info['internal_message'] = fs_get_template( 'reason-dont-share-data-skip-option.php', $internal_message_template_var );
 			}
 			
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
@@ -712,7 +716,8 @@
 						'id'                => 8,
 						'text'              => __fs( 'reason-didnt-work', $this->_slug ),
 						'input_type'        => '',
-						'input_placeholder' => ''
+						'input_placeholder' => '',
+						'internal_message'  => $contact_support_template
 					),
 					$reason_dont_share_info,
 					$reason_found_better_plugin,
@@ -724,7 +729,8 @@
 						'id'                => 10,
 						'text'              => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
 						'input_type'        => '',
-						'input_placeholder' => ''
+						'input_placeholder' => '',
+						'internal_message'  => $contact_support_template
 					),
 					$reason_found_better_plugin,
 					array(
