@@ -5616,7 +5616,7 @@
 		 * @return string
 		 */
 		function _get_admin_page_url( $page = '', $params = array() ) {
-			if ( ! $this->has_settings_menu() && $this->is_theme() ) {
+			if ( empty($page) && ! $this->has_settings_menu() && $this->is_theme() ) {
 				return add_query_arg( $params, admin_url( 'themes.php' ) );
 			}
 
@@ -6550,11 +6550,9 @@
 			} else {
 				$this->add_menu_action();
 
-				if ( $this->has_settings_menu() ) {
 					$this->add_submenu_items();
 				}
 			}
-		}
 
 		/**
 		 * Admin dashboard menu items modifications.
