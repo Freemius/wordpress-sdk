@@ -112,6 +112,22 @@
 		}
 
 		/**
+		 * Checks if this plan supports "Technical Support".
+		 *
+		 * @author Leo Fajardo (leorw)
+		 * @since 1.2.0
+		 *
+		 * @return bool
+		 */
+		function has_technical_support() {
+			return ( ! empty( $this->support_email ) ||
+			     ! empty( $this->support_skype ) ||
+			     ! empty( $this->support_phone ) ||
+			     ! empty( $this->is_success_manager )
+			);
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *

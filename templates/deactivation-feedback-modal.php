@@ -177,14 +177,13 @@ HTML;
 			var _parent = $(this).parents('li:first');
 
 			$modal.find('.reason-input').remove();
+			$modal.find( '.internal-message' ).hide();
 			$modal.find('.button-deactivate').text('<?php printf( __fs(  'deactivation-modal-button-submit' , $slug ) ); ?>');
 
 			enableDeactivateButton();
 
 			if ( _parent.hasClass( 'has-internal-message' ) ) {
-				$modal.find( '.internal-message' ).show();
-			} else {
-				$modal.find( '.internal-message' ).hide();
+				_parent.find( '.internal-message' ).show();
 			}
 
 			if (_parent.hasClass('has-input')) {
