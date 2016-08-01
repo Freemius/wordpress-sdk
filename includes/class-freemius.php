@@ -235,7 +235,7 @@
 
 		// Module types
 		const MODULE_TYPE_PLUGIN = 'plugin';
-		const MODULE_TYPE_THEME  = 'theme';
+		const MODULE_TYPE_THEME = 'theme';
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -495,7 +495,10 @@
 
 				if ( $this->is_plugin() ) {
 					// Hook to plugin uninstall.
-					register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
+					register_uninstall_hook( $this->_plugin_main_file_path, array(
+						'Freemius',
+						'_uninstall_plugin_hook'
+					) );
 				}
 
 				if ( ! $this->is_ajax() ) {
@@ -539,7 +542,10 @@
 				// If user is paying or in trial and have the free version installed,
 				// assume that the deactivation is for the upgrade process.
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-					add_action( "wp_ajax_{$this->_slug}_submit_uninstall_reason", array( &$this, '_submit_uninstall_reason_action' ) );
+					add_action( "wp_ajax_{$this->_slug}_submit_uninstall_reason", array(
+						&$this,
+						'_submit_uninstall_reason_action'
+					) );
 
 					global $pagenow;
 					if ( in_array( $pagenow, array( 'plugins.php', 'themes.php' ) ) ) {
@@ -593,8 +599,8 @@
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 
-			$all_plugins        = get_plugins();
-			$all_plugins_paths  = array();
+			$all_plugins       = get_plugins();
+			$all_plugins_paths = array();
 
 			// Get active plugin's main files real full names (might be symlinks).
 			foreach ( $all_plugins as $relative_path => &$data ) {
@@ -705,7 +711,7 @@
 			);
 
 			$reason_temporary_deactivation = array(
-				'id'                => 15,
+				'id'   => 15,
 				'text' => sprintf(
 					__fs( 'reason-temporary-x', $this->_slug ),
 					strtolower( $this->is_plugin() ?
@@ -724,21 +730,21 @@
 
 			$long_term_user_reasons = array(
 				array(
-					'id'                => 1,
-					'text'              => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $module_type ),
+					'id'   => 1,
+					'text' => sprintf( __fs( 'reason-no-longer-needed', $this->_slug ), $module_type ),
 				),
 				$reason_found_better_plugin,
 				array(
-					'id'                => 3,
-					'text'              => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $module_type ),
+					'id'   => 3,
+					'text' => sprintf( __fs( 'reason-needed-for-a-short-period', $this->_slug ), $module_type ),
 				),
 				array(
-					'id'                => 4,
-					'text'              => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $module_type ),
+					'id'   => 4,
+					'text' => sprintf( __fs( 'reason-broke-my-site', $this->_slug ), $module_type ),
 				),
 				array(
-					'id'                => 5,
-					'text'              => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $module_type ),
+					'id'   => 5,
+					'text' => sprintf( __fs( 'reason-suddenly-stopped-working', $this->_slug ), $module_type ),
 				)
 			);
 
@@ -759,37 +765,37 @@
 				// Themes are automatically working, so "I couldn't understand how to make it work"
 				// only relevant for plugins.
 				$short_term_reasons[] = array(
-						'id'                => 10,
-						'text'              => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
+					'id'   => 10,
+					'text' => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
 				);
 			}
 			$short_term_reasons[] = $reason_found_better_plugin;
 			$short_term_reasons[] = array(
-						'id'                => 11,
-						'text'              => sprintf( __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
-							$module_type ),
-						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
+				'id'                => 11,
+				'text'              => sprintf( __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
+					$module_type ),
+				'input_type'        => 'textarea',
+				'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
 			);
 			if ( $this->is_plugin() ) {
 				$short_term_reasons[] = array(
-						'id'                => 12,
-						'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $module_type ),
-						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
+					'id'                => 12,
+					'text'              => sprintf( __fs( 'reason-not-working', $this->_slug ), $module_type ),
+					'input_type'        => 'textarea',
+					'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
 				);
 			}
 			$short_term_reasons[] = array(
-						'id'                => 13,
-						'text'              => __fs( 'reason-not-what-i-was-looking-for', $this->_slug ),
-						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for', $this->_slug )
+				'id'                => 13,
+				'text'              => __fs( 'reason-not-what-i-was-looking-for', $this->_slug ),
+				'input_type'        => 'textarea',
+				'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for', $this->_slug )
 			);
 			$short_term_reasons[] = array(
-						'id'                => 14,
-						'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $module_type ),
-						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
+				'id'                => 14,
+				'text'              => sprintf( __fs( 'reason-didnt-work-as-expected', $this->_slug ), $module_type ),
+				'input_type'        => 'textarea',
+				'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
 			);
 			$short_term_reasons[] = $reason_temporary_deactivation;
 			$short_term_reasons[] = $reason_other;
@@ -2193,18 +2199,18 @@
 
 			$this->do_action( 'initiated' );
 
-					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
-						if ( isset( $this->_storage->prev_is_premium ) ) {
+			if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+				if ( isset( $this->_storage->prev_is_premium ) ) {
 					$this->apply_filters(
 						'after_code_type_change',
 						// New code type.
 						$this->_plugin->is_premium
 					);
-						} else {
-							// Set for code type for the first time.
-							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
-						}
-					}
+				} else {
+					// Set for code type for the first time.
+					$this->_storage->prev_is_premium = $this->_plugin->is_premium;
+				}
+			}
 
 			if ( ! $this->is_addon() ) {
 				if ( $this->is_registered() ) {
@@ -2881,7 +2887,7 @@
 				$this->_sync_addons( true );
 			}
 
-			$this->do_action('after_sync_cron');
+			$this->do_action( 'after_sync_cron' );
 		}
 
 		/**
@@ -4243,8 +4249,8 @@
 				} else {
 					$theme_data  = wp_get_theme();
 					$plugin_data = array(
-						'Name'    => $theme_data->get('Name'),
-						'Version' => $theme_data->get('Version')
+						'Name'    => $theme_data->get( 'Name' ),
+						'Version' => $theme_data->get( 'Version' )
 					);
 				}
 
@@ -6551,9 +6557,9 @@
 			} else {
 				$this->add_menu_action();
 
-					$this->add_submenu_items();
-				}
+				$this->add_submenu_items();
 			}
+		}
 
 		/**
 		 * Admin dashboard menu items modifications.
@@ -7605,7 +7611,7 @@
 				} else if ( is_object( $this->_license ) ) {
 					// Fetch foreign license by ID and license key.
 					$license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
-					                     urlencode( $this->_license->secret_key ) );
+					                      urlencode( $this->_license->secret_key ) );
 
 					if ( ! isset( $license->error ) ) {
 						$result[] = new FS_Plugin_License( $license );
@@ -9015,7 +9021,7 @@
 				$query_params = array( 'fs_action' => $this->_slug . '_show_optin' );
 			}
 
-			return $this->apply_filters('connect_url', $this->_get_admin_page_url( '', $query_params ) );
+			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $query_params ) );
 		}
 
 		/**
@@ -9324,8 +9330,8 @@
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
 				fs_require_once_template( 'billing.php', $vars );
 			} else {
-			fs_require_once_template( 'account.php', $vars );
-		}
+				fs_require_once_template( 'account.php', $vars );
+			}
 		}
 
 		/**
