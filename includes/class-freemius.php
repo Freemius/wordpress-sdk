@@ -4184,7 +4184,17 @@
 			if ( ! isset( $this->_plugin_data ) ) {
 				self::require_plugin_essentials();
 
-				$this->_plugin_data = get_plugin_data( $this->_plugin_main_file_path );
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since 1.2.0 When using get_plugin_data() do NOT translate plugin data.
+				 * 
+				 * @link https://github.com/Freemius/wordpress-sdk/issues/77
+				 */
+				$this->_plugin_data = get_plugin_data(
+					$this->_plugin_main_file_path,
+					false,
+					false
+				);
 			}
 
 			return $this->_plugin_data;
