@@ -314,12 +314,14 @@
 			 * @author Vova Feldman (@svovaf)
 			 * @since 1.1.9
 			 */
-			$licenseKeyInput.on('keyup', function () {
-				if ('' === $(this).val()) {
-					$primaryCta.attr('disabled', 'disabled');
-				} else {
-					$primaryCta.prop('disabled', false);
-				}
+			$licenseKeyInput.on('keyup paste delete cut', function () {
+				setTimeout(function() {
+					if ('' === $licenseKeyInput.val()) {
+						$primaryCta.attr('disabled', 'disabled');
+					} else {
+						$primaryCta.prop('disabled', false);
+					}
+				}, 100);
 			}).focus();
 		}
 
