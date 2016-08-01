@@ -67,6 +67,12 @@
 		 * @var string
 		 */
 		private $_plugin_name;
+		/**
+		 * @since 1.2.0
+		 *
+		 * @var string
+		 */
+		private $_module_type;
 
 		#endregion Plugin Info
 
@@ -243,6 +249,7 @@
 
 			$this->identify_caller_main_file_and_type();
 
+			$this->_module_type           = $this->_storage->plugin_main_file->module_type;
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
@@ -688,7 +695,7 @@
 		 * @return array The uninstall reasons for the specified user type.
 		 */
 		function _get_uninstall_reasons( $user_type = 'long-term' ) {
-			$module_type = $this->get_module_type();
+			$module_type = $this->_module_type;
 
 			$reason_found_better_plugin = array(
 				'id'                => 2,
@@ -1551,7 +1558,7 @@
 								sprintf(
 									'<b>%s</b> - %s',
 									__fs( 'sysadmin-title', $this->_slug ),
-									sprintf( __fs( 'curl-missing-sysadmin-desc', $this->_slug ), $this->get_module_type() )
+									sprintf( __fs( 'curl-missing-sysadmin-desc', $this->_slug ), $this->_module_type )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a>%s',
@@ -1617,7 +1624,7 @@
 										__fs( 'squid-sysadmin-desc', $this->_slug ),
 										// We use a filter since the plugin might require additional API connectivity.
 										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>',
-										$this->get_module_type() )
+										$this->_module_type )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a>%s',
@@ -2466,7 +2473,7 @@
 				) );
 
 				$this->_admin_notices->add_sticky(
-					sprintf( __fs( 'premium-activated-message', $this->_slug ), $this->get_module_type() ),
+					sprintf( __fs( 'premium-activated-message', $this->_slug ), $this->_module_type ),
 					'premium_activated',
 					__fs( 'woot', $this->_slug ) . '!'
 				);
@@ -3212,7 +3219,7 @@
 								$this->_admin_notices->add_sticky(
 									sprintf(
 										__fs( 'few-plugin-tweaks', $this->_slug ),
-										$this->get_module_type(),
+										$this->_module_type,
 										sprintf( '<b><a href="%s">%s</a></b>',
 											$this->get_activation_url(),
 											sprintf( __fs( 'optin-x-now', $this->_slug ), $this->get_plugin_name() )
@@ -5512,19 +5519,7 @@
 		 * @return bool
 		 */
 		function is_plugin() {
-			return ( Freemius::MODULE_TYPE_PLUGIN === $this->_storage->plugin_main_file->module_type );
-		}
-
-		/**
-		 * Checks if the module type is "theme". The other type is "plugin".
-		 *
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
-		 *
-		 * @return bool
-		 */
-		function is_theme() {
-			return ( ! $this->is_plugin() );
+			return ( Freemius::MODULE_TYPE_PLUGIN === $this->_module_type );
 		}
 
 		/**
@@ -5534,7 +5529,7 @@
 		 * @return string
 		 */
 		function get_module_type() {
-			return $this->_storage->plugin_main_file->module_type;
+			return $this->_module_type;
 		}
 
 		/**
@@ -8087,7 +8082,7 @@
 						break;
 					case 'downgraded':
 						$this->_admin_notices->add_sticky(
-							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ), $this->get_module_type() ),
+							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ), $this->_module_type ),
 							'license_expired',
 							__fs( 'hmm', $this->_slug ) . '...'
 						);
@@ -8372,7 +8367,7 @@
 			if ( $this->is_trial() ) {
 				// Already in trial mode.
 				$this->_admin_notices->add(
-					sprintf( __fs( 'in-trial-mode', $this->_slug ), $this->get_module_type() ),
+					sprintf( __fs( 'in-trial-mode', $this->_slug ), $this->_module_type ),
 					__fs( 'oops', $this->_slug ) . '...',
 					'error'
 				);
@@ -8419,7 +8414,7 @@
 				if ( ! $this->has_trial_plan() ) {
 					// None of the plans have a trial.
 					$this->_admin_notices->add(
-						sprintf( __fs( 'no-trials', $this->_slug ), $this->get_module_type() ),
+						sprintf( __fs( 'no-trials', $this->_slug ), $this->_module_type ),
 						__fs( 'oops', $this->_slug ) . '...',
 						'error'
 					);
@@ -8438,7 +8433,7 @@
 			if ( $this->is_api_error( $plan ) ) {
 				// Some API error while trying to start the trial.
 				$this->_admin_notices->add(
-					sprintf( __fs( 'unexpected-api-error', $this->_slug ), $this->get_module_type() )
+					sprintf( __fs( 'unexpected-api-error', $this->_slug ), $this->_module_type )
 					. ' ' . var_export( $plan, true ),
 					__fs( 'oops', $this->_slug ) . '...',
 					'error'
@@ -9172,7 +9167,7 @@
 							case 'user_exist':
 								$this->_admin_notices->add(
 									__fs( 'user-exist-message', $this->_slug ) . ' ' .
-									sprintf( __fs( 'user-exist-message_ownership', $this->_slug ), $this->get_module_type(), '<b>' . $new_email . '</b>' ) .
+									sprintf( __fs( 'user-exist-message_ownership', $this->_slug ), $this->_module_type, '<b>' . $new_email . '</b>' ) .
 									sprintf(
 										'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 										$this->get_account_url( 'change_owner', array(
