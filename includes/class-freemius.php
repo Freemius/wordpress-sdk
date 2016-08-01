@@ -626,7 +626,11 @@
 				'slug' => $this->_slug
 			);
 
-			$contact_support_template = fs_get_template( 'contact-support-before-deactivation.php', $internal_message_template_var );
+			if ( false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
+				$contact_support_template = fs_get_template( 'contact-support-before-deactivation.php', $internal_message_template_var );
+			} else {
+				$contact_support_template = '';
+			}
 
 			$reason_found_better_plugin = array(
 				'id'                => 2,

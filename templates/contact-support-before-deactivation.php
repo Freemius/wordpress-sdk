@@ -15,6 +15,6 @@
 
     echo __fs( 'contact-support-before-deactivation', $slug )
             . sprintf(" <a href='%s' class='button button-small button-primary'>%s</a>",
-                $fs->contact_url(),
+                $fs->contact_url( 'technical_support' ),
                 __fs( 'contact-support', $slug )
             );
