@@ -81,6 +81,7 @@
 		'license-unlimited'                        => __( 'Unlimited Licenses', 'freemius' ),
 		'license-x-sites'                          => __( 'Up to %s Sites', 'freemius' ),
 		'renew-license-now'                        => __( '%sRenew your license now%s to access version %s features and support.', 'freemius' ),
+		'ask-for-upgrade-email-address'            => __( "Enter the email address you've used for the upgrade below and we will resend you the license key.", 'freemius' ),
 		'x-plan'                                   => _x( '%s Plan', 'e.g. Professional Plan', 'freemius' ),
 		'you-are-step-away'                        => __( 'You are just one step away - %s', 'freemius' ),
 		'activate-x-now'                           => _x( 'Complete "%s" Activation Now', '%s - plugin name. As complete "Jetpack" activation now', 'freemius' ),
@@ -219,8 +220,11 @@
 		'click-here-to-use-plugin-anonymously'     => __( 'Click here to use the plugin anonymously', 'freemius' ),
 		'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
 		'license-key'                              => __( 'License key', 'freemius' ),
+		'send-license-key'                         => __( 'Send License Key', 'freemius' ),
+		'sending-license-key'                      => __( 'Sending license key...', 'freemius' ),
 		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
 		'dont-have-license-key'                    => __( 'Don\'t have a license key?', 'freemius' ),
+		'cant-find-license-key'                    => __( "Can't find your license key?", 'freemius' ),
 		#endregion Connect
 
 		#region Screenshots
