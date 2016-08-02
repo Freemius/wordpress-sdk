@@ -2180,6 +2180,7 @@
 				}
 
 				add_action( 'wp_ajax_activate-license', array( &$this, '_activate_license_ajax_action' ) );
+				add_action( "wp_ajax_{$this->_slug}_resend_license_key", array( &$this, '_resend_license_key_ajax_action' ) );
 			}
 		}
 
@@ -5271,6 +5272,52 @@
 			}
 
 			echo json_encode( $result );
+
+			exit;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 */
+		function _resend_license_key_ajax_action() {
+			if ( ! isset( $_POST['email-address'] ) ) {
+				exit;
+			}
+
+			$email_address = trim( $_POST['email-address'] );
+			if ( empty( $email_address ) ) {
+				exit;
+			}
+
+			$error = false;
+
+			$api      = $this->get_api_plugin_scope();
+			$licenses = $api->call( '/licenses/resend.json', 'post',
+				array(
+					'email_address' => $email_address
+				)
+			);
+
+			if ( isset( $licenses->error ) ) {
+				if ( 'invalid_email' === $licenses->error->code ) {
+					$error = __fs( 'email-not-found' );
+				} else {
+					$error = $licenses->error->message;
+				}
+			} else if ( empty( $licenses ) ) {
+				$error = __fs( 'no-active-licenses' );
+			}
+
+			$licenses = array(
+				'success' => ( false === $error )
+			);
+
+			if ( false !== $error ) {
+				$licenses['error'] = sprintf( '%s... %s', __fs( 'oops', $this->_slug ), strtolower( $error ) );
+			}
+
+			echo json_encode( $licenses );
 
 			exit;
 		}

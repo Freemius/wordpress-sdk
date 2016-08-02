@@ -225,6 +225,8 @@
 		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
 		'dont-have-license-key'                    => __( 'Don\'t have a license key?', 'freemius' ),
 		'cant-find-license-key'                    => __( "Can't find your license key?", 'freemius' ),
+		'email-not-found'                          => __( "We couldn't find your email address in the system, are you sure it's the right address?" ),
+		'no-active-licenses'                       => __( "We can't see any active licenses associated with that email address, are you sure it's the right address?" ),
 		#endregion Connect
 
 		#region Screenshots
