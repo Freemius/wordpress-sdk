@@ -5292,21 +5292,24 @@
 
 			$error = false;
 
-			$api      = $this->get_api_plugin_scope();
-			$licenses = $api->call( '/licenses/resend.json', 'post',
+			$api    = $this->get_api_plugin_scope();
+			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
-					'email_address' => $email_address
+					'email_address' => $email_address,
+					'is_localhost'  => WP_FS__IS_LOCALHOST
 				)
 			);
 
-			if ( isset( $licenses->error ) ) {
-				if ( 'invalid_email' === $licenses->error->code ) {
+			if ( isset( $result->error ) ) {
+				$error = $result->error;
+
+				if ( in_array( $error->code, array( 'invalid_email', 'no_user' ) ) ) {
 					$error = __fs( 'email-not-found' );
+				} else if ( 'no_license' === $error->code ) {
+					$error = __fs( 'no-active-licenses' );
 				} else {
-					$error = $licenses->error->message;
+					$error = $error->message;
 				}
-			} else if ( empty( $licenses ) ) {
-				$error = __fs( 'no-active-licenses' );
 			}
 
 			$licenses = array(
