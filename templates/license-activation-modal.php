@@ -16,8 +16,9 @@
 	// The URL to redirect to after successfully activating the license from the "Plugins" page.
 	$sync_license_url = $VARS['sync-license-url'];
 
-	$message_above_input_field = __fs( 'activate-license-message', $slug );
-	$message_below_input_field = '';
+	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
+	$message_above_input_field  = __fs( 'activate-license-message', $slug );
+	$message_below_input_field  = '';
 
 	if ( $fs->is_registered() ) {
 		$activate_button_text = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
@@ -40,6 +41,7 @@
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
 	<input class="license_key" type="text" placeholder="{$license_key_text}" />
+	<a class="show-license-resend-modal" href="#">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
 ?>
@@ -76,6 +78,12 @@ HTML;
 				evt.preventDefault();
 
 				showModal();
+			});
+
+			$modal.on( 'click', 'a.show-license-resend-modal', function( evt ) {
+				evt.preventDefault();
+
+				$( '.fs-modal-resend-license-key' ).addClass( 'active' ).find( '.email-address' ).focus();
 			});
 
 			$modal.on('input propertychange', 'input.license_key', function () {
