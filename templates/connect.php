@@ -133,6 +133,7 @@
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
+				<a class="show-license-resend-modal" href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -252,6 +253,16 @@
 		<a href="https://freemius.com/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
+<?php
+	if ( $require_license_key ) {
+		$vars = array(
+			'slug' => $slug
+		);
+
+		fs_enqueue_local_style( 'fs_license_resend_modal', '/admin/license-resend-modal.css' );
+		fs_require_template( 'license-resend-modal.php', $vars );
+	}
+?>
 <script type="text/javascript">
 	(function ($) {
 		var $primaryCta = $('.fs-actions .button.button-primary'),
@@ -264,6 +275,12 @@
 			// Set loading mode.
 			$(document.body).css({'cursor': 'wait'});
 		});
+
+		<?php if ( $require_license_key ) { ?>
+			$( 'a.show-license-resend-modal' ).click(function() {
+				$( '.fs-modal-resend-license-key' ).addClass( 'active' ).find( '.email-address' ).focus();
+			});
+		<?php } ?>
 
 		$form.on('submit', function () {
 			/**
