@@ -50,6 +50,12 @@ HTML;
 		registerEventHandlers();
 
 		function registerEventHandlers() {
+			$( 'a.show-license-resend-modal-' + moduleSlug ).click(function( evt ) {
+				evt.preventDefault();
+
+				showModal();
+			});
+
 			$modal.on( 'input propertychange', 'input.email-address', function() {
 
 				var emailAddress = $( this ).val().trim();

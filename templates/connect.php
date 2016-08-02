@@ -133,7 +133,7 @@
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
-				<a class="show-license-resend-modal" href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>" href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -275,12 +275,6 @@
 			// Set loading mode.
 			$(document.body).css({'cursor': 'wait'});
 		});
-
-		<?php if ( $require_license_key ) { ?>
-			$( 'a.show-license-resend-modal' ).click(function() {
-				$( '.fs-modal-resend-license-key' ).addClass( 'active' ).find( '.email-address' ).focus();
-			});
-		<?php } ?>
 
 		$form.on('submit', function () {
 			/**
