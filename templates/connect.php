@@ -259,7 +259,6 @@
 			'slug' => $slug
 		);
 
-		fs_enqueue_local_style( 'fs_license_resend_modal', '/admin/license-resend-modal.css' );
 		fs_require_template( 'license-key-resend-modal.php', $vars );
 	}
 ?>
