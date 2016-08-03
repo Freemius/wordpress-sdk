@@ -15,14 +15,18 @@
 
 	$message_above_input_field  = __fs( 'ask-for-upgrade-email-address', $slug );
 	$send_button_text           = __fs( 'send-license-key' , $slug );
+	$cancel_button_text         = __fs( 'deactivation-modal-button-cancel', $slug );
 	$email_address_placeholder  = __fs( 'email-address', $slug );
 
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-resend-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
 	<div class="input-container">
-		<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
-	    <div>
+		<div class="button-container">
+			<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
+			<a href="#" class="button button-secondary button-close">{$cancel_button_text}</a>
+		</div>
+	    <div class="email-address-container">
 	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}">
 	    </div>
     </div>
@@ -87,6 +91,11 @@ HTML;
 				evt.preventDefault();
 
 				if ( $( this ).hasClass( 'disabled' ) ) {
+					return;
+				}
+
+				if ( $( this ).hasClass( 'button-close' ) ) {
+					closeModal();
 					return;
 				}
 
