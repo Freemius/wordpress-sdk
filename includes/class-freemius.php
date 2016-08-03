@@ -5295,7 +5295,7 @@
 			$api    = $this->get_api_plugin_scope();
 			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
-					'email_address' => $email_address,
+					'email'         => $email_address,
 					'is_localhost'  => WP_FS__IS_LOCALHOST
 				)
 			);
