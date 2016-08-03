@@ -100,8 +100,8 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						'action'       : moduleSlug + '_resend_license_key',
-						'email-address': emailAddress
+						'action': moduleSlug + '_resend_license_key',
+						'email' : emailAddress
 					},
 					beforeSend: function() {
 						$sendLicenseKeyButton.text( '<?php _efs( 'sending-license-key', $slug ); ?>' );

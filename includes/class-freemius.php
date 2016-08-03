@@ -5281,11 +5281,11 @@
 		 * @since  1.2.0
 		 */
 		function _resend_license_key_ajax_action() {
-			if ( ! isset( $_POST['email-address'] ) ) {
+			if ( ! isset( $_POST['email'] ) ) {
 				exit;
 			}
 
-			$email_address = trim( $_POST['email-address'] );
+			$email_address = trim( $_POST['email'] );
 			if ( empty( $email_address ) ) {
 				exit;
 			}
