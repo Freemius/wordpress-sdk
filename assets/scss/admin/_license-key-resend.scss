@@ -1,6 +1,15 @@
 .fs-modal.fs-modal-license-key-resend {
+	.button-close {
+		float: right;
+		margin: 5px;
+
+		&:hover {
+			cursor: pointer;
+		}
+	}
+
 	.fs-modal-body {
-		.input-container > div.email-address-container {
+		.input-container > .email-address-container {
 			overflow: hidden;
 			padding-right: 2px;
 		}
@@ -12,10 +21,6 @@
 		.button-container {
 			float: right;
 			margin-left: 7px;
-
-			.button-close {
-				margin-left: 1px;
-			}
 
 			@media (max-width: 650px) {
 				margin-top: 2px;

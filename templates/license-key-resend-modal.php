@@ -24,7 +24,6 @@
 	<div class="input-container">
 		<div class="button-container">
 			<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
-			<a href="#" class="button button-secondary button-close">{$cancel_button_text}</a>
 		</div>
 	    <div class="email-address-container">
 	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}">
@@ -41,6 +40,7 @@ HTML;
 			modalHtml =
 				'<div class="fs-modal fs-modal-license-key-resend">'
 				+ '	<div class="fs-modal-dialog">'
+				+ '     <a class="button-close">✖</a>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
