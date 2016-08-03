@@ -565,8 +565,6 @@
 		 * @since  1.1.2
 		 */
 		function _add_deactivation_feedback_dialog_box() {
-			fs_enqueue_local_style( 'fs_deactivation_feedback', '/admin/deactivation-feedback.css' );
-
 			/* Check the type of user:
 			 * 1. Long-term (long-term)
 			 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
@@ -5211,9 +5209,6 @@
 		 * @since  1.1.9
 		 */
 		function _add_license_activation_dialog_box() {
-			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
-			fs_enqueue_local_style( 'fs_license_resend_modal', '/admin/license-resend-modal.css' );
-
 			if ( $this->is_addon() ) {
 				$sync_license_url = $this->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
 			} else {
@@ -5227,7 +5222,7 @@
 			);
 
 			fs_require_template( 'license-activation-modal.php', $vars );
-			fs_require_template( 'license-resend-modal.php', $vars );
+			fs_require_template( 'license-key-resend-modal.php', $vars );
 		}
 
 		/**

@@ -1,7 +1,6 @@
-@import "modal";
 @import "../colors";
 
-.fs-modal {
+.fs-modal.fs-modal-deactivation-feedback {
 	.reason-input, .internal-message {
 		margin:	3px 0 3px 22px;
 

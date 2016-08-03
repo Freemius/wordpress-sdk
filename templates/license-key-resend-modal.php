@@ -27,13 +27,15 @@
 	    </div>
     </div>
 HTML;
+
+	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 (function( $ ) {
 	$( document ).ready(function() {
 		var modalContentHtml = <?php echo json_encode( $modal_content_html ); ?>,
 			modalHtml =
-				'<div class="fs-modal fs-modal-resend-license-key">'
+				'<div class="fs-modal fs-modal-license-key-resend">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
