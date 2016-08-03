@@ -222,7 +222,7 @@
 		'resend-activation-email'                  => __( 'Re-send activation email', 'freemius' ),
 		'license-key'                              => __( 'License key', 'freemius' ),
 		'send-license-key'                         => __( 'Send License Key', 'freemius' ),
-		'sending-license-key'                      => __( 'Sending license key...', 'freemius' ),
+		'sending-license-key'                      => __( 'Sending license key', 'freemius' ),
 		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
 		'dont-have-license-key'                    => __( 'Don\'t have a license key?', 'freemius' ),
 		'cant-find-license-key'                    => __( "Can't find your license key?", 'freemius' ),

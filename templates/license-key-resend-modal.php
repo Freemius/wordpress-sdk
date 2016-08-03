@@ -115,7 +115,7 @@ HTML;
 						'email' : emailAddress
 					},
 					beforeSend: function() {
-						$sendLicenseKeyButton.text( '<?php _efs( 'sending-license-key', $slug ); ?>' );
+						$sendLicenseKeyButton.text( '<?php _efs( 'sending-license-key', $slug ) ?>...' );
 					},
 					success: function( result ) {
 						var resultObj = $.parseJSON( result );
