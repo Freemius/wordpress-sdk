@@ -5300,7 +5300,7 @@
 				)
 			);
 
-			if ( isset( $result->error ) ) {
+			if ( is_object( $result ) && isset( $result->error ) ) {
 				$error = $result->error;
 
 				if ( in_array( $error->code, array( 'invalid_email', 'no_user' ) ) ) {
