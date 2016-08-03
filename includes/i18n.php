@@ -105,6 +105,7 @@
 		'version'                                  => _x( 'Version', 'as plugin version', 'freemius' ),
 		'name'                                     => __( 'Name', 'freemius' ),
 		'email'                                    => __( 'Email', 'freemius' ),
+		'email-address'                            => __( 'Email address', 'freemius' ),
 		'verified'                                 => __( 'Verified', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
 		'plugins'                                  => __( 'Plugins', 'freemius' ),

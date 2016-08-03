@@ -15,6 +15,7 @@
 
 	$message_above_input_field  = __fs( 'ask-for-upgrade-email-address', $slug );
 	$send_button_text           = __fs( 'send-license-key' , $slug );
+	$email_address_placeholder  = __fs( 'email-address', $slug );
 
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-resend-message"><p></p></div>
@@ -22,7 +23,7 @@
 	<div class="input-container">
 		<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
 	    <div>
-	        <input class="email-address" type="text">
+	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}">
 	    </div>
     </div>
 HTML;
