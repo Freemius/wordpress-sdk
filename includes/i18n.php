@@ -47,11 +47,11 @@
 		'downgrade'                                => _x( 'Downgrade', 'verb', 'freemius' ),
 		'cancel-trial'                             => __( 'Cancel Trial', 'freemius' ),
 		'free-trial'                               => __( 'Free Trial', 'freemius' ),
-		'start-free-x'                             => /* translators: %s: Trial name */
+		'start-free-x'                             => /* translators: %s: Trial name (e.g. '7-day Pro trial') */
 		                                              __( 'Start my free %s', 'freemius' ),
 		'no-commitment-x'                          => /* translators: %s: Plan name (e.g. professional) */
 		                                              __( 'No commitment for %s - cancel anytime', 'freemius' ),
-		'after-x-pay-as-little-y'                  => /* translators: 1: Trial name 2: Price */
+		'after-x-pay-as-little-y'                  => /* translators: 1: Trial name (e.g. '7-day Pro trial') 2: Price */
 		                                              __( 'After your free %s, pay as little as %s', 'freemius' ),
 		'details'                                  => __( 'Details', 'freemius' ),
 		'account-details'                          => __( 'Account Details', 'freemius' ),
@@ -78,7 +78,7 @@
 		'license-unlimited'                        => __( 'Unlimited Licenses', 'freemius' ),
 		'license-x-sites'                          => /* translators: %s: Number of licenses */
 		                                              __( 'Up to %s Sites', 'freemius' ),
-		'renew-license-now'                        => /* translators: 1: Starting HTML tag 2: Starting HTML tag 3: Plan name */
+		'renew-license-now'                        => /* translators: 1: Starting HTML tag 2: Ending HTML tag 3: Plan name */
 		                                              __( '%sRenew your license now%s to access version %s features and support.', 'freemius' ),
 		'x-plan'                                   => /* translators: %s: Plan name (e.g. professional) */
 		                                              __( '%s Plan', 'freemius' ),
@@ -205,7 +205,7 @@
 		                                              __( 'Hey %s,', 'freemius' ),
 		'thanks-x'                                 => /* translators: %s: User name (e.g. John) */
 		                                              __( 'Thanks %s!', 'freemius' ),
-		'connect-message'                          => /* translators: 1: Plugin name 2: ??? 3: ??? 4: ??? */
+		'connect-message'                          => /* translators: 1: Plugin name 2: Admin user name 3: Current site's domain 4: Link to freemius.com */
 		                                              __( 'In order to enjoy all our features and functionality, %s needs to connect your user, %s at %s, to %s', 'freemius' ),
 		'connect-message_on-update'                => /* translators: 2: Plugin name 5: Email Address */
 		                                              __( 'Please help us improve %2$s! If you opt-in, some data about your usage of %2$s will be sent to %5$s. If you skip this, that\'s okay! %2$s will still work just fine.', 'freemius' ),
@@ -327,7 +327,7 @@
 		'please-download-x'                        => /* translators: %s: Plugin name */
 		                                              __( 'Please download %s.', 'freemius' ),
 		'latest-x-version'                         => /* translators: %s: Plan name (e.g. professional) */
-		                                              _x( 'the latest %s version here', 'freemius' ),
+		                                              __( 'the latest %s version here', 'freemius' ),
 		'trial-x-promotion-message'                => /* translators: %s: Plugin name %d: Days */
 		                                              __( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.', 'freemius' ),
 		'start-free-trial'                         => _x( 'Start free trial', 'call to action', 'freemius' ),
