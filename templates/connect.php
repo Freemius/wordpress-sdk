@@ -133,6 +133,7 @@
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>" href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -252,6 +253,15 @@
 		<a href="https://freemius.com/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
+<?php
+	if ( $require_license_key ) {
+		$vars = array(
+			'slug' => $slug
+		);
+
+		fs_require_template( 'license-key-resend-modal.php', $vars );
+	}
+?>
 <script type="text/javascript">
 	(function ($) {
 		var $primaryCta = $('.fs-actions .button.button-primary'),

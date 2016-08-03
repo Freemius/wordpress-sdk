@@ -16,8 +16,9 @@
 	// The URL to redirect to after successfully activating the license from the "Plugins" page.
 	$sync_license_url = $VARS['sync-license-url'];
 
-	$message_above_input_field = __fs( 'activate-license-message', $slug );
-	$message_below_input_field = '';
+	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
+	$message_above_input_field  = __fs( 'activate-license-message', $slug );
+	$message_below_input_field  = '';
 
 	if ( $fs->is_registered() ) {
 		$activate_button_text = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
@@ -40,15 +41,18 @@
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
 	<input class="license_key" type="text" placeholder="{$license_key_text}" />
+	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="#">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
+
+	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 (function( $ ) {
 	$( document ).ready(function() {
 		var modalContentHtml = <?php echo json_encode($modal_content_html); ?>,
 			modalHtml =
-				'<div class="fs-modal">'
+				'<div class="fs-modal fs-modal-license-activation">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'

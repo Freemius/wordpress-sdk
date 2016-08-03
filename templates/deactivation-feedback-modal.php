@@ -45,12 +45,14 @@ HTML;
 
 		$reasons_list_items_html .= $reason_list_item_html;
 	}
+
+	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 (function ($) {
 	var reasonsHtml = <?php echo json_encode( $reasons_list_items_html ); ?>,
 	    modalHtml =
-		    '<div class="fs-modal<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
+		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'

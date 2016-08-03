@@ -565,8 +565,6 @@
 		 * @since  1.1.2
 		 */
 		function _add_deactivation_feedback_dialog_box() {
-			fs_enqueue_local_style( 'fs_deactivation_feedback', '/admin/deactivation-feedback.css' );
-
 			/* Check the type of user:
 			 * 1. Long-term (long-term)
 			 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
@@ -2180,6 +2178,7 @@
 				}
 
 				add_action( 'wp_ajax_activate-license', array( &$this, '_activate_license_ajax_action' ) );
+				add_action( "wp_ajax_{$this->_slug}_resend_license_key", array( &$this, '_resend_license_key_ajax_action' ) );
 			}
 		}
 
@@ -5210,8 +5209,6 @@
 		 * @since  1.1.9
 		 */
 		function _add_license_activation_dialog_box() {
-			fs_enqueue_local_style( 'fs_license_action', '/admin/license-activation.css' );
-
 			if ( $this->is_addon() ) {
 				$sync_license_url = $this->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
 			} else {
@@ -5225,6 +5222,7 @@
 			);
 
 			fs_require_template( 'license-activation-modal.php', $vars );
+			fs_require_template( 'license-key-resend-modal.php', $vars );
 		}
 
 		/**
@@ -5269,6 +5267,55 @@
 			}
 
 			echo json_encode( $result );
+
+			exit;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 */
+		function _resend_license_key_ajax_action() {
+			if ( ! isset( $_POST['email'] ) ) {
+				exit;
+			}
+
+			$email_address = trim( $_POST['email'] );
+			if ( empty( $email_address ) ) {
+				exit;
+			}
+
+			$error = false;
+
+			$api    = $this->get_api_plugin_scope();
+			$result = $api->call( '/licenses/resend.json', 'post',
+				array(
+					'email'         => $email_address,
+					'is_localhost'  => WP_FS__IS_LOCALHOST
+				)
+			);
+
+			if ( is_object( $result ) && isset( $result->error ) ) {
+				$error = $result->error;
+
+				if ( in_array( $error->code, array( 'invalid_email', 'no_user' ) ) ) {
+					$error = __fs( 'email-not-found' );
+				} else if ( 'no_license' === $error->code ) {
+					$error = __fs( 'no-active-licenses' );
+				} else {
+					$error = $error->message;
+				}
+			}
+
+			$licenses = array(
+				'success' => ( false === $error )
+			);
+
+			if ( false !== $error ) {
+				$licenses['error'] = sprintf( '%s... %s', __fs( 'oops', $this->_slug ), strtolower( $error ) );
+			}
+
+			echo json_encode( $licenses );
 
 			exit;
 		}
