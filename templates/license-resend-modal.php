@@ -54,11 +54,6 @@ HTML;
 			$( 'a.show-license-resend-modal-' + moduleSlug ).click(function( evt ) {
 				evt.preventDefault();
 
-				// Do not show multiple "resend license key" modals.
-				if ( $( '.fs-modal-resend-license-key.active').length > 0 ) {
-					return;
-				}
-
 				showModal();
 			});
 
