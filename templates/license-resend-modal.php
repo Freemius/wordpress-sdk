@@ -43,7 +43,8 @@ HTML;
 			$sendLicenseKeyButton = $modal.find( '.button-send-license-key' ),
 			$emailAddressInput    = $modal.find( 'input.email-address' ),
 			$licenseResendMessage = $modal.find( '.license-resend-message' ),
-			moduleSlug            = '<?php echo $slug; ?>';
+			moduleSlug            = '<?php echo $slug; ?>',
+			isChild               = false;
 
 		$modal.appendTo( $( 'body' ) );
 
@@ -139,13 +140,26 @@ HTML;
 
 			// Display the dialog box.
 			$modal.addClass( 'active' );
-			$( 'body' ).addClass( 'has-fs-modal' );
-
 			$emailAddressInput.focus();
+
+			var $body = $( 'body' );
+
+			isChild = $body.hasClass( 'has-fs-modal' );
+			if ( isChild ) {
+				return;
+			}
+
+			$body.addClass( 'has-fs-modal' );
 		}
 
 		function closeModal() {
 			$modal.removeClass( 'active' );
+
+			// If child modal, do not remove the "has-fs-modal" class of the <body> element to keep its scrollbars hidden.
+			if ( isChild ) {
+				return;
+			}
+
 			$( 'body' ).removeClass( 'has-fs-modal' );
 		}
 
