@@ -259,7 +259,7 @@
 			'slug' => $slug
 		);
 
-		fs_require_template( 'license-key-resend-modal.php', $vars );
+		fs_require_template( 'forms/resend-key.php', $vars );
 	}
 ?>
 <script type="text/javascript">

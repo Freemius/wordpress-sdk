@@ -608,7 +608,7 @@
 			/**
 			 * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
 			 */
-			fs_require_template( 'deactivation-feedback-modal.php', $vars );
+			fs_require_template( 'forms/deactivation/form.php', $vars );
 		}
 
 		/**
@@ -625,7 +625,7 @@
 			);
 
 			if ( false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
-				$contact_support_template = fs_get_template( 'contact-support-before-deactivation.php', $internal_message_template_var );
+				$contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var );
 			} else {
 				$contact_support_template = '';
 			}
@@ -705,7 +705,7 @@
 			 * button in the opt-in form is shown/hidden).
 			 */
 			if ( $this->is_enable_anonymous() && ! $this->is_pending_activation() ) {
-				$reason_dont_share_info['internal_message'] = fs_get_template( 'reason-dont-share-data-skip-option.php', $internal_message_template_var );
+				$reason_dont_share_info['internal_message'] = fs_get_template( 'forms/deactivation/retry-skip.php', $internal_message_template_var );
 			}
 			
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
@@ -5221,8 +5221,8 @@
 				'sync-license-url' => html_entity_decode( $sync_license_url )
 			);
 
-			fs_require_template( 'license-activation-modal.php', $vars );
-			fs_require_template( 'license-key-resend-modal.php', $vars );
+			fs_require_template( 'forms/license-activation.php', $vars );
+			fs_require_template( 'forms/resend-key.php', $vars );
 		}
 
 		/**
