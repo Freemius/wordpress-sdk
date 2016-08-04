@@ -58,6 +58,10 @@
     }
 }
 
+#fs_account_details .button-group {
+    float: right;
+}
+
 .rtl #fs_account .fs-header-actions
 {
     left: 15px;
@@ -104,6 +108,10 @@
     td, th
     {
         padding: 10px;
+    }
+
+    code {
+        line-height: 28px;
     }
 
     var, code, input[type="text"]
