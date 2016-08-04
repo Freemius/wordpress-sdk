@@ -2170,15 +2170,23 @@
 
 			// Add license activation link and AJAX request handler.
 			if ( $this->has_paid_plan() ) {
-				$this->_add_license_action_link();
-
 				global $pagenow;
 				if ( 'plugins.php' === $pagenow ) {
-					add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+					/**
+					 * @since 1.2.0 Add license action link only on plugins page.
+					 */
+					$this->_add_license_action_link();
+					$this->_require_license_activation_dialog();
 				}
 
-				add_action( 'wp_ajax_activate-license', array( &$this, '_activate_license_ajax_action' ) );
-				add_action( "wp_ajax_{$this->_slug}_resend_license_key", array( &$this, '_resend_license_key_ajax_action' ) );
+				if ( $this->is_ajax_action( array(
+					'activate_license',
+					'resend_license_key'
+				) )
+				) {
+					// Hook license activation and resend AJAX callbacks.
+					$this->_require_license_activation_dialog();
+				}
 			}
 		}
 
@@ -5226,15 +5234,38 @@
 		}
 
 		/**
+		 * Prepare page to include all required UI and logic for the license activation dialog.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 */
+		function _require_license_activation_dialog() {
+			if ( $this->is_ajax() ) {
+				if ( fs_request_is_action( 'activate_license' ) ) {
+					// Add license activation AJAX callback.
+					add_action( 'wp_ajax_activate_license', array( &$this, '_activate_license_ajax_action' ) );
+				}
+
+				if ( fs_request_is_action( 'resend_license_key' ) ) {
+					// Add resend license AJAX callback.
+					add_action( 'wp_ajax_resend_license_key', array(
+						&$this,
+						'_resend_license_key_ajax_action'
+					) );
+				}
+			} else {
+				// Inject license activation dialog UI and client side code.
+				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+			}
+		}
+
+		/**
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.1.9
 		 */
 		function _activate_license_ajax_action() {
-			if ( ! isset( $_POST['license-key'] ) ) {
-				exit;
-			}
+			$license_key = trim( fs_request_get('license_key') );
 
-			$license_key = trim( $_POST['license-key'] );
 			if ( empty( $license_key ) ) {
 				exit;
 			}
@@ -9784,7 +9815,10 @@
 				return;
 			}
 
-			$link_text = __fs( $this->is_free_plan() ? 'activate-license' : 'change-license', $this->_slug );
+			$link_text = __fs(
+				$this->is_free_plan() ? 'activate-license' : 'change-license',
+				$this->_slug
+			);
 
 			$this->add_plugin_action_link(
 				$link_text,

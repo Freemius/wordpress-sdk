@@ -50,8 +50,13 @@
 	$require_license_key = $is_premium_only ||
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
 
-	if ($is_pending_activation)
+	if ( $is_pending_activation ) {
 		$require_license_key = false;
+	}
+
+	if ( $require_license_key ) {
+		$fs->_require_license_activation_dialog();
+	}
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
@@ -133,7 +138,8 @@
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
-				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>" href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>"
+				   href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -253,15 +259,6 @@
 		<a href="https://freemius.com/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
-<?php
-	if ( $require_license_key ) {
-		$vars = array(
-			'slug' => $slug
-		);
-
-		fs_require_template( 'forms/resend-key.php', $vars );
-	}
-?>
 <script type="text/javascript">
 	(function ($) {
 		var $primaryCta = $('.fs-actions .button.button-primary'),
@@ -325,7 +322,7 @@
 			 * @since 1.1.9
 			 */
 			$licenseKeyInput.on('keyup paste delete cut', function () {
-				setTimeout(function() {
+				setTimeout(function () {
 					if ('' === $licenseKeyInput.val()) {
 						$primaryCta.attr('disabled', 'disabled');
 					} else {

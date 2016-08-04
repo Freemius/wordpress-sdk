@@ -124,9 +124,9 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						'action'     : 'activate-license',
-						'slug'       : pluginSlug,
-						'license-key': licenseKey
+						action     : 'activate_license',
+						slug       : pluginSlug,
+						license_key: licenseKey
 					},
 					beforeSend: function () {
 						$activateLicenseButton.text( '<?php _efs( 'activating-license', $slug ); ?>' );
