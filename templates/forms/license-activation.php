@@ -64,7 +64,7 @@ HTML;
 				+ '	</div>'
 				+ '</div>',
 			$modal = $(modalHtml),
-			$activateLicenseLink      = $('span.activate-license.<?php echo $VARS['slug']; ?>').find('a'),
+			$activateLicenseLink      = $('span.activate-license.<?php echo $VARS['slug'] ?> a, .activate-license-trigger.<?php echo $VARS['slug'] ?>'),
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
