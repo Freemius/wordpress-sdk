@@ -469,7 +469,7 @@
 		 *
 		 * @author Leo Fajardo (leorw)
 		 *
-		 * @since 1.2.0
+		 * @since  1.2.0
 		 */
 		private function unregister_uninstall_hook() {
 			$uninstallable_plugins = (array) get_option( 'uninstall_plugins' );
@@ -690,7 +690,7 @@
 				);
 			}
 
-			$reason_dont_share_info   = array(
+			$reason_dont_share_info = array(
 				'id'                => 9,
 				'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
 				'input_type'        => '',
@@ -707,7 +707,7 @@
 			if ( $this->is_enable_anonymous() && ! $this->is_pending_activation() ) {
 				$reason_dont_share_info['internal_message'] = fs_get_template( 'forms/deactivation/retry-skip.php', $internal_message_template_var );
 			}
-			
+
 			$long_term_user_reasons[] = $reason_temporary_deactivation;
 			$long_term_user_reasons[] = $reason_other;
 
@@ -2132,18 +2132,18 @@
 
 			$this->do_action( 'initiated' );
 
-					if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
-						if ( isset( $this->_storage->prev_is_premium ) ) {
+			if ( $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+				if ( isset( $this->_storage->prev_is_premium ) ) {
 					$this->apply_filters(
 						'after_code_type_change',
 						// New code type.
 						$this->_plugin->is_premium
 					);
-						} else {
-							// Set for code type for the first time.
-							$this->_storage->prev_is_premium = $this->_plugin->is_premium;
-						}
-					}
+				} else {
+					// Set for code type for the first time.
+					$this->_storage->prev_is_premium = $this->_plugin->is_premium;
+				}
+			}
 
 			if ( ! $this->is_addon() ) {
 				if ( $this->is_registered() ) {
@@ -2837,7 +2837,7 @@
 				$this->_sync_addons( true );
 			}
 
-			$this->do_action('after_sync_cron');
+			$this->do_action( 'after_sync_cron' );
 		}
 
 		/**
@@ -4193,9 +4193,9 @@
 
 				/**
 				 * @author Vova Feldman (@svovaf)
-				 * @since 1.2.0 When using get_plugin_data() do NOT translate plugin data.
-				 * 
-				 * @link https://github.com/Freemius/wordpress-sdk/issues/77
+				 * @since  1.2.0 When using get_plugin_data() do NOT translate plugin data.
+				 *
+				 * @link   https://github.com/Freemius/wordpress-sdk/issues/77
 				 */
 				$this->_plugin_data = get_plugin_data(
 					$this->_plugin_main_file_path,
@@ -5321,8 +5321,8 @@
 			$api    = $this->get_api_plugin_scope();
 			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
-					'email'         => $email_address,
-					'is_localhost'  => WP_FS__IS_LOCALHOST
+					'email'        => $email_address,
+					'is_localhost' => WP_FS__IS_LOCALHOST
 				)
 			);
 
@@ -5687,7 +5687,7 @@
 		 * @since  1.1.9.1
 		 *
 		 * @param bool|number $plugin_id
-		 * @param bool $add_action_nonce
+		 * @param bool        $add_action_nonce
 		 *
 		 * @return string
 		 */
@@ -6578,6 +6578,8 @@
 			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
 				$this->_menu->remove_menu_item();
 			} else {
+				$this->do_action( 'before_admin_menu_init' );
+
 				$this->add_menu_action();
 				$this->add_submenu_items();
 			}
@@ -6731,8 +6733,6 @@
 		 */
 		private function add_submenu_items() {
 			$this->_logger->entrance();
-
-			$this->do_action( 'before_admin_menu_init' );
 
 			if ( ! $this->is_addon() ) {
 				if ( ! $this->is_activation_mode() ) {
@@ -7625,7 +7625,7 @@
 				} else if ( is_object( $this->_license ) ) {
 					// Fetch foreign license by ID and license key.
 					$license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
-					                     urlencode( $this->_license->secret_key ) );
+					                      urlencode( $this->_license->secret_key ) );
 
 					if ( ! isset( $license->error ) ) {
 						$result[] = new FS_Plugin_License( $license );
@@ -9363,8 +9363,8 @@
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
 				fs_require_once_template( 'billing.php', $vars );
 			} else {
-			fs_require_once_template( 'account.php', $vars );
-		}
+				fs_require_once_template( 'account.php', $vars );
+			}
 		}
 
 		/**
