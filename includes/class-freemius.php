@@ -5535,6 +5535,45 @@
 		}
 
 		/**
+		 * Check if it's an AJAX call targeted for the current module.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @param array|string $actions Collection of AJAX actions.
+		 *
+		 * @return bool
+		 */
+		function is_ajax_action( $actions ) {
+			// Verify it's an ajax call.
+			if ( ! $this->is_ajax() ) {
+				return false;
+			}
+
+			// Verify the call is relevant for the plugin.
+			if ( $this->_slug !== fs_request_get( 'slug' ) ) {
+				return false;
+			}
+
+			// Verify it's one of the specified actions.
+			if ( is_string( $actions ) ) {
+				$actions = explode( ',', $actions );
+			}
+
+			if ( is_array( $actions ) && 0 < count( $actions ) ) {
+				$ajax_action = fs_request_get( 'action' );
+
+				foreach ( $actions as $action ) {
+					if ( $ajax_action === $action ) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
 		 *
