@@ -330,7 +330,7 @@
 							<?php if ( $is_paying || $fs->is_trial() ) : ?>
 								<?php if ( ! $fs->is_allowed_to_install() ) : ?>
 									<a target="_blank" class="button button-primary"
-									   href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __fs( 'download-x-version', $slug ), $site->plan->title ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
+									   href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf( __fs( 'download-x-version', $slug ), ( $fs->is_trial() ? $trial_plan->title : $site->plan->title ) ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
 								<?php elseif ( is_object( $update ) ) : ?>
 									<a class="button button-primary"
 									   href="<?php echo wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . $fs->get_plugin_basename() ), 'upgrade-plugin_' . $fs->get_plugin_basename() ) ?>"><?php echo __fs( 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
