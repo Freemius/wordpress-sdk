@@ -624,7 +624,7 @@
 				'slug' => $this->_slug
 			);
 
-			if ( false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
+			if ( $this->is_registered() && false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
 				$contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var );
 			} else {
 				$contact_support_template = '';
@@ -718,8 +718,7 @@
 						'id'                => 8,
 						'text'              => __fs( 'reason-didnt-work', $this->_slug ),
 						'input_type'        => '',
-						'input_placeholder' => '',
-						'internal_message'  => $contact_support_template
+						'input_placeholder' => ''
 					),
 					$reason_dont_share_info,
 					$reason_found_better_plugin,
