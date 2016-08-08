@@ -6130,10 +6130,12 @@
 		 * @param string|bool $first
 		 * @param string|bool $last
 		 * @param string|bool $license_secret_key
+		 * @param bool        $is_being_uninstalled If "true", the user and site info will be sent to the server on
+		 *                                          uninstall event.
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
-		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false ) {
+		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_being_uninstalled = false ) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -6141,11 +6143,13 @@
 				$email        = $current_user->user_email;
 			}
 
-			$fs_user = Freemius::_get_user_by_email( $email );
-			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-				$this->install_with_current_user( false );
+			if ( ! $is_being_uninstalled ) {
+				$fs_user = Freemius::_get_user_by_email($email);
+				if (is_object($fs_user) && ! $this->is_pending_activation()) {
+					$this->install_with_current_user(false);
 
-				return true;
+					return true;
+				}
 			}
 
 			$user_info = array();
@@ -6165,6 +6169,7 @@
 				$params['license_secret_key'] = $license_secret_key;
 			}
 
+			$params['is_being_uninstalled'] = $is_being_uninstalled;
 			$params['format'] = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
@@ -6201,6 +6206,10 @@
 
 			if ( is_wp_error( $response ) ) {
 				return false;
+			}
+
+			if ( $is_being_uninstalled ) {
+				return true;
 			}
 
 			$decoded = @json_decode( $response['body'] );
