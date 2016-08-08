@@ -164,7 +164,7 @@ HTML;
 						'action'     : 'submit-uninstall-reason',
 						'reason_id'  : $radio.val(),
 						'reason_info': userReason,
-						'anonymous_feedback': isAnonymousFeedback()
+						'anonymous'  : isAnonymousFeedback()
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');

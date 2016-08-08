@@ -797,9 +797,13 @@
 
 			$reason_info = isset( $_REQUEST['reason_info'] ) ? trim( stripslashes( $_REQUEST['reason_info'] ) ) : '';
 
+			// Check if feedback should be sent anonymously.
+			$anonymous = ( isset( $_REQUEST['anonymous'] ) && 'true' == $_REQUEST['anonymous'] );
+
 			$reason = (object) array(
-				'id'   => $_POST['reason_id'],
-				'info' => substr( $reason_info, 0, 128 )
+				'id'        => $_POST['reason_id'],
+				'info'      => substr( $reason_info, 0, 128 ),
+				'anonymous' => $anonymous
 			);
 
 			$this->_storage->store( 'uninstall_reason', $reason );
@@ -4100,14 +4104,19 @@
 
 			$params = array();
 			if ( isset( $this->_storage->uninstall_reason ) ) {
-				$params['reason_id']   = $this->_storage->uninstall_reason->id;
-				$params['reason_info'] = $this->_storage->uninstall_reason->info;
+				$uninstall_reason = $this->_storage->uninstall_reason;
+				$params['reason_id']   = $uninstall_reason->id;
+				$params['reason_info'] = $uninstall_reason->info;
 			}
 
 			if ( ! $this->is_registered() && isset( $this->_storage->uninstall_reason ) ) {
 				// Send anonymous uninstall event only if user submitted a feedback.
-				$params['uid'] = $this->get_anonymous_id();
-				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+				if ( isset( $uninstall_reason->anonymous ) && ! $uninstall_reason->anonymous ) {
+					$this->opt_in( false, false, false, false, true );
+				} else {
+					$params['uid'] = $this->get_anonymous_id();
+					$this->get_api_plugin_scope()->call('uninstall.json', 'put', $params);
+				}
 			} else {
 				// Send uninstall event.
 				$this->send_install_update( array_merge( $params, array(
