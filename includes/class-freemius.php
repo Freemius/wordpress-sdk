@@ -6139,12 +6139,13 @@
 		 * @param string|bool $first
 		 * @param string|bool $last
 		 * @param string|bool $license_secret_key
-		 * @param bool        $is_being_uninstalled If "true", the user and site info will be sent to the server on
-		 *                                          uninstall event.
+		 * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
+		 *                                        In this case, the user and site info will be sent to the server but no
+		 *                                        data will be saved to the WP installation's database.
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
-		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_being_uninstalled = false ) {
+		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_uninstall = false ) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -6152,7 +6153,7 @@
 				$email        = $current_user->user_email;
 			}
 
-			if ( ! $is_being_uninstalled ) {
+			if ( ! $is_uninstall ) {
 				$fs_user = Freemius::_get_user_by_email($email);
 				if (is_object($fs_user) && ! $this->is_pending_activation()) {
 					$this->install_with_current_user(false);
@@ -6178,7 +6179,13 @@
 				$params['license_secret_key'] = $license_secret_key;
 			}
 
-			$params['is_being_uninstalled'] = $is_being_uninstalled;
+			if ( $is_uninstall ) {
+				$params['uninstall_params'] = array(
+					'reason_id'   => $this->_storage->uninstall_reason->id,
+					'reason_info' => $this->_storage->uninstall_reason->info
+				);
+			}
+
 			$params['format'] = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
@@ -6217,7 +6224,8 @@
 				return false;
 			}
 
-			if ( $is_being_uninstalled ) {
+			// Module is being uninstalled, don't handle the returned data.
+			if ( $is_uninstall ) {
 				return true;
 			}
 
