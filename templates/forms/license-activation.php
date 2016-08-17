@@ -13,8 +13,12 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	$message_above_input_field = __fs( 'activate-license-message', $slug );
-	$message_below_input_field = '';
+	// The URL to redirect to after successfully activating the license from the "Plugins" page.
+	$sync_license_url = $VARS['sync-license-url'];
+
+	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
+	$message_above_input_field  = __fs( 'activate-license-message', $slug );
+	$message_below_input_field  = '';
 
 	if ( $fs->is_registered() ) {
 		$activate_button_text = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
@@ -34,17 +38,21 @@
 	$license_key_text = __fs(  'license-key' , $slug );
 
 	$modal_content_html = <<< HTML
+	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
 	<input class="license_key" type="text" placeholder="{$license_key_text}" />
+	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="#">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
+
+	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 (function( $ ) {
 	$( document ).ready(function() {
 		var modalContentHtml = <?php echo json_encode($modal_content_html); ?>,
 			modalHtml =
-				'<div class="fs-modal">'
+				'<div class="fs-modal fs-modal-license-activation">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
@@ -56,7 +64,12 @@ HTML;
 				+ '	</div>'
 				+ '</div>',
 			$modal = $(modalHtml),
-			$activateLicenseLink = $('span.activate-license.<?php echo $VARS['slug']; ?>').find('a');
+			$activateLicenseLink      = $('span.activate-license.<?php echo $VARS['slug'] ?> a, .activate-license-trigger.<?php echo $VARS['slug'] ?>'),
+			$activateLicenseButton    = $modal.find('.button-activate-license'),
+			$licenseKeyInput          = $modal.find('input.license_key'),
+			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
+			pluginSlug                = '<?php echo $slug; ?>',
+			syncLicenseUrl            = '<?php echo $sync_license_url; ?>';
 
 		$modal.appendTo($('body'));
 
@@ -99,11 +112,9 @@ HTML;
 					return;
 				}
 
-				var
-					activateButton = $('.button-activate-license'),
-					licenseKey = $('input.license_key').val().trim();
+				var licenseKey = $licenseKeyInput.val().trim();
 
-				activateButton.addClass('disabled');
+				disableActivateLicenseButton();
 
 				if (0 === licenseKey.length) {
 					return;
@@ -113,14 +124,24 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						'action': 'activate-license',
-						'license-key': licenseKey
+						action     : 'activate_license',
+						slug       : pluginSlug,
+						license_key: licenseKey
 					},
 					beforeSend: function () {
-						activateButton.text('<?php _efs('activating-license', $slug); ?>');
+						$activateLicenseButton.text( '<?php _efs( 'activating-license', $slug ); ?>' );
 					},
-					complete: function () {
-						closeModal();
+					success: function( result ) {
+						var resultObj = $.parseJSON( result );
+						if ( resultObj.success ) {
+							closeModal();
+
+							// Redirect to the "Account" page and sync the license.
+							window.location.href = syncLicenseUrl;
+						} else {
+							showError( resultObj.error );
+							resetActivateLicenseButton();
+						}
 					}
 				});
 			});
@@ -150,7 +171,7 @@ HTML;
 			$modal.addClass('active');
 			$('body').addClass('has-fs-modal');
 
-			$('input.license_key').focus();
+			$licenseKeyInput.focus();
 		}
 
 		function closeModal() {
@@ -158,19 +179,32 @@ HTML;
 			$('body').removeClass('has-fs-modal');
 		}
 
-		function resetModal() {
-			$('input.license_key').val('');
-
+		function resetActivateLicenseButton() {
 			enableActivateLicenseButton();
-			$modal.find('.button-activate-license').text('<?php echo $activate_button_text; ?>');
+			$activateLicenseButton.text( '<?php echo $activate_button_text; ?>' );
+		}
+
+		function resetModal() {
+			hideError();
+			resetActivateLicenseButton();
+			$licenseKeyInput.val( '' );
 		}
 
 		function enableActivateLicenseButton() {
-			$modal.find('.button-activate-license').removeClass('disabled');
+			$activateLicenseButton.removeClass( 'disabled' );
 		}
 
 		function disableActivateLicenseButton() {
-			$modal.find('.button-activate-license').addClass('disabled');
+			$activateLicenseButton.addClass( 'disabled' );
+		}
+
+		function hideError() {
+			$licenseActivationMessage.hide();
+		}
+
+		function showError( msg ) {
+			$licenseActivationMessage.find( ' > p' ).html( msg );
+			$licenseActivationMessage.show();
 		}
 	});
 })( jQuery );

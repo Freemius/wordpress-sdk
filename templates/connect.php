@@ -39,7 +39,8 @@
 		'https://freemius.com/wordpress/usage-tracking/';
 
 	$freemius_site_url .= '?' . http_build_query( array(
-			'plugin_id' => $fs->get_id(),
+			'id'   => $fs->get_id(),
+			'slug' => $slug,
 		) );
 
 	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="1">freemius.com</a>';
@@ -48,6 +49,14 @@
 
 	$require_license_key = $is_premium_only ||
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
+
+	if ( $is_pending_activation ) {
+		$require_license_key = false;
+	}
+
+	if ( $require_license_key ) {
+		$fs->_require_license_activation_dialog();
+	}
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
@@ -129,6 +138,8 @@
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>"
+				   href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -310,12 +321,14 @@
 			 * @author Vova Feldman (@svovaf)
 			 * @since 1.1.9
 			 */
-			$licenseKeyInput.on('keyup', function () {
-				if ('' === $(this).val()) {
-					$primaryCta.attr('disabled', 'disabled');
-				} else {
-					$primaryCta.prop('disabled', false);
-				}
+			$licenseKeyInput.on('keyup paste delete cut', function () {
+				setTimeout(function () {
+					if ('' === $licenseKeyInput.val()) {
+						$primaryCta.attr('disabled', 'disabled');
+					} else {
+						$primaryCta.prop('disabled', false);
+					}
+				}, 100);
 			}).focus();
 		}
 

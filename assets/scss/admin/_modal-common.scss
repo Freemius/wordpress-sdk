@@ -1,3 +1,5 @@
+@import "../colors";
+
 .fs-modal {
 	position: fixed;
 	overflow: auto;
@@ -17,33 +19,16 @@
 		top: -100%;
 		z-index: 100001;
 		width: 596px;
-		
+
 		@media (max-width: 650px) {
 			margin-left: -50%;
 			box-sizing: border-box;
 			padding-left: 10px;
 			padding-right: 10px;
 			width: 100%;
-			
+
 			.fs-modal-panel > h3 > strong {
 				font-size: 1.3em;
-			}
-			
-			li.reason {
-				margin-bottom: 10px;
-				
-				.reason-input {
-					margin-left: 29px;
-				}
-				
-				label {
-					display: table;
-
-					> span {
-						display: table-cell;
-						font-size: 1.3em;
-					}
-				}
 			}
 		}
 	}
@@ -70,10 +55,14 @@
 	.fs-modal-body {
 		border-bottom: 0;
 
+		p {
+			font-size: 14px;
+		}
+
 		h2 {
 			font-size: 20px;
 		}
-		
+
 		> div {
 			margin-top: 10px;
 
@@ -88,7 +77,7 @@
 	.fs-modal-footer {
 		border-top: #eeeeee solid 1px;
 		text-align: right;
-		
+
 		> .button {
 			margin: 0 7px;
 
@@ -98,23 +87,18 @@
 		}
 	}
 
-	.fs-modal-panel:not(.active) {
-		display: none;
-	}
-	
-	.reason-input {
-		margin:	3px 0 3px 22px;
-		
-		input, textarea {
-			width: 100%;
+	.fs-modal-panel {
+		> .notice.inline {
+			margin: 0;
+			display: none;
+		}
+
+		&:not(.active) {
+			display: none;
 		}
 	}
 }
 
 body.has-fs-modal {
 	overflow: hidden;
-}
-
-#the-list .deactivate > .fs-slug {
-	display: none;
 }

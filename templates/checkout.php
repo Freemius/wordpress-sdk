@@ -95,13 +95,7 @@
 		}
 	}
 
-	$return_url = fs_nonce_url( $fs->_get_admin_page_url(
-		'account',
-		array(
-			'fs_action' => $slug . '_sync_license',
-			'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
-		)
-	), $slug . '_sync_license' );
+	$return_url = $fs->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
@@ -257,4 +251,12 @@
 			})(jQuery);
 		</script>
 	</div>
-<?php fs_require_template( 'powered-by.php' ) ?>
+<?php
+	$params = array(
+		'page'           => 'checkout',
+		'module_id'      => $fs->get_id(),
+		'module_slug'    => $slug,
+		'module_version' => $fs->get_plugin_version(),
+	);
+	fs_require_template( 'powered-by.php', $params );
+?>
