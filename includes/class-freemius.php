@@ -227,6 +227,22 @@
 		 */
 		private static $_instances = array();
 
+		// Reason IDs
+		const REASON_NO_LONGER_NEEDED                  = 1;
+		const REASON_FOUND_A_BETTER_PLUGIN             = 2;
+		const REASON_NEEDED_FOR_A_SHORT_PERIOD         = 3;
+		const REASON_BROKE_MY_SITE                     = 4;
+		const REASON_SUDDENLY_STOPPED_WORKING          = 5;
+		const REASON_CANT_PAY_ANYMORE                  = 6;
+		const REASON_OTHER                             = 7;
+		const REASON_DIDNT_WORK                        = 8;
+		const REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION = 9;
+		const REASON_COULDNT_MAKE_IT_WORK              = 10;
+		const REASON_GREAT_BUT_NEED_SPECIFIC_FEATURE   = 11;
+		const REASON_NOT_WORKING                       = 12;
+		const REASON_NOT_WHAT_I_WAS_LOOKING_FOR        = 13;
+		const REASON_DIDNT_WORK_AS_EXPECTED            = 14;
+		const REASON_TEMPORARY_DEACTIVATION            = 15;
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -631,21 +647,21 @@
 			}
 
 			$reason_found_better_plugin = array(
-				'id'                => 2,
+				'id'                => self::REASON_FOUND_A_BETTER_PLUGIN,
 				'text'              => __fs( 'reason-found-a-better-plugin', $this->_slug ),
 				'input_type'        => 'textfield',
 				'input_placeholder' => __fs( 'placeholder-plugin-name', $this->_slug )
 			);
 
 			$reason_temporary_deactivation = array(
-				'id'                => 15,
+				'id'                => self::REASON_TEMPORARY_DEACTIVATION,
 				'text'              => __fs( 'reason-temporary-deactivation', $this->_slug ),
 				'input_type'        => '',
 				'input_placeholder' => ''
 			);
 
 			$reason_other = array(
-				'id'                => 7,
+				'id'                => self::REASON_OTHER,
 				'text'              => __fs( 'reason-other', $this->_slug ),
 				'input_type'        => 'textfield',
 				'input_placeholder' => ''
@@ -653,27 +669,27 @@
 
 			$long_term_user_reasons = array(
 				array(
-					'id'                => 1,
+					'id'                => self::REASON_NO_LONGER_NEEDED,
 					'text'              => __fs( 'reason-no-longer-needed', $this->_slug ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				$reason_found_better_plugin,
 				array(
-					'id'                => 3,
+					'id'                => self::REASON_NEEDED_FOR_A_SHORT_PERIOD,
 					'text'              => __fs( 'reason-needed-for-a-short-period', $this->_slug ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
-					'id'                => 4,
+					'id'                => self::REASON_BROKE_MY_SITE,
 					'text'              => __fs( 'reason-broke-my-site', $this->_slug ),
 					'input_type'        => '',
 					'input_placeholder' => '',
 					'internal_message'  => $contact_support_template
 				),
 				array(
-					'id'                => 5,
+					'id'                => self::REASON_SUDDENLY_STOPPED_WORKING,
 					'text'              => __fs( 'reason-suddenly-stopped-working', $this->_slug ),
 					'input_type'        => '',
 					'input_placeholder' => '',
@@ -683,7 +699,7 @@
 
 			if ( $this->is_paying() ) {
 				$long_term_user_reasons[] = array(
-					'id'                => 6,
+					'id'                => self::REASON_CANT_PAY_ANYMORE,
 					'text'              => __fs( 'reason-cant-pay-anymore', $this->_slug ),
 					'input_type'        => 'textfield',
 					'input_placeholder' => __fs( 'placeholder-comfortable-price', $this->_slug )
@@ -691,7 +707,7 @@
 			}
 
 			$reason_dont_share_info = array(
-				'id'                => 9,
+				'id'                => self::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION,
 				'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
 				'input_type'        => '',
 				'input_placeholder' => ''
@@ -715,7 +731,7 @@
 				'long-term'                                   => $long_term_user_reasons,
 				'non-registered-and-non-anonymous-short-term' => array(
 					array(
-						'id'                => 8,
+						'id'                => self::REASON_DIDNT_WORK,
 						'text'              => __fs( 'reason-didnt-work', $this->_slug ),
 						'input_type'        => '',
 						'input_placeholder' => ''
@@ -727,7 +743,7 @@
 				),
 				'short-term'                                  => array(
 					array(
-						'id'                => 10,
+						'id'                => self::REASON_COULDNT_MAKE_IT_WORK,
 						'text'              => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
 						'input_type'        => '',
 						'input_placeholder' => '',
@@ -735,25 +751,25 @@
 					),
 					$reason_found_better_plugin,
 					array(
-						'id'                => 11,
+						'id'                => self::REASON_GREAT_BUT_NEED_SPECIFIC_FEATURE,
 						'text'              => __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
 					),
 					array(
-						'id'                => 12,
+						'id'                => self::REASON_NOT_WORKING,
 						'text'              => __fs( 'reason-not-working', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
 					),
 					array(
-						'id'                => 13,
+						'id'                => self::REASON_NOT_WHAT_I_WAS_LOOKING_FOR,
 						'text'              => __fs( 'reason-not-what-i-was-looking-for', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for', $this->_slug )
 					),
 					array(
-						'id'                => 14,
+						'id'                => self::REASON_DIDNT_WORK_AS_EXPECTED,
 						'text'              => __fs( 'reason-didnt-work-as-expected', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
@@ -775,15 +791,22 @@
 		 * @since  1.1.2
 		 */
 		function _submit_uninstall_reason_action() {
-			if ( ! isset( $_POST['reason_id'] ) ) {
+			$reason_id = fs_request_get( 'reason_id' );
+
+			// Check if the given reason ID is an unsigned integer.
+			if ( ! ctype_digit( $reason_id ) ) {
 				exit;
 			}
 
-			$reason_info = isset( $_REQUEST['reason_info'] ) ? trim( stripslashes( $_REQUEST['reason_info'] ) ) : '';
+			$reason_info = trim( fs_request_get( 'reason_info', '' ) );
+			if ( ! empty( $reason_info ) ) {
+				$reason_info = substr( $reason_info, 0, 128 );
+			}
 
 			$reason = (object) array(
-				'id'   => $_POST['reason_id'],
-				'info' => substr( $reason_info, 0, 128 )
+				'id'           => $reason_id,
+				'info'         => $reason_info,
+				'is_anonymous' => fs_request_get_bool( 'is_anonymous' )
 			);
 
 			$this->_storage->store( 'uninstall_reason', $reason );
@@ -4084,14 +4107,19 @@
 
 			$params = array();
 			if ( isset( $this->_storage->uninstall_reason ) ) {
-				$params['reason_id']   = $this->_storage->uninstall_reason->id;
-				$params['reason_info'] = $this->_storage->uninstall_reason->info;
+				$uninstall_reason = $this->_storage->uninstall_reason;
+				$params['reason_id']   = $uninstall_reason->id;
+				$params['reason_info'] = $uninstall_reason->info;
 			}
 
 			if ( ! $this->is_registered() && isset( $this->_storage->uninstall_reason ) ) {
 				// Send anonymous uninstall event only if user submitted a feedback.
-				$params['uid'] = $this->get_anonymous_id();
-				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
+					$this->opt_in( false, false, false, false, true );
+				} else {
+					$params['uid'] = $this->get_anonymous_id();
+					$this->get_api_plugin_scope()->call('uninstall.json', 'put', $params);
+				}
 			} else {
 				// Send uninstall event.
 				$this->send_install_update( array_merge( $params, array(
@@ -6114,10 +6142,13 @@
 		 * @param string|bool $first
 		 * @param string|bool $last
 		 * @param string|bool $license_secret_key
+		 * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
+		 *                                        In this case, the user and site info will be sent to the server but no
+		 *                                        data will be saved to the WP installation's database.
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 */
-		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false ) {
+		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_uninstall = false ) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -6125,11 +6156,13 @@
 				$email        = $current_user->user_email;
 			}
 
-			$fs_user = Freemius::_get_user_by_email( $email );
-			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-				$this->install_with_current_user( false );
+			if ( ! $is_uninstall ) {
+				$fs_user = Freemius::_get_user_by_email($email);
+				if (is_object($fs_user) && ! $this->is_pending_activation()) {
+					$this->install_with_current_user(false);
 
-				return true;
+					return true;
+				}
 			}
 
 			$user_info = array();
@@ -6147,6 +6180,13 @@
 
 			if ( is_string( $license_secret_key ) ) {
 				$params['license_secret_key'] = $license_secret_key;
+			}
+
+			if ( $is_uninstall ) {
+				$params['uninstall_params'] = array(
+					'reason_id'   => $this->_storage->uninstall_reason->id,
+					'reason_info' => $this->_storage->uninstall_reason->info
+				);
 			}
 
 			$params['format'] = 'json';
@@ -6185,6 +6225,11 @@
 
 			if ( is_wp_error( $response ) ) {
 				return false;
+			}
+
+			// Module is being uninstalled, don't handle the returned data.
+			if ( $is_uninstall ) {
+				return true;
 			}
 
 			$decoded = @json_decode( $response['body'] );

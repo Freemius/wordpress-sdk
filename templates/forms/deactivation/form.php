@@ -46,6 +46,16 @@ HTML;
 		$reasons_list_items_html .= $reason_list_item_html;
 	}
 
+	$is_anonymous = ( ! $fs->is_registered() );
+	if ( $is_anonymous ) {
+		$anonymous_feedback_checkbox_html =
+			'<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox">'
+				. __fs( 'anonymous-feedback', $slug )
+			. '</label>';
+	} else {
+		$anonymous_feedback_checkbox_html = '';
+	}
+
 	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
@@ -59,14 +69,19 @@ HTML;
 		    + '			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs(  'deactivation-share-reason' , $slug ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
+			+ '         <?php echo $anonymous_feedback_checkbox_html; ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
 		    + '			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ); ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
-	    $modal = $(modalHtml),
-	    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
-	    selectedReasonID = false;
+	    $modal                = $(modalHtml),
+	    $deactivateLink       = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
+		$anonymousFeedback    = $modal.find( '.anonymous-feedback-label' ),
+		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
+		selectedReasonID      = false,
+		otherReasonID         = <?php echo Freemius::REASON_OTHER; ?>,
+		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>;
 
 	$modal.appendTo($('body'));
 
@@ -146,9 +161,10 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						'action'     : 'submit-uninstall-reason',
-						'reason_id'  : $radio.val(),
-						'reason_info': userReason
+						'action'      : 'submit-uninstall-reason',
+						'reason_id'   : $radio.val(),
+						'reason_info' : userReason,
+						'is_anonymous': isAnonymousFeedback()
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
@@ -175,6 +191,14 @@ HTML;
 				return;
 
 			selectedReasonID = $selectedReasonOption.val();
+
+			if ( isAnonymous ) {
+				if ( isReasonSelected( dontShareDataReasonID ) ) {
+					$anonymousFeedback.hide();
+				} else {
+					$anonymousFeedback.show();
+				}
+			}
 
 			var _parent = $(this).parents('li:first');
 
@@ -221,12 +245,23 @@ HTML;
 		});
 	}
 
-	function isOtherReasonSelected() {
-		// Get the selected radio input element.
-		var $selectedReasonOption = $modal.find('input[type="radio"]:checked'),
-		    selectedReason = $selectedReasonOption.parent().next().text().trim();
+	function isAnonymousFeedback() {
+		if ( ! isAnonymous ) {
+			return false;
+		}
 
-		return ( 'Other' === selectedReason );
+		return ( isReasonSelected( dontShareDataReasonID ) || $anonymousFeedback.find( 'input' ).prop( 'checked' ) );
+	}
+
+	function isReasonSelected( reasonID ) {
+		// Get the selected radio input element.
+		var $selectedReasonOption = $modal.find('input[type="radio"]:checked');
+
+		return ( reasonID == $selectedReasonOption.val() );
+	}
+
+	function isOtherReasonSelected() {
+		return isReasonSelected( otherReasonID );
 	}
 
 	function showModal() {
@@ -256,6 +291,13 @@ HTML;
 		$modal.find('.reason-input').remove();
 
 		$modal.find('.message').hide();
+
+		if ( isAnonymous ) {
+			$anonymousFeedback.find( 'input' ).prop( 'checked', false );
+
+			// Hide, since by default there is no selected reason.
+			$anonymousFeedback.hide();
+		}
 
 		var $deactivateButton = $modal.find('.button-deactivate');
 
