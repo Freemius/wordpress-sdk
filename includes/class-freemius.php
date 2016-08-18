@@ -791,7 +791,10 @@
 		 * @since  1.1.2
 		 */
 		function _submit_uninstall_reason_action() {
-			if ( ! isset( $_POST['reason_id'] ) ) {
+			$reason_id = fs_request_get( 'reason_id' );
+
+			// Check if the given reason ID is an unsigned integer.
+			if ( ! ctype_digit( $reason_id ) ) {
 				exit;
 			}
 
