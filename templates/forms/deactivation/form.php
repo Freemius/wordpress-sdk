@@ -161,10 +161,10 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						'action'     : 'submit-uninstall-reason',
-						'reason_id'  : $radio.val(),
-						'reason_info': userReason,
-						'anonymous'  : isAnonymousFeedback()
+						'action'      : 'submit-uninstall-reason',
+						'reason_id'   : $radio.val(),
+						'reason_info' : userReason,
+						'is_anonymous': isAnonymousFeedback()
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
