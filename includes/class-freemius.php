@@ -6758,6 +6758,29 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (leorw)
+		 * @since 1.2.1
+		 *
+		 * return string
+		 */
+		function get_top_level_menu_capability() {
+			global $menu;
+
+			foreach ( $menu as $menu_info ) {
+				/**
+				 * The second element in the menu info array is the capability/role that has access to the menu and the
+				 * third element is the menu slug.
+				 */
+				if ( $menu_info[2] === $this->get_top_level_menu_slug() ) {
+					return $menu_info[1];
+					break;
+				}
+			}
+
+			return 'read';
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
@@ -6865,6 +6888,8 @@
 				'<span class="fs-submenu-item">%s</span>' :
 				'<span class="fs-submenu-item fs-sub">%s</span>';
 
+			$top_level_menu_capability = $this->get_top_level_menu_capability();
+
 			ksort( $this->_menu_items );
 
 			foreach ( $this->_menu_items as $priority => $items ) {
@@ -6876,7 +6901,7 @@
 								null,
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$item['capability'],
+							$item['show_submenu'] ? $top_level_menu_capability : $item['capability'],
 							$item['menu_slug'],
 							$item['render_function']
 						);
@@ -6889,7 +6914,7 @@
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$item['capability'],
+							$top_level_menu_capability,
 							$item['menu_slug'],
 							array( $this, '' )
 						);
