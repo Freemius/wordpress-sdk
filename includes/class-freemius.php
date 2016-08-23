@@ -6935,6 +6935,16 @@
 
 			$menu_slug = $this->_menu->get_top_level_menu_slug();
 
+			/**
+			 * Before "admin_menu" fires, WordPress will loop over the default submenus and remove pages for which the user
+			 * does not have permissions. So in case a plugin does not have top-level menu but does have submenus under any
+			 * of the default menus, only users that have the right role can access its sub-submenus (Account, Contact Us,
+			 * Support Forum, etc.) since $submenu[ $menu_slug ] will be empty if the user doesn't have permission.
+			 *
+			 * In case a plugin does not have submenus under any of the default menus but does have submenus under the menu
+			 * of another plugin, only users that have the right role can access its sub-submenus since we will use the
+			 * capability needed to access the parent menu as the capability for the submenus that we will add.
+			 */
 			if ( empty( $submenu[ $menu_slug ] ) ) {
 				return;
 			}
