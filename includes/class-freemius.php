@@ -6235,6 +6235,8 @@
 		 *                                        data will be saved to the WP installation's database.
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
+		 *
+		 * @use WP_Error
 		 */
 		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_uninstall = false ) {
 			$this->_logger->entrance();
