@@ -6766,14 +6766,15 @@
 		function get_top_level_menu_capability() {
 			global $menu;
 
+			$top_level_menu_slug = $this->get_top_level_menu_slug();
+
 			foreach ( $menu as $menu_info ) {
 				/**
 				 * The second element in the menu info array is the capability/role that has access to the menu and the
 				 * third element is the menu slug.
 				 */
-				if ( $menu_info[2] === $this->get_top_level_menu_slug() ) {
+				if ( $menu_info[2] === $top_level_menu_slug ) {
 					return $menu_info[1];
-					break;
 				}
 			}
 
