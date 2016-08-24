@@ -6758,6 +6758,30 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (leorw)
+		 * @since 1.2.1
+		 *
+		 * return string
+		 */
+		function get_top_level_menu_capability() {
+			global $menu;
+
+			$top_level_menu_slug = $this->get_top_level_menu_slug();
+
+			foreach ( $menu as $menu_info ) {
+				/**
+				 * The second element in the menu info array is the capability/role that has access to the menu and the
+				 * third element is the menu slug.
+				 */
+				if ( $menu_info[2] === $top_level_menu_slug ) {
+					return $menu_info[1];
+				}
+			}
+
+			return 'read';
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
@@ -6865,10 +6889,14 @@
 				'<span class="fs-submenu-item">%s</span>' :
 				'<span class="fs-submenu-item fs-sub">%s</span>';
 
+			$top_level_menu_capability = $this->get_top_level_menu_capability();
+
 			ksort( $this->_menu_items );
 
 			foreach ( $this->_menu_items as $priority => $items ) {
 				foreach ( $items as $item ) {
+					$capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
+
 					if ( ! isset( $item['url'] ) ) {
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
@@ -6876,7 +6904,7 @@
 								null,
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$item['capability'],
+							$capability,
 							$item['menu_slug'],
 							$item['render_function']
 						);
@@ -6889,7 +6917,7 @@
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$item['capability'],
+							$capability,
 							$item['menu_slug'],
 							array( $this, '' )
 						);
@@ -6910,6 +6938,16 @@
 
 			$menu_slug = $this->_menu->get_top_level_menu_slug();
 
+			/**
+			 * Before "admin_menu" fires, WordPress will loop over the default submenus and remove pages for which the user
+			 * does not have permissions. So in case a plugin does not have top-level menu but does have submenus under any
+			 * of the default menus, only users that have the right role can access its sub-submenus (Account, Contact Us,
+			 * Support Forum, etc.) since $submenu[ $menu_slug ] will be empty if the user doesn't have permission.
+			 *
+			 * In case a plugin does not have submenus under any of the default menus but does have submenus under the menu
+			 * of another plugin, only users that have the right role can access its sub-submenus since we will use the
+			 * capability needed to access the parent menu as the capability for the submenus that we will add.
+			 */
 			if ( empty( $submenu[ $menu_slug ] ) ) {
 				return;
 			}
@@ -6973,7 +7011,7 @@
 						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
 						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
 						'wp-support-forum',
-						'read',
+						null,
 						50
 					);
 				}
