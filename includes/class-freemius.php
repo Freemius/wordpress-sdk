@@ -6894,6 +6894,8 @@
 
 			foreach ( $this->_menu_items as $priority => $items ) {
 				foreach ( $items as $item ) {
+					$capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
+
 					if ( ! isset( $item['url'] ) ) {
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
@@ -6901,7 +6903,7 @@
 								null,
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$item['show_submenu'] ? $top_level_menu_capability : $item['capability'],
+							$capability,
 							$item['menu_slug'],
 							$item['render_function']
 						);
@@ -6914,7 +6916,7 @@
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
-							$top_level_menu_capability,
+							$capability,
 							$item['menu_slug'],
 							array( $this, '' )
 						);
@@ -7008,7 +7010,7 @@
 						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
 						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
 						'wp-support-forum',
-						'read',
+						null,
 						50
 					);
 				}
