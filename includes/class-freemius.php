@@ -724,9 +724,6 @@
 				$reason_dont_share_info['internal_message'] = fs_get_template( 'forms/deactivation/retry-skip.php', $internal_message_template_var );
 			}
 
-			$long_term_user_reasons[] = $reason_temporary_deactivation;
-			$long_term_user_reasons[] = $reason_other;
-
 			$uninstall_reasons = array(
 				'long-term'                                   => $long_term_user_reasons,
 				'non-registered-and-non-anonymous-short-term' => array(
@@ -737,9 +734,7 @@
 						'input_placeholder' => ''
 					),
 					$reason_dont_share_info,
-					$reason_found_better_plugin,
-					$reason_temporary_deactivation,
-					$reason_other
+					$reason_found_better_plugin
 				),
 				'short-term'                                  => array(
 					array(
@@ -773,11 +768,16 @@
 						'text'              => __fs( 'reason-didnt-work-as-expected', $this->_slug ),
 						'input_type'        => 'textarea',
 						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
-					),
-					$reason_temporary_deactivation,
-					$reason_other
+					)
 				)
 			);
+
+			// Randomize the reasons for the current user type.
+			shuffle( $uninstall_reasons[ $user_type ] );
+
+			// Keep the following reasons as the last items in the list.
+			$uninstall_reasons[ $user_type ][] = $reason_temporary_deactivation;
+			$uninstall_reasons[ $user_type ][] = $reason_other;
 
 			$uninstall_reasons = $this->apply_filters( 'uninstall_reasons', $uninstall_reasons );
 
