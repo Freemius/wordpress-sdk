@@ -4091,6 +4091,94 @@
 		}
 
 		/**
+		 * Track install's custom event.
+		 *
+		 * IMPORTANT:
+		 *      Custom event tracking is currently only supported for specific clients.
+		 *      If you are not one of them, please don't use this method. If you will,
+		 *      the API will simply ignore your request based on the plugin ID.
+		 *
+		 * Need custom tracking for your plugin or theme?
+		 *      If you are interested in custom event tracking please contact yo@freemius.com
+		 *      for further details.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string $name       Event name.
+		 * @param array  $properties Associative key/value array with primitive values only
+		 * @param bool   $process_at A valid future date-time in the following format Y-m-d H:i:s.
+		 * @param bool   $once       If true, event will be tracked only once. IMPORTANT: Still trigger the API call.
+		 *
+		 * @return object|false Event data or FALSE on failure.
+		 *
+		 * @throws \Freemius_InvalidArgumentException
+		 */
+		public function track_event($name, $properties = array(), $process_at = false, $once = false) {
+			$this->_logger->entrance( http_build_query( array( 'name' => $name, 'once' => $once ) ) );
+
+			if ( ! $this->is_registered() ) {
+				return false;
+			}
+
+			$event = array( 'type' => $name );
+
+			if ( is_numeric( $process_at ) && $process_at > time() ) {
+				$event['process_at'] = $process_at;
+			}
+
+			if ( $once ) {
+				$event['once'] = true;
+			}
+
+			if ( ! empty( $properties ) ) {
+				// Verify associative array values are primitive.
+				foreach ( $properties as $k => $v ) {
+					if ( ! is_scalar( $v ) ) {
+						throw new Freemius_InvalidArgumentException( 'The $properties argument must be an associative key/value array with primitive values only.' );
+					}
+				}
+
+				$event['properties'] = $properties;
+			}
+
+			$result = $this->get_api_site_scope()->call( 'events.json', 'post', $event );
+
+			return $this->is_api_error( $result ) ?
+				false :
+				$result;
+		}
+
+		/**
+		 * Track install's custom event only once, but it still triggers the API call.
+		 *
+		 * IMPORTANT:
+		 *      Custom event tracking is currently only supported for specific clients.
+		 *      If you are not one of them, please don't use this method. If you will,
+		 *      the API will simply ignore your request based on the plugin ID.
+		 *
+		 * Need custom tracking for your plugin or theme?
+		 *      If you are interested in custom event tracking please contact yo@freemius.com
+		 *      for further details.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string $name       Event name.
+		 * @param array  $properties Associative key/value array with primitive values only
+		 * @param bool   $process_at A valid future date-time in the following format Y-m-d H:i:s.
+		 *
+		 * @return object|false Event data or FALSE on failure.
+		 *
+		 * @throws \Freemius_InvalidArgumentException
+		 *
+		 * @user Freemius::track_event()
+		 */
+		public function track_event_once($name, $properties = array(), $process_at = false) {
+			return $this->track_event($name, $properties, $process_at, true);
+		}
+
+		/**
 		 * Plugin uninstall hook.
 		 *
 		 * @author Vova Feldman (@svovaf)
