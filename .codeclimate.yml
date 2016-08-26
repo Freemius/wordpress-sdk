@@ -2,7 +2,7 @@ engines:
   phpcodesniffer:
     enabled: true
     config:
-    standard: "Wordpress"
+    standard: "WordPress"
 
 ratings:
   paths:
