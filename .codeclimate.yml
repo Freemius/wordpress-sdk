@@ -1,0 +1,9 @@
+engines:
+  phpcodesniffer:
+    enabled: true
+    config:
+    standard: "Wordpress"
+
+ratings:
+  paths:
+  - "**.php"
