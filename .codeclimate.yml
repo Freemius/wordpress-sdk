@@ -3,7 +3,11 @@ engines:
     enabled: true
     config:
       standard: "WordPress"
-
+    checks:
+      Squiz Commenting InlineComment InvalidEndChar:
+        enabled: false
+      Squiz Commenting InlineComment SpacingBefore:
+        enabled: false        
 ratings:
   paths:
   - "**.php"
