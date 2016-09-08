@@ -2045,33 +2045,33 @@
 				if ( $this->is_cron() ) {
 					$this->hook_callback_to_sync_cron();
 				} else if ( $this->is_user_in_admin() ) {
-				/**
-				 * Schedule daily data sync cron if:
-				 *
-				 *  1. User opted-in (for tracking).
-				 *  2. If plugin has add-ons (update add-ons data).
-				 *  3. If skipped, but later upgraded (opted-in via upgrade).
-				 *
-				 * @author Vova Feldman (@svovaf)
-				 * @since  1.1.7.3
-				 *
-				 */
-				if ( $this->is_registered() ||
-				     ( ! $this->is_activation_mode() && $this->_has_addons )
-				) {
+					/**
+					 * Schedule daily data sync cron if:
+					 *
+					 *  1. User opted-in (for tracking).
+					 *  2. If plugin has add-ons (update add-ons data).
+					 *  3. If skipped, but later upgraded (opted-in via upgrade).
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.1.7.3
+					 *
+					 */
+					if ( $this->is_registered() ||
+					     ( ! $this->is_activation_mode() && $this->_has_addons )
+					) {
 
-					if ( ! $this->is_sync_cron_on() ) {
-						$this->schedule_sync_cron();
+						if ( ! $this->is_sync_cron_on() ) {
+							$this->schedule_sync_cron();
+						}
+					}
+
+					/**
+					 * Check if requested for manual blocking background sync.
+					 */
+					if ( fs_request_has( 'background_sync' ) ) {
+						$this->run_manual_sync();
 					}
 				}
-
-				/**
-				 * Check if requested for manual blocking background sync.
-				 */
-				if ( fs_request_has( 'background_sync' ) ) {
-					$this->run_manual_sync();
-				}
-			}
 			}
 
 			if ( $this->is_registered() ) {
@@ -2446,6 +2446,9 @@
 					__fs( 'woot', $this->_slug ) . '!'
 				);
 			} else {
+				// Remove sticky message related to premium code activation.
+				$this->_admin_notices->remove_sticky('premium_activated');
+
 				// Activated free code (after had the premium before).
 				$this->do_action( 'after_free_version_reactivation' );
 
@@ -4204,8 +4207,8 @@
 				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
 					$this->opt_in( false, false, false, false, true );
 				} else {
-					$params['uid'] = $this->get_anonymous_id();
-					$this->get_api_plugin_scope()->call('uninstall.json', 'put', $params);
+				$params['uid'] = $this->get_anonymous_id();
+				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
 				}
 			} else {
 				// Send uninstall event.
@@ -6246,12 +6249,12 @@
 			}
 
 			if ( ! $is_uninstall ) {
-				$fs_user = Freemius::_get_user_by_email($email);
-				if (is_object($fs_user) && ! $this->is_pending_activation()) {
-					$this->install_with_current_user(false);
+			$fs_user = Freemius::_get_user_by_email( $email );
+			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
+				$this->install_with_current_user( false );
 
-					return true;
-				}
+				return true;
+			}
 			}
 
 			$user_info = array();
