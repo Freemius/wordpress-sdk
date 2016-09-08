@@ -2041,7 +2041,10 @@
 				}
 			}
 
-			if ( $this->has_api_connectivity() && $this->is_user_in_admin() ) {
+			if ( $this->has_api_connectivity() ) {
+				if ( $this->is_cron() ) {
+					$this->hook_callback_to_sync_cron();
+				} else if ( $this->is_user_in_admin() ) {
 				/**
 				 * Schedule daily data sync cron if:
 				 *
@@ -2057,8 +2060,6 @@
 				     ( ! $this->is_activation_mode() && $this->_has_addons )
 				) {
 
-					$this->hook_callback_to_sync_cron();
-
 					if ( ! $this->is_sync_cron_on() ) {
 						$this->schedule_sync_cron();
 					}
@@ -2070,6 +2071,7 @@
 				if ( fs_request_has( 'background_sync' ) ) {
 					$this->run_manual_sync();
 				}
+			}
 			}
 
 			if ( $this->is_registered() ) {
