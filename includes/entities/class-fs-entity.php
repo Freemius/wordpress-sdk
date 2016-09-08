@@ -39,7 +39,7 @@
 		public $created;
 
 		/**
-		 * @param bool|stdClass $entity
+		 * @param bool|object $entity
 		 */
 		function __construct( $entity = false ) {
 			if ( ! ( $entity instanceof stdClass ) ) {
