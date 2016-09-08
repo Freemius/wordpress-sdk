@@ -42,20 +42,32 @@
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $slug, $title = '' ) {
-			if ( ! isset( self::$_instances[ $slug ] ) ) {
-				self::$_instances[ $slug ] = new FS_Admin_Notice_Manager( $slug, $title );
+		static function instance( $slug, $title = '', $module_type = Freemius::MODULE_TYPE_PLUGIN ) {
+			if ( ! isset( self::$_instances[ $module_type ] ) ) {
+				self::$_instances[ $module_type ] = array();
 			}
 
-			return self::$_instances[ $slug ];
+			if ( ! isset( self::$_instances[ $module_type ][ $slug ] ) ) {
+				self::$_instances[ $module_type ][ $slug ] = new FS_Admin_Notice_Manager( $slug, $title, $module_type );
+			}
+
+			return self::$_instances[ $module_type ][ $slug ];
 		}
 
-		protected function __construct( $slug, $title = '' ) {
+		protected function __construct( $slug, $title = '', $module_type = Freemius::MODULE_TYPE_PLUGIN ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_slug           = $slug;
 			$this->_title          = ! empty( $title ) ? $title : '';
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_slug );
+
+			// If the module type is "plugin", set it to empty for backward compatibility.
+			if ( Freemius::MODULE_TYPE_PLUGIN === $module_type ) {
+				$module_type = '';
+			} else {
+				$module_type .= '_';
+			}
+
+			$this->_sticky_storage = FS_Key_Value_Storage::instance( "{$module_type}admin_notices", $this->_slug );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {

@@ -229,9 +229,17 @@
 		private static $_accounts;
 
 		/**
-		 * @var Freemius[]
+		 * @var array
 		 */
-		private static $_instances = array();
+		private static $_instances = array(
+			Freemius::MODULE_TYPE_PLUGIN => array(),
+			Freemius::MODULE_TYPE_THEME => array()
+		);
+
+		/**
+		 * @var array
+		 */
+		private static $_module_info = array();
 
 		// Module types
 		const MODULE_TYPE_PLUGIN = 'plugin';
@@ -245,12 +253,11 @@
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_storage = FS_Key_Value_Storage::instance( 'plugin_data', $this->_slug );
+			$this->_module_type           = self::$_module_info['type'];
 
-			$this->identify_caller_main_file_and_type();
+			$this->_storage = FS_Key_Value_Storage::instance( "{$this->_module_type}_data", $this->_slug );
 
-			$this->_module_type           = $this->_storage->plugin_main_file->module_type;
-			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
+			$this->_plugin_main_file_path = self::$_module_info['path'];
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -274,7 +281,7 @@
 				$this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
 
-			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->get();
+			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug, $this->_module_type )->get();
 
 			/**
 			 * @todo Check if there is a better way to set $this->_storage->was_plugin_loaded to true for "theme" module.
@@ -285,7 +292,7 @@
 			 * should_stop_execution() will return "false" and the "few-plugin-tweaks" admin notice can be added with an
 			 * empty title. So the following if-else block ensures that the admin notice will always have a title.
 			 */
-			if ( ! is_object( $this->_plugin ) && $this->is_theme() ) {
+			if ( ! is_object( $this->_plugin ) ) {
 				$plugin_title = $this->get_plugin_name();
 			} else {
 				/**
@@ -299,7 +306,8 @@
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
 				$slug,
-				$plugin_title
+				$plugin_title,
+				$this->_module_type
 			);
 
 			if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ||
@@ -577,27 +585,19 @@
 
 
 		/**
-		 * Identifies the caller type: plugin or theme.
+		 * Retrieves the module info: type and path.
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.0
+		 *
+		 * @return array
 		 */
-		private function identify_caller_main_file_and_type() {
-			// Try to load the cached data.
-			if ( isset( $this->_storage->plugin_main_file ) ) {
-				$plugin_main_file = $this->_storage->plugin_main_file;
-
-				$type = ( isset( $plugin_main_file->type ) && ! empty( $plugin_main_file->type ) ) ?
-					$plugin_main_file->type : '';
-
-				if ( ! empty( $type ) && file_exists( $plugin_main_file->path ) ) {
-					return;
-				}
-			}
-
+		private static function get_module_info() {
 			if ( ! function_exists( 'get_plugins' ) ) {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
+
+			$module_type = false;
 
 			$all_plugins       = get_plugins();
 			$all_plugins_paths = array();
@@ -627,10 +627,28 @@
 				}
 			}
 
-			$this->_storage->plugin_main_file = (object) array(
-				'module_type' => $module_type,
-				'path'        => $caller_file_path
-			);
+			$module_info = array();
+
+			if ( false === $module_type ) {
+				for ( $i = 1, $bt = debug_backtrace(), $len = count($bt); $i < $len; $i++ ) {
+					if ( ! isset( $bt[ $i ]['class'] ) || ! isset( $bt[ $i ]['object'] ) || 'Freemius' !== $bt[ $i ]['class'] ) {
+						continue;
+					}
+
+					/**
+					 * @var Freemius $fs
+					 */
+					$fs = $bt[ $i ]['object'];
+					$module_info['type'] = $fs->get_module_type();
+					$module_info['path'] = $fs->get_plugin_main_file_path();
+					break;
+				}
+			} else {
+				$module_info['type'] = $module_type;
+				$module_info['path'] = $caller_file_path;
+			}
+
+			return $module_info;
 		}
 
 		#region Deactivation Feedback Form ------------------------------------------------------------------
@@ -874,15 +892,21 @@
 		static function instance( $slug ) {
 			$slug = strtolower( $slug );
 
-			if ( ! isset( self::$_instances[ $slug ] ) ) {
-				if ( 0 === count( self::$_instances ) ) {
+			self::$_module_info = self::get_module_info();
+
+			$module_type = self::$_module_info['type'];
+
+			if ( ! isset( self::$_instances[ $module_type ][ $slug ] ) ) {
+				if ( 0 === count( self::$_instances[ Freemius::MODULE_TYPE_PLUGIN ] )
+				     && 0 === count( self::$_instances[ Freemius::MODULE_TYPE_THEME ] )
+				) {
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $slug ] = new Freemius( $slug );
+				self::$_instances[ $module_type ][ $slug ] = new Freemius( $slug );
 			}
 
-			return self::$_instances[ $slug ];
+			return self::$_instances[ $module_type ][ $slug ];
 		}
 
 		/**
@@ -895,7 +919,7 @@
 		 */
 		private static function has_instance( $slug_or_id ) {
 			return ! is_numeric( $slug_or_id ) ?
-				isset( self::$_instances[ strtolower( $slug_or_id ) ] ) :
+				isset( self::$_instances[ self::$_module_info['type'] ] [ strtolower( $slug_or_id ) ] ) :
 				( false !== self::get_instance_by_id( $slug_or_id ) );
 		}
 
@@ -908,7 +932,7 @@
 		 * @return false|Freemius
 		 */
 		static function get_instance_by_id( $id ) {
-			foreach ( self::$_instances as $slug => $instance ) {
+			foreach ( self::$_instances[ self::$_module_info['type'] ] as $slug => $instance ) {
 				if ( $id == $instance->get_id() ) {
 					return $instance;
 				}
@@ -2308,7 +2332,7 @@
 
 			if ( $plugin->is_updated() ) {
 				// Update plugin details.
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug, $this->_module_type )->store( $plugin );
 			}
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
@@ -2544,7 +2568,7 @@
 
 			$site = $sites[ $slug ];
 
-			$plugin = FS_Plugin_Manager::instance( $slug )->get();
+			$plugin = FS_Plugin_Manager::instance( $slug, $this->_module_type )->get();
 
 			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
 				// The given slug do NOT belong to any of the plugin's add-ons.
@@ -2610,7 +2634,7 @@
 		 */
 		function get_installed_addons() {
 			$installed_addons = array();
-			foreach ( self::$_instances as $slug => $instance ) {
+			foreach ( self::$_instances[ $this->_module_type ] as $slug => $instance ) {
 				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
 					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
 						$installed_addons[] = $instance;
@@ -2634,7 +2658,7 @@
 				return false;
 			}
 
-			foreach ( self::$_instances as $slug => $instance ) {
+			foreach ( self::$_instances[ $this->_module_type ] as $slug => $instance ) {
 				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
 					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
 						return true;
@@ -2745,7 +2769,7 @@
 			$this->_plugin->secret_key = $secret_key;
 
 			// Update plugin details.
-			FS_Plugin_Manager::instance( $this->_slug )->update( $this->_plugin, true );
+			FS_Plugin_Manager::instance( $this->_slug, $this->_module_type )->update( $this->_plugin, true );
 		}
 
 		/**
@@ -5537,6 +5561,16 @@
 		 */
 		function get_module_type() {
 			return $this->_module_type;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.0
+		 *
+		 * @return string
+		 */
+		function get_plugin_main_file_path() {
+			return $this->_plugin_main_file_path;
 		}
 
 		/**
