@@ -2452,10 +2452,7 @@
 						sprintf(
 							__fs( 'you-have-x-license', $this->_slug ),
 							$this->_site->plan->title
-						) . ' ' . $this->_get_latest_download_link( sprintf(
-							__fs( 'download-x-version-now', $this->_slug ),
-							$this->_site->plan->title
-						) ),
+						) . $this->get_complete_upgrade_instructions(),
 						'plan_upgraded',
 						__fs( 'yee-haw', $this->_slug ) . '!'
 					);
@@ -6408,10 +6405,7 @@
 					sprintf(
 						__fs( 'activation-with-plan-x-message', $this->_slug ),
 						$this->_site->plan->title
-					) . ' ' . $this->_get_latest_download_link( sprintf(
-						__fs( 'download-latest-x-version', $this->_slug ),
-						$this->_site->plan->title
-					) ),
+					) . $this->get_complete_upgrade_instructions(),
 					'plan_upgraded',
 					__fs( 'yee-haw', $this->_slug ) . '!'
 				);
@@ -8269,11 +8263,7 @@
 							sprintf(
 								__fs( 'plan-upgraded-message', $this->_slug ),
 								'<i>' . $this->get_plugin_name() . '</i>'
-							) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-									__fs( 'download-latest-x-version', $this->_slug ),
-									$this->_site->plan->title
-								) )
-							),
+							) . $this->get_complete_upgrade_instructions(),
 							'plan_upgraded',
 							__fs( 'yee-haw', $this->_slug ) . '!'
 						);
@@ -8335,10 +8325,7 @@
 							sprintf(
 								__fs( 'trial-started-message', $this->_slug ),
 								'<i>' . $this->get_plugin_name() . '</i>'
-							) . ( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-									__fs( 'download-latest-x-version', $this->_slug ),
-									$this->_storage->trial_plan->title
-								) ) ),
+							) . $this->get_complete_upgrade_instructions($this->_storage->trial_plan->title),
 							'trial_started',
 							__fs( 'yee-haw', $this->_slug ) . '!'
 						);
@@ -8443,10 +8430,7 @@
 			if ( ! $background ) {
 				$this->_admin_notices->add_sticky(
 					__fs( 'license-activated-message', $this->_slug ) .
-					( $this->is_premium() ? '' : ' ' . $this->_get_latest_download_link( sprintf(
-							__fs( 'download-latest-x-version', $this->_slug ),
-							$this->_site->plan->title
-						) ) ),
+					$this->get_complete_upgrade_instructions(),
 					'license_activated',
 					__fs( 'yee-haw', $this->_slug ) . '!'
 				);
@@ -10140,6 +10124,41 @@
 		 */
 		function add_sticky_admin_message( $message, $id, $title = '', $type = 'success' ) {
 			$this->_admin_notices->add_sticky( $message, $id, $title, $type );
+		}
+
+		/**
+		 * Helper function that returns the final steps for the upgrade completion.
+		 *
+		 * If the module is already running the premium code, returns an empty string.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string $plan_title
+		 *
+		 * @return string
+		 */
+		private function get_complete_upgrade_instructions($plan_title = '') {
+			if ( $this->is_premium() ) {
+				return '';
+			}
+
+			if ( empty( $plan_title ) ) {
+				$plan_title = $this->_site->plan->title;
+			}
+
+			return sprintf(
+				' %s: <ol><li>%s.</li><li>%s.</li><li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+				__fs( 'follow-steps-to-complete-upgrade', $this->_slug ),
+				$this->_get_latest_download_link( sprintf(
+					__fs( 'download-latest-x-version', $this->_slug ),
+					$plan_title
+				) ),
+				__fs( 'deactivate-free-version', $this->_slug ),
+				__fs( 'upload-and-activate', $this->_slug ),
+				'//bit.ly/upload-wp-plugin',
+				__fs( 'howto-upload-activate', $this->_slug )
+			);
 		}
 
 		/* Plugin Auto-Updates (@since 1.0.4)
