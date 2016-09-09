@@ -124,7 +124,7 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						action     : 'activate_license',
+						action     : 'fs_activate_license_' + pluginSlug,
 						slug       : pluginSlug,
 						license_key: licenseKey
 					},

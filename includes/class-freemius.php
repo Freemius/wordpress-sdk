@@ -228,21 +228,21 @@
 		private static $_instances = array();
 
 		// Reason IDs
-		const REASON_NO_LONGER_NEEDED                  = 1;
-		const REASON_FOUND_A_BETTER_PLUGIN             = 2;
-		const REASON_NEEDED_FOR_A_SHORT_PERIOD         = 3;
-		const REASON_BROKE_MY_SITE                     = 4;
-		const REASON_SUDDENLY_STOPPED_WORKING          = 5;
-		const REASON_CANT_PAY_ANYMORE                  = 6;
-		const REASON_OTHER                             = 7;
-		const REASON_DIDNT_WORK                        = 8;
+		const REASON_NO_LONGER_NEEDED = 1;
+		const REASON_FOUND_A_BETTER_PLUGIN = 2;
+		const REASON_NEEDED_FOR_A_SHORT_PERIOD = 3;
+		const REASON_BROKE_MY_SITE = 4;
+		const REASON_SUDDENLY_STOPPED_WORKING = 5;
+		const REASON_CANT_PAY_ANYMORE = 6;
+		const REASON_OTHER = 7;
+		const REASON_DIDNT_WORK = 8;
 		const REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION = 9;
-		const REASON_COULDNT_MAKE_IT_WORK              = 10;
-		const REASON_GREAT_BUT_NEED_SPECIFIC_FEATURE   = 11;
-		const REASON_NOT_WORKING                       = 12;
-		const REASON_NOT_WHAT_I_WAS_LOOKING_FOR        = 13;
-		const REASON_DIDNT_WORK_AS_EXPECTED            = 14;
-		const REASON_TEMPORARY_DEACTIVATION            = 15;
+		const REASON_COULDNT_MAKE_IT_WORK = 10;
+		const REASON_GREAT_BUT_NEED_SPECIFIC_FEATURE = 11;
+		const REASON_NOT_WORKING = 12;
+		const REASON_NOT_WHAT_I_WAS_LOOKING_FOR = 13;
+		const REASON_DIDNT_WORK_AS_EXPECTED = 14;
+		const REASON_TEMPORARY_DEACTIVATION = 15;
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -2066,12 +2066,12 @@
 								// If anonymous mode is disabled, add firewall admin-notice message.
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
-								add_action( "wp_ajax_{$this->_slug}_resolve_firewall_issues", array(
+								$this->add_ajax_action( 'resolve_firewall_issues', array(
 									&$this,
 									'_email_about_firewall_issue'
 								) );
 
-								add_action( "wp_ajax_{$this->_slug}_retry_connectivity_test", array(
+								$this->add_ajax_action( 'retry_connectivity_test', array(
 									&$this,
 									'_retry_connectivity_test'
 								) );
@@ -2505,7 +2505,7 @@
 				);
 			} else {
 				// Remove sticky message related to premium code activation.
-				$this->_admin_notices->remove_sticky('premium_activated');
+				$this->_admin_notices->remove_sticky( 'premium_activated' );
 
 				// Activated free code (after had the premium before).
 				$this->do_action( 'after_free_version_reactivation' );
@@ -4174,7 +4174,7 @@
 		 *
 		 * @throws \Freemius_InvalidArgumentException
 		 */
-		public function track_event($name, $properties = array(), $process_at = false, $once = false) {
+		public function track_event( $name, $properties = array(), $process_at = false, $once = false ) {
 			$this->_logger->entrance( http_build_query( array( 'name' => $name, 'once' => $once ) ) );
 
 			if ( ! $this->is_registered() ) {
@@ -4232,10 +4232,10 @@
 		 *
 		 * @throws \Freemius_InvalidArgumentException
 		 *
-		 * @user Freemius::track_event()
+		 * @user   Freemius::track_event()
 		 */
-		public function track_event_once($name, $properties = array(), $process_at = false) {
-			return $this->track_event($name, $properties, $process_at, true);
+		public function track_event_once( $name, $properties = array(), $process_at = false ) {
+			return $this->track_event( $name, $properties, $process_at, true );
 		}
 
 		/**
@@ -4253,9 +4253,9 @@
 				return;
 			}
 
-			$params = array();
+			$params           = array();
 			if ( isset( $this->_storage->uninstall_reason ) ) {
-				$uninstall_reason = $this->_storage->uninstall_reason;
+				$uninstall_reason      = $this->_storage->uninstall_reason;
 				$params['reason_id']   = $uninstall_reason->id;
 				$params['reason_info'] = $uninstall_reason->info;
 			}
@@ -4265,8 +4265,8 @@
 				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
 					$this->opt_in( false, false, false, false, true );
 				} else {
-				$params['uid'] = $this->get_anonymous_id();
-				$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+					$params['uid'] = $this->get_anonymous_id();
+					$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
 				}
 			} else {
 				// Send uninstall event.
@@ -5416,14 +5416,14 @@
 		 */
 		function _require_license_activation_dialog() {
 			if ( $this->is_ajax() ) {
-				if ( fs_request_is_action( 'activate_license' ) ) {
+				if ( $this->is_ajax_action( 'activate_license' ) ) {
 					// Add license activation AJAX callback.
-					add_action( 'wp_ajax_activate_license', array( &$this, '_activate_license_ajax_action' ) );
+					$this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
 				}
 
-				if ( fs_request_is_action( 'resend_license_key' ) ) {
+				if ( $this->is_ajax_action( 'resend_license_key' ) ) {
 					// Add resend license AJAX callback.
-					add_action( 'wp_ajax_resend_license_key', array(
+					$this->add_ajax_action( 'resend_license_key', array(
 						&$this,
 						'_resend_license_key_ajax_action'
 					) );
@@ -5439,7 +5439,7 @@
 		 * @since  1.1.9
 		 */
 		function _activate_license_ajax_action() {
-			$license_key = trim( fs_request_get('license_key') );
+			$license_key = trim( fs_request_get( 'license_key' ) );
 
 			if ( empty( $license_key ) ) {
 				exit;
@@ -5770,7 +5770,7 @@
 				$ajax_action = fs_request_get( 'action' );
 
 				foreach ( $actions as $action ) {
-					if ( $ajax_action === $action ) {
+					if ( $ajax_action === $this->get_action_tag( $action ) ) {
 						return true;
 					}
 				}
@@ -6296,7 +6296,7 @@
 		 *
 		 * @return bool Is successful opt-in (or set to pending).
 		 *
-		 * @use WP_Error
+		 * @use    WP_Error
 		 */
 		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_uninstall = false ) {
 			$this->_logger->entrance();
@@ -6307,12 +6307,12 @@
 			}
 
 			if ( ! $is_uninstall ) {
-			$fs_user = Freemius::_get_user_by_email( $email );
-			if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-				$this->install_with_current_user( false );
+				$fs_user = Freemius::_get_user_by_email( $email );
+				if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
+					$this->install_with_current_user( false );
 
-				return true;
-			}
+					return true;
+				}
 			}
 
 			$user_info = array();
@@ -6906,7 +6906,7 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 * @since 1.2.1
+		 * @since  1.2.1
 		 *
 		 * return string
 		 */
@@ -8419,7 +8419,7 @@
 							sprintf(
 								__fs( 'trial-started-message', $this->_slug ),
 								'<i>' . $this->get_plugin_name() . '</i>'
-							) . $this->get_complete_upgrade_instructions($this->_storage->trial_plan->title),
+							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
 							'trial_started',
 							__fs( 'yee-haw', $this->_slug ) . '!'
 						);
@@ -10232,7 +10232,7 @@
 		 *
 		 * @return string
 		 */
-		private function get_complete_upgrade_instructions($plan_title = '') {
+		private function get_complete_upgrade_instructions( $plan_title = '' ) {
 			if ( $this->is_premium() ) {
 				return '';
 			}

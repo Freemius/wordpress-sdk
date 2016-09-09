@@ -23,7 +23,7 @@
 				slug = notice.attr('data-slug');
 
 			var data = {
-				action    : slug + '_resolve_firewall_issues',
+				action    : 'fs_resolve_firewall_issues_' + slug,
 				slug      : slug,
 				error_type: error_type
 			};
@@ -40,7 +40,7 @@
 			}
 
 			if ('retry_ping' === error_type) {
-				data.action = slug + '_retry_connectivity_test';
+				data.action = 'fs_retry_connectivity_test_' + slug;
 			}
 
 			$(this).css({'cursor': 'wait'});

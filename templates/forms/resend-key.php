@@ -113,7 +113,7 @@ HTML;
 						url       : ajaxurl,
 						method    : 'POST',
 						data      : {
-							action: 'resend_license_key',
+							action: '<?php echo $fs->get_action_tag( 'resend_license_key' ) ?>',
 							slug  : moduleSlug,
 							email : emailAddress
 						},
