@@ -161,7 +161,7 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						'action'      : 'submit-uninstall-reason',
+						'action'      : '<?php echo $fs->get_action_tag( 'submit_uninstall_reason' ) ?>',
 						'reason_id'   : $radio.val(),
 						'reason_info' : userReason,
 						'is_anonymous': isAnonymousFeedback()

@@ -545,7 +545,10 @@
 				// If user is paying or in trial and have the free version installed,
 				// assume that the deactivation is for the upgrade process.
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-					add_action( 'wp_ajax_submit-uninstall-reason', array( &$this, '_submit_uninstall_reason_action' ) );
+					$this->add_ajax_action(
+						'submit_uninstall_reason',
+						array( &$this, '_submit_uninstall_reason_action' )
+					);
 
 					global $pagenow;
 					if ( 'plugins.php' === $pagenow ) {
@@ -7284,8 +7287,20 @@
 		 *
 		 * @return string
 		 */
-		private function get_action_tag( $tag ) {
-			return 'fs_' . $tag . '_' . $this->_slug;
+		public function get_action_tag( $tag ) {
+			return "fs_{$tag}_{$this->_slug}";
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string $tag
+		 *
+		 * @return string
+		 */
+		private function get_ajax_action_tag( $tag ) {
+			return 'wp_ajax_' . $this->get_action_tag( $tag );
 		}
 
 		/**
@@ -7328,6 +7343,25 @@
 			$this->_logger->entrance( $tag );
 
 			add_action( $this->get_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+		}
+
+		/**
+		 * Add AJAX action, specific for the current context plugin.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string   $tag
+		 * @param callable $function_to_add
+		 * @param int      $priority
+		 * @param int      $accepted_args
+		 *
+		 * @uses   add_action()
+		 */
+		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
+			$this->_logger->entrance( $tag );
+
+			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
 		}
 
 		/**
