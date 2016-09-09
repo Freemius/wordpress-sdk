@@ -1,13 +1,4 @@
 .fs-modal.fs-modal-license-key-resend {
-	.button-close {
-		float: right;
-		margin: 5px;
-
-		&:hover {
-			cursor: pointer;
-		}
-	}
-
 	.fs-modal-body {
 		.input-container > .email-address-container {
 			overflow: hidden;
@@ -27,6 +18,24 @@
 			}
 		}
 	}
+}
+
+.rtl
+{
+    .fs-modal.fs-modal-license-key-resend {
+        .fs-modal-body {
+            .input-container > .email-address-container {
+                padding-left: 2px;
+                padding-right: 0;
+            }
+
+            .button-container {
+                float: left;
+                margin-right: 7px;
+                margin-left: 0;
+            }
+        }
+    }
 }
 
 a.show-license-resend-modal {
