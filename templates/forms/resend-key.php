@@ -90,15 +90,14 @@ HTML;
 					}
 				});
 
+				$modal.on('click', '.fs-close', function (){
+					closeModal();
+				});
+
 				$modal.on('click', '.button', function (evt) {
 					evt.preventDefault();
 
 					if ($(this).hasClass('disabled')) {
-						return;
-					}
-
-					if ($(this).hasClass('button-close')) {
-						closeModal();
 						return;
 					}
 
@@ -131,18 +130,6 @@ HTML;
 							}
 						}
 					});
-				});
-
-				// If the user has clicked outside the window, close the modal.
-				$modal.on('click', function (evt) {
-					var $target = $(evt.target);
-
-					// If the user has clicked anywhere in the modal dialog, just return.
-					if ($target.hasClass('fs-modal-body') || $target.parents('.fs-modal-body').length > 0) {
-						return;
-					}
-
-					closeModal();
 				});
 			}
 
