@@ -247,14 +247,23 @@
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
 
-		private function __construct( $slug ) {
+		/**
+		 * Main singleton instance.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.0.0
+		 *
+		 * @param string $slug
+		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
+		 */
+		private function __construct( $slug, $is_init = false ) {
 			$this->_slug = $slug;
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_storage = FS_Key_Value_Storage::instance( 'plugin_data', $this->_slug );
 
-			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
+			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = plugin_basename( $this->_plugin_main_file_path );
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -499,7 +508,17 @@
 		 * @since 1.2.0 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not fetch updates.
 		 */
 		private function clear_module_main_file_cache() {
-			unset( $this->_storage->plugin_main_file );
+			if ( ! isset( $this->_storage->plugin_main_file ) ||
+			     empty( $this->_storage->plugin_main_file->path )
+			) {
+				return;
+			}
+
+			// Store cached path (2nd layer cache).
+			$this->_storage->plugin_main_file->prev_path = $this->_storage->plugin_main_file->path;
+
+			// Clear cached path.
+			unset( $this->_storage->plugin_main_file->path );
 		}
 
 		/**
@@ -548,11 +567,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
+		 * @param bool $is_init Is initiation sequence.
+		 *
 		 * @return string
 		 *
 		 * @uses   fs_find_caller_plugin_file
 		 */
-		private function _find_caller_plugin_file() {
+		private function _find_caller_plugin_file( $is_init = false ) {
 			// Try to load the cached value of the file path.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
 				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
@@ -560,6 +581,39 @@
 				}
 			}
 
+			/**
+			 * @since 1.2.1
+			 *
+			 * `clear_module_main_file_cache()` is clearing the plugin's cached path on
+			 * deactivation. Therefore, if any plugin/theme was initiating `Freemius`
+			 * with that plugin's slug, it was overriding the empty plugin path with a wrong path.
+			 *
+			 * So, we've added a special mechanism with a 2nd layer of cache that uses `prev_path`
+			 * when the class instantiator isn't the module.
+			 */
+			if ( ! $is_init ) {
+				// Fetch prev path cache.
+				if ( isset( $this->_storage->plugin_main_file ) &&
+				     isset( $this->_storage->plugin_main_file->prev_path )
+				) {
+					if ( file_exists( $this->_storage->plugin_main_file->prev_path ) ) {
+						return $this->_storage->plugin_main_file->prev_path;
+					}
+				}
+
+				wp_die(
+					__fs( 'failed-finding-main-path', $this->_slug ),
+					__fs( 'error' ),
+					array( 'back_link' => true )
+				);
+			}
+
+			/**
+			 * @since 1.2.1
+			 *
+			 * Only the original instantiator that calls dynamic_init can modify the module's path.
+			 */
+			// Find caller module.
 			$plugin_file = fs_find_caller_plugin_file();
 
 			$this->_storage->plugin_main_file = (object) array(
@@ -826,11 +880,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
-		 * @param $slug
+		 * @param string $slug
+		 * @param bool   $is_init Is initiation sequence.
 		 *
 		 * @return Freemius
 		 */
-		static function instance( $slug ) {
+		static function instance( $slug, $is_init = false ) {
 			$slug = strtolower( $slug );
 
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
@@ -838,7 +893,7 @@
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $slug ] = new Freemius( $slug );
+				self::$_instances[ $slug ] = new Freemius( $slug, $is_init );
 			}
 
 			return self::$_instances[ $slug ];

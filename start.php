@@ -285,7 +285,7 @@
 		 * @return Freemius
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $slug );
+			$fs = Freemius::instance( $slug, true );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
@@ -298,7 +298,7 @@
 		 * @throws Freemius_Exception
 		 */
 		function fs_dynamic_init( $plugin ) {
-			$fs = Freemius::instance( $plugin['slug'] );
+			$fs = Freemius::instance( $plugin['slug'], true );
 			$fs->dynamic_init( $plugin );
 
 			return $fs;
