@@ -40,7 +40,10 @@ HTML;
 			    modalHtml =
 				    '<div class="fs-modal fs-modal-license-key-resend">'
 				    + '	<div class="fs-modal-dialog">'
-				    + '     <a class="button-close">✖</a>'
+				    + '		<div class="fs-modal-header">'
+				    + '		    <h4><?php echo $send_button_text ?></h4>'
+				    + '         <a class="fs-close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				    + '		</div>'
 				    + '		<div class="fs-modal-body">'
 				    + '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				    + '		</div>'

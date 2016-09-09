@@ -49,7 +49,7 @@ HTML;
 	$is_anonymous = ( ! $fs->is_registered() );
 	if ( $is_anonymous ) {
 		$anonymous_feedback_checkbox_html =
-			'<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox">'
+			'<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox"> '
 				. __fs( 'anonymous-feedback', $slug )
 			. '</label>';
 	} else {
@@ -64,14 +64,17 @@ HTML;
 	    modalHtml =
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
+		    + '		<div class="fs-modal-header">'
+		    + '		    <h4><?php _efs('quick-feedback' , $slug) ?></h4>'
+		    + '		</div>'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
 		    + '			<div class="fs-modal-panel active" data-panel-id="reasons"><h3><strong><?php printf( __fs(  'deactivation-share-reason' , $slug ) ); ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
-			+ '         <?php echo $anonymous_feedback_checkbox_html; ?>'
+			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ); ?></a>'
+		    + '			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
