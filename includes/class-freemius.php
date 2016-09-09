@@ -4254,13 +4254,14 @@
 			}
 
 			$params           = array();
+			$uninstall_reason = null;
 			if ( isset( $this->_storage->uninstall_reason ) ) {
 				$uninstall_reason      = $this->_storage->uninstall_reason;
 				$params['reason_id']   = $uninstall_reason->id;
 				$params['reason_info'] = $uninstall_reason->info;
 			}
 
-			if ( ! $this->is_registered() && isset( $this->_storage->uninstall_reason ) ) {
+			if ( ! $this->is_registered() && isset( $uninstall_reason ) ) {
 				// Send anonymous uninstall event only if user submitted a feedback.
 				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
 					$this->opt_in( false, false, false, false, true );
