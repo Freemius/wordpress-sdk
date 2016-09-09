@@ -23,10 +23,10 @@
 	<p>{$message_above_input_field}</p>
 	<div class="input-container">
 		<div class="button-container">
-			<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
+			<a href="#" class="button button-primary button-send-license-key disabled" tabindex="2">{$send_button_text}</a>
 		</div>
 	    <div class="email-address-container">
-	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}">
+	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}" tabindex="1">
 	    </div>
     </div>
 HTML;
