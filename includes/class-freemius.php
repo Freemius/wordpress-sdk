@@ -7667,30 +7667,6 @@
 		}
 
 		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.5
-		 * @uses   FS_Api
-		 *
-		 * @param bool $flush
-		 *
-		 * @return object|\FS_Site
-		 */
-		private function _fetch_site( $flush = false ) {
-			$this->_logger->entrance();
-			$api = $this->get_api_site_scope();
-
-			$site = $api->get( '/', $flush );
-
-			if ( ! isset( $site->error ) ) {
-				$site          = new FS_Site( $site );
-				$site->slug    = $this->_slug;
-				$site->version = $this->get_plugin_version();
-			}
-
-			return $site;
-		}
-
-		/**
 		 * @param bool $store
 		 *
 		 * @return FS_Plugin_Plan|object|false
@@ -8890,46 +8866,6 @@
 
 		/**
 		 * Download latest plugin version, based on plan.
-		 * The download will be fetched via the API first.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.4
-		 *
-		 * @param bool|number $plugin_id
-		 *
-		 * @uses   FS_Api
-		 *
-		 * @deprecated
-		 */
-		private function _download_latest( $plugin_id = false ) {
-			$this->_logger->entrance();
-
-			$is_addon = $this->_is_addon_id( $plugin_id );
-
-			$is_premium = $this->_can_download_premium();
-
-			$latest = $this->get_api_site_scope()->call(
-				$this->_get_latest_version_endpoint( $plugin_id, 'zip' )
-			);
-
-			$slug = $this->_slug;
-			if ( $is_addon ) {
-				$addon = $this->get_addon( $plugin_id );
-				$slug  = is_object( $addon ) ? $addon->slug : 'addon';
-			}
-
-			if ( ! is_object( $latest ) ) {
-				header( "Content-Type: application/zip" );
-				header( "Content-Disposition: attachment; filename={$slug}" . ( ! $is_addon && $is_premium ? '-premium' : '' ) . ".zip" );
-				header( "Content-Length: " . strlen( $latest ) );
-				echo $latest;
-
-				exit();
-			}
-		}
-
-		/**
-		 * Download latest plugin version, based on plan.
 		 *
 		 * Not like _download_latest(), this will redirect the page
 		 * to secure download url to prevent dual download (from FS to WP server,
@@ -9940,18 +9876,6 @@
 		------------------------------------------------------------------------------------------------------------------*/
 		private $_action_links_hooked = false;
 		private $_action_links = array();
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.0
-		 *
-		 * @return bool
-		 */
-		private function is_plugin_action_links_hooked() {
-			$this->_logger->entrance( json_encode( $this->_action_links_hooked ) );
-
-			return $this->_action_links_hooked;
-		}
 
 		/**
 		 * Hook to plugin action links filter.
