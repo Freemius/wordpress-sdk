@@ -2107,17 +2107,13 @@
 					 * Schedule daily data sync cron if:
 					 *
 					 *  1. User opted-in (for tracking).
-					 *  2. If plugin has add-ons (update add-ons data).
-					 *  3. If skipped, but later upgraded (opted-in via upgrade).
+					 *  2. If skipped, but later upgraded (opted-in via upgrade).
 					 *
 					 * @author Vova Feldman (@svovaf)
 					 * @since  1.1.7.3
 					 *
 					 */
-					if ( $this->is_registered() ||
-					     ( ! $this->is_activation_mode() && $this->_has_addons )
-					) {
-
+					if ( $this->is_registered() ) {
 						if ( ! $this->is_sync_cron_on() ) {
 							$this->schedule_sync_cron();
 						}
@@ -2912,11 +2908,6 @@
 					// Sync install (only if something changed locally).
 					$this->sync_install();
 				}
-			}
-
-			if ( ! $this->is_addon() && $this->_has_addons ) {
-				// Sync add-ons collection.
-				$this->_sync_addons( true );
 			}
 
 			$this->do_action( 'after_sync_cron' );
@@ -4709,34 +4700,15 @@
 		function get_addons() {
 			$this->_logger->entrance();
 
-			$all_addons = self::get_all_addons();
-
-			/**
-			 * @since 1.1.7.3 If not yet loaded, fetch data from the API.
-			 */
-			if ( ! is_array( $all_addons ) ||
-			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
-			     empty( $all_addons[ $this->_plugin->id ] )
-			) {
-				if ( $this->_has_addons ) {
-					$addons = $this->_sync_addons();
-
-					if ( ! empty( $addons ) ) {
-						$all_addons = self::get_all_addons();
-					}
-				}
-			}
-
-			if ( ! is_array( $all_addons ) ||
-			     ! isset( $all_addons[ $this->_plugin->id ] ) ||
-			     ! is_array( $all_addons[ $this->_plugin->id ] ) ||
-			     empty( $all_addons[ $this->_plugin->id ] )
-			) {
+			if ( ! $this->_has_addons ) {
 				return false;
 			}
 
-			return $all_addons[ $this->_plugin->id ];
+			$addons = $this->_sync_addons();
+
+			return ( ! is_array( $addons ) || empty( $addons ) ) ?
+				false :
+				$addons;
 		}
 
 		/**
@@ -9103,7 +9075,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
-		 * @param bool $flush Since 1.1.7.3 by default add 24 hour cache.
+		 * @param bool $flush Since 1.1.7.3 add 24 hour cache by default.
 		 *
 		 * @return FS_Plugin[]
 		 *
@@ -9112,7 +9084,21 @@
 		private function _sync_addons( $flush = false ) {
 			$this->_logger->entrance();
 
-			$result = $this->get_api_site_or_plugin_scope()->get( '/addons.json?enriched=true', $flush );
+			$api = $this->get_api_site_or_plugin_scope();
+
+			/**
+			 * @since 1.2.1
+			 *
+			 * If there's a cached version of the add-ons and not asking
+			 * for a flush, just use the currently stored add-ons.
+			 */
+			if ( ! $flush && $api->is_cached( '/addons.json?enriched=true' ) ) {
+				$addons = self::get_all_addons();
+
+				return $addons[ $this->_plugin->id ];
+			}
+
+			$result = $api->get( '/addons.json?enriched=true', $flush );
 
 			$addons = array();
 			if ( ! $this->is_api_error( $result ) ) {
