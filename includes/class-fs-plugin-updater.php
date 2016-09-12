@@ -57,7 +57,7 @@
 				'pre_set_site_transient_update_plugins_filter'
 			) );
 
-			if ( ! $this->_fs->has_active_license() ) {
+			if ( ! $this->_fs->has_active_valid_license() ) {
 				/**
 				 * If user has the premium plugin's code but do NOT have an active license,
 				 * encourage him to upgrade by showing that there's a new release, but instead

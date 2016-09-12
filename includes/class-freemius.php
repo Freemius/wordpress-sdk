@@ -4880,7 +4880,7 @@
 				return false;
 			}
 
-			return $this->has_active_license() && ( $this->_site->trial_plan_id == $this->_license->plan_id );
+			return $this->has_active_valid_license() && ( $this->_site->trial_plan_id == $this->_license->plan_id );
 		}
 
 		/**
@@ -4939,7 +4939,7 @@
 			return (
 				! $this->is_trial() &&
 				'free' !== $this->_site->plan->name &&
-				$this->has_active_license()
+				$this->has_active_valid_license()
 			);
 		}
 
@@ -7973,8 +7973,22 @@
 			return (
 				is_object( $this->_license ) &&
 				is_numeric( $this->_license->id ) &&
-				$this->_license->is_active() &&
 				! $this->_license->is_expired()
+			);
+		}
+
+		/**
+		 * Check if site assigned with active & valid (not expired) license.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 */
+		function has_active_valid_license() {
+			return (
+				is_object( $this->_license ) &&
+				is_numeric( $this->_license->id ) &&
+				$this->_license->is_active() &&
+				$this->_license->is_valid()
 			);
 		}
 
@@ -8801,7 +8815,7 @@
 		 * @return bool
 		 */
 		private function _can_download_premium() {
-			return $this->has_active_license() ||
+			return $this->has_active_valid_license() ||
 			       ( $this->is_trial() && ! $this->get_trial_plan()->is_free() );
 		}
 
