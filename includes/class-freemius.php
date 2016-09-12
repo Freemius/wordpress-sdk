@@ -3909,7 +3909,7 @@
 			}
 
 			// Get active theme.
-			$active_theme = wp_get_theme();
+			$active_theme            = wp_get_theme();
 			$active_theme_stylesheet = $active_theme->get_stylesheet();
 
 			// Check if there's a change in themes.
@@ -4792,7 +4792,7 @@
 
 			if ( is_array( $addons ) ) {
 				foreach ( $addons as $addon ) {
-					if ( $slug == $addon->slug ) {
+					if ( $slug === $addon->slug ) {
 						return $addon;
 					}
 				}
@@ -8124,7 +8124,11 @@
 		private function _sync_plugin_license( $background = false ) {
 			$this->_logger->entrance();
 
-			// Sync site info.
+			/**
+			 * Sync site info.
+			 *
+			 * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
+			 */
 			$site = $this->send_install_update( array(), true );
 
 			$plan_change = 'none';
