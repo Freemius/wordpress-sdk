@@ -74,14 +74,7 @@
 			}
 
 			// Find add-on by slug.
-			$addons         = $this->_fs->get_addons();
-			$selected_addon = false;
-			foreach ( $addons as $addon ) {
-				if ( $addon->slug == $args->slug ) {
-					$selected_addon = $addon;
-					break;
-				}
-			}
+			$selected_addon = $this->_fs->get_addon_by_slug($args->slug);
 
 			if ( false === $selected_addon ) {
 				return $data;
