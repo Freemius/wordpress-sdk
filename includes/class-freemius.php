@@ -3910,6 +3910,7 @@
 
 			// Get active theme.
 			$active_theme = wp_get_theme();
+			$active_theme_stylesheet = $active_theme->get_stylesheet();
 
 			// Check if there's a change in themes.
 			$all_themes = wp_get_themes();
@@ -3919,7 +3920,7 @@
 
 			$themes_signature = '';
 			foreach ( $all_themes as $slug => $data ) {
-				$is_active = ( $slug === $active_theme->stylesheet );
+				$is_active = ( $slug === $active_theme_stylesheet );
 				$themes_signature .= $slug . ',' .
 				                     $data->version . ',' .
 				                     ( $is_active ? '1' : '0' ) . ';';
@@ -3935,7 +3936,7 @@
 
 				// Update existing themes info.
 				foreach ( $all_cached_themes->themes as $slug => $data ) {
-					$is_active = ( $slug === $active_theme->stylesheet );
+					$is_active = ( $slug === $active_theme_stylesheet );
 
 					if ( ! isset( $all_themes[ $slug ] ) ) {
 						// Plugin uninstalled.
@@ -3961,7 +3962,7 @@
 				// Find new themes that weren't yet seen before.
 				foreach ( $all_themes as $slug => $data ) {
 					if ( ! isset( $all_cached_themes->themes[ $slug ] ) ) {
-						$is_active = ( $slug === $active_theme->stylesheet );
+						$is_active = ( $slug === $active_theme_stylesheet );
 
 						// New plugin.
 						$new_plugin = array(
