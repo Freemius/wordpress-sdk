@@ -7968,6 +7968,8 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
+		 *
+		 * @deprecated Please use has_active_valid_license() instead because license can be cancelled.
 		 */
 		function has_active_license() {
 			return (
