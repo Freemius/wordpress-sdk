@@ -4919,7 +4919,7 @@
 		}
 
 		/**
-		 * Check if the user has an activated and valid paid license on current plugin's install.
+		 * Check if the user has an activate, non-expired license on current plugin's install.
 		 *
 		 * @since 1.0.9
 		 *
