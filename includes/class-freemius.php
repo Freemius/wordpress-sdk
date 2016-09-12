@@ -7973,6 +7973,7 @@
 			return (
 				is_object( $this->_license ) &&
 				is_numeric( $this->_license->id ) &&
+				$this->_license->is_active() &&
 				! $this->_license->is_expired()
 			);
 		}
