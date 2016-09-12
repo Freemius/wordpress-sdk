@@ -4939,7 +4939,7 @@
 			return (
 				! $this->is_trial() &&
 				'free' !== $this->_site->plan->name &&
-				$this->has_features_enabled_license()
+				$this->has_active_license()
 			);
 		}
 
