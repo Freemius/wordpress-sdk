@@ -8228,7 +8228,7 @@
 						// For trial with subscription use-case.
 						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
 
-						if ( is_object( $new_license ) && ! $new_license->is_expired() ) {
+						if ( is_object( $new_license ) && $new_license->is_valid() ) {
 							$this->_site = $site;
 							$this->_update_site_license( $new_license );
 							$this->_store_licenses();
