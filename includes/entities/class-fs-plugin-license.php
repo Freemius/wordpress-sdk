@@ -121,6 +121,18 @@
 		}
 
 		/**
+		 * Check if license is not expired.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @return bool
+		 */
+		function is_valid() {
+			return ! $this->is_expired();
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
