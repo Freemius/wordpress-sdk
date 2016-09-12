@@ -283,6 +283,8 @@
 		 * @param bool   $is_premium Hints freemius if running the premium plugin or not.
 		 *
 		 * @return Freemius
+		 *
+		 * @deprecated Please use fs_dynamic_init().
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
 			$fs = Freemius::instance( $slug, true );
@@ -292,14 +294,14 @@
 		}
 
 		/**
-		 * @param array [string]string $plugin
+		 * @param array<string,string> $module Plugin or Theme details.
 		 *
 		 * @return Freemius
 		 * @throws Freemius_Exception
 		 */
-		function fs_dynamic_init( $plugin ) {
-			$fs = Freemius::instance( $plugin['slug'], true );
-			$fs->dynamic_init( $plugin );
+		function fs_dynamic_init( $module ) {
+			$fs = Freemius::instance( $module['slug'], true );
+			$fs->dynamic_init( $module );
 
 			return $fs;
 		}
