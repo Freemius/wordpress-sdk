@@ -164,6 +164,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @return bool
+		 */
+		function is_active() {
+			return ( ! $this->is_cancelled );
+		}
+
+		/**
 		 * Check if license's plan features are enabled.
 		 *
 		 *  - Either if plan not expired
@@ -175,7 +185,7 @@
 		 * @return bool
 		 */
 		function is_features_enabled() {
-			return ( ! $this->is_block_features || ! $this->is_expired() );
+			return $this->is_active() && ( ! $this->is_block_features || ! $this->is_expired() );
 		}
 
 		/**
