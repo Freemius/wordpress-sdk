@@ -262,7 +262,7 @@
 			$canonized = $this->_api->CanonizePath( $path );
 //			$exploded = explode('/', $canonized);
 //			return $method . '_' . array_pop($exploded) . '_' . md5($canonized . json_encode($params));
-			return $method . ':' . $canonized . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
+			return strtolower($method . ':' . $canonized) . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
 		}
 
 		/**
