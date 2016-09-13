@@ -8350,8 +8350,9 @@
 
 							$this->_admin_notices->add(
 								sprintf(
-									__fs( 'plan-did-not-change-message', $this->_slug ) . ' ' .
-									sprintf(
+									__fs( 'plan-did-not-change-message', $this->_slug ),
+									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
+								) . ' ' . sprintf(
 										'<a href="%s">%s</a>',
 										$this->contact_url(
 											'bug',
@@ -8361,8 +8362,6 @@
 										),
 										__fs( 'contact-us-here', $this->_slug )
 									),
-									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
-								),
 								__fs( 'hmm', $this->_slug ) . '...'
 							);
 						}
