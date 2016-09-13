@@ -7993,8 +7993,8 @@
 		/**
 		 * Check if site assigned with active license.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.0.6
 		 *
 		 * @deprecated Please use has_active_valid_license() instead because license can be cancelled.
 		 */
@@ -8496,9 +8496,17 @@
 
 			if ( $this->is_api_error( $license ) ) {
 				if ( ! $background ) {
-					$this->_admin_notices->add(
-						__fs( 'license-activation-failed-message', $this->_slug ) . '<br> ' .
-						__fs( 'server-error-message', $this->_slug ) . ' ' . var_export( $license, true ),
+					$this->_admin_notices->add( sprintf(
+							'%s %s',
+							__fs( 'license-activation-failed-message', $this->_slug ),
+							( is_object( $license ) && isset( $license->error ) ?
+								$license->error->message :
+								sprintf( '%s<br><code>%s</code>',
+									__fs( 'server-error-message', $this->_slug ),
+									var_export( $license, true )
+								)
+							)
+						),
 						__fs( 'hmm', $this->_slug ) . '...',
 						'error'
 					);
