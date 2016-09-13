@@ -6290,7 +6290,7 @@
 		 * @param string|bool $email
 		 * @param string|bool $first
 		 * @param string|bool $last
-		 * @param string|bool $license_secret_key
+		 * @param string|bool $license_key
 		 * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
@@ -6299,7 +6299,13 @@
 		 *
 		 * @use    WP_Error
 		 */
-		function opt_in( $email = false, $first = false, $last = false, $license_secret_key = false, $is_uninstall = false ) {
+		function opt_in(
+			$email = false,
+			$first = false,
+			$last = false,
+			$license_key = false,
+			$is_uninstall = false
+		) {
 			$this->_logger->entrance();
 
 			if ( false === $email ) {
@@ -6307,12 +6313,16 @@
 				$email        = $current_user->user_email;
 			}
 
+			/**
+			 * @since 1.2.1 If activating with license key, ignore the context-user
+			 *              since the user will be automatically loaded from the license.
+			 */
+			if (empty($license_key)) {
 			if ( ! $is_uninstall ) {
 				$fs_user = Freemius::_get_user_by_email( $email );
 				if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-					$this->install_with_current_user( false );
-
-					return true;
+						return $this->install_with_current_user( false );
+					}
 				}
 			}
 
