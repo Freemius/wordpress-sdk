@@ -5348,7 +5348,8 @@
 		 * @return bool
 		 */
 		function has_paid_plan() {
-			return $this->_has_paid_plans || FS_Plan_Manager::instance()->has_paid_plan( $this->_plans );
+			return $this->_has_paid_plans ||
+			       FS_Plan_Manager::instance()->has_paid_plan( $this->_plans );
 		}
 
 		/**
