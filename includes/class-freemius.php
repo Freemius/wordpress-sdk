@@ -6461,6 +6461,8 @@
 				$this->_license = $this->_get_license_by_id( $site->license_id );
 			}
 
+			$this->_admin_notices->remove_sticky( 'connect_account' );
+
 			if ( $this->is_pending_activation() ) {
 				// Remove pending activation sticky notice (if still exist).
 				$this->_admin_notices->remove_sticky( 'activation_pending' );
@@ -6534,8 +6536,6 @@
 
 			if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
 //				check_admin_referer( $this->_slug . '_activate_new' );
-
-				$this->_admin_notices->remove_sticky( 'connect_account' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
 					$this->install_with_new_user(
@@ -6645,8 +6645,6 @@
 		 * @param bool $redirect
 		 */
 		private function install_with_current_user( $redirect = true ) {
-			$this->_admin_notices->remove_sticky( 'connect_account' );
-
 			// Get current logged WP user.
 			$current_user = self::_get_current_wp_user();
 
