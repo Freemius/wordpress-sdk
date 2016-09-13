@@ -1159,7 +1159,31 @@
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
+			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
+
 			self::$_statics_loaded = true;
+		}
+
+		/**
+		 * Load framework's text domain.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 */
+		static function _load_textdomain() {
+			if ( ! is_admin() ) {
+				return;
+			}
+
+			global $fs_active_plugins;
+
+			load_plugin_textdomain(
+				'freemius',
+				false,
+				$fs_active_plugins->newest->sdk_path . '/languages/'
+			);
+
+			// @todo Load for themes.
 		}
 
 		#region Debugging ------------------------------------------------------------------
