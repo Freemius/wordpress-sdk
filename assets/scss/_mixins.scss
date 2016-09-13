@@ -200,14 +200,6 @@ $useIEFilters: 0;
     filter: alpha(opacity=$opacity-ie); //IE8
 }
 
-@mixin sprite($img, $width, $height: $width, $display: block)
-{
-    display: $display;
-    background-image: url('#{$img}');
-
-    @include size($width, $height);
-}
-
 @mixin size($width, $height: $width)
 {
     width: $width;
