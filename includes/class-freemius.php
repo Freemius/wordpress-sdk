@@ -9301,10 +9301,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.2
 		 *
+		 * @param array $params
+		 *
 		 * @return string
 		 */
-		private function get_activation_url() {
-			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url() );
+		private function get_activation_url( $params = array() ) {
+			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
 		}
 
 		/**
