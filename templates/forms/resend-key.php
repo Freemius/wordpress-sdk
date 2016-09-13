@@ -42,7 +42,7 @@ HTML;
 				    + '	<div class="fs-modal-dialog">'
 				    + '		<div class="fs-modal-header">'
 				    + '		    <h4><?php echo $send_button_text ?></h4>'
-				    + '         <a class="fs-close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				    + '         <a href="!#" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
 				    + '		</div>'
 				    + '		<div class="fs-modal-body">'
 				    + '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
