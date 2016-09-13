@@ -5454,7 +5454,11 @@
 					$error = $install->error->message;
 				}
 			} else {
-				$this->opt_in( false, false, false, $license_key );
+				$install = $this->opt_in( false, false, false, $license_key );
+
+				if ( isset( $install->error ) ) {
+					$error = $install->error;
+				}
 			}
 
 			$result = array(
@@ -6392,7 +6396,7 @@
 			}
 
 			if ( isset( $decoded->error ) ) {
-				return false;
+				return $decoded;
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
 				$this->set_pending_confirmation( false, false );
@@ -6412,7 +6416,7 @@
 				return true;
 			}
 
-			return false;
+			return $decoded;
 		}
 
 		/**
@@ -6675,7 +6679,12 @@
 					'error'
 				);
 
-				return;
+				if ( $redirect && fs_redirect( $this->get_activation_url( array('error' => $install->error->message) ) )
+				) {
+					exit();
+				}
+
+				return $install;
 			}
 
 			$site        = new FS_Site( $install );
@@ -6686,6 +6695,8 @@
 //				$this->_sync_plans();
 
 			$this->setup_account( $this->_user, $this->_site, $redirect );
+
+			return $install;
 		}
 
 		/**
