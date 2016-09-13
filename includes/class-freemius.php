@@ -6335,8 +6335,8 @@
 
 			$params = $this->get_opt_in_params( $user_info );
 
-			if ( is_string( $license_secret_key ) ) {
-				$params['license_secret_key'] = $license_secret_key;
+			if ( is_string( $license_key ) ) {
+				$params['license_secret_key'] = $license_key;
 			}
 
 			if ( $is_uninstall ) {
