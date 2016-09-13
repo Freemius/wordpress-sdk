@@ -39,8 +39,10 @@
 	$message_above_input_field  = __fs( 'activate-license-message', $slug );
 	$message_below_input_field  = '';
 
+	$header_title = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+
 	if ( $fs->is_registered() ) {
-		$activate_button_text = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+		$activate_button_text = $header_title;
 	} else {
 		$freemius_site_url = $fs->has_paid_plan() ?
 			'https://freemius.com/wordpress/' :
@@ -73,6 +75,10 @@ HTML;
 			modalHtml =
 				'<div class="fs-modal fs-modal-license-activation">'
 				+ '	<div class="fs-modal-dialog">'
+				+ '		<div class="fs-modal-header">'
+				+ '		    <h4><?php echo $header_title ?></h4>'
+				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
