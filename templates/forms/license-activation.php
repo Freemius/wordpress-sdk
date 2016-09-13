@@ -49,7 +49,7 @@
 			// Insights platform information.
 			'https://freemius.com/wordpress/usage-tracking/';
 
-		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>';
+		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
 
 		$message_below_input_field = sprintf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link );
 
@@ -61,8 +61,8 @@
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
-	<input class="license_key" type="text" placeholder="{$license_key_text}" />
-	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="#">{$cant_find_license_key_text}</a>
+	<input class="license_key" type="text" placeholder="{$license_key_text}" tabindex="1" />
+	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="!#" tabindex="2">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
 
@@ -83,8 +83,8 @@ HTML;
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<a href="#" class="button button-secondary button-close"><?php _efs('deactivation-modal-button-cancel', $slug); ?></a>'
-				+ '			<a href="#" class="button button-primary button-activate-license"><?php echo $activate_button_text; ?></a>'
+				+ '			<button class="button button-secondary button-close" tabindex="4"><?php _efs('deactivation-modal-button-cancel', $slug); ?></button>'
+				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo $activate_button_text; ?></button>'
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
