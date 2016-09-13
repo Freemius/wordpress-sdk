@@ -6665,7 +6665,7 @@
 			$license_key = fs_request_get( 'license_secret_key' );
 
 			if ( ! empty( $license_key ) ) {
-				$extra_install_params['license_secret_key'] = $license_key;
+				$extra_install_params['license_key'] = $license_key;
 			}
 
 			// Install the plugin.
