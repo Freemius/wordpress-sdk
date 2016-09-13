@@ -25,6 +25,7 @@
                     }
                 }, _base_url);
             },
+            _hasParent = ('' !== _parent_url),
             $window = $(window),
             $html = $('html');
 
@@ -58,8 +59,14 @@
                 // Post height of a child right after window is loaded.
                 $(window).bind('load', function () {
                     FS.PostMessage.postHeight();
-                });
 
+                    // Post message that window was loaded.
+                    FS.PostMessage.post('loaded');
+                });
+            },
+            hasParent : function ()
+            {
+                return _hasParent;
             },
             postHeight : function (diff, wrapper) {
                 diff = diff || 0;
