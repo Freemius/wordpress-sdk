@@ -5394,7 +5394,7 @@
 		 */
 		function _add_license_activation_dialog_box() {
 			$vars = array(
-				'slug'             => $this->_slug,
+				'slug' => $this->_slug,
 			);
 
 			fs_require_template( 'forms/license-activation.php', $vars );
@@ -6320,9 +6320,9 @@
 			 *              since the user will be automatically loaded from the license.
 			 */
 			if (empty($license_key)) {
-			if ( ! $is_uninstall ) {
-				$fs_user = Freemius::_get_user_by_email( $email );
-				if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
+				if ( ! $is_uninstall ) {
+					$fs_user = Freemius::_get_user_by_email( $email );
+					if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
 						return $this->install_with_current_user( false );
 					}
 				}
@@ -6643,6 +6643,8 @@
 		 * @since  1.1.7.4
 		 *
 		 * @param bool $redirect
+		 *
+		 * @return object|string
 		 */
 		private function install_with_current_user( $redirect = true ) {
 			// Get current logged WP user.
@@ -6675,7 +6677,7 @@
 				$this->get_install_data_for_api( $extra_install_params, false, false )
 			);
 
-			if ( isset( $install->error ) ) {
+			if ( $this->is_api_error($install) ) {
 				$this->_admin_notices->add(
 					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
 					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
@@ -8353,15 +8355,15 @@
 									__fs( 'plan-did-not-change-message', $this->_slug ),
 									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
 								) . ' ' . sprintf(
-										'<a href="%s">%s</a>',
-										$this->contact_url(
-											'bug',
-											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
-												strtoupper( $plan->name )
-											)
-										),
-										__fs( 'contact-us-here', $this->_slug )
+									'<a href="%s">%s</a>',
+									$this->contact_url(
+										'bug',
+										sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
+											strtoupper( $plan->name )
+										)
 									),
+									__fs( 'contact-us-here', $this->_slug )
+								),
 								__fs( 'hmm', $this->_slug ) . '...'
 							);
 						}
