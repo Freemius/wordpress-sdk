@@ -9,6 +9,10 @@
 	if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 	}
+
+	/**
+	 * @var array $VARS
+	 */
 ?>
 <div class="<?php
 	switch ($VARS['type']) {

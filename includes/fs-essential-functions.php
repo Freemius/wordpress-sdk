@@ -354,6 +354,9 @@
 	function fs_fallback_to_newest_active_sdk() {
 		global $fs_active_plugins;
 
+		/**
+		 * @var object $newest_sdk_data
+		 */
 		$newest_sdk_data = null;
 		$newest_sdk_path = null;
 

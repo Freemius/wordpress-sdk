@@ -10,6 +10,9 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
@@ -245,6 +248,7 @@ HTML;
 			}
 
 			closeModal();
+			return false;
 		});
 	}
 

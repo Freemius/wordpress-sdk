@@ -10,6 +10,9 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
@@ -172,6 +175,7 @@ HTML;
 			// If the user has clicked outside the window, close the modal.
 			$modal.on('click', '.fs-close, .button-secondary', function () {
 				closeModal();
+				return false;
 			});
 		}
 

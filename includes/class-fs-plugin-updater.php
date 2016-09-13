@@ -100,6 +100,9 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.6
+		 *
+		 * @param string $file
+		 * @param array $plugin_data
 		 */
 		function edit_and_echo_plugin_update_row( $file, $plugin_data ) {
 			$plugin_update_row = ob_get_clean();
@@ -108,7 +111,7 @@
 			if ( ! isset( $current->response[ $file ] ) ) {
 				echo $plugin_update_row;
 
-				return false;
+				return;
 			}
 
 			$r = $current->response[ $file ];

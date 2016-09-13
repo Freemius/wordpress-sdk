@@ -334,7 +334,6 @@
 				} else if ( ! empty( $api->download_link ) ) {
 					$status = install_plugin_install_status( $api );
 
-
 					// Hosted on WordPress.org.
 					switch ( $status['status'] ) {
 						case 'install':
@@ -369,6 +368,8 @@
 
 				}
 			}
+
+			return '';
 		}
 
 		/**
