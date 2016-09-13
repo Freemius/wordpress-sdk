@@ -14,7 +14,7 @@
 	$fs   = freemius( $slug );
 
 	if ($fs->is_registered()) {
-	// The URL to redirect to after successfully activating the license from the "Plugins" page.
+		// The URL to redirect to after successfully activating the license from the "Plugins" page.
 		if ( $fs->is_addon() ) {
 			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
 		} else {
@@ -98,8 +98,6 @@ HTML;
 
 		$modal.appendTo($('body'));
 
-		registerEventHandlers();
-
 		function registerEventHandlers() {
 			$activateLicenseLink.click(function (evt) {
 				evt.preventDefault();
@@ -130,7 +128,7 @@ HTML;
 				}
 			});
 
-			$modal.on('click', '.button', function (evt) {
+			$modal.on('click', '.button-activate-license', function (evt) {
 				evt.preventDefault();
 
 				if ($(this).hasClass('disabled')) {
@@ -172,22 +170,12 @@ HTML;
 			});
 
 			// If the user has clicked outside the window, close the modal.
-			$modal.on('click', function (evt) {
-				var $target = $(evt.target);
-
-				// If the user has clicked anywhere in the modal dialog, just return.
-				if ($target.hasClass('fs-modal-body') || $target.hasClass('fs-modal-footer')) {
-					return;
-				}
-
-				// If the user has not clicked the close button and the clicked element is inside the modal dialog, just return.
-				if (( !$target.hasClass('button-close') ) && ( $target.parents('.fs-modal-body').length > 0 || $target.parents('.fs-modal-footer').length > 0 )) {
-					return;
-				}
-
+			$modal.on('click', '.fs-close, .button-secondary', function () {
 				closeModal();
 			});
 		}
+
+		registerEventHandlers();
 
 		function showModal() {
 			resetModal();
