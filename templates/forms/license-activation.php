@@ -14,7 +14,11 @@
 	$fs   = freemius( $slug );
 
 	// The URL to redirect to after successfully activating the license from the "Plugins" page.
-	$sync_license_url = $VARS['sync-license-url'];
+		if ( $fs->is_addon() ) {
+			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
+		} else {
+			$sync_license_url = $fs->_get_sync_license_url( $this->_plugin->id, true );
+		}
 
 	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
 	$message_above_input_field  = __fs( 'activate-license-message', $slug );

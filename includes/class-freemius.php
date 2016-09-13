@@ -5393,16 +5393,8 @@
 		 * @since  1.1.9
 		 */
 		function _add_license_activation_dialog_box() {
-			if ( $this->is_addon() ) {
-				$sync_license_url = $this->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
-			} else {
-				$sync_license_url = $this->_get_sync_license_url( $this->_plugin->id, true );
-			}
-
 			$vars = array(
 				'slug'             => $this->_slug,
-				// Avoid having HTML entity like "&amp;" in the URL which breaks the redirection to the "Account" page.
-				'sync-license-url' => html_entity_decode( $sync_license_url )
 			);
 
 			fs_require_template( 'forms/license-activation.php', $vars );
