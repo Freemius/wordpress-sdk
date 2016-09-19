@@ -24,10 +24,13 @@
                         }
                     }
                 }, _base_url);
-            };
+            },
+            _hasParent = ('' !== _parent_url),
+            $window = $(window),
+            $html = $('html');
 
         return {
-            init : function (url)
+            init : function (url, iframes)
             {
                 _base_url = url;
                 _init();
@@ -36,6 +39,16 @@
                 FS.PostMessage.receiveOnce('forward', function (data){
                     window.location = data.url;
                 });
+
+                iframes = iframes || [];
+
+                if (iframes.length > 0) {
+                    $window.on('scroll', function () {
+                        for (var i = 0; i < iframes.length; i++) {
+                            FS.PostMessage.postScroll(iframes[i]);
+                        }
+                    });
+                }
             },
             init_child : function ()
             {
@@ -46,8 +59,14 @@
                 // Post height of a child right after window is loaded.
                 $(window).bind('load', function () {
                     FS.PostMessage.postHeight();
-                });
 
+                    // Post message that window was loaded.
+                    FS.PostMessage.post('loaded');
+                });
+            },
+            hasParent : function ()
+            {
+                return _hasParent;
             },
             postHeight : function (diff, wrapper) {
                 diff = diff || 0;
@@ -55,6 +74,12 @@
                 this.post('height', {
                     height: diff + $(wrapper).outerHeight(true)
                 });
+            },
+            postScroll : function (iframe) {
+                this.post('scroll', {
+                    top: $window.scrollTop(),
+                    height: ($window.height() - parseFloat($html.css('paddingTop')) - parseFloat($html.css('marginTop')))
+                }, iframe);
             },
             post : function (type, data, iframe)
             {

@@ -148,6 +148,7 @@
 <?php endif ?>
 <?php
 	/**
+	 * @var array $VARS
 	 * @var FS_Site[] $sites
 	 */
 	$sites = $VARS['sites'];

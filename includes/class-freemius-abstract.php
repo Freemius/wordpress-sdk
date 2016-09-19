@@ -366,8 +366,7 @@
 		 * @return bool
 		 */
 		function is_freemium() {
-			return ! $this->is_only_premium() &&
-			       $this->has_paid_plan() &&
+			return $this->has_paid_plan() &&
 			       $this->has_free_plan();
 		}
 

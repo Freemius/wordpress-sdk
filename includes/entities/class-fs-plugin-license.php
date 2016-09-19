@@ -87,7 +87,7 @@
 		 * @return int
 		 */
 		function left() {
-			if ( $this->is_expired() ) {
+			if ( ! $this->is_active() || $this->is_expired() ) {
 				return 0;
 			}
 
@@ -118,6 +118,18 @@
 		 */
 		function is_expired() {
 			return ! $this->is_lifetime() && ( strtotime( $this->expiration ) < WP_FS__SCRIPT_START_TIME );
+		}
+
+		/**
+		 * Check if license is not expired.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @return bool
+		 */
+		function is_valid() {
+			return ! $this->is_expired();
 		}
 
 		/**
@@ -164,6 +176,16 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @return bool
+		 */
+		function is_active() {
+			return ( ! $this->is_cancelled );
+		}
+
+		/**
 		 * Check if license's plan features are enabled.
 		 *
 		 *  - Either if plan not expired
@@ -175,7 +197,7 @@
 		 * @return bool
 		 */
 		function is_features_enabled() {
-			return ( ! $this->is_block_features || ! $this->is_expired() );
+			return $this->is_active() && ( ! $this->is_block_features || ! $this->is_expired() );
 		}
 
 		/**

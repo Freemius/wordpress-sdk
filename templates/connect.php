@@ -10,6 +10,9 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug                  = $VARS['slug'];
 	$fs                    = freemius( $slug );
 	$is_pending_activation = $fs->is_pending_activation();
@@ -50,6 +53,14 @@
 	$require_license_key = $is_premium_only ||
 	                       ( $is_freemium && $is_premium_code && fs_request_get_bool( 'require_license', true ) );
 
+    if ( $is_pending_activation ) {
+        $require_license_key = false;
+    }
+    
+    if ( $require_license_key ) {
+        $fs->_require_license_activation_dialog();
+    }
+    
 	global $pagenow;
 	$is_theme_page = ( 'themes.php' === $pagenow );
 ?>
@@ -145,6 +156,8 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>"
+				   href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
@@ -348,12 +361,14 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 			 * @author Vova Feldman (@svovaf)
 			 * @since 1.1.9
 			 */
-			$licenseKeyInput.on('keyup', function () {
-				if ('' === $(this).val()) {
-					$primaryCta.attr('disabled', 'disabled');
-				} else {
-					$primaryCta.prop('disabled', false);
-				}
+			$licenseKeyInput.on('keyup paste delete cut', function () {
+				setTimeout(function () {
+					if ('' === $licenseKeyInput.val()) {
+						$primaryCta.attr('disabled', 'disabled');
+					} else {
+						$primaryCta.prop('disabled', false);
+					}
+				}, 100);
 			}).focus();
 		}
 

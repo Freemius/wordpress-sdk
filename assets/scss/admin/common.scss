@@ -108,6 +108,12 @@
     }
 }
 
+@media screen and (max-width:500px) {
+    #fs_promo_tab {
+        display: none;
+    }
+}
+
 @media screen and (max-width: 782px) {
     .fs-secure-notice
     {

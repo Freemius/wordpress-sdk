@@ -30,11 +30,17 @@
 
 	<?php $i = 0;
 		foreach ( $log_book as $log ) : ?>
+			<?php
+			/**
+			 * @var FS_Logger $logger
+			 */
+			$logger = $log['logger'];
+			?>
 			<tr<?php if ( $i % 2 ) {
 				echo ' class="alternate"';
 			} ?>>
 				<td><?php echo $log['cnt'] ?>.</td>
-				<td><?php echo $log['logger']->get_id() ?></td>
+				<td><?php echo $logger->get_id() ?></td>
 				<td><?php echo $log['type'] ?></td>
 				<td><b><code style="color: blue;"><?php echo $log['function'] ?></code></b></td>
 				<td>
@@ -50,7 +56,7 @@
 				</td>
 				<td><?php
 						if ( isset( $log['file'] ) ) {
-							echo substr( $log['file'], $log['logger']->get_file() ) . ':' . $log['line'] . ')';
+							echo substr( $log['file'], $logger->get_file() ) . ':' . $log['line'] . ')';
 						}
 					?></td>
 				<td><?php echo number_format( 100 * ( $log['timestamp'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . __fs( 'ms' ) ?></td>

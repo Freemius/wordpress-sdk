@@ -15,6 +15,9 @@
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug      = $VARS['slug'];
 	$fs        = freemius( $slug );
 	$timestamp = time();

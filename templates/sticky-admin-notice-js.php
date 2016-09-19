@@ -23,7 +23,7 @@
 
 			notice.fadeOut('fast', function(){
 				var data = {
-					action: slug + '_dismiss_notice_action',
+					action: 'fs_dismiss_notice_action_' + slug,
 					slug: slug,
 					message_id: id
 				};

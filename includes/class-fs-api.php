@@ -258,11 +258,38 @@
 			return $cached_result;
 		}
 
+		/**
+		 * Check if there's a cached version of the API request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1
+		 *
+		 * @param string $path
+		 * @param string $method
+		 * @param array  $params
+		 *
+		 * @return bool
+		 */
+		function is_cached( $path, $method = 'GET', $params = array() )
+		{
+			$cache_key = $this->get_cache_key( $path, $method, $params );
+
+			return self::$_cache->has_valid( $cache_key );
+		}
+
+		/**
+		 * @param string $path
+		 * @param string $method
+		 * @param array  $params
+		 *
+		 * @return string
+		 * @throws \Freemius_Exception
+		 */
 		private function get_cache_key( $path, $method = 'GET', $params = array() ) {
 			$canonized = $this->_api->CanonizePath( $path );
 //			$exploded = explode('/', $canonized);
 //			return $method . '_' . array_pop($exploded) . '_' . md5($canonized . json_encode($params));
-			return $method . ':' . $canonized . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
+			return strtolower($method . ':' . $canonized) . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
 		}
 
 		/**

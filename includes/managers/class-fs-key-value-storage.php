@@ -10,6 +10,37 @@
 		exit;
 	}
 
+	/**
+	 * Class FS_Key_Value_Storage
+	 *
+	 * @property int           $install_timestamp
+	 * @property int           $activation_timestamp
+	 * @property int           $sync_timestamp
+	 * @property object        $sync_cron
+	 * @property int           $install_sync_timestamp
+	 * @property array         $connectivity_test
+	 * @property array         $is_on
+	 * @property object        $trial_plan
+	 * @property bool          $has_trial_plan
+	 * @property bool          $trial_promotion_shown
+	 * @property string        $sdk_version
+	 * @property string        $sdk_last_version
+	 * @property bool          $sdk_upgrade_mode
+	 * @property bool          $sdk_downgrade_mode
+	 * @property bool          $plugin_upgrade_mode
+	 * @property bool          $plugin_downgrade_mode
+	 * @property string        $plugin_version
+	 * @property string        $plugin_last_version
+	 * @property bool          $is_plugin_new_install
+	 * @property bool          $was_plugin_loaded
+	 * @property object        $plugin_main_file
+	 * @property bool          $prev_is_premium
+	 * @property array         $is_anonymous
+	 * @property bool          $is_pending_activation
+	 * @property bool          $sticky_optin_added
+	 * @property object        $uninstall_reason
+	 * @property object        $subscription
+	 */
 	class FS_Key_Value_Storage implements ArrayAccess, Iterator, Countable {
 		/**
 		 * @var string

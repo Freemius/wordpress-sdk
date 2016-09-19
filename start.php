@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '1.2.0';
+	$this_sdk_version = '1.2.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -310,40 +310,8 @@
 			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
 		}
 
-		// Configuration should be loaded first.
-		require_once dirname( __FILE__ ) . '/config.php';
-
-		// Logger must be loaded before any other.
-		require_once WP_FS__DIR_INCLUDES . '/class-fs-logger.php';
-		require_once WP_FS__DIR_INCLUDES . '/debug/debug-bar-start.php';
-
-		require_once WP_FS__DIR_INCLUDES . '/fs-core-functions.php';
-//		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-abstract-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-option-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-cache-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-admin-notice-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-admin-menu-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-key-value-storage.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-license-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-plan-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/managers/class-fs-plugin-manager.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-entity.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-scope-entity.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-user.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-site.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-info.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-tag.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-plan.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-pricing.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-license.php';
-		require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-subscription.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-fs-api.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-fs-plugin-updater.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-freemius-abstract.php';
-		require_once WP_FS__DIR_INCLUDES . '/sdk/Exceptions/Exception.php';
-		require_once WP_FS__DIR_INCLUDES . '/class-freemius.php';
+		// Load SDK files.
+		require_once dirname( __FILE__ ) . '/require.php';
 
 		/**
 		 * Quick shortcut to get Freemius for specified plugin.
@@ -365,23 +333,25 @@
 		 * @param bool   $is_premium Hints freemius if running the premium plugin or not.
 		 *
 		 * @return Freemius
+		 *
+		 * @deprecated Please use fs_dynamic_init().
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $slug );
+			$fs = Freemius::instance( $slug, true );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
 		}
 
 		/**
-		 * @param array [string]string $plugin
+		 * @param array<string,string> $module Plugin or Theme details.
 		 *
 		 * @return Freemius
 		 * @throws Freemius_Exception
 		 */
-		function fs_dynamic_init( $plugin ) {
-			$fs = Freemius::instance( $plugin['slug'] );
-			$fs->dynamic_init( $plugin );
+		function fs_dynamic_init( $module ) {
+			$fs = Freemius::instance( $module['slug'], true );
+			$fs->dynamic_init( $module );
 
 			return $fs;
 		}

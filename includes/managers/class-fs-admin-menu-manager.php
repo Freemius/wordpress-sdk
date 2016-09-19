@@ -58,7 +58,7 @@
 		/**
 		 * @since 1.1.3
 		 *
-		 * @var string[]bool
+		 * @var array<string,bool>
 		 */
 		private $_default_submenu_items;
 		/**

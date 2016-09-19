@@ -11,6 +11,8 @@
 	}
 
 	/**
+	 * @var array $VARS
+	 *
 	 * @var FS_Plugin $plugin
 	 */
 	$plugin = $VARS['plugin'];
