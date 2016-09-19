@@ -19,9 +19,9 @@
 	if ($fs->is_registered()) {
 		// The URL to redirect to after successfully activating the license from the "Plugins" page.
 		if ( $fs->is_addon() ) {
-			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $this->_plugin->id, true );
+			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $fs->get_id(), true );
 		} else {
-			$sync_license_url = $fs->_get_sync_license_url( $this->_plugin->id, true );
+			$sync_license_url = $fs->_get_sync_license_url( $fs->get_id(), true );
 		}
 
 		/**
