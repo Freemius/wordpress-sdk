@@ -350,7 +350,7 @@
 		 * @throws Freemius_Exception
 		 */
 		function fs_dynamic_init( $module ) {
-			$fs = Freemius::instance( $module['slug'], true );
+			$fs = Freemius::instance( $module['id'], true );
 			$fs->dynamic_init( $module );
 
 			return $fs;

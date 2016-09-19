@@ -229,6 +229,13 @@
 		private static $_accounts;
 
 		/**
+		 * @since 1.2.1
+		 *
+		 * @var string
+		 */
+		private $_module_id;
+
+		/**
 		 * @var Freemius[]
 		 */
 		private static $_instances = array();
@@ -263,11 +270,11 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
-		 * @param string $slug
+		 * @param number $module_id
 		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
 		 */
-		private function __construct( $slug, $is_init = false ) {
-			$this->_slug = $slug;
+		private function __construct( $module_id, $is_init = false ) {
+			$this->_module_id = $module_id;
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -988,23 +995,21 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
-		 * @param string $slug
+		 * @param number $module_id
 		 * @param bool   $is_init Is initiation sequence.
 		 *
 		 * @return Freemius
 		 */
-		static function instance( $slug, $is_init = false ) {
-			$slug = strtolower( $slug );
-
-			if ( ! isset( self::$_instances[ $slug ] ) ) {
+		static function instance( $module_id, $is_init = false ) {
+			if ( ! isset( self::$_instances[ $module_id ] ) ) {
 				if ( 0 === count( self::$_instances ) ) {
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $slug ] = new Freemius( $slug, $is_init );
+				self::$_instances[ $module_id ] = new Freemius( $module_id, $is_init );
 			}
 
-			return self::$_instances[ $slug ];
+			return self::$_instances[ $module_id ];
 		}
 
 		/**
