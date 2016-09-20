@@ -89,22 +89,23 @@
 		private static $_instances = array();
 
 		/**
-		 * @param string $plugin_slug
+		 * @param number $module_id
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $plugin_slug ) {
-			if ( ! isset( self::$_instances[ $plugin_slug ] ) ) {
-				self::$_instances[ $plugin_slug ] = new FS_Admin_Menu_Manager( $plugin_slug );
+		static function instance( $module_id ) {
+			if ( ! isset( self::$_instances[ $module_id ] ) ) {
+				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id );
 			}
 
-			return self::$_instances[ $plugin_slug ];
+			return self::$_instances[ $module_id ];
 		}
 
-		protected function __construct( $plugin_slug ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $plugin_slug . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+		protected function __construct( $module_id ) {
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_plugin_slug = $plugin_slug;
+			$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
+			$this->_plugin_slug = $slug_and_type_info[ 'slug' ];
 		}
 
 		#endregion Singleton

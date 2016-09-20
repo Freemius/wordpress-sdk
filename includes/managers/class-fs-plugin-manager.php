@@ -25,7 +25,7 @@
 		protected $_module;
 
 		/**
-		 * @var array
+		 * @var FS_Plugin_Manager[]
 		 */
 		private static $_instances = array();
 		/**
@@ -34,28 +34,25 @@
 		protected $_logger;
 
 		/**
-		 * @param string $slug
+		 * @param number $module_id
 		 *
 		 * @return FS_Plugin_Manager
 		 */
-		static function instance( $slug, $module_type = Freemius::MODULE_TYPE_PLUGIN ) {
-			if ( ! isset( self::$_instances[ $module_type ] ) ) {
-				self::$_instances[ $module_type ] = array();
+		static function instance( $module_id ) {
+			if ( ! isset( self::$_instances[ $module_id ] ) ) {
+				self::$_instances[ $module_id ] = new FS_Plugin_Manager( $module_id );
 			}
 
-			if ( ! isset( self::$_instances[ $module_type ][ $slug ] ) ) {
-				self::$_instances[ $module_type ][ $slug ] = new FS_Plugin_Manager( $slug, $module_type );
-			}
+			return self::$_instances[ $module_id ];
+        }
 
-			return self::$_instances[ $module_type ][ $slug ];
-		}
+		protected function __construct( $module_id ) {
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-		protected function __construct( $slug, $module_type ) {
-			$this->_module_type = $module_type;
+			$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
 
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
-			$this->_slug = $slug;
+			$this->_slug 		= $slug_and_type_info[ 'slug' ];
+			$this->_module_type = $slug_and_type_info[ 'type' ];
 			$this->load();
 		}
 

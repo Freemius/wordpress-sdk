@@ -11,10 +11,11 @@
 	}
 
 	/**
-	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+
+	$slug = $fs->get_slug();
 
 	if ($fs->is_registered()) {
 		// The URL to redirect to after successfully activating the license from the "Plugins" page.

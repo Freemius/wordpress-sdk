@@ -37,43 +37,42 @@
 		protected $_logger;
 
 		/**
-		 * @param string $slug
+		 * @param number $module_id
 		 * @param string $title
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $slug, $title = '', $module_type = Freemius::MODULE_TYPE_PLUGIN ) {
-			if ( ! isset( self::$_instances[ $module_type ] ) ) {
-				self::$_instances[ $module_type ] = array();
+		static function instance( $module_id, $title = '' ) {
+			if ( ! isset( self::$_instances[ $module_id ] ) ) {
+				self::$_instances[ $module_id ] = new FS_Admin_Notice_Manager( $module_id, $title );
 			}
 
-			if ( ! isset( self::$_instances[ $module_type ][ $slug ] ) ) {
-				self::$_instances[ $module_type ][ $slug ] = new FS_Admin_Notice_Manager( $slug, $title, $module_type );
-			}
-
-			return self::$_instances[ $module_type ][ $slug ];
+			return self::$_instances[ $module_id ];
 		}
 
-		protected function __construct( $slug, $title = '', $module_type = Freemius::MODULE_TYPE_PLUGIN ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+		protected function __construct( $module_id, $title = '' ) {
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+
+			$storage_key = 'admin_notices';
+
+			if ( 'global' !== $module_id ) {
+				$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
+				$slug = $slug_and_type_info[ 'slug' ];
+				$storage_key = ( Freemius::MODULE_TYPE_THEME === $slug_and_type_info[ 'type' ] ? 'themes_' : '' )
+					. $storage_key;
+			} else {
+				$slug = $module_id;
+			}
 
 			$this->_slug           = $slug;
 			$this->_title          = ! empty( $title ) ? $title : '';
-
-			// If the module type is "plugin", set it to empty for backward compatibility.
-			if ( Freemius::MODULE_TYPE_PLUGIN === $module_type ) {
-				$module_type = '';
-			} else {
-				$module_type .= '_';
-			}
-
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( "{$module_type}admin_notices", $this->_slug );
+			$this->_sticky_storage = FS_Key_Value_Storage::instance( $storage_key, $this->_slug );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {
 					// If there are sticky notices for the current slug, add a callback
 					// to the AJAX action that handles message dismiss.
-					add_action( "wp_ajax_fs_dismiss_notice_action_{$slug}", array(
+					add_action( "wp_ajax_{$this->_slug}_dismiss_notice_action", array(
 						&$this,
 						'dismiss_notice_ajax_callback'
 					) );

@@ -11,10 +11,11 @@
 	}
 
 	/**
-	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+
+	$slug = $fs->get_slug();
 
 	$message_above_input_field = __fs( 'ask-for-upgrade-email-address', $slug );
 	$send_button_text          = __fs( 'send-license-key', $slug );

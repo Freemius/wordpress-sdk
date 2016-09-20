@@ -271,19 +271,23 @@
 		 * @since  1.0.0
 		 *
 		 * @param number $module_id
-		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
+		 * @param string $slug
 		 */
-		private function __construct( $module_id, $is_init = false ) {
-			$this->_module_id = $module_id;
+		private function __construct( $module_id, $slug = false ) {
+			if ( ! is_numeric( $module_id ) ) {
+				$slug = $module_id;
+				$this->_plugin = FS_Plugin_Manager::instance( $slug )->get();
 
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+				$this->upgrade( $this->_plugin->id, $slug, Freemius::MODULE_TYPE_PLUGIN );
+			} else {
+				$this->upgrade( $module_id, $slug );
+			}
 
-			$this->_storage = FS_Key_Value_Storage::instance( 'plugin_data', $this->_slug );
+			$this->_storage = FS_Key_Value_Storage::instance( $this->get_module_type() . '_data', $this->_slug );
 
-			$this->identify_caller_main_file_and_type();
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_module_id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_module_type           = $this->_storage->plugin_main_file->module_type;
-			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
+			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -307,7 +311,9 @@
 				$this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
 
-			$this->_plugin = FS_Plugin_Manager::instance( $this->_slug, $this->_module_type )->get();
+			if ( ! is_object( $this->_plugin ) ) {
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
+			}
 
 			/**
 			 * @todo Check if there is a better way to set $this->_storage->was_plugin_loaded to true for "theme" module.
@@ -331,7 +337,7 @@
 			}
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
-				$slug,
+				$this->_module_id,
 				$plugin_title
 			);
 
@@ -627,42 +633,56 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param bool $is_init Is initiation sequence.
-		 *
 		 * @return string
-		 *
-		 * @uses   fs_find_caller_plugin_file
 		 */
-		private function _find_caller_plugin_file( $is_init = false ) {
-			// Try to load the cached value of the file path.
-            if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
-                return $this->_storage->plugin_main_file->path;
-            }
+		private function _find_caller_plugin_file() {
+			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
+			return $id_slug_type_map[ $this->_module_id ]['path'];
+		}
 
-			/**
-			 * @since 1.2.1
-			 *
-			 * `clear_module_main_file_cache()` is clearing the plugin's cached path on
-			 * deactivation. Therefore, if any plugin/theme was initiating `Freemius`
-			 * with that plugin's slug, it was overriding the empty plugin path with a wrong path.
-			 *
-			 * So, we've added a special mechanism with a 2nd layer of cache that uses `prev_path`
-			 * when the class instantiator isn't the module.
-			 */
-			if ( ! $is_init ) {
-				// Fetch prev path cache.
-				if ( isset( $this->_storage->plugin_main_file->prev_path ) ) {
-					if ( file_exists( $this->_storage->plugin_main_file->prev_path ) ) {
-						return $this->_storage->plugin_main_file->prev_path;
-					}
-				}
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @param number $module_id
+		 * @param string $slug
+		 *
+		 * @since 1.2.1
+		 */
+		function upgrade( $module_id, $slug ) {
+			$this->_module_id = $module_id;
+			$this->_slug = $slug;
 
-				wp_die(
-					__fs( 'failed-finding-main-path', $this->_slug ),
-					__fs( 'error' ),
-					array( 'back_link' => true )
+			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
+
+			if ( ! array( $id_slug_type_map ) ) {
+				$id_slug_type_map = array();
+			}
+
+			if ( ! isset( $id_slug_type_map[ $this->_module_id ] ) ) {
+				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
+
+				$id_slug_type_map[ $this->_module_id ] = array(
+					'slug' => $this->_slug,
+					'type' => $caller_main_file_and_type->module_type,
+					'path' => $caller_main_file_and_type->path
+				);
+
+				self::$_accounts->set_option( 'id_slug_type_map', $id_slug_type_map, true );
+			}
+
+			$this->_module_type = $id_slug_type_map[ $this->_module_id ]['type'];
+		}
+
+		static function get_slug_type_info( $module_id ) {
+			if ( ! is_numeric( $module_id )) {
+				return array(
+					'slug' => $module_id,
+					'type' => Freemius::MODULE_TYPE_PLUGIN
 				);
 			}
+
+			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
+			return $id_slug_type_map[ $module_id ];
 		}
 
 		/**
@@ -671,57 +691,45 @@
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.0
 		 */
-		private function identify_caller_main_file_and_type() {
-			// Try to load the cached data.
-			if ( isset( $this->_storage->plugin_main_file ) ) {
-				$plugin_main_file = $this->_storage->plugin_main_file;
-				
-				$type = ( isset( $plugin_main_file->type ) && ! empty( $plugin_main_file->type ) ) ?
-					$plugin_main_file->type : '';
-				
-				if ( ! empty( $type ) && file_exists( $plugin_main_file->path ) ) {
-					return;
-				}
-			}
-			
+		private function get_caller_main_file_and_type() {
 			if ( ! function_exists( 'get_plugins' ) ) {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
-			
+
 			$all_plugins       = get_plugins();
 			$all_plugins_paths = array();
-			
+
 			// Get active plugin's main files real full names (might be symlinks).
 			foreach ( $all_plugins as $relative_path => &$data ) {
 				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
 			}
-			
+
 			$current_theme_path = fs_normalize_path( get_stylesheet_directory() );
-			
+
 			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
 				if ( ! isset( $bt[ $i ]['file'] ) ) {
 					continue;
 				}
-				
+
 				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
-				
+
 				if ( dirname( $caller_file_path ) === $current_theme_path ) {
 					$module_type = Freemius::MODULE_TYPE_THEME;
 					break;
 				}
-				
+
 				if ( in_array( $caller_file_path, $all_plugins_paths ) ) {
 					$module_type = Freemius::MODULE_TYPE_PLUGIN;
 					break;
 				}
 			}
-			
-			$this->_storage->plugin_main_file = (object) array(
+
+			return (object) array(
 				'module_type' => $module_type,
 				'path'        => $caller_file_path
 			);
 		}
-		
+
 		#region Deactivation Feedback Form ------------------------------------------------------------------
 
 		/**
@@ -996,17 +1004,17 @@
 		 * @since  1.0.0
 		 *
 		 * @param number $module_id
-		 * @param bool   $is_init Is initiation sequence.
+		 * @param string $slug
 		 *
 		 * @return Freemius
 		 */
-		static function instance( $module_id, $is_init = false ) {
+		static function instance( $module_id, $slug = false ) {
 			if ( ! isset( self::$_instances[ $module_id ] ) ) {
 				if ( 0 === count( self::$_instances ) ) {
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $module_id ] = new Freemius( $module_id, $is_init );
+				self::$_instances[ $module_id ] = new Freemius( $module_id, $slug );
 			}
 
 			return self::$_instances[ $module_id ];
@@ -2466,7 +2474,7 @@
 
 			if ( $plugin->is_updated() ) {
 				// Update plugin details.
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_slug )->store( $plugin );
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
 			}
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
@@ -2480,7 +2488,7 @@
 				);
 			}
 
-			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
+			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_module_id );
 			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
 
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
@@ -2911,7 +2919,7 @@
 			$this->_plugin->secret_key = $secret_key;
 
 			// Update plugin details.
-			FS_Plugin_Manager::instance( $this->_slug )->update( $this->_plugin, true );
+			FS_Plugin_Manager::instance( $this->_module_id )->update( $this->_plugin, true );
 		}
 
 		/**
@@ -5535,7 +5543,7 @@
 		 */
 		function _add_license_activation_dialog_box() {
 			$vars = array(
-				'slug' => $this->_slug,
+				'id' => $this->_module_id,
 			);
 
 			fs_require_template( 'forms/license-activation.php', $vars );
@@ -9803,7 +9811,7 @@
 		function _account_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
 				fs_require_once_template( 'billing.php', $vars );
 			} else {

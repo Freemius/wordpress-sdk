@@ -317,12 +317,12 @@
 		 * Quick shortcut to get Freemius for specified plugin.
 		 * Used by various templates.
 		 *
-		 * @param string $slug
+		 * @param number $module_id
 		 *
 		 * @return Freemius
 		 */
-		function freemius( $slug ) {
-			return Freemius::instance( $slug );
+		function freemius( $module_id ) {
+			return Freemius::instance( $module_id );
 		}
 
 		/**
@@ -337,7 +337,7 @@
 		 * @deprecated Please use fs_dynamic_init().
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $slug, true );
+			$fs = Freemius::instance( $plugin_id, $slug );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
@@ -350,7 +350,7 @@
 		 * @throws Freemius_Exception
 		 */
 		function fs_dynamic_init( $module ) {
-			$fs = Freemius::instance( $module['id'], true );
+			$fs = Freemius::instance( $module['id'], $module['slug'] );
 			$fs->dynamic_init( $module );
 
 			return $fs;
