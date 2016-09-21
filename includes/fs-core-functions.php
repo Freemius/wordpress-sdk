@@ -204,7 +204,7 @@
 	/* Core UI.
 	--------------------------------------------------------------------------------------------*/
 	/**
-	 * @param string      $slug
+	 * @param number      $module_id
 	 * @param string      $page
 	 * @param string      $action
 	 * @param string      $title
@@ -217,7 +217,7 @@
 	 * @uses fs_ui_get_action_button()
 	 */
 	function fs_ui_action_button(
-		$slug,
+		$module_id,
 		$page,
 		$action,
 		$title,
@@ -228,7 +228,7 @@
 		$method = 'GET'
 	) {
 		echo fs_ui_get_action_button(
-			$slug,
+			$module_id,
 			$page,
 			$action,
 			$title,
@@ -244,7 +244,7 @@
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.1.7
 	 *
-	 * @param string      $slug
+	 * @param number      $module_id
 	 * @param string      $page
 	 * @param string      $action
 	 * @param string      $title
@@ -257,7 +257,7 @@
 	 * @return string
 	 */
 	function fs_ui_get_action_button(
-		$slug,
+		$module_id,
 		$page,
 		$action,
 		$title,
@@ -272,7 +272,7 @@
 
 		if ( is_string( $confirmation ) ) {
 			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="if (confirm(\'%s\')) this.parentNode.submit(); return false;">%s</a></form>',
-				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				freemius( $module_id )->_get_admin_page_url( $page, $params ),
 				$method,
 				$action,
 				wp_nonce_field( $action, '_wpnonce', true, false ),
@@ -282,7 +282,7 @@
 			);
 		} else if ( 'GET' !== strtoupper( $method ) ) {
 			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="this.parentNode.submit(); return false;">%s</a></form>',
-				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				freemius( $module_id )->_get_admin_page_url( $page, $params ),
 				$method,
 				$action,
 				wp_nonce_field( $action, '_wpnonce', true, false ),
@@ -291,7 +291,7 @@
 			);
 		} else {
 			return sprintf( '<a href="%s" class="%s">%s</a></form>',
-				wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
+				wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
 				'button' . ( $is_primary ? ' button-primary' : '' ),
 				$title
 			);

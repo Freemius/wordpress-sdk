@@ -57,7 +57,7 @@ HTML;
 			    $sendLicenseKeyButton = $modal.find('.button-send-license-key'),
 			    $emailAddressInput = $modal.find('input.email-address'),
 			    $licenseResendMessage = $modal.find('.license-resend-message'),
-			    moduleSlug = '<?php echo $slug; ?>',
+				moduleID = '<?php echo $fs->get_id() ?>',
 			    isChild = false;
 
 			$modal.appendTo($('body'));
@@ -65,7 +65,7 @@ HTML;
 			registerEventHandlers();
 
 			function registerEventHandlers() {
-				$('a.show-license-resend-modal-' + moduleSlug).click(function (evt) {
+				$('a.show-license-resend-modal-' + moduleID).click(function (evt) {
 					evt.preventDefault();
 
 					showModal();
@@ -119,7 +119,7 @@ HTML;
 						method    : 'POST',
 						data      : {
 							action: '<?php echo $fs->get_action_tag( 'resend_license_key' ) ?>',
-							slug  : moduleSlug,
+							module_id  : moduleID,
 							email : emailAddress
 						},
 						beforeSend: function () {

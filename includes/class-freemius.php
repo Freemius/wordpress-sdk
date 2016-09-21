@@ -778,7 +778,7 @@
 			// Load the HTML template for the deactivation feedback dialog box.
 			$vars = array(
 				'reasons' => $uninstall_reasons,
-				'slug'    => $this->_slug
+				'id'      => $this->_module_id
 			);
 
 			/**
@@ -799,7 +799,7 @@
 			$module_type = $this->_module_type;
 
 			$internal_message_template_var = array(
-				'slug' => $this->_slug
+				'id' => $this->_module_id
 			);
 
 			if ( $this->is_registered() && false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
@@ -986,6 +986,7 @@
 			 */
 			if ( $this->is_theme() ) {
 				$this->_uninstall_plugin_event( false );
+				$this->remove_sdk_reference();
 			}
 
 			// Print '1' for successful operation.
@@ -3335,7 +3336,9 @@
 		 * @return bool
 		 */
 		function is_plugin_activation() {
-			return get_option( "fs_{$this->_slug}_activated", false );
+			return get_option( 'fs_'
+					. ( $this->is_theme() ? Freemius::MODULE_TYPE_THEME . '_' : '' )
+					. "{$this->_slug}_activated", false );
 		}
 
 		/**
@@ -3352,7 +3355,9 @@
 			 * @since 1.1.7 Do NOT redirect to opt-in when running in network admin mode.
 			 */
 			if ( $this->is_plugin_activation() ) {
-				delete_option( "fs_{$this->_slug}_activated" );
+				delete_option( 'fs_'
+					. ( $this->is_theme() ? Freemius::MODULE_TYPE_THEME . '_' : '' )
+					. "{$this->_slug}_activated" );
 
 				if ( ! function_exists( 'is_network_admin' ) || ! is_network_admin() ) {
 					$this->_redirect_on_activation_hook();
@@ -3361,8 +3366,8 @@
 				}
 			}
 
-			if ( fs_request_is_action( $this->_slug . '_skip_activation' ) ) {
-				check_admin_referer( $this->_slug . '_skip_activation' );
+			if ( fs_request_is_action( $this->_module_id . '_skip_activation' ) ) {
+				check_admin_referer( $this->_module_id . '_skip_activation' );
 
 				$this->skip_connection();
 
@@ -3455,7 +3460,7 @@
 		 * @since  1.1.4
 		 */
 		function _add_connect_pointer_script() {
-			$vars            = array( 'slug' => $this->_slug );
+			$vars            = array( 'id' => $this->_module_id );
 			$pointer_content = fs_get_template( 'connect.php', $vars );
 			?>
 			<script type="text/javascript">// <![CDATA[
@@ -3552,7 +3557,7 @@
 				unset( $sites[ $this->_slug ] );
 			}
 
-			self::$_accounts->set_option( 'sites', $sites, $store );
+			self::set_account_option( 'sites', $sites, $store, $this->_module_id );
 		}
 
 		/**
@@ -3570,7 +3575,7 @@
 
 			unset( $plans[ $this->_slug ] );
 
-			self::$_accounts->set_option( 'plans', $plans, $store );
+			self::set_account_option( 'plans', $plans, $store, $this->_module_id );
 		}
 
 		/**
@@ -3593,7 +3598,7 @@
 
 			unset( $all_licenses[ $plugin_slug ] );
 
-			self::$_accounts->set_option( 'licenses', $all_licenses, $store );
+			self::set_account_option( 'licenses', $all_licenses, $store, $this->_module_id );
 		}
 
 		/**
@@ -3683,7 +3688,9 @@
 
 			if ( ! $this->_anonymous_mode && $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
-				add_option( "fs_{$this->_slug}_activated", true );
+				add_option( 'fs_'
+					. ( $this->is_theme() ? Freemius::MODULE_TYPE_THEME . '_' : '' )
+					. "{$this->_slug}_activated", true );
 			}
 
 			/**
@@ -4731,10 +4738,12 @@
 		}
 
 		/**
+		 * @param number $module_id
+		 *
 		 * @return FS_Site[]
 		 */
-		private static function get_all_sites() {
-			$sites = self::$_accounts->get_option( 'sites', array() );
+		private static function get_all_sites( $module_id = false ) {
+			$sites = self::get_account_option( 'sites', $module_id );
 
 			if ( ! is_array( $sites ) ) {
 				$sites = array();
@@ -4744,13 +4753,57 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since 1.2.1
+		 *
+		 * @param string $option_name
+		 * @param number $module_id
+		 */
+		private static function get_account_option( $option_name, $module_id = false ) {
+			if ( is_numeric( $module_id ) ) {
+				$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
+
+				if ( Freemius::MODULE_TYPE_THEME === $slug_and_type_info['type'] ) {
+					$option_name = $slug_and_type_info['type'] . '_' . $option_name;
+				}
+			}
+
+			return self::$_accounts->get_option( $option_name, array() );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since 1.2.1
+		 *
+		 * @param string $option_name
+		 * @param mixed  $option_value
+		 * @param bool   $store
+		 * @param number $module_id
+		 */
+		private static function set_account_option( $option_name, $option_value, $store = true, $module_id = false ) {
+			if ( is_numeric( $module_id ) ) {
+				$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
+
+				if ( Freemius::MODULE_TYPE_THEME === $slug_and_type_info['type'] ) {
+					$option_name = $slug_and_type_info['type'] . '_' . $option_name;
+				}
+			}
+
+			self::$_accounts->set_option( $option_name, $option_value, $store );
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
+		 * @param number $module_id
+		 *
 		 * @return FS_Plugin_License[]
 		 */
-		private static function get_all_licenses() {
-			$licenses = self::$_accounts->get_option( 'licenses', array() );
+		private static function get_all_licenses( $module_id = false ) {
+			$licenses = self::get_account_option( 'licenses', $module_id );
 
 			if ( ! is_array( $licenses ) ) {
 				$licenses = array();
@@ -4760,10 +4813,12 @@
 		}
 
 		/**
+		 * @param number $module_id
+		 * 
 		 * @return FS_Plugin_Plan[]
 		 */
-		private static function get_all_plans() {
-			$plans = self::$_accounts->get_option( 'plans', array() );
+		private static function get_all_plans( $module_id = false ) {
+			$plans = self::get_account_option( 'plans', $module_id );
 
 			if ( ! is_array( $plans ) ) {
 				$plans = array();
@@ -5587,12 +5642,10 @@
 				exit;
 			}
 
-			$slug  = $_POST['slug'];
-			$fs    = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
 			$error = false;
 
 			if ( $this->is_registered() ) {
-				$api     = $fs->get_api_site_scope();
+				$api     = $this->get_api_site_scope();
 				$install = $api->call( '/', 'put',
 					array(
 						'license_key' => $license_key
@@ -5935,7 +5988,7 @@
 			}
 
 			// Verify the call is relevant for the plugin.
-			if ( $this->_slug !== fs_request_get( 'slug' ) ) {
+			if ( $this->_module_id != fs_request_get( 'module_id' ) ) {
 				return false;
 			}
 
@@ -6062,7 +6115,7 @@
 			}
 
 			return $this->get_account_url(
-				$this->_slug . '_sync_license',
+				$this->_module_id . '_sync_license',
 				$params,
 				$add_action_nonce
 			);
@@ -6327,10 +6380,10 @@
 
 			$this->do_action( 'before_account_load' );
 
-			$sites    = self::get_all_sites();
+			$sites    = self::get_all_sites( $this->_module_id );
 			$users    = self::get_all_users();
-			$plans    = self::get_all_plans();
-			$licenses = self::get_all_licenses();
+			$plans    = self::get_all_plans( $this->_module_id );
+			$licenses = self::get_all_licenses( $this->_module_id );
 
 			if ( $this->_logger->is_on() && is_admin() ) {
 				$this->_logger->log( 'sites = ' . var_export( $sites, true ) );
@@ -6437,8 +6490,8 @@
 				'plugin_version'    => $this->get_plugin_version(),
 				'return_url'        => wp_nonce_url( $this->_get_admin_page_url(
 					'',
-					array( 'fs_action' => $this->_slug . '_activate_new' )
-				), $this->_slug . '_activate_new' ),
+					array( 'fs_action' => $this->_module_id . '_activate_new' )
+				), $this->_module_id . '_activate_new' ),
 				'account_url'       => wp_nonce_url( $this->_get_admin_page_url(
 					'account',
 					array( 'fs_action' => 'sync_user' )
@@ -6719,7 +6772,7 @@
 				return;
 			}
 
-			if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+			if ( fs_request_is_action( $this->_module_id . '_activate_new' ) ) {
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
@@ -6815,7 +6868,7 @@
 				return;
 			}
 
-			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
+			if ( fs_request_is_action( $this->_module_id . '_activate_existing' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
 
 				$this->install_with_current_user();
@@ -6995,16 +7048,16 @@
 				if ( $this->has_settings_menu() ) {
 					$this->override_plugin_menu_with_activation();
 				} else if ( $this->is_theme() ) {
-					if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
+					if ( fs_request_is_action( $this->_module_id . '_activate_existing' ) ) {
 						add_action( "load-themes.php", array( &$this, '_install_with_current_user' ) );
-					} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+					} else if ( fs_request_is_action( $this->_module_id . '_activate_new' ) ) {
 						add_action( "load-themes.php", array( &$this, '_install_with_new_user' ) );
 					}
 				}
 			} else {
 				// If not registered try to install user.
 				if ( ! $this->is_registered() &&
-				     fs_request_is_action( $this->_slug . '_activate_new' )
+				     fs_request_is_action( $this->_module_id . '_activate_new' )
 				) {
 					$this->_install_with_new_user();
 				}
@@ -7109,9 +7162,9 @@
 			}
 
 			if ( false !== $hook ) {
-				if ( fs_request_is_action( $this->_slug . '_activate_existing' ) ) {
+				if ( fs_request_is_action( $this->_module_id . '_activate_existing' ) ) {
 					add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
-				} else if ( fs_request_is_action( $this->_slug . '_activate_new' ) ) {
+				} else if ( fs_request_is_action( $this->_module_id . '_activate_new' ) ) {
 					add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
 				}
 			}
@@ -7501,7 +7554,7 @@
 		 * @return string
 		 */
 		public function get_action_tag( $tag ) {
-			return "fs_{$tag}_{$this->_slug}";
+			return "fs_{$tag}_{$this->_module_id}";
 		}
 
 		/**
@@ -7669,7 +7722,7 @@
 
 			$sites                 = self::get_all_sites();
 			$sites[ $this->_slug ] = $encrypted_site;
-			self::$_accounts->set_option( 'sites', $sites, $store );
+			self::set_account_option( 'sites', $sites, $store, $this->_module_id );
 		}
 
 		/**
@@ -7692,7 +7745,7 @@
 			}
 
 			$plans[ $this->_slug ] = $encrypted_plans;
-			self::$_accounts->set_option( 'plans', $plans, $store );
+			self::set_account_option( 'plans', $plans, $store, $this->_module_id );
 		}
 
 		/**
@@ -7721,7 +7774,7 @@
 
 			$all_licenses[ $plugin_slug ][ $this->_user->id ] = $licenses;
 
-			self::$_accounts->set_option( 'licenses', $all_licenses, $store );
+			self::set_account_option( 'licenses', $all_licenses, $store, $this->_module_id );
 		}
 
 		/**
@@ -9718,7 +9771,7 @@
 
 					return;
 
-				case $this->_slug . '_sync_license':
+				case $this->_module_id . '_sync_license':
 					$this->_sync_license();
 
 					return;
@@ -9828,7 +9881,7 @@
 		function _connect_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 			fs_require_once_template( 'connect.php', $vars );
 		}
 
@@ -9872,7 +9925,7 @@
 		function _addons_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 			fs_require_once_template( 'add-ons.php', $vars );
 		}
 
@@ -9887,7 +9940,7 @@
 		function _pricing_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 
 			if ( 'true' === fs_request_get( 'checkout', false ) ) {
 				fs_require_once_template( 'checkout.php', $vars );
@@ -9907,7 +9960,7 @@
 		function _contact_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 			fs_require_once_template( 'contact.php', $vars );
 		}
 
@@ -9971,7 +10024,7 @@
 		function get_api_user_scope( $flush = false ) {
 			if ( ! isset( $this->_user_api ) || $flush ) {
 				$this->_user_api = FS_Api::instance(
-					$this->_slug,
+					$this->_module_id,
 					'user',
 					$this->_user->id,
 					$this->_user->public_key,
@@ -9997,7 +10050,7 @@
 		function get_api_site_scope( $flush = false ) {
 			if ( ! isset( $this->_site_api ) || $flush ) {
 				$this->_site_api = FS_Api::instance(
-					$this->_slug,
+					$this->_module_id,
 					'install',
 					$this->_site->id,
 					$this->_site->public_key,
@@ -10022,7 +10075,7 @@
 		function get_api_plugin_scope() {
 			if ( ! isset( $this->_plugin_api ) ) {
 				$this->_plugin_api = FS_Api::instance(
-					$this->_slug,
+					$this->_module_id,
 					'plugin',
 					$this->_plugin->id,
 					$this->_plugin->public_key,
@@ -10165,7 +10218,7 @@
 		 * @since  1.2.0
 		 */
 		function _add_fs_theme_activation_dialog() {
-			$vars = array( 'slug' => $this->_slug );
+			$vars = array( 'id' => $this->_module_id );
 			fs_require_once_template( 'connect.php', $vars );
 		}
 
@@ -10284,7 +10337,7 @@
 				'#',
 				false,
 				11,
-				( 'activate-license ' . $this->_slug )
+				( 'activate-license ' . $this->_module_id )
 			);
 		}
 
@@ -10390,7 +10443,7 @@
 					 * If user is paying or in trial and have the free version installed,
 					 * assume that the deactivation is for the upgrade process, so this is not needed.
 					 */
-					$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
+					$deactivate_link .= '<i class="fs-module-id" data-module-id="' . $this->_module_id . '"></i>';
 				}
 
 				// Append deactivation link.

@@ -130,8 +130,8 @@
 			<li>
 				&nbsp;•&nbsp;
 				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-					<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
-					<?php wp_nonce_field( $slug . '_sync_license' ) ?>
+					<input type="hidden" name="fs_action" value="<?php echo $fs->get_id() ?>_sync_license">
+					<?php wp_nonce_field( $fs->get_id() . '_sync_license' ) ?>
 					<a href="#" onclick="this.parentNode.submit(); return false;"><i
 							class="dashicons dashicons-image-rotate"></i> <?php _efs( 'sync', $slug ) ?></a>
 				</form>
@@ -289,13 +289,13 @@
 									<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 									      method="POST" class="button-group">
 										<?php if ($show_upgrade) : ?>
-										<a class="button activate-license-trigger <?php echo $slug ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
+										<a class="button activate-license-trigger <?php echo $fs->get_id() ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
 										<?php endif ?>
 										<input type="submit" class="button"
 										       value="<?php _efs( 'sync-license', $slug ) ?>">
 										<input type="hidden" name="fs_action"
-										       value="<?php echo $slug ?>_sync_license">
-										<?php wp_nonce_field( $slug . '_sync_license' ) ?>
+										       value="<?php echo $fs->get_id() ?>_sync_license">
+										<?php wp_nonce_field( $fs->get_id() . '_sync_license' ) ?>
 										<a href="<?php echo $fs->get_upgrade_url() ?>"
 										   class="button<?php if ( $show_upgrade ) {
 											   echo ' button-primary';
@@ -527,7 +527,7 @@
 					if ( $is_addon_activated ) {
 						if ( $is_paying ) {
 							$buttons[] = fs_ui_get_action_button(
-								$slug,
+								$fs->get_id(),
 								'account',
 								'deactivate_license',
 								__fs( 'deactivate-license', $slug ),
@@ -536,7 +536,7 @@
 							);
 						} else if ( $is_paid_trial ) {
 							$buttons[] = fs_ui_get_action_button(
-								$slug,
+								$fs->get_id(),
 								'account',
 								'cancel_trial',
 								__fs( 'cancel-trial', $slug ),
@@ -553,7 +553,7 @@
 								$site = $fs_addon->get_site();
 
 								$buttons[] = fs_ui_get_action_button(
-									$slug,
+									$fs->get_id(),
 									'account',
 									'activate_license',
 									sprintf( __fs( 'activate-x-plan', $slug ), $fs_addon->get_plan_title(), ( $site->is_localhost() && $premium_license->is_free_localhost ) ? '[localhost]' : ( 1 < $premium_license->left() ? $premium_license->left() . ' left' : '' ) ),
@@ -570,7 +570,7 @@
 							$buttons[] = fs_ui_get_action_button(
 								$slug,
 								'account',
-								$slug . '_sync_license',
+								$fs->get_id() . '_sync_license',
 								__fs( 'sync-license', $slug ),
 								array( 'plugin_id' => $addon_id ),
 								false
@@ -656,7 +656,7 @@
 						<?php
 							if ( $is_addon_activated ) {
 								fs_ui_action_button(
-									$slug, 'account',
+									$fs->get_id(), 'account',
 									'delete_account',
 									__fs( 'delete', $slug ),
 									array( 'plugin_id' => $addon_id ),

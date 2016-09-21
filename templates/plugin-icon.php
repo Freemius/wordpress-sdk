@@ -10,11 +10,8 @@
 		exit;
 	}
 
-	/**
-	 * @var array $VARS
-	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+	$slug = $fs->get_slug();
 
 	/**
 	 * @since 1.1.7.5

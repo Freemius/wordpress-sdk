@@ -10,11 +10,8 @@
 		exit;
 	}
 
-	/**
-	 * @var array $VARS
-	 */
-	$slug                  = $VARS['slug'];
-	$fs                    = freemius( $slug );
+	$fs                    = freemius( $VARS['id'] );
+	$slug                  = $fs->get_slug();
 	$is_pending_activation = $fs->is_pending_activation();
 	$is_premium_only       = $fs->is_only_premium();
 	$has_paid_plans        = $fs->has_paid_plan();
@@ -84,7 +81,7 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 		<b class="fs-site-icon"><i class="dashicons dashicons-wordpress"></i></b>
 		<i class="dashicons dashicons-plus fs-first"></i>
 		<?php
-			$vars = array( 'slug' => $slug );
+			$vars = array( 'id' => $fs->get_id() );
 			fs_require_once_template( 'plugin-icon.php', $vars );
 		?>
 		<i class="dashicons dashicons-plus fs-second"></i>
@@ -163,14 +160,14 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 	</div>
 	<div class="fs-actions">
 		<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
-			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $slug . '_skip_activation' ) ), $slug . '_skip_activation' ) ?>"
+			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_id() . '_skip_activation' ) ), $fs->get_id() . '_skip_activation' ) ?>"
 			   class="button button-secondary" tabindex="2"><?php _efs( 'skip', $slug ) ?></a>
 		<?php endif ?>
 
 		<?php $fs_user = Freemius::_get_user_by_email( $current_user->user_email ) ?>
 		<?php if ( is_object( $fs_user ) && ! $is_pending_activation ) : ?>
 			<form action="" method="POST">
-				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
+				<input type="hidden" name="fs_action" value="<?php echo $fs->get_id() ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 				<button class="button button-primary" tabindex="1"
 				        type="submit"<?php if ( $require_license_key ) {

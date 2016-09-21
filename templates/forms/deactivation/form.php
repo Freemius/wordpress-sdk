@@ -10,11 +10,8 @@
 		exit;
 	}
 
-	/**
-	 * @var array $VARS
-	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+	$slug = $fs->get_slug();
 
 	$confirmation_message = $fs->apply_filters( 'uninstall_confirmation_message', '' );
 
@@ -85,9 +82,8 @@ HTML;
 		    + '	</div>'
 		    + '</div>',
 	    $modal = $(modalHtml),
-	    $deactivateLink = $('#the-list .deactivate > [data-slug=<?php echo $VARS['slug']; ?>].fs-slug').prev(),
+	    $deactivateLink = $('#the-list .deactivate > [data-module-id=<?php echo $fs->get_id() ?>].fs-module-id').prev(),
 	    selectedReasonID = false,
-	    moduleSlug = '<?php echo $slug; ?>',
 	    redirectLink = '',
 		$anonymousFeedback    = $modal.find( '.anonymous-feedback-label' ),
 		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,

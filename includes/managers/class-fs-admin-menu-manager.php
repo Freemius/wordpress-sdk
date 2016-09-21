@@ -20,6 +20,11 @@
 		protected $_plugin_slug;
 
 		/**
+		 * @var number
+		 */
+		protected $_module_id;
+
+		/**
 		 * @since 1.0.6
 		 *
 		 * @var string
@@ -105,7 +110,10 @@
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
-			$this->_plugin_slug = $slug_and_type_info[ 'slug' ];
+			$this->_module_id = $module_id;
+			$this->_plugin_slug = $slug_and_type_info[ 'slug' ] .
+									( Freemius::MODULE_TYPE_THEME === $slug_and_type_info[ 'type' ] ?
+										'-' . Freemius::MODULE_TYPE_THEME : '' );
 		}
 
 		#endregion Singleton
@@ -389,7 +397,7 @@
 
 			global $pagenow;
 
-			$fs = freemius( $this->_plugin_slug );
+			$fs = freemius( $this->_module_id );
 			if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
 				// In activation only when show_optin query string param is given.
 				return fs_request_is_action( $this->_plugin_slug . '_show_optin' );

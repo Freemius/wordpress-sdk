@@ -11,13 +11,11 @@
 	}
 
 	/**
-	 * @var array $VARS
-	 */
-	$slug = $VARS['slug'];
-	/**
 	 * @var Freemius
 	 */
-	$fs = freemius( $slug );
+	$fs = freemius( $VARS['id'] );
+
+	$slug = $fs->get_slug();
 
 	$open_addon_slug = fs_request_get( 'slug' );
 
