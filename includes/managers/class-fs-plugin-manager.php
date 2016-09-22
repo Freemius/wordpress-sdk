@@ -49,10 +49,10 @@
 		protected function __construct( $module_id ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$slug_and_type_info = Freemius::get_slug_type_info( $module_id );
+			$slug_and_type_info = Freemius::get_slug_and_type_info( $module_id );
 
-			$this->_slug 		= $slug_and_type_info[ 'slug' ];
-			$this->_module_type = $slug_and_type_info[ 'type' ];
+			$this->_slug        = $slug_and_type_info['slug'];
+			$this->_module_type = $slug_and_type_info['type'];
 			$this->load();
 		}
 

@@ -130,8 +130,8 @@
 			<li>
 				&nbsp;•&nbsp;
 				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-					<input type="hidden" name="fs_action" value="<?php echo $fs->get_id() ?>_sync_license">
-					<?php wp_nonce_field( $fs->get_id() . '_sync_license' ) ?>
+					<input type="hidden" name="fs_action" value="<?php echo $fs->get_unique_affix() ?>_sync_license">
+					<?php wp_nonce_field( $fs->get_unique_affix() . '_sync_license' ) ?>
 					<a href="#" onclick="this.parentNode.submit(); return false;"><i
 							class="dashicons dashicons-image-rotate"></i> <?php _efs( 'sync', $slug ) ?></a>
 				</form>
@@ -289,13 +289,13 @@
 									<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 									      method="POST" class="button-group">
 										<?php if ($show_upgrade) : ?>
-										<a class="button activate-license-trigger <?php echo $fs->get_id() ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
+										<a class="button activate-license-trigger <?php echo $fs->get_unique_affix( '-' ) ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
 										<?php endif ?>
 										<input type="submit" class="button"
 										       value="<?php _efs( 'sync-license', $slug ) ?>">
 										<input type="hidden" name="fs_action"
-										       value="<?php echo $fs->get_id() ?>_sync_license">
-										<?php wp_nonce_field( $fs->get_id() . '_sync_license' ) ?>
+										       value="<?php echo $fs->get_unique_affix() ?>_sync_license">
+										<?php wp_nonce_field( $fs->get_unique_affix() . '_sync_license' ) ?>
 										<a href="<?php echo $fs->get_upgrade_url() ?>"
 										   class="button<?php if ( $show_upgrade ) {
 											   echo ' button-primary';
@@ -435,7 +435,7 @@
 				$is_addon_activated = $fs->is_addon_activated( $addon->slug );
 				$is_addon_connected = $fs->is_addon_connected( $addon->slug );
 
-				$fs_addon = $is_addon_connected ? freemius( $addon->slug ) : false;
+				$fs_addon = $is_addon_connected ? freemius( $addon_id ) : false;
 				if ( is_object( $fs_addon ) ) {
 					$is_paying                  = $fs_addon->is_paying();
 					$user                       = $fs_addon->get_user();
@@ -568,9 +568,9 @@
 						if ( 0 == count( $buttons ) ) {
 							// Add sync license only if non of the other CTAs are visible.
 							$buttons[] = fs_ui_get_action_button(
-								$slug,
+								$fs->get_id(),
 								'account',
-								$fs->get_id() . '_sync_license',
+								$fs->get_unique_affix() . '_sync_license',
 								__fs( 'sync-license', $slug ),
 								array( 'plugin_id' => $addon_id ),
 								false

@@ -65,7 +65,7 @@ HTML;
 			registerEventHandlers();
 
 			function registerEventHandlers() {
-				$('a.show-license-resend-modal-' + moduleID).click(function (evt) {
+				$('a.show-license-resend-modal-<?php echo $fs->get_unique_affix( '-' ) ?>').click(function (evt) {
 					evt.preventDefault();
 
 					showModal();

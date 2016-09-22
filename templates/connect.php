@@ -153,21 +153,21 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
-				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $slug; ?>"
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix( '-' ) ?>"
 				   href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>
 	</div>
 	<div class="fs-actions">
 		<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
-			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_id() . '_skip_activation' ) ), $fs->get_id() . '_skip_activation' ) ?>"
+			<a href="<?php echo wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 			   class="button button-secondary" tabindex="2"><?php _efs( 'skip', $slug ) ?></a>
 		<?php endif ?>
 
 		<?php $fs_user = Freemius::_get_user_by_email( $current_user->user_email ) ?>
 		<?php if ( is_object( $fs_user ) && ! $is_pending_activation ) : ?>
 			<form action="" method="POST">
-				<input type="hidden" name="fs_action" value="<?php echo $fs->get_id() ?>_activate_existing">
+				<input type="hidden" name="fs_action" value="<?php echo $fs->get_unique_affix() ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 				<button class="button button-primary" tabindex="1"
 				        type="submit"<?php if ( $require_license_key ) {
