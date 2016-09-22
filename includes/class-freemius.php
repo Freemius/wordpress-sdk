@@ -687,6 +687,19 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1
+		 *
+		 * @param  number $module_id
+		 *
+		 * @return array
+		 */
+		static function get_type_by_id( $module_id ) {
+			$slug_and_type_info = self::get_slug_and_type_info( $module_id );
+			return $slug_and_type_info['type'];
+		}
+
+		/**
 		 * Identifies the caller type: plugin or theme.
 		 *
 		 * @author Leo Fajardo (@leorw)
@@ -1380,21 +1393,21 @@
 		static function _debug_page_render() {
 			self::$_static_logger->entrance();
 
-			$sites          = self::get_all_sites();
 			$users          = self::get_all_users();
 			$addons         = self::get_all_addons();
 			$account_addons = self::get_all_account_addons();
-			$licenses       = self::get_all_licenses();
 
 //			$plans    = self::get_all_plans();
 //			$licenses = self::get_all_licenses();
 
 			$vars = array(
-				'sites'          => $sites,
-				'users'          => $users,
-				'addons'         => $addons,
-				'account_addons' => $account_addons,
-				'licenses'       => $licenses,
+				'plugin_sites'    => self::get_all_sites(),
+				'theme_sites'     => self::get_all_sites( self::MODULE_TYPE_THEME ),
+				'users'           => $users,
+				'addons'          => $addons,
+				'account_addons'  => $account_addons,
+				'plugin_licenses' => self::get_all_licenses(),
+				'theme_licenses'  => self::get_all_licenses( self::MODULE_TYPE_THEME )
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
@@ -3549,7 +3562,7 @@
 		 * @param bool $store
 		 */
 		function _delete_site( $store = true ) {
-			$sites = self::get_all_sites();
+			$sites = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
 
 			if ( isset( $sites[ $this->_slug ] ) ) {
 				unset( $sites[ $this->_slug ] );
@@ -3569,7 +3582,7 @@
 		private function _delete_plans( $store = true ) {
 			$this->_logger->entrance();
 
-			$plans = self::get_all_plans();
+			$plans = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
 
 			unset( $plans[ $this->_slug ] );
 
@@ -3588,7 +3601,7 @@
 		private function _delete_licenses( $store = true, $plugin_slug = false ) {
 			$this->_logger->entrance();
 
-			$all_licenses = self::get_all_licenses();
+			$all_licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
 
 			if ( ! is_string( $plugin_slug ) ) {
 				$plugin_slug = $this->_slug;
@@ -4736,12 +4749,12 @@
 		}
 
 		/**
-		 * @param number $module_id
+		 * @param string $module_type
 		 *
 		 * @return FS_Site[]
 		 */
-		private static function get_all_sites( $module_id = false ) {
-			$sites = self::get_account_option( 'sites', $module_id );
+		private static function get_all_sites( $module_type = self::MODULE_TYPE_PLUGIN ) {
+			$sites = self::get_account_option( 'sites', $module_type );
 
 			if ( ! is_array( $sites ) ) {
 				$sites = array();
@@ -4756,15 +4769,11 @@
 		 * @since 1.2.1
 		 *
 		 * @param string $option_name
-		 * @param number $module_id
+		 * @param string $module_type
 		 */
-		private static function get_account_option( $option_name, $module_id = false ) {
-			if ( is_numeric( $module_id ) ) {
-				$slug_and_type_info = Freemius::get_slug_and_type_info( $module_id );
-
-				if ( Freemius::MODULE_TYPE_PLUGIN !== $slug_and_type_info['type'] ) {
-					$option_name = $slug_and_type_info['type'] . '_' . $option_name;
-				}
+		private static function get_account_option( $option_name, $module_type ) {
+			if ( self::MODULE_TYPE_PLUGIN !== $module_type ) {
+				$option_name = $module_type . '_' . $option_name;
 			}
 
 			return self::$_accounts->get_option( $option_name, array() );
@@ -4792,12 +4801,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param number $module_id
+		 * @param string $module_type
 		 *
 		 * @return FS_Plugin_License[]
 		 */
-		private static function get_all_licenses( $module_id = false ) {
-			$licenses = self::get_account_option( 'licenses', $module_id );
+		private static function get_all_licenses( $module_type = self::MODULE_TYPE_PLUGIN ) {
+			$licenses = self::get_account_option( 'licenses', $module_type );
 
 			if ( ! is_array( $licenses ) ) {
 				$licenses = array();
@@ -4807,12 +4816,12 @@
 		}
 
 		/**
-		 * @param number $module_id
+		 * @param string $module_type
 		 * 
 		 * @return FS_Plugin_Plan[]
 		 */
-		private static function get_all_plans( $module_id = false ) {
-			$plans = self::get_account_option( 'plans', $module_id );
+		private static function get_all_plans( $module_type = false ) {
+			$plans = self::get_account_option( 'plans', $module_type );
 
 			if ( ! is_array( $plans ) ) {
 				$plans = array();
@@ -5904,7 +5913,7 @@
 		 * @return bool
 		 */
 		function is_plugin() {
-			return ( Freemius::MODULE_TYPE_PLUGIN === $this->_module_type );
+			return ( self::MODULE_TYPE_PLUGIN === $this->_module_type );
 		}
 
 		/**
@@ -6374,10 +6383,10 @@
 
 			$this->do_action( 'before_account_load' );
 
-			$sites    = self::get_all_sites( $this->_module_id );
+			$sites    = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
 			$users    = self::get_all_users();
-			$plans    = self::get_all_plans( $this->_module_id );
-			$licenses = self::get_all_licenses( $this->_module_id );
+			$plans    = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
+			$licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
 
 			if ( $this->_logger->is_on() && is_admin() ) {
 				$this->_logger->log( 'sites = ' . var_export( $sites, true ) );
@@ -7730,7 +7739,7 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
-			$sites                 = self::get_all_sites();
+			$sites                 = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
 			$sites[ $this->_slug ] = $encrypted_site;
 
 			$this->set_account_option( 'sites', $sites, $store );
@@ -7747,7 +7756,7 @@
 		private function _store_plans( $store = true ) {
 			$this->_logger->entrance();
 
-			$plans = self::get_all_plans();
+			$plans = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
 
 			// Copy plans.
 			$encrypted_plans = array();
@@ -7773,7 +7782,7 @@
 		private function _store_licenses( $store = true, $plugin_slug = false, $licenses = array() ) {
 			$this->_logger->entrance();
 
-			$all_licenses = self::get_all_licenses();
+			$all_licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
 
 			if ( ! is_string( $plugin_slug ) ) {
 				$plugin_slug = $this->_slug;

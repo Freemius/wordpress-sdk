@@ -163,42 +163,38 @@
 		</table>
 	<?php endif ?>
 <?php endforeach ?>
-<?php
-	/**
-	 * @var array $VARS
-	 * @var FS_Site[] $sites
-	 */
-	$sites = $VARS['sites'];
-?>
-<?php if ( is_array( $sites ) && 0 < count( $sites ) ) : ?>
-	<h2><?php _efs( 'plugin-installs' ) ?> / <?php _efs( 'sites' ) ?></h2>
-	<table id="fs_installs" class="widefat">
-		<thead>
-		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'slug' ) ?></th>
-			<th><?php _efs( 'plan' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-			<th><?php _efs( 'secret-key' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $sites as $slug => $site ) : ?>
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php $sites = $VARS[ $module_type . '_sites' ] ?>
+	<?php if ( is_array( $sites ) && count( $sites ) > 0 ) : ?>
+		<h2><?php printf( __fs( 'module-installs' ), __fs( $module_type ) ) ?> / <?php _efs( 'sites' ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>_installs" class="widefat">
+			<thead>
 			<tr>
-				<td><?php echo $site->id ?></td>
-				<td><?php echo $slug ?></td>
-				<td><?php
-						echo is_object( $site->plan ) ?
-							base64_decode( $site->plan->name ) :
-							''
-					?></td>
-				<td><?php echo $site->public_key ?></td>
-				<td><?php echo $site->secret_key ?></td>
+				<th><?php _efs( 'id' ) ?></th>
+				<th><?php _efs( 'slug' ) ?></th>
+				<th><?php _efs( 'plan' ) ?></th>
+				<th><?php _efs( 'public-key' ) ?></th>
+				<th><?php _efs( 'secret-key' ) ?></th>
 			</tr>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
+			</thead>
+			<tbody>
+			<?php foreach ( $sites as $slug => $site ) : ?>
+				<tr>
+					<td><?php echo $site->id ?></td>
+					<td><?php echo $slug ?></td>
+					<td><?php
+							echo is_object( $site->plan ) ?
+								base64_decode( $site->plan->name ) :
+								''
+						?></td>
+					<td><?php echo $site->public_key ?></td>
+					<td><?php echo $site->secret_key ?></td>
+				</tr>
+			<?php endforeach ?>
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>
 <?php
 	$addons = $VARS['addons'];
 ?>
@@ -266,48 +262,45 @@
 		</tbody>
 	</table>
 <?php endif ?>
-<?php
-	/**
-	 * @var FS_Plugin_License[] $licenses
-	 */
-	$licenses = $VARS['licenses'];
-?>
-<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-	<h2><?php _efs( 'licenses' ) ?></h2>
-	<table id="fs_users" class="widefat">
-		<thead>
-		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'plugin-id' ) ?></th>
-			<th><?php _efs( 'user-id' ) ?></th>
-			<th><?php _efs( 'plan-id' ) ?></th>
-			<th><?php _efs( 'quota' ) ?></th>
-			<th><?php _efs( 'activated' ) ?></th>
-			<th><?php _efs( 'blocking' ) ?></th>
-			<th><?php _efs( 'license-key' ) ?></th>
-			<th><?php _efs( 'expiration' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $licenses as $slug => $module_licenses ) : ?>
-			<?php foreach ( $module_licenses as $id => $licenses ) : ?>
-				<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-					<?php foreach ( $licenses as $license ) : ?>
-						<tr>
-							<td><?php echo $license->id ?></td>
-							<td><?php echo $license->plugin_id ?></td>
-							<td><?php echo $license->user_id ?></td>
-							<td><?php echo $license->plan_id ?></td>
-							<td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
-							<td><?php echo $license->activated ?></td>
-							<td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
-							<td><?php echo htmlentities( $license->secret_key ) ?></td>
-							<td><?php echo $license->expiration ?></td>
-						</tr>
-					<?php endforeach ?>
-				<?php endif ?>
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php $licenses = $VARS[ $module_type . '_licenses' ] ?>
+	<?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
+		<h2><?php printf( __fs( 'module-licenses' ), __fs( $module_type ) ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
+			<thead>
+			<tr>
+				<th><?php _efs( 'id' ) ?></th>
+				<th><?php _efs( 'plugin-id' ) ?></th>
+				<th><?php _efs( 'user-id' ) ?></th>
+				<th><?php _efs( 'plan-id' ) ?></th>
+				<th><?php _efs( 'quota' ) ?></th>
+				<th><?php _efs( 'activated' ) ?></th>
+				<th><?php _efs( 'blocking' ) ?></th>
+				<th><?php _efs( 'license-key' ) ?></th>
+				<th><?php _efs( 'expiration' ) ?></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $licenses as $slug => $module_licenses ) : ?>
+				<?php foreach ( $module_licenses as $id => $licenses ) : ?>
+					<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
+						<?php foreach ( $licenses as $license ) : ?>
+							<tr>
+								<td><?php echo $license->id ?></td>
+								<td><?php echo $license->plugin_id ?></td>
+								<td><?php echo $license->user_id ?></td>
+								<td><?php echo $license->plan_id ?></td>
+								<td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
+								<td><?php echo $license->activated ?></td>
+								<td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+								<td><?php echo htmlentities( $license->secret_key ) ?></td>
+								<td><?php echo $license->expiration ?></td>
+							</tr>
+						<?php endforeach ?>
+					<?php endif ?>
+				<?php endforeach ?>
 			<?php endforeach ?>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>

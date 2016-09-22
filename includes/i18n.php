@@ -120,7 +120,7 @@
 		'slug'                                     => _x( 'Slug', 'as WP plugin slug', 'freemius' ),
 		'id'                                       => __( 'ID', 'freemius' ),
 		'users'                                    => __( 'Users', 'freemius' ),
-		'plugin-installs'                          => __( 'Plugin Installs', 'freemius' ),
+		'module-installs'                          => __( '%s Installs', 'freemius' ),
 		'sites'                                    => _x( 'Sites', 'like websites', 'freemius' ),
 		'user-id'                                  => __( 'User ID', 'freemius' ),
 		'site-id'                                  => __( 'Site ID', 'freemius' ),
@@ -271,6 +271,7 @@
 		'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
 		'cron-type'                                => __( 'Cron Type', 'freemius' ),
 		'plugins-themes-sync'                      => __( 'Plugins & Themes Sync', 'freemius' ),
+		'module-licenses'                          => __( '%s Licenses', 'freemius' ),
 		#endregion Debug
 
 		#region Expressions
