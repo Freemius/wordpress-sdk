@@ -102,50 +102,67 @@
 		<?php endforeach ?>
 		</tbody>
 	</table>
-<?php $plugins = $fs_options->get_option( 'plugins' ) ?>
-<?php if ( is_array( $plugins ) && 0 < count( $plugins ) ) : ?>
-	<h2><?php _efs( 'plugins' ) ?></h2>
-	<table id="fs_plugins" class="widefat">
-		<thead>
-		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'slug' ) ?></th>
-			<th><?php _efs( 'version' ) ?></th>
-			<th><?php _efs( 'title' ) ?></th>
-			<th><?php _efs( 'api' ) ?></th>
-			<th><?php _efs( 'freemius-state' ) ?></th>
-			<th><?php _efs( 'plugin-path' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $plugins as $slug => $data ) : ?>
-			<?php $is_active = is_plugin_active( $data->file ) ?>
-			<?php $fs = $is_active ? freemius( $slug ) : null ?>
-			<tr<?php if ( $is_active ) {
-				echo ' style="background: #E6FFE6; font-weight: bold"';
-			} ?>>
-				<td><?php echo $data->id ?></td>
-				<td><?php echo $slug ?></td>
-				<td><?php echo $data->version ?></td>
-				<td><?php echo $data->title ?></td>
-				<td><?php if ( $is_active ) {
-						echo $fs->has_api_connectivity() ?
-							__fs( 'connected' ) :
-							__fs( 'blocked' );
-					} ?></td>
-				<td><?php if ( $is_active ) {
-						echo $fs->is_on() ?
-							__fs( 'on' ) :
-							__fs( 'off' );
-					} ?></td>
-				<td><?php echo $data->file ?></td>
-				<td><?php echo $data->public_key ?></td>
+
+<?php
+	$module_types = array(
+		Freemius::MODULE_TYPE_PLUGIN,
+		Freemius::MODULE_TYPE_THEME
+	);
+?>
+
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php $modules = $fs_options->get_option( $module_type . 's' ) ?>
+	<?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
+		<h2><?php _efs( $module_type . 's' ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>" class="widefat">
+			<thead>
+			<tr>
+				<th><?php _efs( 'id' ) ?></th>
+				<th><?php _efs( 'slug' ) ?></th>
+				<th><?php _efs( 'version' ) ?></th>
+				<th><?php _efs( 'title' ) ?></th>
+				<th><?php _efs( 'api' ) ?></th>
+				<th><?php _efs( 'freemius-state' ) ?></th>
+				<th><?php _efs( 'plugin-path' ) ?></th>
+				<th><?php _efs( 'public-key' ) ?></th>
 			</tr>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
+			</thead>
+			<tbody>
+			<?php foreach ( $modules as $slug => $data ) : ?>
+				<?php
+					if ( Freemius::MODULE_TYPE_THEME === $module_type ) {
+						$current_theme = wp_get_theme();
+						$is_active = ( $current_theme->stylesheet === $data->file );
+					} else {
+						$is_active = is_plugin_active( $data->file );
+					}
+				?>
+				<?php $fs = $is_active ? freemius( $data->id ) : null ?>
+				<tr<?php if ( $is_active ) {
+					echo ' style="background: #E6FFE6; font-weight: bold"';
+				} ?>>
+					<td><?php echo $data->id ?></td>
+					<td><?php echo $slug ?></td>
+					<td><?php echo $data->version ?></td>
+					<td><?php echo $data->title ?></td>
+					<td><?php if ( $is_active ) {
+							echo $fs->has_api_connectivity() ?
+								__fs( 'connected' ) :
+								__fs( 'blocked' );
+						} ?></td>
+					<td><?php if ( $is_active ) {
+							echo $fs->is_on() ?
+								__fs( 'on' ) :
+								__fs( 'off' );
+						} ?></td>
+					<td><?php echo $data->file ?></td>
+					<td><?php echo $data->public_key ?></td>
+				</tr>
+			<?php endforeach ?>
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>
 <?php
 	/**
 	 * @var array $VARS

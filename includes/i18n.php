@@ -107,6 +107,8 @@
 		'email'                                    => __( 'Email', 'freemius' ),
 		'email-address'                            => __( 'Email address', 'freemius' ),
 		'verified'                                 => __( 'Verified', 'freemius' ),
+		'module'                                   => __( 'Module', 'freemius' ),
+		'module-type'                              => __( 'Module Type', 'freemius' ),
 		'plugin'                                   => __( 'Plugin', 'freemius' ),
 		'plugins'                                  => __( 'Plugins', 'freemius' ),
 		'theme'                                    => __( 'Theme', 'freemius' ),
@@ -267,6 +269,7 @@
 		'clear-api-cache'                          => __( 'Clear API Cache', 'freemius' ),
 		'sync-data-from-server'                    => __( 'Sync Data From Server', 'freemius' ),
 		'scheduled-crons'                          => __( 'Scheduled Crons', 'freemius' ),
+		'cron-type'                                => __( 'Cron Type', 'freemius' ),
 		'plugins-themes-sync'                      => __( 'Plugins & Themes Sync', 'freemius' ),
 		#endregion Debug
 
