@@ -10,25 +10,49 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	// The URL to redirect to after successfully activating the license from the "Plugins" page.
-	$sync_license_url = $VARS['sync-license-url'];
+	if ($fs->is_registered()) {
+		// The URL to redirect to after successfully activating the license from the "Plugins" page.
+		if ( $fs->is_addon() ) {
+			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $fs->get_id(), true );
+		} else {
+			$sync_license_url = $fs->_get_sync_license_url( $fs->get_id(), true );
+		}
+
+		/**
+		 * Trigger license sync after valid license activation.
+		 */
+		$after_license_activation_url = $sync_license_url;
+	}
+	else
+	{
+		/**
+		 * If user not yet registered, the license activation triggers
+		 * an opt-in, which automatically sync the license.
+		 */
+		$after_license_activation_url = $fs->get_account_url();
+	}
 
 	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
 	$message_above_input_field  = __fs( 'activate-license-message', $slug );
 	$message_below_input_field  = '';
 
+	$header_title = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+
 	if ( $fs->is_registered() ) {
-		$activate_button_text = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+		$activate_button_text = $header_title;
 	} else {
 		$freemius_site_url = $fs->has_paid_plan() ?
 			'https://freemius.com/wordpress/' :
 			// Insights platform information.
 			'https://freemius.com/wordpress/usage-tracking/';
 
-		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank">freemius.com</a>';
+		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
 
 		$message_below_input_field = sprintf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link );
 
@@ -40,8 +64,8 @@
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
-	<input class="license_key" type="text" placeholder="{$license_key_text}" />
-	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="#">{$cant_find_license_key_text}</a>
+	<input class="license_key" type="text" placeholder="{$license_key_text}" tabindex="1" />
+	<a class="show-license-resend-modal show-license-resend-modal-{$slug}" href="!#" tabindex="2">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
 
@@ -54,12 +78,16 @@ HTML;
 			modalHtml =
 				'<div class="fs-modal fs-modal-license-activation">'
 				+ '	<div class="fs-modal-dialog">'
+				+ '		<div class="fs-modal-header">'
+				+ '		    <h4><?php echo $header_title ?></h4>'
+				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<a href="#" class="button button-secondary button-close"><?php _efs('deactivation-modal-button-cancel', $slug); ?></a>'
-				+ '			<a href="#" class="button button-primary button-activate-license"><?php echo $activate_button_text; ?></a>'
+				+ '			<button class="button button-secondary button-close" tabindex="4"><?php _efs('deactivation-modal-button-cancel', $slug); ?></button>'
+				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo $activate_button_text; ?></button>'
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
@@ -68,12 +96,10 @@ HTML;
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
-			pluginSlug                = '<?php echo $slug; ?>',
-			syncLicenseUrl            = '<?php echo $sync_license_url; ?>';
+			pluginSlug                = '<?php echo $slug ?>',
+			afterActivationUrl        = '<?php echo $after_license_activation_url ?>';
 
 		$modal.appendTo($('body'));
-
-		registerEventHandlers();
 
 		function registerEventHandlers() {
 			$activateLicenseLink.click(function (evt) {
@@ -105,7 +131,7 @@ HTML;
 				}
 			});
 
-			$modal.on('click', '.button', function (evt) {
+			$modal.on('click', '.button-activate-license', function (evt) {
 				evt.preventDefault();
 
 				if ($(this).hasClass('disabled')) {
@@ -124,7 +150,7 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						action     : 'activate_license',
+						action     : 'fs_activate_license_' + pluginSlug,
 						slug       : pluginSlug,
 						license_key: licenseKey
 					},
@@ -137,7 +163,7 @@ HTML;
 							closeModal();
 
 							// Redirect to the "Account" page and sync the license.
-							window.location.href = syncLicenseUrl;
+							window.location.href = afterActivationUrl;
 						} else {
 							showError( resultObj.error );
 							resetActivateLicenseButton();
@@ -147,22 +173,13 @@ HTML;
 			});
 
 			// If the user has clicked outside the window, close the modal.
-			$modal.on('click', function (evt) {
-				var $target = $(evt.target);
-
-				// If the user has clicked anywhere in the modal dialog, just return.
-				if ($target.hasClass('fs-modal-body') || $target.hasClass('fs-modal-footer')) {
-					return;
-				}
-
-				// If the user has not clicked the close button and the clicked element is inside the modal dialog, just return.
-				if (( !$target.hasClass('button-close') ) && ( $target.parents('.fs-modal-body').length > 0 || $target.parents('.fs-modal-footer').length > 0 )) {
-					return;
-				}
-
+			$modal.on('click', '.fs-close, .button-secondary', function () {
 				closeModal();
+				return false;
 			});
 		}
+
+		registerEventHandlers();
 
 		function showModal() {
 			resetModal();

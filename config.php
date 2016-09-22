@@ -139,8 +139,8 @@
 	} else {
 		define( 'WP_FS__IS_LOCALHOST', WP_FS__IS_HTTP_REQUEST &&
 		                               is_string( WP_FS__REMOTE_ADDR ) &&
-		                               ( substr( WP_FS__REMOTE_ADDR, 0, 4 ) == '127.' ||
-		                                 WP_FS__REMOTE_ADDR == '::1' )
+		                               ( substr( WP_FS__REMOTE_ADDR, 0, 4 ) === '127.' ||
+		                                 WP_FS__REMOTE_ADDR === '::1' )
 		);
 	}
 
@@ -164,7 +164,7 @@
 	define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
 	define( 'WP_FS__IS_HTTPS', ( WP_FS__IS_HTTP_REQUEST &&
-	                             // Checks if CloudFlare's HTTPS (Flexible SSL support)
+	                             // Checks if CloudFlare's HTTPS (Flexible SSL support).
 	                             isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) ||
 	                           // Check if HTTPS request.
 	                           ( isset( $_SERVER['HTTPS'] ) && 'on' == $_SERVER['HTTPS'] ) ||

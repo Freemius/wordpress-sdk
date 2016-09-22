@@ -10,6 +10,9 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
@@ -23,10 +26,10 @@
 	<p>{$message_above_input_field}</p>
 	<div class="input-container">
 		<div class="button-container">
-			<a href="#" class="button button-primary button-send-license-key disabled">{$send_button_text}</a>
+			<a href="#" class="button button-primary button-send-license-key disabled" tabindex="2">{$send_button_text}</a>
 		</div>
 	    <div class="email-address-container">
-	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}">
+	        <input class="email-address" type="text" placeholder="{$email_address_placeholder}" tabindex="1">
 	    </div>
     </div>
 HTML;
@@ -40,7 +43,10 @@ HTML;
 			    modalHtml =
 				    '<div class="fs-modal fs-modal-license-key-resend">'
 				    + '	<div class="fs-modal-dialog">'
-				    + '     <a class="button-close">✖</a>'
+				    + '		<div class="fs-modal-header">'
+				    + '		    <h4><?php echo $send_button_text ?></h4>'
+				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				    + '		</div>'
 				    + '		<div class="fs-modal-body">'
 				    + '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				    + '		</div>'
@@ -87,15 +93,15 @@ HTML;
 					}
 				});
 
+				$modal.on('click', '.fs-close', function (){
+					closeModal();
+					return false;
+				});
+
 				$modal.on('click', '.button', function (evt) {
 					evt.preventDefault();
 
 					if ($(this).hasClass('disabled')) {
-						return;
-					}
-
-					if ($(this).hasClass('button-close')) {
-						closeModal();
 						return;
 					}
 
@@ -111,7 +117,7 @@ HTML;
 						url       : ajaxurl,
 						method    : 'POST',
 						data      : {
-							action: 'resend_license_key',
+							action: '<?php echo $fs->get_action_tag( 'resend_license_key' ) ?>',
 							slug  : moduleSlug,
 							email : emailAddress
 						},
@@ -128,18 +134,6 @@ HTML;
 							}
 						}
 					});
-				});
-
-				// If the user has clicked outside the window, close the modal.
-				$modal.on('click', function (evt) {
-					var $target = $(evt.target);
-
-					// If the user has clicked anywhere in the modal dialog, just return.
-					if ($target.hasClass('fs-modal-body') || $target.parents('.fs-modal-body').length > 0) {
-						return;
-					}
-
-					closeModal();
 				});
 			}
 

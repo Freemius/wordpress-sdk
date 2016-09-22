@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '1.2.0';
+	$this_sdk_version = '1.2.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -283,23 +283,25 @@
 		 * @param bool   $is_premium Hints freemius if running the premium plugin or not.
 		 *
 		 * @return Freemius
+		 *
+		 * @deprecated Please use fs_dynamic_init().
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $slug );
+			$fs = Freemius::instance( $slug, true );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
 		}
 
 		/**
-		 * @param array [string]string $plugin
+		 * @param array<string,string> $module Plugin or Theme details.
 		 *
 		 * @return Freemius
 		 * @throws Freemius_Exception
 		 */
-		function fs_dynamic_init( $plugin ) {
-			$fs = Freemius::instance( $plugin['slug'] );
-			$fs->dynamic_init( $plugin );
+		function fs_dynamic_init( $module ) {
+			$fs = Freemius::instance( $module['slug'], true );
+			$fs->dynamic_init( $module );
 
 			return $fs;
 		}

@@ -1,4 +1,5 @@
 @import "../colors";
+@import "../mixins";
 
 .fs-modal {
 	position: fixed;
@@ -52,6 +53,42 @@
 		padding: 20px;
 	}
 
+    .fs-modal-header {
+        border-bottom: #eeeeee solid 1px;
+        background: #fbfbfb;
+        padding: 15px 20px;
+        position: relative;
+//        z-index: 2;
+
+        h4 {
+            margin: 0;
+            padding: 0;
+            text-transform: uppercase;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #cacaca;
+            text-shadow: 1px 1px 1px #fff;
+            letter-spacing: 0.6px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .fs-close {
+            position: absolute;
+            right: 10px;
+            top: 12px;
+            cursor: pointer;
+            color: #bbb;
+            @include border-radius(20px);
+            padding: 3px;
+            @include transition(all 0.2s ease-in-out);
+
+            &:hover {
+                color: #fff;
+                background: #aaa;
+            }
+        }
+    }
+
 	.fs-modal-body {
 		border-bottom: 0;
 
@@ -97,6 +134,18 @@
 			display: none;
 		}
 	}
+}
+
+.rtl
+{
+    .fs-modal {
+        .fs-modal-header {
+            .fs-close {
+                right: auto;
+                left: 20px;
+            }
+        }
+    }
 }
 
 body.has-fs-modal {
