@@ -17,7 +17,7 @@
 		/**
 		 * @var string
 		 */
-		protected $_module_slug;
+		protected $_module_unique_affix;
 
 		/**
 		 * @var number
@@ -110,7 +110,7 @@
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_module_id   = $module_id;
-			$this->_module_slug = freemius( $module_id )->get_unique_affix( '-' );
+			$this->_module_unique_affix = freemius( $module_id )->get_unique_affix( '-' );
 		}
 
 		#endregion Singleton
@@ -134,7 +134,7 @@
 		function init( $menu, $is_addon = false ) {
 			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
 
-			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_module_slug );
+			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_module_unique_affix );
 
 			$this->_default_submenu_items = array();
 			// @deprecated
@@ -264,7 +264,7 @@
 		 */
 		function is_submenu_item_visible( $id, $default = true ) {
 			return fs_apply_filter(
-				$this->_module_slug,
+				freemius( $this->_module_id )->get_unique_affix( '_' ),
 				'is_submenu_visible',
 				$this->get_bool_option( $this->_default_submenu_items, $id, $default ),
 				$id
@@ -285,7 +285,7 @@
 		function get_slug( $page = '' ) {
 			return ( ( false === strpos( $this->_menu_slug, '.php?' ) ) ?
 				$this->_menu_slug :
-				$this->_module_slug ) . ( empty( $page ) ? '' : ( '-' . $page ) );
+				$this->_module_unique_affix ) . ( empty( $page ) ? '' : ( '-' . $page ) );
 		}
 
 		/**
@@ -359,7 +359,7 @@
 			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
 				return $this->_menu_slug;
 			} else {
-				return $this->_module_slug;
+				return $this->_module_unique_affix;
 			}
 		}
 
@@ -385,7 +385,7 @@
 		 */
 		function is_activation_page() {
 			if ($this->_menu_exists &&
-			   ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_slug ) )
+			   ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_unique_affix ) )
 			) {
 				// Module have a settings menu and the context page is the main settings page,
 				// so assume it's in activation (doesn't really check if already opted-in/skipped or not).

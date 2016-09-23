@@ -1039,21 +1039,19 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param string|number $slug_or_id
+		 * @param number $addon_id
 		 *
 		 * @return bool
 		 */
-		private static function has_instance( $slug_or_id ) {
-			return ! is_numeric( $slug_or_id ) ?
-				isset( self::$_instances[ strtolower( $slug_or_id ) ] ) :
-				( false !== self::get_instance_by_id( $slug_or_id ) );
+		private static function has_instance( $addon_id ) {
+			return isset( self::$_instances[ $addon_id ] );
 		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param $id
+		 * @param number $id
 		 *
 		 * @return false|Freemius
 		 */
@@ -1094,14 +1092,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param $slug_or_id
+		 * @param number $id
 		 *
 		 * @return bool|Freemius
 		 */
-		function get_addon_instance( $slug_or_id ) {
-			return ! is_numeric( $slug_or_id ) ?
-				self::instance( strtolower( $slug_or_id ) ) :
-				self::get_instance_by_id( $slug_or_id );
+		function get_addon_instance( $id ) {
+			return self::instance( $id );
 		}
 
 		#endregion ------------------------------------------------------------------
@@ -2702,12 +2698,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param string|number $slug_or_id
+		 * @param number $addon_id
 		 *
 		 * @return bool
 		 */
-		function is_addon_activated( $slug_or_id ) {
-			return self::has_instance( $slug_or_id );
+		function is_addon_activated( $addon_id ) {
+			return self::has_instance( $addon_id );
 		}
 
 		/**
@@ -2716,20 +2712,22 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
 		 *
-		 * @param string $slug
+		 * @param number $addon_id
 		 *
 		 * @return bool
 		 */
-		function is_addon_connected( $slug ) {
-			$sites = self::get_all_sites();
+		function is_addon_connected( $addon_id ) {
+			$sites = self::get_all_sites( Freemius::MODULE_TYPE_PLUGIN );
 
+			$addon = $this->get_addon( $addon_id );
+			$slug  = $addon->slug;
 			if ( ! isset( $sites[ $slug ] ) ) {
 				return false;
 			}
 
 			$site = $sites[ $slug ];
 
-			$plugin = FS_Plugin_Manager::instance( $slug )->get();
+			$plugin = FS_Plugin_Manager::instance( $addon_id )->get();
 
 			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
 				// The given slug do NOT belong to any of the plugin's add-ons.
@@ -2751,12 +2749,12 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param string $slug
+		 * @param number $addon_id
 		 *
 		 * @return bool
 		 */
-		function is_addon_installed( $slug ) {
-			return file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->get_addon_basename( $slug ) ) );
+		function is_addon_installed( $addon_id ) {
+			return file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->get_addon_basename( $addon_id ) ) );
 		}
 
 		/**
@@ -2765,22 +2763,23 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param string $slug
+		 * @param number $addon_id
 		 *
 		 * @return string
 		 */
-		function get_addon_basename( $slug ) {
-			if ( $this->is_addon_activated( $slug ) ) {
-				self::instance( $slug )->get_plugin_basename();
+		function get_addon_basename( $addon_id ) {
+			if ( $this->is_addon_activated( $addon_id ) ) {
+				return self::instance( $addon_id )->get_plugin_basename();
 			}
 
-			$premium_basename = $slug . '-premium/' . $slug . '.php';
+			$addon = $this->get_addon( $addon_id );
+			$premium_basename = $addon->slug . '-premium/' . $addon->slug . '.php';
 
 			if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_basename ) ) ) {
 				return $premium_basename;
 			}
 
-			$free_basename = $slug . '/' . $slug . '.php';
+			$free_basename = $addon->slug . '/' . $addon->slug . '.php';
 
 			return $free_basename;
 		}
@@ -2795,7 +2794,7 @@
 		 */
 		function get_installed_addons() {
 			$installed_addons = array();
-			foreach ( self::$_instances as $slug => $instance ) {
+			foreach ( self::$_instances as $instance ) {
 				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
 					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
 						$installed_addons[] = $instance;
@@ -2819,7 +2818,7 @@
 				return false;
 			}
 
-			foreach ( self::$_instances as $slug => $instance ) {
+			foreach ( self::$_instances as $instance ) {
 				if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
 					if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
 						return true;
@@ -7573,6 +7572,10 @@
 		 * @return string
 		 */
 		public function get_unique_affix( $separator = '_' ) {
+			if ( $this->is_plugin() ) {
+				return $this->_slug;
+			}
+
 			return ( $this->_slug . $separator . $this->_module_type );
 		}
 
@@ -7666,7 +7669,7 @@
 			$this->_logger->entrance( $tag );
 
 			$args = func_get_args();
-			array_unshift( $args, $this->_slug );
+			array_unshift( $args, $this->get_unique_affix() );
 
 			return call_user_func_array( 'fs_apply_filter', $args );
 		}
@@ -8406,7 +8409,7 @@
 			if ( ! isset( $licenses->error ) ) {
 				$this->_update_licenses( $licenses, $addon->slug );
 
-				if ( ! $this->is_addon_installed( $addon->slug ) && FS_License_Manager::has_premium_license( $licenses ) ) {
+				if ( ! $this->is_addon_installed( $addon->id ) && FS_License_Manager::has_premium_license( $licenses ) ) {
 					$plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
 
 					if ( ! isset( $plans_result->error ) ) {
@@ -9515,7 +9518,7 @@
 		 */
 		private function update_user_name() {
 			$this->_logger->entrance();
-			$name = fs_request_get( 'fs_user_name_' . $this->_slug, '' );
+			$name = fs_request_get( 'fs_user_name_' . $this->get_unique_affix(), '' );
 
 			$api  = $this->get_api_user_scope();
 			$user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,first,last", 'put', array(
@@ -9723,7 +9726,7 @@
 				case 'update_email':
 					check_admin_referer( 'update_email' );
 
-					$new_email = fs_request_get( 'fs_email_' . $this->_slug, '' );
+					$new_email = fs_request_get( 'fs_email_' . $this->get_unique_affix(), '' );
 					$result    = $this->_update_email( $new_email );
 
 					if ( isset( $result->error ) ) {
@@ -9814,7 +9817,7 @@
 						$this->_logger->log( $action );
 
 						$site_property                      = substr( $p, strlen( 'site_' ) );
-						$site_property_value                = fs_request_get( 'fs_' . $p . '_' . $this->_slug, '' );
+						$site_property_value                = fs_request_get( 'fs_' . $p . '_' . $this->get_unique_affix(), '' );
 						$this->get_site()->{$site_property} = $site_property_value;
 
 						// Store account after modification.

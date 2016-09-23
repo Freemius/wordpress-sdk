@@ -404,19 +404,19 @@
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.0.9
 	 *
-	 * @param string $slug  Plugin slug
-	 * @param string $tag   The name of the filter hook.
-	 * @param mixed  $value The value on which the filters hooked to `$tag` are applied on.
+	 * @param string $module_unique_affix Module's unique affix.
+	 * @param string $tag   		      The name of the filter hook.
+	 * @param mixed  $value 			  The value on which the filters hooked to `$tag` are applied on.
 	 *
 	 * @return mixed The filtered value after all hooked functions are applied to it.
 	 *
 	 * @uses   apply_filters()
 	 */
-	function fs_apply_filter( $slug, $tag, $value ) {
+	function fs_apply_filter( $module_unique_affix, $tag, $value ) {
 		$args = func_get_args();
 
 		return call_user_func_array( 'apply_filters', array_merge(
-				array( 'fs_' . $tag . '_' . $slug ),
+				array( 'fs_' . $tag . '_' . $module_unique_affix ),
 				array_slice( $args, 2 ) )
 		);
 	}

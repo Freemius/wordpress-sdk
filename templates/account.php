@@ -352,9 +352,9 @@
 						) ) )
 					) : ?>
 						<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST"
-						      onsubmit="var val = prompt('<?php printf( __fs( 'what-is-your-x', $slug ), $p['title'] ) ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
+						      onsubmit="var val = prompt('<?php printf( __fs( 'what-is-your-x', $slug ), $p['title'] ) ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $fs->get_unique_affix() ?>]').val(val); return true;">
 							<input type="hidden" name="fs_action" value="update_<?php echo $p['id'] ?>">
-							<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $slug ?>"
+							<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $fs->get_unique_affix() ?>"
 							       value="">
 							<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
 							<input type="submit" class="button button-small"
@@ -432,8 +432,8 @@
 			foreach ( $addons_to_show as $addon_id ) : ?>
 				<?php
 				$addon              = $fs->get_addon( $addon_id );
-				$is_addon_activated = $fs->is_addon_activated( $addon->slug );
-				$is_addon_connected = $fs->is_addon_connected( $addon->slug );
+				$is_addon_activated = $fs->is_addon_activated( $addon_id );
+				$is_addon_connected = $fs->is_addon_connected( $addon_id );
 
 				$fs_addon = $is_addon_connected ? freemius( $addon_id ) : false;
 				if ( is_object( $fs_addon ) ) {
@@ -578,8 +578,8 @@
 
 						}
 					} else if ( ! $show_upgrade ) {
-						if ( $fs->is_addon_installed( $addon->slug ) ) {
-							$addon_file = $fs->get_addon_basename( $addon->slug );
+						if ( $fs->is_addon_installed( $addon_id ) ) {
+							$addon_file = $fs->get_addon_basename( $addon_id );
 							$buttons[]  = sprintf(
 								'<a class="button button-primary" href="%s" title="%s" class="edit">%s</a>',
 								wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ),
@@ -633,8 +633,8 @@
 					?>
 					<td colspan="4">
 						<!-- Action -->
-						<?php if ( $fs->is_addon_installed( $addon->slug ) ) : ?>
-							<?php $addon_file = $fs->get_addon_basename( $addon->slug ) ?>
+						<?php if ( $fs->is_addon_installed( $addon_id ) ) : ?>
+							<?php $addon_file = $fs->get_addon_basename( $addon_id ) ?>
 							<a class="button button-primary"
 							   href="<?php echo wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ) ?>"
 							   title="<?php esc_attr( __fs( 'activate-this-addon', $slug ) ) ?>"
