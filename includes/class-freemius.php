@@ -1389,19 +1389,12 @@
 		static function _debug_page_render() {
 			self::$_static_logger->entrance();
 
-			$users          = self::get_all_users();
-			$addons         = self::get_all_addons();
-			$account_addons = self::get_all_account_addons();
-
-//			$plans    = self::get_all_plans();
-//			$licenses = self::get_all_licenses();
-
 			$vars = array(
 				'plugin_sites'    => self::get_all_sites(),
 				'theme_sites'     => self::get_all_sites( self::MODULE_TYPE_THEME ),
-				'users'           => $users,
-				'addons'          => $addons,
-				'account_addons'  => $account_addons,
+				'users'           => self::get_all_users(),
+				'addons'          => self::get_all_addons(),
+				'account_addons'  => self::get_all_account_addons(),
 				'plugin_licenses' => self::get_all_licenses(),
 				'theme_licenses'  => self::get_all_licenses( self::MODULE_TYPE_THEME )
 			);
@@ -2181,7 +2174,7 @@
 				'id'         => $id,
 				'public_key' => $public_key,
 				'is_live'    => $is_live,
-				'is_premium' => $is_premium
+				'is_premium' => $is_premium,
 			) );
 		}
 
@@ -2475,7 +2468,7 @@
 				'title'            => $this->get_plugin_name(),
 				'file'             => $this->_plugin_basename,
 				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
-				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true )
+				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
 //				'secret_key' => $secret_key,
 			) );
 
@@ -2717,7 +2710,7 @@
 		 * @return bool
 		 */
 		function is_addon_connected( $addon_id ) {
-			$sites = self::get_all_sites( Freemius::MODULE_TYPE_PLUGIN );
+			$sites = self::get_all_sites( $this->_module_type );
 
 			$addon = $this->get_addon( $addon_id );
 			$slug  = $addon->slug;
@@ -3561,7 +3554,7 @@
 		 * @param bool $store
 		 */
 		function _delete_site( $store = true ) {
-			$sites = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
+			$sites = self::get_all_sites( $this->_module_type );
 
 			if ( isset( $sites[ $this->_slug ] ) ) {
 				unset( $sites[ $this->_slug ] );
@@ -3581,7 +3574,7 @@
 		private function _delete_plans( $store = true ) {
 			$this->_logger->entrance();
 
-			$plans = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
+			$plans = self::get_all_plans( $this->_module_type );
 
 			unset( $plans[ $this->_slug ] );
 
@@ -3600,7 +3593,7 @@
 		private function _delete_licenses( $store = true, $plugin_slug = false ) {
 			$this->_logger->entrance();
 
-			$all_licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
+			$all_licenses = self::get_all_licenses( $this->_module_type );
 
 			if ( ! is_string( $plugin_slug ) ) {
 				$plugin_slug = $this->_slug;
@@ -4663,7 +4656,7 @@
 		 * @return string
 		 */
 		function get_plugin_basename() {
-			if ( ! is_string( $this->_plugin_basename ) ) {
+			if ( ! isset( $this->_plugin_basename ) ) {
 				if ( $this->is_plugin() ) {
 					$this->_plugin_basename = plugin_basename( $this->_plugin_main_file_path );
 				} else {
@@ -6382,10 +6375,10 @@
 
 			$this->do_action( 'before_account_load' );
 
-			$sites    = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
+			$sites    = self::get_all_sites( $this->_module_type );
 			$users    = self::get_all_users();
-			$plans    = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
-			$licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
+			$plans    = self::get_all_plans( $this->_module_type );
+			$licenses = self::get_all_licenses( $this->_module_type );
 
 			if ( $this->_logger->is_on() && is_admin() ) {
 				$this->_logger->log( 'sites = ' . var_export( $sites, true ) );
@@ -7742,7 +7735,7 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
-			$sites                 = self::get_all_sites( self::get_type_by_id( $this->_module_id ) );
+			$sites                 = self::get_all_sites( $this->_module_type );
 			$sites[ $this->_slug ] = $encrypted_site;
 
 			$this->set_account_option( 'sites', $sites, $store );
@@ -7759,7 +7752,7 @@
 		private function _store_plans( $store = true ) {
 			$this->_logger->entrance();
 
-			$plans = self::get_all_plans( self::get_type_by_id( $this->_module_id ) );
+			$plans = self::get_all_plans( $this->_module_type );
 
 			// Copy plans.
 			$encrypted_plans = array();
@@ -7785,7 +7778,7 @@
 		private function _store_licenses( $store = true, $plugin_slug = false, $licenses = array() ) {
 			$this->_logger->entrance();
 
-			$all_licenses = self::get_all_licenses( self::get_type_by_id( $this->_module_id ) );
+			$all_licenses = self::get_all_licenses( $this->_module_type );
 
 			if ( ! is_string( $plugin_slug ) ) {
 				$plugin_slug = $this->_slug;
