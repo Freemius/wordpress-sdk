@@ -276,14 +276,18 @@
 		private function __construct( $module_id, $slug = false ) {
 			if ( ! is_numeric( $module_id ) ) {
 				$slug = $module_id;
-				$this->_plugin = FS_Plugin_Manager::instance( $slug )->get();
 
-				$this->upgrade( $this->_plugin->id, $slug );
-			} else {
-				$this->upgrade( $module_id, $slug );
+				$this->_plugin = FS_Plugin_Manager::instance( $slug )->get();
+				$module_id = $this->_plugin->id;
 			}
 
-			$this->_storage = FS_Key_Value_Storage::instance( $this->get_module_type() . '_data', $this->_slug );
+			$this->store_id_slug_type_path_map( $module_id, $slug );
+
+			$this->_module_id   = $module_id;
+			$this->_slug        = $slug;
+			$this->_module_type = $this->get_module_type();
+
+			$this->_storage = FS_Key_Value_Storage::instance( $this->_module_type . '_data', $this->_slug );
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -636,8 +640,8 @@
 		 * @return string
 		 */
 		private function _find_caller_plugin_file() {
-			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
-			return $id_slug_type_map[ $this->_module_id ]['path'];
+			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+			return $id_slug_type_path_map[ $this->_module_id ]['path'];
 		}
 
 		/**
@@ -648,29 +652,24 @@
 		 *
 		 * @since 1.2.1
 		 */
-		function upgrade( $module_id, $slug ) {
-			$this->_module_id = $module_id;
-			$this->_slug = $slug;
+		private function store_id_slug_type_path_map( $module_id, $slug ) {
+			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
 
-			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
-
-			if ( ! array( $id_slug_type_map ) ) {
-				$id_slug_type_map = array();
+			if ( ! array( $id_slug_type_path_map ) ) {
+				$id_slug_type_path_map = array();
 			}
 
-			if ( ! isset( $id_slug_type_map[ $this->_module_id ] ) ) {
+			if ( ! isset( $id_slug_type_path_map[ $module_id ] ) ) {
 				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
 
-				$id_slug_type_map[ $this->_module_id ] = array(
-					'slug' => $this->_slug,
+				$id_slug_type_path_map[ $module_id ] = array(
+					'slug' => $slug,
 					'type' => $caller_main_file_and_type->module_type,
 					'path' => $caller_main_file_and_type->path
 				);
 
-				self::$_accounts->set_option( 'id_slug_type_map', $id_slug_type_map, true );
+				self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
 			}
-
-			$this->_module_type = $id_slug_type_map[ $this->_module_id ]['type'];
 		}
 
 		/**
@@ -682,8 +681,8 @@
 		 * @return array
 		 */
 		static function get_slug_and_type_info( $module_id ) {
-			$id_slug_type_map = self::$_accounts->get_option( 'id_slug_type_map', array() );
-			return $id_slug_type_map[ $module_id ];
+			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+			return $id_slug_type_path_map[ $module_id ];
 		}
 
 		/**
@@ -5915,6 +5914,11 @@
 		 * @return string
 		 */
 		function get_module_type() {
+			if ( ! isset( $this->_module_type ) ) {
+				$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+				$this->_module_type = $id_slug_type_path_map[ $this->_module_id ]['type'];
+			}
+
 			return $this->_module_type;
 		}
 
