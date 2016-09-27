@@ -324,6 +324,8 @@
 				/**
 				 * Ensure that the admin notice will always have a title by using the stored plugin title if available and
 				 * retrieving the title via the "get_plugin_name" method if there is no stored plugin title available.
+				 *
+				 * @author Leo Fajardo (@leorw)
 				 */
 				( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() )
 			);
