@@ -690,9 +690,7 @@
 		 * @since  1.2.0
 		 */
 		private function get_caller_main_file_and_type() {
-			if ( ! function_exists( 'get_plugins' ) ) {
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-			}
+			self::require_plugin_essentials();
 
 			$all_plugins       = get_plugins();
 			$all_plugins_paths = array();
