@@ -35,24 +35,25 @@
 
 		/**
 		 * @param number $module_id
+		 * @param string $module_slug
+		 * @param string $module_type
 		 *
 		 * @return FS_Plugin_Manager
 		 */
-		static function instance( $module_id ) {
+		static function instance( $module_id, $module_slug, $module_type ) {
 			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Plugin_Manager( $module_id );
+				self::$_instances[ $module_id ] = new FS_Plugin_Manager( $module_id, $module_slug, $module_type );
 			}
 
 			return self::$_instances[ $module_id ];
         }
 
-		protected function __construct( $module_id ) {
+		protected function __construct( $module_id, $module_slug, $module_type ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$slug_and_type_info = Freemius::get_slug_and_type_info( $module_id );
-
-			$this->_slug        = $slug_and_type_info['slug'];
-			$this->_module_type = $slug_and_type_info['type'];
+			$this->_slug        = $module_slug;
+			$this->_module_type = $module_type;
+			
 			$this->load();
 		}
 

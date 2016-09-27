@@ -316,7 +316,7 @@
 			}
 
 			if ( ! is_object( $this->_plugin ) ) {
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type )->get();
 			}
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
@@ -2456,7 +2456,7 @@
 
 			if ( $plugin->is_updated() ) {
 				// Update plugin details.
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type )->store( $plugin );
 			}
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
@@ -2702,7 +2702,7 @@
 
 			$site = $sites[ $slug ];
 
-			$plugin = FS_Plugin_Manager::instance( $addon_id )->get();
+			$plugin = FS_Plugin_Manager::instance( $addon_id, $addon->slug, $this->_module_type  )->get();
 
 			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
 				// The given slug do NOT belong to any of the plugin's add-ons.
@@ -2904,7 +2904,7 @@
 			$this->_plugin->secret_key = $secret_key;
 
 			// Update plugin details.
-			FS_Plugin_Manager::instance( $this->_module_id )->update( $this->_plugin, true );
+			FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type  )->update( $this->_plugin, true );
 		}
 
 		/**
