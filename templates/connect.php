@@ -153,7 +153,7 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 				<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
 				       placeholder="<?php _efs( 'license-key', $slug ) ?>" tabindex="1"/>
 				<i class="dashicons dashicons-admin-network"></i>
-				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix( '-' ) ?>"
+				<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix() ?>"
 				   href="#"><?php _efs( 'cant-find-license-key' ); ?></a>
 			</div>
 		<?php endif ?>

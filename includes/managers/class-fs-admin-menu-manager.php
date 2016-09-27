@@ -95,22 +95,23 @@
 
 		/**
 		 * @param number $module_id
+		 * @param string $module_unique_affix
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $module_id ) {
+		static function instance( $module_id, $module_unique_affix ) {
 			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id );
+				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id, $module_unique_affix );
 			}
 
 			return self::$_instances[ $module_id ];
 		}
 
-		protected function __construct( $module_id ) {
+		protected function __construct( $module_id, $module_unique_affix ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_module_id   = $module_id;
-			$this->_module_unique_affix = freemius( $module_id )->get_unique_affix( '-' );
+			$this->_module_id   		= $module_id;
+			$this->_module_unique_affix = $module_unique_affix;
 		}
 
 		#endregion Singleton
@@ -264,7 +265,7 @@
 		 */
 		function is_submenu_item_visible( $id, $default = true ) {
 			return fs_apply_filter(
-				freemius( $this->_module_id )->get_unique_affix( '_' ),
+				$this->_module_unique_affix,
 				'is_submenu_visible',
 				$this->get_bool_option( $this->_default_submenu_items, $id, $default ),
 				$id
@@ -397,7 +398,7 @@
 			$fs = freemius( $this->_module_id );
 			if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
 				// In activation only when show_optin query string param is given.
-				return fs_request_is_action( $fs->get_unique_affix() . '_show_optin' );
+				return fs_request_is_action( $this->_module_unique_affix . '_show_optin' );
 			}
 
 			return false;

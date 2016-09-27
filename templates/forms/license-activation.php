@@ -69,7 +69,7 @@
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
 	<input class="license_key" type="text" placeholder="{$license_key_text}" tabindex="1" />
-	<a class="show-license-resend-modal show-license-resend-modal-{$fs->get_unique_affix( '-' )}" href="!#" tabindex="2">{$cant_find_license_key_text}</a>
+	<a class="show-license-resend-modal show-license-resend-modal-{$fs->get_unique_affix()}" href="!#" tabindex="2">{$cant_find_license_key_text}</a>
 	<p>{$message_below_input_field}</p>
 HTML;
 
@@ -96,7 +96,7 @@ HTML;
 				+ '	</div>'
 				+ '</div>',
 			$modal = $(modalHtml),
-			$activateLicenseLink      = $('span.activate-license.<?php echo $fs->get_unique_affix( '-' ) ?> a, .activate-license-trigger.<?php echo $fs->get_unique_affix( '-' ) ?>'),
+			$activateLicenseLink      = $('span.activate-license.<?php echo $fs->get_unique_affix() ?> a, .activate-license-trigger.<?php echo $fs->get_unique_affix() ?>'),
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),

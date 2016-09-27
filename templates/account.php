@@ -289,7 +289,7 @@
 									<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 									      method="POST" class="button-group">
 										<?php if ($show_upgrade) : ?>
-										<a class="button activate-license-trigger <?php echo $fs->get_unique_affix( '-' ) ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
+										<a class="button activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php _efs( 'activate-license', $slug ) ?></a>
 										<?php endif ?>
 										<input type="submit" class="button"
 										       value="<?php _efs( 'sync-license', $slug ) ?>">

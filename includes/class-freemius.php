@@ -2470,7 +2470,7 @@
 				);
 			}
 
-			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_module_id );
+			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_module_id, $this->get_unique_affix() );
 			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
 
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
@@ -7544,19 +7544,16 @@
 		 * element class.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.1
-		 *
-		 * @param  number $module_id
-		 * @param  string $separator
+		 * @since  1.2.2
 		 *
 		 * @return string
 		 */
-		public function get_unique_affix( $separator = '_' ) {
+		public function get_unique_affix() {
 			if ( $this->is_plugin() ) {
 				return $this->_slug;
 			}
 
-			return ( $this->_slug . $separator . $this->_module_type );
+			return ( $this->_slug . '-' . $this->_module_type );
 		}
 
 		/**
@@ -10341,7 +10338,7 @@
 				'#',
 				false,
 				11,
-				( 'activate-license ' . $this->get_unique_affix( '-' ) )
+				( 'activate-license ' . $this->get_unique_affix() )
 			);
 		}
 
