@@ -319,30 +319,13 @@
 				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
 			}
 
-			/**
-			 * @todo Check if there is a better way to set $this->_storage->was_plugin_loaded to true for "theme" module.
-			 * If there is a better way to do that, the following if-else block will not be needed anymore and the original
-			 * code can be brought back.
-			 *
-			 * Since the current code immediately sets $this->_storage->was_plugin_loaded to "true" for "theme" module,
-			 * should_stop_execution() will return "false" and the "few-plugin-tweaks" admin notice can be added with an
-			 * empty title. So the following if-else block ensures that the admin notice will always have a title.
-			 */
-			if ( ! is_object( $this->_plugin ) ) {
-				$plugin_title = $this->get_plugin_name();
-			} else {
-				/**
-				 * get_plugin_name() will do more work if $this->_plugin_name is not yet set. So if $this->_plugin is
-				 * already set and $this->_plugin_name is not yet set, that "more work" can be avoided if we will just
-				 * use $this->_plugin. A further investigation may be needed in order to understand why this behavior
-				 * only happens with plugins ($this->_plugin already set and $this->_plugin_name not yet set).
-				 */
-				$plugin_title = $this->_plugin->title;
-			}
-
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
 				$this->_module_id,
-				$plugin_title
+				/**
+				 * Ensure that the admin notice will always have a title by using the stored plugin title if available and
+				 * retrieving the title via the "get_plugin_name" method if there is no stored plugin title available.
+				 */
+				( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() )
 			);
 
 			if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ||
