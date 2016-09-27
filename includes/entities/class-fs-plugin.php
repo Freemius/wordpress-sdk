@@ -56,6 +56,8 @@
 		 */
 		public $is_live;
 		/**
+		 * @since 1.2.2
+		 * 
 		 * @var string
 		 */
 		public $type;

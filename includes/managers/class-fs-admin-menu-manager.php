@@ -15,11 +15,15 @@
 		#region Properties
 
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string
 		 */
 		protected $_module_unique_affix;
 
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var number
 		 */
 		protected $_module_id;
@@ -73,7 +77,7 @@
 		 */
 		private $_first_time_path;
 		/**
-		 * @since 1.2.0
+		 * @since 1.2.2
 		 *
 		 * @var bool
 		 */
@@ -236,7 +240,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 *
 		 * @return bool
 		 */
@@ -388,8 +392,10 @@
 			if ($this->_menu_exists &&
 			   ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_unique_affix ) )
 			) {
-				// Module have a settings menu and the context page is the main settings page,
-				// so assume it's in activation (doesn't really check if already opted-in/skipped or not).
+				/**
+				 * Module has a settings menu and the context page is the main settings page, so assume it's in
+				 * activation (doesn't really check if already opted-in/skipped or not).
+				 */
 				return true;
 			}
 

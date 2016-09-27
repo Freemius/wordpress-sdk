@@ -68,7 +68,7 @@
 		 */
 		private $_plugin_name;
 		/**
-		 * @since 1.2.0
+		 * @since 1.2.2
 		 *
 		 * @var string
 		 */
@@ -229,7 +229,7 @@
 		private static $_accounts;
 
 		/**
-		 * @since 1.2.1
+		 * @since 1.2.2
 		 *
 		 * @var number
 		 */
@@ -240,7 +240,11 @@
 		 */
 		private static $_instances = array();
 
-		// Module types
+		/**
+		 * Module types
+		 *
+		 * @since 1.2.2
+		 */
 		const MODULE_TYPE_PLUGIN = 'plugin';
 		const MODULE_TYPE_THEME = 'theme';
 		
@@ -326,6 +330,7 @@
 				 * retrieving the title via the "get_plugin_name" method if there is no stored plugin title available.
 				 *
 				 * @author Leo Fajardo (@leorw)
+				 * @since 1.2.2
 				 */
 				( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() )
 			);
@@ -347,7 +352,7 @@
 		 * Checks whether this plugin or theme has settings menu.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 *
 		 * @return bool
 		 */
@@ -635,7 +640,7 @@
 		 * @param number $module_id
 		 * @param string $slug
 		 *
-		 * @since 1.2.1
+		 * @since 1.2.2
 		 */
 		private function store_id_slug_type_path_map( $module_id, $slug ) {
 			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
@@ -659,7 +664,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.1
+		 * @since  1.2.2
 		 *
 		 * @param  number $module_id
 		 *
@@ -671,23 +676,10 @@
 		}
 
 		/**
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.1
-		 *
-		 * @param  number $module_id
-		 *
-		 * @return array
-		 */
-		static function get_type_by_id( $module_id ) {
-			$slug_and_type_info = self::get_slug_and_type_info( $module_id );
-			return $slug_and_type_info['type'];
-		}
-
-		/**
 		 * Identifies the caller type: plugin or theme.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 */
 		private function get_caller_main_file_and_type() {
 			self::require_plugin_essentials();
@@ -979,6 +971,9 @@
 			/**
 			 * If the module type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
 			 * not support uninstall hook.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
 			 */
 			if ( $this->is_theme() ) {
 				$this->_uninstall_plugin_event( false );
@@ -4740,7 +4735,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since 1.2.1
+		 * @since 1.2.2
 		 *
 		 * @param string $option_name
 		 * @param string $module_type
@@ -4756,7 +4751,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since 1.2.1
+		 * @since 1.2.2
 		 *
 		 * @param string $option_name
 		 * @param mixed  $option_value
@@ -5882,7 +5877,7 @@
 		 * Checks if the plugin's type is "plugin". The other type is "theme".
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 *
 		 * @return bool
 		 */
@@ -5892,7 +5887,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 *
 		 * @return string
 		 */
@@ -5907,7 +5902,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 *
 		 * @return string
 		 */
@@ -10206,7 +10201,7 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 */
 		function _show_theme_activation_optin_dialog() {
 			fs_enqueue_local_style( 'fs-connect', '/admin/connect.css' );
@@ -10216,7 +10211,7 @@
 
 		/**
 		 * @author Leo Fajardo (leorw)
-		 * @since  1.2.0
+		 * @since  1.2.2
 		 */
 		function _add_fs_theme_activation_dialog() {
 			$vars = array( 'id' => $this->_module_id );

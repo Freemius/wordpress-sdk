@@ -78,14 +78,24 @@
 						&& isset( $plugin_information->icons )
 						&& ! empty( $plugin_information->icons )
 					) {
-						// Get the smallest icon.
+						/**
+						 * Get the smallest icon.
+						 *
+						 * @author Leo Fajardo (@leorw)
+						 * @since 1.2.2
+						 */
 						$icon = end( $plugin_information->icons );
 
 						if ( 0 !== strpos( $icon, 'http' ) ) {
 							$icon = 'http:' . $icon;
 						}
 
-						// Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+						/**
+						 * Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+						 *
+						 * @author Leo Fajardo (@leorw)
+						 * @since 1.2.2
+						 */
 						$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
 
 						$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );

@@ -87,7 +87,7 @@
 	 *    URL: http://fswp:8080/wp-content/plugins/rating-widget-premium/freemius/assets/css/admin/common.css
 	 *
 	 * @author Leo Fajardo (@leorw)
-	 * @since  1.2.0
+	 * @since  1.2.2
 	 *
 	 * @param  string $asset_abs_path Asset's absolute path.
 	 *

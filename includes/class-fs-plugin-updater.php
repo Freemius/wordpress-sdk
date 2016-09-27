@@ -174,10 +174,20 @@
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
 
-			// "plugins" or "themes".
+			/**
+			 * "plugins" or "themes".
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
+			 */
 			$module_type = $this->_fs->get_module_type() . 's';
 
-			// Ensure that we don't mix plugins update info with themes update info.
+			/**
+			 * Ensure that we don't mix plugins update info with themes update info.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
+			 */
 			if ( "pre_set_site_transient_update_{$module_type}" !== current_filter() ) {
 				return $transient_data;
 			}

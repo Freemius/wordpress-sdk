@@ -12,6 +12,8 @@
 
 	class FS_Plugin_Manager {
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string
 		 */
 		private $_module_type;
@@ -20,6 +22,8 @@
 		 */
 		protected $_slug;
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var FS_Plugin
 		 */
 		protected $_module;
@@ -53,7 +57,7 @@
 
 			$this->_slug        = $module_slug;
 			$this->_module_type = $module_type;
-			
+
 			$this->load();
 		}
 
