@@ -240,14 +240,6 @@
 		 */
 		private static $_instances = array();
 
-		/**
-		 * Module types
-		 *
-		 * @since 1.2.2
-		 */
-		const MODULE_TYPE_PLUGIN = 'plugin';
-		const MODULE_TYPE_THEME = 'theme';
-		
 		// Reason IDs
 		const REASON_NO_LONGER_NEEDED = 1;
 		const REASON_FOUND_A_BETTER_PLUGIN = 2;
@@ -702,12 +694,12 @@
 				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
 
 				if ( dirname( $caller_file_path ) === $current_theme_path ) {
-					$module_type = Freemius::MODULE_TYPE_THEME;
+					$module_type = MODULE_TYPE_THEME;
 					break;
 				}
 
 				if ( in_array( $caller_file_path, $all_plugins_paths ) ) {
-					$module_type = Freemius::MODULE_TYPE_PLUGIN;
+					$module_type = MODULE_TYPE_PLUGIN;
 					break;
 				}
 			}
@@ -1368,12 +1360,12 @@
 
 			$vars = array(
 				'plugin_sites'    => self::get_all_sites(),
-				'theme_sites'     => self::get_all_sites( self::MODULE_TYPE_THEME ),
+				'theme_sites'     => self::get_all_sites( MODULE_TYPE_THEME ),
 				'users'           => self::get_all_users(),
 				'addons'          => self::get_all_addons(),
 				'account_addons'  => self::get_all_account_addons(),
 				'plugin_licenses' => self::get_all_licenses(),
-				'theme_licenses'  => self::get_all_licenses( self::MODULE_TYPE_THEME )
+				'theme_licenses'  => self::get_all_licenses( MODULE_TYPE_THEME )
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
@@ -2465,7 +2457,12 @@
 				);
 			}
 
-			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_module_id, $this->get_unique_affix() );
+			$this->_menu = FS_Admin_Menu_Manager::instance(
+				$this->_module_id,
+				$this->_module_type,
+				$this->get_unique_affix()
+			);
+
 			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
 
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
@@ -4722,7 +4719,7 @@
 		 *
 		 * @return FS_Site[]
 		 */
-		private static function get_all_sites( $module_type = self::MODULE_TYPE_PLUGIN ) {
+		private static function get_all_sites( $module_type = MODULE_TYPE_PLUGIN ) {
 			$sites = self::get_account_option( 'sites', $module_type );
 
 			if ( ! is_array( $sites ) ) {
@@ -4741,7 +4738,7 @@
 		 * @param string $module_type
 		 */
 		private static function get_account_option( $option_name, $module_type ) {
-			if ( self::MODULE_TYPE_PLUGIN !== $module_type ) {
+			if ( MODULE_TYPE_PLUGIN !== $module_type ) {
 				$option_name = $module_type . '_' . $option_name;
 			}
 
@@ -4774,7 +4771,7 @@
 		 *
 		 * @return FS_Plugin_License[]
 		 */
-		private static function get_all_licenses( $module_type = self::MODULE_TYPE_PLUGIN ) {
+		private static function get_all_licenses( $module_type = MODULE_TYPE_PLUGIN ) {
 			$licenses = self::get_account_option( 'licenses', $module_type );
 
 			if ( ! is_array( $licenses ) ) {
@@ -5882,7 +5879,7 @@
 		 * @return bool
 		 */
 		function is_plugin() {
-			return ( self::MODULE_TYPE_PLUGIN === $this->_module_type );
+			return ( MODULE_TYPE_PLUGIN === $this->_module_type );
 		}
 
 		/**

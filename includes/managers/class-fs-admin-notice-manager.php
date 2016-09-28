@@ -58,7 +58,7 @@
 			if ( 'global' !== $module_id ) {
 				$slug_and_type_info = Freemius::get_slug_and_type_info( $module_id );
 				$slug               = $slug_and_type_info['slug'];
-				$storage_key        = ( Freemius::MODULE_TYPE_PLUGIN !== $slug_and_type_info['type'] ?
+				$storage_key        = ( MODULE_TYPE_PLUGIN !== $slug_and_type_info['type'] ?
 										$slug_and_type_info['type'] . 's_' : '' )
 				                      . $storage_key;
 			} else {

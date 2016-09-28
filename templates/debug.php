@@ -105,8 +105,8 @@
 
 <?php
 	$module_types = array(
-		Freemius::MODULE_TYPE_PLUGIN,
-		Freemius::MODULE_TYPE_THEME
+		MODULE_TYPE_PLUGIN,
+		MODULE_TYPE_THEME
 	);
 ?>
 
@@ -130,7 +130,7 @@
 			<tbody>
 			<?php foreach ( $modules as $slug => $data ) : ?>
 				<?php
-					if ( Freemius::MODULE_TYPE_THEME === $module_type ) {
+					if ( MODULE_TYPE_THEME === $module_type ) {
 						$current_theme = wp_get_theme();
 						$is_active = ( $current_theme->stylesheet === $data->file );
 					} else {

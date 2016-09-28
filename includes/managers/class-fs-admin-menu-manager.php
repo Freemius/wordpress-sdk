@@ -29,6 +29,13 @@
 		protected $_module_id;
 
 		/**
+		 * @since 1.2.2
+		 *
+		 * @var string
+		 */
+		protected $_module_type;
+
+		/**
 		 * @since 1.0.6
 		 *
 		 * @var string
@@ -99,23 +106,25 @@
 
 		/**
 		 * @param number $module_id
+		 * @param string $module_type
 		 * @param string $module_unique_affix
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $module_id, $module_unique_affix ) {
+		static function instance( $module_id, $module_type, $module_unique_affix ) {
 			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id, $module_unique_affix );
+				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id, $module_type, $module_unique_affix );
 			}
 
 			return self::$_instances[ $module_id ];
 		}
 
-		protected function __construct( $module_id, $module_unique_affix ) {
+		protected function __construct( $module_id, $module_type, $module_unique_affix ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_module_id   		= $module_id;
-			$this->_module_unique_affix = $module_unique_affix;
+			$this->_module_id			= $module_id;
+			$this->_module_type			= $module_type;
+			$this->_module_unique_affix	= $module_unique_affix;
 		}
 
 		#endregion Singleton

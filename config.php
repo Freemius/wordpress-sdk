@@ -175,6 +175,14 @@
 	                                    strtoupper( $_SERVER['REQUEST_METHOD'] ) == 'POST' ) );
 
 	/**
+	 * Module types
+	 *
+	 * @since 1.2.2
+	 */
+	define( 'MODULE_TYPE_PLUGIN', 'plugin' );
+	define( 'MODULE_TYPE_THEME', 'theme' );
+
+	/**
 	 * Billing Frequencies
 	 */
 	define( 'WP_FS__PERIOD_ANNUALLY', 'annual' );
