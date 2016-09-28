@@ -1019,6 +1019,27 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since 1.2.2
+		 *
+		 * @param  string|number $id_or_slug
+		 *
+		 * @return number
+		 */
+		private static function get_module_id( $id_or_slug ) {
+			if ( is_numeric( $id_or_slug ) ) {
+				return $id_or_slug;
+			}
+
+			foreach ( self::$_instances as $instance ) {
+				if ( $instance->is_plugin() && ( $id_or_slug === $instance->get_slug() ) ) {
+					return $instance->get_id();
+					break;
+				}
+			}
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
@@ -1063,11 +1084,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param number $id
+		 * @param  string|number $id
 		 *
 		 * @return bool|Freemius
 		 */
 		function get_addon_instance( $id ) {
+			$id = self::get_module_id( $id );
+
 			return self::instance( $id );
 		}
 
@@ -2667,11 +2690,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param number $addon_id
+		 * @param  string|number $addon_id
 		 *
 		 * @return bool
 		 */
 		function is_addon_activated( $addon_id ) {
+			$addon_id = self::get_module_id( $addon_id );
+
 			return self::has_instance( $addon_id );
 		}
 
@@ -2681,13 +2706,14 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
 		 *
-		 * @param number $addon_id
+		 * @param  string|number $addon_id
 		 *
 		 * @return bool
 		 */
 		function is_addon_connected( $addon_id ) {
 			$sites = self::get_all_sites( $this->_module_type );
 
+			$addon_id = self::get_module_id( $addon_id );
 			$addon = $this->get_addon( $addon_id );
 			$slug  = $addon->slug;
 			if ( ! isset( $sites[ $slug ] ) ) {
@@ -2718,11 +2744,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param number $addon_id
+		 * @param  string|number $addon_id
 		 *
 		 * @return bool
 		 */
 		function is_addon_installed( $addon_id ) {
+			$addon_id = self::get_module_id( $addon_id );
+
 			return file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->get_addon_basename( $addon_id ) ) );
 		}
 
@@ -2732,11 +2760,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param number $addon_id
+		 * @param  string|number $addon_id
 		 *
 		 * @return string
 		 */
 		function get_addon_basename( $addon_id ) {
+			$addon_id = self::get_module_id( $addon_id );
+
 			if ( $this->is_addon_activated( $addon_id ) ) {
 				return self::instance( $addon_id )->get_plugin_basename();
 			}
