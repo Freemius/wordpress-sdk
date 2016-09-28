@@ -398,21 +398,25 @@
 		 * @return bool
 		 */
 		function is_activation_page() {
-			if ($this->_menu_exists &&
+			if ( $this->_menu_exists &&
 			   ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_unique_affix ) )
 			) {
 				/**
 				 * Module has a settings menu and the context page is the main settings page, so assume it's in
 				 * activation (doesn't really check if already opted-in/skipped or not).
+				 *
+				 * @since 1.2.2
 				 */
 				return true;
 			}
 
 			global $pagenow;
-
-			$fs = freemius( $this->_module_id );
-			if ( $fs->is_theme() && 'themes.php' === $pagenow ) {
-				// In activation only when show_optin query string param is given.
+			if ( ( MODULE_TYPE_THEME === $this->_module_type ) && 'themes.php' === $pagenow ) {
+				/**
+				 * In activation only when show_optin query string param is given.
+				 *
+				 * @since 1.2.2
+				 */
 				return fs_request_is_action( $this->_module_unique_affix . '_show_optin' );
 			}
 
