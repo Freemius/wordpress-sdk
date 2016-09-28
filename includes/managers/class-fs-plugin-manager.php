@@ -45,11 +45,13 @@
 		 * @return FS_Plugin_Manager
 		 */
 		static function instance( $module_id, $module_slug, $module_type ) {
-			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Plugin_Manager( $module_id, $module_slug, $module_type );
+			$key = 'm_' . $module_id;
+
+			if ( ! isset( self::$_instances[ $key ] ) ) {
+				self::$_instances[ $key ] = new FS_Plugin_Manager( $module_id, $module_slug, $module_type );
 			}
 
-			return self::$_instances[ $module_id ];
+			return self::$_instances[ $key ];
         }
 
 		protected function __construct( $module_id, $module_slug, $module_type ) {

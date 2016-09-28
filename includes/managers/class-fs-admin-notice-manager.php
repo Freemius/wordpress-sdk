@@ -39,7 +39,7 @@
 		protected $_logger;
 
 		/**
-		 * @param number $id
+		 * @param string $id
 		 * @param string $title
 		 *
 		 * @return FS_Admin_Notice_Manager

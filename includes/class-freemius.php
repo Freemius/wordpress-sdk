@@ -993,15 +993,17 @@
 		 * @return Freemius
 		 */
 		static function instance( $module_id, $slug = false ) {
-			if ( ! isset( self::$_instances[ $module_id ] ) ) {
+			$key = 'm_' . $module_id;
+
+			if ( ! isset( self::$_instances[ $key ] ) ) {
 				if ( 0 === count( self::$_instances ) ) {
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $module_id ] = new Freemius( $module_id, $slug );
+				self::$_instances[ $key ] = new Freemius( $module_id, $slug );
 			}
 
-			return self::$_instances[ $module_id ];
+			return self::$_instances[ $key ];
 		}
 
 		/**
@@ -1013,7 +1015,7 @@
 		 * @return bool
 		 */
 		private static function has_instance( $addon_id ) {
-			return isset( self::$_instances[ $addon_id ] );
+			return isset( self::$_instances[ 'm_' . $addon_id ] );
 		}
 
 		/**
@@ -1025,8 +1027,8 @@
 		 * @return false|Freemius
 		 */
 		static function get_instance_by_id( $id ) {
-			return isset ( self::$_instances[ $id ] ) ?
-					self::$_instances[ $id ] :
+			return isset ( self::$_instances[ 'm_' . $id ] ) ?
+					self::$_instances[ 'm_' . $id ] :
 					false;
 		}
 

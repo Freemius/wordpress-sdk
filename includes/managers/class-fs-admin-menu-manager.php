@@ -112,11 +112,13 @@
 		 * @return FS_Admin_Notice_Manager
 		 */
 		static function instance( $module_id, $module_type, $module_unique_affix ) {
-			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Admin_Menu_Manager( $module_id, $module_type, $module_unique_affix );
+			$key = 'm_' . $module_id;
+
+			if ( ! isset( self::$_instances[ $key ] ) ) {
+				self::$_instances[ $key ] = new FS_Admin_Menu_Manager( $module_id, $module_type, $module_unique_affix );
 			}
 
-			return self::$_instances[ $module_id ];
+			return self::$_instances[ $key ];
 		}
 
 		protected function __construct( $module_id, $module_type, $module_unique_affix ) {
