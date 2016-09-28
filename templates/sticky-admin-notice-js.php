@@ -17,13 +17,13 @@
 	jQuery( document ).ready(function( $ ) {
 		$( '.fs-notice.fs-sticky .fs-close' ).click(function() {
 			var
-				notice    = $( this ).parents( '.fs-notice' ),
-				id        = notice.attr( 'data-id' ),
-				managerID = notice.attr( 'data-manager-id' );
+				notice           = $( this ).parents( '.fs-notice' ),
+				id               = notice.attr( 'data-id' ),
+				ajaxActionSuffix = notice.attr( 'data-manager-id' ).replace( ':', '-' );
 
 			notice.fadeOut( 'fast', function() {
 				var data = {
-					action    : managerID + '_dismiss_notice_action',
+					action    : 'fs_dismiss_notice_action_' + ajaxActionSuffix,
 					message_id: id
 				};
 
