@@ -10,7 +10,7 @@
 		exit;
 	}
 ?>
-<div<?php if ( ! empty( $VARS['id'] ) ) : ?> data-id="<?php echo $VARS['id'] ?>"<?php endif ?><?php if ( ! empty( $VARS['slug'] ) ) : ?> data-slug="<?php echo $VARS['slug'] ?>"<?php endif ?>
+<div<?php if ( ! empty( $VARS['id'] ) ) : ?> data-id="<?php echo $VARS['id'] ?>"<?php endif ?><?php if ( ! empty( $VARS['secondary_id'] ) ) : ?> data-manager-id="<?php echo $VARS['secondary_id'] ?>"<?php endif ?>
 	class="<?php
 		switch ( $VARS['type'] ) {
 			case 'error':

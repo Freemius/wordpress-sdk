@@ -316,7 +316,7 @@
 			}
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
-				$this->_module_id,
+				$this->_slug . ( $this->is_theme() ? ':theme' : '' ),
 				/**
 				 * Ensure that the admin notice will always have a title by using the stored plugin title if available and
 				 * retrieving the title via the "get_plugin_name" method if there is no stored plugin title available.

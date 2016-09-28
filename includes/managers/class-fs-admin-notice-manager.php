@@ -12,9 +12,11 @@
 
 	class FS_Admin_Notice_Manager {
 		/**
+		 * @since 1.2.2
+		 * 
 		 * @var string
 		 */
-		protected $_slug;
+		protected $_secondary_id;
 		/**
 		 * @var string
 		 */
@@ -37,48 +39,35 @@
 		protected $_logger;
 
 		/**
-		 * @param number $module_id
+		 * @param number $id
 		 * @param string $title
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $module_id, $title = '' ) {
-			if ( ! isset( self::$_instances[ $module_id ] ) ) {
-				self::$_instances[ $module_id ] = new FS_Admin_Notice_Manager( $module_id, $title );
+		static function instance( $id, $title = '' ) {
+			if ( ! isset( self::$_instances[ $id ] ) ) {
+				self::$_instances[ $id ] = new FS_Admin_Notice_Manager( $id, $title );
 			}
 
-			return self::$_instances[ $module_id ];
+			return self::$_instances[ $id ];
 		}
 
-		protected function __construct( $module_id, $title = '' ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
-			$storage_key = 'admin_notices';
-
-			if ( 'global' !== $module_id ) {
-				$slug_and_type_info = Freemius::get_slug_and_type_info( $module_id );
-				$slug               = $slug_and_type_info['slug'];
-				$storage_key        = ( MODULE_TYPE_PLUGIN !== $slug_and_type_info['type'] ?
-										$slug_and_type_info['type'] . 's_' : '' )
-				                      . $storage_key;
-			} else {
-				$slug = $module_id;
-			}
-
-			$this->_slug           = $slug;
-			$this->_title          = ! empty( $title ) ? $title : '';
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( $storage_key, $this->_slug );
+		protected function __construct( $id, $title = '' ) {
+			$this->_secondary_id   = $id;
+			$this->_logger 		   = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_secondary_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_title		   = ! empty( $title ) ? $title : '';
+			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_secondary_id );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {
 					// If there are sticky notices for the current slug, add a callback
 					// to the AJAX action that handles message dismiss.
-					add_action( "wp_ajax_{$this->_slug}_dismiss_notice_action", array(
+					add_action( "wp_ajax_{$this->_secondary_id}_dismiss_notice_action", array(
 						&$this,
 						'dismiss_notice_ajax_callback'
 					) );
 
-					foreach ( $this->_sticky_storage as $id => $msg ) {
+					foreach ($this->_sticky_storage as $secondary_id => $msg ) {
 						// Add admin notice.
 						$this->add(
 							$msg['message'],
@@ -222,14 +211,14 @@
 			}
 
 			$message_object = array(
-				'message' => $message,
-				'title'   => $title,
-				'type'    => $type,
-				'sticky'  => $is_sticky,
-				'id'      => $id,
-				'all'     => $all_admin,
-				'slug'    => $this->_slug,
-				'plugin'  => $this->_title,
+				'message' 	   => $message,
+				'title'   	   => $title,
+				'type'    	   => $type,
+				'sticky'  	   => $is_sticky,
+				'id'      	   => $id,
+				'all'     	   => $all_admin,
+				'secondary_id' => $this->_secondary_id,
+				'plugin'  	   => $this->_title,
 			);
 
 			if ( $is_sticky && $store_if_sticky ) {
