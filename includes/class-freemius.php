@@ -268,8 +268,9 @@
 		 *
 		 * @param number $module_id
 		 * @param string $slug
+		 * @param bool   $is_init Since 1.2.2 Is initiation sequence.
 		 */
-		private function __construct( $module_id, $slug = false ) {
+		private function __construct( $module_id, $slug = false, $is_init = false ) {
 			if ( ! is_numeric( $module_id ) ) {
 				$slug = $module_id;
 
@@ -277,7 +278,9 @@
 				$module_id = $this->_plugin->id;
 			}
 
-			$this->store_id_slug_type_path_map( $module_id, $slug );
+			if ( $is_init ) {
+				$this->store_id_slug_type_path_map( $module_id, $slug );
+			}
 
 			$this->_module_id   = $module_id;
 			$this->_slug        = $slug;
@@ -287,7 +290,7 @@
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_plugin_main_file_path = $this->_find_caller_plugin_file();
+			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -566,6 +569,16 @@
 			// Store cached path (2nd layer cache).
 			$this->_storage->plugin_main_file->prev_path = $this->_storage->plugin_main_file->path;
 
+			/**
+			 * Clear global cached path.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
+			 */
+			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map' );
+			unset( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+			self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
+
 			// Clear cached path.
 			unset( $this->_storage->plugin_main_file->path );
 		}
@@ -619,10 +632,56 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
+		 * @param  bool   $is_init Is initiation sequence.
+		 *
 		 * @return string
 		 */
-		private function _find_caller_plugin_file() {
+		private function _find_caller_plugin_file( $is_init = false ) {
+			// Try to load the cached value of the file path.
+			if ( isset( $this->_storage->plugin_main_file ) ) {
+				$plugin_main_file = $this->_storage->plugin_main_file;
+				if ( isset( $plugin_main_file->path ) && file_exists( $plugin_main_file->path ) ) {
+					return $plugin_main_file->path;
+				}
+			}
+
+			/**
+			 * @since 1.2.1
+			 *
+			 * `clear_module_main_file_cache()` is clearing the plugin's cached path on
+			 * deactivation. Therefore, if any plugin/theme was initiating `Freemius`
+			 * with that plugin's slug, it was overriding the empty plugin path with a wrong path.
+			 *
+			 * So, we've added a special mechanism with a 2nd layer of cache that uses `prev_path`
+			 * when the class instantiator isn't the module.
+			 */
+			if ( ! $is_init ) {
+				// Fetch prev path cache.
+				if ( isset( $this->_storage->plugin_main_file ) &&
+					isset( $this->_storage->plugin_main_file->prev_path )
+				) {
+					if ( file_exists( $this->_storage->plugin_main_file->prev_path ) ) {
+						return $this->_storage->plugin_main_file->prev_path;
+					}
+				}
+				wp_die(
+					__fs( 'failed-finding-main-path', $this->_slug ),
+					__fs( 'error' ),
+					array( 'back_link' => true )
+				);
+			}
+
+			/**
+			 * @since 1.2.1
+			 *
+			 * Only the original instantiator that calls dynamic_init can modify the module's path.
+			 */
+			// Find caller module.
 			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+			$this->_storage->plugin_main_file = (object) array(
+				'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
+			);
+
 			return $id_slug_type_path_map[ $this->_module_id ]['path'];
 		}
 
@@ -637,19 +696,26 @@
 		private function store_id_slug_type_path_map( $module_id, $slug ) {
 			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
 
-			if ( ! array( $id_slug_type_path_map ) ) {
-				$id_slug_type_path_map = array();
-			}
+			$store_option = false;
 
 			if ( ! isset( $id_slug_type_path_map[ $module_id ] ) ) {
-				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
-
 				$id_slug_type_path_map[ $module_id ] = array(
-					'slug' => $slug,
-					'type' => $caller_main_file_and_type->module_type,
-					'path' => $caller_main_file_and_type->path
+					'slug' => $slug
 				);
 
+				$store_option = true;
+			}
+
+			if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ) {
+				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
+
+				$id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
+				$id_slug_type_path_map[ $module_id ]['path'] = $caller_main_file_and_type->path;
+
+				$store_option = true;
+			}
+
+			if ( $store_option ) {
 				self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
 			}
 		}
@@ -987,12 +1053,13 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
-		 * @param number $module_id
-		 * @param string $slug
+		 * @param  number   $module_id
+		 * @param  string   $slug
+		 * @param  bool     $is_init Is initiation sequence.
 		 *
 		 * @return Freemius
 		 */
-		static function instance( $module_id, $slug = false ) {
+		static function instance( $module_id, $slug = false, $is_init = false ) {
 			$key = 'm_' . $module_id;
 
 			if ( ! isset( self::$_instances[ $key ] ) ) {
@@ -1000,7 +1067,7 @@
 					self::_load_required_static();
 				}
 
-				self::$_instances[ $key ] = new Freemius( $module_id, $slug );
+				self::$_instances[ $key ] = new Freemius( $module_id, $slug, $is_init );
 			}
 
 			return self::$_instances[ $key ];

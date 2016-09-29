@@ -337,7 +337,7 @@
 		 * @deprecated Please use fs_dynamic_init().
 		 */
 		function fs_init( $slug, $plugin_id, $public_key, $is_live = true, $is_premium = true ) {
-			$fs = Freemius::instance( $plugin_id, $slug );
+			$fs = Freemius::instance( $plugin_id, $slug, true );
 			$fs->init( $plugin_id, $public_key, $is_live, $is_premium );
 
 			return $fs;
@@ -350,7 +350,7 @@
 		 * @throws Freemius_Exception
 		 */
 		function fs_dynamic_init( $module ) {
-			$fs = Freemius::instance( $module['id'], $module['slug'] );
+			$fs = Freemius::instance( $module['id'], $module['slug'], true );
 			$fs->dynamic_init( $module );
 
 			return $fs;
