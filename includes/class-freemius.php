@@ -274,7 +274,7 @@
 			if ( ! is_numeric( $module_id ) ) {
 				$slug = $module_id;
 
-				$this->_plugin = FS_Plugin_Manager::instance( $slug )->get();
+				$this->_plugin = FS_Plugin_Manager::instance( $slug, $slug, WP_FS__MODULE_TYPE_PLUGIN )->get();
 				$module_id = $this->_plugin->id;
 			}
 
@@ -1133,7 +1133,7 @@
 			$slug = self::find_slug_by_basename( $plugin_file );
 
 			return ( false !== $slug ) ?
-				self::instance( $slug ) :
+				self::instance( self::get_module_id( $slug ) ) :
 				false;
 		}
 
