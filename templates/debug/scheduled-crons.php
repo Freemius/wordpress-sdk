@@ -15,15 +15,15 @@
 	$scheduled_crons = array();
 
 	$module_types = array(
-		MODULE_TYPE_PLUGIN,
-		MODULE_TYPE_THEME
+		WP_FS__MODULE_TYPE_PLUGIN,
+		WP_FS__MODULE_TYPE_THEME
 	);
 
 	foreach ( $module_types as $module_type ) {
 		$modules = $fs_options->get_option( $module_type . 's' );
 		if ( is_array( $modules ) && count( $modules ) > 0 ) {
 			foreach ( $modules as $slug => $data ) {
-				if ( MODULE_TYPE_THEME === $module_type ) {
+				if ( WP_FS__MODULE_TYPE_THEME === $module_type ) {
 					$current_theme = wp_get_theme();
 					$is_active = ( $current_theme->stylesheet === $data->file );
 				} else {

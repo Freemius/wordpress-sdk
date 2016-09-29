@@ -413,7 +413,7 @@
 			}
 
 			global $pagenow;
-			if ( ( MODULE_TYPE_THEME === $this->_module_type ) && 'themes.php' === $pagenow ) {
+			if ( ( WP_FS__MODULE_TYPE_THEME === $this->_module_type ) && 'themes.php' === $pagenow ) {
 				/**
 				 * In activation only when show_optin query string param is given.
 				 *

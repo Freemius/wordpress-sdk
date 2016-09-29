@@ -179,8 +179,8 @@
 	 *
 	 * @since 1.2.2
 	 */
-	define( 'MODULE_TYPE_PLUGIN', 'plugin' );
-	define( 'MODULE_TYPE_THEME', 'theme' );
+	define( 'WP_FS__MODULE_TYPE_PLUGIN', 'plugin' );
+	define( 'WP_FS__MODULE_TYPE_THEME', 'theme' );
 
 	/**
 	 * Billing Frequencies
