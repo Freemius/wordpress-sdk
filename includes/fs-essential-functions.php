@@ -290,6 +290,20 @@
 	 * @global            $fs_active_plugins
 	 */
 	function fs_update_sdk_newest_version( $sdk_relative_path, $plugin_file = false ) {
+		/**
+		 * If there is a plugin running an older version of FS (1.2.1 or below), the `fs_update_sdk_newest_version()`
+		 * function in the older version will be used instead of this one. But since the older version is using
+		 * the `is_plugin_active` function to check if a plugin is active, passing the theme's `plugin_path` to the
+		 * `is_plugin_active` function will return false since the path is not a plugin path, so `in_activation` will be
+		 * `true` for theme modules and the upgrading of the SDK version to 1.2.2 or newer version will work fine.
+		 *
+		 * Future versions that will call this function will use the proper logic here instead of just relying on the
+		 * `is_plugin_active` function to fail for themes.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+
 		global $fs_active_plugins;
 
 		$newest_sdk = $fs_active_plugins->plugins[ $sdk_relative_path ];
