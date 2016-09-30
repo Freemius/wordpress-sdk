@@ -2778,7 +2778,7 @@
 		 * @return bool
 		 */
 		function is_addon_connected( $addon_id ) {
-			$sites = self::get_all_sites( $this->_module_type );
+			$sites = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN );
 
 			$addon_id = self::get_module_id( $addon_id );
 			$addon = $this->get_addon( $addon_id );
