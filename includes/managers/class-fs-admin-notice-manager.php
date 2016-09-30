@@ -12,11 +12,9 @@
 
 	class FS_Admin_Notice_Manager {
 		/**
-		 * @since 1.2.2
-		 * 
 		 * @var string
 		 */
-		protected $_secondary_id;
+		protected $_id;
 		/**
 		 * @var string
 		 */
@@ -53,14 +51,14 @@
 		}
 
 		protected function __construct( $id, $title = '' ) {
-			$this->_secondary_id   = $id;
-			$this->_logger 		   = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_secondary_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-			$this->_title		   = ! empty( $title ) ? $title : '';
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_secondary_id );
+			$this->_id             = $id;
+			$this->_logger         = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_title          = ! empty( $title ) ? $title : '';
+			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {
-					$ajax_action_suffix = str_replace( ':', '-', $this->_secondary_id );
+					$ajax_action_suffix = str_replace( ':', '-', $this->_id );
 
 					// If there are sticky notices for the current slug, add a callback
 					// to the AJAX action that handles message dismiss.
@@ -69,7 +67,7 @@
 						'dismiss_notice_ajax_callback'
 					) );
 
-					foreach ($this->_sticky_storage as $secondary_id => $msg ) {
+					foreach ( $this->_sticky_storage as $msg ) {
 						// Add admin notice.
 						$this->add(
 							$msg['message'],
@@ -219,7 +217,7 @@
 				'sticky'  	   => $is_sticky,
 				'id'      	   => $id,
 				'all'     	   => $all_admin,
-				'secondary_id' => $this->_secondary_id,
+				'manager_id'   => $this->_id,
 				'plugin'  	   => $this->_title,
 			);
 
