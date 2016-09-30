@@ -2789,7 +2789,7 @@
 
 			$site = $sites[ $slug ];
 
-			$plugin = FS_Plugin_Manager::instance( $addon_id, $addon->slug, $this->_module_type  )->get();
+			$plugin = FS_Plugin_Manager::instance( $addon_id, $addon->slug, WP_FS__MODULE_TYPE_PLUGIN )->get();
 
 			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
 				// The given slug do NOT belong to any of the plugin's add-ons.
