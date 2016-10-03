@@ -721,19 +721,6 @@
 		}
 
 		/**
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
-		 *
-		 * @param  number $module_id
-		 *
-		 * @return array
-		 */
-		static function get_slug_and_type_info( $module_id ) {
-			$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
-			return $id_slug_type_path_map[ $module_id ];
-		}
-
-		/**
 		 * Identifies the caller type: plugin or theme.
 		 *
 		 * @author Leo Fajardo (@leorw)
