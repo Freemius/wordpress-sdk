@@ -268,7 +268,7 @@
 		 *
 		 * @param number $module_id
 		 * @param string $slug
-		 * @param bool   $is_init Since 1.2.2 Is initiation sequence.
+		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
 		 */
 		private function __construct( $module_id, $slug = false, $is_init = false ) {
 			if ( ! is_numeric( $module_id ) ) {
