@@ -3488,12 +3488,13 @@
 							}
 
 						}
-					} else {
-						if ( $this->is_theme()
-						     && fs_request_is_action( $this->get_unique_affix() . '_show_optin' ) ) {
-							$this->_show_theme_activation_optin_dialog();
-						}
 					}
+				}
+
+				if ( $this->_menu->is_activation_page()
+					&& $this->is_theme()
+					&& fs_request_is_action( $this->get_unique_affix() . '_show_optin' ) ) {
+					$this->_show_theme_activation_optin_dialog();
 				}
 			}
 
