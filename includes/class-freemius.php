@@ -10592,7 +10592,7 @@
 				) ),
 				__fs( 'deactivate-free-version', $this->_slug ),
 				__fs( 'upload-and-activate', $this->_slug ),
-				'//bit.ly/upload-wp-plugin',
+				'//bit.ly/upload-wp-' . $this->_module_type,
 				__fs( 'howto-upload-activate', $this->_slug )
 			);
 		}
