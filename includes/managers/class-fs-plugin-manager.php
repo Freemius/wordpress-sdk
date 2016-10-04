@@ -14,13 +14,9 @@
 		/**
 		 * @since 1.2.2
 		 *
-		 * @var string
+		 * @var string|number
 		 */
-		private $_module_type;
-		/**
-		 * @var string
-		 */
-		protected $_slug;
+		protected $_module_id;
 		/**
 		 * @since 1.2.2
 		 *
@@ -38,27 +34,35 @@
 		protected $_logger;
 
 		/**
-		 * @param number $module_id
-		 * @param string $module_slug
-		 * @param string $module_type
+		 * Option names
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+		const OPTION_NAME_PLUGINS = 'plugins';
+		const OPTION_NAME_THEMES  = 'themes';
+
+		/**
+		 * @param  string|number $module_id
 		 *
 		 * @return FS_Plugin_Manager
 		 */
-		static function instance( $module_id, $module_slug, $module_type ) {
+		static function instance( $module_id ) {
 			$key = 'm_' . $module_id;
 
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Plugin_Manager( $module_id, $module_slug, $module_type );
+				self::$_instances[ $key ] = new FS_Plugin_Manager( $module_id );
 			}
 
 			return self::$_instances[ $key ];
         }
 
-		protected function __construct( $module_id, $module_slug, $module_type ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
-			$this->_slug        = $module_slug;
-			$this->_module_type = $module_type;
+		/**
+		 * @param string|number $module_id
+		 */
+		protected function __construct( $module_id ) {
+			$this->_logger    = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_module_id = $module_id;
 
 			$this->load();
 		}
@@ -67,8 +71,25 @@
 			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 		}
 
-		protected function get_all_modules() {
-			return $this->get_option_manager()->get_option( $this->_module_type . 's', array() );
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @param  string|false $module_type "plugin", "theme", or "false" for all modules.
+		 *
+		 * @return array
+		 */
+		protected function get_all_modules( $module_type = false ) {
+			$option_manager = $this->get_option_manager();
+
+			if ( false !== $module_type ) {
+				return $option_manager->get_option( $module_type . 's', array() );
+			}
+
+			return array(
+				self::OPTION_NAME_PLUGINS => $option_manager->get_option( self::OPTION_NAME_PLUGINS, array() ),
+				self::OPTION_NAME_THEMES  => $option_manager->get_option( self::OPTION_NAME_THEMES, array() ),
+			);
 		}
 
 		/**
@@ -78,10 +99,42 @@
 		 * @since  1.0.6
 		 */
 		function load() {
-			$all_modules   = $this->get_all_modules();
-			$this->_module = isset( $all_modules[ $this->_slug ] ) ?
-				$all_modules[ $this->_slug ] :
-				null;
+			$all_modules = $this->get_all_modules();
+
+			if ( ! is_numeric( $this->_module_id ) ) {
+				unset( $all_modules[ self::OPTION_NAME_THEMES ] );
+			}
+
+			foreach ( $all_modules as $modules ) {
+				/**
+				 * @since 1.2.2
+				 *
+				 * @var $modules FS_Plugin[]
+				 */
+				foreach ( $modules as $module ) {
+					$found_module = false;
+
+					/**
+					 * If module ID is not numeric, it must be a plugin's slug.
+					 *
+					 * @author Leo Fajardo (@leorw)
+					 * @since  1.2.2
+					 */
+					if ( ! is_numeric( $this->_module_id ) ) {
+						if ( $this->_module_id === $module->slug ) {
+							$this->_module_id = $module->id;
+							$found_module     = true;
+						}
+					} else if ( $this->_module_id == $module->id ) {
+						$found_module = true;
+					}
+
+					if ( $found_module ) {
+						$this->_module = $module;
+						break;
+					}
+				}
+			}
 		}
 
 		/**
@@ -96,16 +149,15 @@
 		 * @return bool|\FS_Plugin
 		 */
 		function store( $module = false, $flush = true ) {
-			$all_modules = $this->get_all_modules();
-
-			if (false !== $module ) {
+			if ( false !== $module ) {
 				$this->_module = $module;
 			}
 
-			$all_modules[ $this->_slug ] = $this->_module;
+			$all_modules = $this->get_all_modules( $this->_module->type );
+			$all_modules[ $this->_module->slug ] = $this->_module;
 
 			$options_manager = $this->get_option_manager();
-			$options_manager->set_option( $this->_module_type . 's', $all_modules, $flush );
+			$options_manager->set_option( $this->_module->type . 's', $all_modules, $flush );
 
 			return $this->_module;
 		}

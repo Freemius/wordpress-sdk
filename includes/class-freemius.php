@@ -272,10 +272,9 @@
 		 */
 		private function __construct( $module_id, $slug = false, $is_init = false ) {
 			if ( ! is_numeric( $module_id ) ) {
-				$slug = $module_id;
-
-				$this->_plugin = FS_Plugin_Manager::instance( $slug, $slug, WP_FS__MODULE_TYPE_PLUGIN )->get();
+				$this->_plugin = FS_Plugin_Manager::instance( $module_id )->get();
 				$module_id = $this->_plugin->id;
+				$slug      = $this->_plugin->slug;
 			}
 
 			if ( $is_init ) {
@@ -315,7 +314,7 @@
 			}
 
 			if ( ! is_object( $this->_plugin ) ) {
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type )->get();
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
 			}
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
@@ -2517,12 +2516,13 @@
 				'file'             => $this->_plugin_basename,
 				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
+				'type'             => $this->_module_type,
 //				'secret_key' => $secret_key,
 			) );
 
 			if ( $plugin->is_updated() ) {
 				// Update plugin details.
-				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type )->store( $plugin );
+				$this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
 			}
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
@@ -2776,7 +2776,7 @@
 
 			$site = $sites[ $slug ];
 
-			$plugin = FS_Plugin_Manager::instance( $addon_id, $addon->slug, WP_FS__MODULE_TYPE_PLUGIN )->get();
+			$plugin = FS_Plugin_Manager::instance( $addon_id )->get();
 
 			if ( $plugin->parent_plugin_id != $this->_plugin->id ) {
 				// The given slug do NOT belong to any of the plugin's add-ons.
@@ -2982,7 +2982,7 @@
 			$this->_plugin->secret_key = $secret_key;
 
 			// Update plugin details.
-			FS_Plugin_Manager::instance( $this->_module_id, $this->_slug, $this->_module_type  )->update( $this->_plugin, true );
+			FS_Plugin_Manager::instance( $this->_module_id  )->update( $this->_plugin, true );
 		}
 
 		/**
