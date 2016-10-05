@@ -3911,6 +3911,16 @@
 		 */
 		private function reset_anonymous_mode() {
 			unset( $this->_storage->is_anonymous );
+
+			/**
+			 * Ensure that this field is also "false", otherwise, if the current module's type is "theme" and the module
+			 * has no menus, the opt-in popup will not be shown immediately (in this case, the user will have to click
+			 * on the admin notice that contains the opt-in link in order to trigger the opt-in popup).
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since  1.2.2
+			 */
+			$this->_is_anonymous = false;
 		}
 
 		/**
