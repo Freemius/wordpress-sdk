@@ -184,9 +184,9 @@
 					FS.PostMessage.receiveOnce('install', function (data) {
 						// Post data to activation URL.
 						$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
-							'fs_action' => $slug . '_activate_new',
+							'fs_action' => $fs->get_unique_affix() . '_activate_new',
 							'plugin_id' => isset($_GET['plugin_id']) ? $_GET['plugin_id'] : $fs->get_id()
-							)), $slug . '_activate_new') ?>', {
+							)), $fs->get_unique_affix() . '_activate_new') ?>', {
 							user_id           : data.user.id,
 							user_secret_key   : data.user.secret_key,
 							user_public_key   : data.user.public_key,
@@ -198,10 +198,10 @@
 
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
 						$.form('<?php echo fs_nonce_url($fs->_get_admin_page_url('account', array(
-							'fs_action' => $slug . '_activate_new',
+							'fs_action' => $fs->get_unique_affix() . '_activate_new',
 							'plugin_id' => fs_request_get('plugin_id', $fs->get_id()),
 							'pending_activation' => true,
-							)), $slug . '_activate_new') ?>', {
+							)), $fs->get_unique_affix() . '_activate_new') ?>', {
 							user_email: data.user_email
 						}).submit();
 					});
