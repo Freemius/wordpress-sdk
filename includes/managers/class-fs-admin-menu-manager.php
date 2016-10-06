@@ -279,6 +279,10 @@
 		 * @return bool
 		 */
 		function is_submenu_item_visible( $id, $default = true ) {
+			if ( ! $this->has_menu() ) {
+				return false;
+			}
+
 			return fs_apply_filter(
 				$this->_module_unique_affix,
 				'is_submenu_visible',
