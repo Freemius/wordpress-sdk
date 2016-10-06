@@ -6133,8 +6133,11 @@
 				}
 			}
 
-			if ( empty($page) && ! $this->has_settings_menu() && $this->is_theme() ) {
-				return add_query_arg( $params, admin_url( 'themes.php' ) );
+			if ( empty( $page ) && ! $this->has_settings_menu() ) {
+				return add_query_arg(
+					$params,
+					admin_url( $this->is_theme() ? 'themes.php' : 'plugins.php' )
+				);
 			}
 
 			if ( ! $this->_menu->is_top_level() ) {
@@ -7126,11 +7129,13 @@
 					}
 				}
 			} else {
-				// If not registered try to install user.
-				if ( ! $this->is_registered() &&
-				     fs_request_is_action( $this->get_unique_affix() . '_activate_new' )
-				) {
-					$this->_install_with_new_user();
+				if ( ! $this->is_registered() ) {
+					// If not registered try to install user.
+					if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
+						$this->_install_with_new_user();
+					}
+				} else if ( fs_request_is_action( 'sync_user' ) && ! $this->has_settings_menu() ) {
+					$this->_handle_account_user_sync();
 				}
 			}
 		}
