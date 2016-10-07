@@ -502,7 +502,7 @@
 						'_activate_plugin_event_hook'
 					) );
 				} else {
-					add_action( 'after_switch_theme', array( &$this, '_activate_plugin_event_hook' ) );
+					add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 				}
 
 				/**
@@ -3676,6 +3676,38 @@
 		function is_plugin_new_install() {
 			return isset( $this->_storage->is_plugin_new_install ) &&
 			       $this->_storage->is_plugin_new_install;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool|string
+		 */
+		function get_previous_theme() {
+			return isset( $this->_storage->previous_theme ) ?
+				$this->_storage->previous_theme :
+				false;
+		}
+
+		/**
+		 * Saves the slug of the previous theme if it still exists so that it can be used by the logic in the opt-in
+		 * form that decides whether to add a close button to the opt-in dialog or not. So after a premium-only theme is
+		 * activated, the close button will appear and will reactivate the previous theme if clicked. If the previous
+		 * theme doesn't exist, then there will be no close button.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @param  string        $slug_or_name Old theme's slug or name.
+		 * @param  bool|WP_Theme $old_theme    WP_Theme instance of the old theme if it still exists.
+		 */
+		function _activate_theme_event_hook( $slug_or_name, $old_theme = false ) {
+			$this->_storage->previous_theme = ( false !== $old_theme ) ?
+												$old_theme->get_stylesheet() :
+												$slug_or_name;
+
+			$this->_activate_plugin_event_hook();
 		}
 
 		/**

@@ -60,12 +60,34 @@
     
 	global $pagenow;
 	$is_theme_page = ( 'themes.php' === $pagenow );
+
+	$is_optin_dialog = ( $is_theme_page && $fs->is_theme() );
+	if ( $is_optin_dialog ) {
+		$show_close_button             = false;
+		$previous_theme_activation_url = '';
+
+		if ( ! $is_premium_code ) {
+			$show_close_button = true;
+		} else if ( $is_premium_only ) {
+			$previous_theme = $fs->get_previous_theme();
+			if ( false !== $previous_theme ) {
+				$previous_theme_instance = wp_get_theme( $previous_theme );
+				$show_close_button = $previous_theme_instance->exists();
+
+				$previous_theme_activation_url = ! current_user_can( 'switch_themes' ) ?
+					'' :
+					wp_nonce_url(
+						admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $previous_theme ) ),
+						'switch-theme_' . $previous_theme );
+			}
+		}
+	}
 ?>
 <?php
-if ( $fs->is_theme() && $is_theme_page ) { ?>
+if ( $is_optin_dialog ) { ?>
 	<div id="fs_theme_connect_wrapper">
 		<?php
-			if ( ! $fs->is_premium() ) { ?>
+			if ( $show_close_button ) { ?>
 				<button class="close dashicons dashicons-no"><span class="screen-reader-text">Close connect dialog</span></button>
 				<?php
 			}
@@ -280,7 +302,7 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 	</div>
 </div>
 <?php
-	if ( $fs->is_theme() && $is_theme_page ) { ?>
+	if ( $is_optin_dialog ) { ?>
 		</div>
 		<?php
 	}
@@ -288,11 +310,15 @@ if ( $fs->is_theme() && $is_theme_page ) { ?>
 <script type="text/javascript">
 	(function ($) {
 		<?php
-			if ( $fs->is_theme() && $is_theme_page ) { ?>
+			if ( $is_optin_dialog && $show_close_button ) { ?>
 				var $themeConnectWrapper = $( '#fs_theme_connect_wrapper' );
 
 				$themeConnectWrapper.find( 'button.close' ).on( 'click', function() {
-					$themeConnectWrapper.remove();
+					<?php if ( ! empty( $previous_theme_activation_url ) ) { ?>
+						location.href = '<?php echo html_entity_decode( $previous_theme_activation_url ); ?>';
+					<?php } else { ?>
+						$themeConnectWrapper.remove();
+					<?php } ?>
 				});
 				<?php
 			}
