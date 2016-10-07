@@ -5649,9 +5649,7 @@
 		 * @return bool
 		 */
 		function has_free_plan() {
-			return ! $this->is_premium() ||
-			       ! $this->is_only_premium() ||
-			       FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+			return ! $this->is_only_premium();
 		}
 
 		/**
