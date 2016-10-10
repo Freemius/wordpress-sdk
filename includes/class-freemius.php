@@ -5783,7 +5783,18 @@
 				}
 			} else {
 				// Inject license activation dialog UI and client side code.
-				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+				if ( $this->is_theme() && ! $this->has_settings_menu() ) {
+					/**
+					 * If the theme has no menus, call this method directly since the opt-in dialog is added via the
+					 * "admin_footer-themes.php" hook which is triggered after the "admin_footer" hook.
+					 * 
+					 * @author Leo Fajardo (@leorw)
+					 * @since 1.2.2
+					 */
+					$this->_add_license_activation_dialog_box();
+				} else {
+					add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+				}
 			}
 		}
 
