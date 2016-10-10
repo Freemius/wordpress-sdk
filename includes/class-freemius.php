@@ -3691,6 +3691,36 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return string
+		 */
+		function can_activate_previous_theme() {
+			$slug = $this->get_previous_theme();
+			if ( false !== $slug && current_user_can( 'switch_themes' ) ) {
+				$theme_instance = wp_get_theme( $slug );
+				return $theme_instance->exists();
+			}
+
+			return false;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return string
+		 */
+		function get_previous_theme_activation_url() {
+			return ( ! $this->can_activate_previous_theme() ) ?
+				'' :
+				$activation_url = wp_nonce_url(
+					admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $this->get_previous_theme() ) ),
+					'switch-theme_' . $this->get_previous_theme() );
+		}
+
+		/**
 		 * Saves the slug of the previous theme if it still exists so that it can be used by the logic in the opt-in
 		 * form that decides whether to add a close button to the opt-in dialog or not. So after a premium-only theme is
 		 * activated, the close button will appear and will reactivate the previous theme if clicked. If the previous

@@ -69,17 +69,8 @@
 		if ( ! $is_premium_code ) {
 			$show_close_button = true;
 		} else if ( $is_premium_only ) {
-			$previous_theme = $fs->get_previous_theme();
-			if ( false !== $previous_theme ) {
-				$previous_theme_instance = wp_get_theme( $previous_theme );
-				$show_close_button = $previous_theme_instance->exists();
-
-				$previous_theme_activation_url = ! current_user_can( 'switch_themes' ) ?
-					'' :
-					wp_nonce_url(
-						admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $previous_theme ) ),
-						'switch-theme_' . $previous_theme );
-			}
+			$previous_theme_activation_url = $fs->get_previous_theme_activation_url();
+			$show_close_button = ( ! empty( $previous_theme_activation_url ) );
 		}
 	}
 ?>
