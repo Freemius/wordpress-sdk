@@ -9770,7 +9770,12 @@
 		 */
 		private function get_after_activation_url( $filter ) {
 			if ( $this->is_theme() ) {
-				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
+				$params = array();
+				if ( fs_request_has( 'pending_activation' ) && ! $this->has_settings_menu() ) {
+					$params['fs_action'] = $this->get_unique_affix() . '_show_optin';
+				}
+
+				return $this->apply_filters( $filter, $this->_get_admin_page_url( '', $params ) );
 			}
 
 			$first_time_path = $this->_menu->get_first_time_path();
