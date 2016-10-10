@@ -3441,6 +3441,15 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
+						if ( $this->is_theme()
+							&& $this->is_only_premium()
+							&& ! $this->has_settings_menu()
+							&& ! isset( $_REQUEST['fs_action'] )
+							&& $this->can_activate_previous_theme() ) {
+							$this->activate_previous_theme();
+							return;
+						}
+
 						if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
@@ -3486,7 +3495,6 @@
 									'_add_connect_pointer_script'
 								) );
 							}
-
 						}
 					}
 				}
@@ -3704,6 +3712,28 @@
 			}
 
 			return false;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return string
+		 */
+		function activate_previous_theme() {
+			switch_theme( $this->get_previous_theme() );
+			unset( $this->_storage->previous_theme );
+
+			global $pagenow;
+			if ( 'themes.php' === $pagenow ) {
+				/**
+				 * Refresh the active theme information.
+				 *
+				 * @author Leo Fajardo (@leorw)
+				 * @since 1.2.2
+				 */
+				fs_redirect( admin_url( $pagenow ) );
+			}
 		}
 
 		/**
