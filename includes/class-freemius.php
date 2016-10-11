@@ -3441,6 +3441,13 @@
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
 					if ( ! $this->_menu->is_activation_page() ) {
+						/**
+						 * If a user visits any other admin page before activating the premium-only theme with a valid
+						 * license, reactivate the previous theme.
+						 *
+						 * @author Leo Fajardo (@leorw)
+						 * @since  1.2.2
+						 */
 						if ( $this->is_theme()
 							&& $this->is_only_premium()
 							&& ! $this->has_settings_menu()
@@ -3692,7 +3699,7 @@
 		 *
 		 * @return bool|string
 		 */
-		function get_previous_theme() {
+		private function get_previous_theme_slug() {
 			return isset( $this->_storage->previous_theme ) ?
 				$this->_storage->previous_theme :
 				false;
@@ -3704,8 +3711,8 @@
 		 *
 		 * @return string
 		 */
-		function can_activate_previous_theme() {
-			$slug = $this->get_previous_theme();
+		private function can_activate_previous_theme() {
+			$slug = $this->get_previous_theme_slug();
 			if ( false !== $slug && current_user_can( 'switch_themes' ) ) {
 				$theme_instance = wp_get_theme( $slug );
 				return $theme_instance->exists();
@@ -3720,8 +3727,8 @@
 		 *
 		 * @return string
 		 */
-		function activate_previous_theme() {
-			switch_theme( $this->get_previous_theme() );
+		private function activate_previous_theme() {
+			switch_theme( $this->get_previous_theme_slug() );
 			unset( $this->_storage->previous_theme );
 
 			global $pagenow;
@@ -3743,11 +3750,20 @@
 		 * @return string
 		 */
 		function get_previous_theme_activation_url() {
-			return ( ! $this->can_activate_previous_theme() ) ?
-				'' :
-				$activation_url = wp_nonce_url(
-					admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $this->get_previous_theme() ) ),
-					'switch-theme_' . $this->get_previous_theme() );
+			if ( ! $this->can_activate_previous_theme() ) {
+				return '';
+			}
+
+			/**
+			 * Activation URL
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since  1.2.2
+			 */
+			return wp_nonce_url(
+				admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $this->get_previous_theme_slug() ) ),
+				'switch-theme_' . $this->get_previous_theme_slug()
+			);
 		}
 
 		/**
