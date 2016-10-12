@@ -10,6 +10,11 @@ http://bit.ly/freemius-beta
 
 **Below you'll find the integration instructions for our WordPress SDK.**
 
+## Code Documentation
+
+You can find the SDK's PHP-Doc documentation here:
+https://codedoc.pub/freemius/wordpress-sdk/master/
+
 ## Initializing the SDK
 
 Copy the code below and paste it into the top of your main plugin's PHP file, right after the plugin's header comment:
