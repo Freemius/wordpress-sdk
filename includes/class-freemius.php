@@ -10419,4 +10419,38 @@
 		}
 
 		#endregion ------------------------------------------------------------------
+
+		#region Free Version Deactivation
+		/**
+		 * Check if the free version of the plugin is activated.
+		 *
+		 * @author Brad Vincent (@bradvin)
+		 * @since  1.2.0
+		 *
+		 * @return bool
+		 */
+		public function check_if_free_version_activated() {
+			if ( $this->_plugin_basename !== $this->_free_plugin_basename ) {
+				return is_plugin_active( $this->_free_plugin_basename );
+			}
+
+			return false;
+		}
+
+		/**
+		 * Try to deactivate the free version of the plugin
+		 *
+		 * @author Brad Vincent (@bradvin)
+		 * @since  1.2.0
+		 *
+		 */
+		public function try_deactivate_free_version() {
+			if ( $this->_plugin_basename !== $this->_free_plugin_basename ) {
+				if ( is_plugin_active( $this->_free_plugin_basename ) ) {
+					//deactivate the free version silently
+					deactivate_plugins( $this->_free_plugin_basename, true );
+				}
+			}
+		}
+		#endregion
 	}
