@@ -1427,9 +1427,11 @@
 				$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
+				 * @since 1.2.1.0.1 turn Freemius on if using premium plugin
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
-				                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
+                                $this->is_premium() ||
+                                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 
 				return $this->_has_api_connection;
 			}
