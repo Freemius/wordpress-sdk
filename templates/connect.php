@@ -53,11 +53,11 @@
     if ( $is_pending_activation ) {
         $require_license_key = false;
     }
-    
+
     if ( $require_license_key ) {
         $fs->_require_license_activation_dialog();
     }
-    
+
 	global $pagenow;
 	$is_theme_page = ( 'themes.php' === $pagenow );
 
