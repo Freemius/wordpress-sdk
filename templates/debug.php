@@ -78,6 +78,58 @@
 		</tr>
 		</tbody>
 	</table>
+<?php
+	if ( ! defined( 'FS_API__ADDRESS' ) ) {
+		define( 'FS_API__ADDRESS', '://api.freemius.com' );
+	}
+	if ( ! defined( 'FS_API__SANDBOX_ADDRESS' ) ) {
+		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
+	}
+
+	$defines = array(
+		array(
+			'key' => 'WP_FS__REMOTE_ADDR',
+			'val' => WP_FS__REMOTE_ADDR,
+		),
+		array(
+			'key' => 'WP_FS__ADDRESS_PRODUCTION',
+			'val' => WP_FS__ADDRESS_PRODUCTION,
+		),
+		array(
+			'key' => 'FS_API__ADDRESS',
+			'val' => FS_API__ADDRESS,
+		),
+		array(
+			'key' => 'FS_API__SANDBOX_ADDRESS',
+			'val' => FS_API__SANDBOX_ADDRESS,
+		),
+		array(
+			'key' => 'WP_FS__DIR',
+			'val' => WP_FS__DIR,
+		),
+	)
+?>
+	<br>
+	<table class="widefat">
+		<thead>
+		<tr>
+			<th><?php _efs( 'key' ) ?></th>
+			<th><?php _efs( 'value' ) ?></th>
+		</tr>
+		</thead>
+		<tbody>
+		<?php $alternate = false;
+			foreach ( $defines as $p ) : ?>
+				<tr<?php if ( $alternate ) {
+					echo ' class="alternate"';
+				} ?>>
+					<td><?php echo $p['key'] ?></td>
+					<td><?php echo $p['val'] ?></td>
+				</tr>
+				<?php $alternate = ! $alternate ?>
+			<?php endforeach ?>
+		</tbody>
+	</table>
 	<h2><?php _efs( 'sdk-versions' ) ?></h2>
 	<table id="fs_sdks" class="widefat">
 		<thead>
@@ -148,7 +200,7 @@
 <?php endif ?>
 <?php
 	/**
-	 * @var array $VARS
+	 * @var array     $VARS
 	 * @var FS_Site[] $sites
 	 */
 	$sites = $VARS['sites'];
