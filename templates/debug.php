@@ -253,7 +253,7 @@
 			<tr>
 				<td><?php echo $user->id ?></td>
 				<td><?php echo $user->get_name() ?></td>
-				<td><a href="mailto:<?php esc_attr_e( $user->email ) ?>"><?php echo $user->email ?></a></td>
+				<td><a href="mailto:<?php echo esc_attr( $user->email ) ?>"><?php echo $user->email ?></a></td>
 				<td><?php echo json_encode( $user->is_verified ) ?></td>
 				<td><?php echo $user->public_key ?></td>
 				<td><?php echo $user->secret_key ?></td>

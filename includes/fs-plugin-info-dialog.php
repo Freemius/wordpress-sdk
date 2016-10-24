@@ -597,7 +597,7 @@
 											}
 											?>
 											<a class="nav-tab" data-billing-cycle="<?php echo $cycle ?>"
-											   data-pricing="<?php esc_attr_e( json_encode( $prices ) ) ?>">
+											   data-pricing="<?php echo esc_attr( json_encode( $prices ) ) ?>">
 												<?php if ( $is_featured ) : ?>
 													<label>&#9733; <?php _efs( 'best', $api->slug ) ?> &#9733;</label>
 												<?php endif ?>

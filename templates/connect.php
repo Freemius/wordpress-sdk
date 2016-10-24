@@ -258,14 +258,14 @@ if ( $is_optin_dialog ) { ?>
 				<a class="fs-trigger" href="#" tabindex="1"><?php _efs( 'what-permissions', $slug ) ?></a>
 				<ul><?php
 						foreach ( $permissions as $id => $permission ) : ?>
-							<li id="fs-permission-<?php esc_attr_e( $id ); ?>"
-							    class="fs-permission fs-<?php esc_attr_e( $id ); ?>">
-								<i class="<?php esc_attr_e( $permission['icon-class'] ); ?>"></i>
+							<li id="fs-permission-<?php echo esc_attr( $id ); ?>"
+							    class="fs-permission fs-<?php echo esc_attr( $id ); ?>">
+								<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
 
 								<div>
-									<span><?php esc_html_e( $permission['label'] ); ?></span>
+									<span><?php echo esc_html( $permission['label'] ); ?></span>
 
-									<p><?php esc_html_e( $permission['desc'] ); ?></p>
+									<p><?php echo esc_html( $permission['desc'] ); ?></p>
 								</div>
 							</li>
 						<?php endforeach; ?>
