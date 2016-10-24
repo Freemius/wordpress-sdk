@@ -6305,6 +6305,9 @@
 				'php_version'       => phpversion(),
 				'language'          => get_bloginfo( 'language' ),
 				'charset'           => get_bloginfo( 'charset' ),
+				'is_premium'        => $this->is_premium(),
+				'is_active'         => true,
+				'is_uninstalled'    => false,
 			);
 
 			if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
