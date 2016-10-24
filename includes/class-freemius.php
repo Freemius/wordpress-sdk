@@ -1444,8 +1444,11 @@
 				$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
+				 *
+				 * @since 1.2.2 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
+				                $this->is_premium() ||
 				                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 
 				return $this->_has_api_connection;
