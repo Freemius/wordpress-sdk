@@ -3515,6 +3515,18 @@
 		}
 
 		/**
+		 * Check if it's the first plugin release that is running Freemius.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_first_freemius_powered_version() {
+			return empty( $this->_storage->plugin_last_version );
+		}
+
+		/**
 		 * Plugin activated hook.
 		 *
 		 * @author Vova Feldman (@svovaf)
