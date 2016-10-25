@@ -6760,7 +6760,7 @@
 					'error'
 				);
 
-				if ( $redirect && fs_redirect( $this->get_activation_url( array('error' => $install->error->message) ) )
+				if ( $redirect && fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) )
 				) {
 					exit();
 				}
