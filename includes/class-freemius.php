@@ -6346,6 +6346,11 @@
 		}
 
 		/**
+		 * 1. If successful opt-in returns the next page that the user should be redirected to.
+		 * 2. If pending activation, return `true`.
+		 * 3. If had any HTTP issue, return `false`.
+		 * 4. If there was an API error, return the API result.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
 		 *
@@ -6357,7 +6362,7 @@
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
 		 *
-		 * @return bool Is successful opt-in (or set to pending).
+		 * @return mixed
 		 *
 		 * @use    WP_Error
 		 */
@@ -6379,7 +6384,7 @@
 			 * @since 1.2.1 If activating with license key, ignore the context-user
 			 *              since the user will be automatically loaded from the license.
 			 */
-			if (empty($license_key)) {
+			if ( empty( $license_key ) ) {
 				if ( ! $is_uninstall ) {
 					$fs_user = Freemius::_get_user_by_email( $email );
 					if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
@@ -6461,15 +6466,17 @@
 				return false;
 			}
 
-			if ( isset( $decoded->error ) ) {
-				return $decoded;
+			if ( $this->is_api_error( $decoded ) ) {
+				return $is_uninstall ?
+					$decoded :
+					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
 				$this->set_pending_confirmation( false, false );
 
 				return true;
 			} else if ( isset( $decoded->install_secret_key ) ) {
-				$this->install_with_new_user(
+				return $this->install_with_new_user(
 					$decoded->user_id,
 					$decoded->user_public_key,
 					$decoded->user_secret_key,
@@ -6478,8 +6485,6 @@
 					$decoded->install_secret_key,
 					false
 				);
-
-				return true;
 			}
 
 			return $decoded;
@@ -6495,7 +6500,7 @@
 		 * @param FS_Site $site
 		 * @param bool    $redirect
 		 *
-		 * @return bool False if account already set.
+		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
 		function setup_account( FS_User $user, FS_Site $site, $redirect = true ) {
 			$this->_user = $user;
@@ -6556,14 +6561,12 @@
 				$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
 
+			$next_page = '';
+
 			if ( is_numeric( $plugin_id ) ) {
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
-					if ( $redirect && fs_redirect( $this->_get_sync_license_url( $plugin_id ) )
-					) {
-						exit();
-					}
-
+					$next_page = $this->_get_sync_license_url( $plugin_id );
 				}
 			} else {
 				/**
@@ -6575,10 +6578,16 @@
 				}
 
 				// Reload the page with the keys.
-				if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) ) ) {
-					exit();
-				}
+				$next_page = $this->get_after_activation_url( 'after_connect_url' );
 			}
+
+			if ( ! empty( $next_page ) &&
+			     $redirect && fs_redirect( $next_page )
+			) {
+				exit();
+			}
+
+			return $next_page;
 		}
 
 		/**
@@ -6625,6 +6634,8 @@
 		 * @param string $install_public_key
 		 * @param string $install_secret_key
 		 * @param bool   $redirect
+		 *
+		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
 		private function install_with_new_user(
 			$user_id,
@@ -6655,7 +6666,7 @@
 			$site        = new FS_Site( $site_result );
 			$this->_site = $site;
 
-			$this->setup_account( $this->_user, $this->_site, $redirect );
+			return $this->setup_account( $this->_user, $this->_site, $redirect );
 		}
 
 		/**
