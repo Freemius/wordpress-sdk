@@ -6770,10 +6770,6 @@
 
 			$site        = new FS_Site( $install );
 			$this->_site = $site;
-//				$this->_enrich_site_plan( false );
-
-//				$this->_set_account( $user, $site );
-//				$this->_sync_plans();
 
 			$this->setup_account( $this->_user, $this->_site, $redirect );
 
