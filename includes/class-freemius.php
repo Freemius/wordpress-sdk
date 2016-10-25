@@ -6741,14 +6741,18 @@
 				$extra_install_params['license_key'] = $license_key;
 			}
 
+			$args = $this->get_install_data_for_api( $extra_install_params, false, false );
+
 			// Install the plugin.
 			$install = $this->get_api_user_scope()->call(
 				"/plugins/{$this->get_id()}/installs.json",
 				'post',
-				$this->get_install_data_for_api( $extra_install_params, false, false )
+				$args
 			);
 
 			if ( $this->is_api_error($install) ) {
+				$install = $this->apply_filters( 'after_install_failure', $install, $args );
+
 				$this->_admin_notices->add(
 					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
 					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
