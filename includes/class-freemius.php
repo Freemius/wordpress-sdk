@@ -9400,7 +9400,7 @@
 		 *
 		 * @return string
 		 */
-		private function get_after_activation_url( $filter ) {
+		function get_after_activation_url( $filter ) {
 			$first_time_path = $this->_menu->get_first_time_path();
 
 			return $this->apply_filters(
