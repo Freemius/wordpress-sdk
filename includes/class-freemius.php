@@ -5484,26 +5484,31 @@
 				exit;
 			}
 
-			$slug  = $_POST['slug'];
-			$fs    = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
-			$error = false;
+			$slug      = $_POST['slug'];
+			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
+			$error     = false;
+			$next_page = false;
 
 			if ( $this->is_registered() ) {
 				$api     = $fs->get_api_site_scope();
-				$install = $api->call( '/', 'put',
-					array(
-						'license_key' => $license_key
-					)
-				);
+				$install = $api->call( '/', 'put', array(
+					'license_key' => $license_key
+				) );
 
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
+				} else {
+					$fs = $this->is_addon() ?
+						$this->get_parent_instance() :
+						$this;
+
+					$next_page = $fs->_get_sync_license_url( $this->get_id(), true );
 				}
 			} else {
-				$install = $this->opt_in( false, false, false, $license_key );
+				$next_page = $this->opt_in( false, false, false, $license_key );
 
-				if ( isset( $install->error ) ) {
-					$error = $install->error;
+				if ( isset( $next_page->error ) ) {
+					$error = $next_page->error;
 				}
 			}
 
@@ -5513,6 +5518,8 @@
 
 			if ( false !== $error ) {
 				$result['error'] = $error;
+			} else {
+				$result['next_page'] = $next_page;
 			}
 
 			echo json_encode( $result );
