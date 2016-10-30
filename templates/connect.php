@@ -61,7 +61,7 @@
 		$fs->_require_license_activation_dialog();
 	}
 
-	$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
+	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
 	$activate_with_current_user = is_object( $fs_user ) && ! $is_pending_activation;
 ?>
 <div id="fs_connect"
@@ -279,7 +279,7 @@
 
 			var $this = $(this);
 
-			setTimeout(function(){
+			setTimeout(function () {
 				$this.attr('disabled', 'disabled');
 			}, 200);
 		});
@@ -319,7 +319,7 @@
 
 								// Reset loading mode.
 								$primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
-								$primaryCta.html('<?php _efs( $button_label, $slug ) ?>');
+								$primaryCta.html(<?php echo json_encode(__fs( $button_label, $slug )) ?>);
 								$primaryCta.prop('disabled', false);
 								$(document.body).css({'cursor': 'auto'});
 							}
@@ -328,8 +328,7 @@
 
 					return false;
 				}
-				else
-				{
+				else {
 					if (null == $licenseSecret) {
 						$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
 						$form.append($licenseSecret);
@@ -345,7 +344,7 @@
 
 		$primaryCta.on('click', function () {
 			$(this).addClass('fs-loading');
-			$(this).html('<?php _efs( $is_pending_activation ? 'sending-email' : 'activating' , $slug ) ?>...').css({'cursor': 'wait'});
+			$(this).html(<?php echo json_encode(__fs( $is_pending_activation ? 'sending-email' : 'activating' , $slug )) ?> +'...').css({'cursor': 'wait'});
 		});
 
 		$('.fs-permissions .fs-trigger').on('click', function () {
