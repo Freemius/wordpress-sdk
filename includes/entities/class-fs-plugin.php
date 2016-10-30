@@ -24,6 +24,10 @@
 		 * @var string
 		 */
 		public $slug;
+		/**
+		 * @var string 'plugin' or 'theme'
+		 */
+		public $type;
 
 		#region Install Specific Properties
 

@@ -53,6 +53,11 @@
 				return false;
 			}
 
+			if ( defined( 'DOING_AJAX' ) ) {
+				// Don't redirect on AJAX calls.
+				return false;
+			}
+
 			if ( ! $location ) // allows the wp_redirect filter to cancel a redirect
 			{
 				return false;

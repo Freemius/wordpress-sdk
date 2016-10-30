@@ -60,6 +60,9 @@
 	if ( $require_license_key ) {
 		$fs->_require_license_activation_dialog();
 	}
+
+	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
+	$activate_with_current_user = is_object( $fs_user ) && ! $is_pending_activation;
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
@@ -152,8 +155,7 @@
 			   class="button button-secondary" tabindex="2"><?php _efs( 'skip', $slug ) ?></a>
 		<?php endif ?>
 
-		<?php $fs_user = Freemius::_get_user_by_email( $current_user->user_email ) ?>
-		<?php if ( is_object( $fs_user ) && ! $is_pending_activation ) : ?>
+		<?php if ( $activate_with_current_user ) : ?>
 			<form action="" method="POST">
 				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
@@ -228,14 +230,14 @@
 				<a class="fs-trigger" href="#" tabindex="1"><?php _efs( 'what-permissions', $slug ) ?></a>
 				<ul><?php
 						foreach ( $permissions as $id => $permission ) : ?>
-							<li id="fs-permission-<?php esc_attr_e( $id ); ?>"
-							    class="fs-permission fs-<?php esc_attr_e( $id ); ?>">
-								<i class="<?php esc_attr_e( $permission['icon-class'] ); ?>"></i>
+							<li id="fs-permission-<?php echo esc_attr( $id ); ?>"
+							    class="fs-permission fs-<?php echo esc_attr( $id ); ?>">
+								<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
 
 								<div>
-									<span><?php esc_html_e( $permission['label'] ); ?></span>
+									<span><?php echo esc_html( $permission['label'] ); ?></span>
 
-									<p><?php esc_html_e( $permission['desc'] ); ?></p>
+									<p><?php echo esc_html( $permission['desc'] ); ?></p>
 								</div>
 							</li>
 						<?php endforeach; ?>
@@ -267,12 +269,19 @@
 		var $primaryCta = $('.fs-actions .button.button-primary'),
 		    $form = $('.fs-actions form'),
 		    requireLicenseKey = <?php echo $require_license_key ? 'true' : 'false' ?>,
+		    hasContextUser = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
 		    $licenseKeyInput = $('#fs_license_key');
 
 		$('.fs-actions .button').on('click', function () {
 			// Set loading mode.
 			$(document.body).css({'cursor': 'wait'});
+
+			var $this = $(this);
+
+			setTimeout(function () {
+				$this.attr('disabled', 'disabled');
+			}, 200);
 		});
 
 		$form.on('submit', function () {
@@ -281,13 +290,53 @@
 			 * @since 1.1.9
 			 */
 			if (requireLicenseKey) {
-				if (null == $licenseSecret) {
-					$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
-					$form.append($licenseSecret);
-				}
+				if (!hasContextUser) {
+					$('.fs-error').remove();
 
-				// Update secret key if premium only plugin.
-				$licenseSecret.val($licenseKeyInput.val());
+					/**
+					 * Use the AJAX opt-in when license key is required to potentially
+					 * process the after install failure hook.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since 1.2.2
+					 */
+					$.ajax({
+						url    : ajaxurl,
+						method : 'POST',
+						data   : {
+							action     : 'fs_activate_license_<?php echo $slug ?>',
+							slug       : '<?php echo $slug ?>',
+							license_key: $licenseKeyInput.val()
+						},
+						success: function (result) {
+							var resultObj = $.parseJSON(result);
+							if (resultObj.success) {
+								// Redirect to the "Account" page and sync the license.
+								window.location.href = resultObj.next_page;
+							} else {
+								// Show error.
+								$('.fs-content').prepend('<p class="fs-error">' + resultObj.error + '</p>');
+
+								// Reset loading mode.
+								$primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
+								$primaryCta.html(<?php echo json_encode(__fs( $button_label, $slug )) ?>);
+								$primaryCta.prop('disabled', false);
+								$(document.body).css({'cursor': 'auto'});
+							}
+						}
+					});
+
+					return false;
+				}
+				else {
+					if (null == $licenseSecret) {
+						$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
+						$form.append($licenseSecret);
+					}
+
+					// Update secret key if premium only plugin.
+					$licenseSecret.val($licenseKeyInput.val());
+				}
 			}
 
 			return true;
@@ -295,7 +344,7 @@
 
 		$primaryCta.on('click', function () {
 			$(this).addClass('fs-loading');
-			$(this).html('<?php _efs( $is_pending_activation ? 'sending-email' : 'activating' , $slug ) ?>...').css({'cursor': 'wait'});
+			$(this).html(<?php echo json_encode(__fs( $is_pending_activation ? 'sending-email' : 'activating' , $slug )) ?> +'...').css({'cursor': 'wait'});
 		});
 
 		$('.fs-permissions .fs-trigger').on('click', function () {

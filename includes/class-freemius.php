@@ -227,7 +227,8 @@
 		 */
 		private static $_instances = array();
 
-		// Reason IDs
+		#region Uninstall Reasons IDs
+
 		const REASON_NO_LONGER_NEEDED = 1;
 		const REASON_FOUND_A_BETTER_PLUGIN = 2;
 		const REASON_NEEDED_FOR_A_SHORT_PERIOD = 3;
@@ -243,6 +244,8 @@
 		const REASON_NOT_WHAT_I_WAS_LOOKING_FOR = 13;
 		const REASON_DIDNT_WORK_AS_EXPECTED = 14;
 		const REASON_TEMPORARY_DEACTIVATION = 15;
+
+		#endregion
 
 		/* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -627,7 +630,9 @@
 		}
 
 
-		#region Deactivation Feedback Form ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Deactivation Feedback Form
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Displays a confirmation and feedback dialog box when the user clicks on the "Deactivate" link on the plugins
@@ -873,9 +878,11 @@
 			exit;
 		}
 
-		#endregion Deactivation Feedback Form ------------------------------------------------------------------
+		#endregion
 
-		#region Instance ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Instance
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Main singleton instance.
@@ -1164,6 +1171,10 @@
 			self::$_statics_loaded = true;
 		}
 
+		#----------------------------------------------------------------------------------
+		#region Localization
+		#----------------------------------------------------------------------------------
+
 		/**
 		 * Load framework's text domain.
 		 *
@@ -1186,7 +1197,11 @@
 			// @todo Load for themes.
 		}
 
-		#region Debugging ------------------------------------------------------------------
+		#endregion
+
+		#----------------------------------------------------------------------------------
+		#region Debugging
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -1282,9 +1297,11 @@
 			fs_require_once_template( 'debug.php', $vars );
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion
 
-		#region Connectivity Issues ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Connectivity Issues
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if Freemius should be turned on for the current plugin install.
@@ -1427,8 +1444,11 @@
 				$this->_has_api_connection = $this->_storage->connectivity_test['is_connected'];
 				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
+				 *
+				 * @since 1.2.2 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
+				                $this->is_premium() ||
 				                ( WP_FS__DEV_MODE && $this->_has_api_connection && ! WP_FS__SIMULATE_FREEMIUS_OFF );
 
 				return $this->_has_api_connection;
@@ -1879,9 +1899,11 @@
 			fs_require_once_template( 'firewall-issues-js.php', $params );
 		}
 
-		#endregion Connectivity Issues ------------------------------------------------------------------
+		#endregion
 
-		#region Email ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Email
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Generates and sends an HTML email with customizable sections.
@@ -2030,9 +2052,11 @@
 			return $sections;
 		}
 
-		#endregion Email ------------------------------------------------------------------
+		#endregion
 
-		#region Initialization ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Initialization
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Init plugin's Freemius instance.
@@ -2559,9 +2583,11 @@
 			$this->_storage->prev_is_premium = $this->_plugin->is_premium;
 		}
 
-		#endregion Initialization ------------------------------------------------------------------
+		#endregion
 
-		#region Add-ons -------------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Add-ons
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if add-on installed and activated on site.
@@ -2781,9 +2807,11 @@
 			return false;
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion
 
-		#region Sandbox ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Sandbox
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Set Freemius into sandbox mode for debugging.
@@ -2812,7 +2840,7 @@
 			return ( ! $this->is_live() ) || isset( $this->_plugin->secret_key );
 		}
 
-		#endregion Sandbox ------------------------------------------------------------------
+		#endregion
 
 		/**
 		 * Check if running test vs. live plugin.
@@ -2877,7 +2905,9 @@
 			return $this->_is_org_compliant;
 		}
 
-		#region Daily Sync Cron ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Daily Sync Cron
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -3061,7 +3091,9 @@
 
 		#endregion Daily Sync Cron ------------------------------------------------------------------
 
-		#region Async Install Sync ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Async Install Sync
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -3480,6 +3512,18 @@
 		function is_plugin_new_install() {
 			return isset( $this->_storage->is_plugin_new_install ) &&
 			       $this->_storage->is_plugin_new_install;
+		}
+
+		/**
+		 * Check if it's the first plugin release that is running Freemius.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_first_freemius_powered_version() {
+			return empty( $this->_storage->plugin_last_version );
 		}
 
 		/**
@@ -4345,7 +4389,9 @@
 			}
 		}
 
-		#region Plugin Information ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Plugin Information
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Load WordPress core plugin.php essential module.
@@ -4720,16 +4766,18 @@
 		 *
 		 * @since  1.1.7.3 If not yet loaded, fetch data from the API.
 		 *
+		 * @param bool $flush
+		 *
 		 * @return FS_Plugin[]|false
 		 */
-		function get_addons() {
+		function get_addons( $flush = false ) {
 			$this->_logger->entrance();
 
 			if ( ! $this->_has_addons ) {
 				return false;
 			}
 
-			$addons = $this->_sync_addons();
+			$addons = $this->_sync_addons( $flush );
 
 			return ( ! is_array( $addons ) || empty( $addons ) ) ?
 				false :
@@ -4807,12 +4855,14 @@
 		 *
 		 * @param string $slug
 		 *
+		 * @param bool   $flush
+		 *
 		 * @return FS_Plugin|false
 		 */
-		function get_addon_by_slug( $slug ) {
+		function get_addon_by_slug( $slug, $flush = false ) {
 			$this->_logger->entrance();
 
-			$addons = $this->get_addons();
+			$addons = $this->get_addons( $flush );
 
 			if ( is_array( $addons ) ) {
 				foreach ( $addons as $addon ) {
@@ -4825,7 +4875,9 @@
 			return false;
 		}
 
-		#region Plans & Licensing ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Plans & Licensing
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if running premium plugin code.
@@ -5379,9 +5431,7 @@
 		 * @return bool
 		 */
 		function has_free_plan() {
-			return ! $this->is_premium() ||
-			       ! $this->is_only_premium() ||
-			       FS_Plan_Manager::instance()->has_free_plan( $this->_plans );
+			return ! $this->is_only_premium();
 		}
 
 		/**
@@ -5438,26 +5488,31 @@
 				exit;
 			}
 
-			$slug  = $_POST['slug'];
-			$fs    = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
-			$error = false;
+			$slug      = $_POST['slug'];
+			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
+			$error     = false;
+			$next_page = false;
 
 			if ( $this->is_registered() ) {
 				$api     = $fs->get_api_site_scope();
-				$install = $api->call( '/', 'put',
-					array(
-						'license_key' => $license_key
-					)
-				);
+				$install = $api->call( '/', 'put', array(
+					'license_key' => $license_key
+				) );
 
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
+				} else {
+					$fs = $this->is_addon() ?
+						$this->get_parent_instance() :
+						$this;
+
+					$next_page = $fs->_get_sync_license_url( $this->get_id(), true );
 				}
 			} else {
-				$install = $this->opt_in( false, false, false, $license_key );
+				$next_page = $this->opt_in( false, false, false, $license_key );
 
-				if ( isset( $install->error ) ) {
-					$error = $install->error;
+				if ( isset( $next_page->error ) ) {
+					$error = $next_page->error;
 				}
 			}
 
@@ -5467,6 +5522,8 @@
 
 			if ( false !== $error ) {
 				$result['error'] = $error;
+			} else {
+				$result['next_page'] = $next_page;
 			}
 
 			echo json_encode( $result );
@@ -5523,7 +5580,9 @@
 			exit;
 		}
 
+		#----------------------------------------------------------------------------------
 		#region URL Generators
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Alias to pricing_url().
@@ -6129,7 +6188,9 @@
 			return false;
 		}
 
-		#region Account (Loading, Updates & Activation) ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Account (Loading, Updates & Activation)
+		#----------------------------------------------------------------------------------
 
 		/***
 		 * Load account information (user + site).
@@ -6265,7 +6326,16 @@
 				'php_version'       => phpversion(),
 				'language'          => get_bloginfo( 'language' ),
 				'charset'           => get_bloginfo( 'charset' ),
+				'is_premium'        => $this->is_premium(),
+				'is_active'         => true,
+				'is_uninstalled'    => false,
 			);
+
+			if ( $this->is_pending_activation() &&
+			     ! empty( $this->_storage->pending_license_key )
+			) {
+				$params['license_key'] = $this->_storage->pending_license_key;
+			}
 
 			if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
 				// Even though rand() is known for its security issues,
@@ -6286,6 +6356,10 @@
 		}
 
 		/**
+		 * 1. If successful opt-in or pending activation returns the next page that the user should be redirected to.
+		 * 2. If had any HTTP issue, return `false`.
+		 * 3. If there was an API error, return the API result.
+		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
 		 *
@@ -6297,7 +6371,7 @@
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
 		 *
-		 * @return bool Is successful opt-in (or set to pending).
+		 * @return mixed
 		 *
 		 * @use    WP_Error
 		 */
@@ -6319,7 +6393,10 @@
 			 * @since 1.2.1 If activating with license key, ignore the context-user
 			 *              since the user will be automatically loaded from the license.
 			 */
-			if (empty($license_key)) {
+			if ( empty( $license_key ) ) {
+				// Clean up pending license if opt-ing in again.
+				$this->_storage->remove('pending_license_key');
+
 				if ( ! $is_uninstall ) {
 					$fs_user = Freemius::_get_user_by_email( $email );
 					if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
@@ -6342,7 +6419,7 @@
 			$params = $this->get_opt_in_params( $user_info );
 
 			if ( is_string( $license_key ) ) {
-				$params['license_secret_key'] = $license_key;
+				$params['license_key'] = $license_key;
 			}
 
 			if ( $is_uninstall ) {
@@ -6401,15 +6478,15 @@
 				return false;
 			}
 
-			if ( isset( $decoded->error ) ) {
-				return $decoded;
+			if ( $this->is_api_error( $decoded ) ) {
+				return $is_uninstall ?
+					$decoded :
+					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
-				$this->set_pending_confirmation( false, false );
-
-				return true;
+				return $this->set_pending_confirmation( true, false, $license_key );
 			} else if ( isset( $decoded->install_secret_key ) ) {
-				$this->install_with_new_user(
+				return $this->install_with_new_user(
 					$decoded->user_id,
 					$decoded->user_public_key,
 					$decoded->user_secret_key,
@@ -6418,8 +6495,6 @@
 					$decoded->install_secret_key,
 					false
 				);
-
-				return true;
 			}
 
 			return $decoded;
@@ -6435,7 +6510,7 @@
 		 * @param FS_Site $site
 		 * @param bool    $redirect
 		 *
-		 * @return bool False if account already set.
+		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
 		function setup_account( FS_User $user, FS_Site $site, $redirect = true ) {
 			$this->_user = $user;
@@ -6496,14 +6571,12 @@
 				$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
 
+			$next_page = '';
+
 			if ( is_numeric( $plugin_id ) ) {
 				if ( $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
-					if ( $redirect && fs_redirect( $this->_get_sync_license_url( $plugin_id ) )
-					) {
-						exit();
-					}
-
+					$next_page = $this->_get_sync_license_url( $plugin_id );
 				}
 			} else {
 				/**
@@ -6515,10 +6588,16 @@
 				}
 
 				// Reload the page with the keys.
-				if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) ) ) {
-					exit();
-				}
+				$next_page = $this->get_after_activation_url( 'after_connect_url' );
 			}
+
+			if ( ! empty( $next_page ) &&
+			     $redirect && fs_redirect( $next_page )
+			) {
+				exit();
+			}
+
+			return $next_page;
 		}
 
 		/**
@@ -6565,6 +6644,8 @@
 		 * @param string $install_public_key
 		 * @param string $install_secret_key
 		 * @param bool   $redirect
+		 *
+		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
 		private function install_with_new_user(
 			$user_id,
@@ -6595,7 +6676,7 @@
 			$site        = new FS_Site( $site_result );
 			$this->_site = $site;
 
-			$this->setup_account( $this->_user, $this->_site, $redirect );
+			return $this->setup_account( $this->_user, $this->_site, $redirect );
 		}
 
 		/**
@@ -6604,17 +6685,32 @@
 		 *
 		 * @param bool $email
 		 * @param bool $redirect
+		 * @param bool $license_key Since 1.2.2
+		 *
+		 * @return string Since 1.2.2 if $redirect is `false`, return the pending activation page.
 		 */
-		private function set_pending_confirmation( $email = false, $redirect = true ) {
+		private function set_pending_confirmation(
+			$email = false,
+			$redirect = true,
+			$license_key = false
+		) {
 			// Install must be activated via email since
 			// user with the same email already exist.
 			$this->_storage->is_pending_activation = true;
 			$this->_add_pending_activation_notice( $email );
 
+			if (!empty($license_key)){
+				$this->_storage->pending_license_key = $license_key;
+			}
+
+			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
+
 			// Reload the page with with pending activation message.
-			if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
+			if ( $redirect && fs_redirect( $next_page ) ) {
 				exit();
 			}
+
+			return $next_page;
 		}
 
 		/**
@@ -6670,14 +6766,18 @@
 				$extra_install_params['license_key'] = $license_key;
 			}
 
+			$args = $this->get_install_data_for_api( $extra_install_params, false, false );
+
 			// Install the plugin.
 			$install = $this->get_api_user_scope()->call(
 				"/plugins/{$this->get_id()}/installs.json",
 				'post',
-				$this->get_install_data_for_api( $extra_install_params, false, false )
+				$args
 			);
 
 			if ( $this->is_api_error($install) ) {
+				$install = $this->apply_filters( 'after_install_failure', $install, $args );
+
 				$this->_admin_notices->add(
 					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
 					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
@@ -6685,7 +6785,7 @@
 					'error'
 				);
 
-				if ( $redirect && fs_redirect( $this->get_activation_url( array('error' => $install->error->message) ) )
+				if ( $redirect && fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) )
 				) {
 					exit();
 				}
@@ -6695,10 +6795,6 @@
 
 			$site        = new FS_Site( $install );
 			$this->_site = $site;
-//				$this->_enrich_site_plan( false );
-
-//				$this->_set_account( $user, $site );
-//				$this->_sync_plans();
 
 			$this->setup_account( $this->_user, $this->_site, $redirect );
 
@@ -6761,9 +6857,11 @@
 			$this->_activate_license( true );
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion
 
-		#region Admin Menu Items ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Admin Menu Items
+		#----------------------------------------------------------------------------------
 
 		private $_menu_items = array();
 
@@ -8936,7 +9034,9 @@
 			return ( is_object( $tag ) && isset( $tag->version ) ) ? $tag : false;
 		}
 
-		#region Download Plugin ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Download Plugin
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Download latest plugin version, based on plan.
@@ -9321,7 +9421,7 @@
 		 *
 		 * @return string
 		 */
-		private function get_after_activation_url( $filter ) {
+		function get_after_activation_url( $filter ) {
 			$first_time_path = $this->_menu->get_first_time_path();
 
 			return $this->apply_filters(
@@ -9694,7 +9794,9 @@
 			}
 		}
 
-		#region Contact Us ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Contact Us
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Render contact-us page.
@@ -9709,7 +9811,7 @@
 			fs_require_once_template( 'contact.php', $vars );
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion ------------------------------------------------------------------------
 
 		/**
 		 * Hide all admin notices to prevent distractions.
@@ -10294,7 +10396,9 @@
 			return $update;
 		}
 
-		#region Versioning ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Versioning
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if Freemius in SDK upgrade mode.
@@ -10348,9 +10452,11 @@
 			$this->_storage->plugin_upgrade_mode = false;
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion
 
-		#region Permissions ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Permissions
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if specific permission requested.
@@ -10366,9 +10472,11 @@
 			return isset( $this->_permissions[ $permission ] ) && ( true === $this->_permissions[ $permission ] );
 		}
 
-		#endregion Permissions ------------------------------------------------------------------
+		#endregion
 
-		#region Marketing ------------------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Marketing
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * Check if current user purchased any other plugins before.
@@ -10418,5 +10526,5 @@
 			// TODO: Implement is_business() method.
 		}
 
-		#endregion ------------------------------------------------------------------
+		#endregion
 	}

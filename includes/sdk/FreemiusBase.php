@@ -47,7 +47,7 @@
 		protected $_isSandbox;
 
 		/**
-		 * @param string $pScope     'app', 'developer', 'user' or 'install'.
+		 * @param string $pScope     'app', 'developer', 'plugin', 'user' or 'install'.
 		 * @param number $pID        Element's id.
 		 * @param string $pPublic    Public key.
 		 * @param string $pSecret    Element's secret key.

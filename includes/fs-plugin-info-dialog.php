@@ -74,7 +74,7 @@
 			}
 
 			// Find add-on by slug.
-			$selected_addon = $this->_fs->get_addon_by_slug($args->slug);
+			$selected_addon = $this->_fs->get_addon_by_slug($args->slug, WP_FS__DEV_MODE);
 
 			if ( false === $selected_addon ) {
 				return $data;
@@ -99,7 +99,7 @@
 			$has_pricing  = false;
 			$has_features = false;
 			$plans        = false;
-			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json" );
+			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json?type=visible" );
 			if ( ! isset( $plans_result->error ) ) {
 				$plans = $plans_result->plans;
 				if ( is_array( $plans ) ) {
@@ -597,7 +597,7 @@
 											}
 											?>
 											<a class="nav-tab" data-billing-cycle="<?php echo $cycle ?>"
-											   data-pricing="<?php esc_attr_e( json_encode( $prices ) ) ?>">
+											   data-pricing="<?php echo esc_attr( json_encode( $prices ) ) ?>">
 												<?php if ( $is_featured ) : ?>
 													<label>&#9733; <?php _efs( 'best', $api->slug ) ?> &#9733;</label>
 												<?php endif ?>
