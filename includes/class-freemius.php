@@ -6331,6 +6331,12 @@
 				'is_uninstalled'    => false,
 			);
 
+			if ( $this->is_pending_activation() &&
+			     ! empty( $this->_storage->pending_license_key )
+			) {
+				$params['license_key'] = $this->_storage->pending_license_key;
+			}
+
 			if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
 				// Even though rand() is known for its security issues,
 				// the timestamp adds another layer of protection.
@@ -6388,6 +6394,9 @@
 			 *              since the user will be automatically loaded from the license.
 			 */
 			if ( empty( $license_key ) ) {
+				// Clean up pending license if opt-ing in again.
+				$this->_storage->remove('pending_license_key');
+
 				if ( ! $is_uninstall ) {
 					$fs_user = Freemius::_get_user_by_email( $email );
 					if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
@@ -6690,6 +6699,9 @@
 			$this->_storage->is_pending_activation = true;
 			$this->_add_pending_activation_notice( $email );
 
+			if (!empty($license_key)){
+				$this->_storage->pending_license_key = $license_key;
+			}
 
 			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
 
