@@ -6350,10 +6350,9 @@
 		}
 
 		/**
-		 * 1. If successful opt-in returns the next page that the user should be redirected to.
-		 * 2. If pending activation, return `true`.
-		 * 3. If had any HTTP issue, return `false`.
-		 * 4. If there was an API error, return the API result.
+		 * 1. If successful opt-in or pending activation returns the next page that the user should be redirected to.
+		 * 2. If had any HTTP issue, return `false`.
+		 * 3. If there was an API error, return the API result.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
@@ -6476,9 +6475,7 @@
 					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
-				$this->set_pending_confirmation( false, false );
-
-				return true;
+				return $this->set_pending_confirmation( true, false, $license_key );
 			} else if ( isset( $decoded->install_secret_key ) ) {
 				return $this->install_with_new_user(
 					$decoded->user_id,
@@ -6679,17 +6676,29 @@
 		 *
 		 * @param bool $email
 		 * @param bool $redirect
+		 * @param bool $license_key Since 1.2.2
+		 *
+		 * @return string Since 1.2.2 if $redirect is `false`, return the pending activation page.
 		 */
-		private function set_pending_confirmation( $email = false, $redirect = true ) {
+		private function set_pending_confirmation(
+			$email = false,
+			$redirect = true,
+			$license_key = false
+		) {
 			// Install must be activated via email since
 			// user with the same email already exist.
 			$this->_storage->is_pending_activation = true;
 			$this->_add_pending_activation_notice( $email );
 
+
+			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
+
 			// Reload the page with with pending activation message.
-			if ( $redirect && fs_redirect( $this->get_after_activation_url( 'after_pending_connect_url' ) ) ) {
+			if ( $redirect && fs_redirect( $next_page ) ) {
 				exit();
 			}
+
+			return $next_page;
 		}
 
 		/**
