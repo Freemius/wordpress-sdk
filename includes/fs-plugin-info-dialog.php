@@ -99,7 +99,7 @@
 			$has_pricing  = false;
 			$has_features = false;
 			$plans        = false;
-			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json" );
+			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json?type=visible" );
 			if ( ! isset( $plans_result->error ) ) {
 				$plans = $plans_result->plans;
 				if ( is_array( $plans ) ) {
