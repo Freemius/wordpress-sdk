@@ -4766,16 +4766,18 @@
 		 *
 		 * @since  1.1.7.3 If not yet loaded, fetch data from the API.
 		 *
+		 * @param bool $flush
+		 *
 		 * @return FS_Plugin[]|false
 		 */
-		function get_addons() {
+		function get_addons( $flush = false ) {
 			$this->_logger->entrance();
 
 			if ( ! $this->_has_addons ) {
 				return false;
 			}
 
-			$addons = $this->_sync_addons();
+			$addons = $this->_sync_addons( $flush );
 
 			return ( ! is_array( $addons ) || empty( $addons ) ) ?
 				false :
@@ -4853,12 +4855,14 @@
 		 *
 		 * @param string $slug
 		 *
+		 * @param bool   $flush
+		 *
 		 * @return FS_Plugin|false
 		 */
-		function get_addon_by_slug( $slug ) {
+		function get_addon_by_slug( $slug, $flush = false ) {
 			$this->_logger->entrance();
 
-			$addons = $this->get_addons();
+			$addons = $this->get_addons( $flush );
 
 			if ( is_array( $addons ) ) {
 				foreach ( $addons as $addon ) {

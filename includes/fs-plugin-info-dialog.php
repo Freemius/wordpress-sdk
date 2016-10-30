@@ -74,7 +74,7 @@
 			}
 
 			// Find add-on by slug.
-			$selected_addon = $this->_fs->get_addon_by_slug($args->slug);
+			$selected_addon = $this->_fs->get_addon_by_slug($args->slug, WP_FS__DEV_MODE);
 
 			if ( false === $selected_addon ) {
 				return $data;
