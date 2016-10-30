@@ -84,7 +84,7 @@
 			</li>
 			<?php if ( $is_paying ) : ?>
 				<li>
-					&nbsp;•&nbsp;
+					&nbsp;&bull;&nbsp;
 					<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 						<input type="hidden" name="fs_action" value="deactivate_license">
 						<?php wp_nonce_field( 'deactivate_license' ) ?>
@@ -98,7 +98,7 @@
 				           $is_active_subscription
 				) : ?>
 					<li>
-						&nbsp;•&nbsp;
+						&nbsp;&bull;&nbsp;
 						<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 							<input type="hidden" name="fs_action" value="downgrade_account">
 							<?php wp_nonce_field( 'downgrade_account' ) ?>
@@ -113,13 +113,13 @@
 					</li>
 				<?php endif ?>
 				<li>
-					&nbsp;•&nbsp;
+					&nbsp;&bull;&nbsp;
 					<a href="<?php echo $fs->get_upgrade_url() ?>"><i
 							class="dashicons dashicons-grid-view"></i> <?php _efs( 'change-plan', $slug ) ?></a>
 				</li>
 			<?php elseif ( $is_paid_trial ) : ?>
 				<li>
-					&nbsp;•&nbsp;
+					&nbsp;&bull;&nbsp;
 					<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 						<input type="hidden" name="fs_action" value="cancel_trial">
 						<?php wp_nonce_field( 'cancel_trial' ) ?>
@@ -130,7 +130,7 @@
 				</li>
 			<?php endif ?>
 			<li>
-				&nbsp;•&nbsp;
+				&nbsp;&bull;&nbsp;
 				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 					<input type="hidden" name="fs_action" value="<?php echo $slug ?>_sync_license">
 					<?php wp_nonce_field( $slug . '_sync_license' ) ?>
