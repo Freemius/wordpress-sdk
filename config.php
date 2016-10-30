@@ -286,9 +286,6 @@
 
 	if ( WP_FS__ECHO_DEBUG_SDK ) {
 		error_reporting( E_ALL );
-		ini_set( 'error_reporting', E_ALL );
-		ini_set( 'display_errors', true );
-		ini_set( 'html_errors', true );
 	}
 
 	#endregion
