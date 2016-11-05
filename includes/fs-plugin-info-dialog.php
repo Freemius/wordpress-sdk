@@ -774,7 +774,7 @@
 						if ( ! empty( $api->author ) ) {
 							?>
 							<li>
-								<strong><?php _efs( 'author', $api->slug ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
+								<strong><?php _efs( 'author:', $api->slug ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
 							</li>
 						<?php
 						}
