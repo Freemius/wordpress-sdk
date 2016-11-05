@@ -24,8 +24,8 @@
 		}
 
 		static function requests_count() {
-			if ( class_exists( 'Freemius_Api' ) ) {
-				$logger = Freemius_Api::GetLogger();
+			if ( class_exists( 'Freemius_Api_WordPress' ) ) {
+				$logger = Freemius_Api_WordPress::GetLogger();
 			} else {
 				$logger = array();
 			}
@@ -34,8 +34,8 @@
 		}
 
 		static function total_time() {
-			if ( class_exists( 'Freemius_Api' ) ) {
-				$logger = Freemius_Api::GetLogger();
+			if ( class_exists( 'Freemius_Api_WordPress' ) ) {
+				$logger = Freemius_Api_WordPress::GetLogger();
 			} else {
 				$logger = array();
 			}
