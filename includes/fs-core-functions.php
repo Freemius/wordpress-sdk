@@ -511,7 +511,14 @@
 		return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
 	}
 
-	if ( ! function_exists( 'fs_echo' ) ) {
+	/**
+	 * VERY IMPORTANT ----------------------------------------------
+	 *
+	 * @todo IMPORTANT - After merging to main branch rename _efs() to fs_echo() and __fs() to fs_translate(). Otherwise, if a there's a plugin that runs version < 1.2.2 some of the translation in the plugin dialog will not be translated correctly.
+	 *
+	 * VERY IMPORTANT ----------------------------------------------
+	 */
+	if ( ! function_exists( '__fs' ) ) {
 		global $fs_text_overrides;
 
 		if ( ! isset( $fs_text_overrides ) ) {
