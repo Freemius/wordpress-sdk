@@ -102,6 +102,8 @@
 		'cancelled'                                => __( 'Cancelled', 'freemius' ),
 		'in-x'                                     => _x( 'In %s', 'e.g. In 2 hours', 'freemius' ),
 		'x-ago'                                    => _x( '%s ago', 'e.g. 2 min ago', 'freemius' ),
+		/* translators: %s: Version number (e.g. 4.6 or higher) */
+		'x-or-higher'                              => __( '%s or higher', 'freemius' ),
 		'version'                                  => _x( 'Version', 'as plugin version', 'freemius' ),
 		'name'                                     => __( 'Name', 'freemius' ),
 		'email'                                    => __( 'Email', 'freemius' ),
@@ -239,8 +241,8 @@
 		'have-license-key'                         => __( 'Have a license key?', 'freemius' ),
 		'dont-have-license-key'                    => __( 'Don\'t have a license key?', 'freemius' ),
 		'cant-find-license-key'                    => __( "Can't find your license key?", 'freemius' ),
-		'email-not-found'                          => __( "We couldn't find your email address in the system, are you sure it's the right address?" ),
-		'no-active-licenses'                       => __( "We can't see any active licenses associated with that email address, are you sure it's the right address?" ),
+		'email-not-found'                          => __( "We couldn't find your email address in the system, are you sure it's the right address?", 'freemius' ),
+		'no-active-licenses'                       => __( "We can't see any active licenses associated with that email address, are you sure it's the right address?", 'freemius' ),
 		#endregion Connect
 
 		#region Screenshots
@@ -400,4 +402,54 @@
 		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
 		#endregion Billing Cycles
 		'view-details'                             => __( 'View details', 'freemius' ),
+	);
+
+	/**
+	 * Localization of the strings in the plugin/theme info dialog box.
+	 *
+	 * $fs_module_info_text should ONLY include strings that are not located in $fs_text.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.2.2
+	 */
+	global $fs_module_info_text;
+
+	$fs_module_info_text = array(
+		'description'                 => _x( 'Description', 'Plugin installer section title', 'freemius' ),
+		'installation'                => _x( 'Installation', 'Plugin installer section title', 'freemius' ),
+		'faq'                         => _x( 'FAQ', 'Plugin installer section title', 'freemius' ),
+		'changelog'                   => _x( 'Changelog', 'Plugin installer section title', 'freemius' ),
+		'reviews'                     => _x( 'Reviews', 'Plugin installer section title', 'freemius' ),
+		'other_notes'                 => _x( 'Other Notes', 'Plugin installer section title', 'freemius' ),
+		/* translators: %s: 1 or One */
+		'x-star'                      => __( '%s star', 'freemius' ),
+		/* translators: %s: Number larger than 1 */
+		'x-stars'                     => __( '%s stars', 'freemius' ),
+		/* translators: %s: 1 or One */
+		'x-rating'                    => __( '%s rating', 'freemius' ),
+		/* translators: %s: Number larger than 1 */
+		'x-ratings'                   => __( '%s ratings', 'freemius' ),
+		/* translators: %s: 1 or One (Number of times downloaded) */
+		'x-time'                      => __( '%s time', 'freemius' ),
+		/* translators: %s: Number of times downloaded */
+		'x-times'                     => __( '%s times', 'freemius' ),
+		/* translators: %s: # of stars (e.g. 5 stars) */
+		'click-to-reviews'            => __( 'Click to see reviews that provided a rating of %s', 'freemius' ),
+		'last-updated:'               => __( 'Last Updated', 'freemius' ),
+		'requires-wordpress-version:' => __( 'Requires WordPress Version:', 'freemius' ),
+		'author:'                     => _x( 'Author:', 'as the plugin author', 'freemius' ),
+		'compatible-up-to:'           => __( 'Compatible up to:', 'freemius' ),
+		'downloaded:'                 => __( 'Downloaded:', 'freemius' ),
+		'wp-org-plugin-page'          => __( 'WordPress.org Plugin Page', 'freemius' ),
+		'plugin-homepage'             => __( 'Plugin Homepage', 'freemius' ),
+		'donate-to-plugin'            => __( 'Donate to this plugin', 'freemius' ),
+		'average-rating'              => __( 'Average Rating', 'freemius' ),
+		'based-on-x'                  => __( 'based on %s', 'freemius' ),
+		'warning:'                    => __( 'Warning:', 'freemius' ),
+		'contributors'                => __( 'Contributors', 'freemius' ),
+		'plugin-install'              => __( 'Plugin Install', 'freemius' ),
+		'not-tested-warning'          => __( 'This plugin has not been tested with your current version of WordPress.', 'freemius' ),
+		'not-compatible-warning'      => __( 'This plugin has not been marked as compatible with your version of WordPress.', 'freemius' ),
+		'newer-installed'             => __( 'Newer Version (%s) Installed', 'freemius' ),
+		'latest-installed'            => __( 'Latest Version Installed', 'freemius' ),
 	);

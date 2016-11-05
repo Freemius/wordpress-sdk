@@ -349,20 +349,20 @@
 								return ' <a class="button button-primary right" href="' . esc_url( $api->download_link ) . '" target="_blank">' . __fs( 'download-latest', $api->slug ) . '</a>';
 							} else {
 								if ( $status['url'] ) {
-									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Now' ) . '</a>';
+									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __fs( 'install-now', $api->slug ) . '</a>';
 								}
 							}
 							break;
 						case 'update_available':
 							if ( $status['url'] ) {
-								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Update Now' ) . '</a>';
+								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __fs( 'install-update-now', $api->slug ) . '</a>';
 							}
 							break;
 						case 'newer_installed':
-							return '<a class="button button-primary right disabled">' . sprintf( __( 'Newer Version (%s) Installed' ), $status['version'] ) . '</a>';
+							return '<a class="button button-primary right disabled">' . sprintf( __fs( 'newer-installed', $api->slug ), $status['version'] ) . '</a>';
 							break;
 						case 'latest_installed':
-							return '<a class="button button-primary right disabled">' . __( 'Latest Version Installed' ) . '</a>';
+							return '<a class="button button-primary right disabled">' . __fs( 'latest-installed', $api->slug ) . '</a>';
 							break;
 					}
 
@@ -475,13 +475,13 @@
 			);
 
 			$plugins_section_titles = array(
-				'description'  => _x( 'Description', 'Plugin installer section title' ),
-				'installation' => _x( 'Installation', 'Plugin installer section title' ),
-				'faq'          => _x( 'FAQ', 'Plugin installer section title' ),
-				'screenshots'  => _x( 'Screenshots', 'Plugin installer section title' ),
-				'changelog'    => _x( 'Changelog', 'Plugin installer section title' ),
-				'reviews'      => _x( 'Reviews', 'Plugin installer section title' ),
-				'other_notes'  => _x( 'Other Notes', 'Plugin installer section title' ),
+				'description'  => __fs( 'description', $api->slug ),
+				'installation' => __fs( 'installation', $api->slug ),
+				'faq'          => __fs( 'faq', $api->slug ),
+				'screenshots'  => __fs( 'screenshots', $api->slug ),
+				'changelog'    => __fs( 'changelog', $api->slug ),
+				'reviews'      => __fs( 'reviews', $api->slug ),
+				'other_notes'  => __fs( 'other_notes', $api->slug ),
 			);
 
 			// Sanitize HTML
@@ -506,7 +506,7 @@
 				$section        = array_shift( $section_titles );
 			}
 
-			iframe_header( __( 'Plugin Install' ) );
+			iframe_header( __fs( 'plugin-install', $api->slug ) );
 
 			$_with_banner = '';
 
@@ -768,74 +768,82 @@
 				<h3><?php _efs( 'details', $api->slug ) ?></h3>
 				<ul>
 					<?php if ( ! empty( $api->version ) ) { ?>
-						<li><strong><?php _e( 'Version:' ); ?></strong> <?php echo $api->version; ?></li>
+						<li><strong><?php _efs( 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
 					<?php
 					}
 						if ( ! empty( $api->author ) ) {
 							?>
 							<li>
-								<strong><?php _e( 'Author:' ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
+								<strong><?php _efs( 'author', $api->slug ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->last_updated ) ) {
 							?>
-							<li><strong><?php _e( 'Last Updated:' ); ?></strong> <span
+							<li><strong><?php _efs( 'last-updated:', $api->slug ); ?></strong> <span
 									title="<?php echo $api->last_updated; ?>">
-				<?php printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) ); ?>
+				<?php printf( __fs( 'x-ago', $api->slug ), human_time_diff( strtotime( $api->last_updated ) ) ); ?>
 			</span></li>
 						<?php
 						}
 						if ( ! empty( $api->requires ) ) {
 							?>
 							<li>
-								<strong><?php _e( 'Requires WordPress Version:' ); ?></strong> <?php printf( __( '%s or higher' ), $api->requires ); ?>
+								<strong><?php _efs( 'requires-wordpress-version:', $api->slug ); ?></strong> <?php printf( __fs( 'x-or-higher', $api->slug ), $api->requires ); ?>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->tested ) ) {
 							?>
-							<li><strong><?php _e( 'Compatible up to:' ); ?></strong> <?php echo $api->tested; ?>
+							<li><strong><?php _efs( 'compatible-up-to:', $api->slug ); ?></strong> <?php echo $api->tested; ?>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->downloaded ) ) {
 							?>
 							<li>
-								<strong><?php _e( 'Downloaded:' ); ?></strong> <?php printf( _n( '%s time', '%s times', $api->downloaded ), number_format_i18n( $api->downloaded ) ); ?>
+								<strong><?php _efs( 'downloaded:', $api->slug ); ?></strong> <?php printf(
+									__fs( ( 1 == $api->downloaded ) ? 'x-time' : 'x-times', $api->slug ),
+									number_format_i18n( $api->downloaded )
+								); ?>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->slug ) && empty( $api->external ) ) {
 							?>
 							<li><a target="_blank"
-							       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php _e( 'WordPress.org Plugin Page &#187;' ); ?></a>
+							       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php _efs( 'wp-org-plugin-page', $api->slug ); ?> &#187;</a>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->homepage ) ) {
 							?>
 							<li><a target="_blank"
-							       href="<?php echo esc_url( $api->homepage ); ?>"><?php _e( 'Plugin Homepage &#187;' ); ?></a>
+							       href="<?php echo esc_url( $api->homepage ); ?>"><?php _efs( 'plugin-homepage', $api->slug ); ?> &#187;</a>
 							</li>
 						<?php
 						}
 						if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
 							?>
 							<li><a target="_blank"
-							       href="<?php echo esc_url( $api->donate_link ); ?>"><?php _e( 'Donate to this plugin &#187;' ); ?></a>
+							       href="<?php echo esc_url( $api->donate_link ); ?>"><?php _efs( 'donate-to-plugin', $api->slug ); ?> &#187;</a>
 							</li>
 						<?php } ?>
 				</ul>
 			</div>
 			<?php if ( ! empty( $api->rating ) ) { ?>
-				<h3><?php _e( 'Average Rating' ); ?></h3>
+				<h3><?php _efs( 'average-rating', $api->slug ); ?></h3>
 				<?php wp_star_rating( array(
 					'rating' => $api->rating,
 					'type'   => 'percent',
 					'number' => $api->num_ratings
 				) ); ?>
-				<small><?php printf( _n( '(based on %s rating)', '(based on %s ratings)', $api->num_ratings ), number_format_i18n( $api->num_ratings ) ); ?></small>
+				<small>(<?php printf(
+						__fs( 'based-on-x', $api->slug ),
+						sprintf(
+							__fs( ( 1 == $api->num_ratings ) ? 'x-rating' : 'x-ratings', $api->slug ),
+							number_format_i18n( $api->num_ratings )
+						) ); ?>)</small>
 			<?php
 			}
 
@@ -843,12 +851,16 @@
 					foreach ( $api->ratings as $key => $ratecount ) {
 						// Avoid div-by-zero.
 						$_rating = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
+						$stars_label = sprintf(
+							__fs( ( 1 == $key ) ? 'x-star' : 'x-stars', $api->slug ),
+							number_format_i18n( $key )
+						);
 						?>
 						<div class="counter-container">
 					<span class="counter-label"><a
 							href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
 							target="_blank"
-							title="<?php echo esc_attr( sprintf( _n( 'Click to see reviews that provided a rating of %d star', 'Click to see reviews that provided a rating of %d stars', $key ), $key ) ); ?>"><?php printf( _n( '%d star', '%d stars', $key ), $key ); ?></a></span>
+							title="<?php echo esc_attr( sprintf( __fs('click-to-reviews', $api->slug), $stars_label) ) ?>"><?php echo $stars_label ?></a></span>
 					<span class="counter-back">
 						<span class="counter-bar" style="width: <?php echo 92 * $_rating; ?>px;"></span>
 					</span>
@@ -859,7 +871,7 @@
 				}
 				if ( ! empty( $api->contributors ) ) {
 					?>
-					<h3><?php _e( 'Contributors' ); ?></h3>
+					<h3><?php _efs( 'contributors', $api->slug ); ?></h3>
 					<ul class="contributors">
 						<?php
 							foreach ( (array) $api->contributors as $contrib_username => $contrib_profile ) {
@@ -880,16 +892,16 @@
 					</ul>
 					<?php if ( ! empty( $api->donate_link ) ) { ?>
 						<a target="_blank"
-						   href="<?php echo esc_url( $api->donate_link ); ?>"><?php _e( 'Donate to this plugin &#187;' ); ?></a>
+						   href="<?php echo esc_url( $api->donate_link ); ?>"><?php _efs( 'donate-to-plugin', $api->slug ) ?> &#187;</a>
 					<?php } ?>
 				<?php } ?>
 			</div>
 			<div id="section-holder" class="wrap">
 	<?php
 		if ( ! empty( $api->tested ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->tested ) ), $api->tested, '>' ) ) {
-			echo '<div class="notice notice-warning"><p>' . '<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'This plugin has not been tested with your current version of WordPress.' ) . '</p></div>';
+			echo '<div class="notice notice-warning"><p>' . '<strong>' . __fs( 'warning:', $api->slug ) . '</strong> ' . __fs( 'not-tested-warning', $api->slug ) . '</p></div>';
 		} else if ( ! empty( $api->requires ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->requires ) ), $api->requires, '<' ) ) {
-			echo '<div class="notice notice-warning"><p>' . '<strong>' . __( 'Warning:' ) . '</strong> ' . __( 'This plugin has not been marked as compatible with your version of WordPress.' ) . '</p></div>';
+			echo '<div class="notice notice-warning"><p>' . '<strong>' . __fs( 'warning:', $api->slug ) . '</strong> ' . __fs( 'not-compatible-warning', $api->slug ) . '</p></div>';
 		}
 
 		foreach ( (array) $api->sections as $section_name => $content ) {

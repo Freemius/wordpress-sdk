@@ -145,11 +145,7 @@
 		 * @global       $fs_text , $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			global $fs_text, $fs_text_overrides;
-
-			if ( ! isset( $fs_text ) ) {
-				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
-			}
+			global $fs_text, $fs_text_overrides, $fs_module_info_text;
 
 			if ( isset( $fs_text_overrides[ $slug ] ) ) {
 				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
@@ -162,9 +158,19 @@
 				}
 			}
 
-			return isset( $fs_text[ $key ] ) ?
-				$fs_text[ $key ] :
-				$key;
+			if ( ! isset( $fs_text ) ) {
+				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
+			}
+
+			if ( isset( $fs_text[ $key ] ) ) {
+				return $fs_text[ $key ];
+			}
+
+			if ( isset( $fs_text_overrides[ $key ] ) ) {
+				return $fs_text_overrides[ $key ];
+			}
+
+			return $key;
 		}
 
 		/**
@@ -315,7 +321,7 @@
 		if ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) {
 			$in_activation = ( ! is_plugin_active( $plugin_file ) );
 		} else {
-			$theme = wp_get_theme();
+			$theme         = wp_get_theme();
 			$in_activation = ( $newest_sdk->plugin_path != $theme->stylesheet );
 		}
 
@@ -419,8 +425,8 @@
 	 * @since  1.0.9
 	 *
 	 * @param string $module_unique_affix Module's unique affix.
-	 * @param string $tag   		      The name of the filter hook.
-	 * @param mixed  $value 			  The value on which the filters hooked to `$tag` are applied on.
+	 * @param string $tag                 The name of the filter hook.
+	 * @param mixed  $value               The value on which the filters hooked to `$tag` are applied on.
 	 *
 	 * @return mixed The filtered value after all hooked functions are applied to it.
 	 *
