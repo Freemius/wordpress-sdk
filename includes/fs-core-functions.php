@@ -459,14 +459,25 @@
 
 	#endregion Url Canonization ------------------------------------------------------------------
 
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 *
+	 * @since 1.2.2 Changed to usage of WP_Filesystem_Direct.
+	 *
+	 * @param string $from URL
+	 * @param string $to   File path.
+	 */
 	function fs_download_image( $from, $to ) {
-		$ch = curl_init( $from );
-		$fp = fopen( fs_normalize_path( $to ), 'wb' );
-		curl_setopt( $ch, CURLOPT_FILE, $fp );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_exec( $ch );
-		curl_close( $ch );
-		fclose( $fp );
+		$dir = dirname( $to );
+
+		if ( 'direct' !== get_filesystem_method( array(), $dir ) ) {
+			return;
+		}
+
+		$fs      = new WP_Filesystem_Direct( '' );
+		$tmpfile = download_url( $from );
+		$fs->copy( $tmpfile, $to );
+		$fs->delete( $tmpfile );
 	}
 
 	/* General Utilities

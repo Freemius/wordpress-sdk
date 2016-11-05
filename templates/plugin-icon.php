@@ -49,7 +49,8 @@
 			if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
 				$icon_found             = false;
 				$local_path             = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
-				$have_write_permissions = is_writable( fs_normalize_path( $img_dir ) );
+
+				$have_write_permissions = ( 'direct' === get_filesystem_method( array(), fs_normalize_path( $img_dir ) ) );
 
 				if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() && $have_write_permissions ) {
 					/**
