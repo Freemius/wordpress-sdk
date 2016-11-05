@@ -6480,12 +6480,12 @@
 		 *
 		 * @return FS_Entity Return an encrypted clone entity.
 		 */
-		private function _encrypt_entity( FS_Entity $entity ) {
+		private static function _encrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
 			$props = get_object_vars( $entity );
 
 			foreach ( $props as $key => $val ) {
-				$clone->{$key} = $this->_encrypt( $val );
+				$clone->{$key} = self::_encrypt( $val );
 			}
 
 			return $clone;
@@ -6499,12 +6499,12 @@
 		 *
 		 * @return FS_Entity Return an decrypted clone entity.
 		 */
-		private function _decrypt_entity( FS_Entity $entity ) {
+		private static function _decrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
 			$props = get_object_vars( $entity );
 
 			foreach ( $props as $key => $val ) {
-				$clone->{$key} = $this->_decrypt( $val );
+				$clone->{$key} = self::_decrypt( $val );
 			}
 
 			return $clone;
