@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Copyright 2014 Freemius, Inc.
+	 * Copyright 2016 Freemius, Inc.
 	 *
 	 * Licensed under the GPL v2 (the "License"); you may
 	 * not use this file except in compliance with the License. You may obtain
@@ -140,7 +140,7 @@
 		/**
 		 * Sign request with the following HTTP headers:
 		 *      Content-MD5: MD5(HTTP Request body)
-		 *      Date: Current date (i.e Sat, 14 Feb 2015 20:24:46 +0000)
+		 *      Date: Current date (i.e Sat, 14 Feb 2016 20:24:46 +0000)
 		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign,
 		 *      {scope_entity_secret_key}))
 		 *
@@ -170,7 +170,7 @@
 		 * Generate Authorization request headers:
 		 *
 		 *      Content-MD5: MD5(HTTP Request body)
-		 *      Date: Current date (i.e Sat, 14 Feb 2015 20:24:46 +0000)
+		 *      Date: Current date (i.e Sat, 14 Feb 2016 20:24:46 +0000)
 		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign,
 		 *      {scope_entity_secret_key}))
 		 *
