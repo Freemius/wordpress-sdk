@@ -511,3 +511,90 @@
 		return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
 	}
 
+	if ( ! function_exists( 'fs_echo' ) ) {
+		global $fs_text_overrides;
+
+		if ( ! isset( $fs_text_overrides ) ) {
+			$fs_text_overrides = array();
+		}
+
+		/**
+		 * Retrieve a translated text by key.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 *
+		 * @return string
+		 *
+		 * @global       $fs_text , $fs_text_overrides
+		 */
+		function __fs( $key, $slug = 'freemius' ) {
+			global $fs_text, $fs_module_info_text, $fs_text_overrides;
+
+			if ( isset( $fs_text_overrides[ $slug ] ) ) {
+				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $key ];
+				}
+
+				$lower_key = strtolower( $key );
+				if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $lower_key ];
+				}
+			}
+
+			if ( ! isset( $fs_text ) ) {
+				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
+			}
+
+			if ( isset( $fs_text[ $key ] ) ) {
+				return $fs_text[ $key ];
+			}
+
+			if ( isset( $fs_module_info_text[ $key ] ) ) {
+				return $fs_module_info_text[ $key ];
+			}
+
+			return $key;
+		}
+
+		/**
+		 * Display a translated text by key.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 */
+		function _efs( $key, $slug = 'freemius' ) {
+			echo __fs( $key, $slug );
+		}
+	}
+
+	if ( ! function_exists( 'fs_override_i18n' ) ) {
+		/**
+		 * Override default i18n text phrases.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @param string[] $key_value
+		 * @param string   $slug
+		 *
+		 * @global         $fs_text_overrides
+		 */
+		function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
+			global $fs_text_overrides;
+
+			if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+				$fs_text_overrides[ $slug ] = array();
+			}
+
+			foreach ( $key_value as $key => $value ) {
+				$fs_text_overrides[ $slug ][ $key ] = $value;
+			}
+		}
+	}
