@@ -1375,7 +1375,7 @@
 
 			if ( WP_FS__DEV_MODE ) {
 				// Add top-level debug menu item.
-				$hook = add_menu_page(
+				$hook = FS_Admin_Menu_Manager::add_page(
 					$title,
 					$title,
 					'manage_options',
@@ -1384,7 +1384,7 @@
 				);
 			} else {
 				// Add hidden debug page.
-				$hook = add_submenu_page(
+				$hook = FS_Admin_Menu_Manager::add_subpage(
 					null,
 					$title,
 					$title,
@@ -7329,7 +7329,7 @@
 
 				if ( false === $hook ) {
 					// Create new menu item just for the opt-in.
-					$hook = add_menu_page(
+					$hook = FS_Admin_Menu_Manager::add_page(
 						$this->get_plugin_name(),
 						$this->get_plugin_name(),
 						'manage_options',
@@ -7534,7 +7534,7 @@
 					$capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
 
 					if ( ! isset( $item['url'] ) ) {
-						$hook = add_submenu_page(
+						$hook = FS_Admin_Menu_Manager::add_subpage(
 							$item['show_submenu'] ?
 								$this->get_top_level_menu_slug() :
 								null,
@@ -7549,7 +7549,7 @@
 							add_action( "load-$hook", $item['before_render_function'] );
 						}
 					} else {
-						add_submenu_page(
+						FS_Admin_Menu_Manager::add_subpage(
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
 							sprintf( $item_template, $item['menu_title'] ),
