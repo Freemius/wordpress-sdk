@@ -184,7 +184,7 @@
 					<td><?php echo $slug ?></td>
 					<td><?php
 							echo is_object( $site->plan ) ?
-								base64_decode( $site->plan->name ) :
+								Freemius::_decrypt( $site->plan->name ) :
 								''
 						?></td>
 					<td><?php echo $site->public_key ?></td>
