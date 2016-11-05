@@ -1327,7 +1327,7 @@
 			// Configure which Freemius powered plugins should be auto updated.
 //			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
 
-			add_action( 'admin_menu', array( 'Freemius', 'add_debug_page' ) );
+			add_action( 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
@@ -1364,7 +1364,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.8
 		 */
-		static function add_debug_page() {
+		static function _add_debug_section() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
