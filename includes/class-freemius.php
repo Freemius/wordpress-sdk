@@ -1262,8 +1262,11 @@
 			if ( fs_request_is_action( 'restart_freemius' ) ) {
 				check_admin_referer( 'restart_freemius' );
 
+				// Clear accounts data.
 				self::$_accounts->clear( true );
 
+				// Clear SDK reference cache.
+				delete_option( 'fs_active_plugins' );
 
 				return;
 			}
