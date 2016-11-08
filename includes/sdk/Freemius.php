@@ -325,7 +325,7 @@
 				$opts[ CURLOPT_RETURNTRANSFER ] = true;
 			}
 
-			$request_url = Freemius_Api::GetUrl( $pCanonizedPath, $pIsSandbox );
+			$request_url = self::GetUrl( $pCanonizedPath, $pIsSandbox );
 
 			$opts[ CURLOPT_URL ]           = $request_url;
 			$opts[ CURLOPT_CUSTOMREQUEST ] = $pMethod;
