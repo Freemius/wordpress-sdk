@@ -9479,7 +9479,13 @@
 
 				case 'downgrade_account':
 					check_admin_referer( $action );
-					$this->_downgrade_site();
+
+					if ( $plugin_id == $this->get_id() ) {
+						$this->_downgrade_site();
+					} else if ( $this->is_addon_activated( $plugin_id ) ) {
+						$fs_addon = self::get_instance_by_id( $plugin_id );
+						$fs_addon->_downgrade_site();
+					}
 
 					return;
 

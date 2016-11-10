@@ -533,6 +533,17 @@
 								array( 'plugin_id' => $addon_id ),
 								false
 							);
+
+							if ( ! $license->is_lifetime() && $is_active_subscription ) {
+								$buttons[] = fs_ui_get_action_button(
+									$slug,
+									'account',
+									'downgrade_account',
+									__fs( 'downgrade', $slug ),
+									array( 'plugin_id' => $addon_id ),
+									false
+								);
+							}
 						} else if ( $is_paid_trial ) {
 							$buttons[] = fs_ui_get_action_button(
 								$slug,
