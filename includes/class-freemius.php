@@ -451,8 +451,15 @@
 		 */
 		private function _register_hooks() {
 			if ( is_admin() ) {
+				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
 				// Hook to plugin activation
-				register_activation_hook( $this->_plugin_main_file_path, array(
+				register_activation_hook( $plugin_dir . $this->_free_plugin_basename, array(
+					&$this,
+					'_activate_plugin_event_hook'
+				) );
+
+				register_activation_hook( $plugin_dir . $this->premium_plugin_basename(), array(
 					&$this,
 					'_activate_plugin_event_hook'
 				) );
@@ -582,7 +589,8 @@
 		private function _find_caller_plugin_file( $is_init = false ) {
 			// Try to load the cached value of the file path.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
-				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
+				$plugin_main_file = $this->_storage->plugin_main_file;
+				if ( isset( $plugin_main_file->path ) && file_exists( $plugin_main_file->path ) ) {
 					return $this->_storage->plugin_main_file->path;
 				}
 			}
@@ -3555,11 +3563,20 @@
 				$this->schedule_install_sync();
 
 				/**
-				 * @todo Work on automatic deactivation of the Free plugin version. It doesn't work since the slug of the free & premium versions is identical. Therefore, only one instance of Freemius is created and the activation hook of the premium version is not being added.
+				 * Deactivate the other plugin version (premium/free) on premium/free plugin activation. For example,
+				 * after activating the premium version, the free version will automatically be deactivated, and
+				 * vice versa.
+				 *
+				 * @author Leo Fajardo (@leorw)
 				 */
-				if ( $this->_plugin_basename !== $this->_free_plugin_basename ) {
-					// Deactivate Free plugin version on premium plugin activation.
-					deactivate_plugins( $this->_free_plugin_basename );
+				$wp_current_filter = current_filter();
+
+				$other_version_basename = ( 'activate_' . $this->_free_plugin_basename === $wp_current_filter ) ?
+					$this->premium_plugin_basename() :
+					$this->_free_plugin_basename;
+
+				if ( is_plugin_active( $other_version_basename ) ) {
+					deactivate_plugins( $other_version_basename );
 
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
