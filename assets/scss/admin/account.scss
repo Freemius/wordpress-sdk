@@ -166,6 +166,10 @@ label.fs-tag
         vertical-align: middle;
     }
 
+    thead {
+        white-space: nowrap;
+    }
+
     td:first-child,
     th:first-child
     {
