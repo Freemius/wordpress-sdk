@@ -2105,6 +2105,13 @@
 
 			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
+					if ( fs_request_is_action( 'reset_anonymous_mode_and_activate') ) {
+						$this->reset_anonymous_mode();
+						fs_redirect( $this->get_activation_url() );
+
+						return;
+					}
+
 					// If user skipped, no need to test connectivity.
 					$this->_has_api_connection = true;
 					$this->_is_on              = true;
@@ -2317,6 +2324,34 @@
 					$this->_require_license_activation_dialog();
 				}
 			}
+
+			if (
+				$this->is_enable_anonymous()
+				&& $this->is_free_plan() ) {
+
+				if ( $this->is_ajax_action( 'opt-out' ) ) {
+					$this->add_ajax_action( 'opt-out', array( &$this, '_opt_out' ) );
+				} else {
+					$this->_add_optin_or_optout_action_link();
+				}
+			}
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since 1.2.2
+		 */
+		function _opt_out() {
+			$this->clear_sync_cron();
+
+			$result = array(
+				'success' => true
+			);
+
+			echo json_encode( $result );
+
+			exit;
 		}
 
 		/**
@@ -5455,6 +5490,21 @@
 		}
 
 		/**
+		 * Displays the opt-out dialog box when the user clicks on the "Opt Out" link on the "Plugins"
+		 * page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+		function _add_optout_dialog() {
+			$vars = array(
+				'slug' => $this->_slug,
+			);
+
+			fs_require_template( 'forms/optout.php', $vars );
+		}
+
+		/**
 		 * Prepare page to include all required UI and logic for the license activation dialog.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -5478,6 +5528,16 @@
 				// Inject license activation dialog UI and client side code.
 				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 			}
+		}
+
+		/**
+		 * Includes all needed code for the opt-out dialog.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+		function _require_optout_dialog() {
+			add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 		}
 
 		/**
@@ -10169,6 +10229,36 @@
 				false,
 				11,
 				( 'activate-license ' . $this->_slug )
+			);
+		}
+
+		/**
+		 * Adds "Opt in" or "Opt out" link to the main "Plugins" page link actions collection.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+		function _add_optin_or_optout_action_link() {
+			$this->_logger->entrance();
+
+			if ( $this->is_registered() ) {
+				$link_text_id = 'opt-out';
+				$url          = '#';
+				$this->_require_optout_dialog();
+			} else {
+				$link_text_id = 'opt-in';
+				$url          = $this->_get_admin_page_url(
+					'',
+					array( 'fs_action' => 'reset_anonymous_mode_and_activate' )
+				);
+			}
+
+			$this->add_plugin_action_link(
+				__fs( $link_text_id, $this->_slug ),
+				$url,
+				false,
+				13,
+				"{$link_text_id} {$this->_slug}"
 			);
 		}
 

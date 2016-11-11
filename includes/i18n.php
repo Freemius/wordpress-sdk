@@ -230,6 +230,13 @@
 		'cant-find-license-key'                    => __( "Can't find your license key?", 'freemius' ),
 		'email-not-found'                          => __( "We couldn't find your email address in the system, are you sure it's the right address?" ),
 		'no-active-licenses'                       => __( "We can't see any active licenses associated with that email address, are you sure it's the right address?" ),
+		'opt-in'                                   => __( 'Opt In', 'freemius' ),
+		'opt-out'                                  => __( 'Opt Out', 'freemius' ),
+		'opt-out-cancel'                           => __( 'On second thought - I want to continue helping', 'freemius' ),
+		'opting-out'                               => __( 'Opting out...', 'freemius' ),
+		'opt-out-message-appreciation'             => __( 'We appreciate your help in letting us track some usage data.', 'freemius' ),
+		'opt-out-message-usage-tracking'           => __( "Usage tracking is done in the name of making %s better. Making a better user experience, new features and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking." ),
+		'opt-out-message-clicking-opt-out'         => __( 'By clicking "Opt Out", we will no longer be sending any data from %s to %s.' ),
 		#endregion Connect
 
 		#region Screenshots
