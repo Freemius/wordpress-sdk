@@ -451,11 +451,22 @@
 		 */
 		private function _register_hooks() {
 			if ( is_admin() ) {
-				// Hook to plugin activation
-				register_activation_hook( $this->_plugin_main_file_path, array(
-					&$this,
-					'_activate_plugin_event_hook'
-				) );
+				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+				/**
+				 * @since 1.2.2
+				 *
+				 * Hook to both free and premium version activations to support
+				 * auto deactivation on the other version activation.
+				 */
+				register_activation_hook( 
+					$plugin_dir . $this->_free_plugin_basename, 
+					array( &$this, '_activate_plugin_event_hook' )
+				);
+				register_activation_hook( 
+					$plugin_dir . $this->premium_plugin_basename(), 
+					array( &$this, '_activate_plugin_event_hook' )
+				);
 
 				/**
 				 * Part of the mechanism to identify new plugin install vs. plugin update.
@@ -582,7 +593,8 @@
 		private function _find_caller_plugin_file( $is_init = false ) {
 			// Try to load the cached value of the file path.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
-				if ( file_exists( $this->_storage->plugin_main_file->path ) ) {
+				$plugin_main_file = $this->_storage->plugin_main_file;
+				if ( isset( $plugin_main_file->path ) && file_exists( $plugin_main_file->path ) ) {
 					return $this->_storage->plugin_main_file->path;
 				}
 			}
@@ -3554,13 +3566,26 @@
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
 
-				/**
-				 * @todo Work on automatic deactivation of the Free plugin version. It doesn't work since the slug of the free & premium versions is identical. Therefore, only one instance of Freemius is created and the activation hook of the premium version is not being added.
-				 */
-				if ( $this->_plugin_basename !== $this->_free_plugin_basename ) {
-					// Deactivate Free plugin version on premium plugin activation.
-					deactivate_plugins( $this->_free_plugin_basename );
+				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+				
+				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
+				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
+				$other_version_basename = $is_premium_version_activation ?
+					$this->_free_plugin_basename :
+					$this->premium_plugin_basename();
 
+				/**
+				 * If the other module version is activate, deactivate it.
+				 *
+				 * @author Leo Fajardo (@leorw)
+				 * @since 1.2.2
+				 */
+				if ( is_plugin_active( $other_version_basename ) ) {
+					deactivate_plugins( $other_version_basename );
+				}
+
+				// If activating the premium module version, add an admin noitce to congratulate for an upgrade completion.
+				if ( $is_premium_version_activation ) {					
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
 						__fs( 'woot', $this->_slug ) . '!'
