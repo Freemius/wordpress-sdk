@@ -3562,22 +3562,26 @@
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
 
+				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+				
+				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
+				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
+				$other_version_basename = $is_premium_version_activation ?
+					$this->_free_plugin_basename :
+					$this->premium_plugin_basename();
+
 				/**
-				 * Deactivate the other plugin version (premium/free) on premium/free plugin activation. For example,
-				 * after activating the premium version, the free version will automatically be deactivated, and
-				 * vice versa.
+				 * If the other module version is activate, deactivate it.
 				 *
 				 * @author Leo Fajardo (@leorw)
+				 * @since 1.2.2
 				 */
-				$wp_current_filter = current_filter();
-
-				$other_version_basename = ( 'activate_' . $this->_free_plugin_basename === $wp_current_filter ) ?
-					$this->premium_plugin_basename() :
-					$this->_free_plugin_basename;
-
 				if ( is_plugin_active( $other_version_basename ) ) {
 					deactivate_plugins( $other_version_basename );
+				}
 
+				// If activating the premium module version, add an admin noitce to congratulate for an upgrade completion.
+				if ( $is_premium_version_activation ) {					
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
 						__fs( 'woot', $this->_slug ) . '!'
