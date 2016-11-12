@@ -230,6 +230,30 @@
 		}
 
 		/**
+		 * Get API request URL signed via query string.
+		 *
+		 * @param string $pPath
+		 *
+		 * @throws Freemius_Exception
+		 *
+		 * @return string
+		 */
+		function GetSignedUrl( $pPath ) {
+			$resource     = explode( '?', $this->CanonizePath( $pPath ) );
+			$pResourceUrl = $resource[0];
+
+			$auth = $this->GenerateAuthorizationParams( $pResourceUrl );
+
+			return Freemius_Api::GetUrl(
+				$pResourceUrl . '?' .
+				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
+				http_build_query( array(
+					'auth_date'     => $auth['date'],
+					'authorization' => $auth['authorization']
+				) ), $this->_isSandbox );
+		}
+
+		/**
 		 * @author Vova Feldman
 		 *
 		 * @param string $pUrl
