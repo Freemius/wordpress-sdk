@@ -453,16 +453,20 @@
 			if ( is_admin() ) {
 				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
-				// Hook to plugin activation
-				register_activation_hook( $plugin_dir . $this->_free_plugin_basename, array(
-					&$this,
-					'_activate_plugin_event_hook'
-				) );
-
-				register_activation_hook( $plugin_dir . $this->premium_plugin_basename(), array(
-					&$this,
-					'_activate_plugin_event_hook'
-				) );
+				/**
+				 * @since 1.2.2
+				 *
+				 * Hook to both free and premium version activations to support
+				 * auto deactivation on the other version activation.
+				 */
+				register_activation_hook( 
+					$plugin_dir . $this->_free_plugin_basename, 
+					array( &$this, '_activate_plugin_event_hook' )
+				);
+				register_activation_hook( 
+					$plugin_dir . $this->premium_plugin_basename(), 
+					array( &$this, '_activate_plugin_event_hook' )
+				);
 
 				/**
 				 * Part of the mechanism to identify new plugin install vs. plugin update.
