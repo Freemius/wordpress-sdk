@@ -2103,15 +2103,21 @@
 				return;
 			}
 
-			if ( ! $this->is_registered() ) {
-				if ( $this->is_anonymous() ) {
-					if ( fs_request_is_action( 'reset_anonymous_mode_and_activate') ) {
+			if ( fs_request_is_action( $this->_slug . '_opt_in' ) ) {
+				if ( ! $this->is_registered() ) {
+					if ( $this->is_anonymous() ) {
 						$this->reset_anonymous_mode();
 						fs_redirect( $this->get_activation_url() );
 
 						return;
 					}
+				} else if ( ! $this->is_opted_in() ) {
+					$this->opt_in();
+				}
+			}
 
+			if ( ! $this->is_registered() ) {
+				if ( $this->is_anonymous() ) {
 					// If user skipped, no need to test connectivity.
 					$this->_has_api_connection = true;
 					$this->_is_on              = true;
@@ -2172,7 +2178,7 @@
 					 *
 					 */
 					if ( $this->is_registered() ) {
-						if ( ! $this->is_sync_cron_on() ) {
+						if ( ! $this->is_sync_cron_on() && $this->is_opted_in() ) {
 							$this->schedule_sync_cron();
 						}
 					}
@@ -2343,11 +2349,24 @@
 		 * @since 1.2.2
 		 */
 		function _opt_out() {
-			$this->clear_sync_cron();
-
 			$result = array(
 				'success' => true
 			);
+
+			// Send update to FS.
+			$site = $this->get_api_site_scope()->call( '/', 'put', array(
+				'is_disconnected' => true
+			) );
+
+			if ( ! $this->is_api_error( $site ) ) {
+				$this->_site = new FS_Site( $site );
+				$this->_store_site();
+
+				$this->clear_sync_cron();
+			} else {
+				$result['success'] = false;
+				$result['error']   = $site->error->message;
+			}
 
 			echo json_encode( $result );
 
@@ -4139,6 +4158,7 @@
 				'url'                          => get_site_url(),
 				// Special params.
 				'is_active'                    => true,
+				'is_disconnected'              => ! $this->is_opted_in(),
 				'is_uninstalled'               => false,
 			), $override );
 		}
@@ -4168,7 +4188,7 @@
 
 				foreach ( $check_properties as $p => $v ) {
 					if ( property_exists( $this->_site, $p ) ) {
-						if ( ! empty( $this->_site->{$p} ) &&
+						if ( ( is_bool( $this->_site->{$p} ) || ! empty( $this->_site->{$p} ) ) &&
 						     $this->_site->{$p} != $v
 						) {
 							$this->_site->{$p} = $v;
@@ -4370,8 +4390,9 @@
 			} else {
 				// Send uninstall event.
 				$this->send_install_update( array_merge( $params, array(
-					'is_active'      => false,
-					'is_uninstalled' => true,
+					'is_active'       => false,
+					'is_disconnected' => true,
+					'is_uninstalled'  => true,
 				) ) );
 			}
 
@@ -4764,6 +4785,17 @@
 		 */
 		function is_registered() {
 			return is_object( $this->_user );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_opted_in() {
+			return ( ! $this->_site->is_disconnected() );
 		}
 
 		/**
@@ -6446,6 +6478,23 @@
 			$is_uninstall = false
 		) {
 			$this->_logger->entrance();
+
+			if ( ! $is_uninstall && fs_request_is_action( $this->_slug . '_opt_in' ) ) {
+				$site = $this->get_api_site_scope()->call( '/', 'put', array(
+					'is_disconnected' => false
+				) );
+
+				if ( ! $this->is_api_error( $site ) ) {
+					$this->_site = new FS_Site( $site );
+					$this->_store_site();
+
+					$this->schedule_sync_cron();
+
+					fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) );
+
+					return true;
+				}
+			}
 
 			if ( false === $email ) {
 				$current_user = self::_get_current_wp_user();
@@ -9747,7 +9796,8 @@
 
 			if ( $this->has_paid_plan() &&
 			     ! $this->has_any_license() &&
-			     ! $this->is_sync_executed()
+			     ! $this->is_sync_executed() &&
+				 $this->is_opted_in()
 			) {
 				/**
 				 * If no licenses found and no sync job was executed during the last 24 hours,
@@ -10241,16 +10291,16 @@
 		function _add_optin_or_optout_action_link() {
 			$this->_logger->entrance();
 
-			if ( $this->is_registered() ) {
+			if ( $this->is_registered() && $this->is_opted_in() ) {
 				$link_text_id = 'opt-out';
 				$url          = '#';
 				$this->_require_optout_dialog();
 			} else {
 				$link_text_id = 'opt-in';
-				$url          = $this->_get_admin_page_url(
-					'',
-					array( 'fs_action' => 'reset_anonymous_mode_and_activate' )
-				);
+
+				$url = $this->get_activation_url( array(
+					'fs_action' => ( $this->_slug . '_opt_in' )
+				) );
 			}
 
 			$this->add_plugin_action_link(

@@ -77,6 +77,14 @@
 		 * @var bool
 		 */
 		public $is_premium = false;
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since 1.2.2
+		 *
+		 * @var bool
+		 */
+		public $is_disconnected = false;
 
 		/**
 		 * @param stdClass|bool $site
@@ -123,5 +131,16 @@
 		 */
 		function is_trial_utilized() {
 			return is_numeric( $this->trial_plan_id );
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 * 
+		 * @return bool
+		 */
+		function is_disconnected() {
+			return ( isset( $this->is_disconnected ) && true === $this->is_disconnected );
 		}
 	}

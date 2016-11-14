@@ -17,7 +17,7 @@
 	$fs   = freemius( $slug );
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
-	$opt_out_button_text              = __fs( 'opt-out', $slug );
+	$opt_out_button_text              = ucfirst( strtolower( __fs( 'opt-out', $slug ) ) );
     $opt_out_message_appreciation     = __fs( 'opt-out-message-appreciation', $slug );
     $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ),
 													$plugin_title );
@@ -88,6 +88,7 @@ HTML;
 						var resultObj = $.parseJSON( result );
 						if ( resultObj.success ) {
 							closeModal();
+							location.reload();
 						} else {
 							showError( resultObj.error );
 							resetOptOutButton();
