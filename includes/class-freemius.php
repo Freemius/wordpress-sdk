@@ -4406,7 +4406,6 @@
 				// Send uninstall event.
 				$this->send_install_update( array_merge( $params, array(
 					'is_active'       => false,
-					'is_disconnected' => true,
 					'is_uninstalled'  => true,
 				) ) );
 			}
