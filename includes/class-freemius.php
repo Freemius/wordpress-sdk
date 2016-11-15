@@ -2356,7 +2356,7 @@
 				array(
 					'success' => false,
 					'error'   => $api_result->error->message,
-			);
+				);
 
 			echo json_encode( $ajax_result );
 
@@ -2386,6 +2386,22 @@
 			return $result;
 		}
 
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 */
+		private function reconnect() {
+			$result = $this->get_api_site_scope()->call( '/', 'put', array(
+				'is_disconnected' => false
+			) );
+
+			if ( ! $this->is_api_error( $result ) ) {
+				$this->_site = new FS_Site( $result );
+				$this->_store_site();
+
+				$this->schedule_sync_cron();
+			}
 		}
 
 		/**
@@ -4405,8 +4421,8 @@
 			} else {
 				// Send uninstall event.
 				$this->send_install_update( array_merge( $params, array(
-					'is_active'       => false,
-					'is_uninstalled'  => true,
+					'is_active'      => false,
+					'is_uninstalled' => true,
 				) ) );
 			}
 
@@ -6494,20 +6510,7 @@
 			$this->_logger->entrance();
 
 			if ( ! $is_uninstall && fs_request_is_action( $this->_slug . '_opt_in' ) ) {
-				$site = $this->get_api_site_scope()->call( '/', 'put', array(
-					'is_disconnected' => false
-				) );
-
-				if ( ! $this->is_api_error( $site ) ) {
-					$this->_site = new FS_Site( $site );
-					$this->_store_site();
-
-					$this->schedule_sync_cron();
-
-					fs_redirect( $this->get_after_activation_url( 'after_connect_url' ) );
-
-					return true;
-				}
+				$this->reconnect();
 			}
 
 			if ( false === $email ) {
