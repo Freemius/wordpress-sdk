@@ -2336,7 +2336,7 @@
 				&& $this->is_free_plan() ) {
 
 				if ( $this->is_ajax_action( 'opt-out' ) ) {
-					$this->add_ajax_action( 'opt-out', array( &$this, '_opt_out' ) );
+					$this->add_ajax_action( 'opt-out', array( &$this, '_opt_out_callback' ) );
 				} else {
 					$this->_add_optin_or_optout_action_link();
 				}
@@ -2348,29 +2348,44 @@
 		 *
 		 * @since 1.2.2
 		 */
-		function _opt_out() {
-			$result = array(
-				'success' => true
+		function _opt_out_callback() {
+			$api_result = $this->disconnect();
+
+			$ajax_result = ! $this->is_api_error( $api_result ) ?
+				array( 'success' => true ) :
+				array(
+					'success' => false,
+					'error'   => $api_result->error->message,
 			);
 
+			echo json_encode( $ajax_result );
+
+			exit;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 *
+		 * @return object
+		 */
+		function disconnect() {
 			// Send update to FS.
-			$site = $this->get_api_site_scope()->call( '/', 'put', array(
+			$result = $this->get_api_site_scope()->call( '/', 'put', array(
 				'is_disconnected' => true
 			) );
 
-			if ( ! $this->is_api_error( $site ) ) {
-				$this->_site = new FS_Site( $site );
+			if ( ! $this->is_api_error( $result ) ) {
+				$this->_site = new FS_Site( $result );
 				$this->_store_site();
 
 				$this->clear_sync_cron();
-			} else {
-				$result['success'] = false;
-				$result['error']   = $site->error->message;
 			}
 
-			echo json_encode( $result );
+			return $result;
+		}
 
-			exit;
 		}
 
 		/**
@@ -5568,7 +5583,7 @@
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
 		 */
-		function _require_optout_dialog() {
+		private function require_optout_dialog() {
 			add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 		}
 
@@ -10294,7 +10309,7 @@
 			if ( $this->is_registered() && $this->is_opted_in() ) {
 				$link_text_id = 'opt-out';
 				$url          = '#';
-				$this->_require_optout_dialog();
+				$this->require_optout_dialog();
 			} else {
 				$link_text_id = 'opt-in';
 
