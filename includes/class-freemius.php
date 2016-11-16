@@ -2419,6 +2419,18 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 */
+		private function reconnect_on_premium_code_type_change() {
+			if ( $this->is_premium() && $this->_storage->prev_is_premium !== $this->_plugin->is_premium ) {
+				$this->_storage->reconnect_on_premium_code_type_change = true;
+				$this->schedule_sync_cron();
+			}
+		}
+
+		/**
 		 * Parse plugin's settings (as defined by the plugin dev).
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -2628,6 +2640,8 @@
 		 */
 		function _plugin_code_type_changed() {
 			$this->_logger->entrance();
+
+			$this->reconnect_on_premium_code_type_change();
 
 			// Schedule code type changes event.
 //			$this->sync_install();
@@ -3308,7 +3322,13 @@
 			// Update last install sync timestamp.
 			$this->_storage->install_sync_timestamp = time();
 
-			$this->sync_install( array(), true );
+			$override_params = ! isset( $this->_storage->reconnect_on_premium_code_type_change ) ?
+				array() :
+				array(
+					'is_disconnected' => false
+				);
+
+			$this->sync_install( $override_params, true );
 		}
 
 		#endregion Async Install Sync ------------------------------------------------------------------
@@ -3649,6 +3669,8 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
+				$this->reconnect_on_premium_code_type_change();
+
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
@@ -4272,6 +4294,10 @@
 				if ( ! $this->is_api_error( $site ) ) {
 					// I successfully sent install update, clear scheduled sync if exist.
 					$this->clear_install_sync_cron();
+
+					if ( isset( $this->_storage->reconnect_on_premium_code_type_change ) ) {
+						unset( $this->_storage->reconnect_on_premium_code_type_change );
+					}
 				}
 
 				return $site;
