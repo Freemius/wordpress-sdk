@@ -64,7 +64,7 @@
 			ob_start();
 
 			$VARS = &$params;
-			require_once( fs_get_template_path( $path ) );
+			require( fs_get_template_path( $path ) );
 
 			return ob_get_clean();
 		}
