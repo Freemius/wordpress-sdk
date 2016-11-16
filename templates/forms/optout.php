@@ -16,6 +16,10 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
+	$action = ( $fs->is_registered() && $fs->is_opted_in() ) ?
+		'opt-out' :
+		'opt-in';
+
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
 	$opt_out_button_text              = ucfirst( strtolower( __fs( 'opt-out', $slug ) ) );
     $opt_out_message_appreciation     = __fs( 'opt-out-message-appreciation', $slug );
@@ -25,6 +29,17 @@
 		                                            $plugin_title,
 													'<a href="http://freemius.com" target="_blank">freemius.com</a>' );
 
+	$admin_notice_params = array(
+		'id'      => '',
+		'slug'    => $fs->get_id(),
+		'type'    => 'success',
+		'sticky'  => false,
+		'plugin'  => $fs->get_plugin()->title,
+		'message' => $opt_out_message_appreciation
+	);
+
+	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params );
+
 	$modal_content_html = <<< HTML
 		<h2><strong>{$opt_out_message_appreciation}</strong></h2>
 		<div class="notice notice-error inline opt-out-error-message"><p></p></div>
@@ -33,6 +48,7 @@
 HTML;
 
 	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
+	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 ?>
 <script type="text/javascript">
 (function( $ ) {
@@ -50,19 +66,28 @@ HTML;
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
-			$modal              = $(modalHtml),
-			$optOutLink         = $('span.opt-out.<?php echo $VARS['slug'] ?> a, .opt-out-trigger.<?php echo $VARS['slug'] ?>'),
-			$optOutButton       = $modal.find('.button-opt-out'),
-			$optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
-			pluginSlug          = '<?php echo $slug ?>';
+			$modal               = $( modalHtml ),
+			$adminNotice         = $( <?php echo json_encode( $admin_notice_html ) ?> ),
+			action               = '<?php echo $action ?>',
+			optOutActionTag      = '<?php echo $fs->get_action_tag( 'opt-out' ) ?>',
+			optInActionTag       = '<?php echo $fs->get_action_tag( 'opt-in' ) ?>',
+			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $VARS['slug'] ?> a' ),
+			$optOutButton        = $modal.find( '.button-opt-out' ),
+			$optOutErrorMessage  = $modal.find( '.opt-out-error-message' ),
+			pluginSlug           = '<?php echo $slug ?>';
 
+		$actionLink.attr( 'data-action', action );
 		$modal.appendTo( $( 'body' ) );
 
 		function registerEventHandlers() {
-			$optOutLink.click(function( evt ) {
+			$actionLink.click(function( evt ) {
 				evt.preventDefault();
 
-				showModal();
+				if ( 'opt-out' == $actionLink.attr( 'data-action' ) ) {
+					showModal();
+				} else {
+					optIn();
+				}
 			});
 
 			$modal.on( 'click', '.button-opt-out', function( evt ) {
@@ -73,28 +98,7 @@ HTML;
 				}
 
 				disableOptOutButton();
-
-				$.ajax({
-					url: ajaxurl,
-					method: 'POST',
-					data: {
-						action : '<?php echo $fs->get_action_tag( 'opt-out' ) ?>',
-						slug   : pluginSlug
-					},
-					beforeSend: function() {
-						$optOutButton.text( '<?php _efs( 'opting-out', $slug ) ?>' );
-					},
-					success: function( result ) {
-						var resultObj = $.parseJSON( result );
-						if ( resultObj.success ) {
-							closeModal();
-							location.reload();
-						} else {
-							showError( resultObj.error );
-							resetOptOutButton();
-						}
-					}
-				});
+				optOut();
 			});
 
 			// If the user has clicked outside the window, close the modal.
@@ -129,6 +133,55 @@ HTML;
 			resetOptOutButton();
 		}
 
+		function optIn() {
+			sendRequest();
+		}
+
+		function optOut() {
+			sendRequest();
+		}
+
+		function sendRequest() {
+			$.ajax({
+				url: ajaxurl,
+				method: 'POST',
+				data: {
+					action: ( 'opt-out' == action ? optOutActionTag : optInActionTag ),
+					slug  : pluginSlug
+				},
+				beforeSend: function() {
+					if ( 'opt-in' == action ) {
+						$actionLink.text( '<?php _efs( 'opting-in', $slug ) ?>' )
+					} else {
+						$optOutButton.text( '<?php _efs( 'opting-out', $slug ) ?>' );
+					}
+				},
+				success: function( result ) {
+					var resultObj = $.parseJSON( result );
+					if ( resultObj.success ) {
+						if ( 'opt-in' == action ) {
+							action = 'opt-out';
+							$actionLink.text( '<?php _efs( 'opt-out', $slug ) ?>' );
+							showOptInAppreciationMessageAndScrollToTop();
+						} else {
+							action = 'opt-in';
+							$actionLink.text( '<?php _efs( 'opt-in', $slug ) ?>' );
+							closeModal();
+
+							if ( $adminNotice.length > 0 ) {
+								$adminNotice.remove();
+							}
+						}
+
+						$actionLink.attr( 'data-action', action );
+					} else {
+						showError( resultObj.error );
+						resetOptOutButton();
+					}
+				}
+			});
+		}
+
 		function enableOptOutButton() {
 			$optOutButton.removeClass( 'disabled' );
 		}
@@ -139,6 +192,11 @@ HTML;
 
 		function hideError() {
 			$optOutErrorMessage.hide();
+		}
+
+		function showOptInAppreciationMessageAndScrollToTop() {
+			$adminNotice.insertAfter( $( '#wpbody-content' ).find( ' > .wrap > h1' ) );
+			window.scrollTo(0, 0);
 		}
 
 		function showError( msg ) {

@@ -2104,15 +2104,11 @@
 			}
 
 			if ( fs_request_is_action( $this->_slug . '_opt_in' ) ) {
-				if ( ! $this->is_registered() ) {
-					if ( $this->is_anonymous() ) {
-						$this->reset_anonymous_mode();
-						fs_redirect( $this->get_activation_url() );
+				if ( ! $this->is_registered() && $this->is_anonymous() ) {
+					$this->reset_anonymous_mode();
+					fs_redirect( $this->get_activation_url() );
 
-						return;
-					}
-				} else if ( ! $this->is_opted_in() ) {
-					$this->opt_in();
+					return;
 				}
 			}
 
@@ -2334,9 +2330,10 @@
 			if (
 				$this->is_enable_anonymous()
 				&& $this->is_free_plan() ) {
-
 				if ( $this->is_ajax_action( 'opt-out' ) ) {
 					$this->add_ajax_action( 'opt-out', array( &$this, '_opt_out_callback' ) );
+				} else if ( $this->is_ajax_action( 'opt-in' ) ) {
+					$this->add_ajax_action( 'opt-in', array( &$this, '_opt_in_callback' ) );
 				} else {
 					$this->_add_optin_or_optout_action_link();
 				}
@@ -2359,6 +2356,23 @@
 				);
 
 			echo json_encode( $ajax_result );
+
+			exit;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.2
+		 */
+		function _opt_in_callback() {
+			if ( ! $this->is_opted_in() ) {
+				$this->reconnect();
+			}
+
+			echo json_encode( array(
+				'success' => true
+			) );
 
 			exit;
 		}
@@ -5598,7 +5612,7 @@
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
 		 */
-		private function require_optout_dialog() {
+		private function require_optin_or_optout_dialog() {
 			add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 		}
 
@@ -6508,10 +6522,6 @@
 			$is_uninstall = false
 		) {
 			$this->_logger->entrance();
-
-			if ( ! $is_uninstall && fs_request_is_action( $this->_slug . '_opt_in' ) ) {
-				$this->reconnect();
-			}
 
 			if ( false === $email ) {
 				$current_user = self::_get_current_wp_user();
@@ -10308,16 +10318,24 @@
 		function _add_optin_or_optout_action_link() {
 			$this->_logger->entrance();
 
-			if ( $this->is_registered() && $this->is_opted_in() ) {
-				$link_text_id = 'opt-out';
-				$url          = '#';
-				$this->require_optout_dialog();
+			$url = '#';
+
+			if ( $this->is_registered() ) {
+				if ( $this->is_opted_in() ) {
+					$link_text_id = 'opt-out';
+				} else {
+					$link_text_id = 'opt-in';
+				}
+
+				$this->require_optin_or_optout_dialog();
 			} else {
 				$link_text_id = 'opt-in';
 
-				$url = $this->get_activation_url( array(
-					'fs_action' => ( $this->_slug . '_opt_in' )
-				) );
+				$params = ! $this->is_anonymous() ?
+					array() :
+					array( 'fs_action' => ( $this->_slug . '_opt_in' ) );
+
+				$url = $this->get_activation_url( $params );
 			}
 
 			$this->add_plugin_action_link(
@@ -10325,7 +10343,7 @@
 				$url,
 				false,
 				13,
-				"{$link_text_id} {$this->_slug}"
+				"opt-in-or-opt-out {$this->_slug}"
 			);
 		}
 
