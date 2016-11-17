@@ -1600,8 +1600,8 @@
 		 * @param bool  $is_first_failure
 		 */
 		function _add_connectivity_issue_message( $api_result, $is_first_failure = true ) {
-			if ( $this->_enable_anonymous ) {
-				// Don't add message if can run anonymously.
+			if ( ! $this->is_premium() && $this->_enable_anonymous ) {
+				// Don't add message if it's the free version and can run anonymously.
 				return;
 			}
 
