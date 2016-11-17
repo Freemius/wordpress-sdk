@@ -52,6 +52,15 @@
 		 */
 		public $platform_version;
 		/**
+		 * Freemius SDK version
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @var string SDK version (e.g.: 1.2.2)
+		 */
+		public $sdk_version;
+		/**
 		 * @var string Programming language version (e.g PHP version).
 		 */
 		public $programming_language_version;
