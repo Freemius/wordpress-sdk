@@ -534,6 +534,17 @@
 								false
 							);
 
+							$human_readable_license_expiration = human_time_diff( time(), strtotime( $license->expiration ) );
+							$downgrade_confirmation_message    = sprintf( __fs( 'downgrade-x-confirm', $slug ),
+																      $plan->title,
+																	  $human_readable_license_expiration );
+
+							$after_downgrade_message_id = ( ! $license->is_block_features ?
+								'after-downgrade-non-blocking' :
+								'after-downgrade-blocking' );
+
+							$after_downgrade_message = sprintf( __fs( $after_downgrade_message_id, $slug ), $plan->title );
+
 							if ( ! $license->is_lifetime() && $is_active_subscription ) {
 								$buttons[] = fs_ui_get_action_button(
 									$slug,
@@ -541,7 +552,10 @@
 									'downgrade_account',
 									__fs( 'downgrade', $slug ),
 									array( 'plugin_id' => $addon_id ),
-									false
+									false,
+									false,
+									( $downgrade_confirmation_message . ' ' . $after_downgrade_message ),
+									'POST'
 								);
 							}
 						} else if ( $is_paid_trial ) {

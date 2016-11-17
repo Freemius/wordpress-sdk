@@ -156,7 +156,7 @@
 		'downgrade-x-confirm'                      => __( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'freemius' ),
 		'cancel-trial-confirm'                     => __( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'freemius' ),
 		'after-downgrade-non-blocking'             => __( 'You can still enjoy all %s features but you will not have access to plugin updates and support.', 'freemius' ),
-		'after-downgrade-blocking'                 => __( 'Once your license expire you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
+		'after-downgrade-blocking'                 => __( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'freemius' ),
 		'proceed-confirmation'                     => __( 'Are you sure you want to proceed?', 'freemius' ),
 		#endregion Account
 
