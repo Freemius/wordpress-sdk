@@ -10361,14 +10361,18 @@
 				$plan_title = $this->_site->plan->title;
 			}
 
+			$deactivation_step = version_compare( $this->version, '1.2.2', '>' ) ?
+				( '<li>' . __fs( 'deactivate-free-version', $this->_slug ) . '.</li>' ) :
+				'';
+
 			return sprintf(
-				' %s: <ol><li>%s.</li><li>%s.</li><li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+				' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
 				__fs( 'follow-steps-to-complete-upgrade', $this->_slug ),
 				$this->_get_latest_download_link( sprintf(
 					__fs( 'download-latest-x-version', $this->_slug ),
 					$plan_title
 				) ),
-				__fs( 'deactivate-free-version', $this->_slug ),
+				$deactivation_step,
 				__fs( 'upload-and-activate', $this->_slug ),
 				'//bit.ly/upload-wp-plugin',
 				__fs( 'howto-upload-activate', $this->_slug )
