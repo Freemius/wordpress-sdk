@@ -4124,6 +4124,7 @@
 				'language'                     => get_bloginfo( 'language' ),
 				'charset'                      => get_bloginfo( 'charset' ),
 				'platform_version'             => get_bloginfo( 'version' ),
+				'sdk_version'                  => $this->version,
 				'programming_language_version' => phpversion(),
 				'title'                        => get_bloginfo( 'name' ),
 				'url'                          => get_site_url(),
@@ -6351,6 +6352,7 @@
 				'site_url'          => get_site_url(),
 				'site_name'         => get_bloginfo( 'name' ),
 				'platform_version'  => get_bloginfo( 'version' ),
+				'sdk_version'       => $this->version,
 				'php_version'       => phpversion(),
 				'language'          => get_bloginfo( 'language' ),
 				'charset'           => get_bloginfo( 'charset' ),
@@ -10359,14 +10361,19 @@
 				$plan_title = $this->_site->plan->title;
 			}
 
+			// @since 1.2.1.5 The free version is auto deactivated.
+			$deactivation_step = version_compare( $this->version, '1.2.1.5', '>=' ) ?
+				( '<li>' . __fs( 'deactivate-free-version', $this->_slug ) . '.</li>' ) :
+				'';
+
 			return sprintf(
-				' %s: <ol><li>%s.</li><li>%s.</li><li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+				' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
 				__fs( 'follow-steps-to-complete-upgrade', $this->_slug ),
 				$this->_get_latest_download_link( sprintf(
 					__fs( 'download-latest-x-version', $this->_slug ),
 					$plan_title
 				) ),
-				__fs( 'deactivate-free-version', $this->_slug ),
+				$deactivation_step,
 				__fs( 'upload-and-activate', $this->_slug ),
 				'//bit.ly/upload-wp-plugin',
 				__fs( 'howto-upload-activate', $this->_slug )
