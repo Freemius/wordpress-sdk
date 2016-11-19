@@ -1,12 +1,15 @@
 Freemius WordPress SDK
 ======================
 
-Freemius is an [analytics](https://freemius.com/wordpress/insights/) & [monetization](https://freemius.com/wordpress/) platform for plugin developers. Freemius empower developers with advanced real-time analytics and helps turning any plugin into a commercial product in less than 10 min.
+[Monetization](https://freemius.com/wordpress/), [analytics](https://freemius.com/wordpress/insights/), and marketing automation platform for plugin & theme developers. Freemius empower developers to create prosperous subscription based businesses.
 
-The platform is fully functional and running in production. Having said that, the monetization platform is still in closed beta. 
-If you are a WordPress plugin developer and you are interested to monetize with Freemius [apply to our closed beta here](http://bit.ly/freemius-beta):
+You can see some of the WordPress.org plugins & themes that are utilizing the power of Freemius here:
 
-http://bit.ly/freemius-beta
+https://includewp.com/freemius/#focus
+
+If you are a WordPress plugin or theme developer and you are interested to monetize with Freemius you can [sign-up here for free](https://dashboard.freemius.com/register/):
+
+https://dashboard.freemius.com/register/
 
 **Below you'll find the integration instructions for our WordPress SDK.**
 
