@@ -10361,7 +10361,8 @@
 				$plan_title = $this->_site->plan->title;
 			}
 
-			$deactivation_step = version_compare( $this->version, '1.2.2', '>' ) ?
+			// @since 1.2.1.5 The free version is auto deactivated.
+			$deactivation_step = version_compare( $this->version, '1.2.1.5', '>=' ) ?
 				( '<li>' . __fs( 'deactivate-free-version', $this->_slug ) . '.</li>' ) :
 				'';
 
