@@ -16,9 +16,9 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	$action = ( $fs->is_registered() && $fs->is_opted_in() ) ?
-		'opt-out' :
-		'opt-in';
+	$action = $fs->is_tracking_allowed() ?
+		'stop_tracking' :
+		'allow_tracking';
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
 	$opt_out_button_text              = ucfirst( strtolower( __fs( 'opt-out', $slug ) ) );
@@ -69,8 +69,8 @@ HTML;
 			$modal               = $( modalHtml ),
 			$adminNotice         = $( <?php echo json_encode( $admin_notice_html ) ?> ),
 			action               = '<?php echo $action ?>',
-			optOutActionTag      = '<?php echo $fs->get_action_tag( 'opt-out' ) ?>',
-			optInActionTag       = '<?php echo $fs->get_action_tag( 'opt-in' ) ?>',
+			optOutActionTag      = '<?php echo $fs->get_action_tag( 'stop_tracking' ) ?>',
+			optInActionTag       = '<?php echo $fs->get_action_tag( 'allow_tracking' ) ?>',
 			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $VARS['slug'] ?> a' ),
 			$optOutButton        = $modal.find( '.button-opt-out' ),
 			$optOutErrorMessage  = $modal.find( '.opt-out-error-message' ),
@@ -83,7 +83,7 @@ HTML;
 			$actionLink.click(function( evt ) {
 				evt.preventDefault();
 
-				if ( 'opt-out' == $actionLink.attr( 'data-action' ) ) {
+				if ( 'stop_tracking' == $actionLink.attr( 'data-action' ) ) {
 					showModal();
 				} else {
 					optIn();
@@ -146,7 +146,7 @@ HTML;
 				url: ajaxurl,
 				method: 'POST',
 				data: {
-					action: ( 'opt-out' == action ? optOutActionTag : optInActionTag ),
+					action: ( 'stop_tracking' == action ? optOutActionTag : optInActionTag ),
 					slug  : pluginSlug
 				},
 				beforeSend: function() {
@@ -159,12 +159,12 @@ HTML;
 				success: function( result ) {
 					var resultObj = $.parseJSON( result );
 					if ( resultObj.success ) {
-						if ( 'opt-in' == action ) {
-							action = 'opt-out';
+						if ( 'allow_tracking' == action ) {
+							action = 'stop_tracking';
 							$actionLink.text( '<?php _efs( 'opt-out', $slug ) ?>' );
 							showOptInAppreciationMessageAndScrollToTop();
 						} else {
-							action = 'opt-in';
+							action = 'allow_tracking';
 							$actionLink.text( '<?php _efs( 'opt-in', $slug ) ?>' );
 							closeModal();
 

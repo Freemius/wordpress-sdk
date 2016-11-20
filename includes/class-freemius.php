@@ -2174,7 +2174,7 @@
 					 *
 					 */
 					if ( $this->is_registered() ) {
-						if ( ! $this->is_sync_cron_on() && $this->is_opted_in() ) {
+						if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
 							$this->schedule_sync_cron();
 						}
 					}
@@ -2345,8 +2345,6 @@
 		 *
 		 * @since 1.2.2
 		 */
-		function _opt_out_callback() {
-			$api_result = $this->disconnect();
 
 			$ajax_result = ! $this->is_api_error( $api_result ) ?
 				array( 'success' => true ) :
@@ -2354,6 +2352,8 @@
 					'success' => false,
 					'error'   => $api_result->error->message,
 				);
+		function _stop_tracking_callback() {
+			$result = $this->stop_tracking();
 
 			echo json_encode( $ajax_result );
 
@@ -2362,13 +2362,10 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 *
 		 * @since  1.2.2
 		 */
-		function _opt_in_callback() {
-			if ( ! $this->is_opted_in() ) {
-				$this->reconnect();
-			}
+		function _allow_tracking_callback() {
+			$result = $this->allow_tracking();
 
 			echo json_encode( array(
 				'success' => true
@@ -2384,7 +2381,7 @@
 		 *
 		 * @return object
 		 */
-		function disconnect() {
+		function stop_tracking() {
 			// Send update to FS.
 			$result = $this->get_api_site_scope()->call( '/', 'put', array(
 				'is_disconnected' => true
@@ -2405,7 +2402,6 @@
 		 *
 		 * @since  1.2.2
 		 */
-		private function reconnect() {
 			$result = $this->get_api_site_scope()->call( '/', 'put', array(
 				'is_disconnected' => false
 			) );
@@ -4225,7 +4221,7 @@
 				'url'                          => get_site_url(),
 				// Special params.
 				'is_active'                    => true,
-				'is_disconnected'              => ! $this->is_opted_in(),
+				'is_disconnected'              => $this->is_tracking_prohibited(),
 				'is_uninstalled'               => false,
 			), $override );
 		}
@@ -4864,8 +4860,8 @@
 		 *
 		 * @return bool
 		 */
-		function is_opted_in() {
-			return ( ! $this->_site->is_disconnected() );
+		function is_tracking_allowed() {
+			return ( is_object($this->_site) && true !== $this->_site->is_disconnected );
 		}
 
 		/**
@@ -9850,7 +9846,7 @@
 			if ( $this->has_paid_plan() &&
 			     ! $this->has_any_license() &&
 			     ! $this->is_sync_executed() &&
-				 $this->is_opted_in()
+				 $this->is_tracking_allowed()
 			) {
 				/**
 				 * If no licenses found and no sync job was executed during the last 24 hours,
@@ -10347,7 +10343,7 @@
 			$url = '#';
 
 			if ( $this->is_registered() ) {
-				if ( $this->is_opted_in() ) {
+				if ( $this->is_tracking_allowed() ) {
 					$link_text_id = 'opt-out';
 				} else {
 					$link_text_id = 'opt-in';
@@ -10359,7 +10355,9 @@
 
 				$params = ! $this->is_anonymous() ?
 					array() :
-					array( 'fs_action' => ( $this->_slug . '_opt_in' ) );
+					array(
+						'fs_action' => ( $this->_slug . '_reconnect' ),
+					);
 
 				$url = $this->get_activation_url( $params );
 			}
