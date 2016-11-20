@@ -2345,19 +2345,19 @@
 		 *
 		 * @since 1.2.2
 		 */
-
-			$ajax_result = ! $this->is_api_error( $api_result ) ?
-				array( 'success' => true ) :
-				array(
-					'success' => false,
-					'error'   => $api_result->error->message,
-				);
 		function _stop_tracking_callback() {
 			$result = $this->stop_tracking();
 
-			echo json_encode( $ajax_result );
+			if ( true === $result ) {
+				$this->shoot_ajax_success();
+			}
 
-			exit;
+			$this->shoot_ajax_failure(
+				__fs( 'unexpected-api-error', $this->_slug ) .
+				( $this->is_api_error( $result ) && isset( $result->error ) ?
+					$result->error->message :
+					var_export( $result, true ) )
+			);
 		}
 
 		/**
@@ -2367,51 +2367,113 @@
 		function _allow_tracking_callback() {
 			$result = $this->allow_tracking();
 
-			echo json_encode( array(
-				'success' => true
-			) );
+			if ( true === $result ) {
+				$this->shoot_ajax_success();
+			}
 
-			exit;
+			$this->shoot_ajax_failure(
+				__fs( 'unexpected-api-error', $this->_slug ) .
+				( $this->is_api_error( $result ) && isset( $result->error ) ?
+					$result->error->message :
+					var_export( $result, true ) )
+			);
 		}
 
 		/**
-		 * @author Leo Fajardo (@leorw)
+		 * Opt-out from usage tracking.
 		 *
+		 * Note: This will not delete the account information but will stop all tracking.
+		 *
+		 * Returns:
+		 *  1. FALSE  - If the user never opted-in.
+		 *  2. TRUE   - If successfully opted-out.
+		 *  3. object - API result on failure.
+		 *
+		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
 		 *
-		 * @return object
+		 * @return bool|object
 		 */
 		function stop_tracking() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ) {
+				// User never opted-in.
+				return false;
+			}
+
+			if ( $this->is_tracking_prohibited() ) {
+				// Already disconnected.
+				return true;
+			}
+
 			// Send update to FS.
-			$result = $this->get_api_site_scope()->call( '/', 'put', array(
+			$result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
 				'is_disconnected' => true
 			) );
 
-			if ( ! $this->is_api_error( $result ) ) {
-				$this->_site = new FS_Site( $result );
+			if ( $this->is_api_error( $result ) ||
+			     ! isset( $result->is_disconnected ) ||
+			     ! $result->is_disconnected
+			) {
+				return $result;
+			}
+
+			$this->_site->is_disconnected = $result->is_disconnected;
 				$this->_store_site();
 
 				$this->clear_sync_cron();
-			}
 
-			return $result;
+			// Successfully disconnected.
+			return true;
 		}
 
 		/**
-		 * @author Leo Fajardo (@leorw)
+		 * Opt-in back into usage tracking.
 		 *
-		 * @since  1.2.2
+		 * Note: This will only work if the user opted-in previously.
+		 *
+		 * Returns:
+		 *  1. FALSE  - If the user never opted-in.
+		 *  2. TRUE   - If successfully opted-in back to usage tracking.
+		 *  3. object - API result on failure.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool|object
 		 */
-			$result = $this->get_api_site_scope()->call( '/', 'put', array(
+		function allow_tracking() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ) {
+				// User never opted-in.
+				return false;
+			}
+
+			if ( $this->is_tracking_allowed() ) {
+				// Tracking already allowed.
+				return true;
+			}
+
+			$result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
 				'is_disconnected' => false
 			) );
 
-			if ( ! $this->is_api_error( $result ) ) {
-				$this->_site = new FS_Site( $result );
+			if ( $this->is_api_error( $result ) ||
+			     ! isset( $result->is_disconnected ) ||
+			     $result->is_disconnected
+			) {
+				return $result;
+			}
+
+			$this->_site->is_disconnected = $result->is_disconnected;
 				$this->_store_site();
 
 				$this->schedule_sync_cron();
-			}
+
+			// Successfully reconnected.
+			return true;
 		}
 
 		/**
