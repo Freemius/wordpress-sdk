@@ -484,6 +484,8 @@
 
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
+			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
@@ -2103,15 +2105,6 @@
 				return;
 			}
 
-			if ( fs_request_is_action( $this->_slug . '_opt_in' ) ) {
-				if ( ! $this->is_registered() && $this->is_anonymous() ) {
-					$this->reset_anonymous_mode();
-					fs_redirect( $this->get_activation_url() );
-
-					return;
-				}
-			}
-
 			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
 					// If user skipped, no need to test connectivity.
@@ -2324,18 +2317,6 @@
 				) {
 					// Hook license activation and resend AJAX callbacks.
 					$this->_require_license_activation_dialog();
-				}
-			}
-
-			if (
-				$this->is_enable_anonymous()
-				&& $this->is_free_plan() ) {
-				if ( $this->is_ajax_action( 'opt-out' ) ) {
-					$this->add_ajax_action( 'opt-out', array( &$this, '_opt_out_callback' ) );
-				} else if ( $this->is_ajax_action( 'opt-in' ) ) {
-					$this->add_ajax_action( 'opt-in', array( &$this, '_opt_in_callback' ) );
-				} else {
-					$this->_add_optin_or_optout_action_link();
 				}
 			}
 		}
@@ -10442,6 +10423,27 @@
 		 */
 		function _add_optin_or_optout_action_link() {
 			$this->_logger->entrance();
+
+			if ( !$this->is_enable_anonymous() || !$this->is_free_plan() ) {
+				return;
+			}
+			
+			if ( $this->is_ajax_action( 'stop_tracking' ) ) {
+				$this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) );
+				return;
+			}
+
+			if ( $this->is_ajax_action( 'allow_tracking' ) ) {
+				$this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) );
+				return;
+			}
+
+			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
+				if ( ! $this->is_registered() && $this->is_anonymous() ) {
+					$this->connect_again();
+					return;
+				}
+			}
 
 			$url = '#';
 
