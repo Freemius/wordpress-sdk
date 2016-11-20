@@ -80,7 +80,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since 1.2.2
+		 * @since  1.2.2
 		 *
 		 * @var bool
 		 */
@@ -96,6 +96,10 @@
 
 			if ( is_object( $site ) ) {
 				$this->plan->id = $site->plan_id;
+			}
+
+			if ( ! is_bool( $this->is_disconnected ) ) {
+				$this->is_disconnected = false;
 			}
 		}
 
@@ -131,16 +135,5 @@
 		 */
 		function is_trial_utilized() {
 			return is_numeric( $this->trial_plan_id );
-		}
-
-		/**
-		 * @author Leo Fajardo (@leorw)
-		 *
-		 * @since  1.2.2
-		 * 
-		 * @return bool
-		 */
-		function is_disconnected() {
-			return ( isset( $this->is_disconnected ) && true === $this->is_disconnected );
 		}
 	}
