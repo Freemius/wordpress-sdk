@@ -485,6 +485,7 @@
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
 			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
@@ -2296,27 +2297,6 @@
 					$this->do_action( 'after_init_addon_anonymous' );
 				} else if ( $this->is_pending_activation() ) {
 					$this->do_action( 'after_init_addon_pending_activations' );
-				}
-			}
-
-			// Add license activation link and AJAX request handler.
-			if ( $this->has_paid_plan() ) {
-				global $pagenow;
-				if ( 'plugins.php' === $pagenow ) {
-					/**
-					 * @since 1.2.0 Add license action link only on plugins page.
-					 */
-					$this->_add_license_action_link();
-					$this->_require_license_activation_dialog();
-				}
-
-				if ( $this->is_ajax_action( array(
-					'activate_license',
-					'resend_license_key'
-				) )
-				) {
-					// Hook license activation and resend AJAX callbacks.
-					$this->_require_license_activation_dialog();
 				}
 			}
 		}
@@ -5652,34 +5632,37 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.0
 		 */
-		function _require_license_activation_dialog() {
-			if ( $this->is_ajax() ) {
-				if ( $this->is_ajax_action( 'activate_license' ) ) {
-					// Add license activation AJAX callback.
-					$this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
+		function _add_license_activation() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				// Only admins can activate a license.
+				return;
 				}
 
-				if ( $this->is_ajax_action( 'resend_license_key' ) ) {
-					// Add resend license AJAX callback.
-					$this->add_ajax_action( 'resend_license_key', array(
-						&$this,
-						'_resend_license_key_ajax_action'
-					) );
-				}
-			} else {
-				// Inject license activation dialog UI and client side code.
-				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+			if ( ! $this->has_paid_plan() ) {
+				// Module doesn't have any paid plans.
+				return;
 			}
+
+			if ( ! $this->is_premium() ) {
+				// Only add license activation logic to the premium version.
+				return;
 		}
 
+			// Add license activation link and AJAX request handler.
+			global $pagenow;
+
+			if ( 'plugins.php' === $pagenow ) {
 		/**
-		 * Includes all needed code for the opt-out dialog.
-		 *
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+				 * @since 1.2.0 Add license action link only on plugins page.
 		 */
-		private function require_optin_or_optout_dialog() {
-			add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
+				$this->_add_license_action_link();
+			}
+
+			// Add license activation AJAX callback.
+			$this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
+
+			// Add resend license AJAX callback.
+			$this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
 		}
 
 		/**
@@ -10411,6 +10394,9 @@
 			if ( $this->is_free_plan() && $this->is_addon() ) {
 				return;
 			}
+
+			// Inject license activation dialog UI and client side code.
+			add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 
 			$link_text = __fs(
 				$this->is_free_plan() ? 'activate-license' : 'change-license',
