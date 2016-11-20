@@ -2401,9 +2401,9 @@
 			}
 
 			$this->_site->is_disconnected = $result->is_disconnected;
-				$this->_store_site();
+			$this->_store_site();
 
-				$this->clear_sync_cron();
+			$this->clear_sync_cron();
 
 			// Successfully disconnected.
 			return true;
@@ -2449,9 +2449,9 @@
 			}
 
 			$this->_site->is_disconnected = $result->is_disconnected;
-				$this->_store_site();
+			$this->_store_site();
 
-				$this->schedule_sync_cron();
+			$this->schedule_sync_cron();
 
 			// Successfully reconnected.
 			return true;
@@ -10423,6 +10423,10 @@
 		 * @since  1.2.2
 		 */
 		function _add_optin_or_optout_action_link() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
 			$this->_logger->entrance();
 
 			if ( !$this->is_enable_anonymous() || !$this->is_free_plan() ) {
@@ -10462,6 +10466,7 @@
 				$params = ! $this->is_anonymous() ?
 					array() :
 					array(
+						'nonce'     => wp_create_nonce( $this->_slug . '_reconnect' ),
 						'fs_action' => ( $this->_slug . '_reconnect' ),
 					);
 
