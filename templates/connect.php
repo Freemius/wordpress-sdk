@@ -192,6 +192,12 @@
 				'desc'       => __fs( 'permissions-site_desc' ),
 				'priority'   => 10,
 			),
+			'notices'  => array(
+				'icon-class' => 'dashicons dashicons-testimonial',
+				'label'      => __fs( 'permissions-admin-notices' ),
+				'desc'       => __fs( 'permissions-newsletter_desc' ),
+				'priority'   => 13,
+			),
 			'events'  => array(
 				'icon-class' => 'dashicons dashicons-admin-plugins',
 				'label'      => __fs( 'permissions-events' ),

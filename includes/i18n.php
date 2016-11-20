@@ -211,6 +211,7 @@
 		'permissions-events_desc'                  => __( 'Activation, deactivation and uninstall', 'freemius' ),
 		'permissions-plugins_themes'               => __( 'Plugins & Themes', 'freemius' ),
 		'permissions-plugins_themes_desc'          => __( 'Titles, versions and state.', 'freemius' ),
+		'permissions-admin-notices'                => __( 'Admin Notices', 'freemius' ),
 		'permissions-newsletter'                   => __( 'Newsletter', 'freemius' ),
 		'permissions-newsletter_desc'              => __( 'Updates, announcements, marketing, no spam', 'freemius' ),
 		'privacy-policy'                           => __( 'Privacy Policy', 'freemius' ),
