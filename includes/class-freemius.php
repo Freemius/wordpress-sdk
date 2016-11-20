@@ -7680,11 +7680,21 @@
 		 * @param int      $accepted_args
 		 *
 		 * @uses   add_action()
+		 *
+		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
 		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
+			if ( ! $this->is_ajax_action( $tag ) ) {
+				return false;
+			}
+
 			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+
+			$this->_logger->info( "$tag AJAX callback action added." );
+
+			return true;
 		}
 
 		/**
