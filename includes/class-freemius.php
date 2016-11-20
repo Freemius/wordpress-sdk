@@ -2691,10 +2691,6 @@
 		function _plugin_code_type_changed() {
 			$this->_logger->entrance();
 
-			// Schedule code type changes event.
-//			$this->sync_install();
-			$this->schedule_install_sync();
-
 			if ( $this->is_premium() ) {
 				$this->reconnect_on_premium_code_activation();
 
@@ -2731,6 +2727,9 @@
 					);
 				}
 			}
+
+			// Schedule code type changes event.
+			$this->schedule_install_sync();
 
 			/**
 			 * Unregister the uninstall hook for the other version of the plugin (with different code type) to avoid
