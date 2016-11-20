@@ -7644,6 +7644,47 @@
 		}
 
 		/**
+		 * Send a JSON response back to an Ajax request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $response
+		 */
+		function shoot_ajax_response( $response ) {
+			wp_send_json( $response );
+		}
+
+		/**
+		 * Send a JSON response back to an Ajax request, indicating success.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $data Data to encode as JSON, then print and exit.
+		 */
+		function shoot_ajax_success( $data = null ) {
+			wp_send_json_success( $data );
+		}
+
+		/**
+		 * Send a JSON response back to an Ajax request, indicating failure.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $error Optional error message.
+		 */
+		function shoot_ajax_failure( $error = '' ) {
+			$result = array( 'success' => false );
+			if ( ! empty( $error ) ) {
+				$result['error'] = $error;
+			}
+
+			wp_send_json( $result );
+		}
+
+		/**
 		 * Apply filter, specific for the current context plugin.
 		 *
 		 * @author Vova Feldman (@svovaf)
