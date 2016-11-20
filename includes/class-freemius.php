@@ -5636,7 +5636,7 @@
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				// Only admins can activate a license.
 				return;
-				}
+			}
 
 			if ( ! $this->has_paid_plan() ) {
 				// Module doesn't have any paid plans.
@@ -5646,15 +5646,15 @@
 			if ( ! $this->is_premium() ) {
 				// Only add license activation logic to the premium version.
 				return;
-		}
+			}
 
 			// Add license activation link and AJAX request handler.
 			global $pagenow;
 
 			if ( 'plugins.php' === $pagenow ) {
-		/**
+				/**
 				 * @since 1.2.0 Add license action link only on plugins page.
-		 */
+				 */
 				$this->_add_license_action_link();
 			}
 
@@ -10429,13 +10429,11 @@
 				return;
 			}
 			
-			if ( $this->is_ajax_action( 'stop_tracking' ) ) {
-				$this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) );
+			if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
 				return;
 			}
 
-			if ( $this->is_ajax_action( 'allow_tracking' ) ) {
-				$this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) );
+			if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
 				return;
 			}
 
@@ -10455,7 +10453,7 @@
 					$link_text_id = 'opt-in';
 				}
 
-				$this->require_optin_or_optout_dialog();
+				add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 			} else {
 				$link_text_id = 'opt-in';
 
