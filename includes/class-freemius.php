@@ -556,8 +556,7 @@
 						array( &$this, '_submit_uninstall_reason_action' )
 					);
 
-					global $pagenow;
-					if ( 'plugins.php' === $pagenow ) {
+					if ( $this->is_plugins_page() ) {
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
 				}
@@ -2197,8 +2196,7 @@
 			}
 
 			if ( $this->is_user_in_admin() ) {
-				global $pagenow;
-				if ( 'plugins.php' === $pagenow ) {
+				if ( $this->is_plugins_page() ) {
 					$this->hook_plugin_action_links();
 				}
 
@@ -5649,9 +5647,7 @@
 			}
 
 			// Add license activation link and AJAX request handler.
-			global $pagenow;
-
-			if ( 'plugins.php' === $pagenow ) {
+			if ( $this->is_plugins_page() ) {
 				/**
 				 * @since 1.2.0 Add license action link only on plugins page.
 				 */
@@ -5766,6 +5762,20 @@
 			echo json_encode( $licenses );
 
 			exit;
+		}
+
+		/**
+		 * Helper method to check if user in the plugins page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool
+		 */
+		private function is_plugins_page() {
+			global $pagenow;
+
+			return ( 'plugins.php' === $pagenow );
 		}
 
 		#----------------------------------------------------------------------------------
