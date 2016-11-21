@@ -179,12 +179,12 @@
 			return false;
 		}
 
-		$nonce = empty( $_REQUEST[ $nonce_key ] ) ?
+		$nonce = ! empty( $_REQUEST[ $nonce_key ] ) ?
 			$_REQUEST[ $nonce_key ] :
 			'';
 
 		if ( empty($nonce) ||
-		     wp_verify_nonce($nonce, $action)
+			( false === wp_verify_nonce( $nonce, $action ) )
 		) {
 			return false;
 		}
