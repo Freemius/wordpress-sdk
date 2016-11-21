@@ -10404,8 +10404,10 @@
 				return;
 			}
 
+			if ( ! $this->is_ajax() ) {
 			// Inject license activation dialog UI and client side code.
 			add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+			}
 
 			$link_text = __fs(
 				$this->is_free_plan() ? 'activate-license' : 'change-license',
