@@ -2676,6 +2676,7 @@
 					'trial_started',
 					'plan_upgraded',
 					'plan_changed',
+					'license_activated',
 				) );
 
 				$this->_admin_notices->add_sticky(
