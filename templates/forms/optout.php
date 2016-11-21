@@ -42,7 +42,7 @@
 	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params );
 
 	$modal_content_html = <<< HTML
-		<h2><strong>{$opt_out_message_appreciation}</strong></h2>
+		<h2>{$opt_out_message_appreciation}</h2>
 		<div class="notice notice-error inline opt-out-error-message"><p></p></div>
 		<p>{$opt_out_message_usage_tracking}</p>
 		<p>{$opt_out_message_clicking_opt_out}</p>
