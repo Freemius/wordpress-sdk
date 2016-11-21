@@ -21,8 +21,9 @@
 		'allow_tracking';
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
-	$opt_out_button_text              = ucfirst( strtolower( __fs( 'opt-out', $slug ) ) );
-    $opt_out_message_appreciation     = __fs( 'opt-out-message-appreciation', $slug );
+	$opt_out_button_text              = __fs( 'opt-out', $slug );
+	// @todo Change 'plugin' with module type when migrating with 1.2.2 (themes version).
+    $opt_out_message_appreciation     = sprintf( __fs( 'opt-out-message-appreciation', $slug ), 'plugin' );
     $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ),
 													$plugin_title );
     $opt_out_message_clicking_opt_out = sprintf( __fs( 'opt-out-message-clicking-opt-out', $slug ),
