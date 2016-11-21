@@ -2443,18 +2443,14 @@
 		 *
 		 * @since  1.2.2
 		 */
-		private function reconnect_on_premium_code_activation() {
+		private function reconnect_locally() {
 			$this->_logger->entrance();
 
-			if ( $this->is_premium() &&
-			     $this->_storage->prev_is_premium !== $this->_plugin->is_premium &&
-			     $this->is_tracking_prohibited() &&
+			if ( $this->is_tracking_prohibited() &&
 			     $this->is_registered()
 			) {
 				$this->_site->is_disconnected = false;
 				$this->_store_site();
-
-				$this->schedule_sync_cron();
 			}
 		}
 
@@ -2670,7 +2666,7 @@
 			$this->_logger->entrance();
 
 			if ( $this->is_premium() ) {
-				$this->reconnect_on_premium_code_activation();
+				$this->reconnect_locally();
 
 				// Activated premium code.
 				$this->do_action( 'after_premium_version_activation' );
@@ -3690,7 +3686,7 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
-				$this->reconnect_on_premium_code_activation();
+				$this->reconnect_locally();
 
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
@@ -5691,6 +5687,8 @@
 						$this;
 
 					$next_page = $fs->_get_sync_license_url( $this->get_id(), true );
+
+					$this->reconnect_locally();
 				}
 			} else {
 				$next_page = $this->opt_in( false, false, false, $license_key );
