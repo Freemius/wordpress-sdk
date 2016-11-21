@@ -160,8 +160,7 @@ HTML;
 						$optOutButton.text( '<?php _efs( 'opting-out', $slug ) ?>' );
 					}
 				},
-				success: function( result ) {
-					var resultObj = $.parseJSON( result );
+				success: function( resultObj ) {
 					if ( resultObj.success ) {
 						if ( 'allow_tracking' == action ) {
 							action = 'stop_tracking';
