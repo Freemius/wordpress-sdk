@@ -58,7 +58,7 @@
 	}
 
 	if ( $require_license_key ) {
-		$fs->_require_license_activation_dialog();
+		$fs->_add_license_activation_dialog_box();
 	}
 
 	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
