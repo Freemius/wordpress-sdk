@@ -6957,7 +6957,7 @@
 			 * @author Vova Feldman (@svovaf)
 			 * @since  1.1.9 Add license key if given.
 			 */
-			$license_key = fs_request_get( 'license_secret_key' );
+			$license_key          = fs_request_get( 'license_secret_key' );
 
 			if ( ! empty( $license_key ) ) {
 				$extra_install_params['license_key'] = $license_key;
@@ -6972,7 +6972,7 @@
 				$args
 			);
 
-			if ( $this->is_api_error($install) ) {
+			if ( $this->is_api_error( $install ) ) {
 				$install = $this->apply_filters( 'after_install_failure', $install, $args );
 
 				$this->_admin_notices->add(
@@ -10405,8 +10405,8 @@
 			}
 
 			if ( ! $this->is_ajax() ) {
-			// Inject license activation dialog UI and client side code.
-			add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+				// Inject license activation dialog UI and client side code.
+				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 			}
 
 			$link_text = __fs(
@@ -10429,17 +10429,23 @@
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
 		 */
-		function _add_optin_or_optout_action_link() {
+		function _add_tracking_links() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return;
 			}
 
 			$this->_logger->entrance();
 
-			if ( !$this->is_enable_anonymous() || !$this->is_free_plan() ) {
+			if ( ! $this->is_enable_anonymous() ) {
+				// Don't allow to opt-out if anonymous mode is disabled.
 				return;
 			}
-			
+
+			if ( ! $this->is_free_plan() ) {
+				// Don't allow to opt-out if running in paid plan.
+				return;
+			}
+
 			if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
 				return;
 			}
@@ -10451,6 +10457,7 @@
 			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
 				if ( ! $this->is_registered() && $this->is_anonymous() ) {
 					$this->connect_again();
+
 					return;
 				}
 			}
