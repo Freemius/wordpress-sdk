@@ -236,8 +236,8 @@
 		'opt-out-cancel'                           => __( 'On second thought - I want to continue helping', 'freemius' ),
 		'opting-out'                               => __( 'Opting out...', 'freemius' ),
 		'opting-in'                                => __( 'Opting in...', 'freemius' ),
-		'opt-out-message-appreciation'             => __( 'We appreciate your help in letting us track some usage data.', 'freemius' ),
-		'opt-out-message-usage-tracking'           => __( "Usage tracking is done in the name of making %s better. Making a better user experience, new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking." ),
+		'opt-out-message-appreciation'             => __( 'We appreciate your help in making the %s better by letting us track some usage data.', 'freemius' ),
+		'opt-out-message-usage-tracking'           => __( "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking." ),
 		'opt-out-message-clicking-opt-out'         => __( 'By clicking "Opt Out", we will no longer be sending any data from %s to %s.' ),
 		#endregion Connect
 
