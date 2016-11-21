@@ -5677,7 +5677,7 @@
 			if ( $this->is_registered() ) {
 				$api     = $fs->get_api_site_scope();
 				$install = $api->call( '/', 'put', array(
-					'license_key' => $license_key
+					'license_key' => $this->apply_filters( 'license_key', $license_key )
 				) );
 
 				if ( isset( $install->error ) ) {
@@ -6615,8 +6615,10 @@
 
 			$params = $this->get_opt_in_params( $user_info );
 
+			$filtered_license_key = false;
 			if ( is_string( $license_key ) ) {
-				$params['license_key'] = $license_key;
+				$filtered_license_key = $this->apply_filters( 'license_key', $license_key );
+				$params['license_key'] = $filtered_license_key;
 			}
 
 			if ( $is_uninstall ) {
@@ -6676,12 +6678,17 @@
 			}
 
 			if ( $this->is_api_error( $decoded ) ) {
+				if ( ! empty( $params['license_key'] ) ) {
+					// Pass full the fully entered license key to the failure handler.
+					$params['license_key'] = $license_key;
+				}
+
 				return $is_uninstall ?
 					$decoded :
 					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
-				return $this->set_pending_confirmation( true, false, $license_key );
+				return $this->set_pending_confirmation( true, false, $filtered_license_key );
 			} else if ( isset( $decoded->install_secret_key ) ) {
 				return $this->install_with_new_user(
 					$decoded->user_id,
@@ -6960,7 +6967,8 @@
 			$license_key          = fs_request_get( 'license_secret_key' );
 
 			if ( ! empty( $license_key ) ) {
-				$extra_install_params['license_key'] = $license_key;
+				$filtered_license_key                = $this->apply_filters( 'license_key', $license_key );
+				$extra_install_params['license_key'] = $filtered_license_key;
 			}
 
 			$args = $this->get_install_data_for_api( $extra_install_params, false, false );
@@ -6973,6 +6981,11 @@
 			);
 
 			if ( $this->is_api_error( $install ) ) {
+				if ( ! empty( $args['license_key'] ) ) {
+					// Pass full the fully entered license key to the failure handler.
+					$args['license_key'] = $license_key;
+				}
+
 				$install = $this->apply_filters( 'after_install_failure', $install, $args );
 
 				$this->_admin_notices->add(

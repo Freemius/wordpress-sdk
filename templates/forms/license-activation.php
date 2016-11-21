@@ -61,6 +61,12 @@
 
 	$license_key_text = __fs(  'license-key' , $slug );
 
+	/**
+	 * IMPORTANT:
+	 *  DO NOT ADD MAXLENGTH OR LIMIT THE LICENSE KEY LENGTH SINCE
+	 *  WE DO WANT TO ALLOW INPUT OF LONGER KEYS (E.G. WooCommerce Keys)
+	 *  FOR MIGRATED MODULES.
+	 */
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
