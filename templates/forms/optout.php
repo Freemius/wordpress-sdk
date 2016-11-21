@@ -58,6 +58,9 @@ HTML;
 			modalHtml =
 				'<div class="fs-modal fs-modal-opt-out">'
 				+ '	<div class="fs-modal-dialog">'
+				+ '		<div class="fs-modal-header">'
+				+ '		    <h4><?php echo $opt_out_button_text ?></h4>'
+				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
