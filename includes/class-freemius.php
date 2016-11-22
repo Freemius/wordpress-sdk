@@ -6679,7 +6679,7 @@
 
 			if ( $this->is_api_error( $decoded ) ) {
 				if ( ! empty( $params['license_key'] ) ) {
-					// Pass full the fully entered license key to the failure handler.
+					// Pass the fully entered license key to the failure handler.
 					$params['license_key'] = $license_key;
 				}
 
