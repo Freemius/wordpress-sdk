@@ -2115,7 +2115,7 @@
 						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
 						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
 						) {
-							if ( ! $this->_enable_anonymous ) {
+							if ( ! $this->_enable_anonymous || $this->is_premium() ) {
 								// If anonymous mode is disabled, add firewall admin-notice message.
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
