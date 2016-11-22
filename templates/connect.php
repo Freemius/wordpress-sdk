@@ -122,10 +122,9 @@
 					}
 
 					echo $fs->apply_filters( $filter,
+						sprintf( __fs( 'hey-x', $slug ), $first_name ) . '<br>' .
 						sprintf(
-							__fs( 'hey-x', $slug ) . '<br>' .
 							__fs( $default_optin_message, $slug ),
-							$first_name,
 							'<b>' . $fs->get_plugin_name() . '</b>',
 							'<b>' . $current_user->user_login . '</b>',
 							'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
@@ -304,7 +303,7 @@
 					 * process the after install failure hook.
 					 *
 					 * @author Vova Feldman (@svovaf)
-					 * @since 1.2.2
+					 * @since 1.2.1.5
 					 */
 					$.ajax({
 						url    : ajaxurl,
