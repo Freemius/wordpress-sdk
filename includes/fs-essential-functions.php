@@ -412,7 +412,7 @@
 		$args = func_get_args();
 
 		return call_user_func_array( 'apply_filters', array_merge(
-				array( 'fs_' . $tag . '_' . $slug ),
+				array( "fs_{$tag}_{$slug}" ),
 				array_slice( $args, 2 ) )
 		);
 	}
