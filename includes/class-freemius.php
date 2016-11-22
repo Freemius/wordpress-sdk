@@ -1450,7 +1450,7 @@
 				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
 				 *
-				 * @since 1.2.2 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
+				 * @since 1.2.1.5 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
 				                $this->is_premium() ||
@@ -2302,7 +2302,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since 1.2.2
+		 * @since 1.2.1.5
 		 */
 		function _stop_tracking_callback() {
 			$result = $this->stop_tracking();
@@ -2321,7 +2321,7 @@
 
 		/**
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 */
 		function _allow_tracking_callback() {
 			$result = $this->allow_tracking();
@@ -2349,7 +2349,7 @@
 		 *  3. object - API result on failure.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 *
 		 * @return bool|object
 		 */
@@ -2441,7 +2441,7 @@
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 */
 		private function reconnect_locally() {
 			$this->_logger->entrance();
@@ -3658,7 +3658,7 @@
 		 * Check if it's the first plugin release that is running Freemius.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 *
 		 * @return bool
 		 */
@@ -4875,7 +4875,7 @@
 		 * Returns TRUE if the user opted-in and didn't disconnect (opt-out).
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 *
 		 * @return bool
 		 */
@@ -5611,7 +5611,7 @@
 		 * page.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 */
 		function _add_optout_dialog() {
 			$vars = array(
@@ -6889,9 +6889,9 @@
 		 *
 		 * @param bool $email
 		 * @param bool $redirect
-		 * @param bool $license_key Since 1.2.2
+		 * @param bool $license_key Since 1.2.1.5
 		 *
-		 * @return string Since 1.2.2 if $redirect is `false`, return the pending activation page.
+		 * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
 		 */
 		private function set_pending_confirmation(
 			$email = false,
@@ -10440,7 +10440,7 @@
 		 * Adds "Opt in" or "Opt out" link to the main "Plugins" page link actions collection.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 */
 		function _add_tracking_links() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {

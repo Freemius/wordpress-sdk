@@ -80,7 +80,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 *
 		 * @var bool
 		 */
