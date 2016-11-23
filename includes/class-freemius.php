@@ -6581,8 +6581,7 @@
 
 		/**
 		 * 1. If successful opt-in or pending activation returns the next page that the user should be redirected to.
-		 * 2. If had any HTTP issue, return `false`.
-		 * 3. If there was an API error, return the API result.
+		 * 2. If there was an API error, return the API result.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
@@ -6671,9 +6670,11 @@
 			if ( $response instanceof WP_Error ) {
 				if ( 'https://' === substr( $url, 0, 8 ) &&
 				     isset( $response->errors ) &&
-				     isset( $response->errors['http_request_failed'] ) &&
-				     false !== strpos( $response->errors['http_request_failed'][0], 'sslv3 alert handshake' )
+				     isset( $response->errors['http_request_failed'] )
 				) {
+					$http_error = strtolower( $response->errors['http_request_failed'][0] );
+
+					if ( false !== strpos( $http_error, 'ssl' ) ) {
 					// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
 					$url = 'http://' . substr( $url, 8 );
 
@@ -6683,14 +6684,26 @@
 						'timeout' => 15,
 					) );
 				}
-
-				if ( $response instanceof WP_Error ) {
-					return false;
 				}
 			}
 
 			if ( is_wp_error( $response ) ) {
-				return false;
+				/**
+				 * @var WP_Error $response
+				 */
+				$result = new stdClass();
+
+				$error_code = $response->get_error_code();
+				$error_type = str_replace( ' ', '', ucwords( str_replace( '_', ' ', $error_code ) ) );
+
+				$result->error = (object) array(
+					'type'    => $error_type,
+					'message' => $response->get_error_message(),
+					'code'    => $error_code,
+					'http'    => 402
+				);
+
+				return $result;
 			}
 
 			// Module is being uninstalled, don't handle the returned data.
