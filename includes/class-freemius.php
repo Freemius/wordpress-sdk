@@ -6186,7 +6186,7 @@
 			self::require_pluggable_essentials();
 
 			return ( $add_action_nonce && is_string( $action ) ) ?
-				wp_nonce_url( $this->_get_admin_page_url( 'account', $params ), $action ) :
+				fs_nonce_url( $this->_get_admin_page_url( 'account', $params ), $action ) :
 				$this->_get_admin_page_url( 'account', $params );
 		}
 
