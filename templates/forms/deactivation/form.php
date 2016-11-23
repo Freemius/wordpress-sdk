@@ -168,6 +168,7 @@ HTML;
 					method    : 'POST',
 					data      : {
 						'action'      : '<?php echo $fs->get_action_tag( 'submit_uninstall_reason' ) ?>',
+						'slug'        : '<?php echo $slug ?>',
 						'reason_id'   : $radio.val(),
 						'reason_info' : userReason,
 						'is_anonymous': isAnonymousFeedback()

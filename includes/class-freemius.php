@@ -495,6 +495,9 @@
 
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
+			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
+
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
@@ -564,8 +567,7 @@
 						array( &$this, '_submit_uninstall_reason_action' )
 					);
 
-					global $pagenow;
-					if ( 'plugins.php' === $pagenow ) {
+					if ( $this->is_plugins_page() ) {
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
 				}
@@ -1460,7 +1462,7 @@
 				/**
 				 * @since 1.1.6 During dev mode, if there's connectivity - turn Freemius on regardless the configuration.
 				 *
-				 * @since 1.2.2 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
+				 * @since 1.2.1.5 If the user running the premium version then ignore the 'is_active' flag and turn Freemius on to enable license key activation.
 				 */
 				$this->_is_on = $this->_storage->connectivity_test['is_active'] ||
 				                $this->is_premium() ||
@@ -2125,7 +2127,7 @@
 						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
 						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
 						) {
-							if ( ! $this->_enable_anonymous ) {
+							if ( ! $this->_enable_anonymous || $this->is_premium() ) {
 								// If anonymous mode is disabled, add firewall admin-notice message.
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
@@ -2177,7 +2179,7 @@
 					 *
 					 */
 					if ( $this->is_registered() ) {
-						if ( ! $this->is_sync_cron_on() ) {
+						if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
 							$this->schedule_sync_cron();
 						}
 					}
@@ -2206,8 +2208,7 @@
 			}
 
 			if ( $this->is_user_in_admin() ) {
-				global $pagenow;
-				if ( 'plugins.php' === $pagenow ) {
+				if ( $this->is_plugins_page() ) {
 					$this->hook_plugin_action_links();
 				}
 
@@ -2308,26 +2309,160 @@
 					$this->do_action( 'after_init_addon_pending_activations' );
 				}
 			}
+		}
 
-			// Add license activation link and AJAX request handler.
-			if ( $this->has_paid_plan() ) {
-				global $pagenow;
-				if ( 'plugins.php' === $pagenow ) {
-					/**
-					 * @since 1.2.0 Add license action link only on plugins page.
-					 */
-					$this->_add_license_action_link();
-					$this->_require_license_activation_dialog();
-				}
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since 1.2.1.5
+		 */
+		function _stop_tracking_callback() {
+			$result = $this->stop_tracking();
 
-				if ( $this->is_ajax_action( array(
-					'activate_license',
-					'resend_license_key'
-				) )
-				) {
-					// Hook license activation and resend AJAX callbacks.
-					$this->_require_license_activation_dialog();
-				}
+			if ( true === $result ) {
+				$this->shoot_ajax_success();
+			}
+
+			$this->shoot_ajax_failure(
+				__fs( 'unexpected-api-error', $this->_slug ) .
+				( $this->is_api_error( $result ) && isset( $result->error ) ?
+					$result->error->message :
+					var_export( $result, true ) )
+			);
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 */
+		function _allow_tracking_callback() {
+			$result = $this->allow_tracking();
+
+			if ( true === $result ) {
+				$this->shoot_ajax_success();
+			}
+
+			$this->shoot_ajax_failure(
+				__fs( 'unexpected-api-error', $this->_slug ) .
+				( $this->is_api_error( $result ) && isset( $result->error ) ?
+					$result->error->message :
+					var_export( $result, true ) )
+			);
+		}
+
+		/**
+		 * Opt-out from usage tracking.
+		 *
+		 * Note: This will not delete the account information but will stop all tracking.
+		 *
+		 * Returns:
+		 *  1. FALSE  - If the user never opted-in.
+		 *  2. TRUE   - If successfully opted-out.
+		 *  3. object - API result on failure.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool|object
+		 */
+		function stop_tracking() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ) {
+				// User never opted-in.
+				return false;
+			}
+
+			if ( $this->is_tracking_prohibited() ) {
+				// Already disconnected.
+				return true;
+			}
+
+			// Send update to FS.
+			$result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+				'is_disconnected' => true
+			) );
+
+			if ( $this->is_api_error( $result ) ||
+			     ! isset( $result->is_disconnected ) ||
+			     ! $result->is_disconnected
+			) {
+				return $result;
+			}
+
+			$this->_site->is_disconnected = $result->is_disconnected;
+			$this->_store_site();
+
+			$this->clear_sync_cron();
+
+			// Successfully disconnected.
+			return true;
+		}
+
+		/**
+		 * Opt-in back into usage tracking.
+		 *
+		 * Note: This will only work if the user opted-in previously.
+		 *
+		 * Returns:
+		 *  1. FALSE  - If the user never opted-in.
+		 *  2. TRUE   - If successfully opted-in back to usage tracking.
+		 *  3. object - API result on failure.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool|object
+		 */
+		function allow_tracking() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ) {
+				// User never opted-in.
+				return false;
+			}
+
+			if ( $this->is_tracking_allowed() ) {
+				// Tracking already allowed.
+				return true;
+			}
+
+			$result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
+				'is_disconnected' => false
+			) );
+
+			if ( $this->is_api_error( $result ) ||
+			     ! isset( $result->is_disconnected ) ||
+			     $result->is_disconnected
+			) {
+				return $result;
+			}
+
+			$this->_site->is_disconnected = $result->is_disconnected;
+			$this->_store_site();
+
+			$this->schedule_sync_cron();
+
+			// Successfully reconnected.
+			return true;
+		}
+
+		/**
+		 * If user opted-in and later disabled usage-tracking,
+		 * re-allow tracking for licensing and updates.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.1.5
+		 */
+		private function reconnect_locally() {
+			$this->_logger->entrance();
+
+			if ( $this->is_tracking_prohibited() &&
+			     $this->is_registered()
+			) {
+				$this->_site->is_disconnected = false;
+				$this->_store_site();
 			}
 		}
 
@@ -2542,11 +2677,9 @@
 		function _plugin_code_type_changed() {
 			$this->_logger->entrance();
 
-			// Schedule code type changes event.
-//			$this->sync_install();
-			$this->schedule_install_sync();
-
 			if ( $this->is_premium() ) {
+				$this->reconnect_locally();
+
 				// Activated premium code.
 				$this->do_action( 'after_premium_version_activation' );
 
@@ -2555,6 +2688,7 @@
 					'trial_started',
 					'plan_upgraded',
 					'plan_changed',
+					'license_activated',
 				) );
 
 				$this->_admin_notices->add_sticky(
@@ -2580,6 +2714,9 @@
 					);
 				}
 			}
+
+			// Schedule code type changes event.
+			$this->schedule_install_sync();
 
 			/**
 			 * Unregister the uninstall hook for the other version of the plugin (with different code type) to avoid
@@ -3533,7 +3670,7 @@
 		 * Check if it's the first plugin release that is running Freemius.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.2
+		 * @since  1.2.1.5
 		 *
 		 * @return bool
 		 */
@@ -3562,6 +3699,8 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
+				$this->reconnect_locally();
+
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
@@ -4130,6 +4269,7 @@
 				'url'                          => get_site_url(),
 				// Special params.
 				'is_active'                    => true,
+				'is_disconnected'              => $this->is_tracking_prohibited(),
 				'is_uninstalled'               => false,
 			), $override );
 		}
@@ -4159,7 +4299,7 @@
 
 				foreach ( $check_properties as $p => $v ) {
 					if ( property_exists( $this->_site, $p ) ) {
-						if ( ! empty( $this->_site->{$p} ) &&
+						if ( ( is_bool( $this->_site->{$p} ) || ! empty( $this->_site->{$p} ) ) &&
 						     $this->_site->{$p} != $v
 						) {
 							$this->_site->{$p} = $v;
@@ -4755,6 +4895,18 @@
 		 */
 		function is_registered() {
 			return is_object( $this->_user );
+		}
+
+		/**
+		 * Returns TRUE if the user opted-in and didn't disconnect (opt-out).
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool
+		 */
+		function is_tracking_allowed() {
+			return ( is_object($this->_site) && true !== $this->_site->is_disconnected );
 		}
 
 		/**
@@ -5481,29 +5633,55 @@
 		}
 
 		/**
+		 * Displays the opt-out dialog box when the user clicks on the "Opt Out" link on the "Plugins"
+		 * page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 */
+		function _add_optout_dialog() {
+			$vars = array(
+				'slug' => $this->_slug,
+			);
+
+			fs_require_template( 'forms/optout.php', $vars );
+		}
+
+		/**
 		 * Prepare page to include all required UI and logic for the license activation dialog.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.0
 		 */
-		function _require_license_activation_dialog() {
-			if ( $this->is_ajax() ) {
-				if ( $this->is_ajax_action( 'activate_license' ) ) {
-					// Add license activation AJAX callback.
-					$this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
-				}
-
-				if ( $this->is_ajax_action( 'resend_license_key' ) ) {
-					// Add resend license AJAX callback.
-					$this->add_ajax_action( 'resend_license_key', array(
-						&$this,
-						'_resend_license_key_ajax_action'
-					) );
-				}
-			} else {
-				// Inject license activation dialog UI and client side code.
-				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+		function _add_license_activation() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				// Only admins can activate a license.
+				return;
 			}
+
+			if ( ! $this->has_paid_plan() ) {
+				// Module doesn't have any paid plans.
+				return;
+			}
+
+			if ( ! $this->is_premium() ) {
+				// Only add license activation logic to the premium version.
+				return;
+			}
+
+			// Add license activation link and AJAX request handler.
+			if ( $this->is_plugins_page() ) {
+				/**
+				 * @since 1.2.0 Add license action link only on plugins page.
+				 */
+				$this->_add_license_action_link();
+			}
+
+			// Add license activation AJAX callback.
+			$this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
+
+			// Add resend license AJAX callback.
+			$this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
 		}
 
 		/**
@@ -5525,7 +5703,7 @@
 			if ( $this->is_registered() ) {
 				$api     = $fs->get_api_site_scope();
 				$install = $api->call( '/', 'put', array(
-					'license_key' => $license_key
+					'license_key' => $this->apply_filters( 'license_key', $license_key )
 				) );
 
 				if ( isset( $install->error ) ) {
@@ -5536,6 +5714,8 @@
 						$this;
 
 					$next_page = $fs->_get_sync_license_url( $this->get_id(), true );
+
+					$this->reconnect_locally();
 				}
 			} else {
 				$next_page = $this->opt_in( false, false, false, $license_key );
@@ -5607,6 +5787,20 @@
 			echo json_encode( $licenses );
 
 			exit;
+		}
+
+		/**
+		 * Helper method to check if user in the plugins page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @return bool
+		 */
+		private function is_plugins_page() {
+			global $pagenow;
+
+			return ( 'plugins.php' === $pagenow );
 		}
 
 		#----------------------------------------------------------------------------------
@@ -6448,8 +6642,10 @@
 
 			$params = $this->get_opt_in_params( $user_info );
 
+			$filtered_license_key = false;
 			if ( is_string( $license_key ) ) {
-				$params['license_key'] = $license_key;
+				$filtered_license_key = $this->apply_filters( 'license_key', $license_key );
+				$params['license_key'] = $filtered_license_key;
 			}
 
 			if ( $is_uninstall ) {
@@ -6509,12 +6705,17 @@
 			}
 
 			if ( $this->is_api_error( $decoded ) ) {
+				if ( ! empty( $params['license_key'] ) ) {
+					// Pass the fully entered license key to the failure handler.
+					$params['license_key'] = $license_key;
+				}
+
 				return $is_uninstall ?
 					$decoded :
 					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
-				return $this->set_pending_confirmation( true, false, $license_key );
+				return $this->set_pending_confirmation( true, false, $filtered_license_key );
 			} else if ( isset( $decoded->install_secret_key ) ) {
 				return $this->install_with_new_user(
 					$decoded->user_id,
@@ -6715,9 +6916,9 @@
 		 *
 		 * @param bool $email
 		 * @param bool $redirect
-		 * @param bool $license_key Since 1.2.2
+		 * @param bool $license_key Since 1.2.1.5
 		 *
-		 * @return string Since 1.2.2 if $redirect is `false`, return the pending activation page.
+		 * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
 		 */
 		private function set_pending_confirmation(
 			$email = false,
@@ -6790,10 +6991,11 @@
 			 * @author Vova Feldman (@svovaf)
 			 * @since  1.1.9 Add license key if given.
 			 */
-			$license_key = fs_request_get( 'license_secret_key' );
+			$license_key          = fs_request_get( 'license_secret_key' );
 
 			if ( ! empty( $license_key ) ) {
-				$extra_install_params['license_key'] = $license_key;
+				$filtered_license_key                = $this->apply_filters( 'license_key', $license_key );
+				$extra_install_params['license_key'] = $filtered_license_key;
 			}
 
 			$args = $this->get_install_data_for_api( $extra_install_params, false, false );
@@ -6805,7 +7007,12 @@
 				$args
 			);
 
-			if ( $this->is_api_error($install) ) {
+			if ( $this->is_api_error( $install ) ) {
+				if ( ! empty( $args['license_key'] ) ) {
+					// Pass full the fully entered license key to the failure handler.
+					$args['license_key'] = $license_key;
+				}
+
 				$install = $this->apply_filters( 'after_install_failure', $install, $args );
 
 				$this->_admin_notices->add(
@@ -7505,11 +7712,62 @@
 		 * @param int      $accepted_args
 		 *
 		 * @uses   add_action()
+		 *
+		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
 		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
 			$this->_logger->entrance( $tag );
 
+			if ( ! $this->is_ajax_action( $tag ) ) {
+				return false;
+			}
+
 			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+
+			$this->_logger->info( "$tag AJAX callback action added." );
+
+			return true;
+		}
+
+		/**
+		 * Send a JSON response back to an Ajax request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $response
+		 */
+		function shoot_ajax_response( $response ) {
+			wp_send_json( $response );
+		}
+
+		/**
+		 * Send a JSON response back to an Ajax request, indicating success.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $data Data to encode as JSON, then print and exit.
+		 */
+		function shoot_ajax_success( $data = null ) {
+			wp_send_json_success( $data );
+		}
+
+		/**
+		 * Send a JSON response back to an Ajax request, indicating failure.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $error Optional error message.
+		 */
+		function shoot_ajax_failure( $error = '' ) {
+			$result = array( 'success' => false );
+			if ( ! empty( $error ) ) {
+				$result['error'] = $error;
+			}
+
+			wp_send_json( $result );
 		}
 
 		/**
@@ -9720,7 +9978,8 @@
 
 			if ( $this->has_paid_plan() &&
 			     ! $this->has_any_license() &&
-			     ! $this->is_sync_executed()
+			     ! $this->is_sync_executed() &&
+				 $this->is_tracking_allowed()
 			) {
 				/**
 				 * If no licenses found and no sync job was executed during the last 24 hours,
@@ -10191,6 +10450,11 @@
 				return;
 			}
 
+			if ( ! $this->is_ajax() ) {
+				// Inject license activation dialog UI and client side code.
+				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+			}
+
 			$link_text = __fs(
 				$this->is_free_plan() ? 'activate-license' : 'change-license',
 				$this->_slug
@@ -10202,6 +10466,77 @@
 				false,
 				11,
 				( 'activate-license ' . $this->_slug )
+			);
+		}
+
+		/**
+		 * Adds "Opt in" or "Opt out" link to the main "Plugins" page link actions collection.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.5
+		 */
+		function _add_tracking_links() {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
+			$this->_logger->entrance();
+
+			if ( ! $this->is_enable_anonymous() ) {
+				// Don't allow to opt-out if anonymous mode is disabled.
+				return;
+			}
+
+			if ( ! $this->is_free_plan() ) {
+				// Don't allow to opt-out if running in paid plan.
+				return;
+			}
+
+			if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
+				return;
+			}
+
+			if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
+				return;
+			}
+
+			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
+				if ( ! $this->is_registered() && $this->is_anonymous() ) {
+					$this->connect_again();
+
+					return;
+				}
+			}
+
+			$url = '#';
+
+			if ( $this->is_registered() ) {
+				if ( $this->is_tracking_allowed() ) {
+					$link_text_id = 'opt-out';
+				} else {
+					$link_text_id = 'opt-in';
+				}
+
+				add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
+			} else {
+				$link_text_id = 'opt-in';
+
+				$params = ! $this->is_anonymous() ?
+					array() :
+					array(
+						'nonce'     => wp_create_nonce( $this->_slug . '_reconnect' ),
+						'fs_action' => ( $this->_slug . '_reconnect' ),
+					);
+
+				$url = $this->get_activation_url( $params );
+			}
+
+			$this->add_plugin_action_link(
+				__fs( $link_text_id, $this->_slug ),
+				$url,
+				false,
+				13,
+				"opt-in-or-opt-out {$this->_slug}"
 			);
 		}
 

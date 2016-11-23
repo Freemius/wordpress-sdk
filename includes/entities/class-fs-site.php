@@ -86,6 +86,14 @@
 		 * @var bool
 		 */
 		public $is_premium = false;
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 *
+		 * @since  1.2.1.5
+		 *
+		 * @var bool
+		 */
+		public $is_disconnected = false;
 
 		/**
 		 * @param stdClass|bool $site
@@ -97,6 +105,10 @@
 
 			if ( is_object( $site ) ) {
 				$this->plan->id = $site->plan_id;
+			}
+
+			if ( ! is_bool( $this->is_disconnected ) ) {
+				$this->is_disconnected = false;
 			}
 		}
 

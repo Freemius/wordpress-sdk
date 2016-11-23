@@ -64,7 +64,7 @@
 			ob_start();
 
 			$VARS = &$params;
-			require_once( fs_get_template_path( $path ) );
+			require( fs_get_template_path( $path ) );
 
 			return ob_get_clean();
 		}
@@ -156,6 +156,40 @@
 
 	function fs_request_is_action( $action, $action_key = 'action' ) {
 		return ( strtolower( $action ) === fs_get_action( $action_key ) );
+	}
+
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 * @since 1.0.0
+	 *
+	 * @since 1.2.1.5 Allow nonce verification.
+	 *
+	 * @param string      $action
+	 * @param string      $action_key
+	 * @param string      $nonce_key
+	 *
+	 * @return bool
+	 */
+	function fs_request_is_action_secure(
+		$action,
+		$action_key = 'action',
+		$nonce_key = 'nonce'
+	) {
+		if ( strtolower( $action ) !== fs_get_action( $action_key ) ){
+			return false;
+		}
+
+		$nonce = ! empty( $_REQUEST[ $nonce_key ] ) ?
+			$_REQUEST[ $nonce_key ] :
+			'';
+
+		if ( empty($nonce) ||
+			( false === wp_verify_nonce( $nonce, $action ) )
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	function fs_is_plugin_page( $menu_slug ) {
