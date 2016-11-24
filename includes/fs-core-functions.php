@@ -160,13 +160,13 @@
 
 	/**
 	 * @author Vova Feldman (@svovaf)
-	 * @since 1.0.0
+	 * @since  1.0.0
 	 *
-	 * @since 1.2.1.5 Allow nonce verification.
+	 * @since  1.2.1.5 Allow nonce verification.
 	 *
-	 * @param string      $action
-	 * @param string      $action_key
-	 * @param string      $nonce_key
+	 * @param string $action
+	 * @param string $action_key
+	 * @param string $nonce_key
 	 *
 	 * @return bool
 	 */
@@ -175,7 +175,7 @@
 		$action_key = 'action',
 		$nonce_key = 'nonce'
 	) {
-		if ( strtolower( $action ) !== fs_get_action( $action_key ) ){
+		if ( strtolower( $action ) !== fs_get_action( $action_key ) ) {
 			return false;
 		}
 
@@ -183,8 +183,8 @@
 			$_REQUEST[ $nonce_key ] :
 			'';
 
-		if ( empty($nonce) ||
-			( false === wp_verify_nonce( $nonce, $action ) )
+		if ( empty( $nonce ) ||
+		     ( false === wp_verify_nonce( $nonce, $action ) )
 		) {
 			return false;
 		}
@@ -321,9 +321,26 @@
 
 	set_error_handler('fs_error_handler');*/
 
-	function fs_nonce_url( $actionurl, $action = - 1, $name = '_wpnonce' ) {
-//		$actionurl = str_replace( '&amp;', '&', $actionurl );
-		return add_query_arg( $name, wp_create_nonce( $action ), $actionurl );
+	if ( ! function_exists( 'fs_nonce_url' ) ) {
+		/**
+		 * Retrieve URL with nonce added to URL query.
+		 *
+		 * Originally was using `wp_nonce_url()` but the new version
+		 * changed the return value to escaped URL, that's not the expected
+		 * behaviour.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  ~1.1.3
+		 *
+		 * @param string     $actionurl URL to add nonce action.
+		 * @param int|string $action    Optional. Nonce action name. Default -1.
+		 * @param string     $name      Optional. Nonce name. Default '_wpnonce'.
+		 *
+		 * @return string Escaped URL with nonce action added.
+		 */
+		function fs_nonce_url( $actionurl, $action = - 1, $name = '_wpnonce' ) {
+			return add_query_arg( $name, wp_create_nonce( $action ), $actionurl );
+		}
 	}
 
 	if ( ! function_exists( 'fs_starts_with' ) ) {
@@ -494,4 +511,3 @@
 		// If both have priority return the winner.
 		return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
 	}
-
