@@ -278,6 +278,23 @@
 		}
 
 		/**
+		 * Invalidate a cached version of the API request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param string $path
+		 * @param string $method
+		 * @param array  $params
+		 */
+		function purge_cache( $path, $method = 'GET', $params = array() )
+		{
+			$cache_key = $this->get_cache_key( $path, $method, $params );
+
+			self::$_cache->purge( $cache_key );
+		}
+
+		/**
 		 * @param string $path
 		 * @param string $method
 		 * @param array  $params

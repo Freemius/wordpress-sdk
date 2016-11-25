@@ -497,6 +497,7 @@
 
 			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
 			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
+			$this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
@@ -4636,6 +4637,18 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @return number Parent plugin ID (if parent exist).
+		 */
+		function get_parent_id() {
+			return $this->is_addon() ?
+				$this->get_parent_instance()->get_id() :
+				$this->_plugin->id;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
 		 *
 		 * @return string Plugin public key.
@@ -5738,6 +5751,37 @@
 			echo json_encode( $result );
 
 			exit;
+		}
+
+		/**
+		 * Billing update AJAX callback.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 */
+		function _update_billing_ajax_action() {
+			check_ajax_referer( $this->get_action_tag( 'update_billing' ), 'security' );
+
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				// Only for admins.
+				$this->shoot_ajax_failure();
+			}
+
+			$billing = fs_request_get( 'billing' );
+
+			$api    = $this->get_api_user_scope();
+			$result = $api->call( '/billing.json', 'put', array_merge( $billing, array(
+				'plugin_id' => $this->get_parent_id(),
+			) ) );
+
+			if ( $this->is_api_error( $result ) ) {
+				$this->shoot_ajax_failure();
+			}
+
+			// Purge cached billing.
+			$this->get_api_user_scope()->purge_cache( 'billing.json' );
+
+			$this->shoot_ajax_success();
 		}
 
 		/**
@@ -8319,6 +8363,25 @@
 			}
 
 			return $result;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 * @uses   FS_Api
+		 *
+		 * @return \FS_Billing|mixed
+		 */
+		function _fetch_billing() {
+			$billing = $this->get_api_user_scope()->call( 'billing.json' );
+
+			if ( ! $this->is_api_error( $billing ) ) {
+				require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
+
+				$billing = new FS_Billing( $billing );
+			}
+
+			return $billing;
 		}
 
 		/**

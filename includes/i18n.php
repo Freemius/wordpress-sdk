@@ -57,6 +57,7 @@
 		'show'                          => _x( 'Show', 'verb', 'freemius' ),
 		'hide'                          => _x( 'Hide', 'verb', 'freemius' ),
 		'edit'                          => _x( 'Edit', 'verb', 'freemius' ),
+		'update'                        => _x( 'Update', 'verb', 'freemius' ),
 		'date'                          => __( 'Date', 'freemius' ),
 		'amount'                        => __( 'Amount', 'freemius' ),
 		'invoice'                       => __( 'Invoice', 'freemius' ),
@@ -479,13 +480,17 @@
 		'free-addon-not-deployed'                  => __( 'Add-on must be deployed to WordPress.org or Freemius.',
 			'freemius' ),
 		'paid-addon-not-deployed'                  => __( 'Paid add-on must be deployed to Freemius.', 'freemius' ),
+		#--------------------------------------------------------------------------------
 		#region Add-On Licensing
+		#--------------------------------------------------------------------------------
 		'addon-no-license-message'                 => __( '%s is a premium only add-on. You have to purchase a license first before activating the plugin.',
 			'freemius' ),
 		'addon-trial-cancelled-message'            => __( '%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you\'ll have to purchase a license.',
 			'freemius' ),
-		#endregion Add-On Licensing
+		#endregion
+		#--------------------------------------------------------------------------------
 		#region Billing Cycles
+		#--------------------------------------------------------------------------------
 		'monthly'                                  => _x( 'Monthly', 'as every month', 'freemius' ),
 		'mo'                                       => _x( 'mo', 'as monthly period', 'freemius' ),
 		'annual'                                   => _x( 'Annual', 'as once a year', 'freemius' ),
@@ -498,4 +503,18 @@
 		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
 		#endregion Billing Cycles
 		'view-details'                             => __( 'View details', 'freemius' ),
+		#--------------------------------------------------------------------------------
+		#region Billing Details
+		#--------------------------------------------------------------------------------
+		'business-name'                            => __( 'Business name', 'freemius' ),
+		'tax-vat-id'                               => __( 'Tax / VAT ID', 'freemius' ),
+		'address-line-n'                           => __( 'Address Line %d', 'freemius' ),
+		'country'                                  => __( 'Country', 'freemius' ),
+		'select-country'                           => __( 'Select Country', 'freemius' ),
+		'city'                                     => __( 'City', 'freemius' ),
+		'town'                                     => __( 'Town', 'freemius' ),
+		'state'                                    => __( 'State', 'freemius' ),
+		'province'                                 => __( 'Province', 'freemius' ),
+		'zip-postal-code'                          => __( 'ZIP / Postal Code', 'freemius' ),
+		#endregion
 	);
