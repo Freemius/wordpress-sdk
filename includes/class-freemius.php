@@ -6719,15 +6719,15 @@
 					$http_error = strtolower( $response->errors['http_request_failed'][0] );
 
 					if ( false !== strpos( $http_error, 'ssl' ) ) {
-					// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
-					$url = 'http://' . substr( $url, 8 );
+						// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+						$url = 'http://' . substr( $url, 8 );
 
-					$response = wp_remote_post( $url, array(
-						'method'  => 'POST',
-						'body'    => $params,
-						'timeout' => 15,
-					) );
-				}
+						$response = wp_remote_post( $url, array(
+							'method'  => 'POST',
+							'body'    => $params,
+							'timeout' => 15,
+						) );
+					}
 				}
 			}
 
@@ -6971,9 +6971,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
 		 *
-		 * @param bool $email
-		 * @param bool $redirect
-		 * @param bool $license_key Since 1.2.1.5
+		 * @param string|bool $email
+		 * @param bool        $redirect
+		 * @param string|bool $license_key Since 1.2.1.5
 		 *
 		 * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
 		 */
@@ -6987,9 +6987,12 @@
 			$this->_storage->is_pending_activation = true;
 			$this->_add_pending_activation_notice( $email );
 
-			if (!empty($license_key)){
+			if ( ! empty( $license_key ) ) {
 				$this->_storage->pending_license_key = $license_key;
 			}
+
+			// Remove the opt-in sticky notice.
+			$this->_admin_notices->remove_sticky( 'connect_account' );
 
 			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
 
