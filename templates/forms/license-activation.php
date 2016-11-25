@@ -16,28 +16,6 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	if ($fs->is_registered()) {
-		// The URL to redirect to after successfully activating the license from the "Plugins" page.
-		if ( $fs->is_addon() ) {
-			$sync_license_url = $fs->get_parent_instance()->_get_sync_license_url( $fs->get_id(), true );
-		} else {
-			$sync_license_url = $fs->_get_sync_license_url( $fs->get_id(), true );
-		}
-
-		/**
-		 * Trigger license sync after valid license activation.
-		 */
-		$after_license_activation_url = $sync_license_url;
-	}
-	else
-	{
-		/**
-		 * If user not yet registered, the license activation triggers
-		 * an opt-in, which automatically sync the license.
-		 */
-		$after_license_activation_url = $fs->get_account_url();
-	}
-
 	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
 	$message_above_input_field  = __fs( 'activate-license-message', $slug );
 	$message_below_input_field  = '';
@@ -102,8 +80,7 @@ HTML;
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
-			pluginSlug                = '<?php echo $slug ?>',
-			afterActivationUrl        = '<?php echo $after_license_activation_url ?>';
+			pluginSlug                = '<?php echo $slug ?>';
 
 		$modal.appendTo($('body'));
 
@@ -169,7 +146,7 @@ HTML;
 							closeModal();
 
 							// Redirect to the "Account" page and sync the license.
-							window.location.href = afterActivationUrl;
+							window.location.href = resultObj.next_page;
 						} else {
 							showError( resultObj.error );
 							resetActivateLicenseButton();
