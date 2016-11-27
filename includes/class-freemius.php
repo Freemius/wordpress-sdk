@@ -3391,8 +3391,9 @@
 		 * @since  1.0.7
 		 *
 		 * @param bool|string $email
+		 * @param bool        $is_pending_trial Since 1.2.1.5
 		 */
-		function _add_pending_activation_notice( $email = false ) {
+		function _add_pending_activation_notice( $email = false, $is_pending_trial = false ) {
 			if ( ! is_string( $email ) ) {
 				$current_user = self::_get_current_wp_user();
 				$email        = $current_user->user_email;
@@ -3402,7 +3403,8 @@
 				sprintf(
 					__fs( 'pending-activation-message', $this->_slug ),
 					'<b>' . $this->get_plugin_name() . '</b>',
-					'<b>' . $email . '</b>'
+					'<b>' . $email . '</b>',
+					__fs( $is_pending_trial ? 'start-the-trial' : 'complete-the-install', $this->_slug )
 				),
 				'activation_pending',
 				'Thanks!'
@@ -6854,7 +6856,12 @@
 					$this->apply_filters( 'after_install_failure', $decoded, $params );
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
-				return $this->set_pending_confirmation( true, false, $filtered_license_key );
+				return $this->set_pending_confirmation(
+					true,
+					false,
+					$filtered_license_key,
+					! empty( $params['trial_plan_id'] )
+				);
 			} else if ( isset( $decoded->install_secret_key ) ) {
 				return $this->install_with_new_user(
 					$decoded->user_id,
@@ -7071,25 +7078,30 @@
 		 * @param string|bool $email
 		 * @param bool        $redirect
 		 * @param string|bool $license_key Since 1.2.1.5
+		 * @param bool        $is_pending_trial Since 1.2.1.5
 		 *
 		 * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
 		 */
 		private function set_pending_confirmation(
 			$email = false,
 			$redirect = true,
-			$license_key = false
+			$license_key = false,
+			$is_pending_trial = false
 		) {
 			// Install must be activated via email since
 			// user with the same email already exist.
 			$this->_storage->is_pending_activation = true;
-			$this->_add_pending_activation_notice( $email );
+			$this->_add_pending_activation_notice( $email, $is_pending_trial );
 
 			if ( ! empty( $license_key ) ) {
 				$this->_storage->pending_license_key = $license_key;
 			}
 
 			// Remove the opt-in sticky notice.
-			$this->_admin_notices->remove_sticky( 'connect_account' );
+			$this->_admin_notices->remove_sticky( array(
+				'connect_account',
+				'trial_promotion',
+			) );
 
 			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
 
