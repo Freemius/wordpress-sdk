@@ -4662,6 +4662,16 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.5
 		 *
+		 * @return string Freemius SDK version
+		 */
+		function get_sdk_version() {
+			return $this->version;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
 		 * @return number Parent plugin ID (if parent exist).
 		 */
 		function get_parent_id() {
