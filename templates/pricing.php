@@ -35,6 +35,8 @@
 			$timestamp,
 			'upgrade'
 		) );
+	} else {
+		$context_params['home_url'] = home_url();
 	}
 
 	if ( $fs->is_payments_sandbox() ) // Append plugin secure token for sandbox mode authentication.)

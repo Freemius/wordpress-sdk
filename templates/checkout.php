@@ -57,17 +57,7 @@
 			'user_firstname' => $current_user->user_firstname,
 			'user_lastname'  => $current_user->user_lastname,
 			'user_email'     => $current_user->user_email,
-//			'user_nickname'    => $current_user->user_nicename,
-//			'plugin_slug'      => $slug,
-//			'site_url'         => get_site_url(),
-//			'site_name'        => get_bloginfo( 'name' ),
-//			'platform_version' => get_bloginfo( 'version' ),
-//			'language'         => get_bloginfo( 'language' ),
-//			'charset'          => get_bloginfo( 'charset' ),
-//			'account_url'      => fs_nonce_url( $fs->_get_admin_page_url(
-//				'account',
-//				array( 'fs_action' => 'sync_user' )
-//			), 'sync_user' ),
+			'home_url'       => home_url(),
 		) );
 
 		$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
