@@ -6650,6 +6650,16 @@
 
 			$current_user = self::_get_current_wp_user();
 
+			$activation_action = $this->_slug . '_activate_new';
+			$return_url        = $this->is_anonymous() ?
+				// If skipped already, then return to the account page.
+				$this->get_account_url( $activation_action, array(), false ) :
+				// Return to the module's main page.
+				$this->_get_admin_page_url(
+					'',
+					array( 'fs_action' => $activation_action )
+				);
+
 			$params = array(
 				'user_firstname'    => $current_user->user_firstname,
 				'user_lastname'     => $current_user->user_lastname,
@@ -6660,11 +6670,8 @@
 				'plugin_id'         => $this->get_id(),
 				'plugin_public_key' => $this->get_public_key(),
 				'plugin_version'    => $this->get_plugin_version(),
-				'return_url'        => wp_nonce_url( $this->_get_admin_page_url(
-					'',
-					array( 'fs_action' => $this->_slug . '_activate_new' )
-				), $this->_slug . '_activate_new' ),
-				'account_url'       => wp_nonce_url( $this->_get_admin_page_url(
+				'return_url'        => fs_nonce_url( $return_url, $activation_action ),
+				'account_url'       => fs_nonce_url( $this->_get_admin_page_url(
 					'account',
 					array( 'fs_action' => 'sync_user' )
 				), 'sync_user' ),
@@ -6981,7 +6988,10 @@
 				}
 
 				// Reload the page with the keys.
-				$next_page = $this->get_after_activation_url( 'after_connect_url' );
+				$next_page = $this->is_anonymous() ?
+					// If user previously skipped, redirect to account page.
+					$this->get_account_url() :
+					$this->get_after_activation_url( 'after_connect_url' );
 			}
 
 			if ( ! empty( $next_page ) &&
