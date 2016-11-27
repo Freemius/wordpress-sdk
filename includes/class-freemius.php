@@ -471,12 +471,12 @@
 				 * Hook to both free and premium version activations to support
 				 * auto deactivation on the other version activation.
 				 */
-				register_activation_hook( 
-					$plugin_dir . $this->_free_plugin_basename, 
+				register_activation_hook(
+					$plugin_dir . $this->_free_plugin_basename,
 					array( &$this, '_activate_plugin_event_hook' )
 				);
-				register_activation_hook( 
-					$plugin_dir . $this->premium_plugin_basename(), 
+				register_activation_hook(
+					$plugin_dir . $this->premium_plugin_basename(),
 					array( &$this, '_activate_plugin_event_hook' )
 				);
 
@@ -6752,7 +6752,7 @@
 			 */
 			if ( empty( $license_key ) ) {
 				// Clean up pending license if opt-ing in again.
-				$this->_storage->remove('pending_license_key');
+				$this->_storage->remove( 'pending_license_key' );
 
 				if ( ! $is_uninstall ) {
 					$fs_user = Freemius::_get_user_by_email( $email );
@@ -6777,7 +6777,7 @@
 
 			$filtered_license_key = false;
 			if ( is_string( $license_key ) ) {
-				$filtered_license_key = $this->apply_filters( 'license_key', $license_key );
+				$filtered_license_key  = $this->apply_filters( 'license_key', $license_key );
 				$params['license_key'] = $filtered_license_key;
 			} else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
 				$params['trial_plan_id'] = $trial_plan_id;
@@ -6940,14 +6940,14 @@
 
 			if ( $this->is_paying_or_trial() && ! $this->is_premium() ) {
 				if ( $this->is_paying() ) {
-				$this->_admin_notices->add_sticky(
-					sprintf(
-						__fs( 'activation-with-plan-x-message', $this->_slug ),
-						$this->_site->plan->title
-					) . $this->get_complete_upgrade_instructions(),
-					'plan_upgraded',
-					__fs( 'yee-haw', $this->_slug ) . '!'
-				);
+					$this->_admin_notices->add_sticky(
+						sprintf(
+							__fs( 'activation-with-plan-x-message', $this->_slug ),
+							$this->_site->plan->title
+						) . $this->get_complete_upgrade_instructions(),
+						'plan_upgraded',
+						__fs( 'yee-haw', $this->_slug ) . '!'
+					);
 				} else {
 					$this->_admin_notices->add_sticky(
 						sprintf(
@@ -7088,7 +7088,7 @@
 		 *
 		 * @param string|bool $email
 		 * @param bool        $redirect
-		 * @param string|bool $license_key Since 1.2.1.5
+		 * @param string|bool $license_key      Since 1.2.1.5
 		 * @param bool        $is_pending_trial Since 1.2.1.5
 		 *
 		 * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
@@ -7157,7 +7157,7 @@
 		 *
 		 * @param string|bool $license_key
 		 * @param number|bool $trial_plan_id
-		 * @param bool $redirect
+		 * @param bool        $redirect
 		 *
 		 * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
 		 */
@@ -9451,9 +9451,6 @@
 				// Store site updates.
 				$this->_store_site();
 
-				// Clear trial plan information.
-				unset( $this->_storage->trial_plan );
-
 				if ( ! $this->is_addon() ||
 				     ! $this->deactivate_premium_only_addon_without_license( true )
 				) {
@@ -9461,6 +9458,9 @@
 						sprintf( __fs( 'trial-cancel-message', $this->_slug ), $this->_storage->trial_plan->title )
 					);
 				}
+
+				// Clear trial plan information.
+				unset( $this->_storage->trial_plan );
 			} else {
 				$this->_admin_notices->add(
 					__fs( 'trial-cancel-failure-message', $this->_slug ),
@@ -10586,47 +10586,47 @@
 
 			if ( $this->is_registered() ) {
 				// If opted-in, override trial with up to date data from API.
-			$trial_plans       = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
-			$trial_plans_count = count( $trial_plans );
+				$trial_plans       = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
+				$trial_plans_count = count( $trial_plans );
 
-			if ( 0 === $trial_plans_count ) {
+				if ( 0 === $trial_plans_count ) {
 					// If there's no plans with a trial just exit.
 					return false;
-			}
+				}
 
-			/**
-			 * @var FS_Plugin_Plan $paid_plan
-			 */
-			$paid_plan            = $trial_plans[0];
+				/**
+				 * @var FS_Plugin_Plan $paid_plan
+				 */
+				$paid_plan       = $trial_plans[0];
 				$require_payment = $paid_plan->is_require_subscription;
 				$trial_period    = $paid_plan->trial_period;
 
-			$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
+				$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
 
 				if ( $total_paid_plans !== $trial_plans_count ) {
 					// Not all paid plans have a trial - generate a string of those that have it.
-				for ( $i = 0; $i < $trial_plans_count; $i ++ ) {
+					for ( $i = 0; $i < $trial_plans_count; $i ++ ) {
 						$plans_string .= sprintf(
 							'<a href="%s">%s</a>',
 							$trial_url,
 							$trial_plans[ $i ]->title
 						);
 
-					if ( $i < $trial_plans_count - 2 ) {
-						$plans_string .= ', ';
-					} else if ( $i == $trial_plans_count - 2 ) {
-						$plans_string .= ' and ';
+						if ( $i < $trial_plans_count - 2 ) {
+							$plans_string .= ', ';
+						} else if ( $i == $trial_plans_count - 2 ) {
+							$plans_string .= ' and ';
+						}
 					}
-				}
 				}
 			}
 
-				$message = sprintf(
-					__fs( 'hey', $this->_slug ) . '! ' . __fs( 'trial-x-promotion-message', $this->_slug ),
-					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
-					$plans_string,
+			$message = sprintf(
+				__fs( 'hey', $this->_slug ) . '! ' . __fs( 'trial-x-promotion-message', $this->_slug ),
+				sprintf( '<b>%s</b>', $this->get_plugin_name() ),
+				$plans_string,
 				$trial_period
-				);
+			);
 
 			// "No Credit-Card Required" or "No Commitment for N Days".
 			$cc_string = $require_payment ?
