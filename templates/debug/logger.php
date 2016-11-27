@@ -47,11 +47,11 @@
 					<?php
 						printf(
 							'<a href="#" style="color: darkorange !important;" onclick="jQuery(this).parent().find(\'div\').toggle(); return false;"><nobr>%s</nobr></a>',
-							substr( $log['msg'], 0, 32 ) . ( 32 < strlen( $log['msg'] ) ? '...' : '' )
+							esc_html( substr( $log['msg'], 0, 32 ) ) . ( 32 < strlen( $log['msg'] ) ? '...' : '' )
 						);
 					?>
 					<div style="display: none;">
-						<b style="color: darkorange;"><?php echo $log['msg'] ?></b>
+						<b style="color: darkorange;"><?php echo esc_html( $log['msg'] ) ?></b>
 					</div>
 				</td>
 				<td><?php
