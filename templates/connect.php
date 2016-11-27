@@ -283,6 +283,7 @@
 			$(document.body).css({'cursor': 'wait'});
 
 			var $this = $(this);
+			$this.css({'cursor': 'wait'});
 
 			setTimeout(function () {
 				$this.attr('disabled', 'disabled');
@@ -349,7 +350,7 @@
 
 		$primaryCta.on('click', function () {
 			$(this).addClass('fs-loading');
-			$(this).html(<?php echo json_encode(__fs( $is_pending_activation ? 'sending-email' : 'activating' , $slug )) ?> +'...').css({'cursor': 'wait'});
+			$(this).html(<?php echo json_encode(__fs( $is_pending_activation ? 'sending-email' : 'activating' , $slug )) ?> +'...');
 		});
 
 		$('.fs-permissions .fs-trigger').on('click', function () {
