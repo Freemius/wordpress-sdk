@@ -510,10 +510,13 @@
 			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
 			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
 			$this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
+			$this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
 
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
+
+			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
 		}
 
 		/**
@@ -557,21 +560,6 @@
 		 */
 		private function _register_account_hooks() {
 			if ( is_admin() ) {
-				if ( ! $this->is_ajax() ) {
-					if ( $this->apply_filters( 'show_trial', true ) && $this->has_trial_plan() ) {
-						$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
-						if ( ! $this->_site->is_trial_utilized() &&
-						     (
-							     // Show promotion if never shown it yet and 24 hours after initial activation.
-							     ( false === $last_time_trial_promotion_shown && $this->_storage->activation_timestamp < ( time() - WP_FS__TIME_24_HOURS_IN_SEC ) ) ||
-							     // Show promotion in every 30 days.
-							     ( is_numeric( $last_time_trial_promotion_shown ) && 30 * WP_FS__TIME_24_HOURS_IN_SEC < time() - $last_time_trial_promotion_shown ) )
-						) {
-							$this->add_action( 'after_init_plugin_registered', array( &$this, '_add_trial_notice' ) );
-						}
-					}
-				}
-
 				// If user is paying or in trial and have the free version installed,
 				// assume that the deactivation is for the upgrade process.
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
@@ -5829,6 +5817,44 @@
 		}
 
 		/**
+		 * Trial start for anonymous users (AJAX callback).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 */
+		function _start_trial_ajax_action() {
+			check_ajax_referer( $this->get_action_tag( 'start_trial' ), 'security' );
+
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				// Only for admins.
+				$this->shoot_ajax_failure();
+			}
+
+			$trial_data = fs_request_get( 'trial' );
+
+			$next_page = $this->opt_in(
+				false,
+				false,
+				false,
+				false,
+				false,
+				$trial_data['plan_id']
+			);
+
+			if ( is_object($next_page) && $this->is_api_error( $next_page ) ) {
+				$this->shoot_ajax_failure(
+					isset( $next_page->error ) ?
+						$next_page->error->message :
+						var_export( $next_page, true )
+				);
+			}
+
+			$this->shoot_ajax_success( array(
+				'next_page' => $next_page,
+			) );
+		}
+
+		/**
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.0
 		 */
@@ -6681,9 +6707,9 @@
 		 * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
+		 * @param number|bool $trial_plan_id
 		 *
-		 * @return mixed
-		 *
+		 * @return string|object
 		 * @use    WP_Error
 		 */
 		function opt_in(
@@ -6691,7 +6717,8 @@
 			$first = false,
 			$last = false,
 			$license_key = false,
-			$is_uninstall = false
+			$is_uninstall = false,
+			$trial_plan_id = false
 		) {
 			$this->_logger->entrance();
 
@@ -6711,7 +6738,7 @@
 				if ( ! $is_uninstall ) {
 					$fs_user = Freemius::_get_user_by_email( $email );
 					if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-						return $this->install_with_current_user( false );
+						return $this->install_with_current_user( false, $trial_plan_id );
 					}
 				}
 			}
@@ -6733,6 +6760,8 @@
 			if ( is_string( $license_key ) ) {
 				$filtered_license_key = $this->apply_filters( 'license_key', $license_key );
 				$params['license_key'] = $filtered_license_key;
+			} else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
+				$params['trial_plan_id'] = $trial_plan_id;
 			}
 
 			if ( $is_uninstall ) {
@@ -6877,7 +6906,7 @@
 				// Remove plugin from pending activation mode.
 				unset( $this->_storage->is_pending_activation );
 
-				if ( ! $this->is_paying() ) {
+				if ( ! $this->is_paying_or_trial() ) {
 					$this->_admin_notices->add_sticky(
 						sprintf( __fs( 'plugin-x-activation-message', $this->_slug ), '<b>' . $this->get_plugin_name() . '</b>' ),
 						'activation_complete'
@@ -6885,7 +6914,8 @@
 				}
 			}
 
-			if ( $this->is_paying() && ! $this->is_premium() ) {
+			if ( $this->is_paying_or_trial() && ! $this->is_premium() ) {
+				if ( $this->is_paying() ) {
 				$this->_admin_notices->add_sticky(
 					sprintf(
 						__fs( 'activation-with-plan-x-message', $this->_slug ),
@@ -6894,6 +6924,20 @@
 					'plan_upgraded',
 					__fs( 'yee-haw', $this->_slug ) . '!'
 				);
+				} else {
+					$this->_admin_notices->add_sticky(
+						sprintf(
+							__fs( 'trial-started-message', $this->_slug ),
+							'<i>' . $this->get_plugin_name() . '</i>'
+						) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
+						'trial_started',
+						__fs( 'yee-haw', $this->_slug ) . '!'
+					);
+				}
+
+				$this->_admin_notices->remove_sticky( array(
+					'trial_promotion',
+				) );
 			}
 
 			$plugin_id = fs_request_get( 'plugin_id', false );
@@ -7064,7 +7108,13 @@
 			if ( fs_request_is_action( $this->_slug . '_activate_existing' ) && fs_request_is_post() ) {
 //				check_admin_referer( 'activate_existing_' . $this->_plugin->public_key );
 
-				$this->install_with_current_user();
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.1.9 Add license key if given.
+				 */
+				$license_key = fs_request_get( 'license_secret_key' );
+
+				$this->install_with_current_user( $license_key );
 			}
 		}
 
@@ -7073,11 +7123,17 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
 		 *
+		 * @param string|bool $license_key
+		 * @param number|bool $trial_plan_id
 		 * @param bool $redirect
 		 *
-		 * @return object|string
+		 * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
 		 */
-		private function install_with_current_user( $redirect = true ) {
+		private function install_with_current_user(
+			$license_key = false,
+			$trial_plan_id = false,
+			$redirect = true
+		) {
 			// Get current logged WP user.
 			$current_user = self::_get_current_wp_user();
 
@@ -7091,15 +7147,11 @@
 				'uid' => $this->get_anonymous_id(),
 			);
 
-			/**
-			 * @author Vova Feldman (@svovaf)
-			 * @since  1.1.9 Add license key if given.
-			 */
-			$license_key          = fs_request_get( 'license_secret_key' );
-
 			if ( ! empty( $license_key ) ) {
 				$filtered_license_key                = $this->apply_filters( 'license_key', $license_key );
 				$extra_install_params['license_key'] = $filtered_license_key;
+			} else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
+				$extra_install_params['trial_plan_id'] = $trial_plan_id;
 			}
 
 			$args = $this->get_install_data_for_api( $extra_install_params, false, false );
@@ -10382,56 +10434,106 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
+		 *
+		 * @return bool If trial notice added.
 		 */
 		function _add_trial_notice() {
-			// Check if trial already utilized.
-			if ( $this->_site->is_trial_utilized() ) {
-				return;
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return false;
 			}
 
-			// Check if already paying.
-			if ( $this->is_paying() ) {
-				return;
+			if ( ! $this->is_user_in_admin() ) {
+				return false;
 			}
 
 			// Check if trial message is already shown.
 			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) ) {
-				return;
+				add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
+
+				return false;
 			}
 
+			if ( $this->is_premium() && ! WP_FS__DEV_MODE ) {
+				// Don't show trial if running the premium code, unless running in DEV mode.
+				return false;
+			}
+
+			if ( ! $this->has_trial_plan() ) {
+				// No plans with trial.
+				return false;
+			}
+
+			if ( ! $this->apply_filters( 'show_trial', true ) ) {
+				// Developer explicitly asked not to show the trial promo.
+				return false;
+			}
+
+			if ( $this->is_registered() ) {
+				// Check if trial already utilized.
+				if ( $this->_site->is_trial_utilized() ) {
+					return false;
+				}
+
+				if ( $this->is_paying_or_trial() ) {
+					// Don't show trial if paying or already in trial.
+					return false;
+				}
+			}
+
+			if ($this->is_activation_mode() || $this->is_pending_activation()) {
+				// If not yet opted-in/skipped, or pending activation, don't show trial.
+				return false;
+			}
+
+			$last_time_trial_promotion_shown = $this->_storage->get( 'trial_promotion_shown', false );
+			$was_promotion_shown_before      = ( false !== $last_time_trial_promotion_shown );
+
+			// Show promotion if never shown before and 24 hours after initial activation with FS.
+			if ( ! $was_promotion_shown_before &&
+			     $this->_storage->install_timestamp > ( time() - WP_FS__TIME_24_HOURS_IN_SEC )
+			) {
+				return false;
+			}
+
+			// OR if promotion was shown before, try showing it every 30 days.
+			if ( $was_promotion_shown_before &&
+			     30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_trial_promotion_shown
+			) {
+				return false;
+			}
+
+			$trial_period    = $this->_trial_days;
+			$require_payment = $this->_is_trial_require_payment;
+			$trial_url       = $this->get_trial_url();
+			$plans_string    = strtolower( __fs( 'awesome', $this->_slug ) );
+
+			if ( $this->is_registered() ) {
+				// If opted-in, override trial with up to date data from API.
 			$trial_plans       = FS_Plan_Manager::instance()->get_trial_plans( $this->_plans );
 			$trial_plans_count = count( $trial_plans );
 
-			// Check if any of the plans contains trial.
 			if ( 0 === $trial_plans_count ) {
-				return;
+					// If there's no plans with a trial just exit.
+					return false;
 			}
 
 			/**
 			 * @var FS_Plugin_Plan $paid_plan
 			 */
 			$paid_plan            = $trial_plans[0];
-			$require_subscription = $paid_plan->is_require_subscription;
-			$upgrade_url          = $this->get_trial_url();
-			$cc_string            = $require_subscription ?
-				sprintf( __fs( 'no-commitment-for-x-days', $this->_slug ), $paid_plan->trial_period ) :
-				__fs( 'no-cc-required', $this->_slug ) . '!';
-
+				$require_payment = $paid_plan->is_require_subscription;
+				$trial_period    = $paid_plan->trial_period;
 
 			$total_paid_plans = count( $this->_plans ) - ( FS_Plan_Manager::instance()->has_free_plan( $this->_plans ) ? 1 : 0 );
 
-			if ( $total_paid_plans === $trial_plans_count ) {
-				// All paid plans have trials.
-				$message = sprintf(
-					__fs( 'hey', $this->_slug ) . '! ' . __fs( 'trial-x-promotion-message', $this->_slug ),
-					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
-					strtolower( __fs( 'awesome', $this->_slug ) ),
-					$paid_plan->trial_period
-				);
-			} else {
-				$plans_string = '';
+				if ( $total_paid_plans !== $trial_plans_count ) {
+					// Not all paid plans have a trial - generate a string of those that have it.
 				for ( $i = 0; $i < $trial_plans_count; $i ++ ) {
-					$plans_string .= sprintf( '<a href="%s">%s</a>', $upgrade_url, $trial_plans[ $i ]->title );
+						$plans_string .= sprintf(
+							'<a href="%s">%s</a>',
+							$trial_url,
+							$trial_plans[ $i ]->title
+						);
 
 					if ( $i < $trial_plans_count - 2 ) {
 						$plans_string .= ', ';
@@ -10439,33 +10541,41 @@
 						$plans_string .= ' and ';
 					}
 				}
+				}
+			}
 
-				// Not all paid plans have trials.
 				$message = sprintf(
 					__fs( 'hey', $this->_slug ) . '! ' . __fs( 'trial-x-promotion-message', $this->_slug ),
 					sprintf( '<b>%s</b>', $this->get_plugin_name() ),
 					$plans_string,
-					$paid_plan->trial_period
+				$trial_period
 				);
-			}
 
-			$message .= ' ' . $cc_string;
+			// "No Credit-Card Required" or "No Commitment for N Days".
+			$cc_string = $require_payment ?
+				sprintf( __fs( 'no-commitment-for-x-days', $this->_slug ), $trial_period ) :
+				__fs( 'no-cc-required', $this->_slug ) . '!';
 
-			// Add start trial button.
-			$message .= ' ' . sprintf(
+
+			// Start trial button.
+			$button = ' ' . sprintf(
 					'<a style="margin-left: 10px; vertical-align: super;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
-					$upgrade_url,
+					$trial_url,
 					__fs( 'start-free-trial', $this->_slug )
 				);
 
 			$this->_admin_notices->add_sticky(
-				$this->apply_filters( 'trial_promotion_message', $message ),
+				$this->apply_filters( 'trial_promotion_message', "{$message} {$cc_string} {$button}" ),
 				'trial_promotion',
 				'',
 				'promotion'
 			);
 
 			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
+
+			return true;
+		}
+
 		}
 
 		/* Action Links

@@ -393,6 +393,8 @@
 		'trial-x-promotion-message'                => __( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.',
 			'freemius' ),
 		'start-free-trial'                         => _x( 'Start free trial', 'call to action', 'freemius' ),
+		'starting-trial'                           => __( 'Starting trial', 'freemius' ),
+		'please-wait'                              => __( 'Please wait', 'freemius' ),
 		'trial-cancel-failure-message'             => __( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.',
 			'freemius' ),
 		'trial-utilized'                           => __( 'You already utilized a trial before.', 'freemius' ),
@@ -502,6 +504,16 @@
 		'save-x'                                   => _x( 'Save %s', 'as a discount of $5 or 10%', 'freemius' ),
 		#endregion Billing Cycles
 		'view-details'                             => __( 'View details', 'freemius' ),
+		#--------------------------------------------------------------------------------
+		#region Trial
+		#--------------------------------------------------------------------------------
+		'approve-start-trial'                      => _x( 'Approve & Start Trial', 'button label', 'freemius' ),
+		/* translators: %1$s: Number of trial days; %2$s: Plan name; */
+		'start-trial-prompt-header'                => __( 'You are just a click away from starting your %1$s-day free trial of the %2$s plan.', 'freemius' ),
+		/* translators: %s: Link to freemius.com */
+		'start-trial-prompt-message'               => __( 'All we need is your approval to share your email and non-sensitive site information, and allow the plugin periodically send data to %s to check for version updates and verify the validity of your trial.', 'freemius' ),
+
+		#endregion
 		#--------------------------------------------------------------------------------
 		#region Billing Details
 		#--------------------------------------------------------------------------------
