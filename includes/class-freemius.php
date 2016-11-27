@@ -115,6 +115,18 @@
 		private $_has_paid_plans;
 
 		/**
+		 * @since 1.2.1.5
+		 * @var int Hints the SDK if the plugin offers a trial period. If negative, no trial, if zero - has a trial but without a specified period, if positive - the number of trial days.
+		 */
+		private $_trial_days = -1;
+
+		/**
+		 * @since 1.2.1.5
+		 * @var bool Hints the SDK if the trial requires a payment method or not.
+		 */
+		private $_is_trial_require_payment = false;
+
+		/**
 		 * @since 1.0.7
 		 * @var bool Hints the SDK if the plugin is WordPress.org compliant.
 		 */
@@ -2557,6 +2569,17 @@
 				$this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
 			}
 			$this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
+
+			if ( ! empty( $plugin_info['trial'] ) ) {
+				$this->_trial_days = $this->get_numeric_option(
+					$plugin_info['trial'],
+					'days',
+					// Default to 0 - trial without days specification.
+					0
+				);
+
+				$this->_is_trial_require_payment = $this->get_bool_option( $plugin_info['trial'], 'is_require_payment', false );
+			}
 		}
 
 		/**
