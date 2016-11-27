@@ -7210,9 +7210,7 @@
 			$site        = new FS_Site( $install );
 			$this->_site = $site;
 
-			$this->setup_account( $this->_user, $this->_site, $redirect );
-
-			return $install;
+			return $this->setup_account( $this->_user, $this->_site, $redirect );
 		}
 
 		/**
