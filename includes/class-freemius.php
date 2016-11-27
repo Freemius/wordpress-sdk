@@ -7344,7 +7344,7 @@
 			foreach ( $this->_menu_items as $priority => $items ) {
 				foreach ( $items as $item ) {
 					if ( isset( $item['url'] ) ) {
-						if ( $page === strtolower( $item['menu_slug'] ) ) {
+						if ( $page === $this->_menu->get_slug( strtolower( $item['menu_slug'] ) ) ) {
 							$this->_logger->log( 'Redirecting to ' . $item['url'] );
 
 							fs_redirect( $item['url'] );
@@ -7563,8 +7563,8 @@
 		 */
 		private function embed_submenu_items() {
 			$item_template = $this->_menu->is_top_level() ?
-				'<span class="fs-submenu-item">%s</span>' :
-				'<span class="fs-submenu-item fs-sub">%s</span>';
+				'<span class="fs-submenu-item %s %s %s">%s</span>' :
+				'<span class="fs-submenu-item fs-sub %s %s %s">%s</span>';
 
 			$top_level_menu_capability = $this->get_top_level_menu_capability();
 
@@ -7574,15 +7574,25 @@
 				foreach ( $items as $item ) {
 					$capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
 
+					$menu_item = sprintf(
+						$item_template,
+						$this->_slug,
+						$item['menu_slug'],
+						!empty($item['class']) ? $item['class'] : '',
+						$item['menu_title']
+					);
+
+					$menu_slug = $this->_menu->get_slug( $item['menu_slug'] );
+
 					if ( ! isset( $item['url'] ) ) {
 						$hook = add_submenu_page(
 							$item['show_submenu'] ?
 								$this->get_top_level_menu_slug() :
 								null,
 							$item['page_title'],
-							sprintf( $item_template, $item['menu_title'] ),
+							$menu_item,
 							$capability,
-							$item['menu_slug'],
+							$menu_slug,
 							$item['render_function']
 						);
 
@@ -7593,9 +7603,9 @@
 						add_submenu_page(
 							$this->get_top_level_menu_slug(),
 							$item['page_title'],
-							sprintf( $item_template, $item['menu_title'] ),
+							$menu_item,
 							$capability,
-							$item['menu_slug'],
+							$menu_slug,
 							array( $this, '' )
 						);
 					}
@@ -7707,6 +7717,7 @@
 		 * @param bool|callable $before_render_function
 		 * @param int           $priority
 		 * @param bool          $show_submenu
+		 * @param string        $class Since 1.2.1.5 can add custom classes to menu items.
 		 */
 		function add_submenu_item(
 			$menu_title,
@@ -7716,7 +7727,8 @@
 			$menu_slug = false,
 			$before_render_function = false,
 			$priority = WP_FS__DEFAULT_PRIORITY,
-			$show_submenu = true
+			$show_submenu = true,
+			$class = ''
 		) {
 			$this->_logger->entrance( 'Title = ' . $menu_title );
 
@@ -7732,7 +7744,8 @@
 						$menu_slug,
 						$before_render_function,
 						$priority,
-						$show_submenu
+						$show_submenu,
+						$class
 					);
 
 					return;
@@ -7747,10 +7760,11 @@
 				'page_title'             => is_string( $page_title ) ? $page_title : $menu_title,
 				'menu_title'             => $menu_title,
 				'capability'             => $capability,
-				'menu_slug'              => $this->_menu->get_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
+				'menu_slug'              => is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ),
 				'render_function'        => $render_function,
 				'before_render_function' => $before_render_function,
 				'show_submenu'           => $show_submenu,
+				'class'                  => $class,
 			);
 		}
 
@@ -7797,7 +7811,7 @@
 			$this->_menu_items[ $priority ][] = array(
 				'menu_title'             => $menu_title,
 				'capability'             => $capability,
-				'menu_slug'              => $this->_menu->get_slug( is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ) ),
+				'menu_slug'              => is_string( $menu_slug ) ? $menu_slug : strtolower( $menu_title ),
 				'url'                    => $url,
 				'page_title'             => $menu_title,
 				'render_function'        => 'fs_dummy',
