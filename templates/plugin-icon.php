@@ -29,9 +29,15 @@
 		$img_dir = WP_FS__DIR_IMG;
 
 		if ( 1 < count( $fs_active_plugins->plugins ) ) {
+			$plugin_or_theme_img_dir = WP_PLUGIN_DIR;
+
 			foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
 				if ( $data->plugin_path == $fs->get_plugin_basename() ) {
-					$img_dir = WP_PLUGIN_DIR . '/' . $sdk_path . '/assets/img';
+					$img_dir = $plugin_or_theme_img_dir
+					           . '/'
+					           . str_replace( '../themes/', '', $sdk_path )
+					           . '/assets/img';
+
 					break;
 				}
 			}
@@ -39,9 +45,10 @@
 
 		$icons = glob( fs_normalize_path( $img_dir . '/' . $slug . '.*' ) );
 		if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
-			$icon_found             = false;
-			$local_path             = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
-			$have_write_permissions = is_writable( fs_normalize_path( $img_dir ) );
+			$icon_found = false;
+			$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
+
+			$have_write_permissions = ( 'direct' === get_filesystem_method( array(), fs_normalize_path( $img_dir ) ) );
 
 			if ( WP_FS__IS_LOCALHOST && $fs->is_org_repo_compliant() && $have_write_permissions ) {
 				/**
@@ -52,24 +59,48 @@
 				 * already exist in the assets folder when the plugin is deployed to
 				 * the repository.
 				 */
-				$suffixes = array(
-					'-128x128.png',
-					'-128x128.jpg',
-					'-256x256.png',
-					'-256x256.jpg',
-					'.svg',
-				);
+				if ( ! function_exists( 'plugins_api' ) ) {
+					require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+				}
 
-				$base_url = 'https://plugins.svn.wordpress.org/' . $slug . '/assets/icon';
+				$plugin_information = plugins_api( 'plugin_information', array(
+					'slug'   => $slug,
+					'fields' => array(
+						'sections' => false,
+						'tags'     => false,
+						'icons'    => true
+					)
+				) );
 
-				foreach ( $suffixes as $s ) {
-					$headers = get_headers( $base_url . $s );
-					if ( strpos( $headers[0], '200' ) ) {
-						$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . substr( $s, strpos( $s, '.' ) + 1 ) );
-						fs_download_image( $base_url . $s, $local_path );
-						$icon_found = true;
-						break;
+				if (
+					! is_wp_error( $plugin_information )
+					&& isset( $plugin_information->icons )
+					&& ! empty( $plugin_information->icons )
+				) {
+					/**
+					 * Get the smallest icon.
+					 *
+					 * @author Leo Fajardo (@leorw)
+					 * @since  1.2.2
+					 */
+					$icon = end( $plugin_information->icons );
+
+					if ( 0 !== strpos( $icon, 'http' ) ) {
+						$icon = 'http:' . $icon;
 					}
+
+					/**
+					 * Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+					 *
+					 * @author Leo Fajardo (@leorw)
+					 * @since  1.2.2
+					 */
+					$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
+
+					$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );
+					fs_download_image( $icon, $local_path );
+
+					$icon_found = true;
 				}
 			}
 
@@ -92,5 +123,5 @@
 	$relative_url = fs_img_url( substr( $icons[0], strlen( $icon_dir ) ), $icon_dir );
 ?>
 <div class="fs-plugin-icon">
-	<img src="<?php echo $relative_url ?>" width="80" height="80" />
+	<img src="<?php echo $relative_url ?>" width="80" height="80"/>
 </div>
