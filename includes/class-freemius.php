@@ -517,6 +517,7 @@
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
 
 			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+			add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
 		}
 
 		/**
@@ -7525,16 +7526,32 @@
 					// to support add-ons checkout but don't add the submenu item.
 					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
 
+					$pricing_cta_slug  = 'upgrade';
+					$pricing_class     = 'upgrade-mode';
+					if ( $show_pricing ) {
+						if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
+						     ! $this->is_paying_or_trial()
+						) {
+							// If running a trial promotion, modify the pricing to load the trial.
+							$pricing_cta_slug = 'start-trial';
+							$pricing_class    = 'trial-mode';
+						} else if ( $this->is_paying() ) {
+							$pricing_cta_slug = 'pricing';
+							$pricing_class    = '';
+						}
+					}
+
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
-						( $this->is_paying() ? __fs( 'pricing', $this->_slug ) : __fs( 'upgrade', $this->_slug ) . '&nbsp;&nbsp;&#x27a4;' ),
+						__fs( $pricing_cta_slug, $this->_slug ) . '&nbsp;&nbsp;&#x27a4;',
 						array( &$this, '_pricing_page_render' ),
 						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing', $this->_slug ),
 						'manage_options',
 						'pricing',
 						'Freemius::_clean_admin_content_section',
 						WP_FS__LOWEST_PRIORITY,
-						$show_pricing
+						$show_pricing,
+						$pricing_class
 					);
 				}
 			}
@@ -10463,6 +10480,23 @@
 		}
 
 		/**
+		 * During trial promotion the "upgrade" submenu item turns to
+		 * "start trial" to encourage the trial. Since we want to keep
+		 * the same menu item handler and there's no robust way to
+		 * add new arguments to the menu item link's querystring,
+		 * use JavaScript to find the menu item and update the href of
+		 * the link.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 */
+		function _fix_start_trial_menu_item_url()
+		{
+			$template_args = array( 'slug' => $this->_slug );
+			fs_require_template( 'add-trial-to-pricing.php', $template_args );
+		}
+
+		/**
 		 * Show trial promotional notice (if any trial exist).
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -10609,6 +10643,15 @@
 			return true;
 		}
 
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 */
+		function _enqueue_common_css() {
+			if ( $this->has_paid_plan() && ! $this->is_paying() ) {
+				// Add basic CSS for admin-notices and menu-item colors.
+				fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+			}
 		}
 
 		/* Action Links
