@@ -1282,8 +1282,17 @@
 
 				// Clear SDK reference cache.
 				delete_option( 'fs_active_plugins' );
+			} else if ( fs_request_is_action( 'simulate_trial' ) ) {
+				check_admin_referer( 'simulate_trial' );
 
-				return;
+				$slug = fs_request_get( 'slug' );
+
+				$fs = freemius( $slug );
+
+				// Update SDK install to at least 24 hours before.
+				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
+				// Unset the trial shown timestamp.
+				unset( $fs->_storage->trial_promotion_shown );
 			}
 		}
 

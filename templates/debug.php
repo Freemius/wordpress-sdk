@@ -168,6 +168,7 @@
 			<th><?php _efs( 'freemius-state' ) ?></th>
 			<th><?php _efs( 'plugin-path' ) ?></th>
 			<th><?php _efs( 'public-key' ) ?></th>
+			<th><?php _efs( 'actions' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -193,6 +194,16 @@
 					} ?></td>
 				<td><?php echo $data->file ?></td>
 				<td><?php echo $data->public_key ?></td>
+				<td>
+					<?php if ($is_active && $fs->has_trial_plan()) : ?>
+					<form action="" method="POST">
+						<input type="hidden" name="fs_action" value="simulate_trial">
+						<input type="hidden" name="slug" value="<?php echo $slug ?>">
+						<?php wp_nonce_field( 'simulate_trial' ) ?>
+
+						<button type="submit" class="button button-primary simulate-trial"><?php _efs( 'Simulate Trial' ) ?></button>
+					<?php endif ?>
+				</td>
 			</tr>
 		<?php endforeach ?>
 		</tbody>
