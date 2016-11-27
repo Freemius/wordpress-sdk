@@ -18,7 +18,7 @@
 
 	$message_above_input_field = __fs( 'ask-for-upgrade-email-address', $slug );
 	$send_button_text          = __fs( 'send-license-key', $slug );
-	$cancel_button_text        = __fs( 'deactivation-modal-button-cancel', $slug );
+	$cancel_button_text        = __fs( 'cancel', $slug );
 	$email_address_placeholder = __fs( 'email-address', $slug );
 
 	$modal_content_html = <<< HTML

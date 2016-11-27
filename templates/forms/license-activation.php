@@ -70,7 +70,7 @@ HTML;
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<button class="button button-secondary button-close" tabindex="4"><?php _efs('deactivation-modal-button-cancel', $slug); ?></button>'
+				+ '			<button class="button button-secondary button-close" tabindex="4"><?php _efs('cancel', $slug); ?></button>'
 				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo $activate_button_text; ?></button>'
 				+ '		</div>'
 				+ '	</div>'

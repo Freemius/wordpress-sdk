@@ -77,7 +77,7 @@ HTML;
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ) ?></a>'
+		    + '			<a href="#" class="button button-primary button-close"><?php _efs(  'cancel' , $slug ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
