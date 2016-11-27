@@ -5631,6 +5631,17 @@
 		 */
 		function has_trial_plan() {
 			if ( ! $this->is_registered() ) {
+				/**
+				 * @author Vova Feldman(@svovaf)
+				 * @since 1.2.1.5
+				 *
+				 * Allow setting a trial from the SDK without calling the API.
+				 * But, if the user did opt-in, continue using the real data from the API.
+				 */
+				if ( $this->_trial_days >= 0 ) {
+					return true;
+				}
+
 				return false;
 			}
 
