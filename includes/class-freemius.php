@@ -6591,7 +6591,7 @@
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
 				if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
-					$this->_sync_plans( true );
+					$this->_sync_plans();
 				} else {
 					for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
 						if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
