@@ -502,7 +502,6 @@
 		}
 
 		/**
-		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
 		 *
@@ -543,6 +542,39 @@
 			}
 
 			return $hookname;
+		}
+
+		/**
+		 * Adds a counter to the module's top level menu item.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param int $counter
+		 */
+		function add_counter_to_menu_item( $counter = 1 ) {
+			global $menu;
+
+			// Find main menu item.
+			$found_menu = $this->find_top_level_menu();
+
+			if ( false === $menu ) {
+				return;
+			}
+
+			// Remove original CPT menu.
+			unset( $menu[ $found_menu['position'] ] );
+
+			// Create new top-level menu action.
+			add_menu_page(
+				$found_menu['menu'][3],
+				$found_menu['menu'][0] . ' <span class="update-plugins count-' . $counter . '"><span>' . $counter . '</span></span>',
+				$found_menu['menu'][1],
+				$found_menu['menu'][2],
+				'',
+				$found_menu['menu'][6],
+				$found_menu['position']
+			);
 		}
 
 		#endregion Top level menu Override
