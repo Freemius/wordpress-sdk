@@ -518,6 +518,18 @@
 
 			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
 			add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
+
+			/**
+			 * Handle request to reset anonymous mode for `get_reconnect_url()`.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.2.1.5
+			 */
+			if ( fs_request_is_action( 'reset_anonymous_mode' ) &&
+			     $this->_slug === fs_request_get( 'fs_slug' )
+			) {
+				add_action( 'admin_init', array( &$this, 'connect_again' ) );
+			}
 		}
 
 		/**
@@ -9931,6 +9943,21 @@
 		 * @return string
 		 */
 		private function get_activation_url( $params = array() ) {
+			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param array $params
+		 *
+		 * @return string
+		 */
+		function get_reconnect_url( $params = array() ) {
+			$params['fs_action'] = 'reset_anonymous_mode';
+			$params['fs_slug']   = $this->_slug;
+
 			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
 		}
 
