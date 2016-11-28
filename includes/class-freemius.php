@@ -2520,7 +2520,7 @@
 				$parent_id = $this->get_numeric_option( $plugin_info['parent'], 'id', null );
 //				$parent_slug       = $this->get_option( $plugin_info['parent'], 'slug', null );
 //				$parent_public_key = $this->get_option( $plugin_info['parent'], 'public_key', null );
-				$parent_name = $this->get_option( $plugin_info['parent'], 'name', null );
+//				$parent_name = $this->get_option( $plugin_info['parent'], 'name', null );
 			}
 
 			if ( false === $id ) {
@@ -5159,7 +5159,9 @@
 		 * @return FS_Plugin_Plan|false
 		 */
 		function get_plan() {
-			return is_object( $this->_site->plan ) ? $this->_site->plan : false;
+			return is_object( $this->_site->plan ) ?
+				$this->_site->plan :
+				false;
 		}
 
 		/**
