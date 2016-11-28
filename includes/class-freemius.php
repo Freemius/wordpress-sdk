@@ -4390,8 +4390,6 @@
 		 *
 		 * @param string[] string $override
 		 * @param bool     $flush
-		 *
-		 * @return false|object|string
 		 */
 		private function sync_install( $override = array(), $flush = false ) {
 			$this->_logger->entrance();
@@ -4916,7 +4914,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @return FS_Plugin[]|false
+		 * @return array<number,FS_Plugin[]>|false
 		 */
 		private static function get_all_addons() {
 			$addons = self::$_accounts->get_option( 'addons', array() );
@@ -5158,7 +5156,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @return FS_Plugin_Plan
+		 * @return FS_Plugin_Plan|false
 		 */
 		function get_plan() {
 			return is_object( $this->_site->plan ) ? $this->_site->plan : false;
@@ -5309,7 +5307,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
-		 * @return FS_Plugin_License
+		 * @return FS_Plugin_License|false
 		 */
 		function _get_available_premium_license() {
 			$this->_logger->entrance();
@@ -5355,7 +5353,7 @@
 		 *
 		 * @param number $id
 		 *
-		 * @return FS_Plugin_Plan
+		 * @return FS_Plugin_Plan|false
 		 */
 		function _get_plan_by_id( $id ) {
 			$this->_logger->entrance();
@@ -5428,7 +5426,7 @@
 		 *
 		 * @param number $id
 		 *
-		 * @return FS_Plugin_License
+		 * @return FS_Plugin_License|false
 		 */
 		function _get_license_by_id( $id ) {
 			$this->_logger->entrance();
@@ -7354,8 +7352,6 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
-		 *
-		 * @return string
 		 */
 		function _redirect_on_clicked_menu_link() {
 			$this->_logger->entrance();
@@ -11141,8 +11137,6 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
-		 *
-		 * @return bool
 		 */
 		function set_sdk_upgrade_complete() {
 			$this->_storage->sdk_upgrade_mode = false;
