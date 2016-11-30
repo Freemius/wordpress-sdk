@@ -93,7 +93,8 @@
 						__fs( 'pending-activation-message', $slug ),
 						$first_name,
 						'<b>' . $fs->get_plugin_name() . '</b>',
-						'<b>' . $current_user->user_email . '</b>'
+						'<b>' . $current_user->user_email . '</b>',
+						__fs( 'complete-the-install', $slug )
 					) );
 				} else if ( $require_license_key ) {
 					$button_label = 'agree-activate-license';
