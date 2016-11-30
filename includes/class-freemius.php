@@ -10552,7 +10552,7 @@
 			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) ) {
 				add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
 
-				$this->_menu->add_counter_to_menu_item();
+				$this->_menu->add_counter_to_menu_item(1, 'fs-trial');
 
 				return false;
 			}

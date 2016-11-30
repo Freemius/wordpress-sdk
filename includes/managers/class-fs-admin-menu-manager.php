@@ -550,9 +550,10 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.5
 		 *
-		 * @param int $counter
+		 * @param int    $counter
+		 * @param string $class
 		 */
-		function add_counter_to_menu_item( $counter = 1 ) {
+		function add_counter_to_menu_item( $counter = 1, $class = '' ) {
 			global $menu;
 
 			// Find main menu item.
@@ -568,7 +569,7 @@
 			// Create new top-level menu action.
 			add_menu_page(
 				$found_menu['menu'][3],
-				$found_menu['menu'][0] . ' <span class="update-plugins count-' . $counter . '"><span>' . $counter . '</span></span>',
+				$found_menu['menu'][0] . ' <span class="update-plugins ' . $class . ' count-' . $counter . '"><span>' . $counter . '</span></span>',
 				$found_menu['menu'][1],
 				$found_menu['menu'][2],
 				'',
