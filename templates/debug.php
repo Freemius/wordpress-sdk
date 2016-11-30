@@ -176,18 +176,26 @@
 			<?php $is_active = is_plugin_active( $data->file ) ?>
 			<?php $fs = $is_active ? freemius( $slug ) : null ?>
 			<tr<?php if ( $is_active ) {
-				echo ' style="background: #E6FFE6; font-weight: bold"';
+				if ($fs->has_api_connectivity() && $fs->is_on()) {
+					echo ' style="background: #E6FFE6; font-weight: bold"';
+				}else{
+					echo ' style="background: #ffd0d0; font-weight: bold"';
+				}
 			} ?>>
 				<td><?php echo $data->id ?></td>
 				<td><?php echo $slug ?></td>
 				<td><?php echo $data->version ?></td>
 				<td><?php echo $data->title ?></td>
-				<td><?php if ( $is_active ) {
+				<td<?php if ( $is_active && ! $fs->has_api_connectivity() ) {
+					echo ' style="color: red; text-transform: uppercase;"';
+				} ?>><?php if ( $is_active ) {
 						echo $fs->has_api_connectivity() ?
 							__fs( 'connected' ) :
 							__fs( 'blocked' );
 					} ?></td>
-				<td><?php if ( $is_active ) {
+				<td<?php if ( $is_active && ! $fs->is_on() ) {
+					echo ' style="color: red; text-transform: uppercase;"';
+				} ?>><?php if ( $is_active ) {
 						echo $fs->is_on() ?
 							__fs( 'on' ) :
 							__fs( 'off' );
