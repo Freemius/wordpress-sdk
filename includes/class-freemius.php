@@ -560,11 +560,15 @@
 				return;
 			}
 
+			$plugin_main_file = clone $this->_storage->plugin_main_file;
+
 			// Store cached path (2nd layer cache).
-			$this->_storage->plugin_main_file->prev_path = $this->_storage->plugin_main_file->path;
+			$plugin_main_file->prev_path = $plugin_main_file->path;
 
 			// Clear cached path.
-			unset( $this->_storage->plugin_main_file->path );
+			unset( $plugin_main_file->path );
+
+			$this->_storage->plugin_main_file = $plugin_main_file;
 		}
 
 		/**
