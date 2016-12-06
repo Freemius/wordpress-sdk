@@ -3478,9 +3478,7 @@
 
 				$this->skip_connection();
 
-				if ( fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) ) ) {
-					exit();
-				}
+				fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
 			}
 
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
@@ -3985,9 +3983,7 @@
 
 			$this->reset_anonymous_mode();
 
-			if ( fs_redirect( $this->get_activation_url() ) ) {
-				exit();
-			}
+			fs_redirect( $this->get_activation_url() );
 		}
 
 		/**
@@ -6535,9 +6531,7 @@
 				$this->_set_account( $user, $site, $plans );
 
 				// Reload the page with the keys.
-				if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-					exit();
-				}
+				fs_redirect( $this->_get_admin_page_url() );
 			}
 		}
 
@@ -7022,10 +7016,8 @@
 					$this->get_after_activation_url( 'after_connect_url' );
 			}
 
-			if ( ! empty( $next_page ) &&
-			     $redirect && fs_redirect( $next_page )
-			) {
-				exit();
+			if ( ! empty( $next_page ) && $redirect ) {
+				fs_redirect( $next_page );
 			}
 
 			return $next_page;
@@ -7145,8 +7137,8 @@
 			$next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
 
 			// Reload the page with with pending activation message.
-			if ( $redirect && fs_redirect( $next_page ) ) {
-				exit();
+			if ( $redirect ) {
+				fs_redirect( $next_page );
 			}
 
 			return $next_page;
@@ -7238,9 +7230,8 @@
 					'error'
 				);
 
-				if ( $redirect && fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) )
-				) {
-					exit();
+				if ( $redirect ) {
+					fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
 				}
 
 				return $install;
@@ -8345,9 +8336,7 @@
 				 * @link   https://github.com/Freemius/wordpress-sdk/issues/6
 				 */
 				if ( ! $is_menu_item_account_visible ) {
-					if ( fs_redirect( $this->_get_admin_page_url() ) ) {
-						exit();
-					}
+					fs_redirect( $this->_get_admin_page_url() );
 				}
 			}
 		}
@@ -10033,17 +10022,13 @@
 						$this->_site = null;
 						$this->_user = null;
 
-						if ( fs_redirect( $this->get_activation_url() ) ) {
-							exit();
-						}
+						fs_redirect( $this->get_activation_url() );
 					} else {
 						if ( $this->is_addon_activated( $plugin_id ) ) {
 							$fs_addon = self::get_instance_by_id( $plugin_id );
 							$fs_addon->delete_account_event();
 
-							if ( fs_redirect( $this->_get_admin_page_url( 'account' ) ) ) {
-								exit();
-							}
+							fs_redirect( $this->_get_admin_page_url( 'account' ) );
 						}
 					}
 
@@ -10962,7 +10947,6 @@
 
 			if ( is_string( $url ) ) {
 				fs_redirect( $url );
-				exit();
 			}
 		}
 

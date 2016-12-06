@@ -84,9 +84,7 @@
 			}
 
 			// Refresh page.
-			if ( fs_redirect( $_SERVER['REQUEST_URI'] ) ) {
-				exit();
-			}
+			fs_redirect( $_SERVER['REQUEST_URI'] );
 		}
 	} else {
 		if ( ! function_exists( 'get_plugins' ) ) {
@@ -144,9 +142,7 @@
 				if ( fs_newest_sdk_plugin_first() ) {
 					// Refresh page after re-order to make sure activated plugin loads newest SDK.
 					if ( class_exists( 'Freemius' ) ) {
-						if ( fs_redirect( $_SERVER['REQUEST_URI'] ) ) {
-							exit();
-						}
+						fs_redirect( $_SERVER['REQUEST_URI'] );
 					}
 				}
 			}

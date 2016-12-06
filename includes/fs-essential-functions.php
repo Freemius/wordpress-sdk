@@ -41,12 +41,13 @@
 		 * @since 1.5.1
 		 * @uses  apply_filters() Calls 'wp_redirect' hook on $location and $status.
 		 *
-		 * @param string $location The path to redirect to
-		 * @param int    $status   Status code to use
+		 * @param string $location The path to redirect to.
+		 * @param bool   $exit     If true, exit after redirect (Since 1.2.1.5).
+		 * @param int    $status   Status code to use.
 		 *
 		 * @return bool False if $location is not set
 		 */
-		function fs_redirect( $location, $status = 302 ) {
+		function fs_redirect( $location, $exit = true, $status = 302 ) {
 			global $is_IIS;
 
 			if ( headers_sent() ) {
@@ -72,6 +73,10 @@
 					status_header( $status );
 				} // This causes problems on IIS and some FastCGI setups
 				header( "Location: $location" );
+			}
+
+			if ( $exit ) {
+				exit();
 			}
 
 			return true;
