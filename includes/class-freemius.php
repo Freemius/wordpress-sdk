@@ -9829,8 +9829,7 @@
 		 * @return bool Is API result contains an error.
 		 */
 		private function is_api_error( $result ) {
-			return ( is_object( $result ) && isset( $result->error ) ) ||
-			       is_string( $result );
+			return FS_Api::is_api_error( $result );
 		}
 
 		/**

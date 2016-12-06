@@ -503,5 +503,17 @@
 
 			self::$_cache = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 			self::$_cache->clear( true );
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $result
+		 *
+		 * @return bool Is API result contains an error.
+		 */
+		static function is_api_error( $result ) {
+			return ( is_object( $result ) && isset( $result->error ) ) ||
+			       is_string( $result );
 		}
 	}
