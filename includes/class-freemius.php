@@ -2352,6 +2352,8 @@
 				$this->shoot_ajax_success();
 			}
 
+			$this->_logger->api_error( $result );
+
 			$this->shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
@@ -2370,6 +2372,8 @@
 			if ( true === $result ) {
 				$this->shoot_ajax_success();
 			}
+
+			$this->_logger->api_error( $result );
 
 			$this->shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
@@ -2416,6 +2420,8 @@
 			     ! isset( $result->is_disconnected ) ||
 			     ! $result->is_disconnected
 			) {
+				$this->_logger->api_error( $result );
+
 				return $result;
 			}
 
@@ -2464,6 +2470,8 @@
 			     ! isset( $result->is_disconnected ) ||
 			     $result->is_disconnected
 			) {
+				$this->_logger->api_error( $result );
+
 				return $result;
 			}
 
