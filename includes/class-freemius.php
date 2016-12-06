@@ -10552,8 +10552,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.5
 		 */
-		function _fix_start_trial_menu_item_url()
-		{
+		function _fix_start_trial_menu_item_url() {
 			$template_args = array( 'slug' => $this->_slug );
 			fs_require_template( 'add-trial-to-pricing.php', $template_args );
 		}
