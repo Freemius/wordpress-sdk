@@ -118,7 +118,7 @@
 		 * @since 1.2.1.5
 		 * @var int Hints the SDK if the plugin offers a trial period. If negative, no trial, if zero - has a trial but without a specified period, if positive - the number of trial days.
 		 */
-		private $_trial_days = -1;
+		private $_trial_days = - 1;
 
 		/**
 		 * @since 1.2.1.5
@@ -525,7 +525,7 @@
 			 * Handle request to reset anonymous mode for `get_reconnect_url()`.
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.2.1.5
+			 * @since  1.2.1.5
 			 */
 			if ( fs_request_is_action( 'reset_anonymous_mode' ) &&
 			     $this->_slug === fs_request_get( 'fs_slug' )
@@ -2343,7 +2343,7 @@
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 *
-		 * @since 1.2.1.5
+		 * @since  1.2.1.5
 		 */
 		function _stop_tracking_callback() {
 			$result = $this->stop_tracking();
@@ -2984,8 +2984,8 @@
 					$this->_parent->_admin_notices->add_sticky(
 						sprintf(
 							__fs( ( $is_after_trial_cancel ?
-									'addon-trial-cancelled-message' :
-									'addon-no-license-message' ),
+								'addon-trial-cancelled-message' :
+								'addon-no-license-message' ),
 								$this->_parent->_slug
 							),
 							'<b>' . $this->_plugin->title . '</b>'
@@ -3569,11 +3569,11 @@
 				jQuery(document).ready(function ($) {
 					if ('undefined' !== typeof(jQuery().pointer)) {
 
-						var element = <?php echo $this->apply_filters('optin_pointer_element', '$("#non_existing_element");') ?>;
+						var element = <?php echo $this->apply_filters( 'optin_pointer_element', '$("#non_existing_element");' ) ?>;
 
 						if (element.length > 0) {
 							var optin = $(element).pointer($.extend(true, {}, {
-								content     : <?php echo json_encode($pointer_content) ?>,
+								content     : <?php echo json_encode( $pointer_content ) ?>,
 								position    : {
 									edge : 'left',
 									align: 'center'
@@ -3583,10 +3583,10 @@
 									return '';
 								},
 								pointerWidth: 482
-							}, <?php echo $this->apply_filters('optin_pointer_options_json', '{}') ?>));
+							}, <?php echo $this->apply_filters( 'optin_pointer_options_json', '{}' ) ?>));
 
 							<?php
-							echo $this->apply_filters('optin_pointer_execute', "
+							echo $this->apply_filters( 'optin_pointer_execute', "
 
 							optin.pointer('open');
 
@@ -3595,12 +3595,12 @@
 								.parents('.wp-pointer.wp-pointer-top')
 								.addClass('fs-opt-in-pointer');
 
-							", 'element', 'optin') ?>
+							", 'element', 'optin' ) ?>
 						}
 					}
 				});
 				// ]]></script>
-		<?php
+			<?php
 		}
 
 		/**
@@ -3756,7 +3756,7 @@
 				$this->schedule_install_sync();
 
 				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
-				
+
 				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
 				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
 				$other_version_basename = $is_premium_version_activation ?
@@ -3767,14 +3767,14 @@
 				 * If the other module version is activate, deactivate it.
 				 *
 				 * @author Leo Fajardo (@leorw)
-				 * @since 1.2.2
+				 * @since  1.2.2
 				 */
 				if ( is_plugin_active( $other_version_basename ) ) {
 					deactivate_plugins( $other_version_basename );
 				}
 
 				// If activating the premium module version, add an admin noitce to congratulate for an upgrade completion.
-				if ( $is_premium_version_activation ) {					
+				if ( $is_premium_version_activation ) {
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
 						__fs( 'woot', $this->_slug ) . '!'
@@ -4618,7 +4618,7 @@
 		 */
 		private static function require_plugin_essentials() {
 			if ( ! function_exists( 'get_plugins' ) ) {
-				self::$_static_logger->log('Including wp-admin/includes/plugin.php...');
+				self::$_static_logger->log( 'Including wp-admin/includes/plugin.php...' );
 
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
@@ -4978,7 +4978,7 @@
 		 * @return bool
 		 */
 		function is_tracking_allowed() {
-			return ( is_object($this->_site) && true !== $this->_site->is_disconnected );
+			return ( is_object( $this->_site ) && true !== $this->_site->is_disconnected );
 		}
 
 		/**
@@ -5671,7 +5671,7 @@
 			if ( ! $this->is_registered() ) {
 				/**
 				 * @author Vova Feldman(@svovaf)
-				 * @since 1.2.1.5
+				 * @since  1.2.1.5
 				 *
 				 * Allow setting a trial from the SDK without calling the API.
 				 * But, if the user did opt-in, continue using the real data from the API.
@@ -5881,7 +5881,7 @@
 				$trial_data['plan_id']
 			);
 
-			if ( is_object($next_page) && $this->is_api_error( $next_page ) ) {
+			if ( is_object( $next_page ) && $this->is_api_error( $next_page ) ) {
 				$this->shoot_ajax_failure(
 					isset( $next_page->error ) ?
 						$next_page->error->message :
@@ -7562,8 +7562,8 @@
 					// to support add-ons checkout but don't add the submenu item.
 					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
 
-					$pricing_cta_slug  = 'upgrade';
-					$pricing_class     = 'upgrade-mode';
+					$pricing_cta_slug = 'upgrade';
+					$pricing_class    = 'upgrade-mode';
 					if ( $show_pricing ) {
 						if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
 						     ! $this->is_paying_or_trial()
@@ -7631,7 +7631,7 @@
 						$item_template,
 						$this->_slug,
 						$item['menu_slug'],
-						!empty($item['class']) ? $item['class'] : '',
+						! empty( $item['class'] ) ? $item['class'] : '',
 						$item['menu_title']
 					);
 
@@ -9174,16 +9174,16 @@
 			if ( $this->is_api_error( $license ) ) {
 				if ( ! $background ) {
 					$this->_admin_notices->add( sprintf(
-							'%s %s',
-							__fs( 'license-activation-failed-message', $this->_slug ),
-							( is_object( $license ) && isset( $license->error ) ?
-								$license->error->message :
-								sprintf( '%s<br><code>%s</code>',
-									__fs( 'server-error-message', $this->_slug ),
-									var_export( $license, true )
-								)
+						'%s %s',
+						__fs( 'license-activation-failed-message', $this->_slug ),
+						( is_object( $license ) && isset( $license->error ) ?
+							$license->error->message :
+							sprintf( '%s<br><code>%s</code>',
+								__fs( 'server-error-message', $this->_slug ),
+								var_export( $license, true )
 							)
-						),
+						)
+					),
 						__fs( 'hmm', $this->_slug ) . '...',
 						'error'
 					);
@@ -9296,7 +9296,7 @@
 
 			$plan_downgraded = false;
 			$plan            = false;
-			if ( ! isset( $site->error ) ) {
+			if ( ! $this->is_api_error( $site ) ) {
 				$prev_plan_id = $this->_site->plan->id;
 
 				// Update new site plan id.
@@ -10266,7 +10266,7 @@
 			if ( $this->has_paid_plan() &&
 			     ! $this->has_any_license() &&
 			     ! $this->is_sync_executed() &&
-				 $this->is_tracking_allowed()
+			     $this->is_tracking_allowed()
 			) {
 				/**
 				 * If no licenses found and no sync job was executed during the last 24 hours,
@@ -10578,7 +10578,7 @@
 			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) ) {
 				add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
 
-				$this->_menu->add_counter_to_menu_item(1, 'fs-trial');
+				$this->_menu->add_counter_to_menu_item( 1, 'fs-trial' );
 
 				return false;
 			}
@@ -10610,7 +10610,7 @@
 				}
 			}
 
-			if ($this->is_activation_mode() || $this->is_pending_activation()) {
+			if ( $this->is_activation_mode() || $this->is_pending_activation() ) {
 				// If not yet opted-in/skipped, or pending activation, don't show trial.
 				return false;
 			}
