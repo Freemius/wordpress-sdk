@@ -8091,6 +8091,12 @@
 		private function _store_site( $store = true ) {
 			$this->_logger->entrance();
 
+			if ( empty( $this->_site->id ) ) {
+				$this->_logger->error( "Empty install ID, can't store site." );
+
+				return;
+			}
+
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
 
@@ -8161,6 +8167,12 @@
 		 */
 		private function _store_user( $store = true ) {
 			$this->_logger->entrance();
+
+			if ( empty( $this->_user->id ) ) {
+				$this->_logger->error( "Empty user ID, can't store user." );
+
+				return;
+			}
 
 			$users                     = self::get_all_users();
 			$users[ $this->_user->id ] = $this->_user;
