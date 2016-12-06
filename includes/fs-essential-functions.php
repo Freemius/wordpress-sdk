@@ -50,7 +50,15 @@
 		function fs_redirect( $location, $exit = true, $status = 302 ) {
 			global $is_IIS;
 
-			if ( headers_sent() ) {
+			$file = '';
+			$line = '';
+			if ( headers_sent($file, $line) ) {
+				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notice_Manager' ) ) {
+					$notices = FS_Admin_Notice_Manager::instance( 'global' );
+
+					$notices->add( "Freemius failed to redirect the page because the headers have been already sent from line <b><code>{$line}</code></b> in file <b><code>{$file}</code></b>. If it's unexpected, it usually happens due to invalid space and/or EOL character(s).", 'Oops...', 'error' );
+				}
+
 				return false;
 			}
 
