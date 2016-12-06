@@ -11218,6 +11218,7 @@
 		 */
 		function has_purchased_before() {
 			// TODO: Implement has_purchased_before() method.
+			throw new Exception( 'not implemented' );
 		}
 
 		/**
@@ -11230,6 +11231,7 @@
 		 */
 		function is_agency() {
 			// TODO: Implement is_agency() method.
+			throw new Exception( 'not implemented' );
 		}
 
 		/**
@@ -11242,6 +11244,7 @@
 		 */
 		function is_developer() {
 			// TODO: Implement is_developer() method.
+			throw new Exception( 'not implemented' );
 		}
 
 		/**
@@ -11254,6 +11257,7 @@
 		 */
 		function is_business() {
 			// TODO: Implement is_business() method.
+			throw new Exception( 'not implemented' );
 		}
 
 		#endregion
