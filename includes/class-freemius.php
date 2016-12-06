@@ -462,6 +462,8 @@
 		 * @since  1.0.9
 		 */
 		private function _register_hooks() {
+			$this->_logger->entrance();
+
 			if ( is_admin() ) {
 				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
@@ -4608,6 +4610,8 @@
 		 */
 		private static function require_plugin_essentials() {
 			if ( ! function_exists( 'get_plugins' ) ) {
+				self::$_static_logger->log('Including wp-admin/includes/plugin.php...');
+
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 		}
