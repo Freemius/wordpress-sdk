@@ -138,6 +138,32 @@
 			$this->_log( $message, 'error', $wrapper );
 		}
 
+		/**
+		 * Log API error.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $api_result
+		 * @param bool  $wrapper
+		 */
+		function api_error( $api_result, $wrapper = false ) {
+			$message = '';
+			if ( is_object( $api_result ) && isset( $api_result->error ) ) {
+				$message = $api_result->error->message;
+			} else if ( is_object( $api_result ) ) {
+				$message = var_export( $api_result, true );
+			} else if ( is_string( $api_result ) ) {
+				$message = $api_result;
+			} else if ( empty( $api_result ) ) {
+				$message = 'Empty API result.';
+			}
+
+			$message = 'API Error: ' . $message;
+
+			$this->_log( $message, 'error', $wrapper );
+		}
+
 		function entrance( $message = '', $wrapper = false ) {
 			$msg = 'Entrance' . ( empty( $message ) ? '' : ' > ' ) . $message;
 
