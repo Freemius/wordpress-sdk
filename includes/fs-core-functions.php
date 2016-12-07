@@ -19,14 +19,6 @@
 		}
 	}
 
-	if ( ! function_exists( 'starts_with' ) ) {
-		function starts_with( $haystack, $needle ) {
-			$length = strlen( $needle );
-
-			return ( substr( $haystack, 0, $length ) === $needle );
-		}
-	}
-
 	/* Url.
 	--------------------------------------------------------------------------------------------*/
 	function fs_get_url_daily_cache_killer() {
@@ -424,7 +416,7 @@
 
 				// Skip ignore params.
 				if ( in_array( $lower_param, $ignore_params ) ||
-				     ( false !== $params_prefix && starts_with( $lower_param, $params_prefix ) )
+				     ( false !== $params_prefix && fs_starts_with( $lower_param, $params_prefix ) )
 				) {
 					continue;
 				}
