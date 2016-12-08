@@ -8559,11 +8559,11 @@
 		 * @return \FS_Billing|mixed
 		 */
 		function _fetch_billing() {
+			require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
+
 			$billing = $this->get_api_user_scope()->call( 'billing.json' );
 
 			if ( ! $this->is_api_error( $billing ) ) {
-				require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
-
 				$billing = new FS_Billing( $billing );
 			}
 
