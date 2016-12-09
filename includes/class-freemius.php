@@ -9867,7 +9867,7 @@
 		 * @return bool
 		 */
 		function is_api_result_object( $result, $required_property = null ) {
-			return FS_Api::is_api_result_entity( $result, $required_property );
+			return FS_Api::is_api_result_object( $result, $required_property );
 		}
 
 		/**
