@@ -276,8 +276,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_cached( $path, $method = 'GET', $params = array() )
-		{
+		function is_cached( $path, $method = 'GET', $params = array() ) {
 			$cache_key = $this->get_cache_key( $path, $method, $params );
 
 			return self::$_cache->has_valid( $cache_key );
@@ -293,8 +292,7 @@
 		 * @param string $method
 		 * @param array  $params
 		 */
-		function purge_cache( $path, $method = 'GET', $params = array() )
-		{
+		function purge_cache( $path, $method = 'GET', $params = array() ) {
 			$this->_logger->entrance( "{$method}:{$path}" );
 
 			$cache_key = $this->get_cache_key( $path, $method, $params );
