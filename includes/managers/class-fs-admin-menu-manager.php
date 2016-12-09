@@ -563,19 +563,8 @@
 				return;
 			}
 
-			// Remove original CPT menu.
-			unset( $menu[ $found_menu['position'] ] );
-
-			// Create new top-level menu action.
-			add_menu_page(
-				$found_menu['menu'][3],
-				$found_menu['menu'][0] . ' <span class="update-plugins ' . $class . ' count-' . $counter . '"><span>' . $counter . '</span></span>',
-				$found_menu['menu'][1],
-				$found_menu['menu'][2],
-				'',
-				$found_menu['menu'][6],
-				$found_menu['position']
-			);
+			// Override menu label.
+			$menu[ $found_menu['position'] ][0] = $found_menu['menu'][0] . ' <span class="update-plugins ' . $class . ' count-' . $counter . '"><span>' . $counter . '</span></span>';
 		}
 
 		#endregion Top level menu Override
