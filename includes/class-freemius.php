@@ -116,7 +116,8 @@
 
 		/**
 		 * @since 1.2.1.5
-		 * @var int Hints the SDK if the plugin offers a trial period. If negative, no trial, if zero - has a trial but without a specified period, if positive - the number of trial days.
+		 * @var int Hints the SDK if the plugin offers a trial period. If negative, no trial, if zero - has a trial but
+		 *      without a specified period, if positive - the number of trial days.
 		 */
 		private $_trial_days = - 1;
 
@@ -5423,7 +5424,7 @@
 		function _sync_licenses( $site_license_id = false ) {
 			$licenses = $this->_fetch_licenses( false, $site_license_id );
 
-			if ( $this->is_array_instanceof($licenses, 'FS_Plugin_License') ) {
+			if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
 				$this->_licenses = $licenses;
 				$this->_store_licenses();
 			}
@@ -7181,7 +7182,8 @@
 		 * @param number|bool $trial_plan_id
 		 * @param bool        $redirect
 		 *
-		 * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
+		 * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the
+		 *                       API error object if failed to install.
 		 */
 		private function install_with_current_user(
 			$license_key = false,
@@ -8810,7 +8812,7 @@
 			$licenses = $this->_fetch_licenses( $addon->id );
 
 			// Sync add-on licenses.
-			if ( $this->is_array_instanceof($licenses, 'FS_Plugin_License') ) {
+			if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
 				$this->_update_licenses( $licenses, $addon->slug );
 
 				if ( ! $this->is_addon_installed( $addon->slug ) && FS_License_Manager::has_premium_license( $licenses ) ) {
