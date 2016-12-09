@@ -2416,7 +2416,7 @@
 				'is_disconnected' => true
 			) );
 
-			if ( $this->is_api_error( $result ) ||
+			if ( ! $this->is_api_result_entity( $result ) ||
 			     ! isset( $result->is_disconnected ) ||
 			     ! $result->is_disconnected
 			) {
@@ -2466,7 +2466,7 @@
 				'is_disconnected' => false
 			) );
 
-			if ( $this->is_api_error( $result ) ||
+			if ( ! $this->is_api_result_entity( $result ) ||
 			     ! isset( $result->is_disconnected ) ||
 			     $result->is_disconnected
 			) {
@@ -4381,7 +4381,7 @@
 				// Send updated values to FS.
 				$site = $this->get_api_site_scope()->call( '/', 'put', $params );
 
-				if ( ! $this->is_api_error( $site ) ) {
+				if ( $this->is_api_result_entity( $site ) ) {
 					// I successfully sent install update, clear scheduled sync if exist.
 					$this->clear_install_sync_cron();
 				}
@@ -4411,7 +4411,7 @@
 				return;
 			}
 
-			if ( $this->is_api_error( $site ) ) {
+			if ( ! $this->is_api_result_entity( $site ) ) {
 				// Failed to sync, don't update locally.
 				return;
 			}
@@ -5351,7 +5351,7 @@
 		 */
 		function _sync_plans() {
 			$plans = $this->_fetch_plugin_plans();
-			if ( ! $this->is_api_error( $plans ) ) {
+			if ( $this->is_api_result_object( $plans ) ) {
 				$this->_plans = $plans;
 				$this->_store_plans();
 			}
@@ -5421,7 +5421,7 @@
 		 */
 		function _sync_licenses( $site_license_id = false ) {
 			$licenses = $this->_fetch_licenses( false, $site_license_id );
-			if ( ! $this->is_api_error( $licenses ) ) {
+			if ( $this->is_api_result_object( $licenses ) ) {
 				$this->_licenses = $licenses;
 				$this->_store_licenses();
 			}
@@ -5842,7 +5842,7 @@
 				'plugin_id' => $this->get_parent_id(),
 			) ) );
 
-			if ( $this->is_api_error( $result ) ) {
+			if ( ! $this->is_api_result_entity( $result ) ) {
 				$this->shoot_ajax_failure();
 			}
 
@@ -6875,7 +6875,7 @@
 				return false;
 			}
 
-			if ( $this->is_api_error( $decoded ) ) {
+			if ( ! $this->is_api_result_object( $decoded ) ) {
 				if ( ! empty( $params['license_key'] ) ) {
 					// Pass the fully entered license key to the failure handler.
 					$params['license_key'] = $license_key;
@@ -7215,7 +7215,7 @@
 				$args
 			);
 
-			if ( $this->is_api_error( $install ) ) {
+			if ( ! $this->is_api_result_entity( $install ) ) {
 				if ( ! empty( $args['license_key'] ) ) {
 					// Pass full the fully entered license key to the failure handler.
 					$args['license_key'] = $license_key;
@@ -8447,7 +8447,7 @@
 
 			$result = $api->get( '/plans.json', true );
 
-			if ( ! $this->is_api_error( $result ) ) {
+			if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
 				for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
 					$result->plans[ $i ] = new FS_Plugin_Plan( $result->plans[ $i ] );
 				}
@@ -8563,7 +8563,7 @@
 
 			$billing = $this->get_api_user_scope()->call( 'billing.json' );
 
-			if ( ! $this->is_api_error( $billing ) ) {
+			if ( $this->is_api_result_entity( $billing ) ) {
 				$billing = new FS_Billing( $billing );
 			}
 
@@ -8843,7 +8843,7 @@
 
 			$plan_change = 'none';
 
-			if ( $this->is_api_error( $site ) ) {
+			if ( ! $this->is_api_result_entity( $site ) ) {
 				// Show API messages only if not background sync or if paying customer.
 				if ( ! $background || $this->is_paying() ) {
 					// Try to ping API to see if not blocked.
@@ -9160,7 +9160,7 @@
 			$api     = $this->get_api_site_scope();
 			$license = $api->call( "/licenses/{$premium_license->id}.json", 'put', $api_request_params );
 
-			if ( $this->is_api_error( $license ) ) {
+			if ( ! $this->is_api_result_entity( $license ) ) {
 				if ( ! $background ) {
 					$this->_admin_notices->add( sprintf(
 						'%s %s',
@@ -9185,7 +9185,7 @@
 
 			// Updated site plan.
 			$site = $this->get_api_site_scope()->get( '/', true );
-			if ( ! $this->is_api_error( $site ) ) {
+			if ( $this->is_api_result_entity( $site ) ) {
 				$this->_site = new FS_Site( $site );
 			}
 			$this->_update_site_license( $premium_license );
@@ -9285,7 +9285,7 @@
 
 			$plan_downgraded = false;
 			$plan            = false;
-			if ( ! $this->is_api_error( $site ) ) {
+			if ( $this->is_api_result_entity( $site ) ) {
 				$prev_plan_id = $this->_site->plan->id;
 
 				// Update new site plan id.
@@ -9401,7 +9401,7 @@
 			$api  = $this->get_api_site_scope();
 			$plan = $api->call( "plans/{$plan->id}/trials.json", 'post' );
 
-			if ( $this->is_api_error( $plan ) ) {
+			if ( ! $this->is_api_result_entity( $plan ) ) {
 				// Some API error while trying to start the trial.
 				$this->_admin_notices->add(
 					__fs( 'unexpected-api-error', $this->_slug ) . ' ' . var_export( $plan, true ),
@@ -9444,7 +9444,7 @@
 
 			$trial_cancelled = false;
 
-			if ( ! $this->is_api_error( $site ) ) {
+			if ( $this->is_api_result_entity( $site ) ) {
 				$prev_trial_ends = $this->_site->trial_ends;
 
 				if ( $this->is_paid_trial() ) {
@@ -9762,7 +9762,9 @@
 			$result = $api->get( '/addons.json?enriched=true', $flush );
 
 			$addons = array();
-			if ( ! $this->is_api_error( $result ) ) {
+			if ( $this->is_api_result_object( $result, 'plugins' ) &&
+			     is_array( $result->plugins )
+			) {
 				for ( $i = 0, $len = count( $result->plugins ); $i < $len; $i ++ ) {
 					$addons[ $i ] = new FS_Plugin( $result->plugins[ $i ] );
 				}
@@ -9809,6 +9811,10 @@
 			return $user;
 		}
 
+		#----------------------------------------------------------------------------------
+		#region API Error Handling
+		#----------------------------------------------------------------------------------
+
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.1
@@ -9820,6 +9826,37 @@
 		private function is_api_error( $result ) {
 			return FS_Api::is_api_error( $result );
 		}
+
+		/**
+		 * Checks if given API result is a non-empty and not an error object.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed       $result
+		 * @param string|null $required_property Optional property we want to verify that is set.
+		 *
+		 * @return bool
+		 */
+		function is_api_result_object( $result, $required_property = null ) {
+			return FS_Api::is_api_result_entity( $result, $required_property );
+		}
+
+		/**
+		 * Checks if given API result is a non-empty entity object with non-empty ID.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $result
+		 *
+		 * @return bool
+		 */
+		private function is_api_result_entity( $result ) {
+			return FS_Api::is_api_result_entity( $result );
+		}
+
+		#endregion
 
 		/**
 		 * Start install ownership change.
