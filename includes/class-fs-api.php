@@ -384,7 +384,7 @@
 		 */
 		private function get_temporary_unavailable_error() {
 			return (object) array(
-				'error' => array(
+				'error' => (object) array(
 					'type'    => 'TemporaryUnavailable',
 					'message' => 'API is temporary unavailable, please retry in ' . ( self::$_cache->get_record_expiration( 'ping_test' ) - WP_FS__SCRIPT_START_TIME ) . ' sec.',
 					'code'    => 'temporary_unavailable',
