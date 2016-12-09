@@ -5351,7 +5351,8 @@
 		 */
 		function _sync_plans() {
 			$plans = $this->_fetch_plugin_plans();
-			if ( $this->is_api_result_object( $plans ) ) {
+
+			if ( $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
 				$this->_plans = $plans;
 				$this->_store_plans();
 			}
@@ -5421,7 +5422,8 @@
 		 */
 		function _sync_licenses( $site_license_id = false ) {
 			$licenses = $this->_fetch_licenses( false, $site_license_id );
-			if ( $this->is_api_result_object( $licenses ) ) {
+
+			if ( $this->is_array_instanceof($licenses, 'FS_Plugin_License') ) {
 				$this->_licenses = $licenses;
 				$this->_store_licenses();
 			}
@@ -8808,7 +8810,7 @@
 			$licenses = $this->_fetch_licenses( $addon->id );
 
 			// Sync add-on licenses.
-			if ( ! isset( $licenses->error ) ) {
+			if ( $this->is_array_instanceof($licenses, 'FS_Plugin_License') ) {
 				$this->_update_licenses( $licenses, $addon->slug );
 
 				if ( ! $this->is_addon_installed( $addon->slug ) && FS_License_Manager::has_premium_license( $licenses ) ) {
