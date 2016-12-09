@@ -180,7 +180,7 @@
 				}
 			}
 
-			if ( $this->_logger->is_on() && self::is_api_error($result) ) {
+			if ( $this->_logger->is_on() && self::is_api_error( $result ) ) {
 				// Log API errors.
 				$this->_logger->api_error( $result );
 			}
@@ -276,8 +276,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_cached( $path, $method = 'GET', $params = array() )
-		{
+		function is_cached( $path, $method = 'GET', $params = array() ) {
 			$cache_key = $this->get_cache_key( $path, $method, $params );
 
 			return self::$_cache->has_valid( $cache_key );
@@ -293,8 +292,7 @@
 		 * @param string $method
 		 * @param array  $params
 		 */
-		function purge_cache( $path, $method = 'GET', $params = array() )
-		{
+		function purge_cache( $path, $method = 'GET', $params = array() ) {
 			$this->_logger->entrance( "{$method}:{$path}" );
 
 			$cache_key = $this->get_cache_key( $path, $method, $params );
@@ -314,7 +312,7 @@
 			$canonized = $this->_api->CanonizePath( $path );
 //			$exploded = explode('/', $canonized);
 //			return $method . '_' . array_pop($exploded) . '_' . md5($canonized . json_encode($params));
-			return strtolower($method . ':' . $canonized) . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
+			return strtolower( $method . ':' . $canonized ) . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
 		}
 
 		/**
@@ -386,7 +384,7 @@
 		 */
 		private function get_temporary_unavailable_error() {
 			return (object) array(
-				'error' => array(
+				'error' => (object) array(
 					'type'    => 'TemporaryUnavailable',
 					'message' => 'API is temporary unavailable, please retry in ' . ( self::$_cache->get_record_expiration( 'ping_test' ) - WP_FS__SCRIPT_START_TIME ) . ' sec.',
 					'code'    => 'temporary_unavailable',
@@ -505,6 +503,10 @@
 			self::$_cache->clear();
 		}
 
+		#----------------------------------------------------------------------------------
+		#region Error Handling
+		#----------------------------------------------------------------------------------
+
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.5
@@ -517,4 +519,40 @@
 			return ( is_object( $result ) && isset( $result->error ) ) ||
 			       is_string( $result );
 		}
+
+		/**
+		 * Checks if given API result is a non-empty and not an error object.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed       $result
+		 * @param string|null $required_property Optional property we want to verify that is set.
+		 *
+		 * @return bool
+		 */
+		static function is_api_result_object( $result, $required_property = null ) {
+			return (
+				is_object( $result ) &&
+				! isset( $result->error ) &&
+				( empty( $required_property ) || isset( $result->{$required_property} ) )
+			);
+		}
+
+		/**
+		 * Checks if given API result is a non-empty entity object with non-empty ID.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $result
+		 *
+		 * @return bool
+		 */
+		static function is_api_result_entity( $result ) {
+			return self::is_api_result_object( $result, 'id' ) &&
+			       FS_Entity::is_valid_id( $result->id );
+		}
+
+		#endregion
 	}
