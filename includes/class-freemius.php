@@ -9883,6 +9883,21 @@
 		#endregion
 
 		/**
+		 * Make sure a given argument is an array of a specific type.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed  $array
+		 * @param string $class
+		 *
+		 * @return bool
+		 */
+		private function is_array_instanceof( $array, $class ) {
+			return ( is_array( $array ) && ( empty( $array ) || $array[0] instanceof $class ) );
+		}
+
+		/**
 		 * Start install ownership change.
 		 *
 		 * @author Vova Feldman (@svovaf)
