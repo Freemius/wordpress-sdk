@@ -8481,7 +8481,11 @@
 
 			$is_site_license_synced = false;
 
-			if ( ! isset( $result->error ) ) {
+			$api_errors = array();
+
+			if ( $this->is_api_result_object( $result, 'licenses' ) &&
+			     is_array( $result->licenses )
+			) {
 				for ( $i = 0, $len = count( $result->licenses ); $i < $len; $i ++ ) {
 					$result->licenses[ $i ] = new FS_Plugin_License( $result->licenses[ $i ] );
 
@@ -8491,6 +8495,9 @@
 				}
 
 				$result = $result->licenses;
+			} else {
+				$api_errors[] = $result;
+				$result       = array();
 			}
 
 			if ( ! $is_site_license_synced ) {
@@ -8500,24 +8507,41 @@
 					// Try to retrieve a foreign license that is linked to the install.
 					$api_result = $api->call( '/licenses.json' );
 
-					if ( ! isset( $api_result->error ) ) {
+					if ( $this->is_api_result_object( $api_result, 'licenses' ) &&
+					     is_array( $api_result->licenses )
+					) {
 						$licenses = $api_result->licenses;
 
 						if ( ! empty( $licenses ) ) {
 							$result[] = new FS_Plugin_License( $licenses[0] );
 						}
+					} else {
+						$api_errors[] = $api_result;
 					}
 				} else if ( is_object( $this->_license ) ) {
 					// Fetch foreign license by ID and license key.
 					$license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
 					                      urlencode( $this->_license->secret_key ) );
 
-					if ( ! isset( $license->error ) ) {
+					if ( $this->is_api_result_entity( $license ) ) {
 						$result[] = new FS_Plugin_License( $license );
+					} else {
+						$api_errors[] = $license;
 					}
 				}
 			}
 
+			if ( is_array( $result ) && 0 < count( $result ) ) {
+				// If found at least one license, return license collection even if there are errors.
+				return $result;
+			}
+
+			if ( ! empty( $api_errors ) ) {
+				// If found any errors and no licenses, return first error.
+				return $api_errors[0];
+			}
+
+			// Fallback to empty licenses list.
 			return $result;
 		}
 
