@@ -351,6 +351,7 @@
 		'follow-steps-to-complete-upgrade'         => __( 'Please follow these steps to complete the upgrade',
 			'freemius' ),
 		'download-latest-x-version'                => __( 'Download the latest %s version', 'freemius' ),
+		'download-latest-version'                  => __( 'Download the latest version', 'freemius' ),
 		'deactivate-free-version'                  => __( 'Deactivate the free version', 'freemius' ),
 		'upload-and-activate'                      => __( 'Upload and activate the downloaded version', 'freemius' ),
 		'howto-upload-activate'                    => __( 'How to upload and activate?', 'freemius' ),
