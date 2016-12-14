@@ -77,7 +77,7 @@ HTML;
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php printf( __fs(  'deactivation-modal-button-cancel' , $slug ) ) ?></a>'
+		    + '			<a href="#" class="button button-primary button-close"><?php _efs(  'cancel' , $slug ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
@@ -168,6 +168,7 @@ HTML;
 					method    : 'POST',
 					data      : {
 						'action'      : '<?php echo $fs->get_action_tag( 'submit_uninstall_reason' ) ?>',
+						'slug'        : '<?php echo $slug ?>',
 						'reason_id'   : $radio.val(),
 						'reason_info' : userReason,
 						'is_anonymous': isAnonymousFeedback()

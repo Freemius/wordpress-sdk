@@ -15,9 +15,15 @@
 	 * under the License.
 	 */
 
-	define( 'FS_API__VERSION', '1' );
-	define( 'FS_SDK__PATH', dirname( __FILE__ ) );
-	define( 'FS_SDK__EXCEPTIONS_PATH', FS_SDK__PATH . '/Exceptions/' );
+	if ( ! defined( 'FS_API__VERSION' ) ) {
+		define( 'FS_API__VERSION', '1' );
+	}
+	if ( ! defined( 'FS_SDK__PATH' ) ) {
+		define( 'FS_SDK__PATH', dirname( __FILE__ ) );
+	}
+	if ( ! defined( 'FS_SDK__EXCEPTIONS_PATH' ) ) {
+		define( 'FS_SDK__EXCEPTIONS_PATH', FS_SDK__PATH . '/Exceptions/' );
+	}
 
 	if ( ! function_exists( 'json_decode' ) ) {
 		throw new Exception( 'Freemius needs the JSON PHP extension.' );
@@ -36,6 +42,10 @@
 		require_once FS_SDK__EXCEPTIONS_PATH . $e . '.php';
 	}
 
+	if ( class_exists( 'Freemius_Api_Base' ) ) {
+		return;
+	}
+
 	abstract class Freemius_Api_Base {
 		const VERSION = '1.0.4';
 		const FORMAT = 'json';
@@ -47,7 +57,7 @@
 		protected $_isSandbox;
 
 		/**
-		 * @param string $pScope     'app', 'developer', 'user' or 'install'.
+		 * @param string $pScope     'app', 'developer', 'plugin', 'user' or 'install'.
 		 * @param number $pID        Element's id.
 		 * @param string $pPublic    Public key.
 		 * @param string $pSecret    Element's secret key.

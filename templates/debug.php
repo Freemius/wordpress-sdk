@@ -78,6 +78,58 @@
 		</tr>
 		</tbody>
 	</table>
+<?php
+	if ( ! defined( 'FS_API__ADDRESS' ) ) {
+		define( 'FS_API__ADDRESS', '://api.freemius.com' );
+	}
+	if ( ! defined( 'FS_API__SANDBOX_ADDRESS' ) ) {
+		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
+	}
+
+	$defines = array(
+		array(
+			'key' => 'WP_FS__REMOTE_ADDR',
+			'val' => WP_FS__REMOTE_ADDR,
+		),
+		array(
+			'key' => 'WP_FS__ADDRESS_PRODUCTION',
+			'val' => WP_FS__ADDRESS_PRODUCTION,
+		),
+		array(
+			'key' => 'FS_API__ADDRESS',
+			'val' => FS_API__ADDRESS,
+		),
+		array(
+			'key' => 'FS_API__SANDBOX_ADDRESS',
+			'val' => FS_API__SANDBOX_ADDRESS,
+		),
+		array(
+			'key' => 'WP_FS__DIR',
+			'val' => WP_FS__DIR,
+		),
+	)
+?>
+	<br>
+	<table class="widefat">
+		<thead>
+		<tr>
+			<th><?php _efs( 'key' ) ?></th>
+			<th><?php _efs( 'value' ) ?></th>
+		</tr>
+		</thead>
+		<tbody>
+		<?php $alternate = false;
+			foreach ( $defines as $p ) : ?>
+				<tr<?php if ( $alternate ) {
+					echo ' class="alternate"';
+				} ?>>
+					<td><?php echo $p['key'] ?></td>
+					<td><?php echo $p['val'] ?></td>
+				</tr>
+				<?php $alternate = ! $alternate ?>
+			<?php endforeach ?>
+		</tbody>
+	</table>
 	<h2><?php _efs( 'sdk-versions' ) ?></h2>
 	<table id="fs_sdks" class="widefat">
 		<thead>
@@ -116,6 +168,7 @@
 			<th><?php _efs( 'freemius-state' ) ?></th>
 			<th><?php _efs( 'plugin-path' ) ?></th>
 			<th><?php _efs( 'public-key' ) ?></th>
+			<th><?php _efs( 'actions' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -123,24 +176,42 @@
 			<?php $is_active = is_plugin_active( $data->file ) ?>
 			<?php $fs = $is_active ? freemius( $slug ) : null ?>
 			<tr<?php if ( $is_active ) {
-				echo ' style="background: #E6FFE6; font-weight: bold"';
+				if ($fs->has_api_connectivity() && $fs->is_on()) {
+					echo ' style="background: #E6FFE6; font-weight: bold"';
+				}else{
+					echo ' style="background: #ffd0d0; font-weight: bold"';
+				}
 			} ?>>
 				<td><?php echo $data->id ?></td>
 				<td><?php echo $slug ?></td>
 				<td><?php echo $data->version ?></td>
 				<td><?php echo $data->title ?></td>
-				<td><?php if ( $is_active ) {
+				<td<?php if ( $is_active && ! $fs->has_api_connectivity() ) {
+					echo ' style="color: red; text-transform: uppercase;"';
+				} ?>><?php if ( $is_active ) {
 						echo $fs->has_api_connectivity() ?
 							__fs( 'connected' ) :
 							__fs( 'blocked' );
 					} ?></td>
-				<td><?php if ( $is_active ) {
+				<td<?php if ( $is_active && ! $fs->is_on() ) {
+					echo ' style="color: red; text-transform: uppercase;"';
+				} ?>><?php if ( $is_active ) {
 						echo $fs->is_on() ?
 							__fs( 'on' ) :
 							__fs( 'off' );
 					} ?></td>
 				<td><?php echo $data->file ?></td>
 				<td><?php echo $data->public_key ?></td>
+				<td>
+					<?php if ($is_active && $fs->has_trial_plan()) : ?>
+					<form action="" method="POST">
+						<input type="hidden" name="fs_action" value="simulate_trial">
+						<input type="hidden" name="slug" value="<?php echo $slug ?>">
+						<?php wp_nonce_field( 'simulate_trial' ) ?>
+
+						<button type="submit" class="button button-primary simulate-trial"><?php _efs( 'Simulate Trial' ) ?></button>
+					<?php endif ?>
+				</td>
 			</tr>
 		<?php endforeach ?>
 		</tbody>
@@ -148,7 +219,7 @@
 <?php endif ?>
 <?php
 	/**
-	 * @var array $VARS
+	 * @var array     $VARS
 	 * @var FS_Site[] $sites
 	 */
 	$sites = $VARS['sites'];
@@ -240,7 +311,7 @@
 			<tr>
 				<td><?php echo $user->id ?></td>
 				<td><?php echo $user->get_name() ?></td>
-				<td><a href="mailto:<?php esc_attr_e( $user->email ) ?>"><?php echo $user->email ?></a></td>
+				<td><a href="mailto:<?php echo esc_attr( $user->email ) ?>"><?php echo $user->email ?></a></td>
 				<td><?php echo json_encode( $user->is_verified ) ?></td>
 				<td><?php echo $user->public_key ?></td>
 				<td><?php echo $user->secret_key ?></td>

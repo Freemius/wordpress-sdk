@@ -17,7 +17,9 @@
 
 	require_once( dirname( __FILE__ ) . '/FreemiusBase.php' );
 
-	define( 'FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION );
+	if ( ! defined( 'FS_SDK__USER_AGENT' ) ) {
+		define( 'FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION );
+	}
 
 	if ( ! defined( 'FS_SDK__SIMULATE_NO_CURL' ) ) {
 		define( 'FS_SDK__SIMULATE_NO_CURL', false );
@@ -31,7 +33,9 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
 	}
 
-	define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+	if ( ! defined( 'FS_SDK__HAS_CURL' ) ) {
+		define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+	}
 
 	if ( ! FS_SDK__HAS_CURL ) {
 		$curl_version = array( 'version' => '7.0.0' );
@@ -39,7 +43,9 @@
 		$curl_version = curl_version();
 	}
 
-	define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
+	if ( ! defined( 'FS_API__PROTOCOL' ) ) {
+		define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
+	}
 
 	if ( ! defined( 'FS_API__LOGGER_ON' ) ) {
 		define( 'FS_API__LOGGER_ON', false );
@@ -50,6 +56,10 @@
 	}
 	if ( ! defined( 'FS_API__SANDBOX_ADDRESS' ) ) {
 		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
+	}
+
+	if ( class_exists( 'Freemius_Api' ) ) {
+		return;
 	}
 
 	class Freemius_Api extends Freemius_Api_Base {
@@ -312,11 +322,8 @@
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_TIMEOUT        => 60,
 				CURLOPT_USERAGENT      => FS_SDK__USER_AGENT,
+				CURLOPT_HTTPHEADER     => array(),
 			);
-
-			if ( ! isset( $opts[ CURLOPT_HTTPHEADER ] ) || ! is_array( $opts[ CURLOPT_HTTPHEADER ] ) ) {
-				$opts[ CURLOPT_HTTPHEADER ] = array();
-			}
 
 			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
 				if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
@@ -328,7 +335,7 @@
 				$opts[ CURLOPT_RETURNTRANSFER ] = true;
 			}
 
-			$request_url = Freemius_Api::GetUrl( $pCanonizedPath, $pIsSandbox );
+			$request_url = self::GetUrl( $pCanonizedPath, $pIsSandbox );
 
 			$opts[ CURLOPT_URL ]           = $request_url;
 			$opts[ CURLOPT_CUSTOMREQUEST ] = $pMethod;

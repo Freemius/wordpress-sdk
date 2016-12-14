@@ -1,3 +1,5 @@
+@import "../start";
+
 #fs_account
 {
     .postbox,
@@ -166,6 +168,10 @@ label.fs-tag
         vertical-align: middle;
     }
 
+    thead {
+        white-space: nowrap;
+    }
+
     td:first-child,
     th:first-child
     {
@@ -180,5 +186,65 @@ label.fs-tag
     th
     {
         font-weight: bold;
+    }
+}
+
+#fs_billing_address {
+    width: 100%;
+
+    tr {
+        td {
+            width: 50%;
+            padding: 5px;
+        }
+
+        &:first-of-type {
+            td {
+                padding-top: 0;
+            }
+        }
+    }
+
+    @mixin read-mode {
+        border-color: transparent;
+        color: #777;
+        border-bottom: 1px dashed #ccc;
+        padding-left: 0;
+        background: none;
+    }
+
+    span {
+        font-weight: bold;
+    }
+
+    input, select {
+        @include placeholder(transparent);
+
+        display: block;
+        width: 100%;
+        margin-top: 5px;
+
+        &.fs-read-mode {
+            @include read-mode();
+        }
+    }
+
+
+    &.fs-read-mode {
+        td span {
+            display: none;
+        }
+
+        input, select
+        {
+            @include read-mode();
+            @include placeholder(#ccc);
+        }
+    }
+
+
+    button {
+        display: block;
+        width: 100%;
     }
 }

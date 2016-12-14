@@ -41,15 +41,29 @@
 		 * @since 1.5.1
 		 * @uses  apply_filters() Calls 'wp_redirect' hook on $location and $status.
 		 *
-		 * @param string $location The path to redirect to
-		 * @param int    $status   Status code to use
+		 * @param string $location The path to redirect to.
+		 * @param bool   $exit     If true, exit after redirect (Since 1.2.1.5).
+		 * @param int    $status   Status code to use.
 		 *
 		 * @return bool False if $location is not set
 		 */
-		function fs_redirect( $location, $status = 302 ) {
+		function fs_redirect( $location, $exit = true, $status = 302 ) {
 			global $is_IIS;
 
-			if ( headers_sent() ) {
+			$file = '';
+			$line = '';
+			if ( headers_sent($file, $line) ) {
+				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notice_Manager' ) ) {
+					$notices = FS_Admin_Notice_Manager::instance( 'global' );
+
+					$notices->add( "Freemius failed to redirect the page because the headers have been already sent from line <b><code>{$line}</code></b> in file <b><code>{$file}</code></b>. If it's unexpected, it usually happens due to invalid space and/or EOL character(s).", 'Oops...', 'error' );
+				}
+
+				return false;
+			}
+
+			if ( defined( 'DOING_AJAX' ) ) {
+				// Don't redirect on AJAX calls.
 				return false;
 			}
 
@@ -67,6 +81,10 @@
 					status_header( $status );
 				} // This causes problems on IIS and some FastCGI setups
 				header( "Location: $location" );
+			}
+
+			if ( $exit ) {
+				exit();
 			}
 
 			return true;
@@ -407,7 +425,7 @@
 		$args = func_get_args();
 
 		return call_user_func_array( 'apply_filters', array_merge(
-				array( 'fs_' . $tag . '_' . $slug ),
+				array( "fs_{$tag}_{$slug}" ),
 				array_slice( $args, 2 ) )
 		);
 	}

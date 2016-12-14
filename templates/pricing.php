@@ -35,6 +35,8 @@
 			$timestamp,
 			'upgrade'
 		) );
+	} else {
+		$context_params['home_url'] = home_url();
 	}
 
 	if ( $fs->is_payments_sandbox() ) // Append plugin secure token for sandbox mode authentication.)
@@ -53,7 +55,12 @@
 		'billing_cycle'  => fs_request_get( 'billing_cycle', WP_FS__PERIOD_ANNUALLY ),
 	) );
 ?>
-
+	<?php if ( ! $fs->is_registered() ) {
+		$template_data = array(
+			'slug' => $slug,
+		);
+		fs_require_template( 'forms/trial-start.php', $template_data);
+	} ?>
 	<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
 		<div id="iframe"></div>
 		<form action="" method="POST">
@@ -69,16 +76,16 @@
 			(function ($, undef) {
 				$(function () {
 					var
-					// Keep track of the iframe height.
-					iframe_height = 800,
-					base_url = '<?php echo WP_FS__ADDRESS ?>',
-					// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
-					// passed via query string or hard coded into the child page, it depends on your needs).
-					src = base_url + '/pricing/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+						// Keep track of the iframe height.
+						iframe_height = 800,
+						base_url      = '<?php echo WP_FS__ADDRESS ?>',
+						// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
+						// passed via query string or hard coded into the child page, it depends on your needs).
+						src           = base_url + '/pricing/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
-					// Append the Iframe into the DOM.
-					iframe = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
-						.appendTo('#iframe');
+						// Append the Iframe into the DOM.
+						iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
+							.appendTo('#iframe');
 
 					FS.PostMessage.init(base_url);
 
@@ -95,6 +102,10 @@
 							height   : $(document.body).height(),
 							scrollTop: $(document).scrollTop()
 						}, iframe[0]);
+					});
+
+					FS.PostMessage.receive('start_trial', function (data) {
+						openTrialConfirmationModal(data);
 					});
 				});
 			})(jQuery);

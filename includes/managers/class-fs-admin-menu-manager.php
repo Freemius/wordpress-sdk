@@ -502,7 +502,6 @@
 		}
 
 		/**
-		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
 		 *
@@ -543,6 +542,29 @@
 			}
 
 			return $hookname;
+		}
+
+		/**
+		 * Adds a counter to the module's top level menu item.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param int    $counter
+		 * @param string $class
+		 */
+		function add_counter_to_menu_item( $counter = 1, $class = '' ) {
+			global $menu;
+
+			// Find main menu item.
+			$found_menu = $this->find_top_level_menu();
+
+			if ( false === $menu ) {
+				return;
+			}
+
+			// Override menu label.
+			$menu[ $found_menu['position'] ][0] = $found_menu['menu'][0] . ' <span class="update-plugins ' . $class . ' count-' . $counter . '"><span>' . $counter . '</span></span>';
 		}
 
 		#endregion Top level menu Override

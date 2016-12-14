@@ -16,7 +16,7 @@
     $slug = $VARS['slug'];
     $fs   = freemius( $slug );
 
-    $skip_url  = wp_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $slug . '_skip_activation' ) ), $slug . '_skip_activation' );
+    $skip_url  = fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $slug . '_skip_activation' ) ), $slug . '_skip_activation' );
     $skip_text = strtolower( __fs( 'skip', $slug ) );
     $use_plugin_anonymously_text = __fs( 'click-here-to-use-plugin-anonymously', $slug );
 
