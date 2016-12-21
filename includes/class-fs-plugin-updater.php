@@ -166,9 +166,9 @@
 		 *
 		 * @uses   FS_Api
 		 *
-		 * @param stdClass $transient_data Update array build by WordPress.
+		 * @param object $transient_data Update array build by WordPress.
 		 *
-		 * @return array Modified update array with custom plugin data.
+		 * @return object Modified update array with custom plugin data.
 		 */
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
