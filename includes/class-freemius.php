@@ -2300,16 +2300,27 @@
 					}
 				}
 
-				if ( $this->is_premium() ) {
-					new FS_Plugin_Updater( $this );
-				}
-
 //				if ( $this->is_registered() ||
 //				     $this->is_anonymous() ||
 //				     $this->is_pending_activation()
 //				) {
 //					$this->_init_admin();
 //				}
+			}
+
+			/**
+			 * Should be called outside `$this->is_user_in_admin()` scope
+			 * because the updater has some logic that needs to be executed
+			 * during AJAX calls.
+			 *
+			 * Currently we need to hook to the `http_request_host_is_external` filter.
+			 * In the future, there might be additional logic added.
+			 *
+			 * @author Vova Feldman
+			 * @since 1.2.1.6
+			 */
+			if ( $this->is_premium() && $this->has_release_on_freemius() ) {
+				new FS_Plugin_Updater( $this );
 			}
 
 			$this->do_action( 'initiated' );
