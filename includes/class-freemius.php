@@ -585,10 +585,16 @@
 		 * @since  1.0.9
 		 */
 		private function _register_account_hooks() {
-			if ( is_admin() ) {
-				// If user is paying or in trial and have the free version installed,
-				// assume that the deactivation is for the upgrade process.
-				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
+			if ( ! is_admin() ) {
+				return;
+			}
+
+			/**
+			 * Always show the deactivation feedback form since we added
+			 * automatic free version deactivation upon premium code activation.
+			 *
+			 * @since 1.2.1.6
+			 */
 					$this->add_ajax_action(
 						'submit_uninstall_reason',
 						array( &$this, '_submit_uninstall_reason_action' )
@@ -597,7 +603,6 @@
 					if ( $this->is_plugins_page() ) {
 						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 					}
-				}
 
 				if ( ! $this->is_addon() ) {
 					if ( $this->is_registered() ) {
@@ -605,7 +610,6 @@
 					}
 				}
 			}
-		}
 
 		/**
 		 * Leverage backtrace to find caller plugin file path.
