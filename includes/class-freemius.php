@@ -3179,7 +3179,7 @@
 
 					if ( $this->is_paying() ) {
 						// Check for premium plugin updates.
-						$this->_check_updates( true );
+						$this->check_updates( true );
 					}
 				} else {
 					// Sync install (only if something changed locally).
@@ -5049,7 +5049,7 @@
 				return false;
 			}
 
-			$addons = $this->_sync_addons( $flush );
+			$addons = $this->sync_addons( $flush );
 
 			return ( ! is_array( $addons ) || empty( $addons ) ) ?
 				false :
@@ -8719,7 +8719,7 @@
 				$plugin_id = $this->_plugin->id;
 			}
 
-			$this->_check_updates( true, $plugin_id, $flush );
+			$this->check_updates( true, $plugin_id, $flush );
 			$updates = $this->get_all_updates();
 
 			return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -8869,7 +8869,7 @@
 								sprintf(
 									__fs( 'addon-successfully-upgraded-message', $this->_slug ),
 									$addon->title
-								) . ' ' . $this->_get_latest_download_link(
+								) . ' ' . $this->get_latest_download_link(
 									__fs( 'download-latest-version', $this->_slug ),
 									$addon_id
 								)
@@ -8877,7 +8877,7 @@
 								sprintf(
 									__fs( 'addon-successfully-purchased-message', $this->_slug ),
 									$addon->title
-								) . ' ' . $this->_get_latest_download_link(
+								) . ' ' . $this->get_latest_download_link(
 									__fs( 'download-latest-version', $this->_slug ),
 									$addon_id
 								),
@@ -9671,10 +9671,10 @@
 		 * @uses   FS_Api
 		 * @uses   wp_redirect()
 		 */
-		private function _download_latest_directly( $plugin_id = false ) {
+		private function download_latest_directly( $plugin_id = false ) {
 			$this->_logger->entrance();
 
-			wp_redirect( $this->_get_latest_download_api_url( $plugin_id ) );
+			wp_redirect( $this->get_latest_download_api_url( $plugin_id ) );
 		}
 
 		/**
@@ -9687,7 +9687,7 @@
 		 *
 		 * @return string
 		 */
-		private function _get_latest_download_api_url( $plugin_id = false ) {
+		private function get_latest_download_api_url( $plugin_id = false ) {
 			$this->_logger->entrance();
 
 			return $this->get_api_site_scope()->get_signed_url(
@@ -9724,7 +9724,7 @@
 		 *
 		 * @return string
 		 */
-		private function _get_latest_download_link( $label, $plugin_id = false ) {
+		private function get_latest_download_link( $label, $plugin_id = false ) {
 			return sprintf(
 				'<a target="_blank" href="%s">%s</a>',
 				$this->_get_latest_download_local_url( $plugin_id ),
@@ -9766,7 +9766,7 @@
 		 * @param bool|number $plugin_id
 		 * @param bool        $flush      Since 1.1.7.3
 		 */
-		private function _check_updates( $background = false, $plugin_id = false, $flush = true ) {
+		private function check_updates( $background = false, $plugin_id = false, $flush = true ) {
 			$this->_logger->entrance();
 
 			// Check if there's a newer version for download.
@@ -9810,7 +9810,7 @@
 		 *
 		 * @uses   FS_Api
 		 */
-		private function _sync_addons( $flush = false ) {
+		private function sync_addons( $flush = false ) {
 			$this->_logger->entrance();
 
 			$api = $this->get_api_site_or_plugin_scope();
@@ -9854,7 +9854,7 @@
 		 *
 		 * @return object
 		 */
-		private function _update_email( $new_email ) {
+		private function update_email( $new_email ) {
 			$this->_logger->entrance();
 
 
@@ -10196,7 +10196,7 @@
 
 				case 'check_updates':
 					check_admin_referer( $action );
-					$this->_check_updates();
+					$this->check_updates();
 
 					return;
 
@@ -10234,7 +10234,7 @@
 					check_admin_referer( 'update_email' );
 
 					$new_email = fs_request_get( 'fs_email_' . $this->_slug, '' );
-					$result    = $this->_update_email( $new_email );
+					$result    = $this->update_email( $new_email );
 
 					if ( isset( $result->error ) ) {
 						switch ( $result->error->code ) {
@@ -10308,7 +10308,7 @@
 					return;
 
 				case 'download_latest':
-					$this->_download_latest_directly( $plugin_id );
+					$this->download_latest_directly( $plugin_id );
 
 					return;
 
@@ -11186,7 +11186,7 @@
 			return sprintf(
 				' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
 				__fs( 'follow-steps-to-complete-upgrade', $this->_slug ),
-				$this->_get_latest_download_link( sprintf(
+				$this->get_latest_download_link( sprintf(
 					__fs( 'download-latest-x-version', $this->_slug ),
 					$plan_title
 				) ),
