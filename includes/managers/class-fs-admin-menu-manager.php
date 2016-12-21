@@ -454,6 +454,49 @@
 		}
 
 		/**
+		 * Find plugin's admin dashboard main submenu item.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @return array|false
+		 */
+		private function find_main_submenu() {
+			global $submenu;
+
+			$top_level_menu_slug = $this->get_top_level_menu_slug();
+
+			if ( ! isset( $submenu[ $top_level_menu_slug ] ) ) {
+				return false;
+			}
+
+			$submenu_slug = $this->get_raw_slug();
+
+			$position   = - 1;
+			$found_submenu = false;
+
+			$hook_name = get_plugin_page_hookname( $submenu_slug, '' );
+
+			foreach ( $submenu[ $top_level_menu_slug ] as $pos => $sub ) {
+				if ( $submenu_slug === $sub[2] ) {
+					$position   = $pos;
+					$found_submenu = $sub;
+				}
+			}
+
+			if ( false === $found_submenu ) {
+				return false;
+			}
+
+			return array(
+				'menu'        => $found_submenu,
+				'parent_slug' => $top_level_menu_slug,
+				'position'    => $position,
+				'hook_name'   => $hook_name
+			);
+		}
+
+		/**
 		 * Remove all sub-menu items.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -554,17 +597,38 @@
 		 * @param string $class
 		 */
 		function add_counter_to_menu_item( $counter = 1, $class = '' ) {
-			global $menu;
+			global $menu, $submenu;
 
-			// Find main menu item.
-			$found_menu = $this->find_top_level_menu();
+			$mask = '%s <span class="update-plugins %s count-%3$s" aria-hidden="true"><span>%3$s<span class="screen-reader-text">%3$s notifications</span></span></span>';
 
-			if ( false === $menu ) {
-				return;
+			if ($this->_is_top_level) {
+				// Find main menu item.
+				$found_menu = $this->find_top_level_menu();
+
+				if ( false !== $found_menu ) {
+					// Override menu label.
+					$menu[ $found_menu['position'] ][0] = sprintf(
+						$mask,
+						$found_menu['menu'][0],
+						$class,
+						$counter
+					);
+				}
 			}
+			else
+			{
+				$found_submenu = $this->find_main_submenu();
 
-			// Override menu label.
-			$menu[ $found_menu['position'] ][0] = $found_menu['menu'][0] . ' <span class="update-plugins ' . $class . ' count-' . $counter . '"><span>' . $counter . '</span></span>';
+				if ( false !== $found_submenu ) {
+					// Override menu label.
+					$submenu[ $found_submenu['parent_slug'] ][ $found_submenu['position'] ][0] = sprintf(
+						$mask,
+						$found_submenu['menu'][0],
+						$class,
+						$counter
+					);
+				}
+			}
 		}
 
 		#endregion Top level menu Override
