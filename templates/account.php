@@ -310,11 +310,13 @@
 								<?php endif ?>
 							</div>
 					<?php elseif ( 'version' === $p['id'] && $fs->has_paid_plan() ) : ?>
-						<?php if ( $fs->is_premium() ) : ?>
-							<label
-								class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php _efs( 'premium-version' ) ?></label>
-						<?php elseif ( $fs->can_use_premium_code() ) : ?>
-							<label class="fs-tag fs-warn"><?php _efs( 'free-version' ) ?></label>
+						<?php if ( $fs->has_premium_version() ) : ?>
+							<?php if ( $fs->is_premium() ) : ?>
+								<label
+									class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php _efs( 'premium-version' ) ?></label>
+							<?php elseif ( $fs->can_use_premium_code() ) : ?>
+								<label class="fs-tag fs-warn"><?php _efs( 'free-version' ) ?></label>
+							<?php endif ?>
 						<?php endif ?>
 					<?php endif ?>
 				</td>
@@ -329,6 +331,7 @@
 						</form>
 					<?php endif ?>
 					<?php if ( 'version' === $p['id'] ) : ?>
+						<?php if ( $fs->has_release_on_freemius() ) : ?>
 						<div class="button-group">
 							<?php if ( $is_paying || $fs->is_trial() ) : ?>
 								<?php if ( ! $fs->is_allowed_to_install() ) : ?>
@@ -340,6 +343,7 @@
 								<?php endif ?>
 							<?php endif; ?>
 						</div>
+						<?php endif ?>
 					<?php
 					elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 						<button class="button button-small"><?php _efs( 'show', $slug ) ?></button>

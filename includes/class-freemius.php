@@ -109,6 +109,12 @@
 		private $_is_premium_only;
 
 		/**
+		 * @since 1.2.1.6
+		 * @var bool Hints the SDK if plugin have premium code version at all.
+		 */
+		private $_has_premium_version;
+
+		/**
 		 * @since 1.0.8
 		 * @var bool Hints the SDK if the plugin has any paid plans.
 		 */
@@ -2583,6 +2589,7 @@
 
 			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
+			$this->_has_premium_version = $this->get_bool_option( $plugin_info, 'has_premium_version', $this->_has_paid_plans );
 			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_is_premium_only  = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
 			if ( $this->_is_premium_only ) {
@@ -6135,6 +6142,22 @@
 		}
 
 		/**
+		 * Check if module has a premium code version.
+		 *
+		 * Serviceware module might be freemium without any
+		 * premium code version, where the paid features
+		 * are all part of the service.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @return bool
+		 */
+		function has_premium_version() {
+			return $this->_has_premium_version;
+		}
+
+		/**
 		 * Check if feature supported with current site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -6963,7 +6986,8 @@
 				}
 			}
 
-			if ( $this->is_paying_or_trial() && ! $this->is_premium() ) {
+			if ( $this->is_paying_or_trial() ) {
+				if (! $this->is_premium() || !$this->has_premium_version()) {
 				if ( $this->is_paying() ) {
 					$this->_admin_notices->add_sticky(
 						sprintf(
@@ -6982,6 +7006,7 @@
 						'trial_started',
 						__fs( 'yee-haw', $this->_slug ) . '!'
 					);
+				}
 				}
 
 				$this->_admin_notices->remove_sticky( array(
@@ -11130,7 +11155,7 @@
 		 * @return string
 		 */
 		private function get_complete_upgrade_instructions( $plan_title = '' ) {
-			if ( $this->is_premium() ) {
+			if ( ! $this->has_premium_version() || $this->is_premium() ) {
 				return '';
 			}
 
