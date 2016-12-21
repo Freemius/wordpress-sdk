@@ -106,7 +106,7 @@
 		 * @since  1.1.6
 		 *
 		 * @param string $file
-		 * @param array $plugin_data
+		 * @param array  $plugin_data
 		 */
 		function edit_and_echo_plugin_update_row( $file, $plugin_data ) {
 			$plugin_update_row = ob_get_clean();
@@ -320,21 +320,25 @@ if ( !isset($info->error) ) {
 			// Get plugin's newest update.
 			$new_version = $this->_fs->_fetch_latest_version( $is_addon ? $addon->id : false );
 
-			if ( $is_addon ) {
-				$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
-				$data->slug    = $addon->slug;
-				$data->url     = WP_FS__ADDRESS;
-				$data->package = $new_version->url;
-			}
+			if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
+				$data->version = $this->_fs->get_plugin_version();
+			} else {
+				if ( $is_addon ) {
+					$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
+					$data->slug    = $addon->slug;
+					$data->url     = WP_FS__ADDRESS;
+					$data->package = $new_version->url;
+				}
 
-			if ( ! $plugin_in_repo ) {
-				$data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
-				$data->requires     = $new_version->requires_platform_version;
-				$data->tested       = $new_version->tested_up_to_version;
-			}
+				if ( ! $plugin_in_repo ) {
+					$data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
+					$data->requires     = $new_version->requires_platform_version;
+					$data->tested       = $new_version->tested_up_to_version;
+				}
 
-			$data->version       = $new_version->version;
-			$data->download_link = $new_version->url;
+				$data->version       = $new_version->version;
+				$data->download_link = $new_version->url;
+			}
 
 			return $data;
 		}
