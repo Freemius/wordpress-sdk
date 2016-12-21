@@ -595,21 +595,21 @@
 			 *
 			 * @since 1.2.1.6
 			 */
-					$this->add_ajax_action(
-						'submit_uninstall_reason',
-						array( &$this, '_submit_uninstall_reason_action' )
-					);
+			$this->add_ajax_action(
+				'submit_uninstall_reason',
+				array( &$this, '_submit_uninstall_reason_action' )
+			);
 
-					if ( $this->is_plugins_page() ) {
-						add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
-					}
+			if ( $this->is_plugins_page() ) {
+				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+			}
 
-				if ( ! $this->is_addon() ) {
-					if ( $this->is_registered() ) {
-						$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
-					}
+			if ( ! $this->is_addon() ) {
+				if ( $this->is_registered() ) {
+					$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 				}
 			}
+		}
 
 		/**
 		 * Leverage backtrace to find caller plugin file path.
@@ -2602,11 +2602,11 @@
 			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
 			$this->_menu->init( $plugin_info['menu'], $this->is_addon() );
 
-			$this->_has_addons       = $this->get_bool_option( $plugin_info, 'has_addons', false );
-			$this->_has_paid_plans   = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
+			$this->_has_addons          = $this->get_bool_option( $plugin_info, 'has_addons', false );
+			$this->_has_paid_plans      = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_has_premium_version = $this->get_bool_option( $plugin_info, 'has_premium_version', $this->_has_paid_plans );
-			$this->_is_org_compliant = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
-			$this->_is_premium_only  = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
+			$this->_is_org_compliant    = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
+			$this->_is_premium_only     = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
 			if ( $this->_is_premium_only ) {
 				// If premium only plugin, disable anonymous mode.
 				$this->_enable_anonymous = false;
@@ -5935,7 +5935,7 @@
 			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
 					'email'        => $email_address,
-					'is_localhost' => WP_FS__IS_LOCALHOST
+					'url'          => home_url(),
 				)
 			);
 
@@ -7003,25 +7003,25 @@
 
 			if ( $this->is_paying_or_trial() ) {
 				if (! $this->is_premium() || !$this->has_premium_version()) {
-				if ( $this->is_paying() ) {
-					$this->_admin_notices->add_sticky(
-						sprintf(
-							__fs( 'activation-with-plan-x-message', $this->_slug ),
-							$this->_site->plan->title
-						) . $this->get_complete_upgrade_instructions(),
-						'plan_upgraded',
-						__fs( 'yee-haw', $this->_slug ) . '!'
-					);
-				} else {
-					$this->_admin_notices->add_sticky(
-						sprintf(
-							__fs( 'trial-started-message', $this->_slug ),
-							'<i>' . $this->get_plugin_name() . '</i>'
-						) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
-						'trial_started',
-						__fs( 'yee-haw', $this->_slug ) . '!'
-					);
-				}
+					if ( $this->is_paying() ) {
+						$this->_admin_notices->add_sticky(
+							sprintf(
+								__fs( 'activation-with-plan-x-message', $this->_slug ),
+								$this->_site->plan->title
+							) . $this->get_complete_upgrade_instructions(),
+							'plan_upgraded',
+							__fs( 'yee-haw', $this->_slug ) . '!'
+						);
+					} else {
+						$this->_admin_notices->add_sticky(
+							sprintf(
+								__fs( 'trial-started-message', $this->_slug ),
+								'<i>' . $this->get_plugin_name() . '</i>'
+							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
+							'trial_started',
+							__fs( 'yee-haw', $this->_slug ) . '!'
+						);
+					}
 				}
 
 				$this->_admin_notices->remove_sticky( array(
