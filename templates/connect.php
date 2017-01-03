@@ -73,7 +73,7 @@
 		<i class="dashicons dashicons-plus fs-first"></i>
 		<?php
 			$vars = array( 'slug' => $slug );
-			fs_require_once_template( 'plugin-icon.php', $vars );
+			fs_require_once_template( 'plugin-icon.php', $vars, $fs->fs_template_dir );
 		?>
 		<i class="dashicons dashicons-plus fs-second"></i>
 		<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/connect-logo.png"/>

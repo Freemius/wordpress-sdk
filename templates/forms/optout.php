@@ -39,7 +39,7 @@
 		'message' => $opt_out_message_appreciation
 	);
 
-	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params );
+	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params, $fs->fs_template_dir );
 
 	$modal_content_html = <<< HTML
 		<h2>{$opt_out_message_appreciation}</h2>
