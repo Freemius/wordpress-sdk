@@ -28,35 +28,35 @@
 	/* Templates / Views.
 	--------------------------------------------------------------------------------------------*/
 	if ( ! function_exists( 'fs_get_template_path' ) ) {
-		function fs_get_template_path( $path ) {
-			return WP_FS__DIR_TEMPLATES . '/' . trim( $path, '/' );
+		function fs_get_template_path( $path, $template_dir = null ) {
+			return ($template_dir ? $template_dir : WP_FS__template_dirS) . '/' . trim( $path, '/' );
 		}
 
-		function fs_include_template( $path, &$params = null ) {
+		function fs_include_template( $path, &$params = null, $template_dir = null ) {
 			$VARS = &$params;
-			include( fs_get_template_path( $path ) );
+			include( fs_get_template_path( $path, $template_dir ) );
 		}
 
-		function fs_include_once_template( $path, &$params = null ) {
+		function fs_include_once_template( $path, &$params = null, $template_dir = null ) {
 			$VARS = &$params;
-			include_once( fs_get_template_path( $path ) );
+			include_once( fs_get_template_path( $path, $template_dir ) );
 		}
 
-		function fs_require_template( $path, &$params = null ) {
+		function fs_require_template( $path, &$params = null, $template_dir = null ) {
 			$VARS = &$params;
-			require( fs_get_template_path( $path ) );
+			require( fs_get_template_path( $path, $template_dir ) );
 		}
 
-		function fs_require_once_template( $path, &$params = null ) {
+		function fs_require_once_template( $path, &$params = null, $template_dir = null ) {
 			$VARS = &$params;
-			require_once( fs_get_template_path( $path ) );
+			require_once( fs_get_template_path( $path, $template_dir ) );
 		}
 
-		function fs_get_template( $path, &$params = null ) {
+		function fs_get_template( $path, &$params = null, $template_dir = null ) {
 			ob_start();
 
 			$VARS = &$params;
-			require( fs_get_template_path( $path ) );
+			require( fs_get_template_path( $path, $template_dir ) );
 
 			return ob_get_clean();
 		}
