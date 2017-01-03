@@ -1355,7 +1355,7 @@
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
-			fs_require_once_template( 'debug.php', $vars, $this->fs_template_dir );
+			fs_require_once_template( 'debug.php', $vars );
 		}
 
 		#endregion
@@ -1957,7 +1957,7 @@
 
 		static function _add_firewall_issues_javascript() {
 			$params = array();
-			fs_require_once_template( 'firewall-issues-js.php', $params, $this->fs_template_dir );
+			fs_require_once_template( 'firewall-issues-js.php', $params );
 		}
 
 		#endregion
