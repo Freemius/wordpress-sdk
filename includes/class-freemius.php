@@ -12,6 +12,20 @@
 	// "final class"
 	class Freemius extends Freemius_Abstract {
 		/**
+		 * Freemius root dir for current instance.
+		 *
+		 * @var string
+		 */
+		public $fs_root_dir;
+
+		/**
+		 * Freemius template dir for current instance.
+		 *
+		 * @var string
+		 */
+		public $fs_template_dir;
+
+		/**
 		 * SDK Version
 		 *
 		 * @var string
@@ -721,7 +735,7 @@
 			/**
 			 * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
 			 */
-			fs_require_template( 'forms/deactivation/form.php', $vars );
+			fs_require_template( 'forms/deactivation/form.php', $vars, $this->fs_template_dir );
 		}
 
 		/**
@@ -738,7 +752,7 @@
 			);
 
 			if ( $this->is_registered() && false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
-				$contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var );
+				$contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var, $this->fs_template_dir );
 			} else {
 				$contact_support_template = '';
 			}
@@ -818,7 +832,7 @@
 			 * button in the opt-in form is shown/hidden).
 			 */
 			if ( $this->is_enable_anonymous() && ! $this->is_pending_activation() ) {
-				$reason_dont_share_info['internal_message'] = fs_get_template( 'forms/deactivation/retry-skip.php', $internal_message_template_var );
+				$reason_dont_share_info['internal_message'] = fs_get_template( 'forms/deactivation/retry-skip.php', $internal_message_template_var, $this->fs_template_dir );
 			}
 
 			$uninstall_reasons = array(
@@ -1341,7 +1355,7 @@
 			);
 
 			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
-			fs_require_once_template( 'debug.php', $vars );
+			fs_require_once_template( 'debug.php', $vars, $this->fs_template_dir );
 		}
 
 		#endregion
@@ -1943,7 +1957,7 @@
 
 		static function _add_firewall_issues_javascript() {
 			$params = array();
-			fs_require_once_template( 'firewall-issues-js.php', $params );
+			fs_require_once_template( 'firewall-issues-js.php', $params, $this->fs_template_dir );
 		}
 
 		#endregion
@@ -2001,7 +2015,7 @@
 			}
 
 			$vars    = array( 'sections' => $default_sections );
-			$message = fs_get_template( 'email.php', $vars );
+			$message = fs_get_template( 'email.php', $vars, $this->fs_template_dir );
 
 			// Set the type of email to HTML.
 			$headers[] = 'Content-type: text/html';
@@ -2516,6 +2530,12 @@
 		 */
 		private function parse_settings( &$plugin_info ) {
 			$this->_logger->entrance();
+
+
+			if(isset($plugin_info['fs_root_dir'])){
+				$this->fs_root_dir = untrailingslashit($plugin_info['fs_root_dir']);
+				$this->fs_template_dir = $this->fs_root_dir . '/templates';
+			}
 
 			$id          = $this->get_numeric_option( $plugin_info, 'id', false );
 			$public_key  = $this->get_option( $plugin_info, 'public_key', false );
@@ -3562,7 +3582,7 @@
 		 */
 		function _add_connect_pointer_script() {
 			$vars            = array( 'slug' => $this->_slug );
-			$pointer_content = fs_get_template( 'connect.php', $vars );
+			$pointer_content = fs_get_template( 'connect.php', $vars, $this->fs_template_dir );
 			?>
 			<script type="text/javascript">// <![CDATA[
 				jQuery(document).ready(function ($) {
@@ -5712,8 +5732,8 @@
 				'slug' => $this->_slug,
 			);
 
-			fs_require_template( 'forms/license-activation.php', $vars );
-			fs_require_template( 'forms/resend-key.php', $vars );
+			fs_require_template( 'forms/license-activation.php', $vars, $this->fs_template_dir );
+			fs_require_template( 'forms/resend-key.php', $vars, $this->fs_template_dir );
 		}
 
 		/**
@@ -5728,7 +5748,7 @@
 				'slug' => $this->_slug,
 			);
 
-			fs_require_template( 'forms/optout.php', $vars );
+			fs_require_template( 'forms/optout.php', $vars, $this->fs_template_dir );
 		}
 
 		/**
@@ -10358,9 +10378,9 @@
 
 			$vars = array( 'slug' => $this->_slug );
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
-				fs_require_once_template( 'billing.php', $vars );
+				fs_require_once_template( 'billing.php', $vars, $this->fs_template_dir );
 			} else {
-				fs_require_once_template( 'account.php', $vars );
+				fs_require_once_template( 'account.php', $vars, $this->fs_template_dir );
 			}
 		}
 
@@ -10374,7 +10394,7 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'connect.php', $vars );
+			fs_require_once_template( 'connect.php', $vars, $this->fs_template_dir );
 		}
 
 		/**
@@ -10418,7 +10438,7 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'add-ons.php', $vars );
+			fs_require_once_template( 'add-ons.php', $vars, $this->fs_template_dir );
 		}
 
 		/* Pricing & Upgrade
@@ -10435,9 +10455,9 @@
 			$vars = array( 'slug' => $this->_slug );
 
 			if ( 'true' === fs_request_get( 'checkout', false ) ) {
-				fs_require_once_template( 'checkout.php', $vars );
+				fs_require_once_template( 'checkout.php', $vars, $this->fs_template_dir );
 			} else {
-				fs_require_once_template( 'pricing.php', $vars );
+				fs_require_once_template( 'pricing.php', $vars, $this->fs_template_dir );
 			}
 		}
 
@@ -10455,7 +10475,7 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'contact.php', $vars );
+			fs_require_once_template( 'contact.php', $vars, $this->fs_template_dir );
 		}
 
 		#endregion ------------------------------------------------------------------------
@@ -10619,7 +10639,7 @@
 		 */
 		function _fix_start_trial_menu_item_url() {
 			$template_args = array( 'slug' => $this->_slug );
-			fs_require_template( 'add-trial-to-pricing.php', $template_args );
+			fs_require_template( 'add-trial-to-pricing.php', $template_args, $this->fs_template_dir );
 		}
 
 		/**

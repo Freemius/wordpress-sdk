@@ -59,7 +59,7 @@
 		$template_data = array(
 			'slug' => $slug,
 		);
-		fs_require_template( 'forms/trial-start.php', $template_data);
+		fs_require_template( 'forms/trial-start.php', $template_data, $fs->fs_template_dir);
 	} ?>
 	<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
 		<div id="iframe"></div>
@@ -118,5 +118,5 @@
 		'module_slug'    => $slug,
 		'module_version' => $fs->get_plugin_version(),
 	);
-	fs_require_template( 'powered-by.php', $params );
+	fs_require_template( 'powered-by.php', $params, $fs->fs_template_dir );
 ?>
