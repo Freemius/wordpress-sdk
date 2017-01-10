@@ -17,6 +17,10 @@
 
 	require_once( dirname( __FILE__ ) . '/FreemiusBase.php' );
 
+	if ( ! defined( 'FS_SDK__USER_AGENT' ) ) {
+		define( 'FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION );
+	}
+
 	if ( ! defined( 'FS_SDK__SIMULATE_NO_CURL' ) ) {
 		define( 'FS_SDK__SIMULATE_NO_CURL', false );
 	}
@@ -29,15 +33,20 @@
 		define( 'FS_SDK__SIMULATE_NO_API_CONNECTIVITY_SQUID_ACL', false );
 	}
 
-	define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+	if ( ! defined( 'FS_SDK__HAS_CURL' ) ) {
+		define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+	}
 
 	if ( ! FS_SDK__HAS_CURL ) {
 		$curl_version = array( 'version' => '7.0.0' );
 		define( 'FS_API__PROTOCOL', 'https' );
 	} else {
 		$curl_version = curl_version();
-		define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
 	}
+
+    if ( ! defined( 'FS_API__PROTOCOL' ) ) {
+        define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
+    }
 
 	if ( ! defined( 'FS_API__LOGGER_ON' ) ) {
 		define( 'FS_API__LOGGER_ON', false );
@@ -48,6 +57,10 @@
 	}
 	if ( ! defined( 'FS_API__SANDBOX_ADDRESS' ) ) {
 		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
+	}
+
+	if ( class_exists( 'Freemius_Api_WordPress' ) ) {
+		return;
 	}
 
 	class Freemius_Api_WordPress extends Freemius_Api_Base {

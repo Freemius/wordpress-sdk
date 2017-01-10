@@ -138,3 +138,23 @@ span.fs-submenu-item.fs-sub:before
         content: '\21B2';
     }
 }
+
+.fs-submenu-item
+{
+    &.pricing
+    {
+        &.upgrade-mode
+        {
+            color: greenyellow;
+        }
+
+        &.trial-mode
+        {
+            color: #83e2ff;
+        }
+    }
+}
+
+#adminmenu .update-plugins.fs-trial {
+    background-color: #00b9eb;
+}

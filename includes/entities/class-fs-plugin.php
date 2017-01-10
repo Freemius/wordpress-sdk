@@ -24,6 +24,12 @@
 		 * @var string
 		 */
 		public $slug;
+		/**
+		 * @since 1.2.2
+		 *
+		 * @var string 'plugin' or 'theme'
+		 */
+		public $type;
 
 		#region Install Specific Properties
 
@@ -55,12 +61,6 @@
 		 * @var bool
 		 */
 		public $is_live;
-		/**
-		 * @since 1.2.2
-		 * 
-		 * @var string
-		 */
-		public $type;
 
 		#endregion Install Specific Properties
 

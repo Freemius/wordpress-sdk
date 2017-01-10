@@ -51,6 +51,8 @@
 			$timestamp,
 			'upgrade'
 		) );
+	} else {
+		$context_params['home_url'] = home_url();
 	}
 
 	if ( $fs->is_payments_sandbox() ) // Append plugin secure token for sandbox mode authentication.)
@@ -69,7 +71,12 @@
 		'billing_cycle'  => fs_request_get( 'billing_cycle', WP_FS__PERIOD_ANNUALLY ),
 	) );
 ?>
-
+	<?php if ( ! $fs->is_registered() ) {
+		$template_data = array(
+			'slug' => $slug,
+		);
+		fs_require_template( 'forms/trial-start.php', $template_data);
+	} ?>
 	<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
 		<div id="frame"></div>
 		<form action="" method="POST">
@@ -87,10 +94,10 @@
 					var
 					// Keep track of the i-frame height.
 					frame_height = 800,
-					base_url = '<?php echo WP_FS__ADDRESS ?>',
+					base_url     = '<?php echo WP_FS__ADDRESS ?>',
 					// Pass the parent page URL into the i-frame in a meaningful way (this URL could be
 					// passed via query string or hard coded into the child page, it depends on your needs).
-					src = base_url + '/pricing/?<?php echo http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
+					src          = base_url + '/pricing/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 					// Append the I-frame into the DOM.
 					frame = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/i' + 'frame>')
@@ -111,6 +118,10 @@
 							height   : $(document.body).height(),
 							scrollTop: $(document).scrollTop()
 						}, frame[0]);
+					});
+
+					FS.PostMessage.receive('start_trial', function (data) {
+						openTrialConfirmationModal(data);
 					});
 				});
 			})(jQuery);

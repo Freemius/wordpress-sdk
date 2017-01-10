@@ -34,7 +34,7 @@
 					           . '/'
 					           . str_replace( '../themes/', '', $sdk_path )
 					           . '/assets/img';
-					
+
 					break;
 				}
 			}
@@ -47,8 +47,8 @@
 		} else {
 			$icons = glob( fs_normalize_path( $img_dir . '/' . $slug . '.*' ) );
 			if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
-				$icon_found             = false;
-				$local_path             = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
+				$icon_found = false;
+				$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.png' );
 
 				$have_write_permissions = ( 'direct' === get_filesystem_method( array(), fs_normalize_path( $img_dir ) ) );
 
@@ -83,7 +83,7 @@
 						 * Get the smallest icon.
 						 *
 						 * @author Leo Fajardo (@leorw)
-						 * @since 1.2.2
+						 * @since  1.2.2
 						 */
 						$icon = end( $plugin_information->icons );
 
@@ -95,7 +95,7 @@
 						 * Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
 						 *
 						 * @author Leo Fajardo (@leorw)
-						 * @since 1.2.2
+						 * @since  1.2.2
 						 */
 						$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
 
@@ -111,8 +111,7 @@
 					if ( $have_write_permissions ) {
 						// If have write permissions, copy default icon.
 						copy( fs_normalize_path( $img_dir . '/plugin-icon.png' ), $local_path );
-					}
-					else {
+					} else {
 						// If doesn't have write permissions, use default icon path.
 						$local_path = fs_normalize_path( $img_dir . '/plugin-icon.png' );
 					}
@@ -127,5 +126,5 @@
 	$relative_url = fs_img_url( substr( $icons[0], strlen( $icon_dir ) ), $icon_dir );
 ?>
 <div class="fs-plugin-icon">
-	<img src="<?php echo $relative_url ?>" width="80" height="80" />
+	<img src="<?php echo $relative_url ?>" width="80" height="80"/>
 </div>

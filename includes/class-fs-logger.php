@@ -138,6 +138,32 @@
 			$this->_log( $message, 'error', $wrapper );
 		}
 
+		/**
+		 * Log API error.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.5
+		 *
+		 * @param mixed $api_result
+		 * @param bool  $wrapper
+		 */
+		function api_error( $api_result, $wrapper = false ) {
+			$message = '';
+			if ( is_object( $api_result ) && isset( $api_result->error ) ) {
+				$message = $api_result->error->message;
+			} else if ( is_object( $api_result ) ) {
+				$message = var_export( $api_result, true );
+			} else if ( is_string( $api_result ) ) {
+				$message = $api_result;
+			} else if ( empty( $api_result ) ) {
+				$message = 'Empty API result.';
+			}
+
+			$message = 'API Error: ' . $message;
+
+			$this->_log( $message, 'error', $wrapper );
+		}
+
 		function entrance( $message = '', $wrapper = false ) {
 			$msg = 'Entrance' . ( empty( $message ) ? '' : ' > ' ) . $message;
 
@@ -155,7 +181,7 @@
 		}
 
 		private static function format_html( $log ) {
-			return '<div style="font-size: 11px; padding: 3px; background: #ccc; margin-bottom: 3px;">[' . $log['cnt'] . '] [' . $log['logger']->_id . '] [' . $log['type'] . '] <b><code style="color: blue;">' . $log['function'] . '</code> >> <b style="color: darkorange;">' . $log['msg'] . '</b></b>' . ( isset( $log['file'] ) ? ' (' . substr( $log['file'], $log['logger']->_file_start ) . ' ' . $log['line'] . ')' : '' ) . ' [' . $log['timestamp'] . ']</div>';
+			return '<div style="font-size: 13px; font-family: monospace; color: #7da767; padding: 8px 3px; background: #000; border-bottom: 1px solid #555;">[' . $log['cnt'] . '] [' . $log['logger']->_id . '] [' . $log['type'] . '] <b><code style="color: #c4b1e0;">' . $log['function'] . '</code> >> <b style="color: #f59330;">' . esc_html($log['msg']) . '</b></b>' . ( isset( $log['file'] ) ? ' (' . substr( $log['file'], $log['logger']->_file_start ) . ' ' . $log['line'] . ')' : '' ) . ' [' . $log['timestamp'] . ']</div>';
 		}
 
 		static function dump() {

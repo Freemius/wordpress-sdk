@@ -67,6 +67,11 @@
 				return false;
 			}
 
+			if ( defined( 'DOING_AJAX' ) ) {
+				// Don't redirect on AJAX calls.
+				return false;
+			}
+
 			if ( ! $location ) // allows the wp_redirect filter to cancel a redirect
 			{
 				return false;
@@ -368,7 +373,7 @@
 		$args = func_get_args();
 
 		return call_user_func_array( 'apply_filters', array_merge(
-				array( 'fs_' . $tag . '_' . $module_unique_affix ),
+				array( "fs_{$tag}_{$module_unique_affix}" ),
 				array_slice( $args, 2 ) )
 		);
 	}

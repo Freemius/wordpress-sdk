@@ -3,4 +3,6 @@
 		exit;
 	}
 
-    class Freemius_InvalidArgumentException extends Freemius_Exception { }
+	if ( ! class_exists( 'Freemius_InvalidArgumentException' ) ) {
+		class Freemius_InvalidArgumentException extends Freemius_Exception { }
+	}

@@ -12,6 +12,12 @@
 
 	class FS_Admin_Notice_Manager {
 		/**
+		 * @since 1.2.2
+		 *
+		 * @var string
+		 */
+		protected $_module_unique_affix;
+		/**
 		 * @var string
 		 */
 		protected $_id;
@@ -39,22 +45,24 @@
 		/**
 		 * @param string $id
 		 * @param string $title
+		 * @param string $module_unique_affix
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $id, $title = '' ) {
+		static function instance( $id, $title = '', $module_unique_affix = '' ) {
 			if ( ! isset( self::$_instances[ $id ] ) ) {
-				self::$_instances[ $id ] = new FS_Admin_Notice_Manager( $id, $title );
+				self::$_instances[ $id ] = new FS_Admin_Notice_Manager( $id, $title, $module_unique_affix );
 			}
 
 			return self::$_instances[ $id ];
 		}
 
-		protected function __construct( $id, $title = '' ) {
-			$this->_id             = $id;
-			$this->_logger         = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-			$this->_title          = ! empty( $title ) ? $title : '';
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id );
+		protected function __construct( $id, $title = '', $module_unique_affix = '' ) {
+			$this->_id                  = $id;
+			$this->_logger              = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_title               = ! empty( $title ) ? $title : '';
+			$this->_module_unique_affix = $module_unique_affix;
+			$this->_sticky_storage      = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {
@@ -280,6 +288,11 @@
 		 * @param bool   $all_admin
 		 */
 		function add_sticky( $message, $id, $title = '', $type = 'success', $all_admin = false ) {
+			if ( ! empty( $this->_module_unique_affix ) ) {
+				$message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
+				$title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
+			}
+
 			$this->add( $message, $title, $type, true, $all_admin, $id );
 		}
 
