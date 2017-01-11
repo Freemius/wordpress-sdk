@@ -11,10 +11,10 @@
 	}
 
 	/**
-	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+	$slug = $fs->get_slug();
 
 	$action = $fs->is_tracking_allowed() ?
 		'stop_tracking' :
@@ -22,8 +22,7 @@
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
 	$opt_out_button_text              = __fs( 'opt-out', $slug );
-	// @todo Change 'plugin' with module type when migrating with 1.2.2 (themes version).
-    $opt_out_message_appreciation     = sprintf( __fs( 'opt-out-message-appreciation', $slug ), 'plugin' );
+    $opt_out_message_appreciation     = sprintf( __fs( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
     $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ),
 													$plugin_title );
     $opt_out_message_clicking_opt_out = sprintf( __fs( 'opt-out-message-clicking-opt-out', $slug ),

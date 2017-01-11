@@ -6124,10 +6124,7 @@
 		 * @since  1.2.1.5
 		 */
 		function _add_optout_dialog() {
-			$vars = array(
-				'slug' => $this->_slug,
-			);
-
+			$vars = array( 'id' => $this->_module_id );
 			fs_require_template( 'forms/optout.php', $vars );
 		}
 
