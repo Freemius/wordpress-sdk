@@ -69,15 +69,15 @@ HTML;
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
-			$modal               = $( modalHtml ),
-			$adminNotice         = $( <?php echo json_encode( $admin_notice_html ) ?> ),
-			action               = '<?php echo $action ?>',
-			optOutActionTag      = '<?php echo $fs->get_action_tag( 'stop_tracking' ) ?>',
-			optInActionTag       = '<?php echo $fs->get_action_tag( 'allow_tracking' ) ?>',
-			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $VARS['slug'] ?> a' ),
-			$optOutButton        = $modal.find( '.button-opt-out' ),
-			$optOutErrorMessage  = $modal.find( '.opt-out-error-message' ),
-			pluginSlug           = '<?php echo $slug ?>';
+			$modal              = $( modalHtml ),
+			$adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
+			action              = '<?php echo $action ?>',
+			optOutActionTag     = '<?php echo $fs->get_action_tag( 'stop_tracking' ) ?>',
+			optInActionTag      = '<?php echo $fs->get_action_tag( 'allow_tracking' ) ?>',
+			$actionLink         = $( 'span.opt-in-or-opt-out.<?php echo $slug ?> a' ),
+			$optOutButton       = $modal.find( '.button-opt-out' ),
+			$optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
+			moduleID            = '<?php echo $fs->get_id() ?>';
 
 		$actionLink.attr( 'data-action', action );
 		$modal.appendTo( $( 'body' ) );
@@ -149,8 +149,8 @@ HTML;
 				url: ajaxurl,
 				method: 'POST',
 				data: {
-					action: ( 'stop_tracking' == action ? optOutActionTag : optInActionTag ),
-					slug  : pluginSlug
+					action   : ( 'stop_tracking' == action ? optOutActionTag : optInActionTag ),
+					module_id: moduleID
 				},
 				beforeSend: function() {
 					if ( 'opt-in' == action ) {
