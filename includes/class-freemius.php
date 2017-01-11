@@ -6176,13 +6176,11 @@
 				exit;
 			}
 
-			$slug      = $_POST['slug'];
-			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
 			$error     = false;
 			$next_page = false;
 
 			if ( $this->is_registered() ) {
-				$api     = $fs->get_api_site_scope();
+				$api     = $this->get_api_site_scope();
 				$install = $api->call( '/', 'put', array(
 					'license_key' => $this->apply_filters( 'license_key', $license_key )
 				) );
