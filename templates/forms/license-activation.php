@@ -83,8 +83,7 @@ HTML;
 			$activateLicenseLink      = $('span.activate-license.<?php echo $fs->get_unique_affix() ?> a, .activate-license-trigger.<?php echo $fs->get_unique_affix() ?>'),
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
-			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
-			pluginSlug                = '<?php echo $slug ?>';
+			$licenseActivationMessage = $modal.find( '.license-activation-message' );
 
 		$modal.appendTo($('body'));
 

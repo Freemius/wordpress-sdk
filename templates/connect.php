@@ -362,9 +362,9 @@ if ( $is_optin_dialog ) { ?>
 						url    : ajaxurl,
 						method : 'POST',
 						data   : {
-							action     : 'fs_activate_license_<?php echo $slug ?>',
-							slug       : '<?php echo $slug ?>',
-							license_key: $licenseKeyInput.val()
+							action     : '<?php echo $fs->get_action_tag( 'activate_license' ) ?>',
+							license_key: $licenseKeyInput.val(),
+							module_id  : '<?php echo $fs->get_id() ?>'
 						},
 						success: function (result) {
 							var resultObj = $.parseJSON(result);
