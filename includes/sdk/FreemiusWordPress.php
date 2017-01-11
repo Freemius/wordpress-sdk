@@ -257,7 +257,7 @@
 
 			$auth = $this->GenerateAuthorizationParams( $pResourceUrl );
 
-			return Freemius_Api::GetUrl(
+			return Freemius_Api_WordPress::GetUrl(
 				$pResourceUrl . '?' .
 				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
 				http_build_query( array(

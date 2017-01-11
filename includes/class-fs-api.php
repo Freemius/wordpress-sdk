@@ -41,7 +41,7 @@
 		private static $_clock_diff;
 
 		/**
-		 * @var Freemius_Api
+		 * @var Freemius_Api_WordPress
 		 */
 		private $_api;
 
