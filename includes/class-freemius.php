@@ -341,7 +341,6 @@
 
 			$this->_admin_notices = FS_Admin_Notice_Manager::instance(
 				$this->_slug . ( $this->is_theme() ? ':theme' : '' ),
-				$this->get_unique_affix(),
 				/**
 				 * Ensure that the admin notice will always have a title by using the stored plugin title if available and
 				 * retrieving the title via the "get_plugin_name" method if there is no stored plugin title available.
@@ -349,7 +348,8 @@
 				 * @author Leo Fajardo (@leorw)
 				 * @since 1.2.2
 				 */
-				( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() )
+				( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() ),
+				$this->get_unique_affix()
 			);
 
 			if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ||
@@ -8124,7 +8124,7 @@
 
 					$menu_item = sprintf(
 						$item_template,
-						$this->_slug,
+						$this->get_unique_affix(),
 						$item['menu_slug'],
 						! empty( $item['class'] ) ? $item['class'] : '',
 						$item['menu_title']
