@@ -6259,7 +6259,10 @@
 		function _start_trial_ajax_action() {
 			check_ajax_referer( $this->get_action_tag( 'start_trial' ), 'security' );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if (
+				( $this->is_plugin() && ! current_user_can( 'activate_plugins' ) )
+				|| ( $this->is_theme() && ! current_user_can( 'switch_themes' ) )
+			) {
 				// Only for admins.
 				$this->shoot_ajax_failure();
 			}
@@ -11157,7 +11160,7 @@
 		 * @since  1.2.1.5
 		 */
 		function _fix_start_trial_menu_item_url() {
-			$template_args = array( 'slug' => $this->_slug );
+			$template_args = array( 'id' => $this->_module_id );
 			fs_require_template( 'add-trial-to-pricing.php', $template_args );
 		}
 
@@ -11264,7 +11267,7 @@
 					// Not all paid plans have a trial - generate a string of those that have it.
 					for ( $i = 0; $i < $trial_plans_count; $i ++ ) {
 						$plans_string .= sprintf(
-							'<a href="%s">%s</a>',
+							' <a href="%s">%s</a>',
 							$trial_url,
 							$trial_plans[ $i ]->title
 						);

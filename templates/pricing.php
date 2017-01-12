@@ -73,7 +73,7 @@
 ?>
 	<?php if ( ! $fs->is_registered() ) {
 		$template_data = array(
-			'slug' => $slug,
+			'id' => $fs->get_id(),
 		);
 		fs_require_template( 'forms/trial-start.php', $template_data);
 	} ?>

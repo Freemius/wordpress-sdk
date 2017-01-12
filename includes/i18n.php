@@ -530,7 +530,7 @@
 		/* translators: %1$s: Number of trial days; %2$s: Plan name; */
 		'start-trial-prompt-header'                => __( 'You are 1-click away from starting your %1$s-day free trial of the %2$s plan.', 'freemius' ),
 		/* translators: %s: Link to freemius.com */
-		'start-trial-prompt-message'               => __( 'For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt-in with your user and non-sensitive site information, allowing the plugin to periodically send data to %s to check for version updates and to validate your trial.', 'freemius' ),
+		'start-trial-prompt-message'               => __( 'For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt-in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial.', 'freemius' ),
 
 		#endregion
 		#--------------------------------------------------------------------------------
