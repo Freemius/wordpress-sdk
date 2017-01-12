@@ -544,15 +544,13 @@
 																      $plan->title,
 																	  $human_readable_license_expiration );
 
-							$after_downgrade_message_id = ( ! $license->is_block_features ?
-								'after-downgrade-non-blocking' :
-								'after-downgrade-blocking' );
-
-							$after_downgrade_message = sprintf( __fs( $after_downgrade_message_id, $slug ), $plan->title );
+							$after_downgrade_message = ! $license->is_block_features ?
+								sprintf( __fs( 'after-downgrade-non-blocking', $slug ), $plan->title, $fs->get_module_type() ) :
+								sprintf( __fs( 'after-downgrade-blocking', $slug ), $plan->title );
 
 							if ( ! $license->is_lifetime() && $is_active_subscription ) {
 								$buttons[] = fs_ui_get_action_button(
-									$slug,
+									$fs->get_id(),
 									'account',
 									'downgrade_account',
 									__fs( 'downgrade', $slug ),
