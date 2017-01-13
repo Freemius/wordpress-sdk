@@ -115,6 +115,12 @@
 		private $_has_premium_version;
 
 		/**
+		 * @since 1.2.1.6
+		 * @var bool Hints the SDK if plugin should ignore pending mode by simulating a skip.
+		 */
+		private $_ignore_pending_mode;
+
+		/**
 		 * @since 1.0.8
 		 * @var bool Hints the SDK if the plugin has any paid plans.
 		 */
@@ -2605,6 +2611,7 @@
 			$this->_has_addons          = $this->get_bool_option( $plugin_info, 'has_addons', false );
 			$this->_has_paid_plans      = $this->get_bool_option( $plugin_info, 'has_paid_plans', true );
 			$this->_has_premium_version = $this->get_bool_option( $plugin_info, 'has_premium_version', $this->_has_paid_plans );
+			$this->_ignore_pending_mode = $this->get_bool_option( $plugin_info, 'ignore_pending_mode', false );
 			$this->_is_org_compliant    = $this->get_bool_option( $plugin_info, 'is_org_compliant', true );
 			$this->_is_premium_only     = $this->get_bool_option( $plugin_info, 'is_premium_only', false );
 			if ( $this->_is_premium_only ) {
@@ -7162,10 +7169,21 @@
 			$license_key = false,
 			$is_pending_trial = false
 		) {
+			if ( $this->_ignore_pending_mode ) {
+				/**
+				 * If explicitly asked to ignore pending mode, set to anonymous mode
+				 * if require confirmation before finalizing the opt-in.
+				 * 
+				 * @author Vova Feldman
+				 * @since 1.2.1.6
+				 */
+				$this->skip_connection();
+			} else {
 			// Install must be activated via email since
 			// user with the same email already exist.
 			$this->_storage->is_pending_activation = true;
 			$this->_add_pending_activation_notice( $email, $is_pending_trial );
+			}
 
 			if ( ! empty( $license_key ) ) {
 				$this->_storage->pending_license_key = $license_key;
