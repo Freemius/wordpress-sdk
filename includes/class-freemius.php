@@ -590,7 +590,7 @@
 			 * @since  1.2.1.5
 			 */
 			if ( fs_request_is_action( 'reset_anonymous_mode' ) &&
-			     $this->_slug === fs_request_get( 'fs_slug' )
+			     $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
 			) {
 				add_action( 'admin_init', array( &$this, 'connect_again' ) );
 			}
@@ -10591,8 +10591,8 @@
 		 * @return string
 		 */
 		function get_reconnect_url( $params = array() ) {
-			$params['fs_action'] = 'reset_anonymous_mode';
-			$params['fs_slug']   = $this->_slug;
+			$params['fs_action']       = 'reset_anonymous_mode';
+			$params['fs_unique_affix'] = $this->get_unique_affix();
 
 			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
 		}
@@ -11507,7 +11507,7 @@
 				return;
 			}
 
-			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
+			if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
 				if ( ! $this->is_registered() && $this->is_anonymous() ) {
 					$this->connect_again();
 
@@ -11531,8 +11531,8 @@
 				$params = ! $this->is_anonymous() ?
 					array() :
 					array(
-						'nonce'     => wp_create_nonce( $this->_slug . '_reconnect' ),
-						'fs_action' => ( $this->_slug . '_reconnect' ),
+						'nonce'     => wp_create_nonce( $this->get_unique_affix() . '_reconnect' ),
+						'fs_action' => ( $this->get_unique_affix() . '_reconnect' ),
 					);
 
 				$url = $this->get_activation_url( $params );

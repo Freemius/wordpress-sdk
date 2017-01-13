@@ -226,7 +226,7 @@
 						array(
 							'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
 								array(
-									'fs_action' => $slug . '_activate_new',
+									'fs_action' => $fs->get_unique_affix() . '_activate_new',
 									'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
 
 								) ),
