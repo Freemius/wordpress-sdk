@@ -9084,6 +9084,7 @@
 								$this->_storage->trial_plan :
 								$this->_site->plan;
 
+							if ( $plan->is_free() ) {
 							$this->_admin_notices->add(
 								sprintf(
 									__fs( 'plan-did-not-change-message', $this->_slug ),
@@ -9100,6 +9101,7 @@
 								),
 								__fs( 'hmm', $this->_slug ) . '...'
 							);
+						}
 						}
 						break;
 					case 'upgraded':
