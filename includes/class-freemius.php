@@ -1493,9 +1493,7 @@
 			} else if ( fs_request_is_action( 'simulate_trial' ) ) {
 				check_admin_referer( 'simulate_trial' );
 
-				$slug = fs_request_get( 'slug' );
-
-				$fs = freemius( $slug );
+				$fs = freemius( fs_request_get( 'module_id' ) );
 
 				// Update SDK install to at least 24 hours before.
 				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );

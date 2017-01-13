@@ -222,11 +222,12 @@
 						<?php if ( $is_active && $fs->has_trial_plan() ) : ?>
 						<form action="" method="POST">
 							<input type="hidden" name="fs_action" value="simulate_trial">
-							<input type="hidden" name="slug" value="<?php echo $slug ?>">
+							<input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
 							<?php wp_nonce_field( 'simulate_trial' ) ?>
 
 							<button type="submit" class="button button-primary simulate-trial"><?php _efs( 'Simulate Trial' ) ?></button>
-							<?php endif ?>
+                        </form>
+                        <?php endif ?>
 					</td>
 				</tr>
 			<?php endforeach ?>
