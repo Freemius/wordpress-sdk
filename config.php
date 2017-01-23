@@ -140,7 +140,28 @@
 		define( 'WP_FS__TESTING_DOMAIN', 'fswp' );
 	}
 
-	#--------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------
+    #region Checkout
+    #--------------------------------------------------------------------------------
+
+    define( 'FS_CHECKOUT__DOMAIN_PRODUCTION', 'checkout.freemius.com' );
+    define( 'FS_CHECKOUT__ADDRESS_PRODUCTION', 'https://' . FS_CHECKOUT__DOMAIN_PRODUCTION );
+
+    if ( ! defined( 'FS_CHECKOUT__DOMAIN_LOCALHOST' ) ) {
+        define( 'FS_CHECKOUT__DOMAIN_LOCALHOST', 'checkout.freemius' );
+    }
+
+    if ( ! defined( 'FS_CHECKOUT__ADDRESS_LOCALHOST' ) ) {
+        define( 'FS_CHECKOUT__ADDRESS_LOCALHOST', 'http://' . FS_CHECKOUT__DOMAIN_LOCALHOST . ':8080' );
+    }
+
+    if ( ! defined( 'FS_CHECKOUT__ADDRESS' ) ) {
+        define( 'FS_CHECKOUT__ADDRESS', ( WP_FS__IS_PRODUCTION_MODE ? FS_CHECKOUT__ADDRESS_PRODUCTION : FS_CHECKOUT__ADDRESS_LOCALHOST ) );
+    }
+
+    #endregion
+
+    #--------------------------------------------------------------------------------
 	#region HTTP
 	#--------------------------------------------------------------------------------
 

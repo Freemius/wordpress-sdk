@@ -25,9 +25,13 @@
 	$timestamp = time();
 
 	$context_params = array(
-		'plugin_id'         => $fs->get_id(),
-		'plugin_public_key' => $fs->get_public_key(),
-		'plugin_version'    => $fs->get_plugin_version(),
+		'plugin_id'      => $fs->get_id(),
+		'plugin_version' => $fs->get_plugin_version(),
+        'public_key'     => $fs->get_public_key(),
+        'mode'           => 'dashboard',
+        'plan_id'        => $_GET['plan_id'],
+        'licenses'       => $_GET['licenses'],
+        'trial'          => ( isset( $_GET['trial'] ) ? $_GET['trial'] : false ),
 	);
 
 	// Get site context secure params.
@@ -153,10 +157,10 @@
 					var
 						// Keep track of the iframe height.
 						iframe_height = 800,
-						base_url      = '<?php echo WP_FS__ADDRESS ?>',
+						base_url      = '<?php echo FS_CHECKOUT__ADDRESS ?>',
 						// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
 						// passed via query string or hard coded into the child page, it depends on your needs).
-						src           = base_url + '/checkout/?<?php echo ( isset( $_REQUEST['XDEBUG_SESSION'] ) ? 'XDEBUG_SESSION=' . $_REQUEST['XDEBUG_SESSION'] . '&' : '' ) . http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
+						src           = base_url + '/?<?php echo ( isset( $_REQUEST['XDEBUG_SESSION'] ) ? 'XDEBUG_SESSION=' . $_REQUEST['XDEBUG_SESSION'] . '&' : '' ) . http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 						// Append the Iframe into the DOM.
 						iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
