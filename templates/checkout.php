@@ -30,9 +30,12 @@
         'public_key'     => $fs->get_public_key(),
         'mode'           => 'dashboard',
         'plan_id'        => $_GET['plan_id'],
-        'licenses'       => $_GET['licenses'],
         'trial'          => ( isset( $_GET['trial'] ) ? $_GET['trial'] : false ),
 	);
+
+	if ( isset( $_GET['licenses'] ) ) {
+	    $context_params['licenses'] = $_GET['licenses'];
+    }
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
