@@ -297,53 +297,27 @@
 			 * @since 1.1.9
 			 */
 			if (requireLicenseKey) {
-				if (!hasContextUser) {
-					$('.fs-error').remove();
+				if ( ! hasContextUser ) {
+				    <?php $timestamp = time() ?>
 
-					/**
-					 * Use the AJAX opt-in when license key is required to potentially
-					 * process the after install failure hook.
-					 *
-					 * @author Vova Feldman (@svovaf)
-					 * @since 1.2.1.5
-					 */
-					$.ajax({
-						url    : ajaxurl,
-						method : 'POST',
-						data   : {
-							action     : 'fs_activate_license_<?php echo $slug ?>',
-							slug       : '<?php echo $slug ?>',
-							license_key: $licenseKeyInput.val()
-						},
-						success: function (result) {
-							var resultObj = $.parseJSON(result);
-							if (resultObj.success) {
-								// Redirect to the "Account" page and sync the license.
-								window.location.href = resultObj.next_page;
-							} else {
-								// Show error.
-								$('.fs-content').prepend('<p class="fs-error">' + resultObj.error + '</p>');
+                    $timestamp = $('<input type="hidden" name="timestamp" value="<?php echo $timestamp ?>" />');
+                    $token     = $('<input type="hidden" name="token" value="<?php echo md5($timestamp . $fs->get_anonymous_id() ) ?>" />');
+                    $format    = $('<input type="hidden" name="format" value="post" />');
+                    $ajaxUrl   = $('<input type="hidden" name="ajax_url" value="<?php echo admin_url('admin-ajax.php') ?>" />');
 
-								// Reset loading mode.
-								$primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
-								$primaryCta.html(<?php echo json_encode(__fs( $button_label, $slug )) ?>);
-								$primaryCta.prop('disabled', false);
-								$(document.body).css({'cursor': 'auto'});
-							}
-						}
-					});
-
-					return false;
+                    $form.append($timestamp);
+                    $form.append($token);
+                    $form.append($format);
+                    $form.append($ajaxUrl);
 				}
-				else {
-					if (null == $licenseSecret) {
-						$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
-						$form.append($licenseSecret);
-					}
 
-					// Update secret key if premium only plugin.
-					$licenseSecret.val($licenseKeyInput.val());
-				}
+                if (null == $licenseSecret) {
+                    $licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
+                    $form.append($licenseSecret);
+                }
+
+                // Update secret key if premium only plugin.
+                $licenseSecret.val($licenseKeyInput.val());
 			}
 
 			return true;

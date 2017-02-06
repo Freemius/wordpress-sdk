@@ -478,6 +478,8 @@
 			$this->_logger->entrance();
 
 			if ( is_admin() ) {
+                $this->add_ajax_action( 'activate_asynchronous', array( &$this, '_activate_asynchronous' ), WP_FS__DEFAULT_PRIORITY, 1, true );
+
 				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
 				/**
@@ -545,6 +547,76 @@
 			) {
 				add_action( 'admin_init', array( &$this, 'connect_again' ) );
 			}
+		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.7
+         */
+        function _activate_asynchronous() {
+            if ( $this->is_registered() ) {
+                $this->shoot_ajax_failure();
+            }
+
+            if (
+                ! isset( $_POST['timestamp'] )
+                || ! is_numeric( $_POST['timestamp'] )
+                || ! isset( $_POST['token'] )
+            ) {
+                $this->shoot_ajax_failure();
+            }
+
+            if ( $_POST['token'] !== md5( $_POST['timestamp'] . $this->get_anonymous_id() ) ) {
+                $this->shoot_ajax_failure();
+            }
+
+            $min_request_time = strtotime('-5 minutes');
+
+            if ( $_POST['timestamp'] < $min_request_time || $_POST['timestamp'] > strtotime( '+2 minutes' ) ) {
+                $this->shoot_ajax_failure();
+            }
+
+            $user        = new FS_User( (object) $_POST['user'] );
+            $this->_user = $user;
+
+            $site        = new FS_Site( (object) $_POST['install'] );
+            $this->_site = $site;
+
+            // Load plans
+            if ( isset( $_POST['plans'] ) && ! empty( $_POST['plans'] ) ) {
+                $plans = array();
+
+                for ( $i = 0, $len = count( $_POST['plans'] ); $i < $len; $i ++ ) {
+                    $plans[ $i ] = new FS_Plugin_Plan( (object) ( $_POST['plans'][ $i ] ) );
+                }
+
+                if ( ! empty( $plans ) ) {
+                    $this->_plans = $plans;
+                    $this->_store_plans();
+                }
+            }
+
+            // Load licenses
+            if ( isset( $_POST['licenses'] ) && ! empty( $_POST['licenses'] ) ) {
+                $licenses = array();
+
+                for ( $i = 0, $len = count( $_POST['licenses'] ); $i < $len; $i ++ ) {
+                    $licenses[ $i ] = new FS_Plugin_License( (object) ( $_POST['licenses'][ $i ] ) );
+                }
+
+                if ( ! empty( $licenses ) ) {
+                    $this->_licenses = $licenses;
+                    $this->_store_licenses();
+                }
+            }
+
+            $next_page = $this->setup_account( $this->_user, $this->_site, false );
+
+            header('Access-Control-Allow-Origin: ' . WP_FS__ADDRESS);
+
+            $this->shoot_ajax_success( array( 'next_page' => $next_page ) );
+
+            exit;
 		}
 
 		/**
@@ -5481,7 +5553,7 @@
 				return false;
 			}
 
-			if ( ! $this->has_any_license() ) {
+			if ( ! $this->has_any_license() && $this->has_api_connectivity() ) {
 				$this->_sync_licenses();
 			}
 
@@ -6701,7 +6773,9 @@
 				$this->_plans = $plans;
 			}
 
-			$this->send_install_update();
+			if ( $this->has_api_connectivity() ) {
+                $this->send_install_update();
+            }
 
 			$this->_store_account();
 
@@ -6971,7 +7045,9 @@
 			$this->_user = $user;
 			$this->_site = $site;
 
-			$this->_sync_plans();
+			if ( $this->has_api_connectivity() ) {
+                $this->_sync_plans();
+			}
 
 			$this->_enrich_site_plan( false );
 
@@ -7055,7 +7131,7 @@
 				 * @author Vova Feldman (@svovaf)
 				 * @since  1.1.9 If site installed with a valid license, sync license.
 				 */
-				if ( $this->is_paying() ) {
+				if ( $this->is_paying() && $this->has_api_connectivity() ) {
 					$this->_sync_plugin_license( true );
 				}
 
@@ -7946,11 +8022,12 @@
 		 * @since  1.2.1
 		 *
 		 * @param string $tag
+		 * @param bool   $nopriv
 		 *
 		 * @return string
 		 */
-		private function get_ajax_action_tag( $tag ) {
-			return 'wp_ajax_' . $this->get_action_tag( $tag );
+		private function get_ajax_action_tag( $tag, $nopriv = false ) {
+			return 'wp_ajax_' . ( $nopriv ? 'nopriv_' : '' ) . $this->get_action_tag( $tag );
 		}
 
 		/**
@@ -8005,12 +8082,13 @@
 		 * @param callable $function_to_add
 		 * @param int      $priority
 		 * @param int      $accepted_args
+		 * @param bool     $nopriv
 		 *
 		 * @uses   add_action()
 		 *
 		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
-		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
+		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1, $nopriv = false ) {
 			$this->_logger->entrance( $tag );
 
 			if ( ! $this->is_ajax_action( $tag ) ) {
@@ -8018,6 +8096,10 @@
 			}
 
 			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+
+			if ( $nopriv ) {
+                add_action( $this->get_ajax_action_tag( $tag, $nopriv ), $function_to_add, $priority, $accepted_args );
+            }
 
 			$this->_logger->info( "$tag AJAX callback action added." );
 
@@ -8436,7 +8518,7 @@
 			// Try to load plan from local cache.
 			$trial_plan = $this->_get_plan_by_id( $this->_site->trial_plan_id );
 
-			if ( false === $trial_plan ) {
+			if ( false === $trial_plan && $this->has_api_connectivity() ) {
 				$trial_plan = $this->_fetch_site_plan( $this->_site->trial_plan_id );
 			}
 
