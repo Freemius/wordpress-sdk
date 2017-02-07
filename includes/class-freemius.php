@@ -610,13 +610,33 @@
                 }
             }
 
+            // Load payments
+            if ( isset( $_POST['payments'] ) && ! empty( $_POST['payments'] ) ) {
+                $payments = array();
+
+                for ( $i = 0, $len = count( $_POST['payments'] ); $i < $len; $i ++ ) {
+                    $payments[ $i ] = new FS_Payment( (object) ( $_POST['payments'][ $i ] ) );
+                }
+
+                if ( ! empty( $payments ) ) {
+                    $this->_storage->payments = $payments;
+                }
+            }
+
+            if ( isset( $_POST['subscription'] ) && ! empty( $_POST['subscription'] ) ) {
+                $this->_storage->subscription = new FS_Subscription( (object) $_POST['subscription'] );
+            }
+
+            if ( isset( $_POST['billing'] ) && ! empty( $_POST['billing'] ) ) {
+                require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
+                $this->_storage->billing = new FS_Billing( (object) $_POST['billing'] );
+            }
+
             $next_page = $this->setup_account( $this->_user, $this->_site, false );
 
             header('Access-Control-Allow-Origin: ' . WP_FS__ADDRESS);
 
             $this->shoot_ajax_success( array( 'next_page' => $next_page ) );
-
-            exit;
 		}
 
 		/**
@@ -8699,6 +8719,9 @@
 		function _fetch_payments( $plugin_id = false ) {
 			$this->_logger->entrance();
 
+			$result = array();
+
+			if ( $this->has_api_connectivity() ) {
 			$api = $this->get_api_user_scope();
 
 			if ( ! is_numeric( $plugin_id ) ) {
@@ -8711,8 +8734,13 @@
 				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
 					$result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
 				}
+
 				$result = $result->payments;
+                    $this->_storage->payments = $result;
 			}
+            } else if ( isset( $this->_storage->payments ) ) {
+                $result = $this->_storage->payments;
+            }
 
 			return $result;
 		}
@@ -8727,11 +8755,18 @@
 		function _fetch_billing() {
 			require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
 
+			$billing = false;
+
+			if ( $this->has_api_connectivity() ) {
 			$billing = $this->get_api_user_scope()->call( 'billing.json' );
 
 			if ( $this->is_api_result_entity( $billing ) ) {
 				$billing = new FS_Billing( $billing );
+                    $this->_storage->billing = $billing;
 			}
+            } else if ( isset( $this->_storage->billing ) ) {
+			    $billing = $this->_storage->billing;
+            }
 
 			return $billing;
 		}
