@@ -2280,8 +2280,6 @@
 								) );
 							}
 						}
-
-						return;
 					} else {
 						$this->_admin_notices->remove_sticky( array(
 							'failed_connect_api_first',
@@ -3931,7 +3929,7 @@
 				$this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
 			}
 
-			if ( ! $this->_anonymous_mode && $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
+			if ( ! $this->_anonymous_mode ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
@@ -7480,19 +7478,11 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-//			if ( ! $this->is_on() ) {
-//				return;
-//			}
-
-			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
-				$this->_menu->remove_menu_item();
-			} else {
 				$this->do_action( 'before_admin_menu_init' );
 
 				$this->add_menu_action();
 				$this->add_submenu_items();
 			}
-		}
 
 		/**
 		 * Admin dashboard menu items modifications.
