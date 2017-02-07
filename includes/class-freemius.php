@@ -478,7 +478,7 @@
 			$this->_logger->entrance();
 
 			if ( is_admin() ) {
-                $this->add_ajax_action( 'activate_asynchronous', array( &$this, '_activate_asynchronous' ), WP_FS__DEFAULT_PRIORITY, 1, true );
+                $this->add_ajax_action( 'activate_asynchronous', array( &$this, '_activate_asynchronous' ), WP_FS__DEFAULT_PRIORITY, 1, false );
 
 				$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
@@ -555,7 +555,7 @@
          */
         function _activate_asynchronous() {
             if ( $this->is_registered() ) {
-                $this->shoot_ajax_failure();
+                $this->shoot_ajax_success( array( 'next_page' => $this->get_account_url() ) );
             }
 
             if (
@@ -8022,12 +8022,13 @@
 		 * @since  1.2.1
 		 *
 		 * @param string $tag
-		 * @param bool   $nopriv
+         * @param bool   $is_user_logged_in Set to "false" if the AJAX request to handle is for users that are not
+         *               logged in.
 		 *
 		 * @return string
 		 */
-		private function get_ajax_action_tag( $tag, $nopriv = false ) {
-			return 'wp_ajax_' . ( $nopriv ? 'nopriv_' : '' ) . $this->get_action_tag( $tag );
+		private function get_ajax_action_tag( $tag, $is_user_logged_in = true ) {
+			return 'wp_ajax_' . ( ! $is_user_logged_in ? 'nopriv_' : '' ) . $this->get_action_tag( $tag );
 		}
 
 		/**
@@ -8082,24 +8083,21 @@
 		 * @param callable $function_to_add
 		 * @param int      $priority
 		 * @param int      $accepted_args
-		 * @param bool     $nopriv
+         * @param bool     $is_user_logged_in Set to "false" if the AJAX request to handle is for users that are not
+         *                 logged in.
 		 *
 		 * @uses   add_action()
 		 *
 		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
-		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1, $nopriv = false ) {
+		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1, $is_user_logged_in = true ) {
 			$this->_logger->entrance( $tag );
 
 			if ( ! $this->is_ajax_action( $tag ) ) {
 				return false;
 			}
 
-			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
-
-			if ( $nopriv ) {
-                add_action( $this->get_ajax_action_tag( $tag, $nopriv ), $function_to_add, $priority, $accepted_args );
-            }
+			add_action( $this->get_ajax_action_tag( $tag, $is_user_logged_in ), $function_to_add, $priority, $accepted_args );
 
 			$this->_logger->info( "$tag AJAX callback action added." );
 
