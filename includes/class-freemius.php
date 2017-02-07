@@ -623,11 +623,15 @@
                 }
             }
 
-            if ( isset( $_POST['subscription'] ) && ! empty( $_POST['subscription'] ) ) {
+            if ( isset( $_POST['subscription'] )
+                && is_array( $_POST['subscription'] )
+                && ! empty( $_POST['subscription'] ) ) {
                 $this->_storage->subscription = new FS_Subscription( (object) $_POST['subscription'] );
             }
 
-            if ( isset( $_POST['billing'] ) && ! empty( $_POST['billing'] ) ) {
+            if ( isset( $_POST['billing'] )
+                && is_array( $_POST['billing'] )
+                && ! empty( $_POST['billing'] ) ) {
                 require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
                 $this->_storage->billing = new FS_Billing( (object) $_POST['billing'] );
             }
