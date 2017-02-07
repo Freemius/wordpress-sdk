@@ -698,7 +698,7 @@
 				array( &$this, '_submit_uninstall_reason_action' )
 			);
 
-			if ( $this->is_plugins_page() ) {
+			if ( $this->is_plugins_page() && $this->has_api_connectivity() ) {
 				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 			}
 
