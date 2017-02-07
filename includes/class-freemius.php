@@ -554,6 +554,8 @@
          * @since  1.2.1.7
          */
         function _activate_asynchronous() {
+            header('Access-Control-Allow-Origin: ' . WP_FS__ADDRESS);
+
             if ( $this->is_registered() ) {
                 $this->shoot_ajax_success( array( 'next_page' => $this->get_account_url() ) );
             }
@@ -566,7 +568,7 @@
                 $this->shoot_ajax_failure();
             }
 
-            if ( $_POST['token'] !== md5( $_POST['timestamp'] . $this->get_anonymous_id() ) ) {
+            if ( $_POST['token'] !== md5( $_POST['timestamp'] . $this->get_anonymous_id() . SECURE_AUTH_KEY ) ) {
                 $this->shoot_ajax_failure();
             }
 
@@ -638,7 +640,6 @@
 
             $next_page = $this->setup_account( $this->_user, $this->_site, false );
 
-            header('Access-Control-Allow-Origin: ' . WP_FS__ADDRESS);
 
             $this->shoot_ajax_success( array( 'next_page' => $next_page ) );
 		}
@@ -7482,11 +7483,11 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-				$this->do_action( 'before_admin_menu_init' );
+            $this->do_action( 'before_admin_menu_init' );
 
-				$this->add_menu_action();
-				$this->add_submenu_items();
-			}
+            $this->add_menu_action();
+            $this->add_submenu_items();
+		}
 
 		/**
 		 * Admin dashboard menu items modifications.
@@ -8716,22 +8717,22 @@
 			$result = array();
 
 			if ( $this->has_api_connectivity() ) {
-			$api = $this->get_api_user_scope();
+                $api = $this->get_api_user_scope();
 
-			if ( ! is_numeric( $plugin_id ) ) {
-				$plugin_id = $this->_plugin->id;
-			}
+                if ( ! is_numeric( $plugin_id ) ) {
+                    $plugin_id = $this->_plugin->id;
+                }
 
-			$result = $api->get( "/plugins/{$plugin_id}/payments.json", true );
+                $result = $api->get( "/plugins/{$plugin_id}/payments.json", true );
 
-			if ( ! isset( $result->error ) ) {
-				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
-					$result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
-				}
+                if ( ! isset( $result->error ) ) {
+                    for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
+                        $result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
+                    }
 
-				$result = $result->payments;
+                    $result = $result->payments;
                     $this->_storage->payments = $result;
-			}
+                }
             } else if ( isset( $this->_storage->payments ) ) {
                 $result = $this->_storage->payments;
             }
@@ -8752,12 +8753,12 @@
 			$billing = false;
 
 			if ( $this->has_api_connectivity() ) {
-			$billing = $this->get_api_user_scope()->call( 'billing.json' );
+                $billing = $this->get_api_user_scope()->call( 'billing.json' );
 
-			if ( $this->is_api_result_entity( $billing ) ) {
-				$billing = new FS_Billing( $billing );
+                if ( $this->is_api_result_entity( $billing ) ) {
+                    $billing = new FS_Billing( $billing );
                     $this->_storage->billing = $billing;
-			}
+                }
             } else if ( isset( $this->_storage->billing ) ) {
 			    $billing = $this->_storage->billing;
             }

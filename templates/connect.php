@@ -301,7 +301,7 @@
 				    <?php $timestamp = time() ?>
 
                     $timestamp = $('<input type="hidden" name="timestamp" value="<?php echo $timestamp ?>" />');
-                    $token     = $('<input type="hidden" name="token" value="<?php echo md5($timestamp . $fs->get_anonymous_id() ) ?>" />');
+                    $token     = $('<input type="hidden" name="token" value="<?php echo md5($timestamp . $fs->get_anonymous_id() . SECURE_AUTH_KEY ) ?>" />');
                     $format    = $('<input type="hidden" name="format" value="post" />');
                     $ajaxUrl   = $('<input type="hidden" name="ajax_url" value="<?php echo admin_url('admin-ajax.php') ?>" />');
 
