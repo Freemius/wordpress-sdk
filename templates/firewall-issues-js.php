@@ -16,7 +16,7 @@
 ?>
 <script type="text/javascript">
 	jQuery(document).ready(function ($) {
-		$('#fs_firewall_issue_options a.fs-resolve').click(function () {
+		$('#fs_firewall_issue_options').find('a.fs-resolve, span.fs-resolve').click(function () {
 			var
 				error_type = $(this).attr('data-type'),
 				notice = $(this).parents('.fs-notice'),

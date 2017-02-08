@@ -148,6 +148,8 @@
 		'skip-deactivate'              => __( 'Skip & Deactivate', 'freemius' ),
 		'no-deactivate'                => __( 'No - just deactivate', 'freemius' ),
 		'yes-do-your-thing'            => __( 'Yes - do your thing', 'freemius' ),
+        'retry-connectivity-test'      => __( 'Retry connectivity test', 'freemius' ),
+        'send-connectivity-report'     => __( 'Send connectivity report. You will get a follow-up email to %s once we have an update.', 'freemius' ),
 		'active'                       => _x( 'Active', 'active mode', 'freemius' ),
 		'is-active'                    => _x( 'Is Active', 'is active mode?', 'freemius' ),
 		'install-now'                  => __( 'Install Now', 'freemius' ),
@@ -424,6 +426,8 @@
 		#region Connectivity Issues
 		'connectivity-test-fails-message'          => __( 'From unknown reason, the API connectivity test failed.',
 			'freemius' ),
+        'async-activation-connectivity-issue'      => __( "Since there is no API connectivity, the %s's automatic updates and license renewals won't work unless you whitelist %s.",
+            'freemius' ),
 		'connectivity-test-maybe-temporary'        => __( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?',
 			'freemius' ),
 		'curl-missing-message'                     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.',

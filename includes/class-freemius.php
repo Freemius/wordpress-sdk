@@ -550,6 +550,33 @@
 		}
 
         /**
+         * Used when generating and validating the security token for asynchronous activation (activation without API
+         * connectivity).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.7
+         *
+         * @param  int $timestamp
+         */
+		function get_secure_token_for_async_activation( $timestamp ) {
+            $wp_secure_auth_key = ( defined( 'SECURE_AUTH_KEY' ) && ! empty( SECURE_AUTH_KEY ) ) ?
+                SECURE_AUTH_KEY :
+                '';
+
+            return md5( $timestamp . $this->get_anonymous_id() . $wp_secure_auth_key );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.7
+         */
+        private function is_async_activation() {
+		    return
+                ( isset( $this->_storage->is_async_activation )
+                && $this->_storage->is_async_activation );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.1.7
          */
@@ -568,7 +595,7 @@
                 $this->shoot_ajax_failure();
             }
 
-            if ( $_POST['token'] !== md5( $_POST['timestamp'] . $this->get_anonymous_id() . SECURE_AUTH_KEY ) ) {
+            if ( $_POST['token'] !== $this->get_secure_token_for_async_activation( $_POST['timestamp'] ) ) {
                 $this->shoot_ajax_failure();
             }
 
@@ -638,9 +665,15 @@
                 $this->_storage->billing = new FS_Billing( (object) $_POST['billing'] );
             }
 
+            $this->_storage->is_async_activation = true;
+
+            /**
+             * Remove the previous connectivity test result, otherwise, the admin notice related to the asynchronous
+             * activation will not be added if "$this->should_run_connectivity_test()" returns "false".
+             */
+            unset( $this->_storage->connectivity_test );
+
             $next_page = $this->setup_account( $this->_user, $this->_site, false );
-
-
             $this->shoot_ajax_success( array( 'next_page' => $next_page ) );
 		}
 
@@ -1750,181 +1783,228 @@
 				return;
 			}
 
-			if ( ! function_exists( 'wp_nonce_url' ) ) {
-				require_once( ABSPATH . 'wp-includes/functions.php' );
-			}
+            $current_user = self::_get_current_wp_user();
+            $admin_email  = $current_user->user_email;
 
-			$current_user = self::_get_current_wp_user();
-//			$admin_email = get_option( 'admin_email' );
-			$admin_email = $current_user->user_email;
+            $message = false;
 
-			$message = false;
-			if ( is_object( $api_result ) &&
-			     isset( $api_result->error ) &&
-			     isset( $api_result->error->code )
-			) {
-				switch ( $api_result->error->code ) {
-					case 'curl_missing':
-						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'curl-missing-message', $this->_slug ) . ' ' .
-							' %s',
-							'<b>' . $this->get_plugin_name() . '</b>',
-							sprintf(
-								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-								sprintf(
-									'<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
-									__fs( 'curl-missing-no-clue-title', $this->_slug ),
-									' - ' . sprintf(
-										__fs( 'curl-missing-no-clue-desc', $this->_slug ),
-										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-									)
-								),
-								sprintf(
-									'<b>%s</b> - %s',
-									__fs( 'sysadmin-title', $this->_slug ),
-									__fs( 'curl-missing-sysadmin-desc', $this->_slug )
-								),
-								sprintf(
-									'<a href="%s"><b>%s</b></a>%s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', 'freemius', $this->_slug )
-								)
-							)
-						);
-						break;
-					case 'cloudflare_ddos_protection':
-						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'cloudflare-blocks-connection-message', $this->_slug ) . ' ' .
-							__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
-							' %s',
-							'<b>' . $this->get_plugin_name() . '</b>',
-							sprintf(
-								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-								sprintf(
-									'<a class="fs-resolve" data-type="cloudflare" href="#"><b>%s</b></a>%s',
-									__fs( 'fix-issue-title', $this->_slug ),
-									' - ' . sprintf(
-										__fs( 'fix-issue-desc', $this->_slug ),
-										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-									)
-								),
-								sprintf(
-									'<a href="%s" target="_blank"><b>%s</b></a>%s',
-									sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-									__fs( 'install-previous-title', $this->_slug ),
-									' - ' . __fs( 'install-previous-desc', $this->_slug )
-								),
-								sprintf(
-									'<a href="%s"><b>%s</b></a>%s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
-								)
-							)
-						);
-						break;
-					case 'squid_cache_block':
-						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'squid-blocks-connection-message', $this->_slug ) .
-							' %s',
-							'<b>' . $this->get_plugin_name() . '</b>',
-							sprintf(
-								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-								sprintf(
-									'<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a>%s',
-									__fs( 'squid-no-clue-title', $this->_slug ),
-									' - ' . sprintf(
-										__fs( 'squid-no-clue-desc', $this->_slug ),
-										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-									)
-								),
-								sprintf(
-									'<b>%s</b> - %s',
-									__fs( 'sysadmin-title', $this->_slug ),
-									sprintf(
-										__fs( 'squid-sysadmin-desc', $this->_slug ),
-										// We use a filter since the plugin might require additional API connectivity.
-										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>' )
-								),
-								sprintf(
-									'<a href="%s"><b>%s</b></a>%s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
-								)
-							)
-						);
-						break;
-//					default:
-//						$message = __fs( 'connectivity-test-fails-message', $this->_slug );
-//						break;
-				}
-			}
+            if ( ! $this->is_async_activation() ) {
+                if ( ! function_exists( 'wp_nonce_url' ) ) {
+                    require_once( ABSPATH . 'wp-includes/functions.php' );
+                }
 
-			$message_id = 'failed_connect_api';
+                if ( is_object( $api_result ) &&
+                     isset( $api_result->error ) &&
+                     isset( $api_result->error->code )
+                ) {
+                    switch ( $api_result->error->code ) {
+                        case 'curl_missing':
+                            $message = sprintf(
+                                __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                                __fs( 'curl-missing-message', $this->_slug ) . ' ' .
+                                ' %s',
+                                '<b>' . $this->get_plugin_name() . '</b>',
+                                sprintf(
+                                    '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+                                    sprintf(
+                                        '<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
+                                        __fs( 'curl-missing-no-clue-title', $this->_slug ),
+                                        ' - ' . sprintf(
+                                            __fs( 'curl-missing-no-clue-desc', $this->_slug ),
+                                            '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+                                        )
+                                    ),
+                                    sprintf(
+                                        '<b>%s</b> - %s',
+                                        __fs( 'sysadmin-title', $this->_slug ),
+                                        __fs( 'curl-missing-sysadmin-desc', $this->_slug )
+                                    ),
+                                    sprintf(
+                                        '<a href="%s"><b>%s</b></a>%s',
+                                        wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+                                        __fs( 'deactivate-plugin-title', $this->_slug ),
+                                        ' - ' . __fs( 'deactivate-plugin-desc', 'freemius', $this->_slug )
+                                    )
+                                )
+                            );
+                            break;
+                        case 'cloudflare_ddos_protection':
+                            $message = sprintf(
+                                __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                                __fs( 'cloudflare-blocks-connection-message', $this->_slug ) . ' ' .
+                                __fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
+                                ' %s',
+                                '<b>' . $this->get_plugin_name() . '</b>',
+                                sprintf(
+                                    '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+                                    sprintf(
+                                        '<a class="fs-resolve" data-type="cloudflare" href="#"><b>%s</b></a>%s',
+                                        __fs( 'fix-issue-title', $this->_slug ),
+                                        ' - ' . sprintf(
+                                            __fs( 'fix-issue-desc', $this->_slug ),
+                                            '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+                                        )
+                                    ),
+                                    sprintf(
+                                        '<a href="%s" target="_blank"><b>%s</b></a>%s',
+                                        sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+                                        __fs( 'install-previous-title', $this->_slug ),
+                                        ' - ' . __fs( 'install-previous-desc', $this->_slug )
+                                    ),
+                                    sprintf(
+                                        '<a href="%s"><b>%s</b></a>%s',
+                                        wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+                                        __fs( 'deactivate-plugin-title', $this->_slug ),
+                                        ' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+                                    )
+                                )
+                            );
+                            break;
+                        case 'squid_cache_block':
+                            $message = sprintf(
+                                __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                                __fs( 'squid-blocks-connection-message', $this->_slug ) .
+                                ' %s',
+                                '<b>' . $this->get_plugin_name() . '</b>',
+                                sprintf(
+                                    '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+                                    sprintf(
+                                        '<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a>%s',
+                                        __fs( 'squid-no-clue-title', $this->_slug ),
+                                        ' - ' . sprintf(
+                                            __fs( 'squid-no-clue-desc', $this->_slug ),
+                                            '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+                                        )
+                                    ),
+                                    sprintf(
+                                        '<b>%s</b> - %s',
+                                        __fs( 'sysadmin-title', $this->_slug ),
+                                        sprintf(
+                                            __fs( 'squid-sysadmin-desc', $this->_slug ),
+                                            // We use a filter since the plugin might require additional API connectivity.
+                                            '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>' )
+                                    ),
+                                    sprintf(
+                                        '<a href="%s"><b>%s</b></a>%s',
+                                        wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+                                        __fs( 'deactivate-plugin-title', $this->_slug ),
+                                        ' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+                                    )
+                                )
+                            );
+                            break;
+    //					default:
+    //						$message = __fs( 'connectivity-test-fails-message', $this->_slug );
+    //						break;
+                    }
+                }
+            }
+
+            $message_id = 'failed_connect_api';
 			$type       = 'error';
 
 			if ( false === $message ) {
 				if ( $is_first_failure ) {
-					// First attempt failed.
-					$message = sprintf(
-						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-maybe-temporary', $this->_slug ) . '<br><br>' .
-						'%s',
-						'<b>' . $this->get_plugin_name() . '</b>',
-						sprintf(
-							'<div id="fs_firewall_issue_options">%s %s</div>',
-							sprintf(
-								'<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
-								__fs( 'yes-do-your-thing', $this->_slug )
-							),
-							sprintf(
-								'<a href="%s" class="button">%s</a>',
-								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-								__fs( 'no-deactivate', $this->_slug )
-							)
-						)
-					);
+				    if ( ! $this->is_async_activation() ) {
+                        // First attempt failed.
+                        $message = sprintf(
+                            __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                            __fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+                            __fs( 'connectivity-test-maybe-temporary', $this->_slug ) . '<br><br>' .
+                            '%s',
+                            '<b>' . $this->get_plugin_name() . '</b>',
+                            sprintf(
+                                '<div id="fs_firewall_issue_options">%s %s</div>',
+                                sprintf(
+                                    '<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
+                                    __fs( 'yes-do-your-thing', $this->_slug )
+                                ),
+                                sprintf(
+                                    '<a href="%s" class="button">%s</a>',
+                                    wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+                                    __fs( 'no-deactivate', $this->_slug )
+                                )
+                            )
+                        );
+                    } else {
+                        $message = sprintf(
+                            __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                            __fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+                            __fs( 'async-activation-connectivity-issue', $this->_slug ) . '<br><br>' .
+                            '%s',
+                            '<b>' . $this->get_plugin_name() . '</b>',
+                            'plugin',
+                            '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>',
+                            sprintf(
+                                '<div id="fs_firewall_issue_options">%s</div>',
+                                sprintf(
+                                    '<a class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
+                                    __fs( 'retry-connectivity-test', $this->_slug )
+                                )
+                            )
+                        );
+                    }
 
 					$message_id = 'failed_connect_api_first';
 					$type       = 'promotion';
 				} else {
-					// Second connectivity attempt failed.
-					$message = sprintf(
-						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-						__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
-						' %s',
-						'<b>' . $this->get_plugin_name() . '</b>',
-						sprintf(
-							'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-							sprintf(
-								'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-								__fs( 'fix-issue-title', $this->_slug ),
-								' - ' . sprintf(
-									__fs( 'fix-issue-desc', $this->_slug ),
-									'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-								)
-							),
-							sprintf(
-								'<a href="%s" target="_blank"><b>%s</b></a>%s',
-								sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-								__fs( 'install-previous-title', $this->_slug ),
-								' - ' . __fs( 'install-previous-desc', $this->_slug )
-							),
-							sprintf(
-								'<a href="%s"><b>%s</b></a>%s',
-								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-								__fs( 'deactivate-plugin-title', $this->_slug ),
-								' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
-							)
-						)
-					);
+                    if ( ! $this->is_async_activation() ) {
+                        // Second connectivity attempt failed.
+                        $message = sprintf(
+                            __fs('x-requires-access-to-api', $this->_slug) . ' ' .
+                            __fs('connectivity-test-fails-message', $this->_slug) . ' ' .
+                            __fs('happy-to-resolve-issue-asap', $this->_slug) .
+                            ' %s',
+                            '<b>' . $this->get_plugin_name() . '</b>',
+                            sprintf(
+                                '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
+                                sprintf(
+                                    '<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
+                                    __fs('fix-issue-title', $this->_slug),
+                                    ' - ' . sprintf(
+                                        __fs('fix-issue-desc', $this->_slug),
+                                        '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+                                    )
+                                ),
+                                sprintf(
+                                    '<a href="%s" target="_blank"><b>%s</b></a>%s',
+                                    sprintf('https://wordpress.org/plugins/%s/download/', $this->_slug),
+                                    __fs('install-previous-title', $this->_slug),
+                                    ' - ' . __fs('install-previous-desc', $this->_slug)
+                                ),
+                                sprintf(
+                                    '<a href="%s"><b>%s</b></a>%s',
+                                    wp_nonce_url('plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename),
+                                    __fs('deactivate-plugin-title', $this->_slug),
+                                    ' - ' . __fs('deactivate-plugin-desc', $this->_slug)
+                                )
+                            )
+                        );
+                    } else {
+                        $message = sprintf(
+                            __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
+                            __fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
+                            __fs( 'async-activation-connectivity-issue', $this->_slug ) . '<br><br>' .
+                            '%s',
+                            '<b>' . $this->get_plugin_name() . '</b>',
+                            'plugin',
+                            '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>',
+                            sprintf(
+                                '<div id="fs_firewall_issue_options">%s %s</div>',
+                                sprintf(
+                                    '<a class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
+                                    __fs( 'retry-connectivity-test', $this->_slug )
+                                ),
+                                sprintf(
+                                    '<span class="button fs-resolve" data-type="general" href="#"><b>%s</b></span>',
+                                    sprintf(
+                                        __fs('send-connectivity-report', $this->_slug),
+                                        '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
+                                    )
+                                )
+                            )
+                        );
+                    }
 				}
 			}
 
@@ -2270,8 +2350,11 @@
 						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
 						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
 						) {
-							if ( ! $this->_enable_anonymous || $this->is_premium() ) {
-								// If anonymous mode is disabled, add firewall admin-notice message.
+							if ( ! $this->_enable_anonymous && ! $this->is_premium() ) {
+								/**
+                                 * If anonymous mode is disabled and the plugin version is not premium, add firewall
+                                 * admin-notice message.
+                                 */
 								add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
 								$this->add_ajax_action( 'resolve_firewall_issues', array(
@@ -2285,6 +2368,10 @@
 								) );
 							}
 						}
+
+                        if ( ! $this->_enable_anonymous && ! $this->is_premium() ) {
+                            return;
+                        }
 					} else {
 						$this->_admin_notices->remove_sticky( array(
 							'failed_connect_api_first',
@@ -2303,9 +2390,35 @@
 				if ( ! $this->is_on() ) {
 					return;
 				}
-			}
+			} else if ( ! $this->has_api_connectivity() && $this->is_async_activation() ) {
+                /**
+                 * If the activation was done asynchronously (without API connectivity), add "Retry connectivity test"
+                 * admin notice message.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since  1.2.1.7
+                 */
+                add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+
+                $this->add_ajax_action( 'resolve_firewall_issues', array(
+                    &$this,
+                    '_email_about_firewall_issue'
+                ) );
+
+                $this->add_ajax_action( 'retry_connectivity_test', array(
+                    &$this,
+                    '_retry_connectivity_test'
+                ) );
+            }
 
 			if ( $this->has_api_connectivity() ) {
+			    if ( $this->is_async_activation() ) {
+                    $this->_admin_notices->remove_sticky( array(
+                        'failed_connect_api_first',
+                        'failed_connect_api',
+                    ) );
+                }
+
 				if ( $this->is_cron() ) {
 					$this->hook_callback_to_sync_cron();
 				} else if ( $this->is_user_in_admin() ) {
@@ -2332,7 +2445,14 @@
 						$this->run_manual_sync();
 					}
 				}
-			}
+            } else if ( $this->is_async_activation() ) {
+                add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
+
+                $this->add_ajax_action( 'retry_connectivity_test', array(
+                    &$this,
+                    '_retry_connectivity_test'
+                ) );
+            }
 
 			if ( $this->is_registered() ) {
 				$this->hook_callback_to_install_sync();
