@@ -736,7 +736,7 @@
 				array( &$this, '_submit_uninstall_reason_action' )
 			);
 
-			if ( $this->is_plugins_page() && $this->has_api_connectivity() ) {
+			if ( $this->is_plugins_page() ) {
 				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 			}
 
@@ -824,6 +824,10 @@
 		 * @since  1.1.2
 		 */
 		function _add_deactivation_feedback_dialog_box() {
+            if ( ! $this->has_api_connectivity() ) {
+                return;
+            }
+
 			/* Check the type of user:
 			 * 1. Long-term (long-term)
 			 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
