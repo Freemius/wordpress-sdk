@@ -276,6 +276,7 @@
 		    $form = $('.fs-actions form'),
 		    requireLicenseKey = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
+		    hasApiConnectivity = <?php echo ( $fs->has_api_connectivity() ) ? 'true' : 'false' ?>,
 		    $licenseSecret,
 		    $licenseKeyInput = $('#fs_license_key');
 
@@ -297,8 +298,8 @@
 			 * @since 1.1.9
 			 */
 			if (requireLicenseKey) {
-				if ( ! hasContextUser ) {
-				    <?php $timestamp = time() ?>
+			    if ( ! hasApiConnectivity) {
+                    <?php $timestamp = time() ?>
 
                     $timestamp = $('<input type="hidden" name="timestamp" value="<?php echo $timestamp ?>" />');
                     $token     = $('<input type="hidden" name="token" value="<?php echo $fs->get_secure_token_for_async_activation( $timestamp ) ?>" />');
@@ -309,15 +310,52 @@
                     $form.append($token);
                     $form.append($format);
                     $form.append($ajaxUrl);
+                } else if ( ! hasContextUser ) {
+                    $('.fs-error').remove();
+
+                    /**
+                     * Use the AJAX opt-in when license key is required to potentially
+                     * process the after install failure hook.
+                     *
+                     * @author Vova Feldman (@svovaf)
+                     * @since 1.2.1.5
+                     */
+                    $.ajax({
+                        url    : ajaxurl,
+                        method : 'POST',
+                        data   : {
+                            action     : 'fs_activate_license_<?php echo $slug ?>',
+                            slug       : '<?php echo $slug ?>',
+                            license_key: $licenseKeyInput.val()
+                        },
+                        success: function (result) {
+                            var resultObj = $.parseJSON(result);
+                            if (resultObj.success) {
+                                // Redirect to the "Account" page and sync the license.
+                                window.location.href = resultObj.next_page;
+                            } else {
+                                // Show error.
+                                $('.fs-content').prepend('<p class="fs-error">' + resultObj.error + '</p>');
+
+                                // Reset loading mode.
+                                $primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
+                                $primaryCta.html(<?php echo json_encode(__fs($button_label, $slug)) ?>);
+                                $primaryCta.prop('disabled', false);
+                                $(document.body).css({'cursor': 'auto'});
+                            }
+                        }
+                    });
+
+                    return false;
+				} else {
+					if (null == $licenseSecret) {
+						$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
+						$form.append($licenseSecret);
+					}
+
+					// Update secret key if premium only plugin.
+					$licenseSecret.val($licenseKeyInput.val());
 				}
-
-                if (null == $licenseSecret) {
-                    $licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
-                    $form.append($licenseSecret);
-                }
-
-                // Update secret key if premium only plugin.
-                $licenseSecret.val($licenseKeyInput.val());
 			}
 
 			return true;
