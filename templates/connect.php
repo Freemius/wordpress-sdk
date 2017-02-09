@@ -63,6 +63,8 @@
 
 	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
 	$activate_with_current_user = is_object( $fs_user ) && ! $is_pending_activation;
+
+	$has_api_connectivity = $fs->has_api_connectivity();
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
@@ -250,7 +252,7 @@
 				</ul>
 			</div>
 		<?php endif ?>
-	<?php if ( $is_premium_code && $is_freemium ) : ?>
+	<?php if ( $is_premium_code && $is_freemium && $has_api_connectivity ) : ?>
 		<div class="fs-freemium-licensing">
 			<p>
 				<?php if ( $require_license_key ) : ?>
@@ -276,7 +278,7 @@
 		    $form = $('.fs-actions form'),
 		    requireLicenseKey = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
-		    hasApiConnectivity = <?php echo ( $fs->has_api_connectivity() ) ? 'true' : 'false' ?>,
+		    hasApiConnectivity = <?php echo $has_api_connectivity ? 'true' : 'false' ?>,
 		    $licenseSecret,
 		    $licenseKeyInput = $('#fs_license_key');
 
