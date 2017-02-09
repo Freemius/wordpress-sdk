@@ -463,7 +463,7 @@
 		'deactivate-plugin-title'                  => __( 'That\'s exhausting, please deactivate', 'freemius' ),
 		'deactivate-plugin-desc'                   => __( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.',
 			'freemius' ),
-		'fix-request-sent-message'                 => __( 'Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.',
+		'fix-request-sent-message'                 => __( 'Thanks for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.',
 			'freemius' ),
 		'server-blocking-access'                   => _x( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s',
 			'%1s - plugin title, %2s - API domain', 'freemius' ),

@@ -1782,7 +1782,7 @@
 		 * @param bool  $is_first_failure
 		 */
 		function _add_connectivity_issue_message( $api_result, $is_first_failure = true ) {
-			if ( ! $this->is_premium() && $this->_enable_anonymous ) {
+			if ( $this->is_free() && $this->_enable_anonymous ) {
 				// Don't add message if it's the free version and can run anonymously.
 				return;
 			}
@@ -1792,7 +1792,7 @@
 
             $message = false;
 
-            if ( ! $this->is_async_activation() ) {
+            if ( $this->is_free() ) {
                 if ( ! function_exists( 'wp_nonce_url' ) ) {
                     require_once( ABSPATH . 'wp-includes/functions.php' );
                 }
@@ -1909,7 +1909,7 @@
 
 			if ( false === $message ) {
 				if ( $is_first_failure ) {
-				    if ( ! $this->is_async_activation() ) {
+				    if ( $this->is_free() ) {
                         // First attempt failed.
                         $message = sprintf(
                             __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
@@ -1930,7 +1930,7 @@
                                 )
                             )
                         );
-                    } else {
+                    } else if ( $this->is_async_activation() ) {
                         $message = sprintf(
                             __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
                             __fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
@@ -1952,7 +1952,7 @@
 					$message_id = 'failed_connect_api_first';
 					$type       = 'promotion';
 				} else {
-                    if ( ! $this->is_async_activation() ) {
+                    if ( $this->is_free() ) {
                         // Second connectivity attempt failed.
                         $message = sprintf(
                             __fs('x-requires-access-to-api', $this->_slug) . ' ' .
@@ -1984,7 +1984,7 @@
                                 )
                             )
                         );
-                    } else {
+                    } else if ( $this->is_async_activation() ) {
                         $message = sprintf(
                             __fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
                             __fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
@@ -2011,6 +2011,10 @@
                     }
 				}
 			}
+
+			if ( false === $message ) {
+			    return;
+            }
 
 			$this->_admin_notices->add_sticky(
 				$message,
@@ -2373,7 +2377,7 @@
 							}
 						}
 
-                        if ( ! $this->_enable_anonymous && ! $this->is_premium() ) {
+                        if ( $this->is_free() && ! $this->_enable_anonymous ) {
                             return;
                         }
 					} else {
@@ -2391,7 +2395,7 @@
 
 				// Check if Freemius is on for the current plugin.
 				// This MUST be executed after all the plugin variables has been loaded.
-				if ( ! $this->is_on() ) {
+				if ( ! $this->is_on() && ! $this->is_premium() ) {
 					return;
 				}
 			} else if ( ! $this->has_api_connectivity() && $this->is_async_activation() ) {
@@ -5388,6 +5392,16 @@
 		function is_premium() {
 			return $this->_plugin->is_premium;
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.7
+         *
+         * @return bool
+         */
+		function is_free() {
+		    return ! $this->is_premium();
+        }
 
 		/**
 		 * Get site's plan ID.
