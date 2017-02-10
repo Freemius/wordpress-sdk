@@ -1693,6 +1693,7 @@
 				$is_active = false;
 			} else {
 				$is_active = ( isset( $pong->is_active ) && true == $pong->is_active );
+                unset( $this->_storage->is_async_activation );
 			}
 
 			$is_active = $this->apply_filters(
@@ -10649,6 +10650,20 @@
 			$this->_logger->info( var_export( $_REQUEST, true ) );
 
 			fs_enqueue_local_style( 'fs_account', '/admin/account.css' );
+
+			if ( $this->is_async_activation() ) {
+			    $this->_admin_notices->add(
+                    sprintf(
+                        __fs( 'lack-of-api-connectivity' ),
+                        sprintf(
+                            '<a href="%s">' . strtolower( __fs( 'contact-us-here' ) ) . '</a>',
+                            $this->contact_url()
+                        )
+                    ),
+                    __fs( 'oops', $this->_slug ) . '...',
+                    'error'
+                );
+            }
 
 			if ( $this->has_addons() ) {
 				wp_enqueue_script( 'plugin-install' );

@@ -428,6 +428,8 @@
 			'freemius' ),
         'async-activation-connectivity-issue'      => __( "Since there is no API connectivity, the %s's automatic updates and license renewals won't work unless you whitelist %s.",
             'freemius' ),
+        'lack-of-api-connectivity'                 => __( "Due to lack of API connectivity, account actions will not work. If you'd like to make any account changes, %s.",
+            'freemius' ),
 		'connectivity-test-maybe-temporary'        => __( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?',
 			'freemius' ),
 		'curl-missing-message'                     => __( 'We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. Unfortunately, cURL is not installed on your server.',
