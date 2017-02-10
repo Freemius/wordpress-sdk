@@ -364,7 +364,7 @@
 		});
 
 		$primaryCta.on('click', function () {
-            if ( '' === $licenseKeyInput.val().trim() ) {
+            if ( requireLicenseKey && ( '' === $licenseKeyInput.val().trim() ) ) {
                 return false;
             }
 
