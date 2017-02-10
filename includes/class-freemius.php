@@ -652,6 +652,19 @@
                 }
             }
 
+            // Load add-ons
+            if ( isset( $_POST['addons'] ) && ! empty( $_POST['addons'] ) ) {
+                $addons = array();
+
+                for ( $i = 0, $len = count( $_POST['addons'] ); $i < $len; $i ++ ) {
+                    $addons[ $i ] = new FS_Plugin( (object) ( $_POST['addons'][ $i ] ) );
+                }
+
+                if ( ! empty( $addons ) ) {
+                    $this->_store_addons( $addons, true );
+                }
+            }
+
             if ( isset( $_POST['subscription'] )
                 && is_array( $_POST['subscription'] )
                 && ! empty( $_POST['subscription'] ) ) {
@@ -5279,7 +5292,12 @@
 				return false;
 			}
 
+			if ( ! $this->has_api_connectivity() ) {
+                $all_addons = self::get_all_addons();
+                $addons     = $all_addons[ $this->_plugin->id ];
+            } else {
 			$addons = $this->sync_addons( $flush );
+            }
 
 			return ( ! is_array( $addons ) || empty( $addons ) ) ?
 				false :
