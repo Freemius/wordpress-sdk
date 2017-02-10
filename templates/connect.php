@@ -364,7 +364,11 @@
 		});
 
 		$primaryCta.on('click', function () {
-			$(this).addClass('fs-loading');
+            if ( '' === $licenseKeyInput.val().trim() ) {
+                return false;
+            }
+
+            $(this).addClass('fs-loading');
 			$(this).html(<?php echo json_encode(__fs( $is_pending_activation ? 'sending-email' : 'activating' , $slug )) ?> +'...');
 		});
 
@@ -396,7 +400,7 @@
 			 */
 			$licenseKeyInput.on('keyup paste delete cut', function () {
 				setTimeout(function () {
-					if ('' === $licenseKeyInput.val()) {
+					if ('' === $licenseKeyInput.val().trim()) {
 						$primaryCta.attr('disabled', 'disabled');
 					} else {
 						$primaryCta.prop('disabled', false);
