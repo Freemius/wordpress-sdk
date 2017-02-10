@@ -82,7 +82,7 @@
 	</div>
 	<div class="fs-content">
 		<?php if ( ! empty( $error ) ) : ?>
-			<p class="fs-error"><?php echo $error ?></p>
+			<p class="fs-error"><?php echo stripslashes($error) ?></p>
 		<?php endif ?>
 		<p><?php
 				$button_label = 'opt-in-connect';
@@ -349,15 +349,15 @@
                     });
 
                     return false;
-				} else {
-					if (null == $licenseSecret) {
-						$licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
-						$form.append($licenseSecret);
-					}
-
-					// Update secret key if premium only plugin.
-					$licenseSecret.val($licenseKeyInput.val());
 				}
+
+                if (null == $licenseSecret) {
+                    $licenseSecret = $('<input type="hidden" name="license_secret_key" value="" />');
+                    $form.append($licenseSecret);
+                }
+
+                // Update secret key if premium only plugin.
+                $licenseSecret.val($licenseKeyInput.val());
 			}
 
 			return true;
