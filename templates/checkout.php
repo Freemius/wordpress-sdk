@@ -29,18 +29,24 @@
 		'plugin_version' => $fs->get_plugin_version(),
         'public_key'     => $fs->get_public_key(),
         'mode'           => 'dashboard',
-        'plan_id'        => $_GET['plan_id'],
-        'trial'          => ( isset( $_GET['trial'] ) ? $_GET['trial'] : false ),
+        'trial'          => fs_request_get_bool( 'trial' ),
 	);
 
-	if ( isset( $_GET['licenses'] ) ) {
-	    $context_params['licenses'] = $_GET['licenses'];
+	$plan_id = fs_request_get( 'plan_id' );
+	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
+        $context_params['plan_id'] = $plan_id;
     }
+
+    $licenses = fs_request_get( 'licenses' );
+    if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
+        $context_params['licenses'] = $licenses;
+    }
+
+    $plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
-		$site      = $fs->get_site();
-		$plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
+		$site = $fs->get_site();
 
 		if ( $plugin_id != $fs->get_id() ) {
 			if ( $fs->is_addon_activated( $plugin_id ) ) {
@@ -94,7 +100,7 @@
 		}
 	}
 
-	$return_url = $fs->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
+	$return_url = $fs->_get_sync_license_url( $plugin_id );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
@@ -104,6 +110,11 @@
 		// Admin CSS URL for style/design competability.
 //		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) );
+
+	$xdebug_session = fs_request_get( 'XDEBUG_SESSION' );
+	if ( false !== $xdebug_session ) {
+	    $query_params['XDEBUG_SESSION'] = $xdebug_session;
+    }
 ?>
 	<div id="fs_checkout" class="wrap" style="margin: 0 0 -65px -20px;">
 		<div id="iframe"></div>
@@ -163,7 +174,7 @@
 						base_url      = '<?php echo FS_CHECKOUT__ADDRESS ?>',
 						// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
 						// passed via query string or hard coded into the child page, it depends on your needs).
-						src           = base_url + '/?<?php echo ( isset( $_REQUEST['XDEBUG_SESSION'] ) ? 'XDEBUG_SESSION=' . $_REQUEST['XDEBUG_SESSION'] . '&' : '' ) . http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
+						src           = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 						// Append the Iframe into the DOM.
 						iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
@@ -184,7 +195,7 @@
 						// Post data to activation URL.
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 							'fs_action' => $slug . '_activate_new',
-							'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
+							'plugin_id' => $plugin_id
 						) ), $slug . '_activate_new' ) ?>', {
 							user_id           : data.user.id,
 							user_secret_key   : data.user.secret_key,
@@ -198,7 +209,7 @@
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 							'fs_action'          => $slug . '_activate_new',
-							'plugin_id'          => fs_request_get( 'plugin_id', $fs->get_id() ),
+							'plugin_id'          => $plugin_id,
 							'pending_activation' => true,
 						) ), $slug . '_activate_new' ) ?>', {
 							user_email: data.user_email
@@ -218,7 +229,7 @@
 							'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
 								array(
 									'fs_action' => $slug . '_activate_new',
-									'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
+									'plugin_id' => $plugin_id,
 
 								) ),
 								$slug . '_activate_new' )
