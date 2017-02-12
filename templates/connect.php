@@ -80,7 +80,7 @@
 	</div>
 	<div class="fs-content">
 		<?php if ( ! empty( $error ) ) : ?>
-			<p class="fs-error"><?php echo $error ?></p>
+			<p class="fs-error"><?php echo esc_html( $error ) ?></p>
 		<?php endif ?>
 		<p><?php
 				$button_label = 'opt-in-connect';
