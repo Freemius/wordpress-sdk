@@ -1267,6 +1267,8 @@
 
 			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
 
+			$hook = null;
+
 			if ( WP_FS__DEV_MODE ) {
 				// Add top-level debug menu item.
 				$hook = add_menu_page(
@@ -1277,6 +1279,7 @@
 					array( 'Freemius', '_debug_page_render' )
 				);
 			} else {
+				if ( 'freemius' === fs_request_get( 'page' ) ) {
 				// Add hidden debug page.
 				$hook = add_submenu_page(
 					null,
@@ -1287,8 +1290,11 @@
 					array( 'Freemius', '_debug_page_render' )
 				);
 			}
+			}
 
+			if ( ! empty( $hook ) ) {
 			add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
+		}
 		}
 
 		/**
