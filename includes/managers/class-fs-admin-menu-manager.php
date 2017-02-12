@@ -120,7 +120,7 @@
 		 * @param bool  $is_addon
 		 */
 		function init( $menu, $is_addon = false ) {
-			$this->_menu_slug = $menu['slug'];
+			$this->_menu_slug = ! empty( $menu['slug'] ) ? $menu['slug'] : null;
 
 			$this->_default_submenu_items = array();
 			// @deprecated
@@ -223,16 +223,6 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
 		 *
-		 * @return string
-		 */
-//		function slug(){
-//			return $this->_menu_slug;
-//		}
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.3
-		 *
 		 * @param string $id
 		 * @param bool   $default
 		 *
@@ -262,6 +252,18 @@
 			return ( ( false === strpos( $this->_menu_slug, '.php?' ) ) ?
 				$this->_menu_slug :
 				$this->_plugin_slug ) . ( empty( $page ) ? '' : ( '-' . $page ) );
+		}
+
+		/**
+		 * Check if module has a menu slug set.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @return bool
+		 */
+		function has_menu_slug() {
+			return ! empty( $this->_menu_slug );
 		}
 
 		/**
@@ -472,14 +474,14 @@
 
 			$submenu_slug = $this->get_raw_slug();
 
-			$position   = - 1;
+			$position      = - 1;
 			$found_submenu = false;
 
 			$hook_name = get_plugin_page_hookname( $submenu_slug, '' );
 
 			foreach ( $submenu[ $top_level_menu_slug ] as $pos => $sub ) {
 				if ( $submenu_slug === $sub[2] ) {
-					$position   = $pos;
+					$position      = $pos;
 					$found_submenu = $sub;
 				}
 			}
@@ -601,7 +603,7 @@
 
 			$mask = '%s <span class="update-plugins %s count-%3$s" aria-hidden="true"><span>%3$s<span class="screen-reader-text">%3$s notifications</span></span></span>';
 
-			if ($this->_is_top_level) {
+			if ( $this->_is_top_level ) {
 				// Find main menu item.
 				$found_menu = $this->find_top_level_menu();
 
@@ -614,9 +616,7 @@
 						$counter
 					);
 				}
-			}
-			else
-			{
+			} else {
 				$found_submenu = $this->find_main_submenu();
 
 				if ( false !== $found_submenu ) {

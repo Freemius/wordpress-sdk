@@ -6315,6 +6315,7 @@
 			}
 
 			if ( ! $this->_menu->is_top_level() ) {
+			if ( $this->_menu->has_menu_slug() && ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
 					$parent_slug :
@@ -6338,8 +6339,18 @@
 					return add_query_arg( $params, admin_url( $this->_menu->get_raw_slug(), 'admin' ) );
 				}
 			} else {
+				/**
+				 * @author Vova Feldman
+				 * @since 1.2.1.6
+				 *
+				 * If module doesn't have a settings page, create one for the opt-in screen.
+				 */
+				$menu_slug = $this->_menu->has_menu_slug() ?
+					$this->_menu->get_slug( $page ) :
+					$this->_slug;
+
 				return add_query_arg( array_merge( $params, array(
-					'page' => $this->_menu->get_slug( $page ),
+					'page' => $menu_slug,
 				) ), admin_url( 'admin.php', 'admin' ) );
 			}
 		}
@@ -7461,7 +7472,17 @@
 
 			$hook = false;
 
-			if ( $this->_menu->is_top_level() ) {
+			if ( ! $this->_menu->has_menu_slug() ) {
+				// Add the opt-in page without a menu item.
+				$hook = add_submenu_page(
+					null,
+					$this->get_plugin_name(),
+					$this->get_plugin_name(),
+					'manage_options',
+					$this->_slug,
+					array( &$this, '_connect_page_render' )
+				);
+			} else if ( $this->_menu->is_top_level() ) {
 				$hook = $this->_menu->override_menu_item( array( &$this, '_connect_page_render' ) );
 
 				if ( false === $hook ) {
