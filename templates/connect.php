@@ -82,7 +82,7 @@
 	</div>
 	<div class="fs-content">
 		<?php if ( ! empty( $error ) ) : ?>
-			<p class="fs-error"><?php echo stripslashes($error) ?></p>
+			<p class="fs-error"><?php echo stripslashes( $error ) ?></p>
 		<?php endif ?>
 		<p><?php
 				$button_label = 'opt-in-connect';
@@ -300,18 +300,18 @@
 			 * @since 1.1.9
 			 */
 			if (requireLicenseKey) {
-			    if ( ! hasApiConnectivity) {
+			    if ( ! hasApiConnectivity ) {
                     <?php $timestamp = time() ?>
 
-                    $timestamp = $('<input type="hidden" name="timestamp" value="<?php echo $timestamp ?>" />');
-                    $token     = $('<input type="hidden" name="token" value="<?php echo $fs->get_secure_token_for_async_activation( $timestamp ) ?>" />');
-                    $format    = $('<input type="hidden" name="format" value="post" />');
-                    $ajaxUrl   = $('<input type="hidden" name="ajax_url" value="<?php echo admin_url('admin-ajax.php') ?>" />');
+                    $timestamp = $( '<input type="hidden" name="timestamp" value="<?php echo $timestamp ?>" />' );
+                    $token     = $( '<input type="hidden" name="token" value="<?php echo $fs->get_secure_token_for_async_activation( $timestamp ) ?>" />' );
+                    $format    = $( '<input type="hidden" name="format" value="post" />' );
+                    $ajaxUrl   = $( '<input type="hidden" name="ajax_url" value="<?php echo admin_url( 'admin-ajax.php' ) ?>" />' );
 
-                    $form.append($timestamp);
-                    $form.append($token);
-                    $form.append($format);
-                    $form.append($ajaxUrl);
+                    $form.append( $timestamp );
+                    $form.append( $token );
+                    $form.append( $format );
+                    $form.append( $ajaxUrl );
                 } else if ( ! hasContextUser ) {
                     $('.fs-error').remove();
 

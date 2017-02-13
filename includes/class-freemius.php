@@ -581,27 +581,36 @@
          * @since  1.2.1.7
          */
         function _activate_asynchronous() {
-            header('Access-Control-Allow-Origin: ' . WP_FS__ADDRESS);
+            header( 'Access-Control-Allow-Origin: ' . WP_FS__ADDRESS );
 
             if ( $this->is_registered() ) {
                 $this->shoot_ajax_success( array( 'next_page' => $this->get_account_url() ) );
             }
 
+            // Validate secure token.
             if (
-                ! isset( $_POST['timestamp'] )
-                || ! is_numeric( $_POST['timestamp'] )
-                || ! isset( $_POST['token'] )
+                ! isset( $_POST['timestamp'] ) ||
+                ! is_numeric( $_POST['timestamp'] ) ||
+                ! isset( $_POST['token'] ) ||
+                ( $_POST['token'] !== $this->get_secure_token_for_async_activation( $_POST['timestamp'] ) )
             ) {
                 $this->shoot_ajax_failure();
             }
 
-            if ( $_POST['token'] !== $this->get_secure_token_for_async_activation( $_POST['timestamp'] ) ) {
+            $min_request_time = strtotime( '-5 minutes' );
+            if ( $_POST['timestamp'] < $min_request_time || $_POST['timestamp'] > strtotime( '+2 minutes' ) ) {
                 $this->shoot_ajax_failure();
             }
 
-            $min_request_time = strtotime('-5 minutes');
+            if ( ! isset( $_POST['user'] ) ||
+                ! is_array( $_POST['user'] ) ||
+                empty( $_POST['user'] ) ) {
+                $this->shoot_ajax_failure();
+            }
 
-            if ( $_POST['timestamp'] < $min_request_time || $_POST['timestamp'] > strtotime( '+2 minutes' ) ) {
+            if ( ! isset( $_POST['install'] ) ||
+                ! is_array( $_POST['install'] ) ||
+                empty( $_POST['install'] ) ) {
                 $this->shoot_ajax_failure();
             }
 
@@ -612,7 +621,9 @@
             $this->_site = $site;
 
             // Load plans
-            if ( isset( $_POST['plans'] ) && ! empty( $_POST['plans'] ) ) {
+            if ( isset( $_POST['plans'] ) &&
+                is_array( $_POST['plans'] ) &&
+                ! empty( $_POST['plans'] ) ) {
                 $plans = array();
 
                 for ( $i = 0, $len = count( $_POST['plans'] ); $i < $len; $i ++ ) {
@@ -626,7 +637,9 @@
             }
 
             // Load licenses
-            if ( isset( $_POST['licenses'] ) && ! empty( $_POST['licenses'] ) ) {
+            if ( isset( $_POST['licenses'] ) &&
+                is_array( $_POST['licenses'] ) &&
+                ! empty( $_POST['licenses'] ) ) {
                 $licenses = array();
 
                 for ( $i = 0, $len = count( $_POST['licenses'] ); $i < $len; $i ++ ) {
@@ -640,7 +653,9 @@
             }
 
             // Load payments
-            if ( isset( $_POST['payments'] ) && ! empty( $_POST['payments'] ) ) {
+            if ( isset( $_POST['payments'] ) &&
+                is_array( $_POST['payments'] ) &&
+                ! empty( $_POST['payments'] ) ) {
                 $payments = array();
 
                 for ( $i = 0, $len = count( $_POST['payments'] ); $i < $len; $i ++ ) {
@@ -653,7 +668,9 @@
             }
 
             // Load add-ons
-            if ( isset( $_POST['addons'] ) && ! empty( $_POST['addons'] ) ) {
+            if ( isset( $_POST['addons'] ) &&
+                is_array( $_POST['addons'] ) &&
+                ! empty( $_POST['addons'] ) ) {
                 $addons = array();
 
                 for ( $i = 0, $len = count( $_POST['addons'] ); $i < $len; $i ++ ) {
@@ -665,15 +682,15 @@
                 }
             }
 
-            if ( isset( $_POST['subscription'] )
-                && is_array( $_POST['subscription'] )
-                && ! empty( $_POST['subscription'] ) ) {
+            if ( isset( $_POST['subscription'] ) &&
+                is_array( $_POST['subscription'] ) &&
+                ! empty( $_POST['subscription'] ) ) {
                 $this->_storage->subscription = new FS_Subscription( (object) $_POST['subscription'] );
             }
 
-            if ( isset( $_POST['billing'] )
-                && is_array( $_POST['billing'] )
-                && ! empty( $_POST['billing'] ) ) {
+            if ( isset( $_POST['billing'] ) &&
+                is_array( $_POST['billing'] ) &&
+                ! empty( $_POST['billing'] ) ) {
                 require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
                 $this->_storage->billing = new FS_Billing( (object) $_POST['billing'] );
             }
@@ -2372,7 +2389,7 @@
 						if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
 						     $this->_admin_notices->has_sticky( 'failed_connect_api' )
 						) {
-							if ( ! $this->_enable_anonymous && ! $this->is_premium() ) {
+							if ( ! $this->_enable_anonymous && $this->is_free() ) {
 								/**
                                  * If anonymous mode is disabled and the plugin version is not premium, add firewall
                                  * admin-notice message.
@@ -2391,7 +2408,7 @@
 							}
 						}
 
-                        if ( $this->is_free() && ! $this->_enable_anonymous ) {
+                        if ( ! $this->_enable_anonymous && $this->is_free() ) {
                             return;
                         }
 					} else {
@@ -2409,7 +2426,7 @@
 
 				// Check if Freemius is on for the current plugin.
 				// This MUST be executed after all the plugin variables has been loaded.
-				if ( ! $this->is_on() && ! $this->is_premium() ) {
+				if ( ! $this->is_on() && $this->is_free() ) {
 					return;
 				}
 			} else if ( ! $this->has_api_connectivity() && $this->is_async_activation() ) {
@@ -2434,13 +2451,6 @@
             }
 
 			if ( $this->has_api_connectivity() ) {
-			    if ( $this->is_async_activation() ) {
-                    $this->_admin_notices->remove_sticky( array(
-                        'failed_connect_api_first',
-                        'failed_connect_api',
-                    ) );
-                }
-
 				if ( $this->is_cron() ) {
 					$this->hook_callback_to_sync_cron();
 				} else if ( $this->is_user_in_admin() ) {
@@ -4077,8 +4087,16 @@
 			}
 
 			if ( ! $this->_anonymous_mode ) {
-				// Store hint that the plugin was just activated to enable auto-redirection to settings.
-				add_option( "fs_{$this->_slug}_activated", true );
+			    $activated = true;
+
+			    if ( $this->is_free() ) {
+			        $activated = $this->has_api_connectivity( WP_FS__DEV_MODE );
+                }
+
+                if ( $activated ) {
+                    // Store hint that the plugin was just activated to enable auto-redirection to settings.
+                    add_option( "fs_{$this->_slug}_activated", true );
+                }
 			}
 
 			/**
@@ -4175,7 +4193,7 @@
 			$this->clear_sync_cron();
 			$this->clear_install_sync_cron();
 
-			if ( $this->is_registered() ) {
+            if ( $this->is_registered() && $this->has_api_connectivity() ) {
 				// Send deactivation event.
 				$this->sync_install( array(
 					'is_active' => false,
@@ -7640,10 +7658,14 @@
 		 * @since  1.0.9
 		 */
 		function _prepare_admin_menu() {
-            $this->do_action( 'before_admin_menu_init' );
+			if ( $this->is_free() && ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
+				$this->_menu->remove_menu_item();
+			} else {
+				$this->do_action( 'before_admin_menu_init' );
 
-            $this->add_menu_action();
-            $this->add_submenu_items();
+				$this->add_menu_action();
+				$this->add_submenu_items();
+			}
 		}
 
 		/**
