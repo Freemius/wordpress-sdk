@@ -7063,7 +7063,13 @@
 			$next_page = '';
 
 			if ( is_numeric( $plugin_id ) ) {
-				if ( $plugin_id != $this->_plugin->id ) {
+                /**
+                 * @author Leo Fajardo
+                 * @since  1.2.1.6
+                 *
+                 * Also sync the license after an anonymous user subscribes.
+                 */
+                if ( $this->is_anonymous() || $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
 					$next_page = $this->_get_sync_license_url( $plugin_id );
 				}
