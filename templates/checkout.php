@@ -42,7 +42,10 @@
         $context_params['licenses'] = $licenses;
     }
 
-    $plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
+	$plugin_id = fs_request_get( 'plugin_id' );
+	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+		$plugin_id = $fs->get_id();
+	}
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
