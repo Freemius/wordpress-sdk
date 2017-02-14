@@ -308,6 +308,8 @@ if ( $is_optin_dialog ) { ?>
 ?>
 <script type="text/javascript">
 	(function ($) {
+	    var $html = $( 'html' );
+
 		<?php
 			if ( $is_optin_dialog ) {
                 if ( $show_close_button ) { ?>
@@ -318,13 +320,15 @@ if ( $is_optin_dialog ) { ?>
                             location.href = '<?php echo html_entity_decode( $previous_theme_activation_url ); ?>';
                         <?php } else { ?>
                             $themeConnectWrapper.remove();
+                            $html.css({overflow: $html.attr( 'fs-optin-overflow' )});
                         <?php } ?>
                     });
                     <?php
                 }
                 ?>
 
-                $( 'html' ).css({overflow: 'hidden'});
+                $html.attr( 'fs-optin-overflow', $html.css( 'overflow' ) );
+                $html.css({overflow: 'hidden'});
 
                 <?php
 			}
