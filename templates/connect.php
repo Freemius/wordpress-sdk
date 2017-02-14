@@ -309,17 +309,24 @@ if ( $is_optin_dialog ) { ?>
 <script type="text/javascript">
 	(function ($) {
 		<?php
-			if ( $is_optin_dialog && $show_close_button ) { ?>
-				var $themeConnectWrapper = $( '#fs_theme_connect_wrapper' );
+			if ( $is_optin_dialog ) {
+                if ( $show_close_button ) { ?>
+                    var $themeConnectWrapper = $( '#fs_theme_connect_wrapper' );
 
-				$themeConnectWrapper.find( 'button.close' ).on( 'click', function() {
-					<?php if ( ! empty( $previous_theme_activation_url ) ) { ?>
-						location.href = '<?php echo html_entity_decode( $previous_theme_activation_url ); ?>';
-					<?php } else { ?>
-						$themeConnectWrapper.remove();
-					<?php } ?>
-				});
-				<?php
+                    $themeConnectWrapper.find( 'button.close' ).on( 'click', function() {
+                        <?php if ( ! empty( $previous_theme_activation_url ) ) { ?>
+                            location.href = '<?php echo html_entity_decode( $previous_theme_activation_url ); ?>';
+                        <?php } else { ?>
+                            $themeConnectWrapper.remove();
+                        <?php } ?>
+                    });
+                    <?php
+                }
+                ?>
+
+                $( 'html' ).css({overflow: 'hidden'});
+
+                <?php
 			}
 		?>
 
