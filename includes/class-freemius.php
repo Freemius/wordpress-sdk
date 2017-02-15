@@ -6909,6 +6909,125 @@
 
 			return $decoded;
 		}
+		
+		/**
+		 * Register a site to existing user and licence.
+		 *
+		 * @autor GFireM
+		 *
+		 * @param FS_User $user
+		 * @param bool $license_key
+		 *
+		 * @return array|bool|mixed|object|string
+		 */
+		function opt_in_from_code(
+			$user = null,
+			$license_key = false
+		) {
+			$this->_logger->entrance();
+			
+			if ( empty($user )) {
+				return false;
+			}
+			
+			$user_info = array();
+			if ( ! empty( $email ) ) {
+				$user_info['user_email'] = $user->email;
+			}
+			if ( ! empty( $first ) ) {
+				$user_info['user_firstname'] = $user->first;
+			}
+			if ( ! empty( $last ) ) {
+				$user_info['user_lastname'] = $user->last;
+			}
+			
+			$params = $this->get_opt_in_params( $user_info );
+			
+			$filtered_license_key = false;
+			if ( is_string( $license_key ) ) {
+				$filtered_license_key  = $this->apply_filters( 'license_key', $license_key );
+				$params['license_key'] = $filtered_license_key;
+			}
+			
+			$params['format'] = 'json';
+			
+			$url = WP_FS__ADDRESS . '/action/service/user/install/';
+			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+				$url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+			}
+			
+			$response = wp_remote_post( $url, array(
+				'method'  => 'POST',
+				'body'    => $params,
+				'timeout' => 15,
+			) );
+			
+			if ( $response instanceof WP_Error ) {
+				if ( 'https://' === substr( $url, 0, 8 ) &&
+				     isset( $response->errors ) &&
+				     isset( $response->errors['http_request_failed'] )
+				) {
+					$http_error = strtolower( $response->errors['http_request_failed'][0] );
+					
+					if ( false !== strpos( $http_error, 'ssl' ) ) {
+						// Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+						$url = 'http://' . substr( $url, 8 );
+						
+						$response = wp_remote_post( $url, array(
+							'method'  => 'POST',
+							'body'    => $params,
+							'timeout' => 15,
+						) );
+					}
+				}
+			}
+			
+			if ( is_wp_error( $response ) ) {
+				/**
+				 * @var WP_Error $response
+				 */
+				$result = new stdClass();
+				
+				$error_code = $response->get_error_code();
+				$error_type = str_replace( ' ', '', ucwords( str_replace( '_', ' ', $error_code ) ) );
+				
+				$result->error = (object) array(
+					'type'    => $error_type,
+					'message' => $response->get_error_message(),
+					'code'    => $error_code,
+					'http'    => 402
+				);
+				
+				return $result;
+			}
+			
+			$decoded = @json_decode( $response['body'] );
+			
+			if ( empty( $decoded ) ) {
+				return false;
+			}
+			
+			if ( ! $this->is_api_result_object( $decoded ) ) {
+				if ( ! empty( $params['license_key'] ) ) {
+					// Pass the fully entered license key to the failure handler.
+					$params['license_key'] = $license_key;
+				}
+				
+				return $this->apply_filters( 'after_install_failure', $decoded, $params );
+			} else if ( isset( $decoded->install_secret_key ) ) {
+				return $this->install_with_new_user(
+					$decoded->user_id,
+					$decoded->user_public_key,
+					$decoded->user_secret_key,
+					$decoded->install_id,
+					$decoded->install_public_key,
+					$decoded->install_secret_key,
+					false
+				);
+			}
+			
+			return $decoded;
+		}
 
 		/**
 		 * Set user and site identities.
