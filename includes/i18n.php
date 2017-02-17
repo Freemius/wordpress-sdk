@@ -178,7 +178,7 @@
 		'reason-suddenly-stopped-working'          => _fs__( 'The plugin suddenly stopped working' ),
 		'reason-cant-pay-anymore'                  => _fs__( "I can't pay for it anymore" ),
 		'reason-temporary-deactivation'            => _fs__( "It's a temporary deactivation. I'm just debugging an issue." ),
-		'reason-other'                             => _x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.' ),
+		'reason-other'                             => _fs_x( 'Other', 'the text of the "other" reason for deactivating the plugin that is shown in the modal box.' ),
 		'ask-for-reason-message'                   => _fs__( 'Kindly tell us the reason so we can improve.' ),
 		'placeholder-plugin-name'                  => _fs__( "What's the plugin's name?" ),
 		'placeholder-comfortable-price'            => _fs__( 'What price would you feel comfortable paying?' ),
