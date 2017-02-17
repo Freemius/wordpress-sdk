@@ -6314,7 +6314,6 @@
 				}
 			}
 
-			if ( ! $this->_menu->is_top_level() ) {
 			if ( $this->_menu->has_menu_slug() && ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
