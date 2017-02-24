@@ -15,6 +15,7 @@
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
 
 	/**
 	 * @var array $VARS
@@ -119,7 +120,7 @@
 	    $query_params['XDEBUG_SESSION'] = $xdebug_session;
     }
 ?>
-	<div id="fs_checkout" class="wrap" style="margin: 0 0 -65px -20px;">
+	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
 		<div id="iframe"></div>
 		<script type="text/javascript">
 			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
@@ -241,23 +242,20 @@
 					});
 
 					FS.PostMessage.receiveOnce('get_dimensions', function (data) {
-						console.debug('receiveOnce', 'get_dimensions');
-
 						FS.PostMessage.post('dimensions', {
 							height   : $(document.body).height(),
 							scrollTop: $(document).scrollTop()
 						}, iframe[0]);
 					});
+
+					var updateHeight = function(){
+						iframe.css('min-height', $('#wpwrap').height() + 'px');
+					};
+
+					$(document).ready(updateHeight);
+
+					$(window).resize(updateHeight)
 				});
 			})(jQuery);
 		</script>
 	</div>
-<?php
-	$params = array(
-		'page'           => 'checkout',
-		'module_id'      => $fs->get_id(),
-		'module_slug'    => $slug,
-		'module_version' => $fs->get_plugin_version(),
-	);
-	fs_require_template( 'powered-by.php', $params );
-?>
