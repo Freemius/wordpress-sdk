@@ -3798,13 +3798,17 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
+				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+
+				if ( $is_premium_version_activation ) {
 				$this->reconnect_locally();
+				}
+
+				$this->_logger->info('Activating ' . ($is_premium_version_activation ? 'premium' : 'free') . ' plugin version.');
 
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
-
-				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
 
 				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
 				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
