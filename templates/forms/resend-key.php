@@ -16,17 +16,18 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	$message_above_input_field = __fs( 'ask-for-upgrade-email-address', $slug );
 	$send_button_text          = __fs( 'send-license-key', $slug );
 	$cancel_button_text        = __fs( 'cancel', $slug );
-	$email_address_placeholder = __fs( 'email-address', $slug );
+	$email_address_placeholder = fs_esc_attr( 'email-address', $slug );
 	$other_text                = __fs( 'reason-other', $slug );
 
 	$is_freemium = $fs->is_freemium();
 
+	$send_button_text_html = esc_html($send_button_text);
+
 	$button_html = <<< HTML
 <div class="button-container">
-	<a href="#" class="button button-primary button-send-license-key" tabindex="2">{$send_button_text}</a>
+	<a href="#" class="button button-primary button-send-license-key" tabindex="2">{$send_button_text_html}</a>
 </div>
 HTML;
 
@@ -51,6 +52,7 @@ HTML;
 HTML;
 	}
 
+	$message_above_input_field = esc_html( __fs( 'ask-for-upgrade-email-address', $slug ) );
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-resend-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
@@ -69,8 +71,8 @@ HTML;
 				    '<div class="fs-modal fs-modal-license-key-resend <?php echo $is_freemium ? 'fs-freemium' : 'fs-premium' ?>">'
 				    + '	<div class="fs-modal-dialog">'
 				    + '		<div class="fs-modal-header">'
-				    + '		    <h4><?php echo $send_button_text ?></h4>'
-				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				    + '		    <h4><?php echo esc_js( $send_button_text ) ?></h4>'
+				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php fs_esc_js_e( 'dismiss', $slug ) ?>"></i></a>'
 				    + '		</div>'
 				    + '		<div class="fs-modal-body">'
 				    + '			<div class="fs-modal-panel active">' + contentHtml + '</div>'
@@ -145,7 +147,7 @@ HTML;
 							email : email
 						},
 						beforeSend: function () {
-							$sendButton.text('<?php _efs( 'sending-license-key', $slug ) ?>...');
+							$sendButton.text(<?php fs_json_encode_e( 'sending-license-key', $slug ) ?> + '...');
 						},
 						success   : function (result) {
 							var resultObj = $.parseJSON(result);

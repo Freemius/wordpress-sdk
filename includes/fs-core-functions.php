@@ -503,3 +503,92 @@
 		// If both have priority return the winner.
 		return ( $a['priority'] < $b['priority'] ) ? - 1 : 1;
 	}
+
+	#--------------------------------------------------------------------------------
+	#region Localization
+	#--------------------------------------------------------------------------------
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_attr($key, $slug) {
+		return esc_attr( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_attr_e($key, $slug) {
+		esc_attr_e( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_js($key, $slug) {
+		return esc_js( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_js_e($key, $slug) {
+		echo esc_js( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_json_encode_e($key, $slug) {
+		echo json_encode( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_html($key, $slug) {
+		return esc_html( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_html_e($key, $slug) {
+		esc_html_e( __fs( $key, $slug ) );
+	}
+
+	#endregion

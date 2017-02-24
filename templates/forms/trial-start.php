@@ -42,12 +42,12 @@ HTML;
 				    '<div class="fs-modal fs-modal-license-key-resend">'
 				    + '	<div class="fs-modal-dialog">'
 				    + '		<div class="fs-modal-header">'
-				    + '		    <h4><?php _efs( 'start-free-trial' ) ?></h4>'
+				    + '		    <h4><?php fs_esc_js_e( 'start-free-trial', $slug ) ?></h4>'
 				    + '		</div>'
 				    + '		<div class="fs-modal-body">' + modalContentHtml + '</div>'
 				    + '		<div class="fs-modal-footer">'
-				    + '			<button class="button button-secondary button-close">' + <?php echo json_encode( __fs( 'cancel', $slug ) ) ?> +'</button>'
-				    + '			<button class="button button-primary button-connect">' + <?php echo json_encode( __fs( 'approve-start-trial', $slug ) ) ?> +'</button>'
+				    + '			<button class="button button-secondary button-close">' + <?php fs_json_encode_e( 'cancel', $slug ) ?> +'</button>'
+				    + '			<button class="button button-primary button-connect">' + <?php fs_json_encode_e( 'approve-start-trial', $slug ) ?> +'</button>'
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',
@@ -85,18 +85,18 @@ HTML;
 							// Disable all buttons during trial activation.
 							$modal.find('.button').prop('disabled', true);
 
-							$button.text('<?php _efs( 'starting-trial', $slug ) ?>...');
+							$button.text(<?php fs_json_encode_e( 'starting-trial', $slug ) ?> + '...');
 
 							setLoadingMode();
 						},
 						success   : function (resultObj) {
 							if (resultObj.success) {
-								$button.text('<?php _efs( 'please-wait', $slug ) ?>...');
+								$button.text(<?php fs_json_encode_e( 'please-wait', $slug ) ?> + '...');
 
 								// Redirect to the "Account" page and sync the license.
 								window.location.href = resultObj.data.next_page;
 							} else {
-								$button.text(<?php json_encode( __fs( 'approve-start-trial', $slug ) ) ?>);
+								$button.text(<?php fs_json_encode_e( 'approve-start-trial', $slug ) ?>);
 
 								resetLoadingMode();
 								showError(resultObj.error);
