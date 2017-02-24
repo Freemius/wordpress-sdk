@@ -285,7 +285,7 @@
 														       sprintf( __fs( 'x-left', $slug ), $available_license->left() ) :
 														       strtolower( __fs( 'last-license', $slug ) ) ) . ']'
 												       )
-										       ) ?> ">
+										       ) ) ?> ">
 									</form>
 								<?php else : ?>
 									<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
