@@ -41,8 +41,8 @@
 			} ?>>
 				<td><?php echo $log['cnt'] ?>.</td>
 				<td><?php echo $logger->get_id() ?></td>
-				<td><?php echo $log['type'] ?></td>
-				<td><b><code style="color: blue;"><?php echo $log['function'] ?></code></b></td>
+				<td><?php echo $log['log_type'] ?></td>
+				<td><b><code style="color: blue;"><?php echo ( ! empty( $log['class'] ) ? $log['class'] . $log['type'] : '' ) . $log['function'] ?></code></b></td>
 				<td>
 					<?php
 						printf(
@@ -56,7 +56,7 @@
 				</td>
 				<td><?php
 						if ( isset( $log['file'] ) ) {
-							echo substr( $log['file'], $logger->get_file() ) . ':' . $log['line'] . ')';
+							echo substr( $log['file'], $logger->get_file() ) . ':' . $log['line'];
 						}
 					?></td>
 				<td><?php echo number_format( 100 * ( $log['timestamp'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . __fs( 'ms' ) ?></td>

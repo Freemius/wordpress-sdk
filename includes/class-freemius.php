@@ -510,7 +510,7 @@
 					}
 				}
 
-				if ( ! $this->is_ajax() ) {
+				if ( ! self::is_ajax() ) {
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
 						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
@@ -1217,6 +1217,8 @@
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
+			self::add_ajax_action_static( 'get_debug_log', array( 'Freemius', '_get_debug_log' ) );
+
 			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
 
 			self::$_statics_loaded = true;
@@ -1302,11 +1304,24 @@
 		 * @since  1.1.7.3
 		 */
 		static function _toggle_debug_mode() {
-			if ( in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
+			if ( fs_request_is_post() && in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
 				update_option( 'fs_debug_mode', $_POST['is_on'] );
+
+				// Turn on/off storage logging.
+				FS_Logger::_set_storage_logging((1 == $_POST['is_on']));
 			}
 
 			exit;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 */
+		static function _get_debug_log() {
+			$logs = FS_Logger::load_db_logs($_POST['filters']);
+
+			self::shoot_ajax_success($logs);
 		}
 
 		/**
@@ -1478,7 +1493,7 @@
 					'version'   => $version,
 					'sdk'       => $this->version,
 					'is_admin'  => json_encode( is_admin() ),
-					'is_ajax'   => json_encode( $this->is_ajax() ),
+					'is_ajax'   => json_encode( self::is_ajax() ),
 					'is_cron'   => json_encode( $this->is_cron() ),
 					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
 				)
@@ -2383,12 +2398,12 @@
 			$result = $this->stop_tracking();
 
 			if ( true === $result ) {
-				$this->shoot_ajax_success();
+				self::shoot_ajax_success();
 			}
 
 			$this->_logger->api_error( $result );
 
-			$this->shoot_ajax_failure(
+			self::shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
@@ -2404,12 +2419,12 @@
 			$result = $this->allow_tracking();
 
 			if ( true === $result ) {
-				$this->shoot_ajax_success();
+				self::shoot_ajax_success();
 			}
 
 			$this->_logger->api_error( $result );
 
-			$this->shoot_ajax_failure(
+			self::shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
@@ -2719,7 +2734,7 @@
 					return true;
 				}
 
-				if ( $this->is_ajax() &&
+				if ( self::is_ajax() &&
 				     ! $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) &&
 				     ! $this->_admin_notices->has_sticky( 'failed_connect_api' )
 				) {
