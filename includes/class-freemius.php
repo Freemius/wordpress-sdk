@@ -1901,35 +1901,18 @@
 
 			$custom_email_sections = array();
 
-			if ( 'squid' === $error_type ) {
-				// Override the 'Site' email section.
-				$custom_email_sections['site'] = array(
-					'rows' => array(
-						'hosting_company' => array( 'Hosting Company', fs_request_get( 'hosting_company' ) )
-					)
-				);
-			}
-
 			// Add 'API Error' custom email section.
 			$custom_email_sections['api_error'] = array(
-				'title' => 'API Error',
+				'title' => "API Error",
 				'rows'  => array(
-					'ping' => array( is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong ) )
+					'ping' => array(
+						'API Error',
+						is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong )
+					),
 				)
 			);
 
-			// Add PHP info for deeper investigation.
-			ob_start();
-			phpinfo();
-			$php_info                          = ob_get_clean();
-			$custom_email_sections['php_info'] = array(
-				'title' => 'PHP Info',
-				'rows'  => array(
-					'info' => array( $php_info )
-				)
-			);
-
-			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
+			// Send email with technical details to resolve API connectivity issues.
 			$this->send_email(
 				'api@freemius.com',                              // recipient
 				$title . ' [' . $this->get_plugin_name() . ']',  // subject
@@ -2083,30 +2066,49 @@
 
 			$server_ip = WP_FS__REMOTE_ADDR;
 
+			// Add PHP info for deeper investigation.
+			ob_start();
+			phpinfo();
+			$php_info = ob_get_clean();
+
+			$api_domain = substr( FS_API__ADDRESS, strpos( FS_API__ADDRESS, ':' ) + 3 );
+
 			// Generate the default email sections.
 			$sections = array(
-				'sdk'     => array(
+				'sdk'      => array(
 					'title' => 'SDK',
 					'rows'  => array(
 						'fs_version'   => array( 'FS Version', $this->version ),
 						'curl_version' => array( 'cURL Version', $curl_version_information['version'] )
 					)
 				),
-				'plugin'  => array(
+				'plugin'   => array(
 					'title' => 'Plugin',
 					'rows'  => array(
 						'name'    => array( 'Name', $this->get_plugin_name() ),
 						'version' => array( 'Version', $this->get_plugin_version() )
 					)
 				),
-				'site'    => array(
+				'api'      => array(
+					'title' => 'API Subdomain',
+					'rows'  => array(
+						'dns' => array( 'DNS_CNAME', var_export( @dns_get_record( $api_domain, DNS_CNAME ), true ) ),
+						'ip'  => array( 'IP', @gethostbyname( $api_domain ) ),
+					),
+				),
+				'site'     => array(
 					'title' => 'Site',
 					'rows'  => array(
-						'unique_id'   => array( 'Address', $this->get_anonymous_id() ),
+						'unique_id'   => array( 'Unique ID', $this->get_anonymous_id() ),
 						'address'     => array( 'Address', site_url() ),
 						'host'        => array(
 							'HTTP_HOST',
 							( ! empty( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '' )
+						),
+						'hosting'     => array(
+							'Hosting Company' => fs_request_has( 'hosting_company' ) ?
+								fs_request_get( 'hosting_company' ) :
+								'Unknown',
 						),
 						'server_addr' => array(
 							'SERVER_ADDR',
@@ -2114,7 +2116,7 @@
 						)
 					)
 				),
-				'user'    => array(
+				'user'     => array(
 					'title' => 'User',
 					'rows'  => array(
 						'email' => array( 'Email', $current_user->user_email ),
@@ -2122,12 +2124,18 @@
 						'last'  => array( 'Last', $current_user->user_lastname )
 					)
 				),
-				'plugins' => array(
+				'plugins'  => array(
 					'title' => 'Plugins',
 					'rows'  => array(
 						'active_plugins' => array( 'Active Plugins', $active_plugin_string )
 					)
 				),
+				'php_info' => array(
+					'title' => 'PHP Info',
+					'rows'  => array(
+						'info' => array( $php_info )
+					),
+				)
 			);
 
 			// Allow the sections to be modified by other code.
