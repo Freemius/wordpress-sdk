@@ -5885,7 +5885,7 @@
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				// Only for admins.
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			$billing = fs_request_get( 'billing' );
@@ -5896,13 +5896,13 @@
 			) ) );
 
 			if ( ! $this->is_api_result_entity( $result ) ) {
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			// Purge cached billing.
 			$this->get_api_user_scope()->purge_cache( 'billing.json' );
 
-			$this->shoot_ajax_success();
+			self::shoot_ajax_success();
 		}
 
 		/**
@@ -5916,7 +5916,7 @@
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				// Only for admins.
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			$trial_data = fs_request_get( 'trial' );
@@ -5931,14 +5931,14 @@
 			);
 
 			if ( is_object( $next_page ) && $this->is_api_error( $next_page ) ) {
-				$this->shoot_ajax_failure(
+				self::shoot_ajax_failure(
 					isset( $next_page->error ) ?
 						$next_page->error->message :
 						var_export( $next_page, true )
 				);
 			}
 
-			$this->shoot_ajax_success( array(
+			self::shoot_ajax_success( array(
 				'next_page' => $next_page,
 			) );
 		}
@@ -6234,7 +6234,7 @@
 		 *
 		 * @link   http://wordpress.stackexchange.com/questions/70676/how-to-check-if-i-am-in-admin-ajax
 		 */
-		function is_ajax() {
+		static function is_ajax() {
 			return ( defined( 'DOING_AJAX' ) && DOING_AJAX );
 		}
 
@@ -6250,7 +6250,7 @@
 		 */
 		function is_ajax_action( $actions ) {
 			// Verify it's an ajax call.
-			if ( ! $this->is_ajax() ) {
+			if ( ! self::is_ajax() ) {
 				return false;
 			}
 
@@ -6278,6 +6278,48 @@
 		}
 
 		/**
+		 * Check if it's an AJAX call targeted for current request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @param array|string $actions Collection of AJAX actions.
+		 * @param string       $slug
+		 *
+		 * @return bool
+		 */
+		static function is_ajax_action_static( $actions, $slug = '' ) {
+			// Verify it's an ajax call.
+			if ( ! self::is_ajax() ) {
+				return false;
+			}
+
+			if (!empty($slug)) {
+				// Verify the call is relevant for the plugin.
+				if ( $slug !== fs_request_get( 'slug' ) ) {
+					return false;
+				}
+			}
+
+			// Verify it's one of the specified actions.
+			if ( is_string( $actions ) ) {
+				$actions = explode( ',', $actions );
+			}
+
+			if ( is_array( $actions ) && 0 < count( $actions ) ) {
+				$ajax_action = fs_request_get( 'action' );
+
+				foreach ( $actions as $action ) {
+					if ( $ajax_action === self::get_action_tag_static( $action, $slug ) ) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
 		 *
@@ -6296,7 +6338,7 @@
 		 * @return bool
 		 */
 		function is_user_in_admin() {
-			return is_admin() && ! $this->is_ajax() && ! $this->is_cron();
+			return is_admin() && ! self::is_ajax() && ! $this->is_cron();
 		}
 
 		/**
@@ -7985,7 +8027,20 @@
 		 * @return string
 		 */
 		public function get_action_tag( $tag ) {
-			return "fs_{$tag}_{$this->_slug}";
+			return self::get_action_tag_static( $tag, $this->_slug );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $tag
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		static function get_action_tag_static( $tag, $slug = '' ) {
+			return "fs_{$tag}" . ( empty( $slug ) ? '' : "_{$slug}" );
 		}
 
 		/**
@@ -7998,6 +8053,19 @@
 		 */
 		private function get_ajax_action_tag( $tag ) {
 			return 'wp_ajax_' . $this->get_action_tag( $tag );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $tag
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		private static function get_ajax_action_tag_static( $tag, $slug = '' ) {
+			return 'wp_ajax_' . self::get_action_tag_static( $tag, $slug );
 		}
 
 		/**
@@ -8051,22 +8119,61 @@
 		 * @param string   $tag
 		 * @param callable $function_to_add
 		 * @param int      $priority
-		 * @param int      $accepted_args
 		 *
 		 * @uses   add_action()
 		 *
 		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
-		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
+		function add_ajax_action(
+			$tag,
+			$function_to_add,
+			$priority = WP_FS__DEFAULT_PRIORITY
+		) {
 			$this->_logger->entrance( $tag );
 
-			if ( ! $this->is_ajax_action( $tag ) ) {
+			return self::add_ajax_action_static(
+				$tag,
+				$function_to_add,
+				$priority,
+				$this->_slug
+			);
+		}
+
+		/**
+		 * Add AJAX action.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string   $tag
+		 * @param callable $function_to_add
+		 * @param int      $priority
+		 * @param string   $slug
+		 *
+		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
+		 * @uses   add_action()
+		 *
+		 */
+		static function add_ajax_action_static(
+			$tag,
+			$function_to_add,
+			$priority = WP_FS__DEFAULT_PRIORITY,
+			$slug = ''
+		) {
+			self::$_static_logger->entrance( $tag );
+
+			if ( ! self::is_ajax_action_static( $tag, $slug ) ) {
 				return false;
 			}
 
-			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+			add_action(
+				self::get_ajax_action_tag_static( $tag, $slug ),
+				$function_to_add,
+				$priority,
+				0
+			);
 
-			$this->_logger->info( "$tag AJAX callback action added." );
+			self::$_static_logger->info( "$tag AJAX callback action added." );
 
 			return true;
 		}
@@ -8079,7 +8186,7 @@
 		 *
 		 * @param mixed $response
 		 */
-		function shoot_ajax_response( $response ) {
+		static function shoot_ajax_response( $response ) {
 			wp_send_json( $response );
 		}
 
@@ -8091,7 +8198,7 @@
 		 *
 		 * @param mixed $data Data to encode as JSON, then print and exit.
 		 */
-		function shoot_ajax_success( $data = null ) {
+		static function shoot_ajax_success( $data = null ) {
 			wp_send_json_success( $data );
 		}
 
@@ -8103,7 +8210,7 @@
 		 *
 		 * @param mixed $error Optional error message.
 		 */
-		function shoot_ajax_failure( $error = '' ) {
+		static function shoot_ajax_failure( $error = '' ) {
 			$result = array( 'success' => false );
 			if ( ! empty( $error ) ) {
 				$result['error'] = $error;
@@ -11020,7 +11127,7 @@
 				return;
 			}
 
-			if ( ! $this->is_ajax() ) {
+			if ( ! self::is_ajax() ) {
 				// Inject license activation dialog UI and client side code.
 				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 			}
