@@ -35,7 +35,7 @@
 	$is_paid_trial          = $fs->is_paid_trial();
 	$show_upgrade           = ( $fs->has_paid_plan() && ! $is_paying && ! $is_paid_trial );
 
-	if ( $show_upgrade ) {
+	if ( $fs->has_paid_plan() ) {
 		$fs->_add_license_activation_dialog_box();
 	}
 ?>
@@ -344,6 +344,9 @@
 					<?php
 					elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 						<button class="button button-small fs-toggle-visibility"><?php echo esc_html( __fs( 'show', $slug ) ) ?></button>
+						<?php if ('license_key' === $p['id']) : ?>
+						<button class="button button-small activate-license-trigger <?php echo $slug ?>"><?php echo esc_html( __fs( 'change-license', $slug ) ) ?></button>
+						<?php endif ?>
 					<?php
 					elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/
 					( is_string( $user->secret_key ) && in_array( $p['id'], array(
@@ -371,7 +374,7 @@
 	</div>
 	<script type="text/javascript">
 		(function ($) {
-			$('.fs-field-license_key button, .fs-field-site_secret_key button').click(function () {
+			$('.fs-toggle-visibility').click(function () {
 				var
 					$this = $(this),
 					$parent = $this.closest('tr'),
@@ -606,7 +609,7 @@
 						if ( $fs->is_addon_installed( $addon->slug ) ) {
 							$addon_file = $fs->get_addon_basename( $addon->slug );
 							$buttons[]  = sprintf(
-								'<a class="button button-primary" href="%s" title="%s" class="edit">%s</a>',
+								'<a class="button button-primary edit" href="%s" title="%s">%s</a>',
 								wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ),
 								fs_esc_attr( 'activate-this-addon', $slug ),
 								__fs( 'activate', $slug )
@@ -614,13 +617,13 @@
 						} else {
 							if ( $fs->is_allowed_to_install() ) {
 								$buttons[] = sprintf(
-									'<a class="button button-primary" href="%s" class="edit">%s</a>',
+									'<a class="button button-primary edit" href="%s">%s</a>',
 									wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
 									__fs( 'install-now', $slug )
 								);
 							} else {
 								$buttons[] = sprintf(
-									'<a target="_blank" class="button button-primary" href="%s" class="edit">%s</a>',
+									'<a target="_blank" class="button button-primary edit" href="%s">%s</a>',
 									$fs->_get_latest_download_local_url( $addon_id ),
 									__fs( 'download-latest', $slug )
 								);
