@@ -529,7 +529,7 @@
 	 * @param string $slug
 	 */
 	function fs_esc_attr_e($key, $slug) {
-		esc_attr_e( __fs( $key, $slug ) );
+		echo esc_attr( __fs( $key, $slug ) );
 	}
 
 	/**
@@ -588,7 +588,7 @@
 	 * @param string $slug
 	 */
 	function fs_esc_html_e($key, $slug) {
-		esc_html_e( __fs( $key, $slug ) );
+		echo esc_html( __fs( $key, $slug ) );
 	}
 
 	#endregion
