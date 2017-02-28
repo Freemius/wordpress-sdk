@@ -1282,21 +1282,21 @@
 				);
 			} else {
 				if ( 'freemius' === fs_request_get( 'page' ) ) {
-				// Add hidden debug page.
-				$hook = add_submenu_page(
-					null,
-					$title,
-					$title,
-					'manage_options',
-					'freemius',
-					array( 'Freemius', '_debug_page_render' )
-				);
-			}
+					// Add hidden debug page.
+					$hook = add_submenu_page(
+						null,
+						$title,
+						$title,
+						'manage_options',
+						'freemius',
+						array( 'Freemius', '_debug_page_render' )
+					);
+				}
 			}
 
 			if ( ! empty( $hook ) ) {
-			add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
-		}
+				add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
+			}
 		}
 
 		/**
@@ -1308,7 +1308,7 @@
 				update_option( 'fs_debug_mode', $_POST['is_on'] );
 
 				// Turn on/off storage logging.
-				FS_Logger::_set_storage_logging((1 == $_POST['is_on']));
+				FS_Logger::_set_storage_logging( ( 1 == $_POST['is_on'] ) );
 			}
 
 			exit;
@@ -1319,9 +1319,13 @@
 		 * @since  1.2.1.6
 		 */
 		static function _get_debug_log() {
-			$logs = FS_Logger::load_db_logs($_POST['filters']);
+			$logs = FS_Logger::load_db_logs(
+				! empty( $_POST['filters'] ) ? $_POST['filters'] : false,
+				! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
+				! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
+			);
 
-			self::shoot_ajax_success($logs);
+			self::shoot_ajax_success( $logs );
 		}
 
 		/**
@@ -1350,6 +1354,18 @@
 				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
 				// Unset the trial shown timestamp.
 				unset( $fs->_storage->trial_promotion_shown );
+			} else if ( fs_request_is_action( 'download_logs' ) ) {
+				check_admin_referer( 'download_logs' );
+
+				$download_url = FS_Logger::download_db_logs(
+					! empty( $_POST['filters'] ) ? $_POST['filters'] : false
+				);
+
+				if ( false === $download_url ) {
+					wp_die( 'Oops... there was an error while generating the logs download file. Please try again and if it doesn\'t work contact support@freemius.com.' );
+				}
+
+				fs_redirect( $download_url );
 			}
 		}
 
@@ -1377,7 +1393,7 @@
 				'licenses'       => $licenses,
 			);
 
-			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
+			fs_enqueue_local_style( 'fs_debug', '/admin/debug.css' );
 			fs_require_once_template( 'debug.php', $vars );
 		}
 
@@ -2352,7 +2368,7 @@
 			 * In the future, there might be additional logic added.
 			 *
 			 * @author Vova Feldman
-			 * @since 1.2.1.6
+			 * @since  1.2.1.6
 			 */
 			if ( $this->is_premium() && $this->has_release_on_freemius() ) {
 				new FS_Plugin_Updater( $this );
@@ -3809,10 +3825,10 @@
 				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
 
 				if ( $is_premium_version_activation ) {
-				$this->reconnect_locally();
+					$this->reconnect_locally();
 				}
 
-				$this->_logger->info('Activating ' . ($is_premium_version_activation ? 'premium' : 'free') . ' plugin version.');
+				$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
@@ -5974,8 +5990,8 @@
 			$api    = $this->get_api_plugin_scope();
 			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
-					'email'        => $email_address,
-					'url'          => home_url(),
+					'email' => $email_address,
+					'url'   => home_url(),
 				)
 			);
 
@@ -6306,7 +6322,7 @@
 				return false;
 			}
 
-			if (!empty($slug)) {
+			if ( ! empty( $slug ) ) {
 				// Verify the call is relevant for the plugin.
 				if ( $slug !== fs_request_get( 'slug' ) ) {
 					return false;
@@ -6409,7 +6425,7 @@
 			} else {
 				/**
 				 * @author Vova Feldman
-				 * @since 1.2.1.6
+				 * @since  1.2.1.6
 				 *
 				 * If module doesn't have a settings page, create one for the opt-in screen.
 				 */
@@ -7094,7 +7110,7 @@
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if (! $this->is_premium() || !$this->has_premium_version()) {
+				if ( ! $this->is_premium() || ! $this->has_premium_version() ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
@@ -7131,13 +7147,13 @@
 			$next_page = '';
 
 			if ( is_numeric( $plugin_id ) ) {
-                /**
-                 * @author Leo Fajardo
-                 * @since  1.2.1.6
-                 *
-                 * Also sync the license after an anonymous user subscribes.
-                 */
-                if ( $this->is_anonymous() || $plugin_id != $this->_plugin->id ) {
+				/**
+				 * @author Leo Fajardo
+				 * @since  1.2.1.6
+				 *
+				 * Also sync the license after an anonymous user subscribes.
+				 */
+				if ( $this->is_anonymous() || $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
 					$next_page = $this->_get_sync_license_url( $plugin_id );
 				}
@@ -7264,16 +7280,16 @@
 				/**
 				 * If explicitly asked to ignore pending mode, set to anonymous mode
 				 * if require confirmation before finalizing the opt-in.
-				 * 
+				 *
 				 * @author Vova Feldman
-				 * @since 1.2.1.6
+				 * @since  1.2.1.6
 				 */
 				$this->skip_connection();
 			} else {
-			// Install must be activated via email since
-			// user with the same email already exist.
-			$this->_storage->is_pending_activation = true;
-			$this->_add_pending_activation_notice( $email, $is_pending_trial );
+				// Install must be activated via email since
+				// user with the same email already exist.
+				$this->_storage->is_pending_activation = true;
+				$this->_add_pending_activation_notice( $email, $is_pending_trial );
 			}
 
 			if ( ! empty( $license_key ) ) {
@@ -9251,23 +9267,23 @@
 								$this->_site->plan;
 
 							if ( $plan->is_free() ) {
-							$this->_admin_notices->add(
-								sprintf(
-									__fs( 'plan-did-not-change-message', $this->_slug ),
-									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
-								) . ' ' . sprintf(
-									'<a href="%s">%s</a>',
-									$this->contact_url(
-										'bug',
-										sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
-											strtoupper( $plan->name )
-										)
+								$this->_admin_notices->add(
+									sprintf(
+										__fs( 'plan-did-not-change-message', $this->_slug ),
+										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
+									) . ' ' . sprintf(
+										'<a href="%s">%s</a>',
+										$this->contact_url(
+											'bug',
+											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
+												strtoupper( $plan->name )
+											)
+										),
+										__fs( 'contact-us-here', $this->_slug )
 									),
-									__fs( 'contact-us-here', $this->_slug )
-								),
-								__fs( 'hmm', $this->_slug ) . '...'
-							);
-						}
+									__fs( 'hmm', $this->_slug ) . '...'
+								);
+							}
 						}
 						break;
 					case 'upgraded':
@@ -9799,7 +9815,7 @@
 
 			// If add-on, then append add-on ID.
 			$endpoint = ( $is_addon ? "/addons/$addon_id" : '' ) .
-				'/updates/latest.' . $type;
+			            '/updates/latest.' . $type;
 
 			// If add-on and not yet activated, try to fetch based on server licensing.
 			if ( is_bool( $is_premium ) ) {
@@ -10603,7 +10619,7 @@
 			 * in custom HTML (e.g. within a wizard/tabs).
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.2.1.6
+			 * @since  1.2.1.6
 			 */
 			echo $this->apply_filters( "templates/{$template}", fs_get_template( $template, $vars ) );
 		}
@@ -10624,7 +10640,7 @@
 			 * in custom HTML (e.g. within a wizard/tabs).
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.2.1.6
+			 * @since  1.2.1.6
 			 */
 			echo $this->apply_filters( 'templates/connect.php', fs_get_template( 'connect.php', $vars ) );
 		}

@@ -312,10 +312,6 @@
 		public static function _set_storage_logging( $is_on = true ) {
 			global $wpdb;
 
-			if ( self::$_isStorageLoggingOn === $is_on ) {
-				return true;
-			}
-
 			$table = "{$wpdb->prefix}fs_logger";
 
 			if ( $is_on ) {
@@ -412,7 +408,28 @@ KEY `type` (`type` ASC))" );
 		}
 
 		/**
-		 * Load logs from DB.
+		 * Persistent DB logger columns.
+		 *
+		 * @var array
+		 */
+		private static $_log_columns = array(
+			'id',
+			'process_id',
+			'user_name',
+			'logger',
+			'log_order',
+			'type',
+			'message',
+			'file',
+			'line',
+			'function',
+			'request_type',
+			'request_url',
+			'created',
+		);
+
+		/**
+		 * Create DB logs query.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.6
@@ -421,18 +438,37 @@ KEY `type` (`type` ASC))" );
 		 * @param int  $limit
 		 * @param int  $offset
 		 * @param bool $order
+		 * @param bool $escape_eol
 		 *
-		 * @return object[]|null
+		 * @return string
 		 */
-		public static function load_db_logs(
+		private static function build_db_logs_query(
 			$filters = false,
-			$limit = 300,
+			$limit = 200,
 			$offset = 0,
-			$order = false
+			$order = false,
+			$escape_eol = false
 		) {
 			global $wpdb;
 
-			$query    = "SELECT * FROM {$wpdb->prefix}fs_logger";
+			$select = '*';
+
+			if ( $escape_eol ) {
+				$select = '';
+				for ( $i = 0, $len = count( self::$_log_columns ); $i < $len; $i ++ ) {
+					if ( $i > 0 ) {
+						$select .= ', ';
+					}
+
+					if ( 'message' !== self::$_log_columns[ $i ] ) {
+						$select .= self::$_log_columns[ $i ];
+					} else {
+						$select .= 'REPLACE(message , \'\n\', \' \') AS message';
+					}
+				}
+			}
+
+			$query = "SELECT {$select} FROM {$wpdb->prefix}fs_logger";
 			if ( is_array( $filters ) ) {
 				$criteria = array();
 
@@ -441,8 +477,7 @@ KEY `type` (`type` ASC))" );
 
 					switch ( $filters['type'] ) {
 						case 'warn_error':
-							$criteria[] = array( 'col' => 'type', 'val' => 'warn' );
-							$criteria[] = array( 'col' => 'type', 'val' => 'error' );
+							$criteria[] = array( 'col' => 'type', 'val' => array( 'warn', 'error' ) );
 							break;
 						case 'error':
 						case 'warn':
@@ -450,8 +485,7 @@ KEY `type` (`type` ASC))" );
 							break;
 						case 'info':
 						default:
-							$criteria[] = array( 'col' => 'type', 'val' => 'info' );
-							$criteria[] = array( 'col' => 'type', 'val' => 'log' );
+							$criteria[] = array( 'col' => 'type', 'val' => array( 'info', 'log' ) );
 							break;
 					}
 				}
@@ -500,7 +534,7 @@ KEY `type` (`type` ASC))" );
 					);
 				}
 
-				if (0 < count($criteria)) {
+				if ( 0 < count( $criteria ) ) {
 					$query .= "\nWHERE\n";
 
 					$first = true;
@@ -509,24 +543,143 @@ KEY `type` (`type` ASC))" );
 							$query .= "AND\n";
 						}
 
-						$operator = ! empty( $c['op'] ) ? $c['op'] : '=';
-						$query .= "{$c['col']} {$operator} {$c['val']}\n";
+						if ( is_array( $c['val'] ) ) {
+							$operator = 'IN';
+
+							for ( $i = 0, $len = count( $c['val'] ); $i < $len; $i ++ ) {
+								$c['val'][ $i ] = "'" . esc_sql( $c['val'][ $i ] ) . "'";
+							}
+
+							$val = '(' . implode( ',', $c['val'] ) . ')';
+						} else {
+							$operator = ! empty( $c['op'] ) ? $c['op'] : '=';
+							$val      = "'" . esc_sql( $c['val'] ) . "'";
+						}
+
+						$query .= "`{$c['col']}` {$operator} {$val}\n";
 
 						$first = false;
 					}
 				}
 			}
 
-			if (!is_array($order)){
+			if ( ! is_array( $order ) ) {
 				$order = array(
-					'col' => 'id',
+					'col'   => 'id',
 					'order' => 'desc'
 				);
 			}
 
 			$query .= " ORDER BY {$order['col']} {$order['order']} LIMIT {$offset},{$limit}";
 
-			return $wpdb->get_results($query);
+			return $query;
+		}
+
+		/**
+		 * Load logs from DB.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param bool $filters
+		 * @param int  $limit
+		 * @param int  $offset
+		 * @param bool $order
+		 *
+		 * @return object[]|null
+		 */
+		public static function load_db_logs(
+			$filters = false,
+			$limit = 200,
+			$offset = 0,
+			$order = false
+		) {
+			global $wpdb;
+
+			$query = self::build_db_logs_query(
+				$filters,
+				$limit,
+				$offset,
+				$order
+			);
+
+			return $wpdb->get_results( $query );
+		}
+
+		/**
+		 * Load logs from DB.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param bool   $filters
+		 * @param string $filename
+		 * @param int    $limit
+		 * @param int    $offset
+		 * @param bool   $order
+		 *
+		 * @return false|string File download URL or false on failure.
+		 */
+		public static function download_db_logs(
+			$filters = false,
+			$filename = '',
+			$limit = 10000,
+			$offset = 0,
+			$order = false
+		) {
+			global $wpdb;
+
+			$query = self::build_db_logs_query(
+				$filters,
+				$limit,
+				$offset,
+				$order,
+				true
+			);
+
+			$upload_dir = wp_upload_dir();
+			if ( empty( $filename ) ) {
+				$filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
+			}
+			$filepath = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
+
+			$query .= " INTO OUTFILE '{$filepath}' FIELDS TERMINATED BY '\t' ESCAPED BY '\\\\' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
+
+			$columns = '';
+			for ( $i = 0, $len = count( self::$_log_columns ); $i < $len; $i ++ ) {
+				if ( $i > 0 ) {
+					$columns .= ', ';
+				}
+
+				$columns .= "'" . self::$_log_columns[ $i ] . "'";
+			}
+
+			$query = "SELECT {$columns} UNION ALL " . $query;
+
+			$result = $wpdb->query( $query );
+
+			if ( false === $result ) {
+				return false;
+			}
+
+			return rtrim( $upload_dir['url'], '/' ) . '/' . $filename;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $filename
+		 *
+		 * @return string
+		 */
+		public static function get_logs_download_url( $filename = '' ) {
+			$upload_dir = wp_upload_dir();
+			if ( empty( $filename ) ) {
+				$filename = 'fs-logs-' . date( 'Y-m-d_H-i-s', WP_FS__SCRIPT_START_TIME ) . '.csv';
+			}
+
+			return rtrim( $upload_dir['url'], '/' ) . $filename;
 		}
 
 		#endregion
