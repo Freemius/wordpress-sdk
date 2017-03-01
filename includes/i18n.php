@@ -464,3 +464,53 @@
 		'zip-postal-code'                          => _fs_text( 'ZIP / Postal Code' ),
 		#endregion
 	);
+
+	/**
+	 * Localization of the strings in the plugin/theme info dialog box.
+	 *
+	 * $fs_module_info_text should ONLY include strings that are not located in $fs_text.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since  1.2.2
+	 */
+	global $fs_module_info_text;
+
+	$fs_module_info_text = array(
+		'description'                 => _fs_x( 'Description', 'Plugin installer section title' ),
+		'installation'                => _fs_x( 'Installation', 'Plugin installer section title' ),
+		'faq'                         => _fs_x( 'FAQ', 'Plugin installer section title' ),
+		'changelog'                   => _fs_x( 'Changelog', 'Plugin installer section title' ),
+		'reviews'                     => _fs_x( 'Reviews', 'Plugin installer section title' ),
+		'other_notes'                 => _fs_x( 'Other Notes', 'Plugin installer section title' ),
+		/* translators: %s: 1 or One */
+		'x-star'                      => _fs_text( '%s star' ),
+		/* translators: %s: Number larger than 1 */
+		'x-stars'                     => _fs_text( '%s stars' ),
+		/* translators: %s: 1 or One */
+		'x-rating'                    => _fs_text( '%s rating' ),
+		/* translators: %s: Number larger than 1 */
+		'x-ratings'                   => _fs_text( '%s ratings' ),
+		/* translators: %s: 1 or One (Number of times downloaded) */
+		'x-time'                      => _fs_text( '%s time' ),
+		/* translators: %s: Number of times downloaded */
+		'x-times'                     => _fs_text( '%s times' ),
+		/* translators: %s: # of stars (e.g. 5 stars) */
+		'click-to-reviews'            => _fs_text( 'Click to see reviews that provided a rating of %s' ),
+		'last-updated:'               => _fs_text( 'Last Updated' ),
+		'requires-wordpress-version:' => _fs_text( 'Requires WordPress Version:' ),
+		'author:'                     => _fs_x( 'Author:', 'as the plugin author' ),
+		'compatible-up-to:'           => _fs_text( 'Compatible up to:' ),
+		'downloaded:'                 => _fs_text( 'Downloaded:' ),
+		'wp-org-plugin-page'          => _fs_text( 'WordPress.org Plugin Page' ),
+		'plugin-homepage'             => _fs_text( 'Plugin Homepage' ),
+		'donate-to-plugin'            => _fs_text( 'Donate to this plugin' ),
+		'average-rating'              => _fs_text( 'Average Rating' ),
+		'based-on-x'                  => _fs_text( 'based on %s' ),
+		'warning:'                    => _fs_text( 'Warning:' ),
+		'contributors'                => _fs_text( 'Contributors' ),
+		'plugin-install'              => _fs_text( 'Plugin Install' ),
+		'not-tested-warning'          => _fs_text( 'This plugin has not been tested with your current version of WordPress.' ),
+		'not-compatible-warning'      => _fs_text( 'This plugin has not been marked as compatible with your version of WordPress.' ),
+		'newer-installed'             => _fs_text( 'Newer Version (%s) Installed' ),
+		'latest-installed'            => _fs_text( 'Latest Version Installed' ),
+	);
