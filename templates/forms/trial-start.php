@@ -23,7 +23,11 @@
 	);
 	$message_content = sprintf(
 		__fs( 'start-trial-prompt-message', $slug ),
-		'<a href="https://freemius.com" target="_blank">freemius.com</a>'
+		sprintf(
+			'<a href="%s" target="_blank">%s</a>',
+			'https://freemius.com',
+			'freemius.com'
+		)
 	);
 
 	$modal_content_html = <<< HTML
