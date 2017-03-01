@@ -582,7 +582,9 @@
 		 * @global       $fs_text , $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			global $fs_text, $fs_module_info_text, $fs_text_overrides;
+			global $fs_text,
+			       $fs_module_info_text,
+			       $fs_text_overrides;
 
 			if ( isset( $fs_text_overrides[ $slug ] ) ) {
 				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
@@ -596,7 +598,12 @@
 			}
 
 			if ( ! isset( $fs_text ) ) {
-				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
+				$dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+					WP_FS__DIR_INCLUDES :
+					dirname( __FILE__ );
+
+				require_once $dir . '/l10n.php';
+				require_once $dir . '/i18n.php';
 			}
 
 			if ( isset( $fs_text[ $key ] ) ) {
@@ -648,3 +655,92 @@
 			}
 		}
 	}
+
+	#--------------------------------------------------------------------------------
+	#region Localization
+	#--------------------------------------------------------------------------------
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_attr($key, $slug) {
+		return esc_attr( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_attr_echo($key, $slug) {
+		echo esc_attr( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_js($key, $slug) {
+		return esc_js( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_js_echo($key, $slug) {
+		echo esc_js( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_json_encode_echo($key, $slug) {
+		echo json_encode( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_html($key, $slug) {
+		return esc_html( __fs( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since 1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_html_echo($key, $slug) {
+		echo esc_html( __fs( $key, $slug ) );
+	}
+
+	#endregion
