@@ -152,20 +152,20 @@ HTML;
 				},
 				beforeSend: function() {
 					if ( 'opt-in' == action ) {
-						$actionLink.text( <?php fs_json_encode_e( 'opting-in', $slug ) ?> )
+						$actionLink.text( <?php fs_json_encode_echo( 'opting-in', $slug ) ?> )
 					} else {
-						$optOutButton.text( <?php fs_json_encode_e( 'opting-out', $slug ) ?> );
+						$optOutButton.text( <?php fs_json_encode_echo( 'opting-out', $slug ) ?> );
 					}
 				},
 				success: function( resultObj ) {
 					if ( resultObj.success ) {
 						if ( 'allow_tracking' == action ) {
 							action = 'stop_tracking';
-							$actionLink.text( <?php fs_json_encode_e( 'opt-out', $slug ) ?> );
+							$actionLink.text( <?php fs_json_encode_echo( 'opt-out', $slug ) ?> );
 							showOptInAppreciationMessageAndScrollToTop();
 						} else {
 							action = 'allow_tracking';
-							$actionLink.text( <?php fs_json_encode_e( 'opt-in', $slug ) ?> );
+							$actionLink.text( <?php fs_json_encode_echo( 'opt-in', $slug ) ?> );
 							closeModal();
 
 							if ( $adminNotice.length > 0 ) {

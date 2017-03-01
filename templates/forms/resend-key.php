@@ -72,7 +72,7 @@ HTML;
 				    + '	<div class="fs-modal-dialog">'
 				    + '		<div class="fs-modal-header">'
 				    + '		    <h4><?php echo esc_js( $send_button_text ) ?></h4>'
-				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php fs_esc_js_e( 'dismiss', $slug ) ?>"></i></a>'
+				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php fs_esc_js_echo( 'dismiss', $slug ) ?>"></i></a>'
 				    + '		</div>'
 				    + '		<div class="fs-modal-body">'
 				    + '			<div class="fs-modal-panel active">' + contentHtml + '</div>'
@@ -147,7 +147,7 @@ HTML;
 							email : email
 						},
 						beforeSend: function () {
-							$sendButton.text(<?php fs_json_encode_e( 'sending-license-key', $slug ) ?> + '...');
+							$sendButton.text(<?php fs_json_encode_echo( 'sending-license-key', $slug ) ?> + '...');
 						},
 						success   : function (result) {
 							var resultObj = $.parseJSON(result);

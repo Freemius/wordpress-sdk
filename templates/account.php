@@ -250,11 +250,11 @@
 						<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
 					<?php endif ?>
 					<?php if ( 'email' === $p['id'] && ! $user->is_verified() ) : ?>
-						<label class="fs-tag fs-warn"><?php fs_esc_html_e( 'not-verified', $slug ) ?></label>
+						<label class="fs-tag fs-warn"><?php fs_esc_html_echo( 'not-verified', $slug ) ?></label>
 					<?php endif ?>
 					<?php if ( 'plan' === $p['id'] ) : ?>
 						<?php if ( $fs->is_trial() ) : ?>
-							<label class="fs-tag fs-success"><?php fs_esc_html_e( 'trial', $slug ) ?></label>
+							<label class="fs-tag fs-success"><?php fs_esc_html_echo( 'trial', $slug ) ?></label>
 						<?php endif ?>
 						<?php if ( is_object( $license ) && ! $license->is_lifetime() ) : ?>
 							<?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
@@ -295,10 +295,10 @@
 									<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 									      method="POST" class="button-group">
 										<?php if ( $show_upgrade && $fs->is_premium() ) : ?>
-										<a class="button activate-license-trigger <?php echo $slug ?>" href="#"><?php fs_esc_html_e( 'activate-license', $slug ) ?></a>
+										<a class="button activate-license-trigger <?php echo $slug ?>" href="#"><?php fs_esc_html_echo( 'activate-license', $slug ) ?></a>
 										<?php endif ?>
 										<input type="submit" class="button"
-										       value="<?php fs_esc_attr_e( 'sync-license', $slug ) ?>">
+										       value="<?php fs_esc_attr_echo( 'sync-license', $slug ) ?>">
 										<input type="hidden" name="fs_action"
 										       value="<?php echo $slug ?>_sync_license">
 										<?php wp_nonce_field( $slug . '_sync_license' ) ?>
@@ -306,7 +306,7 @@
 										   class="button<?php if ( $show_upgrade ) {
 											   echo ' button-primary';
 										   } ?> button-upgrade"><i
-												class="dashicons dashicons-cart"></i> <?php fs_esc_html_e( $show_upgrade ? 'upgrade' : 'change-plan', $slug ) ?></a>
+												class="dashicons dashicons-cart"></i> <?php fs_esc_html_echo( $show_upgrade ? 'upgrade' : 'change-plan', $slug ) ?></a>
 									</form>
 								<?php endif ?>
 							</div>
@@ -314,9 +314,9 @@
 						<?php if ( $fs->has_premium_version() ) : ?>
 							<?php if ( $fs->is_premium() ) : ?>
 								<label
-									class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php fs_esc_html_e( 'premium-version', $slug ) ?></label>
+									class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php fs_esc_html_echo( 'premium-version', $slug ) ?></label>
 							<?php elseif ( $fs->can_use_premium_code() ) : ?>
-								<label class="fs-tag fs-warn"><?php fs_esc_html_e( 'free-version', $slug ) ?></label>
+								<label class="fs-tag fs-warn"><?php fs_esc_html_echo( 'free-version', $slug ) ?></label>
 							<?php endif ?>
 						<?php endif ?>
 					<?php endif ?>
@@ -328,7 +328,7 @@
 							<input type="hidden" name="fs_action" value="verify_email">
 							<?php wp_nonce_field( 'verify_email' ) ?>
 							<input type="submit" class="button button-small"
-							       value="<?php fs_esc_attr_e( 'verify-email', $slug ) ?>">
+							       value="<?php fs_esc_attr_echo( 'verify-email', $slug ) ?>">
 						</form>
 					<?php endif ?>
 					<?php if ( 'version' === $p['id'] ) : ?>
@@ -365,7 +365,7 @@
 							       value="">
 							<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
 							<input type="submit" class="button button-small"
-							       value="<?php fs_esc_attr_e( 'edit', $slug ) ?>">
+							       value="<?php fs_esc_attr_echo( 'edit', $slug ) ?>">
 						</form>
 					<?php endif ?>
 				</td>
@@ -388,13 +388,13 @@
 				$input.toggle();
 
 				if ($input.is(':visible')) {
-					$this.html(<?php fs_json_encode_e( 'hide', $slug ) ?>);
+					$this.html(<?php fs_json_encode_echo( 'hide', $slug ) ?>);
 					setTimeout(function () {
 						$input.select().focus();
 					}, 100);
 				}
 				else {
-					$this.html(<?php fs_json_encode_e( 'show', $slug ) ?>);
+					$this.html(<?php fs_json_encode_echo( 'show', $slug ) ?>);
 				}
 			});
 		}(jQuery));
@@ -423,11 +423,11 @@
 		<table id="fs_addons" class="widefat">
 		<thead>
 		<tr>
-			<th><h3><?php fs_esc_html_e( 'add-ons', $slug ) ?></h3></th>
-			<th><?php fs_esc_html_e( 'id', $slug ) ?></th>
-			<th><?php fs_esc_html_e( 'version', $slug ) ?></th>
-			<th><?php fs_esc_html_e( 'plan', $slug ) ?></th>
-			<th><?php fs_esc_html_e( 'license', $slug ) ?></th>
+			<th><h3><?php fs_esc_html_echo( 'add-ons', $slug ) ?></h3></th>
+			<th><?php fs_esc_html_echo( 'id', $slug ) ?></th>
+			<th><?php fs_esc_html_echo( 'version', $slug ) ?></th>
+			<th><?php fs_esc_html_echo( 'plan', $slug ) ?></th>
+			<th><?php fs_esc_html_echo( 'license', $slug ) ?></th>
 			<th></th>
 			<?php if ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE ) : ?>
 				<th></th>
@@ -669,15 +669,15 @@
 							<?php $addon_file = $fs->get_addon_basename( $addon->slug ) ?>
 							<a class="button button-primary"
 							   href="<?php echo wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ) ?>"
-							   title="<?php fs_esc_attr_e( 'activate-this-addon', $slug ) ?>"
-							   class="edit"><?php fs_esc_html_e( 'activate', $slug ) ?></a>
+							   title="<?php fs_esc_attr_echo( 'activate-this-addon', $slug ) ?>"
+							   class="edit"><?php fs_esc_html_echo( 'activate', $slug ) ?></a>
 						<?php else : ?>
 							<?php if ( $fs->is_allowed_to_install() ) : ?>
 								<a class="button button-primary"
-								   href="<?php echo wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ) ?>"><?php fs_esc_html_e( 'install-now', $slug ) ?></a>
+								   href="<?php echo wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ) ?>"><?php fs_esc_html_echo( 'install-now', $slug ) ?></a>
 							<?php else : ?>
 								<a target="_blank" class="button button-primary"
-								   href="<?php echo $fs->_get_latest_download_local_url( $addon_id ) ?>"><?php fs_esc_html_e( 'download-latest', $slug ) ?></a>
+								   href="<?php echo $fs->_get_latest_download_local_url( $addon_id ) ?>"><?php fs_esc_html_echo( 'download-latest', $slug ) ?></a>
 							<?php endif ?>
 						<?php endif ?>
 					</td>
