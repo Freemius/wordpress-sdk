@@ -25,9 +25,15 @@
     $opt_out_message_appreciation     = sprintf( __fs( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
     $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ),
 													$plugin_title );
-    $opt_out_message_clicking_opt_out = sprintf( __fs( 'opt-out-message-clicking-opt-out', $slug ),
-		                                            $plugin_title,
-													'<a href="http://freemius.com" target="_blank">freemius.com</a>' );
+    $opt_out_message_clicking_opt_out = sprintf(
+    	__fs( 'opt-out-message-clicking-opt-out', $slug ),
+	    $plugin_title,
+	    sprintf(
+		    '<a href="%s" target="_blank">%s</a>',
+		    'https://freemius.com',
+		    'freemius.com'
+	    )
+    );
 
 	$admin_notice_params = array(
 		'id'      => '',

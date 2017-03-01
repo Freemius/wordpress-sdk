@@ -33,10 +33,12 @@
 		$site_url = substr( $site_url, $protocol_pos + 3 );
 	}
 
-	$freemius_site_url = $fs->has_paid_plan() ?
-		'https://freemius.com/wordpress/' :
-		// Insights platform information.
-		'https://freemius.com/wordpress/usage-tracking/';
+	$freemius_site_www = 'https://freemius.com';
+
+	$freemius_site_url = $freemius_site_www . '/' . ($fs->has_paid_plan() ?
+			'wordpress/' :
+			// Insights platform information.
+			'wordpress/usage-tracking/');
 
 	$freemius_site_url .= '?' . http_build_query( array(
 			'id'   => $fs->get_id(),
@@ -297,7 +299,7 @@ if ( $is_optin_dialog ) { ?>
 		<a href="https://freemius.com/privacy/" target="_blank"
 		   tabindex="1"><?php _efs( 'privacy-policy', $slug ) ?></a>
 		&nbsp;&nbsp;-&nbsp;&nbsp;
-		<a href="https://freemius.com/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
+		<a href="<?php echo $freemius_site_www ?>/terms/" target="_blank" tabindex="1"><?php _efs( 'tos', $slug ) ?></a>
 	</div>
 </div>
 <?php
