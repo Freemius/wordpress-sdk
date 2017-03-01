@@ -60,7 +60,7 @@
 				 * the repository.
 				 */
 				if ( ! function_exists( 'plugins_api' ) ) {
-					require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
+					require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 				}
 
 				$plugin_information = plugins_api( 'plugin_information', array(

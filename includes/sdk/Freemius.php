@@ -15,7 +15,7 @@
 	 * under the License.
 	 */
 
-	require_once( dirname( __FILE__ ) . '/FreemiusBase.php' );
+	require_once dirname( __FILE__ ) . '/FreemiusBase.php';
 
 	if ( ! defined( 'FS_SDK__USER_AGENT' ) ) {
 		define( 'FS_SDK__USER_AGENT', 'fs-php-' . Freemius_Api_Base::VERSION );

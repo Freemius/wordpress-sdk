@@ -116,7 +116,7 @@
 			$this->_on = true;
 
 			if ( ! function_exists( 'dbDelta' ) ) {
-				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+				require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 			}
 
 			self::hook_footer();

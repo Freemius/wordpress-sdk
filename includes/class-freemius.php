@@ -1691,7 +1691,7 @@
 			}
 
 			if ( ! function_exists( 'wp_nonce_url' ) ) {
-				require_once( ABSPATH . 'wp-includes/functions.php' );
+				require_once ABSPATH . 'wp-includes/functions.php';
 			}
 
 			$current_user = self::_get_current_wp_user();
@@ -4695,7 +4695,7 @@
 			if ( ! function_exists( 'get_plugins' ) ) {
 				self::$_static_logger->log( 'Including wp-admin/includes/plugin.php...' );
 
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 		}
 
@@ -4707,7 +4707,7 @@
 		 */
 		private static function require_pluggable_essentials() {
 			if ( ! function_exists( 'wp_get_current_user' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+				require_once ABSPATH . 'wp-includes/pluggable.php';
 			}
 		}
 
