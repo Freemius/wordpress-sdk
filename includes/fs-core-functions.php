@@ -34,29 +34,29 @@
 
 		function fs_include_template( $path, &$params = null ) {
 			$VARS = &$params;
-			include( fs_get_template_path( $path ) );
+			include fs_get_template_path( $path );
 		}
 
 		function fs_include_once_template( $path, &$params = null ) {
 			$VARS = &$params;
-			include_once( fs_get_template_path( $path ) );
+			include_once fs_get_template_path( $path );
 		}
 
 		function fs_require_template( $path, &$params = null ) {
 			$VARS = &$params;
-			require( fs_get_template_path( $path ) );
+			require fs_get_template_path( $path );
 		}
 
 		function fs_require_once_template( $path, &$params = null ) {
 			$VARS = &$params;
-			require_once( fs_get_template_path( $path ) );
+			require_once fs_get_template_path( $path );
 		}
 
 		function fs_get_template( $path, &$params = null ) {
 			ob_start();
 
 			$VARS = &$params;
-			require( fs_get_template_path( $path ) );
+			require fs_get_template_path( $path );
 
 			return ob_get_clean();
 		}

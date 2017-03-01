@@ -84,7 +84,7 @@
 			}
 
 			if ( ! class_exists( 'Freemius_Api_WordPress' ) ) {
-				require_once( WP_FS__DIR_SDK . '/FreemiusWordPress.php' );
+				require_once WP_FS__DIR_SDK . '/FreemiusWordPress.php';
 			}
 
 			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );

@@ -108,7 +108,7 @@
 		}
 	} else {
 		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
         $fs_newest_sdk = $fs_active_plugins->newest;
