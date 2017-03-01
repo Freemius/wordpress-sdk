@@ -16,20 +16,20 @@ gulp.task('default', function () {
             lastTranslator: 'Vova Feldman <vova@freemius.com>',
             team: 'Freemius Team <admin@freemius.com>',
             gettextFunctions: [
-              {name: '_fs__'},
-              {name: '_fs_e'},
-              {name: '_fs_esc_attr__'},
-              {name: '_fs_esc_attr_e'},
-              {name: '_fs_esc_html__'},
-              {name: '_fs_esc_html_e'},
-              {name: '_fs_x', context: 2},
-              {name: '_fs_ex', context: 2},
-              {name: '_fs_esc_attr_x', context: 2},
-              {name: '_fs_esc_html_x', context: 2},
-              {name: '_fs_n', plural: 2},
-              {name: '_fs_n_noop', plural: 2},
-              {name: '_fs_nx', plural: 2, context: 4},
-              {name: '_fs_nx_noop', plural: 2, context: 3}
+                {name: '_fs_text'},
+                {name: '_fs_echo'},
+                {name: '_fs_esc_attr'},
+                {name: '_fs_esc_attr_echo'},
+                {name: '_fs_esc_html'},
+                {name: '_fs_esc_html_echo'},
+                {name: '_fs_x', context: 2},
+                {name: '_fs_ex', context: 2},
+                {name: '_fs_esc_attr_x', context: 2},
+                {name: '_fs_esc_html_x', context: 2},
+                {name: '_fs_n', plural: 2},
+                {name: '_fs_n_noop', plural: 2},
+                {name: '_fs_nx', plural: 2, context: 4},
+                {name: '_fs_nx_noop', plural: 2, context: 3}
             ]
         } ))
         .pipe(gulp.dest('languages/freemius.pot'));
@@ -40,7 +40,7 @@ gulp.task('default', function () {
             items: function(item) {
                 // If msgstr is empty, use identity translation 
                 if (!item.msgstr.length) {
-                  item.msgstr = [''];
+                    item.msgstr = [''];
                 }
                 if (!item.msgstr[0]) {
                     item.msgstr[0] = item.msgid;
