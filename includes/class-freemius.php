@@ -496,7 +496,7 @@
 		 *    The only fallback of this mechanism is if an admin updates a plugin based on use-case #2,
 		 *    and then, the next immediate PageView is the plugin's main settings page, it will not
 		 *    show the opt-in right away. The reason it will happen is because Freemius execution
-		 *    will be turned off till the plugin is fully loaded at least once
+		 *    will be turned off util the plugin is fully loaded at least once
 		 *    (till $this->_storage->was_plugin_loaded is TRUE).
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -507,7 +507,18 @@
 			// Update flag that plugin was loaded with Freemius at least once.
 			$this->_storage->was_plugin_loaded = true;
 
-			if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
+			/**
+			 * Bug fix - only set to false when it's a plugin, due to the
+			 * execution sequence of the theme hooks and our methods, if
+			 * this will be set for themes, Freemius will always assume
+			 * it's a theme update.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.2.2.2
+			 */
+			if ( $this->is_plugin() &&
+			     ! isset( $this->_storage->is_plugin_new_install )
+			) {
 				$this->_storage->is_plugin_new_install = false;
 			}
 		}
