@@ -10,6 +10,8 @@
 		exit;
 	}
 
+	require_once dirname( __FILE__ ) . '/l10n.php';
+
 	/**
 	 * All strings can now be overridden.
 	 *

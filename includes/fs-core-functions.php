@@ -602,7 +602,6 @@
 					WP_FS__DIR_INCLUDES :
 					dirname( __FILE__ );
 
-				require_once $dir . '/l10n.php';
 				require_once $dir . '/i18n.php';
 			}
 
