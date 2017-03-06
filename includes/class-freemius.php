@@ -4613,13 +4613,15 @@
 				$params['reason_info'] = $uninstall_reason->info;
 			}
 
-			if ( ! $this->is_registered() && isset( $uninstall_reason ) ) {
+			if ( ! $this->is_registered() ) {
 				// Send anonymous uninstall event only if user submitted a feedback.
-				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
-					$this->opt_in( false, false, false, false, true );
-				} else {
-					$params['uid'] = $this->get_anonymous_id();
-					$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+				if ( isset( $uninstall_reason ) ) {
+					if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
+						$this->opt_in( false, false, false, false, true );
+					} else {
+						$params['uid'] = $this->get_anonymous_id();
+						$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+					}
 				}
 			} else {
 				// Send uninstall event.
