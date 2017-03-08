@@ -2040,7 +2040,7 @@
 			$message = fs_get_template( 'email.php', $vars );
 
 			// Set the type of email to HTML.
-			$headers[] = 'Content-type: text/html';
+			$headers[] = 'Content-type: text/html;  charset=UTF-8';
 
 			$header_string = implode( "\r\n", $headers );
 
