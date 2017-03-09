@@ -2491,8 +2491,6 @@
 						$this->deactivate_premium_only_addon_without_license();
 					}
 				} else {
-					add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
-
 					if ( $this->has_addons() &&
 					     'plugin-information' === fs_request_get( 'tab', false ) &&
 					     $this->get_id() == fs_request_get( 'parent_plugin_id', false )
@@ -2502,6 +2500,8 @@
 						new FS_Plugin_Info_Dialog( $this );
 					}
 				}
+
+				add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
 
 //				if ( $this->is_registered() ||
 //				     $this->is_anonymous() ||
