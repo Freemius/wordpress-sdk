@@ -790,6 +790,9 @@
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.2.2.3 Find the earliest module in the call stack that calls to the SDK. This fix is for cases when add-ons are relying on loading the SDK from the parent module, and also allows themes including the SDK an internal file instead of directly from functions.php.
 		 */
 		private function get_caller_main_file_and_type() {
 			self::require_plugin_essentials();
@@ -802,7 +805,11 @@
 				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
 			}
 
-			$current_theme_path = fs_normalize_path( get_stylesheet_directory() );
+			$caller_file_candidate = false;
+			$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
+
+			$plugins_dir = fs_normalize_path( WP_PLUGIN_DIR );
+			$themes_dir  = fs_normalize_path( get_theme_root() );
 
 			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
 				if ( ! isset( $bt[ $i ]['file'] ) ) {
@@ -811,20 +818,28 @@
 
 				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
 
-				if ( dirname( $caller_file_path ) === $current_theme_path ) {
+				if ( false !== strpos( $caller_file_path, $themes_dir ) ) {
 					$module_type = WP_FS__MODULE_TYPE_THEME;
-					break;
+					$caller_file_candidate = $caller_file_path;
+					continue;
 				}
 
-				if ( in_array( $caller_file_path, $all_plugins_paths ) ) {
+				if ( false !== strpos( $caller_file_path, $plugins_dir ) ) {
+					foreach ( $all_plugins_paths as $plugin_path ) {
+						if ( false !== strpos( $caller_file_path, realpath( dirname( $plugin_path ) ) ) ) {
 					$module_type = WP_FS__MODULE_TYPE_PLUGIN;
+							$caller_file_candidate = $plugin_path;
 					break;
+				}
+			}
+
+					continue;
 				}
 			}
 
 			return (object) array(
 				'module_type' => $module_type,
-				'path'        => $caller_file_path
+				'path'        => $caller_file_candidate
 			);
 		}
 
