@@ -5013,7 +5013,7 @@
 					$theme_data  = wp_get_theme();
 
 					$plugin_data = array(
-						'Name'    => $theme_data->get( 'Name' ),
+						'Name'        => $theme_data->get( 'Name' ),
 						'Version'     => $theme_data->get( 'Version' ),
 						'Author'      => $theme_data->get( 'Author' ),
 						'Description' => $theme_data->get( 'Description' ),
@@ -10924,12 +10924,21 @@
 		function _account_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'id' => $this->_module_id );
+			$template = 'account.php';
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
-				fs_require_once_template( 'billing.php', $vars );
-			} else {
-				fs_require_once_template( 'account.php', $vars );
+				$template = 'billing.php';
 			}
+
+			$vars = array( 'id' => $this->_module_id );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( "templates/{$template}", fs_get_template( $template, $vars ) );
 		}
 
 		/**
@@ -10986,7 +10995,15 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'id' => $this->_module_id );
-			fs_require_once_template( 'add-ons.php', $vars );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( 'templates/add-ons.php', fs_get_template( 'add-ons.php', $vars ) );
 		}
 
 		/* Pricing & Upgrade
