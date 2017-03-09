@@ -5011,9 +5011,13 @@
 					);
 				} else {
 					$theme_data  = wp_get_theme();
+
 					$plugin_data = array(
 						'Name'    => $theme_data->get( 'Name' ),
-						'Version' => $theme_data->get( 'Version' )
+						'Version'     => $theme_data->get( 'Version' ),
+						'Author'      => $theme_data->get( 'Author' ),
+						'Description' => $theme_data->get( 'Description' ),
+						'PluginURI'   => $theme_data->get( 'ThemeURI' ),
 					);
 				}
 
