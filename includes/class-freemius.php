@@ -677,7 +677,9 @@
 			);
 
             global $pagenow;
-            if ( in_array( $pagenow, array( 'plugins.php', 'themes.php' ) ) ) {
+			if ( ( 'plugins.php' === $pagenow && $this->is_plugin() ) ||
+			     ( 'themes.php' === $pagenow && $this->is_theme() )
+			) {
                 add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
             }
 
