@@ -289,7 +289,7 @@
 		 * @since  1.0.0
 		 *
 		 * @param number $module_id
-		 * @param string $slug
+		 * @param string|bool $slug
 		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
 		 */
 		private function __construct( $module_id, $slug = false, $is_init = false ) {
@@ -4127,7 +4127,7 @@
 					deactivate_plugins( $other_version_basename );
 				}
 
-				// If activating the premium module version, add an admin noitce to congratulate for an upgrade completion.
+				// If activating the premium module version, add an admin notice to congratulate for an upgrade completion.
 				if ( $is_premium_version_activation ) {
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
