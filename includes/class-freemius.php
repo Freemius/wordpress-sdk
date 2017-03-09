@@ -560,7 +560,10 @@
 				 * @since  1.1.9
 				 */
 				if ( empty( $this->_storage->was_plugin_loaded ) ) {
-					if ( $this->is_plugin() && $this->is_activation_mode( false ) ) {
+					if ( $this->is_plugin() &&
+					     $this->is_activation_mode( false ) &&
+					     0 == did_action( 'plugins_loaded' )
+					) {
 						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
 					} else {
 						// If was activated before, then it was already loaded before.
@@ -1416,7 +1419,9 @@
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
+			if ( 0 == did_action( 'plugins_loaded' ) ) {
 			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
+			}
 
 			self::$_statics_loaded = true;
 		}
