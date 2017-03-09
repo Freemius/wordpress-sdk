@@ -2451,7 +2451,7 @@
 			}
 
 			if ( $this->is_user_in_admin() ) {
-				if ( $this->is_plugins_page() ) {
+				if ( $this->is_plugins_page() && $this->is_plugin() ) {
 					$this->hook_plugin_action_links();
 				}
 
