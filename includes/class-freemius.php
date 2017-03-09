@@ -288,9 +288,9 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.0
 		 *
-		 * @param number $module_id
+		 * @param number      $module_id
 		 * @param string|bool $slug
-		 * @param bool   $is_init Since 1.2.1 Is initiation sequence.
+		 * @param bool        $is_init Since 1.2.1 Is initiation sequence.
 		 */
 		private function __construct( $module_id, $slug = false, $is_init = false ) {
 			if ( ! is_numeric( $module_id ) ) {
@@ -679,12 +679,12 @@
 				array( &$this, '_submit_uninstall_reason_action' )
 			);
 
-            global $pagenow;
+			global $pagenow;
 			if ( ( 'plugins.php' === $pagenow && $this->is_plugin() ) ||
 			     ( 'themes.php' === $pagenow && $this->is_theme() )
 			) {
-                add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
-            }
+				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+			}
 
 			if ( ! $this->is_addon() ) {
 				if ( $this->is_registered() ) {
@@ -822,7 +822,7 @@
 				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
 
 				if ( false !== strpos( $caller_file_path, $themes_dir ) ) {
-					$module_type = WP_FS__MODULE_TYPE_THEME;
+					$module_type           = WP_FS__MODULE_TYPE_THEME;
 					$caller_file_candidate = $caller_file_path;
 					continue;
 				}
@@ -830,11 +830,11 @@
 				if ( false !== strpos( $caller_file_path, $plugins_dir ) ) {
 					foreach ( $all_plugins_paths as $plugin_path ) {
 						if ( false !== strpos( $caller_file_path, realpath( dirname( $plugin_path ) ) ) ) {
-					$module_type = WP_FS__MODULE_TYPE_PLUGIN;
+							$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
 							$caller_file_candidate = $plugin_path;
-					break;
-				}
-			}
+							break;
+						}
+					}
 
 					continue;
 				}
@@ -1244,7 +1244,35 @@
 		 * @return bool
 		 */
 		function is_parent_plugin_installed() {
-			return self::has_instance( $this->_plugin->parent_plugin_id );
+			$is_active = self::has_instance( $this->_plugin->parent_plugin_id );
+
+			if ( $is_active ) {
+				return true;
+			}
+
+			/**
+			 * Parent module might be a theme. If that's the case, the add-on's FS
+			 * instance will be loaded prior to the theme's FS instance, therefore,
+			 * we need to check if it's active with a "look ahead".
+			 *
+			 * @author Vova Feldman
+			 * @since  1.2.2.3
+			 */
+			global $fs_active_plugins;
+			if ( is_object( $fs_active_plugins ) && is_array( $fs_active_plugins->plugins ) ) {
+				$active_theme = wp_get_theme();
+
+				foreach ( $fs_active_plugins->plugins as $sdk => $module ) {
+					if ( WP_FS__MODULE_TYPE_THEME === $module->type ) {
+						if ( $module->plugin_path == $active_theme->get_stylesheet() ) {
+							// Parent module is a theme and it's currently active.
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
 		}
 
 		/**
@@ -1420,7 +1448,7 @@
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
 			if ( 0 == did_action( 'plugins_loaded' ) ) {
-			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
+				add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
 			}
 
 			self::$_statics_loaded = true;
@@ -9119,7 +9147,7 @@
 				$plugin_id = $this->_plugin->id;
 			}
 
-			$result = $api->get( "/plugins/{$plugin_id}/payments.json", true );
+			$result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", true );
 
 			if ( ! isset( $result->error ) ) {
 				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
