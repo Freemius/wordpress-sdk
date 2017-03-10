@@ -163,11 +163,9 @@
 		 * @global       $fs_text , $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			global $fs_text, $fs_text_overrides;
-
-			if ( ! isset( $fs_text ) ) {
-				require_once( ( defined( 'WP_FS__DIR_INCLUDES' ) ? WP_FS__DIR_INCLUDES : dirname( __FILE__ ) ) . '/i18n.php' );
-			}
+			global $fs_text,
+			       $fs_module_info_text,
+			       $fs_text_overrides;
 
 			if ( isset( $fs_text_overrides[ $slug ] ) ) {
 				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
@@ -180,9 +178,23 @@
 				}
 			}
 
-			return isset( $fs_text[ $key ] ) ?
-				$fs_text[ $key ] :
-				$key;
+			if ( ! isset( $fs_text ) ) {
+				$dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+					WP_FS__DIR_INCLUDES :
+					dirname( __FILE__ );
+
+				require_once $dir . '/i18n.php';
+			}
+
+			if ( isset( $fs_text[ $key ] ) ) {
+				return $fs_text[ $key ];
+			}
+
+			if ( isset( $fs_module_info_text[ $key ] ) ) {
+				return $fs_module_info_text[ $key ];
+			}
+
+			return $key;
 		}
 
 		/**
@@ -267,7 +279,7 @@
 		 * will catch it.
 		 */
 		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
 		$all_plugins       = get_plugins();

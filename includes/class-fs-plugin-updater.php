@@ -83,6 +83,10 @@
 					'http_request_host_is_external_filter'
 				), 10, 3 );
 			}
+
+			if ( $this->_fs->is_premium() && $this->is_correct_folder_name() ) {
+				add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+			}
 		}
 
 		/**
@@ -102,7 +106,7 @@
 		 * @since  1.1.6
 		 *
 		 * @param string $file
-		 * @param array $plugin_data
+		 * @param array  $plugin_data
 		 */
 		function edit_and_echo_plugin_update_row( $file, $plugin_data ) {
 			$plugin_update_row = ob_get_clean();
@@ -162,9 +166,9 @@
 		 *
 		 * @uses   FS_Api
 		 *
-		 * @param stdClass $transient_data Update array build by WordPress.
+		 * @param object $transient_data Update array build by WordPress.
 		 *
-		 * @return array Modified update array with custom plugin data.
+		 * @return object Modified update array with custom plugin data.
 		 */
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
@@ -316,22 +320,96 @@ if ( !isset($info->error) ) {
 			// Get plugin's newest update.
 			$new_version = $this->_fs->_fetch_latest_version( $is_addon ? $addon->id : false );
 
-			if ( $is_addon ) {
-				$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
-				$data->slug    = $addon->slug;
-				$data->url     = WP_FS__ADDRESS;
-				$data->package = $new_version->url;
-			}
+			if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
+				$data->version = $this->_fs->get_plugin_version();
+			} else {
+				if ( $is_addon ) {
+					$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
+					$data->slug    = $addon->slug;
+					$data->url     = WP_FS__ADDRESS;
+					$data->package = $new_version->url;
+				}
 
-			if ( ! $plugin_in_repo ) {
-				$data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
-				$data->requires     = $new_version->requires_platform_version;
-				$data->tested       = $new_version->tested_up_to_version;
-			}
+				if ( ! $plugin_in_repo ) {
+					$data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
+					$data->requires     = $new_version->requires_platform_version;
+					$data->tested       = $new_version->tested_up_to_version;
+				}
 
-			$data->version       = $new_version->version;
-			$data->download_link = $new_version->url;
+				$data->version       = $new_version->version;
+				$data->download_link = $new_version->url;
+			}
 
 			return $data;
+		}
+
+		/**
+		 * Checks if a given basename has a matching folder name
+		 * with the current context plugin.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $basename Current plugin's basename.
+		 *
+		 * @return bool
+		 */
+		private function is_correct_folder_name( $basename = '' ) {
+			if ( empty( $basename ) ) {
+				$basename = $this->_fs->get_plugin_basename();
+			}
+
+			return ( $this->_fs->get_slug() . ( $this->_fs->is_premium() ? '-premium' : '' ) != trim( dirname( $basename ), '/\\' ) );
+		}
+
+		/**
+		 * This is a special after upgrade handler for migrating modules
+		 * that didn't use the '-premium' suffix folder structure before
+		 * the migration.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param bool  $response   Install response.
+		 * @param array $hook_extra Extra arguments passed to hooked filters.
+		 * @param array $result     Installation result data.
+		 *
+		 * @return bool
+		 */
+		function _maybe_update_folder_name( $response, $hook_extra, $result ) {
+			$basename = $this->_fs->get_plugin_basename();
+
+			if ( true !== $response ||
+			     empty( $hook_extra ) ||
+			     empty( $hook_extra['plugin'] ) ||
+			     $basename !== $hook_extra['plugin']
+			) {
+				return $response;
+			}
+
+			$active_plugins_basenames = get_option( 'active_plugins' );
+
+			for ( $i = 0, $len = count( $active_plugins_basenames ); $i < $len; $i ++ ) {
+				if ( $basename === $active_plugins_basenames[ $i ] ) {
+					// Get filename including extension.
+					$filename = basename( $basename );
+
+					$new_basename = plugin_basename(
+						trailingslashit( $this->_fs->get_slug() . ( $this->_fs->is_premium() ? '-premium' : '' ) ) .
+						$filename
+					);
+
+					// Verify that the expected correct path exists.
+					if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $new_basename ) ) ) {
+						// Override active plugin name.
+						$active_plugins_basenames[ $i ] = $new_basename;
+						update_option( 'active_plugins', $active_plugins_basenames );
+					}
+
+					break;
+				}
+			}
+
+			return $response;
 		}
 	}

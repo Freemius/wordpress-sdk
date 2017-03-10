@@ -20,7 +20,7 @@
 	foreach ( $sections as $section_id => $section ) {
 		?>
 		<thead>
-			<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;"><?php echo $section['title']; ?></th></tr>
+			<tr><th colspan="2" style="text-align: left; background: #333; color: #fff; padding: 5px;"><?php echo esc_html($section['title']) ?></th></tr>
 		</thead>
 		<tbody>
 		<?php
@@ -30,10 +30,10 @@
 			<tr>
 				<?php
 				if ( 1 === $col_count ) { ?>
-					<td style="vertical-align: top;" colspan="2"><?php echo $row[0]; ?></td>
+					<td style="vertical-align: top;" colspan="2"><?php echo $row[0] ?></td>
 					<?php
 				} else { ?>
-					<td style="vertical-align: top;"><b><?php echo $row[0]; ?>:</b></td>
+					<td style="vertical-align: top;"><b><?php echo esc_html($row[0]) ?>:</b></td>
 					<td><?php echo $row[1]; ?></td>
 					<?php
 				}
