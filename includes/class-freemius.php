@@ -2641,13 +2641,17 @@
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
 
-			if ( ! isset( $plugin_info['menu'] ) ) {
-				// Back compatibility to 1.1.2
-				$plugin_info['menu'] = array(
-					'slug' => isset( $plugin_info['menu_slug'] ) ?
+			if (! isset( $plugin_info['menu'] )) {
+				$plugin_info['menu'] = array();
+
+				if ( ! empty( $this->_storage->sdk_last_version ) &&
+				     version_compare( $this->_storage->sdk_last_version, '1.1.2', '<=' )
+				) {
+					// Backward compatibility to 1.1.2
+					$plugin_info['menu']['slug'] = isset( $plugin_info['menu_slug'] ) ?
 						$plugin_info['menu_slug'] :
-						$this->_slug
-				);
+						$this->_slug;
+				}
 			}
 
 			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
