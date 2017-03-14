@@ -88,7 +88,7 @@
 			self::$_ownerName          = get_current_user();
 			self::$_isStorageLoggingOn = ( 1 == get_option( 'fs_storage_logger', 0 ) );
 			self::$_abspathLength      = strlen( ABSPATH );
-			self::$_processID          = getmypid();
+			self::$_processID          = mt_rand(0, 32000);
 
 			// Process ID may be `false` on errors.
 			if ( ! is_numeric( self::$_processID ) ) {
