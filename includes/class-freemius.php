@@ -819,14 +819,32 @@
 					continue;
 				}
 
+				if ( $i > 1 && $bt[ $i ]['file'] === $bt[ $i - 1 ]['file'] ) {
+					// If file same as the prev file in the stack, skip it.
+					continue;
+				}
+
 				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
 
-				if ( false !== strpos( $caller_file_path, $themes_dir ) ) {
+				if ( 'functions.php' === basename( $caller_file_path ) ) {
+					/**
+					 * 1. Assumes that theme's starting execution file is functions.php.
+					 * 2. This complex logic fixes symlink issues (e.g. with Vargant).
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since  1.2.2.5
+					 */
+
+					if ( $caller_file_path == fs_normalize_path( realpath( trailingslashit( $themes_dir ) . basename( dirname( $caller_file_path ) ) . '/' . basename( $caller_file_path ) ) ) ) {
 					$module_type           = WP_FS__MODULE_TYPE_THEME;
 					$caller_file_candidate = $caller_file_path;
 					continue;
 				}
+				}
 
+				/**
+				 * @todo This logic will break with Symlinks.
+				 */
 				if ( false !== strpos( $caller_file_path, $plugins_dir ) ) {
 					foreach ( $all_plugins_paths as $plugin_path ) {
 						if ( false !== strpos( $caller_file_path, realpath( dirname( $plugin_path ) ) ) ) {
