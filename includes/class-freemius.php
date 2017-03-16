@@ -526,23 +526,23 @@
 
 			if ( is_admin() ) {
 				if ( $this->is_plugin() ) {
-                    $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
-    
-                    /**
-                     * @since 1.2.2
-                     *
-                     * Hook to both free and premium version activations to support
-                     * auto deactivation on the other version activation.
-                     */
-                    register_activation_hook(
-                        $plugin_dir . $this->_free_plugin_basename,
-                        array( &$this, '_activate_plugin_event_hook' )
-                    );
-                    
-                    register_activation_hook(
-                        $plugin_dir . $this->premium_plugin_basename(),
-                        array( &$this, '_activate_plugin_event_hook' )
-                    );
+					$plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+					/**
+					 * @since 1.2.2
+					 *
+					 * Hook to both free and premium version activations to support
+					 * auto deactivation on the other version activation.
+					 */
+					register_activation_hook(
+						$plugin_dir . $this->_free_plugin_basename,
+						array( &$this, '_activate_plugin_event_hook' )
+					);
+
+					register_activation_hook(
+						$plugin_dir . $this->premium_plugin_basename(),
+						array( &$this, '_activate_plugin_event_hook' )
+					);
 				} else {
 					add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 				}
@@ -574,8 +574,8 @@
 			}
 
 			if ( $this->is_plugin() ) {
-                register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
-            }
+				register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
+			}
 
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
@@ -719,7 +719,7 @@
 			if ( ! $is_init ) {
 				// Fetch prev path cache.
 				if ( isset( $this->_storage->plugin_main_file ) &&
-					isset( $this->_storage->plugin_main_file->prev_path )
+				     isset( $this->_storage->plugin_main_file->prev_path )
 				) {
 					if ( file_exists( $this->_storage->plugin_main_file->prev_path ) ) {
 						return $this->_storage->plugin_main_file->prev_path;
@@ -727,7 +727,8 @@
 				}
 
 				wp_die(
-					__fs( 'failed-finding-main-path', $this->_slug ),
+					__fs( 'failed-finding-main-path', $this->_slug ) .
+					" Module: {$this->_slug}; SDK: " . WP_FS__SDK_VERSION . ";",
 					__fs( 'error' ),
 					array( 'back_link' => true )
 				);
@@ -830,10 +831,10 @@
 					 */
 
 					if ( $caller_file_path == fs_normalize_path( realpath( trailingslashit( $themes_dir ) . basename( dirname( $caller_file_path ) ) . '/' . basename( $caller_file_path ) ) ) ) {
-					$module_type           = WP_FS__MODULE_TYPE_THEME;
-					$caller_file_candidate = $caller_file_path;
-					continue;
-				}
+						$module_type           = WP_FS__MODULE_TYPE_THEME;
+						$caller_file_candidate = $caller_file_path;
+						continue;
+					}
 				}
 
 				/**
@@ -948,12 +949,12 @@
 			$reason_temporary_deactivation = array(
 				'id'                => self::REASON_TEMPORARY_DEACTIVATION,
 				'text'              => sprintf(
-                                            __fs( 'reason-temporary-x', $this->_slug ),
-                                            strtolower( $this->is_plugin() ?
-                                                __fs( 'deactivation', $this->_slug ) :
-                                                __fs( 'theme-switch', $this->_slug )
-                                            )
-				                       ),
+					__fs( 'reason-temporary-x', $this->_slug ),
+					strtolower( $this->is_plugin() ?
+						__fs( 'deactivation', $this->_slug ) :
+						__fs( 'theme-switch', $this->_slug )
+					)
+				),
 				'input_type'        => '',
 				'input_placeholder' => ''
 			);
@@ -1216,8 +1217,8 @@
 		 */
 		static function get_instance_by_id( $id ) {
 			return isset ( self::$_instances[ 'm_' . $id ] ) ?
-					self::$_instances[ 'm_' . $id ] :
-					false;
+				self::$_instances[ 'm_' . $id ] :
+				false;
 		}
 
 		/**
@@ -1518,7 +1519,7 @@
 		 */
 		static function _add_debug_section() {
 			if ( ! current_user_can( 'activate_plugins' )
-                && ! current_user_can( 'switch_themes' ) ) {
+			     && ! current_user_can( 'switch_themes' ) ) {
 				return;
 			}
 
@@ -2300,7 +2301,7 @@
 
 			$active_plugin = self::get_active_plugins();
 
-			// Generate the list of active plugins separated by new line. 
+			// Generate the list of active plugins separated by new line.
 			$active_plugin_string = '';
 			foreach ( $active_plugin as $plugin ) {
 				$active_plugin_string .= sprintf(
@@ -3748,8 +3749,8 @@
 		 */
 		function is_plugin_activation() {
 			return get_option( 'fs_'
-					. ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-					. "{$this->_slug}_activated", false );
+			                   . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
+			                   . "{$this->_slug}_activated", false );
 		}
 
 		/**
@@ -3767,8 +3768,8 @@
 			 */
 			if ( $this->is_plugin_activation() ) {
 				delete_option( 'fs_'
-					. ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-			        . "{$this->_slug}_activated" );
+				               . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
+				               . "{$this->_slug}_activated" );
 
 				if ( ! function_exists( 'is_network_admin' ) || ! is_network_admin() ) {
 					$this->_redirect_on_activation_hook();
@@ -3796,10 +3797,10 @@
 						 * @since  1.2.2
 						 */
 						if ( $this->is_theme()
-							&& $this->is_only_premium()
-							&& ! $this->has_settings_menu()
-							&& ! isset( $_REQUEST['fs_action'] )
-							&& $this->can_activate_previous_theme() ) {
+						     && $this->is_only_premium()
+						     && ! $this->has_settings_menu()
+						     && ! isset( $_REQUEST['fs_action'] )
+						     && $this->can_activate_previous_theme() ) {
 							$this->activate_previous_theme();
 							return;
 						}
@@ -3854,8 +3855,8 @@
 				}
 
 				if ( $this->_menu->is_activation_page()
-					&& $this->is_theme()
-					&& fs_request_is_action( $this->get_unique_affix() . '_show_optin' ) ) {
+				     && $this->is_theme()
+				     && fs_request_is_action( $this->get_unique_affix() . '_show_optin' ) ) {
 					$this->_show_theme_activation_optin_dialog();
 				}
 			}
@@ -4139,8 +4140,8 @@
 		 */
 		function _activate_theme_event_hook( $slug_or_name, $old_theme = false ) {
 			$this->_storage->previous_theme = ( false !== $old_theme ) ?
-												$old_theme->get_stylesheet() :
-												$slug_or_name;
+				$old_theme->get_stylesheet() :
+				$slug_or_name;
 
 			$this->_activate_plugin_event_hook();
 		}
@@ -4231,8 +4232,8 @@
 			if ( ! $this->_anonymous_mode && $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( 'fs_'
-					. ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-					. "{$this->_slug}_activated", true );
+				            . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
+				            . "{$this->_slug}_activated", true );
 			}
 
 			/**
@@ -5394,7 +5395,7 @@
 
 		/**
 		 * @param string $module_type
-		 * 
+		 *
 		 * @return FS_Plugin_Plan[]
 		 */
 		private static function get_all_plans( $module_type = false ) {
@@ -9360,19 +9361,19 @@
 			return $this->is_trial() || $this->has_features_enabled_license();
 		}
 
-        /**
-         * Checks if the current user can activate plugins or switch themes. Note that this method should only be used
-         * after the `init` action is triggered because it is using `current_user_can()` which is only functional after
-         * the context user is authenticated.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.2
-         *
-         * @return bool
-         */
+		/**
+		 * Checks if the current user can activate plugins or switch themes. Note that this method should only be used
+		 * after the `init` action is triggered because it is using `current_user_can()` which is only functional after
+		 * the context user is authenticated.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
 		function is_user_admin() {
-            return ( $this->is_plugin() && current_user_can( 'activate_plugins' ) )
-                || ( $this->is_theme() && current_user_can( 'switch_themes' ) );
+			return ( $this->is_plugin() && current_user_can( 'activate_plugins' ) )
+			       || ( $this->is_theme() && current_user_can( 'switch_themes' ) );
 		}
 
 		/**
@@ -10205,7 +10206,7 @@
 
 			// If add-on, then append add-on ID.
 			$endpoint = ( $is_addon ? "/addons/$addon_id" : '' ) .
-				'/updates/latest.' . $type;
+			            '/updates/latest.' . $type;
 
 			// If add-on and not yet activated, try to fetch based on server licensing.
 			if ( is_bool( $is_premium ) ) {
