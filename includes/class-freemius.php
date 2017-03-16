@@ -805,9 +805,7 @@
 
 			$caller_file_candidate = false;
 			$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
-
-			$plugins_dir = fs_normalize_path( WP_PLUGIN_DIR );
-			$themes_dir  = fs_normalize_path( get_theme_root() );
+			$themes_dir            = fs_normalize_path( get_theme_root() );
 
 			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
 				if ( ! isset( $bt[ $i ]['file'] ) ) {
@@ -837,19 +835,12 @@
 					}
 				}
 
-				/**
-				 * @todo This logic will break with Symlinks.
-				 */
-				if ( false !== strpos( $caller_file_path, $plugins_dir ) ) {
-					foreach ( $all_plugins_paths as $plugin_path ) {
-						if ( false !== strpos( $caller_file_path, realpath( dirname( $plugin_path ) ) ) ) {
-							$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
-							$caller_file_candidate = $plugin_path;
-							break;
-						}
+				foreach ( $all_plugins_paths as $plugin_path ) {
+					if ( false !== strpos( $caller_file_path, fs_normalize_path( dirname( $plugin_path ) ) ) ) {
+						$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
+						$caller_file_candidate = fs_normalize_path( $plugin_path );
+						break;
 					}
-
-					continue;
 				}
 			}
 
