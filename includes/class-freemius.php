@@ -293,18 +293,12 @@
 		 * @param bool        $is_init Since 1.2.1 Is initiation sequence.
 		 */
 		private function __construct( $module_id, $slug = false, $is_init = false ) {
-			if ( ! is_numeric( $module_id ) ) {
-				$this->_plugin = FS_Plugin_Manager::instance( $module_id )->get();
-				$module_id = $this->_plugin->id;
-				$slug      = $this->_plugin->slug;
-			}
-
-			if ( $is_init ) {
+			if ( $is_init && is_numeric($module_id) && is_string($slug) ) {
 				$this->store_id_slug_type_path_map( $module_id, $slug );
 			}
 
 			$this->_module_id   = $module_id;
-			$this->_slug        = $slug;
+			$this->_slug        = $this->get_slug();
 			$this->_module_type = $this->get_module_type();
 
 			$this->_storage = FS_Key_Value_Storage::instance( $this->_module_type . '_data', $this->_slug );
@@ -1152,6 +1146,20 @@
 		 * @return Freemius
 		 */
 		static function instance( $module_id, $slug = false, $is_init = false ) {
+			if ( ! is_numeric( $module_id ) ) {
+				if ( ! $is_init && true === $slug ) {
+					$is_init = true;
+				}
+
+				$slug = $module_id;
+
+				$module = FS_Plugin_Manager::instance( $slug )->get();
+
+				if ( is_object( $module ) ) {
+					$module_id = $module->id;
+				}
+			}
+
 			$key = 'm_' . $module_id;
 
 			if ( ! isset( self::$_instances[ $key ] ) ) {
@@ -5102,10 +5110,16 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
+		 * @since 1.2.2.5 If slug not set load slug by module ID.
 		 *
 		 * @return string Plugin slug.
 		 */
 		function get_slug() {
+			if ( ! isset( $this->_slug ) ) {
+				$id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+				$this->_slug           = $id_slug_type_path_map[ $this->_module_id ]['slug'];
+			}
+
 			return $this->_slug;
 		}
 
