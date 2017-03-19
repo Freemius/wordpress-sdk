@@ -307,9 +307,10 @@
 										<?php wp_nonce_field( $slug . '_sync_license' ) ?>
 										<?php if ( $show_upgrade || ! $fs->is_single_plan() ) : ?>
 										<a href="<?php echo $fs->get_upgrade_url() ?>"
-										   class="button<?php if ( $show_upgrade ) {
-											   echo ' button-primary';
-										   } ?> button-upgrade"><i
+										   class="button<?php
+											   echo $show_upgrade ?
+												   ' button-primary fs-upgrade' :
+												   ' fs-change-plan'; ?> button-upgrade"><i
 												class="dashicons dashicons-cart"></i> <?php fs_esc_html_echo( $show_upgrade ? 'upgrade' : 'change-plan', $slug ) ?></a>
 										<?php endif ?>
 									</form>
