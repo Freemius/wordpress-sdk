@@ -5683,6 +5683,27 @@
 		}
 
 		/**
+		 * Check if module has only one plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @return bool
+		 */
+		function is_single_plan() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ||
+			     ! is_array( $this->_plans ) ||
+			     0 === count( $this->_plans )
+			) {
+				return true;
+			}
+
+			return ( 1 === count( $this->_plans ) );
+		}
+
+		/**
 		 * Check if plan based on trial. If not in trial mode, should return false.
 		 *
 		 * @since  1.0.9
