@@ -68,6 +68,7 @@
 
 	<div class="fs-header-actions">
 		<ul>
+			<?php if ( ! $is_paying ) : ?>
 			<li>
 				<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 					<input type="hidden" name="fs_action" value="delete_account">
@@ -82,6 +83,7 @@
 							class="dashicons dashicons-no"></i> <?php _efs( 'delete-account', $slug ) ?></a>
 				</form>
 			</li>
+			<?php endif ?>
 			<?php if ( $is_paying ) : ?>
 				<li>
 					&nbsp;&bull;&nbsp;
