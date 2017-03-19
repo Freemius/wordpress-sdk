@@ -7754,7 +7754,14 @@
 						);
 					}
 
-					$show_pricing = ( $this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ) );
+					$show_pricing = (
+						// Has at least one paid plan.
+						$this->has_paid_plan() &&
+						// Didn't ask to hide the pricing page.
+						$this->_menu->is_submenu_item_visible( 'pricing' ) &&
+						// Don't have a valid active license or has more than one plan.
+						( !$this->is_paying() || !$this->is_single_plan() )
+					);
 					// If user don't have paid plans, add pricing page
 					// to support add-ons checkout but don't add the submenu item.
 					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
