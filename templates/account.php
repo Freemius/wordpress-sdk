@@ -112,11 +112,13 @@
 						</form>
 					</li>
 				<?php endif ?>
+				<?php if ( ! $fs->is_single_plan() ) : ?>
 				<li>
 					&nbsp;&bull;&nbsp;
 					<a href="<?php echo $fs->get_upgrade_url() ?>"><i
 							class="dashicons dashicons-grid-view"></i> <?php _efs( 'change-plan', $slug ) ?></a>
 				</li>
+				<?php endif ?>
 			<?php elseif ( $is_paid_trial ) : ?>
 				<li>
 					&nbsp;&bull;&nbsp;
@@ -302,11 +304,13 @@
 										<input type="hidden" name="fs_action"
 										       value="<?php echo $slug ?>_sync_license">
 										<?php wp_nonce_field( $slug . '_sync_license' ) ?>
+										<?php if ( $show_upgrade || ! $fs->is_single_plan() ) : ?>
 										<a href="<?php echo $fs->get_upgrade_url() ?>"
 										   class="button<?php if ( $show_upgrade ) {
 											   echo ' button-primary';
 										   } ?> button-upgrade"><i
 												class="dashicons dashicons-cart"></i> <?php fs_esc_html_echo( $show_upgrade ? 'upgrade' : 'change-plan', $slug ) ?></a>
+										<?php endif ?>
 									</form>
 								<?php endif ?>
 							</div>
