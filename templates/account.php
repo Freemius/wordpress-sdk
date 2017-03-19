@@ -107,8 +107,7 @@
 								   printf( __fs( 'after-downgrade-non-blocking', $slug ), $plan->title );
 							   } else {
 								   printf( __fs( 'after-downgrade-blocking', $slug ), $plan->title );
-							   }?> <?php _efs( 'proceed-confirmation', $slug ) ?>')) this.parentNode.submit(); return false;"><i
-									class="dashicons dashicons-download"></i> <?php _efs( 'downgrade', $slug ) ?></a>
+							   }?> <?php _efs( 'proceed-confirmation', $slug ) ?>')) this.parentNode.submit(); return false;"><i class="dashicons dashicons-download"></i> <?php _efs( ( $fs->is_only_premium() ? 'cancel-subscription' : 'downgrade' ), $slug ) ?></a>
 						</form>
 					</li>
 				<?php endif ?>

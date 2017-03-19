@@ -48,6 +48,7 @@
 		'price'                         => _fs_x( 'Price', 'noun' ),
 		'unlimited-updates'             => _fs_text( 'Unlimited Updates' ),
 		'downgrade'                     => _fs_x( 'Downgrade', 'verb' ),
+		'cancel-subscription'           => _fs_x( 'Cancel Subscription', 'verb' ),
 		'cancel-trial'                  => _fs_text( 'Cancel Trial' ),
 		'free-trial'                    => _fs_text( 'Free Trial' ),
 		'start-free-x'                  => _fs_text( 'Start my free %s' ),
