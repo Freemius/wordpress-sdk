@@ -27,7 +27,7 @@
 		 * will catch it.
 		 */
 		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
 		$all_plugins = get_plugins();
@@ -38,8 +38,8 @@
 		foreach ( $all_plugins as $relative_path => &$data ) {
 			if ( 0 === strpos( $file_real_path, fs_normalize_path( dirname( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) ) ) ) ) {
 				if ( '.' !== dirname( trailingslashit( $relative_path ) ) ) {
-					return $relative_path;
-				}
+	                return $relative_path;
+	            }
 			}
 		}
 

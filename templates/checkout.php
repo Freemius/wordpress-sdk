@@ -15,6 +15,7 @@
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
 
 	/**
 	 * @var array $VARS
@@ -25,15 +26,31 @@
 	$timestamp = time();
 
 	$context_params = array(
-		'plugin_id'         => $fs->get_id(),
-		'plugin_public_key' => $fs->get_public_key(),
-		'plugin_version'    => $fs->get_plugin_version(),
+		'plugin_id'      => $fs->get_id(),
+		'plugin_version' => $fs->get_plugin_version(),
+        'public_key'     => $fs->get_public_key(),
+        'mode'           => 'dashboard',
+        'trial'          => fs_request_get_bool( 'trial' ),
 	);
+
+	$plan_id = fs_request_get( 'plan_id' );
+	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
+        $context_params['plan_id'] = $plan_id;
+    }
+
+    $licenses = fs_request_get( 'licenses' );
+    if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
+        $context_params['licenses'] = $licenses;
+    }
+
+	$plugin_id = fs_request_get( 'plugin_id' );
+	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+		$plugin_id = $fs->get_id();
+	}
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
-		$site      = $fs->get_site();
-		$plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
+		$site = $fs->get_site();
 
 		if ( $plugin_id != $fs->get_id() ) {
 			if ( $fs->is_addon_activated( $plugin_id ) ) {
@@ -87,7 +104,7 @@
 		}
 	}
 
-	$return_url = $fs->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
+	$return_url = $fs->_get_sync_license_url( $plugin_id );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
@@ -97,8 +114,13 @@
 		// Admin CSS URL for style/design competability.
 //		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) );
+
+	$xdebug_session = fs_request_get( 'XDEBUG_SESSION' );
+	if ( false !== $xdebug_session ) {
+	    $query_params['XDEBUG_SESSION'] = $xdebug_session;
+    }
 ?>
-	<div id="fs_checkout" class="wrap" style="margin: 0 0 -65px -20px;">
+	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
 		<div id="iframe"></div>
 		<script type="text/javascript">
 			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
@@ -153,10 +175,10 @@
 					var
 						// Keep track of the iframe height.
 						iframe_height = 800,
-						base_url      = '<?php echo WP_FS__ADDRESS ?>',
+						base_url      = '<?php echo FS_CHECKOUT__ADDRESS ?>',
 						// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
 						// passed via query string or hard coded into the child page, it depends on your needs).
-						src           = base_url + '/checkout/?<?php echo ( isset( $_REQUEST['XDEBUG_SESSION'] ) ? 'XDEBUG_SESSION=' . $_REQUEST['XDEBUG_SESSION'] . '&' : '' ) . http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
+						src           = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
 
 						// Append the Iframe into the DOM.
 						iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
@@ -177,7 +199,7 @@
 						// Post data to activation URL.
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 							'fs_action' => $slug . '_activate_new',
-							'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
+							'plugin_id' => $plugin_id
 						) ), $slug . '_activate_new' ) ?>', {
 							user_id           : data.user.id,
 							user_secret_key   : data.user.secret_key,
@@ -191,7 +213,7 @@
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 							'fs_action'          => $slug . '_activate_new',
-							'plugin_id'          => fs_request_get( 'plugin_id', $fs->get_id() ),
+							'plugin_id'          => $plugin_id,
 							'pending_activation' => true,
 						) ), $slug . '_activate_new' ) ?>', {
 							user_email: data.user_email
@@ -211,7 +233,7 @@
 							'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
 								array(
 									'fs_action' => $slug . '_activate_new',
-									'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
+									'plugin_id' => $plugin_id,
 
 								) ),
 								$slug . '_activate_new' )
@@ -220,23 +242,20 @@
 					});
 
 					FS.PostMessage.receiveOnce('get_dimensions', function (data) {
-						console.debug('receiveOnce', 'get_dimensions');
-
 						FS.PostMessage.post('dimensions', {
 							height   : $(document.body).height(),
 							scrollTop: $(document).scrollTop()
 						}, iframe[0]);
 					});
+
+					var updateHeight = function(){
+						iframe.css('min-height', $('#wpwrap').height() + 'px');
+					};
+
+					$(document).ready(updateHeight);
+
+					$(window).resize(updateHeight)
 				});
 			})(jQuery);
 		</script>
 	</div>
-<?php
-	$params = array(
-		'page'           => 'checkout',
-		'module_id'      => $fs->get_id(),
-		'module_slug'    => $slug,
-		'module_version' => $fs->get_plugin_version(),
-	);
-	fs_require_template( 'powered-by.php', $params );
-?>

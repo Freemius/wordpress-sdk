@@ -9,7 +9,7 @@
     "gulp-pofill": "^1.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
-    "gulp-wp-pot": "^1.3.1"
+    "gulp-wp-pot": "^2.0.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,6 +27,6 @@
     "gulp-pofill": "^1.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
-    "gulp-wp-pot": "^1.3.1"
+    "gulp-wp-pot": "^2.0.4"
   }
 }

@@ -24,11 +24,16 @@
 	$opt_out_button_text              = __fs( 'opt-out', $slug );
 	// @todo Change 'plugin' with module type when migrating with 1.2.2 (themes version).
     $opt_out_message_appreciation     = sprintf( __fs( 'opt-out-message-appreciation', $slug ), 'plugin' );
-    $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ),
-													$plugin_title );
-    $opt_out_message_clicking_opt_out = sprintf( __fs( 'opt-out-message-clicking-opt-out', $slug ),
-		                                            $plugin_title,
-													'<a href="http://freemius.com" target="_blank">freemius.com</a>' );
+    $opt_out_message_usage_tracking   = sprintf( __fs( 'opt-out-message-usage-tracking', $slug ), $plugin_title );
+    $opt_out_message_clicking_opt_out = sprintf(
+    	__fs( 'opt-out-message-clicking-opt-out', $slug ),
+	    $plugin_title,
+	    sprintf(
+		    '<a href="%s" target="_blank">%s</a>',
+		    'https://freemius.com',
+		    'freemius.com'
+	    )
+    );
 
 	$admin_notice_params = array(
 		'id'      => '',
@@ -59,14 +64,14 @@ HTML;
 				'<div class="fs-modal fs-modal-opt-out">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
-				+ '		    <h4><?php echo $opt_out_button_text ?></h4>'
+				+ '		    <h4><?php echo esc_js($opt_out_button_text) ?></h4>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<button class="button button-secondary button-opt-out" tabindex="1"><?php echo $opt_out_button_text ?></button>'
-				+ '			<button class="button button-primary button-close" tabindex="2"><?php _efs( 'opt-out-cancel', $slug ) ?></button>'
+				+ '			<button class="button button-secondary button-opt-out" tabindex="1"><?php echo esc_js($opt_out_button_text) ?></button>'
+				+ '			<button class="button button-primary button-close" tabindex="2"><?php echo esc_js( __fs( 'opt-out-cancel', $slug ) ) ?></button>'
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
@@ -129,7 +134,7 @@ HTML;
 
 		function resetOptOutButton() {
 			enableOptOutButton();
-			$optOutButton.text( '<?php echo $opt_out_button_text; ?>' );
+			$optOutButton.text( <?php echo json_encode($opt_out_button_text) ?> );
 		}
 
 		function resetModal() {
@@ -155,20 +160,20 @@ HTML;
 				},
 				beforeSend: function() {
 					if ( 'opt-in' == action ) {
-						$actionLink.text( '<?php _efs( 'opting-in', $slug ) ?>' )
+						$actionLink.text( <?php fs_json_encode_echo( 'opting-in', $slug ) ?> )
 					} else {
-						$optOutButton.text( '<?php _efs( 'opting-out', $slug ) ?>' );
+						$optOutButton.text( <?php fs_json_encode_echo( 'opting-out', $slug ) ?> );
 					}
 				},
 				success: function( resultObj ) {
 					if ( resultObj.success ) {
 						if ( 'allow_tracking' == action ) {
 							action = 'stop_tracking';
-							$actionLink.text( '<?php _efs( 'opt-out', $slug ) ?>' );
+							$actionLink.text( <?php fs_json_encode_echo( 'opt-out', $slug ) ?> );
 							showOptInAppreciationMessageAndScrollToTop();
 						} else {
 							action = 'allow_tracking';
-							$actionLink.text( '<?php _efs( 'opt-in', $slug ) ?>' );
+							$actionLink.text( <?php fs_json_encode_echo( 'opt-in', $slug ) ?> );
 							closeModal();
 
 							if ( $adminNotice.length > 0 ) {

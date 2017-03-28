@@ -510,7 +510,7 @@
 					}
 				}
 
-				if ( ! $this->is_ajax() ) {
+				if ( ! self::is_ajax() ) {
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
 						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
@@ -1217,6 +1217,8 @@
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
+			self::add_ajax_action_static( 'get_debug_log', array( 'Freemius', '_get_debug_log' ) );
+
 			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
 
 			self::$_statics_loaded = true;
@@ -1267,6 +1269,8 @@
 
 			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
 
+			$hook = null;
+
 			if ( WP_FS__DEV_MODE ) {
 				// Add top-level debug menu item.
 				$hook = add_menu_page(
@@ -1277,18 +1281,22 @@
 					array( 'Freemius', '_debug_page_render' )
 				);
 			} else {
-				// Add hidden debug page.
-				$hook = add_submenu_page(
-					null,
-					$title,
-					$title,
-					'manage_options',
-					'freemius',
-					array( 'Freemius', '_debug_page_render' )
-				);
+				if ( 'freemius' === fs_request_get( 'page' ) ) {
+					// Add hidden debug page.
+					$hook = add_submenu_page(
+						null,
+						$title,
+						$title,
+						'manage_options',
+						'freemius',
+						array( 'Freemius', '_debug_page_render' )
+					);
+				}
 			}
 
-			add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
+			if ( ! empty( $hook ) ) {
+				add_action( "load-$hook", array( 'Freemius', '_debug_page_actions' ) );
+			}
 		}
 
 		/**
@@ -1296,11 +1304,28 @@
 		 * @since  1.1.7.3
 		 */
 		static function _toggle_debug_mode() {
-			if ( in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
+			if ( fs_request_is_post() && in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
 				update_option( 'fs_debug_mode', $_POST['is_on'] );
+
+				// Turn on/off storage logging.
+				FS_Logger::_set_storage_logging( ( 1 == $_POST['is_on'] ) );
 			}
 
 			exit;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 */
+		static function _get_debug_log() {
+			$logs = FS_Logger::load_db_logs(
+				! empty( $_POST['filters'] ) ? $_POST['filters'] : false,
+				! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
+				! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
+			);
+
+			self::shoot_ajax_success( $logs );
 		}
 
 		/**
@@ -1329,6 +1354,18 @@
 				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
 				// Unset the trial shown timestamp.
 				unset( $fs->_storage->trial_promotion_shown );
+			} else if ( fs_request_is_action( 'download_logs' ) ) {
+				check_admin_referer( 'download_logs' );
+
+				$download_url = FS_Logger::download_db_logs(
+					! empty( $_POST['filters'] ) ? $_POST['filters'] : false
+				);
+
+				if ( false === $download_url ) {
+					wp_die( 'Oops... there was an error while generating the logs download file. Please try again and if it doesn\'t work contact support@freemius.com.' );
+				}
+
+				fs_redirect( $download_url );
 			}
 		}
 
@@ -1356,7 +1393,7 @@
 				'licenses'       => $licenses,
 			);
 
-			fs_enqueue_local_style( 'fs_account', '/admin/debug.css' );
+			fs_enqueue_local_style( 'fs_debug', '/admin/debug.css' );
 			fs_require_once_template( 'debug.php', $vars );
 		}
 
@@ -1472,7 +1509,7 @@
 					'version'   => $version,
 					'sdk'       => $this->version,
 					'is_admin'  => json_encode( is_admin() ),
-					'is_ajax'   => json_encode( $this->is_ajax() ),
+					'is_ajax'   => json_encode( self::is_ajax() ),
 					'is_cron'   => json_encode( $this->is_cron() ),
 					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
 				)
@@ -1654,7 +1691,7 @@
 			}
 
 			if ( ! function_exists( 'wp_nonce_url' ) ) {
-				require_once( ABSPATH . 'wp-includes/functions.php' );
+				require_once ABSPATH . 'wp-includes/functions.php';
 			}
 
 			$current_user = self::_get_current_wp_user();
@@ -1880,35 +1917,18 @@
 
 			$custom_email_sections = array();
 
-			if ( 'squid' === $error_type ) {
-				// Override the 'Site' email section.
-				$custom_email_sections['site'] = array(
-					'rows' => array(
-						'hosting_company' => array( 'Hosting Company', fs_request_get( 'hosting_company' ) )
-					)
-				);
-			}
-
 			// Add 'API Error' custom email section.
 			$custom_email_sections['api_error'] = array(
-				'title' => 'API Error',
+				'title' => "API Error",
 				'rows'  => array(
-					'ping' => array( is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong ) )
+					'ping' => array(
+						'API Error',
+						is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong )
+					),
 				)
 			);
 
-			// Add PHP info for deeper investigation.
-			ob_start();
-			phpinfo();
-			$php_info                          = ob_get_clean();
-			$custom_email_sections['php_info'] = array(
-				'title' => 'PHP Info',
-				'rows'  => array(
-					'info' => array( $php_info )
-				)
-			);
-
-			// Send email with technical details to resolve CloudFlare's firewall unnecessary protection.
+			// Send email with technical details to resolve API connectivity issues.
 			$this->send_email(
 				'api@freemius.com',                              // recipient
 				$title . ' [' . $this->get_plugin_name() . ']',  // subject
@@ -2020,7 +2040,7 @@
 			$message = fs_get_template( 'email.php', $vars );
 
 			// Set the type of email to HTML.
-			$headers[] = 'Content-type: text/html';
+			$headers[] = 'Content-type: text/html;  charset=UTF-8';
 
 			$header_string = implode( "\r\n", $headers );
 
@@ -2062,30 +2082,49 @@
 
 			$server_ip = WP_FS__REMOTE_ADDR;
 
+			// Add PHP info for deeper investigation.
+			ob_start();
+			phpinfo();
+			$php_info = ob_get_clean();
+
+			$api_domain = substr( FS_API__ADDRESS, strpos( FS_API__ADDRESS, ':' ) + 3 );
+
 			// Generate the default email sections.
 			$sections = array(
-				'sdk'     => array(
+				'sdk'      => array(
 					'title' => 'SDK',
 					'rows'  => array(
 						'fs_version'   => array( 'FS Version', $this->version ),
 						'curl_version' => array( 'cURL Version', $curl_version_information['version'] )
 					)
 				),
-				'plugin'  => array(
+				'plugin'   => array(
 					'title' => 'Plugin',
 					'rows'  => array(
 						'name'    => array( 'Name', $this->get_plugin_name() ),
 						'version' => array( 'Version', $this->get_plugin_version() )
 					)
 				),
-				'site'    => array(
+				'api'      => array(
+					'title' => 'API Subdomain',
+					'rows'  => array(
+						'dns' => array( 'DNS_CNAME', var_export( @dns_get_record( $api_domain, DNS_CNAME ), true ) ),
+						'ip'  => array( 'IP', @gethostbyname( $api_domain ) ),
+					),
+				),
+				'site'     => array(
 					'title' => 'Site',
 					'rows'  => array(
-						'unique_id'   => array( 'Address', $this->get_anonymous_id() ),
+						'unique_id'   => array( 'Unique ID', $this->get_anonymous_id() ),
 						'address'     => array( 'Address', site_url() ),
 						'host'        => array(
 							'HTTP_HOST',
 							( ! empty( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : '' )
+						),
+						'hosting'     => array(
+							'Hosting Company' => fs_request_has( 'hosting_company' ) ?
+								fs_request_get( 'hosting_company' ) :
+								'Unknown',
 						),
 						'server_addr' => array(
 							'SERVER_ADDR',
@@ -2093,7 +2132,7 @@
 						)
 					)
 				),
-				'user'    => array(
+				'user'     => array(
 					'title' => 'User',
 					'rows'  => array(
 						'email' => array( 'Email', $current_user->user_email ),
@@ -2101,12 +2140,18 @@
 						'last'  => array( 'Last', $current_user->user_lastname )
 					)
 				),
-				'plugins' => array(
+				'plugins'  => array(
 					'title' => 'Plugins',
 					'rows'  => array(
 						'active_plugins' => array( 'Active Plugins', $active_plugin_string )
 					)
 				),
+				'php_info' => array(
+					'title' => 'PHP Info',
+					'rows'  => array(
+						'info' => array( $php_info )
+					),
+				)
 			);
 
 			// Allow the sections to be modified by other code.
@@ -2323,7 +2368,7 @@
 			 * In the future, there might be additional logic added.
 			 *
 			 * @author Vova Feldman
-			 * @since 1.2.1.6
+			 * @since  1.2.1.6
 			 */
 			if ( $this->is_premium() && $this->has_release_on_freemius() ) {
 				new FS_Plugin_Updater( $this );
@@ -2377,12 +2422,12 @@
 			$result = $this->stop_tracking();
 
 			if ( true === $result ) {
-				$this->shoot_ajax_success();
+				self::shoot_ajax_success();
 			}
 
 			$this->_logger->api_error( $result );
 
-			$this->shoot_ajax_failure(
+			self::shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
@@ -2398,12 +2443,12 @@
 			$result = $this->allow_tracking();
 
 			if ( true === $result ) {
-				$this->shoot_ajax_success();
+				self::shoot_ajax_success();
 			}
 
 			$this->_logger->api_error( $result );
 
-			$this->shoot_ajax_failure(
+			self::shoot_ajax_failure(
 				__fs( 'unexpected-api-error', $this->_slug ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
@@ -2596,13 +2641,17 @@
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
 
-			if ( ! isset( $plugin_info['menu'] ) ) {
-				// Back compatibility to 1.1.2
-				$plugin_info['menu'] = array(
-					'slug' => isset( $plugin_info['menu_slug'] ) ?
+			if (! isset( $plugin_info['menu'] )) {
+				$plugin_info['menu'] = array();
+
+				if ( ! empty( $this->_storage->sdk_last_version ) &&
+				     version_compare( $this->_storage->sdk_last_version, '1.1.2', '<=' )
+				) {
+					// Backward compatibility to 1.1.2
+					$plugin_info['menu']['slug'] = isset( $plugin_info['menu_slug'] ) ?
 						$plugin_info['menu_slug'] :
-						$this->_slug
-				);
+						$this->_slug;
+				}
 			}
 
 			$this->_menu = FS_Admin_Menu_Manager::instance( $this->_slug );
@@ -2713,7 +2762,7 @@
 					return true;
 				}
 
-				if ( $this->is_ajax() &&
+				if ( self::is_ajax() &&
 				     ! $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) &&
 				     ! $this->_admin_notices->has_sticky( 'failed_connect_api' )
 				) {
@@ -3777,13 +3826,17 @@
 			FS_Api::clear_cache();
 
 			if ( $this->is_registered() ) {
-				$this->reconnect_locally();
+				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+
+				if ( $is_premium_version_activation ) {
+					$this->reconnect_locally();
+				}
+
+				$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
 				// Schedule re-activation event and sync.
 //				$this->sync_install( array(), true );
 				$this->schedule_install_sync();
-
-				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
 
 				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
 				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
@@ -3801,7 +3854,7 @@
 					deactivate_plugins( $other_version_basename );
 				}
 
-				// If activating the premium module version, add an admin noitce to congratulate for an upgrade completion.
+				// If activating the premium module version, add an admin notice to congratulate for an upgrade completion.
 				if ( $is_premium_version_activation ) {
 					$this->_admin_notices->add(
 						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
@@ -4564,13 +4617,15 @@
 				$params['reason_info'] = $uninstall_reason->info;
 			}
 
-			if ( ! $this->is_registered() && isset( $uninstall_reason ) ) {
+			if ( ! $this->is_registered() ) {
 				// Send anonymous uninstall event only if user submitted a feedback.
-				if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
-					$this->opt_in( false, false, false, false, true );
-				} else {
-					$params['uid'] = $this->get_anonymous_id();
-					$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+				if ( isset( $uninstall_reason ) ) {
+					if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
+						$this->opt_in( false, false, false, false, true );
+					} else {
+						$params['uid'] = $this->get_anonymous_id();
+						$this->get_api_plugin_scope()->call( 'uninstall.json', 'put', $params );
+					}
 				}
 			} else {
 				// Send uninstall event.
@@ -4646,7 +4701,7 @@
 			if ( ! function_exists( 'get_plugins' ) ) {
 				self::$_static_logger->log( 'Including wp-admin/includes/plugin.php...' );
 
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 		}
 
@@ -4658,7 +4713,7 @@
 		 */
 		private static function require_pluggable_essentials() {
 			if ( ! function_exists( 'wp_get_current_user' ) ) {
-				require_once( ABSPATH . 'wp-includes/pluggable.php' );
+				require_once ABSPATH . 'wp-includes/pluggable.php';
 			}
 		}
 
@@ -5628,6 +5683,27 @@
 		}
 
 		/**
+		 * Check if module has only one plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @return bool
+		 */
+		function is_single_plan() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ||
+			     ! is_array( $this->_plans ) ||
+			     0 === count( $this->_plans )
+			) {
+				return true;
+			}
+
+			return ( 1 === count( $this->_plans ) );
+		}
+
+		/**
 		 * Check if plan based on trial. If not in trial mode, should return false.
 		 *
 		 * @since  1.0.9
@@ -5864,7 +5940,7 @@
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				// Only for admins.
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			$billing = fs_request_get( 'billing' );
@@ -5875,13 +5951,13 @@
 			) ) );
 
 			if ( ! $this->is_api_result_entity( $result ) ) {
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			// Purge cached billing.
 			$this->get_api_user_scope()->purge_cache( 'billing.json' );
 
-			$this->shoot_ajax_success();
+			self::shoot_ajax_success();
 		}
 
 		/**
@@ -5895,7 +5971,7 @@
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				// Only for admins.
-				$this->shoot_ajax_failure();
+				self::shoot_ajax_failure();
 			}
 
 			$trial_data = fs_request_get( 'trial' );
@@ -5910,14 +5986,14 @@
 			);
 
 			if ( is_object( $next_page ) && $this->is_api_error( $next_page ) ) {
-				$this->shoot_ajax_failure(
+				self::shoot_ajax_failure(
 					isset( $next_page->error ) ?
 						$next_page->error->message :
 						var_export( $next_page, true )
 				);
 			}
 
-			$this->shoot_ajax_success( array(
+			self::shoot_ajax_success( array(
 				'next_page' => $next_page,
 			) );
 		}
@@ -5941,8 +6017,8 @@
 			$api    = $this->get_api_plugin_scope();
 			$result = $api->call( '/licenses/resend.json', 'post',
 				array(
-					'email'        => $email_address,
-					'url'          => home_url(),
+					'email' => $email_address,
+					'url'   => home_url(),
 				)
 			);
 
@@ -6213,7 +6289,7 @@
 		 *
 		 * @link   http://wordpress.stackexchange.com/questions/70676/how-to-check-if-i-am-in-admin-ajax
 		 */
-		function is_ajax() {
+		static function is_ajax() {
 			return ( defined( 'DOING_AJAX' ) && DOING_AJAX );
 		}
 
@@ -6229,7 +6305,7 @@
 		 */
 		function is_ajax_action( $actions ) {
 			// Verify it's an ajax call.
-			if ( ! $this->is_ajax() ) {
+			if ( ! self::is_ajax() ) {
 				return false;
 			}
 
@@ -6257,6 +6333,48 @@
 		}
 
 		/**
+		 * Check if it's an AJAX call targeted for current request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.0
+		 *
+		 * @param array|string $actions Collection of AJAX actions.
+		 * @param string       $slug
+		 *
+		 * @return bool
+		 */
+		static function is_ajax_action_static( $actions, $slug = '' ) {
+			// Verify it's an ajax call.
+			if ( ! self::is_ajax() ) {
+				return false;
+			}
+
+			if ( ! empty( $slug ) ) {
+				// Verify the call is relevant for the plugin.
+				if ( $slug !== fs_request_get( 'slug' ) ) {
+					return false;
+				}
+			}
+
+			// Verify it's one of the specified actions.
+			if ( is_string( $actions ) ) {
+				$actions = explode( ',', $actions );
+			}
+
+			if ( is_array( $actions ) && 0 < count( $actions ) ) {
+				$ajax_action = fs_request_get( 'action' );
+
+				foreach ( $actions as $action ) {
+					if ( $ajax_action === self::get_action_tag_static( $action, $slug ) ) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
 		 *
@@ -6275,7 +6393,7 @@
 		 * @return bool
 		 */
 		function is_user_in_admin() {
-			return is_admin() && ! $this->is_ajax() && ! $this->is_cron();
+			return is_admin() && ! self::is_ajax() && ! $this->is_cron();
 		}
 
 		/**
@@ -6308,7 +6426,7 @@
 				}
 			}
 
-			if ( ! $this->_menu->is_top_level() ) {
+			if ( $this->_menu->has_menu_slug() && ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
 					$parent_slug :
@@ -6332,8 +6450,18 @@
 					return add_query_arg( $params, admin_url( $this->_menu->get_raw_slug(), 'admin' ) );
 				}
 			} else {
+				/**
+				 * @author Vova Feldman
+				 * @since  1.2.1.6
+				 *
+				 * If module doesn't have a settings page, create one for the opt-in screen.
+				 */
+				$menu_slug = $this->_menu->has_menu_slug() ?
+					$this->_menu->get_slug( $page ) :
+					$this->_slug;
+
 				return add_query_arg( array_merge( $params, array(
-					'page' => $this->_menu->get_slug( $page ),
+					'page' => $menu_slug,
 				) ), admin_url( 'admin.php', 'admin' ) );
 			}
 		}
@@ -7009,7 +7137,7 @@
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if (! $this->is_premium() || !$this->has_premium_version()) {
+				if ( ! $this->is_premium() || ! $this->has_premium_version() ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
@@ -7046,7 +7174,13 @@
 			$next_page = '';
 
 			if ( is_numeric( $plugin_id ) ) {
-				if ( $plugin_id != $this->_plugin->id ) {
+				/**
+				 * @author Leo Fajardo
+				 * @since  1.2.1.6
+				 *
+				 * Also sync the license after an anonymous user subscribes.
+				 */
+				if ( $this->is_anonymous() || $plugin_id != $this->_plugin->id ) {
 					// Add-on was installed - sync license right after install.
 					$next_page = $this->_get_sync_license_url( $plugin_id );
 				}
@@ -7173,16 +7307,16 @@
 				/**
 				 * If explicitly asked to ignore pending mode, set to anonymous mode
 				 * if require confirmation before finalizing the opt-in.
-				 * 
+				 *
 				 * @author Vova Feldman
-				 * @since 1.2.1.6
+				 * @since  1.2.1.6
 				 */
 				$this->skip_connection();
 			} else {
-			// Install must be activated via email since
-			// user with the same email already exist.
-			$this->_storage->is_pending_activation = true;
-			$this->_add_pending_activation_notice( $email, $is_pending_trial );
+				// Install must be activated via email since
+				// user with the same email already exist.
+				$this->_storage->is_pending_activation = true;
+				$this->_add_pending_activation_notice( $email, $is_pending_trial );
 			}
 
 			if ( ! empty( $license_key ) ) {
@@ -7455,7 +7589,17 @@
 
 			$hook = false;
 
-			if ( $this->_menu->is_top_level() ) {
+			if ( ! $this->_menu->has_menu_slug() ) {
+				// Add the opt-in page without a menu item.
+				$hook = add_submenu_page(
+					null,
+					$this->get_plugin_name(),
+					$this->get_plugin_name(),
+					'manage_options',
+					$this->_slug,
+					array( &$this, '_connect_page_render' )
+				);
+			} else if ( $this->_menu->is_top_level() ) {
 				$hook = $this->_menu->override_menu_item( array( &$this, '_connect_page_render' ) );
 
 				if ( false === $hook ) {
@@ -7610,7 +7754,14 @@
 						);
 					}
 
-					$show_pricing = ( $this->has_paid_plan() && $this->_menu->is_submenu_item_visible( 'pricing' ) );
+					$show_pricing = (
+						// Has at least one paid plan.
+						$this->has_paid_plan() &&
+						// Didn't ask to hide the pricing page.
+						$this->_menu->is_submenu_item_visible( 'pricing' ) &&
+						// Don't have a valid active license or has more than one plan.
+						( !$this->is_paying() || !$this->is_single_plan() )
+					);
 					// If user don't have paid plans, add pricing page
 					// to support add-ons checkout but don't add the submenu item.
 					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
@@ -7938,7 +8089,20 @@
 		 * @return string
 		 */
 		public function get_action_tag( $tag ) {
-			return "fs_{$tag}_{$this->_slug}";
+			return self::get_action_tag_static( $tag, $this->_slug );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $tag
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		static function get_action_tag_static( $tag, $slug = '' ) {
+			return "fs_{$tag}" . ( empty( $slug ) ? '' : "_{$slug}" );
 		}
 
 		/**
@@ -7951,6 +8115,19 @@
 		 */
 		private function get_ajax_action_tag( $tag ) {
 			return 'wp_ajax_' . $this->get_action_tag( $tag );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string $tag
+		 * @param string $slug
+		 *
+		 * @return string
+		 */
+		private static function get_ajax_action_tag_static( $tag, $slug = '' ) {
+			return 'wp_ajax_' . self::get_action_tag_static( $tag, $slug );
 		}
 
 		/**
@@ -8004,22 +8181,61 @@
 		 * @param string   $tag
 		 * @param callable $function_to_add
 		 * @param int      $priority
-		 * @param int      $accepted_args
 		 *
 		 * @uses   add_action()
 		 *
 		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
 		 */
-		function add_ajax_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
+		function add_ajax_action(
+			$tag,
+			$function_to_add,
+			$priority = WP_FS__DEFAULT_PRIORITY
+		) {
 			$this->_logger->entrance( $tag );
 
-			if ( ! $this->is_ajax_action( $tag ) ) {
+			return self::add_ajax_action_static(
+				$tag,
+				$function_to_add,
+				$priority,
+				$this->_slug
+			);
+		}
+
+		/**
+		 * Add AJAX action.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.6
+		 *
+		 * @param string   $tag
+		 * @param callable $function_to_add
+		 * @param int      $priority
+		 * @param string   $slug
+		 *
+		 * @return bool True if action added, false if no need to add the action since the AJAX call isn't matching.
+		 * @uses   add_action()
+		 *
+		 */
+		static function add_ajax_action_static(
+			$tag,
+			$function_to_add,
+			$priority = WP_FS__DEFAULT_PRIORITY,
+			$slug = ''
+		) {
+			self::$_static_logger->entrance( $tag );
+
+			if ( ! self::is_ajax_action_static( $tag, $slug ) ) {
 				return false;
 			}
 
-			add_action( $this->get_ajax_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
+			add_action(
+				self::get_ajax_action_tag_static( $tag, $slug ),
+				$function_to_add,
+				$priority,
+				0
+			);
 
-			$this->_logger->info( "$tag AJAX callback action added." );
+			self::$_static_logger->info( "$tag AJAX callback action added." );
 
 			return true;
 		}
@@ -8032,7 +8248,7 @@
 		 *
 		 * @param mixed $response
 		 */
-		function shoot_ajax_response( $response ) {
+		static function shoot_ajax_response( $response ) {
 			wp_send_json( $response );
 		}
 
@@ -8044,7 +8260,7 @@
 		 *
 		 * @param mixed $data Data to encode as JSON, then print and exit.
 		 */
-		function shoot_ajax_success( $data = null ) {
+		static function shoot_ajax_success( $data = null ) {
 			wp_send_json_success( $data );
 		}
 
@@ -8056,7 +8272,7 @@
 		 *
 		 * @param mixed $error Optional error message.
 		 */
-		function shoot_ajax_failure( $error = '' ) {
+		static function shoot_ajax_failure( $error = '' ) {
 			$result = array( 'success' => false );
 			if ( ! empty( $error ) ) {
 				$result['error'] = $error;
@@ -9085,23 +9301,23 @@
 								$this->_site->plan;
 
 							if ( $plan->is_free() ) {
-							$this->_admin_notices->add(
-								sprintf(
-									__fs( 'plan-did-not-change-message', $this->_slug ),
-									'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
-								) . ' ' . sprintf(
-									'<a href="%s">%s</a>',
-									$this->contact_url(
-										'bug',
-										sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
-											strtoupper( $plan->name )
-										)
+								$this->_admin_notices->add(
+									sprintf(
+										__fs( 'plan-did-not-change-message', $this->_slug ),
+										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
+									) . ' ' . sprintf(
+										'<a href="%s">%s</a>',
+										$this->contact_url(
+											'bug',
+											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
+												strtoupper( $plan->name )
+											)
+										),
+										__fs( 'contact-us-here', $this->_slug )
 									),
-									__fs( 'contact-us-here', $this->_slug )
-								),
-								__fs( 'hmm', $this->_slug ) . '...'
-							);
-						}
+									__fs( 'hmm', $this->_slug ) . '...'
+								);
+							}
 						}
 						break;
 					case 'upgraded':
@@ -9633,7 +9849,7 @@
 
 			// If add-on, then append add-on ID.
 			$endpoint = ( $is_addon ? "/addons/$addon_id" : '' ) .
-				'/updates/latest.' . $type;
+			            '/updates/latest.' . $type;
 
 			// If add-on and not yet activated, try to fetch based on server licensing.
 			if ( is_bool( $is_premium ) ) {
@@ -10425,12 +10641,21 @@
 		function _account_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+			$template = 'account.php';
 			if ( 'billing' === fs_request_get( 'tab' ) ) {
-				fs_require_once_template( 'billing.php', $vars );
-			} else {
-				fs_require_once_template( 'account.php', $vars );
+				$template = 'billing.php';
 			}
+
+			$vars = array( 'slug' => $this->_slug );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( "templates/{$template}", fs_get_template( $template, $vars ) );
 		}
 
 		/**
@@ -10443,7 +10668,15 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'connect.php', $vars );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( 'templates/connect.php', fs_get_template( 'connect.php', $vars ) );
 		}
 
 		/**
@@ -10487,7 +10720,15 @@
 			$this->_logger->entrance();
 
 			$vars = array( 'slug' => $this->_slug );
-			fs_require_once_template( 'add-ons.php', $vars );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( 'templates/add-ons.php', fs_get_template( 'add-ons.php', $vars ) );
 		}
 
 		/* Pricing & Upgrade
@@ -10956,7 +11197,7 @@
 				return;
 			}
 
-			if ( ! $this->is_ajax() ) {
+			if ( ! self::is_ajax() ) {
 				// Inject license activation dialog UI and client side code.
 				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 			}

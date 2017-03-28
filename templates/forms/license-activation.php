@@ -63,15 +63,15 @@ HTML;
 				'<div class="fs-modal fs-modal-license-activation">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
-				+ '		    <h4><?php echo $header_title ?></h4>'
-				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php _efs( 'dismiss' ) ?>"></i></a>'
+				+ '		    <h4><?php echo esc_js($header_title) ?></h4>'
+				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php fs_esc_attr_echo( 'dismiss', $slug ) ?>"></i></a>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<button class="button button-secondary button-close" tabindex="4"><?php _efs('cancel', $slug); ?></button>'
-				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo $activate_button_text; ?></button>'
+				+ '			<button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo( 'cancel', $slug ) ?></button>'
+				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo esc_js( $activate_button_text ) ?></button>'
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
@@ -138,7 +138,7 @@ HTML;
 						license_key: licenseKey
 					},
 					beforeSend: function () {
-						$activateLicenseButton.text( '<?php _efs( 'activating-license', $slug ); ?>' );
+						$activateLicenseButton.text( <?php fs_json_encode_echo( 'activating-license', $slug ) ?> );
 					},
 					success: function( result ) {
 						var resultObj = $.parseJSON( result );
@@ -181,7 +181,7 @@ HTML;
 
 		function resetActivateLicenseButton() {
 			enableActivateLicenseButton();
-			$activateLicenseButton.text( '<?php echo $activate_button_text; ?>' );
+			$activateLicenseButton.text( <?php echo json_encode( $activate_button_text ) ?> );
 		}
 
 		function resetModal() {

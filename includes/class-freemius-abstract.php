@@ -442,6 +442,16 @@
 			       $this->has_free_plan();
 		}
 
+		/**
+		 * Check if module has only one plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @return bool
+		 */
+		abstract function is_single_plan();
+
 		#endregion
 
 		/**
