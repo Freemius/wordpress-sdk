@@ -6090,11 +6090,10 @@
 		 * @since  1.2.0
 		 */
 		function _resend_license_key_ajax_action() {
-			if ( ! isset( $_POST['email'] ) ) {
-				exit;
-			}
+			$this->_logger->entrance();
 
-			$email_address = trim( $_POST['email'] );
+			$email_address = sanitize_email( trim( fs_request_get( 'email', '', 'post' ) ) );
+
 			if ( empty( $email_address ) ) {
 				exit;
 			}
