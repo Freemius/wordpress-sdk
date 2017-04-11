@@ -1383,11 +1383,13 @@
 		 * @since  1.1.7.3
 		 */
 		static function _toggle_debug_mode() {
-			if ( fs_request_is_post() && in_array( $_POST['is_on'], array( 0, 1 ) ) ) {
-				update_option( 'fs_debug_mode', $_POST['is_on'] );
+			$is_on = fs_request_get('is_on', false, 'post');
+
+			if ( fs_request_is_post() && in_array( $is_on, array( 0, 1 ) ) ) {
+				update_option( 'fs_debug_mode', $is_on );
 
 				// Turn on/off storage logging.
-				FS_Logger::_set_storage_logging( ( 1 == $_POST['is_on'] ) );
+				FS_Logger::_set_storage_logging( ( 1 == $is_on ) );
 			}
 
 			exit;
@@ -1399,7 +1401,7 @@
 		 */
 		static function _get_debug_log() {
 			$logs = FS_Logger::load_db_logs(
-				! empty( $_POST['filters'] ) ? $_POST['filters'] : false,
+				fs_request_get('filters', false, 'post'),
 				! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
 				! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
 			);
@@ -1437,7 +1439,7 @@
 				check_admin_referer( 'download_logs' );
 
 				$download_url = FS_Logger::download_db_logs(
-					! empty( $_POST['filters'] ) ? $_POST['filters'] : false
+					fs_request_get('filters', false, 'post')
 				);
 
 				if ( false === $download_url ) {
@@ -5969,7 +5971,7 @@
 				exit;
 			}
 
-			$slug      = $_POST['slug'];
+			$slug      = fs_request_get( 'slug', '', 'post' );
 			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
 			$error     = false;
 			$next_page = false;

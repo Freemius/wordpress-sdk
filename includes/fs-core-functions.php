@@ -93,13 +93,32 @@
 	/* Request handlers.
 	--------------------------------------------------------------------------------------------*/
 	/**
-	 * @param string $key
-	 * @param mixed  $def
+	 * @param string      $key
+	 * @param mixed       $def
+	 * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
+	 *                          set to 'post' will look for the value passed via the POST request's body, otherwise,
+	 *                          will check if the parameter was passed in any of the two.
 	 *
 	 * @return mixed
 	 */
-	function fs_request_get( $key, $def = false ) {
-		return isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+	function fs_request_get( $key, $def = false, $type = false ) {
+		if ( is_string( $type ) ) {
+			$type = strtolower( $type );
+		}
+
+		switch ( $type ) {
+			case 'post':
+				$value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
+				break;
+			case 'get':
+				$value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
+				break;
+			default:
+				$value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+				break;
+		}
+
+		return $value;
 	}
 
 	function fs_request_has( $key ) {
@@ -510,85 +529,85 @@
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_attr($key, $slug) {
+	function fs_esc_attr( $key, $slug ) {
 		return esc_attr( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_attr_echo($key, $slug) {
+	function fs_esc_attr_echo( $key, $slug ) {
 		echo esc_attr( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_js($key, $slug) {
+	function fs_esc_js( $key, $slug ) {
 		return esc_js( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_js_echo($key, $slug) {
+	function fs_esc_js_echo( $key, $slug ) {
 		echo esc_js( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_json_encode_echo($key, $slug) {
+	function fs_json_encode_echo( $key, $slug ) {
 		echo json_encode( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_html($key, $slug) {
+	function fs_esc_html( $key, $slug ) {
 		return esc_html( __fs( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_html_echo($key, $slug) {
+	function fs_esc_html_echo( $key, $slug ) {
 		echo esc_html( __fs( $key, $slug ) );
 	}
 
-	#endregion
+#endregion
