@@ -836,7 +836,7 @@
 				}
 
 				foreach ( $all_plugins_paths as $plugin_path ) {
-					if ( false !== strpos( $caller_file_path, fs_normalize_path( dirname( $plugin_path ) ) ) ) {
+					if ( false !== strpos( $caller_file_path, fs_normalize_path( dirname( $plugin_path ) . '/' ) ) ) {
 						$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
 						$caller_file_candidate = fs_normalize_path( $plugin_path );
 						break;
