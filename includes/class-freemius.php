@@ -5040,7 +5040,13 @@
 		}
 
 		/**
-		 * Check if user is registered.
+		 * Check if user has connected his account (opted-in).
+		 *
+		 * Note:
+		 *      If the user opted-in and opted-out on a later stage,
+		 *      this will still return true. If you want to check if the
+		 *      user is currently opted-in, use:
+		 *          `$fs->is_registered() && $fs->is_tracking_allowed()`
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
