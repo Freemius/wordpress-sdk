@@ -10670,6 +10670,14 @@
 		 * @return string
 		 */
 		private function get_activation_url( $params = array() ) {
+			if ( $this->is_addon() ) {
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.2.1.7 Add-on's activation is the parent's module activation.
+				 */
+				return $this->get_parent_instance()->get_activation_url( $params );
+			}
+
 			if ( $this->is_theme() && ! $this->has_settings_menu() ) {
 				$params = array( 'fs_action' => $this->get_unique_affix() . '_show_optin' );
 			}
