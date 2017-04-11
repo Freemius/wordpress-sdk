@@ -7913,7 +7913,7 @@
 
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
-						__fs( $pricing_cta_slug, $this->_slug ) . '&nbsp;&nbsp;&#x27a4;',
+						__fs( $pricing_cta_slug, $this->_slug ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
 						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing', $this->_slug ),
 						'manage_options',
