@@ -250,6 +250,14 @@
 	define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
 	/**
+	 * Module types
+	 *
+	 * @since 1.2.2
+	 */
+	define( 'WP_FS__MODULE_TYPE_PLUGIN', 'plugin' );
+	define( 'WP_FS__MODULE_TYPE_THEME', 'theme' );
+
+	/**
 	 * Billing Frequencies
 	 */
 	define( 'WP_FS__PERIOD_ANNUALLY', 'annual' );

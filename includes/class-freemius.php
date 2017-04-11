@@ -671,7 +671,8 @@
 			 * Only the original instantiator that calls dynamic_init can modify the module's path.
 			 */
 			// Find caller module.
-			$plugin_file = fs_find_caller_plugin_file();
+			$file_and_type = $this->get_caller_main_file_and_type();
+			$plugin_file   = $file_and_type->path;
 
 			$this->_storage->plugin_main_file = (object) array(
 				'path' => fs_normalize_path( $plugin_file ),
@@ -680,6 +681,84 @@
 			return $plugin_file;
 		}
 
+		/**
+		 * Identifies the caller path.
+		 *
+		 * @todo (Vova) When merging this branch with the theme's one, use the theme's one instead of this one.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since 1.2.2.3 Find the earliest module in the call stack that calls to the SDK. This fix is for cases when add-ons are relying on loading the SDK from the parent module, and also allows themes including the SDK an internal file instead of directly from functions.php.
+		 * @since 1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
+		 */
+		private function get_caller_main_file_and_type() {
+			self::require_plugin_essentials();
+
+			$all_plugins       = get_plugins();
+			$all_plugins_paths = array();
+
+			// Get active plugin's main files real full names (might be symlinks).
+			foreach ( $all_plugins as $relative_path => &$data ) {
+				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
+			}
+
+			$caller_file_candidate = false;
+			$caller_map            = array();
+			$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
+
+			for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
+				if ( empty( $bt[ $i ]['file'] ) ) {
+					continue;
+				}
+
+				if ( $i > 1 && ! empty( $bt[ $i - 1 ]['file'] ) && $bt[ $i ]['file'] === $bt[ $i - 1 ]['file'] ) {
+					// If file same as the prev file in the stack, skip it.
+					continue;
+				}
+
+				if ( ! empty( $bt[ $i ]['function'] ) && in_array( $bt[ $i ]['function'], array(
+						'do_action',
+						'apply_filter',
+						'require_once',
+						'require',
+						'include_once',
+						'include'
+					) )
+				) {
+					// Ignore call stack hooks and files inclusion.
+					continue;
+				}
+
+				$caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
+				$caller_file_hash = md5( $caller_file_path );
+
+				if ( ! isset( $caller_map[ $caller_file_hash ] ) ) {
+					foreach ( $all_plugins_paths as $plugin_path ) {
+						if ( false !== strpos( $caller_file_path, fs_normalize_path( dirname( $plugin_path ) . '/' ) ) ) {
+							$caller_map[ $caller_file_hash ] = fs_normalize_path( $plugin_path );
+							break;
+						}
+					}
+				}
+
+				if ( isset( $caller_map[ $caller_file_hash ] ) ) {
+					$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
+					$caller_file_candidate = $caller_map[ $caller_file_hash ];
+				}
+			}
+
+			if ( empty( $caller_file_candidate ) ) {
+				// Throw an error to the developer in case of some edge case dev environment.
+				wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
+			}
+
+			return (object) array(
+				'module_type' => $module_type,
+				'path'        => $caller_file_candidate
+			);
+		}
 
 		#----------------------------------------------------------------------------------
 		#region Deactivation Feedback Form
