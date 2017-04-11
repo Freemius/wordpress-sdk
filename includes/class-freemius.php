@@ -10446,17 +10446,23 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.2
-		 * @since  1.2.1.7 Add-on's activation is the parent's module activation.
 		 *
 		 * @param array $params
 		 *
 		 * @return string
 		 */
 		private function get_activation_url( $params = array() ) {
-			$fs = $this->is_addon() ? $this->get_parent_instance() : $this;
+			if ( $this->is_addon() ) {
+				/**
+				 * @author Vova Feldman (@svovaf)
+				 * @since  1.2.1.7 Add-on's activation is the parent's module activation.
+				 */
+				return $this->get_parent_instance()->get_activation_url( $params );
+			}
 
-			return $this->apply_filters( 'connect_url', $fs->_get_admin_page_url( '', $params ) );
+			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
 		}
+
 
 		/**
 		 * @author Vova Feldman (@svovaf)
