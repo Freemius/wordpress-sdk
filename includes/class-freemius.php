@@ -10446,13 +10446,16 @@
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.2
+		 * @since  1.2.1.7 Add-on's activation is the parent's module activation.
 		 *
 		 * @param array $params
 		 *
 		 * @return string
 		 */
 		private function get_activation_url( $params = array() ) {
-			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+			$fs = $this->is_addon() ? $this->get_parent_instance() : $this;
+
+			return $this->apply_filters( 'connect_url', $fs->_get_admin_page_url( '', $params ) );
 		}
 
 		/**
