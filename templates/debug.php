@@ -75,9 +75,52 @@
 				<button class="button button-primary"><?php _efs( 'sync-data-from-server' ) ?></button>
 			</form>
 		</td>
+		<td>
+			<button id="fs_load_db_option" class="button"><?php _efs( 'Load DB Option' ) ?></button>
+		</td>
+		<td>
+			<button id="fs_set_db_option" class="button"><?php _efs( 'Set DB Option' ) ?></button>
+		</td>
 	</tr>
 	</tbody>
 </table>
+<script type="text/javascript">
+	(function($){
+		$('#fs_load_db_option').click(function () {
+			var optionName = prompt('Please enter the option name:');
+
+			if (optionName) {
+				$.post(ajaxurl, {
+					action     : 'fs_get_db_option',
+					option_name: optionName
+				}, function (response) {
+					if (response.data.value)
+						prompt('The option value is:', response.data.value);
+					else
+						alert('Oops... Option does not exist in the DB.');
+				});
+			}
+		});
+
+		$('#fs_set_db_option').click(function () {
+			var optionName = prompt('Please enter the option name:');
+
+			if (optionName) {
+				var optionValue = prompt('Please enter the option value:');
+
+				if (optionValue) {
+					$.post(ajaxurl, {
+						action      : 'fs_set_db_option',
+						option_name : optionName,
+						option_value: optionValue
+					}, function () {
+						alert('Option was successfully set.');
+					});
+				}
+			}
+		});
+	})(jQuery);
+</script>
 <?php
 	if ( ! defined( 'FS_API__ADDRESS' ) ) {
 		define( 'FS_API__ADDRESS', '://api.freemius.com' );

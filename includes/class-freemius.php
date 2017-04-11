@@ -1298,6 +1298,10 @@
 
 			self::add_ajax_action_static( 'get_debug_log', array( 'Freemius', '_get_debug_log' ) );
 
+			self::add_ajax_action_static( 'get_db_option', array( 'Freemius', '_get_db_option' ) );
+
+			self::add_ajax_action_static( 'set_db_option', array( 'Freemius', '_set_db_option' ) );
+
 			add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
 
 			self::$_statics_loaded = true;
@@ -1408,6 +1412,46 @@
 
 			self::shoot_ajax_success( $logs );
 		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 */
+		static function _get_db_option() {
+			$option_name = fs_request_get( 'option_name' );
+
+			$value = get_option( $option_name );
+
+			$result = array(
+				'name' => $option_name,
+			);
+
+			if ( false !== $value ) {
+				if ( ! is_string( $value ) ) {
+					$value = json_encode( $value );
+				}
+
+				$result['value'] = $value;
+			}
+
+			self::shoot_ajax_success( $result );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 */
+		static function _set_db_option() {
+			$option_name  = fs_request_get( 'option_name' );
+			$option_value = fs_request_get( 'option_value' );
+
+			if ( ! empty( $option_value ) ) {
+				update_option( $option_name, $option_value );
+			}
+
+			self::shoot_ajax_success();
+		}
+
 
 		/**
 		 * @author Vova Feldman (@svovaf)
