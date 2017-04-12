@@ -34,7 +34,29 @@
 	}
 
 	if ( ! defined( 'FS_SDK__HAS_CURL' ) ) {
-		define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+		if ( FS_SDK__SIMULATE_NO_CURL ) {
+			define( 'FS_SDK__HAS_CURL', false );
+		} else {
+			$curl_required_methods = array(
+				'curl_version',
+				'curl_exec',
+				'curl_init',
+				'curl_close',
+				'curl_setopt',
+				'curl_setopt_array',
+				'curl_error',
+			);
+
+			$has_curl = true;
+			foreach ( $curl_required_methods as $m ) {
+				if ( ! function_exists( $m ) ) {
+					$has_curl = false;
+					break;
+				}
+			}
+
+			define( 'FS_SDK__HAS_CURL', $has_curl );
+		}
 	}
 
 	if ( ! FS_SDK__HAS_CURL ) {
@@ -537,13 +559,32 @@
 		 * @throws Freemius_Exception
 		 */
 		private static function ThrowNoCurlException( $pResult = '' ) {
+			$curl_required_methods = array(
+				'curl_version',
+				'curl_exec',
+				'curl_init',
+				'curl_close',
+				'curl_setopt',
+				'curl_setopt_array',
+				'curl_error',
+			);
+
+			// Find all missing methods.
+			$missing_methods = array();
+			foreach ( $curl_required_methods as $m ) {
+				if ( ! function_exists( $m ) ) {
+					$missing_methods[] = $m;
+				}
+			}
+
 			throw new Freemius_Exception( array(
-				'error' => (object) array(
+				'error'           => (object) array(
 					'type'    => 'cUrlMissing',
 					'message' => $pResult,
 					'code'    => 'curl_missing',
 					'http'    => 402
-				)
+				),
+				'missing_methods' => $missing_methods,
 			) );
 		}
 

@@ -1830,9 +1830,35 @@
 			) {
 				switch ( $api_result->error->code ) {
 					case 'curl_missing':
+						$missing_methods = '';
+						if (is_array($api_result->missing_methods) &&
+						    !empty($api_result->missing_methods)
+						) {
+							foreach ( $api_result->missing_methods as $m ) {
+								if ( 'curl_version' === $m ) {
+									continue;
+								}
+
+								if ( ! empty( $missing_methods ) ) {
+									$missing_methods .= ', ';
+								}
+
+								$missing_methods .= sprintf( '<code>%s</code>', $m );
+							}
+
+							if ( ! empty( $missing_methods ) ) {
+								$missing_methods = sprintf(
+									'<br><br><b>%s</b> %s',
+									__fs( 'curl-disabled-methods', $this->_slug ),
+									$missing_methods
+								);
+							}
+						}
+
 						$message = sprintf(
 							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
 							__fs( 'curl-missing-message', $this->_slug ) . ' ' .
+							$missing_methods .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
 							sprintf(
