@@ -6124,6 +6124,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _start_trial_ajax_action() {
+			$this->_logger->entrance();
+
 			check_ajax_referer( $this->get_action_tag( 'start_trial' ), 'security' );
 
 			if ( ! current_user_can( 'activate_plugins' ) ) {
