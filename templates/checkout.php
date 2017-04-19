@@ -48,6 +48,19 @@
 		$plugin_id = $fs->get_id();
 	}
 
+	if ( $plugin_id == $fs->get_id() ) {
+		$is_premium = $fs->is_premium();
+	}else {
+		// Identify the module code version of the checkout context module.
+		if ( $fs->is_addon_activated( $plugin_id ) ) {
+			$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
+			$is_premium = $fs_addon->is_premium();
+		} else {
+			// If add-on isn't activated assume the premium version isn't installed.
+			$is_premium = false;
+		}
+	}
+
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
 		$site = $fs->get_site();
@@ -110,6 +123,7 @@
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
 		'sdk_version'    => WP_FS__SDK_VERSION,
+		'is_premium'     => $is_premium ? 'true' : 'false',
 		'return_url'     => $return_url,
 		// Admin CSS URL for style/design competability.
 //		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
