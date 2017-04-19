@@ -4061,7 +4061,10 @@
 				$this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
 			}
 
-			if ( ! $this->_anonymous_mode && $this->has_api_connectivity( WP_FS__DEV_MODE ) ) {
+			if ( ! $this->_anonymous_mode &&
+			     $this->has_api_connectivity( WP_FS__DEV_MODE ) &&
+			     ! $this->_isAutoInstall
+			) {
 				// Store hint that the plugin was just activated to enable auto-redirection to settings.
 				add_option( "fs_{$this->_slug}_activated", true );
 			}
