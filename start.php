@@ -45,6 +45,46 @@
 		}
 	}
 
+	if ( empty( $fs_active_plugins->abspath ) ) {
+		/**
+		 * Store the WP install absolute path reference to identify environment change
+		 * while replicating the storage.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 */
+		$fs_active_plugins->abspath = ABSPATH;
+	} else {
+		if ( ABSPATH !== $fs_active_plugins->abspath ) {
+			/**
+			 * WordPress path has changed, cleanup the SDK references cache.
+			 * This resolves issues triggered when spinning a staging environments
+			 * while replicating the database.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.7
+			 */
+			$fs_active_plugins->abspath = ABSPATH;
+			$fs_active_plugins->plugins = array();
+			unset( $fs_active_plugins->newest );
+		} else {
+			/**
+			 * Make sure SDK references are still valid. This resolves
+			 * issues when users hard delete modules via FTP.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.7
+			 */
+			foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
+				if ( ! file_exists( WP_PLUGIN_DIR . '/' . $sdk_path ) ) {
+					unset( $fs_active_plugins->plugins[ $sdk_path ] );
+				}
+
+				update_option( 'fs_active_plugins', $fs_active_plugins );
+			}
+		}
+	}
+
 	if ( ! function_exists( 'fs_find_direct_caller_plugin_file' ) ) {
 		require_once dirname( __FILE__ ) . '/includes/supplements/fs-essential-functions-1.1.7.1.php';
 	}
