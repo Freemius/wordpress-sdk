@@ -695,7 +695,9 @@
 		 * @since       1.2.2
 		 *
 		 * @author      Vova Feldman (@svovaf)
-		 * @since 1.2.2.3 Find the earliest module in the call stack that calls to the SDK. This fix is for cases when add-ons are relying on loading the SDK from the parent module, and also allows themes including the SDK an internal file instead of directly from functions.php.
+		 * @since       1.2.2.3 Find the earliest module in the call stack that calls to the SDK. This fix is for cases
+		 *              when add-ons are relying on loading the SDK from the parent module, and also allows themes
+		 *              including the SDK an internal file instead of directly from functions.php.
 		 * @since       1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
 		 */
 		private function get_caller_main_file_and_type() {
