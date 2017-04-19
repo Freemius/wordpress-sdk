@@ -11796,8 +11796,6 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
-		 *
-		 * @return bool
 		 */
 		function set_plugin_upgrade_complete() {
 			$this->_storage->plugin_upgrade_mode = false;
