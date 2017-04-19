@@ -384,7 +384,7 @@
 		'connectivity-test-fails-message'          => _fs_text( 'From unknown reason, the API connectivity test failed.' ),
 		'connectivity-test-maybe-temporary'        => _fs_text( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?' ),
 		'curl-missing-message'                     => _fs_text( 'We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server.' ),
-		'curl-disabled-methods'                     => _fs_text( 'Disabled method(s):' ),
+		'curl-disabled-methods'                    => _fs_text( 'Disabled method(s):' ),
 		'cloudflare-blocks-connection-message'     => _fs_text( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.' ),
 		'x-requires-access-to-api'                 => _fs_x( '%s requires an access to our API.',
 			'as pluginX requires an access to our API' ),
@@ -467,7 +467,24 @@
 		'province'                                 => _fs_text( 'Province' ),
 		'zip-postal-code'                          => _fs_text( 'ZIP / Postal Code' ),
 		#endregion
-		'installing-plugin-x'                      => _fs_text( 'Installing plugin: %s' ),
+		#--------------------------------------------------------------------------------
+		#region Module Installation
+		#--------------------------------------------------------------------------------
+		'installing-plugin-x'                        => _fs_text( 'Installing plugin: %s' ),
+		'auto-installation'                          => _fs_text( 'Automatic Installation' ),
+		/* translators: %s: Number of seconds */
+		'x-sec'                                      => _fs_text( '%s sec' ),
+		'installing-in-n'                            => _fs_text( 'An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now.' ),
+		'installing-module-x'                        => _fs_text( 'The installation process has started and may take a few minutes to complete. Please wait until it is done - do not refresh this page.' ),
+		'cancel-installation'                        => _fs_text( 'Cancel Installation' ),
+		'module-package-rename-failure'              => _fs_text( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.' ),
+		'auto-install-error-invalid-id'              => _fs_text( 'Invalid module ID.' ),
+		'auto-install-error-not-opted-in'            => _fs_text( 'Auto installation only works for opted-in users.' ),
+		'auto-install-error-premium-activated'       => _fs_text( 'Premium version already active.' ),
+		'auto-install-error-premium-addon-activated' => _fs_text( 'Premium add-on version already installed.' ),
+		'auto-install-error-invalid-license'         => _fs_text( 'You do not have a valid license to access the premium version.' ),
+		'auto-install-error-serviceware'             => _fs_text( 'Plugin is a "Serviceware" which means it does not have a premium code version.' ),
+		#endregion
 	);
 
 	/**
