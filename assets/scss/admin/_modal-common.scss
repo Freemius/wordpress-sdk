@@ -46,6 +46,37 @@
 		}
 	}
 
+	&.fs-success {
+		.fs-modal-header {
+			border-bottom-color: $wp-notice-success-dark-color;
+		}
+
+		.fs-modal-body {
+			background-color: $wp-notice-success-color;
+		}
+	}
+
+	&.fs-warn {
+		.fs-modal-header {
+			border-bottom-color: $wp-notice-warn-dark-color;
+		}
+
+		.fs-modal-body {
+			background-color: $wp-notice-warn-color;
+		}
+	}
+
+	&.fs-error {
+		.fs-modal-header {
+			border-bottom-color: $wp-notice-error-dark-color;
+		}
+
+		.fs-modal-body {
+			background-color: $wp-notice-error-color;
+		}
+	}
+
+
 	.fs-modal-body,
 	.fs-modal-footer {
 		border: 0;
