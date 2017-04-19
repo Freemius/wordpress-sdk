@@ -6677,12 +6677,11 @@
 		 *
 		 * @param bool|number $plugin_id
 		 * @param bool        $add_action_nonce
+		 * @param array       $params
 		 *
 		 * @return string
 		 */
-		function _get_sync_license_url( $plugin_id = false, $add_action_nonce = true ) {
-			$params = array();
-
+		function _get_sync_license_url( $plugin_id = false, $add_action_nonce = true, $params = array() ) {
 			if ( is_numeric( $plugin_id ) ) {
 				$params['plugin_id'] = $plugin_id;
 			}
