@@ -10557,7 +10557,6 @@
 			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
 		}
 
-
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.5
@@ -11614,15 +11613,12 @@
 			}
 
 			if ( ! empty( $deactivate_link ) ) {
-				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
-					/*
+				/**
 				 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
 				 *
-					 * If user is paying or in trial and have the free version installed,
-					 * assume that the deactivation is for the upgrade process, so this is not needed.
+				 * @since 1.2.1.6 Always show the deactivation feedback form since we added automatic free version deactivation upon premium code activation.
 				 */
 				$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
-				}
 
 				// Append deactivation link.
 				$before_deactivate['deactivate'] = $deactivate_link;
