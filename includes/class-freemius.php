@@ -691,12 +691,12 @@
 		 *
 		 * @todo (Vova) When merging this branch with the theme's one, use the theme's one instead of this one.
 		 *
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.2
+		 * @author      Leo Fajardo (@leorw)
+		 * @since       1.2.2
 		 *
-		 * @author Vova Feldman (@svovaf)
+		 * @author      Vova Feldman (@svovaf)
 		 * @since 1.2.2.3 Find the earliest module in the call stack that calls to the SDK. This fix is for cases when add-ons are relying on loading the SDK from the parent module, and also allows themes including the SDK an internal file instead of directly from functions.php.
-		 * @since 1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
+		 * @since       1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
 		 */
 		private function get_caller_main_file_and_type() {
 			self::require_plugin_essentials();
@@ -1392,7 +1392,7 @@
 		 * @since  1.1.7.3
 		 */
 		static function _toggle_debug_mode() {
-			$is_on = fs_request_get('is_on', false, 'post');
+			$is_on = fs_request_get( 'is_on', false, 'post' );
 
 			if ( fs_request_is_post() && in_array( $is_on, array( 0, 1 ) ) ) {
 				update_option( 'fs_debug_mode', $is_on );
@@ -1410,7 +1410,7 @@
 		 */
 		static function _get_debug_log() {
 			$logs = FS_Logger::load_db_logs(
-				fs_request_get('filters', false, 'post'),
+				fs_request_get( 'filters', false, 'post' ),
 				! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
 				! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
 			);
@@ -1488,7 +1488,7 @@
 				check_admin_referer( 'download_logs' );
 
 				$download_url = FS_Logger::download_db_logs(
-					fs_request_get('filters', false, 'post')
+					fs_request_get( 'filters', false, 'post' )
 				);
 
 				if ( false === $download_url ) {
@@ -1836,8 +1836,8 @@
 				switch ( $api_result->error->code ) {
 					case 'curl_missing':
 						$missing_methods = '';
-						if (is_array($api_result->missing_methods) &&
-						    !empty($api_result->missing_methods)
+						if ( is_array( $api_result->missing_methods ) &&
+						     ! empty( $api_result->missing_methods )
 						) {
 							foreach ( $api_result->missing_methods as $m ) {
 								if ( 'curl_version' === $m ) {
@@ -2797,7 +2797,7 @@
 			// Set the secret key after storing the plugin, we don't want to store the key in the storage.
 			$this->_plugin->secret_key = $secret_key;
 
-			if (! isset( $plugin_info['menu'] )) {
+			if ( ! isset( $plugin_info['menu'] ) ) {
 				$plugin_info['menu'] = array();
 
 				if ( ! empty( $this->_storage->sdk_last_version ) &&
@@ -7982,7 +7982,7 @@
 						// Didn't ask to hide the pricing page.
 						$this->_menu->is_submenu_item_visible( 'pricing' ) &&
 						// Don't have a valid active license or has more than one plan.
-						( !$this->is_paying() || !$this->is_single_plan() )
+						( ! $this->is_paying() || ! $this->is_single_plan() )
 					);
 					// If user don't have paid plans, add pricing page
 					// to support add-ons checkout but don't add the submenu item.
@@ -11614,12 +11614,12 @@
 			if ( ! empty( $deactivate_link ) ) {
 				if ( ! $this->is_paying_or_trial() || $this->is_premium() ) {
 					/*
-					 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
-					 *
+				 * This HTML element is used to identify the correct plugin when attaching an event to its Deactivate link.
+				 *
 					 * If user is paying or in trial and have the free version installed,
 					 * assume that the deactivation is for the upgrade process, so this is not needed.
-					 */
-					$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
+				 */
+				$deactivate_link .= '<i class="fs-slug" data-slug="' . $this->_slug . '"></i>';
 				}
 
 				// Append deactivation link.
@@ -11747,6 +11747,19 @@
 
 			// Pass update decision to next filters
 			return $update;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $key
+		 *
+		 * @return string
+		 */
+		function get_text($key)
+		{
+			return __fs($key, $this->_slug);
 		}
 
 		#----------------------------------------------------------------------------------
