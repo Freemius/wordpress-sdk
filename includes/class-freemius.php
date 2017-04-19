@@ -4816,8 +4816,8 @@
 		 *
 		 * @return string
 		 */
-		private function premium_plugin_basename() {
-			return preg_replace( '/\//', '-premium/', $this->_free_plugin_basename, 1 );
+		function premium_plugin_basename() {
+			return "{$this->_slug}-premium/" . basename( $this->_free_plugin_basename );
 		}
 
 		/**
