@@ -11923,6 +11923,67 @@
 			self::shoot_ajax_success( $result );
 		}
 
+		/**
+		 * Displays module activation dialog box after a successful upgrade
+		 * where the user explicitly requested to auto download and install
+		 * the premium version.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 */
+		function _add_auto_installation_dialog_box() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_registered() ) {
+				// Not registered.
+				return;
+			}
+
+			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
+
+			if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+				// Invalid module ID.
+				return;
+			}
+
+			if ( $plugin_id == $this->get_id() ) {
+				if ( $this->is_premium() ) {
+					// Already using the premium code version.
+					return;
+				}
+				if ( ! $this->can_use_premium_code() ) {
+					// Don't have access to the premium code.
+					return;
+				}
+				if ( ! $this->has_release_on_freemius() ) {
+					// Plugin is a serviceware, no premium code version.
+					return;
+				}
+			} else {
+				$addon = $this->get_addon( $plugin_id );
+
+				if ( ! is_object( $addon ) ) {
+					// Invalid add-on ID.
+					return;
+				}
+
+				if ( $this->is_addon_activated( $plugin_id, true ) ) {
+					// Premium add-on version is already activated.
+					return;
+				}
+			}
+
+			$vars = array(
+				'id'   => $plugin_id,
+				'slug' => $this->_slug,
+			);
+
+			fs_require_template( 'auto-installation.php', $vars );
+		}
+
+		#endregion
+
+		#----------------------------------------------------------------------------------
 		#region Marketing
 		#----------------------------------------------------------------------------------
 

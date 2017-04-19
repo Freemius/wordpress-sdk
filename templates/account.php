@@ -38,6 +38,10 @@
 	if ( $fs->has_paid_plan() ) {
 		$fs->_add_license_activation_dialog_box();
 	}
+
+	if ( fs_request_get_bool( 'auto_install' ) ) {
+		$fs->_add_auto_installation_dialog_box();
+	}
 ?>
 	<div class="wrap">
 	<h2 class="nav-tab-wrapper">
