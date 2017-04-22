@@ -3949,7 +3949,7 @@
 
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
-					if ( ! $this->_menu->is_activation_page() ) {
+					if ( ! $this->_menu->is_main_settings_page() ) {
 						/**
 						 * If a user visits any other admin page before activating the premium-only theme with a valid
 						 * license, reactivate the previous theme.
@@ -4017,8 +4017,8 @@
 					}
 				}
 
-				if ( $this->_menu->is_activation_page()
-				     && $this->is_theme()
+				if ( $this->is_theme() &&
+				     $this->_menu->is_main_settings_page()
 				) {
 					$this->_show_theme_activation_optin_dialog();
 				}
@@ -8393,7 +8393,7 @@
 				}
 			}
 
-			if ( $this->_menu->is_activation_page() ) {
+			if ( $this->_menu->is_main_settings_page() ) {
 				// Clean admin page from distracting content.
 				self::_clean_admin_content_section();
 			}

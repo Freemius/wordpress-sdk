@@ -393,7 +393,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_activation_page() {
+		function is_main_settings_page() {
 			if ( $this->_menu_exists &&
 			     ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_unique_affix ) )
 			) {
