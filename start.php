@@ -31,7 +31,14 @@
 
 	global $fs_active_plugins;
 
-	$this_sdk_relative_path = plugin_basename( dirname( __FILE__ ) );
+	if ( ! function_exists( 'fs_find_caller_plugin_file' ) ) {
+		// Require SDK essentials.
+		require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
+	}
+
+	$file_path              = fs_normalize_path( __FILE__ );
+	$fs_root_path           = dirname( $file_path );
+	$this_sdk_relative_path = plugin_basename( $fs_root_path );
 
 	if ( ! isset( $fs_active_plugins ) ) {
 		if ( ! function_exists( '__fs' ) ) {
@@ -298,6 +305,8 @@
 			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
 		}
 
+		$plugins_or_theme_dir_path = WP_PLUGIN_DIR;
+
 		if ( 0 === strpos( $file_path, fs_normalize_path( $plugins_or_theme_dir_path ) ) ) {
 			// No symlinks
 		} else {
@@ -355,7 +364,7 @@
 				define( 'WP_FS__DIR', $sdk_symlink );
 			}
 		}
-		
+
 		// Load SDK files.
 		require_once dirname( __FILE__ ) . '/require.php';
 
