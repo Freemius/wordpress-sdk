@@ -211,7 +211,7 @@
 				});
 
 				FS.PostMessage.receiveOnce('install', function (data) {
-					var requestDate = {
+					var requestData = {
 						user_id           : data.user.id,
 						user_secret_key   : data.user.secret_key,
 						user_public_key   : data.user.public_key,
@@ -221,28 +221,28 @@
 					};
 
 					if (true === data.auto_install)
-						requestDate.auto_install = true;
+						requestData.auto_install = true;
 
 					// Post data to activation URL.
 					$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 						'fs_action' => $slug . '_activate_new',
 						'plugin_id' => $plugin_id
-					) ), $slug . '_activate_new' ) ?>', requestDate).submit();
+					) ), $slug . '_activate_new' ) ?>', requestData).submit();
 				});
 
 				FS.PostMessage.receiveOnce('pending_activation', function (data) {
-					var requestDate = {
+					var requestData = {
 						user_email: data.user_email
 					};
 
 					if (true === data.auto_install)
-						requestDate.auto_install = true;
+						requestData.auto_install = true;
 
 					$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 						'fs_action'          => $slug . '_activate_new',
 						'plugin_id'          => $plugin_id,
 						'pending_activation' => true,
-					) ), $slug . '_activate_new' ) ?>', requestDate).submit();
+					) ), $slug . '_activate_new' ) ?>', requestData).submit();
 				});
 
 				FS.PostMessage.receiveOnce('get_context', function () {
