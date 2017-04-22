@@ -2084,7 +2084,7 @@
 
 			// Add 'API Error' custom email section.
 			$custom_email_sections['api_error'] = array(
-				'title' => "API Error",
+				'title' => 'API Error',
 				'rows'  => array(
 					'ping' => array(
 						'API Error',
