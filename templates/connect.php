@@ -401,9 +401,21 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since 1.1.9
 		 */
-		var $connectLicenseModeTrigger = $('#fs_connect .fs-freemium-licensing a');
+		var
+			$connectLicenseModeTrigger = $('#fs_connect .fs-freemium-licensing a'),
+			href                       = window.location.href;
+
+		if (href.indexOf('?') > 0) {
+			href += '&';
+		} else {
+			href += '?';
+		}
+
 		if ($connectLicenseModeTrigger.length > 0) {
-			$connectLicenseModeTrigger.attr('href', window.location.href + '&require_license=' + $connectLicenseModeTrigger.attr('data-require-license'))
+			$connectLicenseModeTrigger.attr(
+				'href',
+				href + 'require_license=' + $connectLicenseModeTrigger.attr('data-require-license')
+			);
 		}
 	})(jQuery);
 </script>

@@ -213,7 +213,6 @@
 					// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
 					// passed via query string or hard coded into the child page, it depends on your needs).
 					src           = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
-
 					// Append the Iframe into the DOM.
 					iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
 						.appendTo('#iframe');

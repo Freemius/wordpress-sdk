@@ -651,7 +651,7 @@
 			if ( isset( $this->_storage->plugin_main_file ) ) {
 				$plugin_main_file = $this->_storage->plugin_main_file;
 				if ( isset( $plugin_main_file->path ) && file_exists( $plugin_main_file->path ) ) {
-					return $this->_storage->plugin_main_file->path;
+					return $plugin_main_file->path;
 				}
 			}
 
@@ -1081,7 +1081,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param $id
+		 * @param number $id
 		 *
 		 * @return false|Freemius
 		 */
@@ -1126,7 +1126,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param $slug_or_id
+		 * @param string|number $slug_or_id
 		 *
 		 * @return bool|Freemius
 		 */
@@ -1525,21 +1525,12 @@
 		static function _debug_page_render() {
 			self::$_static_logger->entrance();
 
-			$sites          = self::get_all_sites();
-			$users          = self::get_all_users();
-			$addons         = self::get_all_addons();
-			$account_addons = self::get_all_account_addons();
-			$licenses       = self::get_all_licenses();
-
-//			$plans    = self::get_all_plans();
-//			$licenses = self::get_all_licenses();
-
 			$vars = array(
-				'sites'          => $sites,
-				'users'          => $users,
-				'addons'         => $addons,
-				'account_addons' => $account_addons,
-				'licenses'       => $licenses,
+				'sites'          => self::get_all_sites(),
+				'users'          => self::get_all_users(),
+				'addons'         => self::get_all_addons(),
+				'account_addons' => self::get_all_account_addons(),
+				'licenses'       => self::get_all_licenses(),
 			);
 
 			fs_enqueue_local_style( 'fs_debug', '/admin/debug.css' );
@@ -3055,6 +3046,8 @@
 		 * @return bool
 		 */
 		function is_addon_activated( $slug_or_id, $is_premium = null ) {
+			$this->_logger->entrance();
+
 			$is_activated = self::has_instance( $slug_or_id );
 
 			if ( ! $is_activated ) {
@@ -3081,6 +3074,8 @@
 		 * @return bool
 		 */
 		function is_addon_connected( $slug ) {
+			$this->_logger->entrance();
+
 			$sites = self::get_all_sites();
 
 			if ( ! isset( $sites[ $slug ] ) ) {
@@ -3116,6 +3111,8 @@
 		 * @return bool
 		 */
 		function is_addon_installed( $slug ) {
+			$this->_logger->entrance();
+
 			return file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->get_addon_basename( $slug ) ) );
 		}
 
@@ -8319,8 +8316,10 @@
 
 		#endregion ------------------------------------------------------------------
 
-		/* Actions / Hooks / Filters
-		------------------------------------------------------------------------------------------------------------------*/
+		#--------------------------------------------------------------------------------
+		#region Actions / Hooks / Filters
+		#--------------------------------------------------------------------------------
+
 		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7
@@ -8407,7 +8406,12 @@
 		 *
 		 * @uses   add_action()
 		 */
-		function add_action( $tag, $function_to_add, $priority = WP_FS__DEFAULT_PRIORITY, $accepted_args = 1 ) {
+		function add_action(
+			$tag,
+			$function_to_add,
+			$priority = WP_FS__DEFAULT_PRIORITY,
+			$accepted_args = 1
+		) {
 			$this->_logger->entrance( $tag );
 
 			add_action( $this->get_action_tag( $tag ), $function_to_add, $priority, $accepted_args );
@@ -8581,6 +8585,8 @@
 
 			return has_filter( $this->get_action_tag( $tag ), $function_to_check );
 		}
+
+		#endregion
 
 		/**
 		 * Override default i18n text phrases.
