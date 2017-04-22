@@ -1031,9 +1031,13 @@
 		 * @param string $slug
 		 * @param bool   $is_init Is initiation sequence.
 		 *
-		 * @return Freemius
+		 * @return Freemius|false
 		 */
 		static function instance( $slug, $is_init = false ) {
+			if ( empty( $slug ) ) {
+				return false;
+			}
+
 			$slug = strtolower( $slug );
 
 			if ( ! isset( self::$_instances[ $slug ] ) ) {
