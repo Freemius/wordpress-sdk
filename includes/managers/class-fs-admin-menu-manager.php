@@ -607,7 +607,7 @@
 				unset( $menu[ $found_menu['position'] ] );
 
 				// Create new top-level menu action.
-				$hookname = add_menu_page(
+				$hookname = self::add_page(
 					$found_menu['menu'][3],
 					$found_menu['menu'][0],
 					'manage_options',
