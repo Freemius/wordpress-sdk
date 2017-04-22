@@ -59,11 +59,9 @@
 		}
 	}
 
-	if ( ! FS_SDK__HAS_CURL ) {
-		$curl_version = array( 'version' => '7.0.0' );
-	} else {
-		$curl_version = curl_version();
-	}
+	$curl_version = FS_SDK__HAS_CURL ?
+		curl_version() :
+		array( 'version' => '7.37' );
 
 	if ( ! defined( 'FS_API__PROTOCOL' ) ) {
 		define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
@@ -113,7 +111,9 @@
 			return $address . $pCanonizedPath;
 		}
 
-		#region Servers Clock Diff ------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Servers Clock Diff
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * @var int Clock diff in seconds between current server to API server.
@@ -144,7 +144,7 @@
 			return ( $time - strtotime( $pong->timestamp ) );
 		}
 
-		#endregion Servers Clock Diff ------------------------------------------------------
+		#endregion
 
 		/**
 		 * @var string http or https
@@ -364,7 +364,7 @@
 
 			$resource = explode( '?', $pCanonizedPath );
 
-			// disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
+			// Disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
 			// for 2 seconds if the server does not support this header.
 			$opts[ CURLOPT_HTTPHEADER ][] = 'Expect:';
 
@@ -480,8 +480,9 @@
 			);
 		}
 
-		#region Connectivity Test ------------------------------------------------------
-
+		#----------------------------------------------------------------------------------
+		#region Connectivity Test
+		#----------------------------------------------------------------------------------
 		/**
 		 * If successful connectivity to the API endpoint using ping.json endpoint.
 		 *
@@ -531,9 +532,11 @@
 			return $result;
 		}
 
-		#endregion Connectivity Test ------------------------------------------------------
+		#endregion
 
-		#region Connectivity Exceptions ------------------------------------------------------
+		#----------------------------------------------------------------------------------
+		#region Connectivity Exceptions
+		#----------------------------------------------------------------------------------
 
 		/**
 		 * @param resource $pCurlHandler
@@ -620,5 +623,5 @@
 			) );
 		}
 
-		#endregion Connectivity Exceptions ------------------------------------------------------
+		#endregion
 	}
