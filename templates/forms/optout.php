@@ -81,7 +81,7 @@ HTML;
 			action               = '<?php echo $action ?>',
 			optOutActionTag      = '<?php echo $fs->get_action_tag( 'stop_tracking' ) ?>',
 			optInActionTag       = '<?php echo $fs->get_action_tag( 'allow_tracking' ) ?>',
-			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $VARS['slug'] ?> a' ),
+			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $slug ?> a' ),
 			$optOutButton        = $modal.find( '.button-opt-out' ),
 			$optOutErrorMessage  = $modal.find( '.opt-out-error-message' ),
 			pluginSlug           = '<?php echo $slug ?>';
@@ -135,7 +135,7 @@ HTML;
 
 		function resetOptOutButton() {
 			enableOptOutButton();
-			$optOutButton.text( <?php echo json_encode($opt_out_button_text) ?> );
+			$optOutButton.text( <?php echo json_encode( $opt_out_button_text ) ?> );
 		}
 
 		function resetModal() {
