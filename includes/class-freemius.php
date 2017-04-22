@@ -6825,7 +6825,7 @@
 
 		/* Security
 		------------------------------------------------------------------------------------------------------------------*/
-		private function _encrypt( $str ) {
+		private static function _encrypt( $str ) {
 			if ( is_null( $str ) ) {
 				return null;
 			}
@@ -6848,7 +6848,7 @@
 			return $fn( $str );
 		}
 
-		private function _decrypt( $str ) {
+		static function _decrypt( $str ) {
 			if ( is_null( $str ) ) {
 				return null;
 			}
@@ -6879,12 +6879,12 @@
 		 *
 		 * @return FS_Entity Return an encrypted clone entity.
 		 */
-		private function _encrypt_entity( FS_Entity $entity ) {
+		private static function _encrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
 			$props = get_object_vars( $entity );
 
 			foreach ( $props as $key => $val ) {
-				$clone->{$key} = $this->_encrypt( $val );
+				$clone->{$key} = self::_encrypt( $val );
 			}
 
 			return $clone;
@@ -6898,12 +6898,12 @@
 		 *
 		 * @return FS_Entity Return an decrypted clone entity.
 		 */
-		private function _decrypt_entity( FS_Entity $entity ) {
+		private static function _decrypt_entity( FS_Entity $entity ) {
 			$clone = clone $entity;
 			$props = get_object_vars( $entity );
 
 			foreach ( $props as $key => $val ) {
-				$clone->{$key} = $this->_decrypt( $val );
+				$clone->{$key} = self::_decrypt( $val );
 			}
 
 			return $clone;
@@ -7021,7 +7021,7 @@
 			) {
 				// Load site.
 				$this->_site       = clone $site;
-				$this->_site->plan = $this->_decrypt_entity( $this->_site->plan );
+				$this->_site->plan = self::_decrypt_entity( $this->_site->plan );
 
 				// Load relevant user.
 				$this->_user = clone $users[ $this->_site->user_id ];
@@ -7033,7 +7033,7 @@
 				} else {
 					for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
 						if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
-							$this->_plans[ $i ] = $this->_decrypt_entity( $this->_plans[ $i ] );
+							$this->_plans[ $i ] = self::_decrypt_entity( $this->_plans[ $i ] );
 						} else {
 							unset( $this->_plans[ $i ] );
 						}
@@ -8654,7 +8654,7 @@
 			}
 
 			$encrypted_site       = clone $this->_site;
-			$encrypted_site->plan = $this->_encrypt_entity( $this->_site->plan );
+			$encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
 
 			$sites                 = self::get_all_sites();
 			$sites[ $this->_slug ] = $encrypted_site;
@@ -8677,7 +8677,7 @@
 			// Copy plans.
 			$encrypted_plans = array();
 			for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-				$encrypted_plans[] = $this->_encrypt_entity( $this->_plans[ $i ] );
+				$encrypted_plans[] = self::_encrypt_entity( $this->_plans[ $i ] );
 			}
 
 			$plans[ $this->_slug ] = $encrypted_plans;
