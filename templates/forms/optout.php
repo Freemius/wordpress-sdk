@@ -161,7 +161,7 @@ HTML;
 				},
 				beforeSend: function() {
 					if ( 'opt-in' == action ) {
-						$actionLink.text( <?php fs_json_encode_echo( 'opting-in', $slug ) ?> )
+						$actionLink.text( <?php fs_json_encode_echo( 'opting-in', $slug ) ?> );
 					} else {
 						$optOutButton.text( <?php fs_json_encode_echo( 'opting-out', $slug ) ?> );
 					}

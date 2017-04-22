@@ -279,7 +279,7 @@
 
 				$(document).ready(updateHeight);
 
-				$(window).resize(updateHeight)
+				$(window).resize(updateHeight);
 			});
 		})(jQuery);
 	</script>
