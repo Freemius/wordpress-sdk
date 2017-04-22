@@ -6647,7 +6647,14 @@
 				}
 			}
 
-			if ( $this->_menu->has_menu_slug() && ! $this->_menu->is_top_level() ) {
+			if ( empty( $page ) && ! $this->has_settings_menu() ) {
+				return add_query_arg(
+					$params,
+					admin_url( 'plugins.php' )
+				);
+			}
+
+			if ( ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
 					$parent_slug :
