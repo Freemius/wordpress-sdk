@@ -7820,6 +7820,8 @@
 				     fs_request_is_action( $this->_slug . '_activate_new' )
 				) {
 					$this->_install_with_new_user();
+				} else if ( fs_request_is_action( 'sync_user' ) && ! $this->has_settings_menu() ) {
+					$this->_handle_account_user_sync();
 				}
 			}
 		}
