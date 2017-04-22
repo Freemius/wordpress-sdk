@@ -357,9 +357,9 @@
 						<?php endif ?>
 					<?php
 					elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-						<button class="button button-small fs-toggle-visibility"><?php echo esc_html( __fs( 'show', $slug ) ) ?></button>
+						<button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo( 'show', $slug ) ?></button>
 						<?php if ('license_key' === $p['id']) : ?>
-						<button class="button button-small activate-license-trigger <?php echo $slug ?>"><?php echo esc_html( __fs( 'change-license', $slug ) ) ?></button>
+						<button class="button button-small activate-license-trigger <?php echo $slug ?>"><?php fs_esc_html_echo( 'change-license', $slug ) ?></button>
 						<?php endif ?>
 					<?php
 					elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/
@@ -369,7 +369,7 @@
 						) ) )
 					) : ?>
 						<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST"
-						      onsubmit="var val = prompt('<?php printf( __fs( 'what-is-your-x', $slug ), $p['title'] ) ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
+						      onsubmit="var val = prompt('<?php echo esc_attr( sprintf( __fs( 'what-is-your-x', $slug ), $p['title'] ) ) ?>', '<?php echo $p['value'] ?>'); if (null == val || '' === val) return false; jQuery('input[name=fs_<?php echo $p['id'] ?>_<?php echo $slug ?>]').val(val); return true;">
 							<input type="hidden" name="fs_action" value="update_<?php echo $p['id'] ?>">
 							<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $slug ?>"
 							       value="">

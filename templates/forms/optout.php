@@ -71,7 +71,7 @@ HTML;
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
 				+ '			<button class="button button-secondary button-opt-out" tabindex="1"><?php echo esc_js($opt_out_button_text) ?></button>'
-				+ '			<button class="button button-primary button-close" tabindex="2"><?php echo esc_js( __fs( 'opt-out-cancel', $slug ) ) ?></button>'
+				+ '			<button class="button button-primary button-close" tabindex="2"><?php fs_esc_js_echo( 'opt-out-cancel', $slug ) ?></button>'
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
