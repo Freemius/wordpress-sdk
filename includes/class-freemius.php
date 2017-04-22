@@ -2215,7 +2215,7 @@
 			$message = fs_get_template( 'email.php', $vars );
 
 			// Set the type of email to HTML.
-			$headers[] = 'Content-type: text/html;  charset=UTF-8';
+			$headers[] = 'Content-type: text/html; charset=UTF-8';
 
 			$header_string = implode( "\r\n", $headers );
 
@@ -3383,7 +3383,7 @@
 		private function run_manual_sync() {
 			$this->require_pluggable_essentials();
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				return;
 			}
 
@@ -4004,7 +4004,7 @@
 		function _activate_plugin_event_hook() {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				return;
 			}
 
@@ -4110,7 +4110,7 @@
 		function delete_account_event( $check_user = true ) {
 			$this->_logger->entrance( 'slug = ' . $this->_slug );
 
-			if ( $check_user && ! current_user_can( 'activate_plugins' ) ) {
+			if ( $check_user && ! $this->is_user_admin() ) {
 				return;
 			}
 
@@ -6064,7 +6064,7 @@
 		 * @since  1.2.0
 		 */
 		function _add_license_activation() {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				// Only admins can activate a license.
 				return;
 			}
@@ -6105,7 +6105,7 @@
 				exit;
 			}
 
-			$slug      = fs_request_get( 'slug', '', 'post' );
+			$slug = fs_request_get( 'slug', '', 'post' );
 			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
 			$error     = false;
 			$next_page = false;
@@ -6159,7 +6159,7 @@
 		function _update_billing_ajax_action() {
 			check_ajax_referer( $this->get_action_tag( 'update_billing' ), 'security' );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				// Only for admins.
 				self::shoot_ajax_failure();
 			}
@@ -6192,7 +6192,7 @@
 
 			check_ajax_referer( $this->get_action_tag( 'start_trial' ), 'security' );
 
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				// Only for admins.
 				self::shoot_ajax_failure();
 			}
@@ -9260,6 +9260,20 @@
 		}
 
 		/**
+		 * Checks if the current user can activate plugins or switch themes. Note that this method should only be used
+		 * after the `init` action is triggered because it is using `current_user_can()` which is only functional after
+		 * the context user is authenticated.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_user_admin() {
+			return current_user_can( 'activate_plugins' );
+		}
+
+		/**
 		 * Sync site's plan.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -10618,7 +10632,7 @@
 		 *
 		 */
 		private function _handle_account_edits() {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				return;
 			}
 
@@ -11190,7 +11204,7 @@
 		 * @return bool If trial notice added.
 		 */
 		function _add_trial_notice() {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
+			if ( ! $this->is_user_admin() ) {
 				return false;
 			}
 
