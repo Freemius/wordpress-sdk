@@ -3750,7 +3750,7 @@
 
 			if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
 				if ( ! $this->is_pending_activation() ) {
-					if ( ! $this->_menu->is_activation_page() ) {
+					if ( ! $this->_menu->is_main_settings_page() ) {
 						if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
@@ -7895,7 +7895,7 @@
 				}
 			}
 
-			if ( $this->_menu->is_activation_page() ) {
+			if ( $this->_menu->is_main_settings_page() ) {
 				// Clean admin page from distracting content.
 				self::_clean_admin_content_section();
 			}

@@ -383,10 +383,20 @@
 		 *
 		 * @return bool
 		 */
-		function is_activation_page() {
-			return isset( $_GET['page'] ) &&
-			       ( ( strtolower( $this->_menu_slug ) === strtolower( $_GET['page'] ) ) ||
-			         ( strtolower( $this->_plugin_slug ) === strtolower( $_GET['page'] ) ) );
+		function is_main_settings_page() {
+			if ( $this->_menu_exists &&
+			     ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_plugin_slug ) )
+			) {
+				/**
+				 * Module has a settings menu and the context page is the main settings page, so assume it's in
+				 * activation (doesn't really check if already opted-in/skipped or not).
+				 *
+				 * @since 1.2.2
+				 */
+				return true;
+			}
+
+			return false;
 		}
 
 		#region Submenu Override
