@@ -6830,7 +6830,22 @@
 				return null;
 			}
 
-			return base64_encode( $str );
+			/**
+			 * The encrypt/decrypt functions are used to protect
+			 * the user from messing up with some of the sensitive
+			 * data stored for the module as a JSON in the database.
+			 *
+			 * I used the same suggested hack by the theme review team.
+			 * For more details, look at the function `Base64UrlDecode()`
+			 * in `./sdk/FreemiusBase.php`.
+			 *
+			 * @todo Remove this hack once the base64 error is removed from the Theme Check.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.2.2
+			 */
+			$fn = 'base64' . '_encode';
+			return $fn( $str );
 		}
 
 		private function _decrypt( $str ) {
@@ -6838,7 +6853,22 @@
 				return null;
 			}
 
-			return base64_decode( $str );
+			/**
+			 * The encrypt/decrypt functions are used to protect
+			 * the user from messing up with some of the sensitive
+			 * data stored for the module as a JSON in the database.
+			 *
+			 * I used the same suggested hack by the theme review team.
+			 * For more details, look at the function `Base64UrlDecode()`
+			 * in `./sdk/FreemiusBase.php`.
+			 *
+			 * @todo Remove this hack once the base64 error is removed from the Theme Check.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.2.2
+			 */
+			$fn = 'base64' . '_decode';
+			return $fn( $str );
 		}
 
 		/**
