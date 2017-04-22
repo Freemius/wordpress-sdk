@@ -186,26 +186,26 @@
 		$permissions = array(
 			'profile' => array(
 				'icon-class' => 'dashicons dashicons-admin-users',
-				'label'      => __fs( 'permissions-profile' ),
-				'desc'       => __fs( 'permissions-profile_desc' ),
+				'label'      => $fs->get_text( 'permissions-profile' ),
+				'desc'       => $fs->get_text( 'permissions-profile_desc' ),
 				'priority'   => 5,
 			),
 			'site'    => array(
 				'icon-class' => 'dashicons dashicons-admin-settings',
-				'label'      => __fs( 'permissions-site' ),
-				'desc'       => __fs( 'permissions-site_desc' ),
+				'label'      => $fs->get_text( 'permissions-site' ),
+				'desc'       => $fs->get_text( 'permissions-site_desc' ),
 				'priority'   => 10,
 			),
 			'notices'  => array(
 				'icon-class' => 'dashicons dashicons-testimonial',
-				'label'      => __fs( 'permissions-admin-notices' ),
-				'desc'       => __fs( 'permissions-newsletter_desc' ),
+				'label'      => $fs->get_text( 'permissions-admin-notices' ),
+				'desc'       => $fs->get_text( 'permissions-newsletter_desc' ),
 				'priority'   => 13,
 			),
 			'events'  => array(
 				'icon-class' => 'dashicons dashicons-admin-plugins',
-				'label'      => __fs( 'permissions-events' ),
-				'desc'       => __fs( 'permissions-events_desc' ),
+				'label'      => $fs->get_text( 'permissions-events' ),
+				'desc'       => $fs->get_text( 'permissions-events_desc' ),
 				'priority'   => 20,
 			),
 //			'plugins_themes' => array(
@@ -220,8 +220,8 @@
 		if ( $fs->is_permission_requested( 'newsletter' ) ) {
 			$permissions['newsletter'] = array(
 				'icon-class' => 'dashicons dashicons-email-alt',
-				'label'      => __fs( 'permissions-newsletter' ),
-				'desc'       => __fs( 'permissions-newsletter_desc' ),
+				'label'      => $fs->get_text( 'permissions-newsletter' ),
+				'desc'       => $fs->get_text( 'permissions-newsletter_desc' ),
 				'priority'   => 15,
 			);
 		}
