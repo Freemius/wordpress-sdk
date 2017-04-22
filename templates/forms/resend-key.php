@@ -226,10 +226,6 @@ HTML;
 				$sendButton.toggleClass('disabled', !( -1 < getEmail().indexOf('@') ));
 			}
 
-			function enableButton() {
-				$sendButton.removeClass('disabled');
-			}
-
 			function disableButton() {
 				$sendButton.addClass('disabled');
 			}
