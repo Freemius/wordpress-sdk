@@ -78,13 +78,13 @@ $useIEFilters: 0;
 }
 
 // requires sass 3.2
-//@mixin keyframes {
-//     @-moz-keyframes { @content; }
-//      @-ms-keyframes { @content; }
-//       @-o-keyframes { @content; }
-//  @-webkit-keyframes { @content; }
-//          @keyframes { @content; }
-//}
+@mixin keyframes($name){
+     @-moz-keyframes #{$name} { @content; }
+      @-ms-keyframes #{$name} { @content; }
+       @-o-keyframes #{$name} { @content; }
+  @-webkit-keyframes #{$name} { @content; }
+          @keyframes #{$name} { @content; }
+}
 
 @mixin linear-gradient($from, $to, $ie: $useIEFilters) {
   @if $ie != 1 { background-color: $to; }
@@ -190,6 +190,62 @@ $useIEFilters: 0;
       -ms-transition: $value;
   -webkit-transition: $value;
           transition: $value;
+}
+
+@mixin animation($str) {
+    -webkit-animation: #{$str};
+    -moz-animation: #{$str};
+    -ms-animation: #{$str};
+    -o-animation: #{$str};
+    animation: #{$str};
+}
+
+@mixin animation-name($str) {
+    -webkit-animation-name: #{$str};
+    -moz-animation-name: #{$str};
+    -ms-animation-name: #{$str};
+    -o-animation-name: #{$str};
+    animation-name: #{$str};
+}
+
+@mixin animation-duration($str) {
+    -webkit-animation-duration: #{$str};
+    -moz-animation-duration: #{$str};
+    -ms-animation-duration: #{$str};
+    -o-animation-duration: #{$str};
+    animation-duration: #{$str};
+}
+
+@mixin animation-direction($str) {
+    -webkit-animation-direction: #{$str};
+    -moz-animation-direction: #{$str};
+    -ms-animation-direction: #{$str};
+    -o-animation-direction: #{$str};
+    animation-direction: #{$str};
+}
+
+@mixin animation-delay($str) {
+    animation-delay:#{$str};
+    -o-animation-delay:#{$str};
+    -ms-animation-delay:#{$str};
+    -webkit-animation-delay:#{$str};
+    -moz-animation-delay:#{$str};
+}
+
+@mixin animation-iteration-count($str) {
+    animation-iteration-count:#{$str};
+    -o-animation-iteration-count:#{$str};
+    -ms-animation-iteration-count:#{$str};
+    -webkit-animation-iteration-count:#{$str};
+    -moz-animation-iteration-count:#{$str};
+}
+
+@mixin animation-timing-function($str) {
+    -webkit-animation-timing-function: #{$str};
+    -moz-animation-timing-function: #{$str};
+    -ms-animation-timing-function: #{$str};
+    -o-animation-timing-function: #{$str};
+    animation-timing-function: #{$str};
 }
 
 // ==== /CSS3 SASS MIXINS ====

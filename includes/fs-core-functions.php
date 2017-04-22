@@ -132,13 +132,32 @@
 	/* Request handlers.
 	--------------------------------------------------------------------------------------------*/
 	/**
-	 * @param string $key
-	 * @param mixed  $def
+	 * @param string      $key
+	 * @param mixed       $def
+	 * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
+	 *                          set to 'post' will look for the value passed via the POST request's body, otherwise,
+	 *                          will check if the parameter was passed in any of the two.
 	 *
 	 * @return mixed
 	 */
-	function fs_request_get( $key, $def = false ) {
-		return isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+	function fs_request_get( $key, $def = false, $type = false ) {
+		if ( is_string( $type ) ) {
+			$type = strtolower( $type );
+		}
+
+		switch ( $type ) {
+			case 'post':
+				$value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
+				break;
+			case 'get':
+				$value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
+				break;
+			default:
+				$value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+				break;
+		}
+
+		return $value;
 	}
 
 	function fs_request_has( $key ) {
@@ -224,7 +243,11 @@
 	}
 
 	function fs_is_plugin_page( $menu_slug ) {
-		return ( is_admin() && isset( $_REQUEST['page'] ) && $_REQUEST['page'] === $menu_slug );
+		return (
+			is_admin() &&
+			isset( $_REQUEST['page'] ) &&
+			$_REQUEST['page'] === $menu_slug
+		);
 	}
 
 	/* Core UI.
@@ -557,7 +580,7 @@
 	/**
 	 * VERY IMPORTANT ----------------------------------------------
 	 *
-	 * @todo IMPORTANT - After merging to main branch rename _efs() to fs_echo() and __fs() to fs_translate(). Otherwise, if a there's a plugin that runs version < 1.2.2 some of the translation in the plugin dialog will not be translated correctly.
+	 * @todo IMPORTANT - After merging to main branch rename _efs() to fs_echo() and __fs() to fs_text(). Otherwise, if there's a plugin that runs version < 1.2.2 some of the translation in the plugin dialog will not be translated correctly.
 	 *
 	 * VERY IMPORTANT ----------------------------------------------
 	 */
@@ -572,7 +595,7 @@
 		 * Retrieve a translated text by key.
 		 *
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.4
+		 * @since  1.2.1.7
 		 *
 		 * @param string $key
 		 * @param string $slug
@@ -581,7 +604,7 @@
 		 *
 		 * @global       $fs_text , $fs_text_overrides
 		 */
-		function __fs( $key, $slug = 'freemius' ) {
+		function fs_text( $key, $slug = 'freemius' ) {
 			global $fs_text,
 			       $fs_module_info_text,
 			       $fs_text_overrides;
@@ -617,7 +640,41 @@
 		}
 
 		/**
-		 * Display a translated text by key.
+		 * Retrieve a translated text by key.
+		 *
+		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.4
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 *
+		 * @return string
+		 *
+		 * @global       $fs_text , $fs_text_overrides
+		 */
+		function __fs( $key, $slug = 'freemius' ) {
+			return fs_text($key, $slug);
+		}
+
+		/**
+		 * Output a translated text by key.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 */
+		function fs_echo( $key, $slug = 'freemius' ) {
+			echo fs_text( $key, $slug );
+		}
+
+		/**
+		 * Output a translated text by key.
+		 *
+		 * @deprecated Use `fs_echo()` instead for consistency with `fs_text()`.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
@@ -626,7 +683,7 @@
 		 * @param string $slug
 		 */
 		function _efs( $key, $slug = 'freemius' ) {
-			echo __fs( $key, $slug );
+			fs_echo( $key, $slug );
 		}
 	}
 
@@ -742,4 +799,4 @@
 		echo esc_html( __fs( $key, $slug ) );
 	}
 
-	#endregion
+#endregion

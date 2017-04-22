@@ -109,7 +109,7 @@
 		 * @param string $module_type
 		 * @param string $module_unique_affix
 		 *
-		 * @return FS_Admin_Notice_Manager
+		 * @return FS_Admin_Menu_Manager
 		 */
 		static function instance( $module_id, $module_type, $module_unique_affix ) {
 			$key = 'm_' . $module_id;
@@ -258,16 +258,6 @@
 		function has_menu() {
 			return $this->_menu_exists;
 		}
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.3
-		 *
-		 * @return string
-		 */
-//		function slug(){
-//			return $this->_menu_slug;
-//		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -587,7 +577,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @return array[string]mixed
+		 * @return false|array[string]mixed
 		 */
 		function remove_menu_item() {
 			$this->_logger->entrance();
@@ -614,7 +604,7 @@
 		 *
 		 * @param callable $function
 		 *
-		 * @return array[string]mixed
+		 * @return false|array[string]mixed
 		 */
 		function override_menu_item( $function ) {
 			$found_menu = $this->remove_menu_item();

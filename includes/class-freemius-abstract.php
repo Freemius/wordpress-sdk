@@ -28,7 +28,13 @@
 		#----------------------------------------------------------------------------------
 
 		/**
-		 * Check if user registered with Freemius by connecting his account.
+		 * Check if user has connected his account (opted-in).
+		 *
+		 * Note:
+		 *      If the user opted-in and opted-out on a later stage,
+		 *      this will still return true. If you want to check if the
+		 *      user is currently opted-in, use:
+		 *          `$fs->is_registered() && $fs->is_tracking_allowed()`
 		 *
 		 * @since 1.0.1
 		 * @return bool
@@ -469,6 +475,16 @@
 			return $this->has_paid_plan() &&
 			       $this->has_free_plan();
 		}
+
+		/**
+		 * Check if module has only one plan.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @return bool
+		 */
+		abstract function is_single_plan();
 
 		#endregion
 

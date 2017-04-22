@@ -22,7 +22,7 @@
 	 * pinging me on slack, my username is @svovaf.
 	 *
 	 * @author Vova Feldman (@svovaf)
-	 * @since 1.2.2
+	 * @since  1.2.2
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -35,21 +35,56 @@
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
+	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
+
+	/**
+	 * @var array    $VARS
+	 * @var Freemius $fs
+	 */
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
 	$timestamp = time();
 
 	$context_params = array(
-		'plugin_id'         => $fs->get_id(),
-		'plugin_public_key' => $fs->get_public_key(),
-		'plugin_version'    => $fs->get_plugin_version(),
+		'plugin_id'      => $fs->get_id(),
+		'public_key'     => $fs->get_public_key(),
+		'plugin_version' => $fs->get_plugin_version(),
+		'mode'           => 'dashboard',
+		'trial'          => fs_request_get_bool( 'trial' ),
 	);
+
+	$plan_id = fs_request_get( 'plan_id' );
+	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
+		$context_params['plan_id'] = $plan_id;
+	}
+
+	$licenses = fs_request_get( 'licenses' );
+	if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
+		$context_params['licenses'] = $licenses;
+	}
+
+	$plugin_id = fs_request_get( 'plugin_id' );
+	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+		$plugin_id = $fs->get_id();
+	}
+
+	if ( $plugin_id == $fs->get_id() ) {
+		$is_premium = $fs->is_premium();
+	} else {
+		// Identify the module code version of the checkout context module.
+		if ( $fs->is_addon_activated( $plugin_id ) ) {
+			$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
+			$is_premium = $fs_addon->is_premium();
+		} else {
+			// If add-on isn't activated assume the premium version isn't installed.
+			$is_premium = false;
+		}
+	}
 
 	// Get site context secure params.
 	if ( $fs->is_registered() ) {
-		$site      = $fs->get_site();
-		$plugin_id = fs_request_get( 'plugin_id', $fs->get_id() );
+		$site = $fs->get_site();
 
 		if ( $plugin_id != $fs->get_id() ) {
 			if ( $fs->is_addon_activated( $plugin_id ) ) {
@@ -103,18 +138,24 @@
 		}
 	}
 
-	$return_url = $fs->_get_sync_license_url( isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id() );
+	$return_url = $fs->_get_sync_license_url( $plugin_id );
 
 	$query_params = array_merge( $context_params, $_GET, array(
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
 		'sdk_version'    => WP_FS__SDK_VERSION,
+		'is_premium'     => $is_premium ? 'true' : 'false',
 		'return_url'     => $return_url,
 		// Admin CSS URL for style/design competability.
 //		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) );
+
+	$xdebug_session = fs_request_get( 'XDEBUG_SESSION' );
+	if ( false !== $xdebug_session ) {
+		$query_params['XDEBUG_SESSION'] = $xdebug_session;
+	}
 ?>
-	<div id="fs_checkout" class="wrap" style="margin: 0 0 -65px -20px;">
+	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
 		<div id="frame"></div>
 		<script type="text/javascript">
 			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
@@ -167,16 +208,15 @@
 				$(function () {
 
 					var
-					// Keep track of the i-frame height.
-					frame_height = 800,
-					base_url     = '<?php echo WP_FS__ADDRESS ?>',
-					// Pass the parent page URL into the i-frame in a meaningful way (this URL could be
-					// passed via query string or hard coded into the child page, it depends on your needs).
-					src          = base_url + '/checkout/?<?php echo (isset($_REQUEST['XDEBUG_SESSION']) ? 'XDEBUG_SESSION=' . $_REQUEST['XDEBUG_SESSION'] . '&' : '') . http_build_query($query_params) ?>#' + encodeURIComponent(document.location.href),
-
-					// Append the i-frame into the DOM.
-					frame        = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/i' + 'frame>')
-						.appendTo('#frame');
+						// Keep track of the i-frame height.
+						frame_height = 800,
+						base_url     = '<?php echo FS_CHECKOUT__ADDRESS ?>',
+						// Pass the parent page URL into the i-frame in a meaningful way (this URL could be
+						// passed via query string or hard coded into the child page, it depends on your needs).
+						src          = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
+						// Append the i-frame into the DOM.
+						frame        = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/i' + 'frame>')
+							.appendTo('#frame');
 
 					FS.PostMessage.init(base_url, [frame[0]]);
 					FS.PostMessage.receiveOnce('height', function (data) {
@@ -190,28 +230,38 @@
 					});
 
 					FS.PostMessage.receiveOnce('install', function (data) {
-						// Post data to activation URL.
-						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-							'fs_action' => $fs->get_unique_affix() . '_activate_new',
-							'plugin_id' => isset( $_GET['plugin_id'] ) ? $_GET['plugin_id'] : $fs->get_id()
-							) ), $fs->get_unique_affix() . '_activate_new' ) ?>', {
+						var requestData = {
 							user_id           : data.user.id,
 							user_secret_key   : data.user.secret_key,
 							user_public_key   : data.user.public_key,
 							install_id        : data.install.id,
 							install_secret_key: data.install.secret_key,
 							install_public_key: data.install.public_key
-						}).submit();
+						};
+
+						if (true === data.auto_install)
+							requestData.auto_install = true;
+
+						// Post data to activation URL.
+						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
+							'fs_action' => $fs->get_unique_affix() . '_activate_new',
+							'plugin_id' => $plugin_id
+						) ), $fs->get_unique_affix() . '_activate_new' ) ?>', requestData).submit();
 					});
 
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
+						var requestData = {
+							user_email: data.user_email
+						};
+
+						if (true === data.auto_install)
+							requestData.auto_install = true;
+
 						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
 							'fs_action'          => $fs->get_unique_affix() . '_activate_new',
-							'plugin_id'          => fs_request_get( 'plugin_id', $fs->get_id() ),
+							'plugin_id'          => $plugin_id,
 							'pending_activation' => true,
-							) ), $fs->get_unique_affix() . '_activate_new' ) ?>', {
-							user_email: data.user_email
-						}).submit();
+						) ), $fs->get_unique_affix() . '_activate_new' ) ?>', requestData).submit();
 					});
 
 					FS.PostMessage.receiveOnce('get_context', function () {
@@ -227,7 +277,7 @@
 							'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
 								array(
 									'fs_action' => $fs->get_unique_affix() . '_activate_new',
-									'plugin_id' => fs_request_get( 'plugin_id', $fs->get_id() ),
+									'plugin_id' => $plugin_id,
 
 								) ),
 								$fs->get_unique_affix() . '_activate_new' )
@@ -243,16 +293,15 @@
 							scrollTop: $(document).scrollTop()
 						}, frame[0]);
 					});
+
+					var updateHeight = function () {
+						iframe.css('min-height', $('#wpwrap').height() + 'px');
+					};
+
+					$(document).ready(updateHeight);
+
+					$(window).resize(updateHeight);
 				});
 			})(jQuery);
 		</script>
 	</div>
-<?php
-	$params = array(
-		'page'           => 'checkout',
-		'module_id'      => $fs->get_id(),
-		'module_slug'    => $slug,
-		'module_version' => $fs->get_plugin_version(),
-	);
-	fs_require_template( 'powered-by.php', $params );
-?>

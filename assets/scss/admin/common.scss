@@ -1,5 +1,18 @@
 @import "../start";
 
+#iframe {
+    line-height: 0;
+    font-size: 0;
+}
+
+.fs-full-size-wrapper {
+    margin: 0 0 -65px -20px;
+
+    @media (max-width: $admin_mobile_max_width) {
+        margin: 0 0 -65px -10px;
+    }
+}
+
 .fs-notice
 {
     position: relative;

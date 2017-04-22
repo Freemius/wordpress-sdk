@@ -34,19 +34,40 @@
 	}
 
 	if ( ! defined( 'FS_SDK__HAS_CURL' ) ) {
-		define( 'FS_SDK__HAS_CURL', ! FS_SDK__SIMULATE_NO_CURL && function_exists( 'curl_version' ) );
+		if ( FS_SDK__SIMULATE_NO_CURL ) {
+			define( 'FS_SDK__HAS_CURL', false );
+		} else {
+			$curl_required_methods = array(
+				'curl_version',
+				'curl_exec',
+				'curl_init',
+				'curl_close',
+				'curl_setopt',
+				'curl_setopt_array',
+				'curl_error',
+			);
+
+			$has_curl = true;
+			foreach ( $curl_required_methods as $m ) {
+				if ( ! function_exists( $m ) ) {
+					$has_curl = false;
+					break;
+				}
+			}
+
+			define( 'FS_SDK__HAS_CURL', $has_curl );
+		}
 	}
 
 	if ( ! FS_SDK__HAS_CURL ) {
 		$curl_version = array( 'version' => '7.0.0' );
-		define( 'FS_API__PROTOCOL', 'https' );
 	} else {
 		$curl_version = curl_version();
 	}
 
-    if ( ! defined( 'FS_API__PROTOCOL' ) ) {
-        define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
-    }
+	if ( ! defined( 'FS_API__PROTOCOL' ) ) {
+		define( 'FS_API__PROTOCOL', ( ! FS_SDK__HAS_CURL || version_compare( $curl_version['version'], '7.37', '>=' ) ) ? 'https' : 'http' );
+	}
 
 	if ( ! defined( 'FS_API__LOGGER_ON' ) ) {
 		define( 'FS_API__LOGGER_ON', false );
@@ -359,7 +380,7 @@
 				$pWPRemoteArgs['headers'] = array();
 			}
 
-			if ( in_array($pMethod, array('POST', 'PUT')) ) {
+			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) ) {
 				if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
 					$pWPRemoteArgs['headers']['Content-type'] = 'application/json';
 					$pWPRemoteArgs['body']                    = json_encode( $pParams );
@@ -579,6 +600,40 @@
 		private static function ThrowWPRemoteException( WP_Error $pError ) {
 			if ( self::IsCurlError( $pError ) ) {
 				$message = $pError->get_error_message( 'http_request_failed' );
+
+				#region Check if there are any missing cURL methods.
+
+				$curl_required_methods = array(
+					'curl_version',
+					'curl_exec',
+					'curl_init',
+					'curl_close',
+					'curl_setopt',
+					'curl_setopt_array',
+					'curl_error',
+				);
+
+				// Find all missing methods.
+				$missing_methods = array();
+				foreach ( $curl_required_methods as $m ) {
+					if ( ! function_exists( $m ) ) {
+						$missing_methods[] = $m;
+					}
+				}
+
+				if ( ! empty( $missing_methods ) ) {
+					throw new Freemius_Exception( array(
+						'error'           => (object) array(
+							'type'    => 'cUrlMissing',
+							'message' => $message,
+							'code'    => 'curl_missing',
+							'http'    => 402
+						),
+						'missing_methods' => $missing_methods,
+					) );
+				}
+
+				#endregion
 
 				// cURL error - "cURL error {{errno}}: {{error}}".
 				$parts = explode( ':', substr( $message, strlen( 'cURL error ' ) ), 2 );
