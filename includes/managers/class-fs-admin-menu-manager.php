@@ -557,7 +557,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @return array[string]mixed
+		 * @return false|array[string]mixed
 		 */
 		function remove_menu_item() {
 			$this->_logger->entrance();
@@ -584,7 +584,7 @@
 		 *
 		 * @param callable $function
 		 *
-		 * @return array[string]mixed
+		 * @return false|array[string]mixed
 		 */
 		function override_menu_item( $function ) {
 			$found_menu = $this->remove_menu_item();
