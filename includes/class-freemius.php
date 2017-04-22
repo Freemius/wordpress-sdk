@@ -336,6 +336,18 @@
 		}
 
 		/**
+		 * Checks whether this plugin or theme has settings menu.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		private function has_settings_menu() {
+			return $this->_menu->has_menu();
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 */
@@ -7818,7 +7830,7 @@
 
 			$hook = false;
 
-			if ( ! $this->_menu->has_menu_slug() ) {
+			if ( ! $this->_menu->has_menu() ) {
 				// Add the opt-in page without a menu item.
 				$hook = FS_Admin_Menu_Manager::add_subpage(
 					null,

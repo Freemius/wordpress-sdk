@@ -67,6 +67,12 @@
 		 * @var string
 		 */
 		private $_first_time_path;
+		/**
+		 * @since 1.2.2
+		 *
+		 * @var bool
+		 */
+		private $_menu_exists;
 
 		#endregion Properties
 
@@ -120,6 +126,8 @@
 		 * @param bool  $is_addon
 		 */
 		function init( $menu, $is_addon = false ) {
+			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
+
 			$this->_menu_slug = ! empty( $menu['slug'] ) ? $menu['slug'] : null;
 
 			$this->_default_submenu_items = array();
@@ -220,6 +228,16 @@
 		}
 
 		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function has_menu() {
+			return $this->_menu_exists;
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
 		 *
@@ -229,6 +247,10 @@
 		 * @return bool
 		 */
 		function is_submenu_item_visible( $id, $default = true ) {
+			if ( ! $this->has_menu() ) {
+				return false;
+			}
+
 			return fs_apply_filter(
 				$this->_plugin_slug,
 				'is_submenu_visible',
@@ -263,7 +285,7 @@
 		 * @return bool
 		 */
 		function has_menu_slug() {
-			return ! empty( $this->_menu_slug );
+			return $this->has_menu();
 		}
 
 		/**
