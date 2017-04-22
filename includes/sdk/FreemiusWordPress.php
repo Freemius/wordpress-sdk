@@ -59,14 +59,12 @@
 		}
 	}
 
-	if ( ! FS_SDK__HAS_CURL ) {
-		$curl_version = array( 'version' => '7.0.0' );
-	} else {
-		$curl_version = curl_version();
-	}
+	$curl_version = FS_SDK__HAS_CURL ?
+		curl_version() :
+		array( 'version' => '7.37' );
 
 	if ( ! defined( 'FS_API__PROTOCOL' ) ) {
-		define( 'FS_API__PROTOCOL', ( ! FS_SDK__HAS_CURL || version_compare( $curl_version['version'], '7.37', '>=' ) ) ? 'https' : 'http' );
+		define( 'FS_API__PROTOCOL', version_compare( $curl_version['version'], '7.37', '>=' ) ? 'https' : 'http' );
 	}
 
 	if ( ! defined( 'FS_API__LOGGER_ON' ) ) {
