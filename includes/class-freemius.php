@@ -6102,29 +6102,32 @@
 			}
 
 			$slug = fs_request_get( 'slug', '', 'post' );
-			$fs        = ( ( $slug === $this->_slug ) ? $this : self::instance( $slug ) );
+			$fs   = ( $slug === $this->_slug ) ?
+				$this :
+				$this->get_addon_instance( $slug );
+
 			$error     = false;
 			$next_page = false;
 
-			if ( $this->is_registered() ) {
+			if ( $fs->is_registered() ) {
 				$api     = $fs->get_api_site_scope();
 				$install = $api->call( '/', 'put', array(
-					'license_key' => $this->apply_filters( 'license_key', $license_key )
+					'license_key' => $fs->apply_filters( 'license_key', $license_key )
 				) );
 
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
 				} else {
-					$fs = $this->is_addon() ?
-						$this->get_parent_instance() :
-						$this;
+					$parent_fs = $fs->is_addon() ?
+						$fs->get_parent_instance() :
+						$fs;
 
-					$next_page = $fs->_get_sync_license_url( $this->get_id(), true );
+					$next_page = $parent_fs->_get_sync_license_url( $fs->get_id(), true );
 
-					$this->reconnect_locally();
+					$fs->reconnect_locally();
 				}
 			} else {
-				$next_page = $this->opt_in( false, false, false, $license_key );
+				$next_page = $fs->opt_in( false, false, false, $license_key );
 
 				if ( isset( $next_page->error ) ) {
 					$error = $next_page->error;
