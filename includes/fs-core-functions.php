@@ -242,12 +242,8 @@
 		return true;
 	}
 
-	function fs_is_plugin_page( $menu_slug ) {
-		return (
-			is_admin() &&
-			isset( $_REQUEST['page'] ) &&
-			$_REQUEST['page'] === $menu_slug
-		);
+	function fs_is_plugin_page( $page_slug ) {
+		return ( is_admin() && $page_slug === fs_request_get('page') );
 	}
 
 	/* Core UI.
