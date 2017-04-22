@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
-"PO-Revision-Date: 2016-12-07 01:29+0000\n"
+"PO-Revision-Date: 2017-03-28 15:20+0300\n"
 "Last-Translator: Vova Feldman <vova@freemius.com>\n"
 "Language-Team: Hebrew (http://www.transifex.com/freemius/wordpress-sdk/language/he/)\n"
 "MIME-Version: 1.0\n"
@@ -15,14 +15,18 @@ msgstr ""
 "Language: he\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-Basepath: ..\n"
-"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;"
+"esc_html_x:1,2c;_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"POT-Creation-Date: \n"
+"X-Generator: Poedit 1.8.12\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: includes/i18n.php41, includes/i18n.php:55
 msgid "Yes - I'm in!"
-msgstr ""
+msgstr "כן - אני בפנים!"
 
 #: includes/i18n.php43, includes/i18n.php:57
 msgid "Not today"
@@ -139,7 +143,7 @@ msgstr "ערוך"
 #: includes/i18n.php:119
 msgctxt "verb"
 msgid "Update"
-msgstr ""
+msgstr "עדכן"
 
 #: includes/i18n.php:121
 msgid "Date"
@@ -252,9 +256,7 @@ msgid "%sRenew your license now%s to access version %s features and support."
 msgstr ""
 
 #: includes/i18n.php:177
-msgid ""
-"Enter the email address you've used for the upgrade below and we will resend"
-" you the license key."
+msgid "Enter the email address you've used for the upgrade below and we will resend you the license key."
 msgstr ""
 
 #: includes/i18n.php:181
@@ -284,9 +286,7 @@ msgid "Error"
 msgstr "שגיאה"
 
 #: includes/i18n.php:195
-msgid ""
-"Freemius SDK couldn't find the plugin's main file. Please contact "
-"sdk@freemius.com with the current error."
+msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr ""
 
 #: includes/i18n.php:203
@@ -310,7 +310,7 @@ msgstr "אמת כתובת דוא\"ל"
 #: includes/i18n.php:211
 msgctxt "e.g. expires in 2 months"
 msgid "Expires in %s"
-msgstr ""
+msgstr "פג תוקף בעוד %s"
 
 #: includes/i18n.php:213
 msgctxt "e.g. auto renews in 2 months"
@@ -337,7 +337,7 @@ msgstr "בעוד %s"
 #: includes/i18n.php:223
 msgctxt "e.g. 2 min ago"
 msgid "%s ago"
-msgstr ""
+msgstr "לפני %s "
 
 #: includes/i18n.php:225
 msgctxt "as plugin version"
@@ -375,7 +375,7 @@ msgstr "תבניות"
 #: includes/i18n.php:241
 msgctxt "as file/folder path"
 msgid "Path"
-msgstr ""
+msgstr "נתיב"
 
 #: includes/i18n.php:243
 msgid "Title"
@@ -392,7 +392,7 @@ msgstr "גירסת פרימיום"
 #: includes/i18n.php:249
 msgctxt "as WP plugin slug"
 msgid "Slug"
-msgstr ""
+msgstr "מזהה כתובת"
 
 #: includes/i18n.php:251
 msgid "ID"
@@ -455,9 +455,7 @@ msgid "Activate Free Version"
 msgstr "הפעלת גירסה חינאמית"
 
 #: includes/i18n.php:279
-msgid ""
-"Please enter the license key that you received in the email right after the "
-"purchase:"
+msgid "Please enter the license key that you received in the email right after the purchase:"
 msgstr ""
 
 #: includes/i18n.php:283
@@ -516,7 +514,7 @@ msgstr "התקן עדכון במיידי"
 
 #: includes/i18n.php:309
 msgid "More information about %s"
-msgstr ""
+msgstr "מידע נוסף אודות %s"
 
 #: includes/i18n.php:311
 msgid "Localhost"
@@ -546,47 +544,37 @@ msgstr "הפעל את התוסף"
 
 #: includes/i18n.php:323
 msgid ""
-"Deactivating your license will block all premium features, but will enable "
-"you to activate the license on another site. Are you sure you want to "
-"proceed?"
+"Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are "
+"you sure you want to proceed?"
 msgstr ""
 
 #: includes/i18n.php:327
 msgid ""
-"Deleting the account will automatically deactivate your %s plan license so "
-"you can use it on other sites. If you want to terminate the recurring "
-"payments as well, click the \"Cancel\" button, and first \"Downgrade\" your "
-"account. Are you sure you would like to continue with the deletion?"
+"Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to "
+"terminate the recurring payments as well, click the \"Cancel\" button, and first \"Downgrade\" your account. Are you sure "
+"you would like to continue with the deletion?"
 msgstr ""
 
 #: includes/i18n.php:331
 msgid ""
-"Deletion is not temporary. Only delete if you no longer want to use this "
-"plugin anymore. Are you sure you would like to continue with the deletion?"
+"Deletion is not temporary. Only delete if you no longer want to use this plugin anymore. Are you sure you would like to "
+"continue with the deletion?"
 msgstr ""
 
 #: includes/i18n.php:335
-msgid ""
-"Downgrading your plan will immediately stop all future recurring payments "
-"and your %s plan license will expire in %s."
+msgid "Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s."
 msgstr ""
 
 #: includes/i18n.php:339
-msgid ""
-"Cancelling the trial will immediately block access to all premium features. "
-"Are you sure?"
+msgid "Cancelling the trial will immediately block access to all premium features. Are you sure?"
 msgstr ""
 
 #: includes/i18n.php:343
-msgid ""
-"You can still enjoy all %s features but you will not have access to plugin "
-"updates and support."
+msgid "You can still enjoy all %s features but you will not have access to plugin updates and support."
 msgstr ""
 
 #: includes/i18n.php:347
-msgid ""
-"Once your license expire you can still use the Free version but you will NOT"
-" have access to the %s features."
+msgid "Once your license expire you can still use the Free version but you will NOT have access to the %s features."
 msgstr ""
 
 #: includes/i18n.php:351
@@ -595,12 +583,10 @@ msgstr "האם את/ה בטוח רוצה להמשיך?"
 
 #: includes/i18n.php:357
 msgid "Add Ons for %s"
-msgstr ""
+msgstr "הרחבה עבור %s"
 
 #: includes/i18n.php:359
-msgid ""
-"We could'nt load the add-ons list. It's probably an issue on our side, "
-"please try to come back in few minutes."
+msgid "We could'nt load the add-ons list. It's probably an issue on our side, please try to come back in few minutes."
 msgstr ""
 
 #: includes/i18n.php:365
@@ -656,9 +642,7 @@ msgid "It's a temporary deactivation. I'm just debugging an issue."
 msgstr "כיבוי זמני לשם דיבאג."
 
 #: includes/i18n.php:395
-msgctxt ""
-"the text of the \"other\" reason for deactivating the plugin that is shown "
-"in the modal box."
+msgctxt "the text of the \"other\" reason for deactivating the plugin that is shown in the modal box."
 msgid "Other"
 msgstr "אחר"
 
@@ -679,8 +663,7 @@ msgid "I couldn't understand how to make it work"
 msgstr "לא הצלחתי להבין איך לגרום לזה לעבוד"
 
 #: includes/i18n.php:407
-msgid ""
-"The plugin is great, but I need specific feature that you don't support"
+msgid "The plugin is great, but I need specific feature that you don't support"
 msgstr "התוסף מעולה, אבל אני צריכ\\ה פיצ'ר ספציפי שלא נתמך"
 
 #: includes/i18n.php:411
@@ -720,9 +703,7 @@ msgid "I don't like to share my information with you"
 msgstr "אני לא אוהב את הרעיון של שיתוף מידע איתכם"
 
 #: includes/i18n.php:431
-msgid ""
-"You might have missed it, but you don't have to share any data and can just "
-"%s the opt-in."
+msgid "You might have missed it, but you don't have to share any data and can just %s the opt-in."
 msgstr "אולי פספסת את זה אבל אינך חייב\\ת לשתף כל מידע איתנו, ביכולתך %s על שיתוף המידע."
 
 #: includes/i18n.php:441
@@ -737,21 +718,20 @@ msgstr "תודה %s!"
 
 #: includes/i18n.php:445
 msgid ""
-"Never miss an important update - opt-in to our security and feature updates "
-"notifications, and non-sensitive diagnostic tracking with %4$s."
+"Never miss an important update - opt-in to our security and feature updates notifications, and non-sensitive diagnostic "
+"tracking with %4$s."
 msgstr ""
 
 #: includes/i18n.php:449
 msgid ""
-"Please help us improve %1$s! If you opt-in, some data about your usage of "
-"%1$s will be sent to %4$s. If you skip this, that's okay! %1$s will still "
-"work just fine."
+"Please help us improve %1$s! If you opt-in, some data about your usage of %1$s will be sent to %4$s. If you skip this, "
+"that's okay! %1$s will still work just fine."
 msgstr ""
 
 #: includes/i18n.php:453
 msgid ""
-"You should receive an activation email for %s to your mailbox at %s. Please "
-"make sure you click the activation button in that email to %s."
+"You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in "
+"that email to %s."
 msgstr ""
 
 #: includes/i18n.php:455
@@ -763,14 +743,12 @@ msgid "start the trial"
 msgstr ""
 
 #: includes/i18n.php:459
-msgid ""
-"Thanks for purchasing %s! To get started, please enter your license key:"
+msgid "Thanks for purchasing %s! To get started, please enter your license key:"
 msgstr ""
 
 #: includes/i18n.php:463
 msgid ""
-"The plugin will be periodically sending data to %s to check for plugin "
-"updates and verify the validity of your license."
+"The plugin will be periodically sending data to %s to check for plugin updates and verify the validity of your license."
 msgstr ""
 
 #: includes/i18n.php:467
@@ -811,7 +789,7 @@ msgstr "שמות, גרסאות וסטאטוס."
 
 #: includes/i18n.php:487
 msgid "Admin Notices"
-msgstr ""
+msgstr "התראה"
 
 #: includes/i18n.php:489
 msgid "Newsletter"
@@ -887,15 +865,11 @@ msgid "Can't find your license key?"
 msgstr "האם אינך מוצא את מפתח הרישיון?"
 
 #: includes/i18n.php:525
-msgid ""
-"We couldn't find your email address in the system, are you sure it's the "
-"right address?"
+msgid "We couldn't find your email address in the system, are you sure it's the right address?"
 msgstr ""
 
 #: includes/i18n.php:529
-msgid ""
-"We can't see any active licenses associated with that email address, are you"
-" sure it's the right address?"
+msgid "We can't see any active licenses associated with that email address, are you sure it's the right address?"
 msgstr ""
 
 #: includes/i18n.php:533
@@ -919,22 +893,17 @@ msgid "Opting in..."
 msgstr ""
 
 #: includes/i18n.php:545
-msgid ""
-"We appreciate your help in making the %s better by letting us track some "
-"usage data."
+msgid "We appreciate your help in making the %s better by letting us track some usage data."
 msgstr ""
 
 #: includes/i18n.php:549
 msgid ""
-"Usage tracking is done in the name of making %s better. Making a better user"
-" experience, prioritizing new features, and more good things. We'd really "
-"appreciate if you'll reconsider letting us continue with the tracking."
+"Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and "
+"more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking."
 msgstr ""
 
 #: includes/i18n.php:553
-msgid ""
-"By clicking \"Opt Out\", we will no longer be sending any data from %s to "
-"%s."
+msgid "By clicking \"Opt Out\", we will no longer be sending any data from %s to %s."
 msgstr ""
 
 #: includes/i18n.php:563
@@ -947,7 +916,7 @@ msgstr ""
 
 #: includes/i18n.php:573
 msgid "Freemius Debug"
-msgstr ""
+msgstr "ניפוי תקלות"
 
 #: includes/i18n.php:575
 msgctxt "as turned on"
@@ -996,7 +965,7 @@ msgstr "גרסאות SDK"
 #: includes/i18n.php:595
 msgctxt "as plugin folder path"
 msgid "Plugin Path"
-msgstr ""
+msgstr "נתיב התוסף"
 
 #: includes/i18n.php:597
 msgctxt "as sdk path"
@@ -1005,7 +974,7 @@ msgstr "מיקום SDK"
 
 #: includes/i18n.php:599
 msgid "Add Ons of Plugin %s"
-msgstr ""
+msgstr "ההרחבות של %s"
 
 #: includes/i18n.php:601
 msgid "Are you sure you want to delete all Freemius data?"
@@ -1037,7 +1006,7 @@ msgstr ""
 
 #: includes/i18n.php:617
 msgid "Plugins & Themes Sync"
-msgstr ""
+msgstr "סינכרון תוספים ותבניות"
 
 #: includes/i18n.php:625
 msgctxt "as congratulations"
@@ -1052,12 +1021,10 @@ msgstr "אופס"
 #: includes/i18n.php:629
 msgctxt "interjection expressing joy or exuberance"
 msgid "Yee-haw"
-msgstr ""
+msgstr "ייייישששש"
 
 #: includes/i18n.php:633
-msgctxt ""
-"(especially in electronic communication) used to express elation, "
-"enthusiasm, or triumph."
+msgctxt "(especially in electronic communication) used to express elation, enthusiasm, or triumph."
 msgid "W00t"
 msgstr ""
 
@@ -1067,9 +1034,7 @@ msgid "Right on"
 msgstr ""
 
 #: includes/i18n.php:639
-msgctxt ""
-"something somebody says when they are thinking about what you have just "
-"said. "
+msgctxt "something somebody says when they are thinking about what you have just said. "
 msgid "Hmm"
 msgstr "הממ"
 
@@ -1096,21 +1061,15 @@ msgid "You are all good!"
 msgstr "את\\ה מסודר!"
 
 #: includes/i18n.php:661
-msgid ""
-"Sorry, we could not complete the email update. Another user with the same "
-"email is already registered."
+msgid "Sorry, we could not complete the email update. Another user with the same email is already registered."
 msgstr ""
 
 #: includes/i18n.php:665
-msgid ""
-"If you would like to give up the ownership of the plugin's account to %s "
-"click the Change Ownership button."
+msgid "If you would like to give up the ownership of the plugin's account to %s click the Change Ownership button."
 msgstr ""
 
 #: includes/i18n.php:669
-msgid ""
-"Your email was successfully updated. You should receive an email with "
-"confirmation instructions in few moments."
+msgid "Your email was successfully updated. You should receive an email with confirmation instructions in few moments."
 msgstr ""
 
 #: includes/i18n.php:673
@@ -1126,15 +1085,11 @@ msgid "Please provide your full name."
 msgstr "נא למלא את שמך המלא."
 
 #: includes/i18n.php:679
-msgid ""
-"Verification mail was just sent to %s. If you can't find it after 5 min, "
-"please check your spam box."
+msgid "Verification mail was just sent to %s. If you can't find it after 5 min, please check your spam box."
 msgstr ""
 
 #: includes/i18n.php:683
-msgid ""
-"Just letting you know that the add-ons information of %s is being pulled "
-"from an external server."
+msgid "Just letting you know that the add-ons information of %s is being pulled from an external server."
 msgstr ""
 
 #: includes/i18n.php:687
@@ -1199,15 +1154,11 @@ msgid "Your plan was successfully changed to %s."
 msgstr ""
 
 #: includes/i18n.php:729
-msgid ""
-"Your license has expired. You can still continue using the free plugin "
-"forever."
+msgid "Your license has expired. You can still continue using the free plugin forever."
 msgstr "פג תוקפו של הרישיון. עדיין ניתן להמשיך להשתמש בגרסה החינאמית של התוסף ללא מגבלת זמן."
 
 #: includes/i18n.php:733
-msgid ""
-"Your license has been cancelled. If you think it's a mistake, please contact"
-" support."
+msgid "Your license has been cancelled. If you think it's a mistake, please contact support."
 msgstr "רשיונך בוטל. אם לדעתך זו טעות, נא ליצור קשר עם התמיכה."
 
 #: includes/i18n.php:737
@@ -1223,8 +1174,7 @@ msgid "It looks like your site currently doesn't have an active license."
 msgstr "נראה לאתר עדיין אין רישיון פעיל."
 
 #: includes/i18n.php:745
-msgid ""
-"Your license was successfully deactivated, you are back to the %s plan."
+msgid "Your license was successfully deactivated, you are back to the %s plan."
 msgstr "רישיונך נותק בהצלחה, חזרת לחבילת ה-%s"
 
 #: includes/i18n.php:749
@@ -1240,26 +1190,19 @@ msgid "Error received from the server:"
 msgstr "הוחזרה שגיאה מהשרת:"
 
 #: includes/i18n.php:759
-msgid ""
-"Your trial has expired. You can still continue using all our free features."
+msgid "Your trial has expired. You can still continue using all our free features."
 msgstr "תקופת הניסיון נגמרה. ביכולתך להמשיך להשתמש בכל הפיטצ'רים החינאמיים."
 
 #: includes/i18n.php:763
-msgid ""
-"Your plan was successfully downgraded. Your %s plan license will expire in "
-"%s."
+msgid "Your plan was successfully downgraded. Your %s plan license will expire in %s."
 msgstr ""
 
 #: includes/i18n.php:767
-msgid ""
-"Seems like we are having some temporary issue with your plan downgrade. "
-"Please try again in few minutes."
+msgid "Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes."
 msgstr ""
 
 #: includes/i18n.php:771
-msgid ""
-"It looks like you are not in trial mode anymore so there's nothing to cancel"
-" :)"
+msgid "It looks like you are not in trial mode anymore so there's nothing to cancel :)"
 msgstr ""
 
 #: includes/i18n.php:775
@@ -1273,7 +1216,7 @@ msgstr "גרסה %s הושקה."
 
 #: includes/i18n.php:783
 msgid "Please download %s."
-msgstr ""
+msgstr "נא להוריד את %s."
 
 #: includes/i18n.php:785
 msgctxt "%s - plan name, as the latest professional version here"
@@ -1281,9 +1224,7 @@ msgid "the latest %s version here"
 msgstr "גרסת ה-%s האחרונה כאן"
 
 #: includes/i18n.php:789
-msgid ""
-"How do you like %s so far? Test all our %s premium features with a %d-day "
-"free trial."
+msgid "How do you like %s so far? Test all our %s premium features with a %d-day free trial."
 msgstr ""
 
 #: includes/i18n.php:793
@@ -1297,12 +1238,10 @@ msgstr ""
 
 #: includes/i18n.php:797
 msgid "Please wait"
-msgstr ""
+msgstr "נא להמתין"
 
 #: includes/i18n.php:799
-msgid ""
-"Seems like we are having some temporary issue with your trial cancellation. "
-"Please try again in few minutes."
+msgid "Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes."
 msgstr ""
 
 #: includes/i18n.php:803
@@ -1326,9 +1265,7 @@ msgid "None of the plugin's plans supports a trial period."
 msgstr "אף אחת מחבילות התוסף מאפשרת תקופת ניסיון."
 
 #: includes/i18n.php:819
-msgid ""
-"Unexpected API error. Please contact the plugin's author with the following "
-"error."
+msgid "Unexpected API error. Please contact the plugin's author with the following error."
 msgstr "שגיאת API בלתי צפוייה. נא לפנות למפתח התוסף עם השגיאה הבאה."
 
 #: includes/i18n.php:823
@@ -1337,9 +1274,8 @@ msgstr ""
 
 #: includes/i18n.php:825
 msgid ""
-"Your license has expired. You can still continue using all the %s features, "
-"but you'll need to renew your license to continue getting updates and "
-"support."
+"Your license has expired. You can still continue using all the %s features, but you'll need to renew your license to "
+"continue getting updates and support."
 msgstr ""
 
 #: includes/i18n.php:829
@@ -1352,8 +1288,8 @@ msgstr "אנא צור איתנו קשר יחד עם ההודעה הבאה:"
 
 #: includes/i18n.php:833
 msgid ""
-"It looks like you are still on the %s plan. If you did upgrade or change "
-"your plan, it's probably an issue on our side - sorry."
+"It looks like you are still on the %s plan. If you did upgrade or change your plan, it's probably an issue on our side - "
+"sorry."
 msgstr ""
 
 #: includes/i18n.php:837
@@ -1361,9 +1297,7 @@ msgid "Please contact us here"
 msgstr "אנא צור איתנו קשר כאן"
 
 #: includes/i18n.php:839
-msgid ""
-"I have upgraded my account but when I try to Sync the License, the plan "
-"remains %s."
+msgid "I have upgraded my account but when I try to Sync the License, the plan remains %s."
 msgstr "שידרגתי את החשבון שלי אבל כשאני מנסה לבצע סנכרון לרישיון החבילה נשארת %s"
 
 #: includes/i18n.php:847
@@ -1372,20 +1306,18 @@ msgstr "יש בעיית תקשורת ל-API מסיבה בלתי ברורה."
 
 #: includes/i18n.php:851
 msgid ""
-"It's probably a temporary issue on our end. Just to be sure, with your "
-"permission, would it be o.k to run another connectivity test?"
+"It's probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another "
+"connectivity test?"
 msgstr "ככל הנראה זאת בעיה זמנית בצד שלנו. ברשותך, ורק כדי להיות בטוחים שזאת הבעיה, האם זה יהיה בסדר לבצע בדיקת תקשורת נוספת?"
 
 #: includes/i18n.php:855
 msgid ""
-"We use PHP cURL library for the API calls, which is a very common library "
-"and usually installed out of the box. Unfortunately, cURL is not installed "
-"on your server."
+"We use PHP cURL library for the API calls, which is a very common library and usually installed out of the box. "
+"Unfortunately, cURL is not installed on your server."
 msgstr ""
 
 #: includes/i18n.php:859
-msgid ""
-"From unknown reason, CloudFlare, the firewall we use, blocks the connection."
+msgid "From unknown reason, CloudFlare, the firewall we use, blocks the connection."
 msgstr "מסיבה בלתי ברורה, CloudFlare, חומת האש שאנחנו משתמשים בה, חוסמת את התקשורת."
 
 #: includes/i18n.php:863
@@ -1394,9 +1326,7 @@ msgid "%s requires an access to our API."
 msgstr "%s מחייב גישה ל-API שלנו."
 
 #: includes/i18n.php:867
-msgid ""
-"It looks like your server is using Squid ACL (access control lists), which "
-"blocks the connection."
+msgid "It looks like your server is using Squid ACL (access control lists), which blocks the connection."
 msgstr ""
 
 #: includes/i18n.php:871
@@ -1405,8 +1335,8 @@ msgstr "אין לי מושג מה זה Squid או ACL - אשמח לעזרה!"
 
 #: includes/i18n.php873, includes/i18n.php:887
 msgid ""
-"We'll make sure to contact your hosting company and resolve the issue. You "
-"will get a follow-up email to %s once we have an update."
+"We'll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an "
+"update."
 msgstr ""
 
 #: includes/i18n.php:877
@@ -1414,9 +1344,7 @@ msgid "I'm a system administrator"
 msgstr ""
 
 #: includes/i18n.php:879
-msgid ""
-"Great, please whitelist the following domains: %s. Once you done, deactivate"
-" the plugin and activate it again."
+msgid "Great, please whitelist the following domains: %s. Once you done, deactivate the plugin and activate it again."
 msgstr ""
 
 #: includes/i18n.php:883
@@ -1425,20 +1353,16 @@ msgstr "אין לי מושג מה זה cURL או איך להתקין אותו -
 
 #: includes/i18n.php:891
 msgid ""
-"Great, please install cURL and enable it in your php.ini file. To make sure "
-"it was successfully activated, use 'phpinfo()'. Once activated, deactivate "
-"the plugin and reactivate it back again."
+"Great, please install cURL and enable it in your php.ini file. To make sure it was successfully activated, use 'phpinfo()'. "
+"Once activated, deactivate the plugin and reactivate it back again."
 msgstr ""
 
 #: includes/i18n.php:895
-msgid ""
-"We are sure it's an issue on our side and more than happy to resolve it for "
-"you ASAP if you give us a chance."
+msgid "We are sure it's an issue on our side and more than happy to resolve it for you ASAP if you give us a chance."
 msgstr "זו בטח בעיה בצד שלנו ואנחנו נשמח לעזור כדי לפתור את העניין בהקדם האפשר, רק במידה ותאפשר\\י זאת."
 
 #: includes/i18n.php:899
-msgid ""
-"Sorry for the inconvenience and we are here to help if you give us a chance."
+msgid "Sorry for the inconvenience and we are here to help if you give us a chance."
 msgstr "מצטערים על חוסר הנעימות, אנחנו כאן כדי לעזור אם תאפשר\\י זאת."
 
 #: includes/i18n.php:903
@@ -1447,8 +1371,8 @@ msgstr "כן - אני נותן לך צ'אנס לתקן את זה"
 
 #: includes/i18n.php:905
 msgid ""
-"We will do our best to whitelist your server and resolve this issue ASAP. "
-"You will get a follow-up email to %s once we have an update."
+"We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have "
+"an update."
 msgstr ""
 
 #: includes/i18n.php:909
@@ -1464,43 +1388,35 @@ msgid "That's exhausting, please deactivate"
 msgstr "זה מתיש, אנא לכבות"
 
 #: includes/i18n.php:917
-msgid ""
-"We feel your frustration and sincerely apologize for the inconvenience. Hope"
-" to see you again in the future."
+msgid "We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future."
 msgstr ""
 
 #: includes/i18n.php:921
 msgid ""
-"Thank for giving us the chance to fix it! A message was just sent to our "
-"technical staff. We will get back to you as soon as we have an update to %s."
-" Appreciate your patience."
+"Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon "
+"as we have an update to %s. Appreciate your patience."
 msgstr ""
 
 #: includes/i18n.php:925
 msgctxt "%1s - plugin title, %2s - API domain"
 msgid ""
-"Your server is blocking the access to Freemius' API, which is crucial for "
-"%1s synchronization. Please contact your host to whitelist %2s"
+"Your server is blocking the access to Freemius' API, which is crucial for %1s synchronization. Please contact your host to "
+"whitelist %2s"
 msgstr ""
 
 #: includes/i18n.php:929
 msgid ""
-"It seems like one of the authentication parameters is wrong. Update your "
-"Public Key, Secret Key & User ID, and try again."
+"It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again."
 msgstr ""
 
 #: includes/i18n.php:937
 msgid ""
-"Please check your mailbox, you should receive an email via %s to confirm the"
-" ownership change. From security reasons, you must confirm the change within"
-" the next 15 min. If you cannot find the email, please check your spam "
-"folder."
+"Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you "
+"must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder."
 msgstr ""
 
 #: includes/i18n.php:941
-msgid ""
-"Thanks for confirming the ownership change. An email was just sent to %s for"
-" final approval."
+msgid "Thanks for confirming the ownership change. An email was just sent to %s for final approval."
 msgstr "תודה על אישור ביצוע החלפת הבעלות. הרגע נשלח מייל ל-%s כדי לקבל אישור סופי."
 
 #: includes/i18n.php:945
@@ -1536,16 +1452,13 @@ msgid "Paid add-on must be deployed to Freemius."
 msgstr ""
 
 #: includes/i18n.php:977
-msgid ""
-"%s is a premium only add-on. You have to purchase a license first before "
-"activating the plugin."
+msgid "%s is a premium only add-on. You have to purchase a license first before activating the plugin."
 msgstr ""
 
 #: includes/i18n.php:981
 msgid ""
-"%s free trial was successfully cancelled. Since the add-on is premium only "
-"it was automatically deactivated. If you like to use it in the future, "
-"you'll have to purchase a license."
+"%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to "
+"use it in the future, you'll have to purchase a license."
 msgstr ""
 
 #: includes/i18n.php:993
@@ -1556,7 +1469,7 @@ msgstr "חודשי"
 #: includes/i18n.php:995
 msgctxt "as monthly period"
 msgid "mo"
-msgstr ""
+msgstr "חודשי"
 
 #: includes/i18n.php:997
 msgctxt "as once a year"
@@ -1607,22 +1520,19 @@ msgid "Approve & Start Trial"
 msgstr ""
 
 #: includes/i18n.php:1027
-msgid ""
-"You are 1-click away from starting your %1$s-day free trial of the %2$s "
-"plan."
+msgid "You are 1-click away from starting your %1$s-day free trial of the %2$s plan."
 msgstr ""
 
 #: includes/i18n.php:1031
 msgid ""
-"For compliance with the WordPress.org guidelines, before we start the trial "
-"we ask that you opt-in with your user and non-sensitive site information, "
-"allowing the plugin to periodically send data to %s to check for version "
-"updates and to validate your trial."
+"For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt-in with your user and non-"
+"sensitive site information, allowing the plugin to periodically send data to %s to check for version updates and to "
+"validate your trial."
 msgstr ""
 
 #: includes/i18n.php:1043
 msgid "Business name"
-msgstr ""
+msgstr "שם עסקי"
 
 #: includes/i18n.php:1045
 msgid "Tax / VAT ID"
@@ -1630,32 +1540,32 @@ msgstr ""
 
 #: includes/i18n.php:1047
 msgid "Address Line %d"
-msgstr ""
+msgstr "כתובת %s"
 
 #: includes/i18n.php:1049
 msgid "Country"
-msgstr ""
+msgstr "מדינה"
 
 #: includes/i18n.php:1051
 msgid "Select Country"
-msgstr ""
+msgstr "בחר מדינה"
 
 #: includes/i18n.php:1053
 msgid "City"
-msgstr ""
+msgstr "עיר"
 
 #: includes/i18n.php:1055
 msgid "Town"
-msgstr ""
+msgstr "עיירה"
 
 #: includes/i18n.php:1057
 msgid "State"
-msgstr ""
+msgstr "מחוז"
 
 #: includes/i18n.php:1059
 msgid "Province"
-msgstr ""
+msgstr "מחוז"
 
 #: includes/i18n.php:1061
 msgid "ZIP / Postal Code"
-msgstr ""
+msgstr "מיקוד / תא דואר"
