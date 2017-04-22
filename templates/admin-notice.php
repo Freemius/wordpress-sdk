@@ -36,7 +36,7 @@
 	<?php endif ?>
 	<?php if ( ! empty( $VARS['sticky'] ) ) : ?>
 		<div class="fs-close"><i class="dashicons dashicons-no"
-		                         title="<?php _efs( 'dismiss' ) ?>"></i> <span><?php _efs( 'dismiss' ) ?></span>
+		                         title="<?php fs_echo( 'dismiss' ) ?>"></i> <span><?php fs_echo( 'dismiss' ) ?></span>
 		</div>
 	<?php endif ?>
 	<div class="fs-notice-body">

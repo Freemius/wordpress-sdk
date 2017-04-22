@@ -31,14 +31,14 @@
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 ?>
 	<div id="fs_addons" class="wrap">
-		<h2><?php printf( __fs( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
+		<h2><?php printf( fs_text( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
 
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
 				<h3><?php printf(
 						'%s... %s',
-						__fs( 'oops', $slug ),
-						__fs( 'add-ons-missing', $slug )
+						fs_text( 'oops', $slug ),
+						fs_text( 'add-ons-missing', $slug )
 					) ?></h3>
 			<?php endif ?>
 			<ul class="fs-cards-list">
@@ -82,7 +82,7 @@
 								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 									esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
-									esc_attr( sprintf( __fs( 'more-information-about-x', $slug ), $addon->title ) ),
+									esc_attr( sprintf( fs_text( 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
 								);
 							?>
@@ -105,10 +105,10 @@
 									<li class="fs-title"><?php echo $addon->title ?></li>
 									<li class="fs-offer">
 									<span
-										class="fs-price"><?php echo ( 0 == $price ) ? __fs( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . __fs('trial', $slug) : '')) ?></span>
+										class="fs-price"><?php echo ( 0 == $price ) ? fs_text( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . fs_text('trial', $slug) : '')) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
-									<li class="fs-cta"><a class="button"><?php _efs( 'view-details', $slug ) ?></a></li>
+									<li class="fs-cta"><a class="button"><?php fs_echo( 'view-details', $slug ) ?></a></li>
 								</ul>
 							</div>
 						</li>

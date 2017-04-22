@@ -340,7 +340,7 @@
 
 		if ( is_null( $plugin_file ) ) {
 			// Throw an error to the developer in case of some edge case dev environment.
-			wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
+			wp_die( fs_text( 'failed-finding-main-path' ), fs_text( 'error' ), array( 'back_link' => true ) );
 		}
 
 		return $plugin_file;

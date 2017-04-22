@@ -676,9 +676,9 @@
 				}
 
 				wp_die(
-					__fs( 'failed-finding-main-path', $this->_slug ) .
+					$this->get_text( 'failed-finding-main-path' ) .
 					" Module: {$this->_slug}; SDK: " . WP_FS__SDK_VERSION . ";",
-					__fs( 'error' ),
+					$this->get_text( 'error' ),
 					array( 'back_link' => true )
 				);
 			}
@@ -771,7 +771,7 @@
 
 			if ( empty( $caller_file_candidate ) ) {
 				// Throw an error to the developer in case of some edge case dev environment.
-				wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
+				wp_die( $this->get_text( 'failed-finding-main-path' ), $this->get_text( 'error' ), array( 'back_link' => true ) );
 			}
 
 			return (object) array(
@@ -860,21 +860,21 @@
 
 			$reason_found_better_plugin = array(
 				'id'                => self::REASON_FOUND_A_BETTER_PLUGIN,
-				'text'              => __fs( 'reason-found-a-better-plugin', $this->_slug ),
+				'text'              => $this->get_text( 'reason-found-a-better-plugin' ),
 				'input_type'        => 'textfield',
-				'input_placeholder' => __fs( 'placeholder-plugin-name', $this->_slug )
+				'input_placeholder' => $this->get_text( 'placeholder-plugin-name' )
 			);
 
 			$reason_temporary_deactivation = array(
 				'id'                => self::REASON_TEMPORARY_DEACTIVATION,
-				'text'              => __fs( 'reason-temporary-deactivation', $this->_slug ),
+				'text'              => $this->get_text( 'reason-temporary-deactivation' ),
 				'input_type'        => '',
 				'input_placeholder' => ''
 			);
 
 			$reason_other = array(
 				'id'                => self::REASON_OTHER,
-				'text'              => __fs( 'reason-other', $this->_slug ),
+				'text'              => $this->get_text( 'reason-other' ),
 				'input_type'        => 'textfield',
 				'input_placeholder' => ''
 			);
@@ -882,27 +882,27 @@
 			$long_term_user_reasons = array(
 				array(
 					'id'                => self::REASON_NO_LONGER_NEEDED,
-					'text'              => __fs( 'reason-no-longer-needed', $this->_slug ),
+					'text'              => $this->get_text( 'reason-no-longer-needed' ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				$reason_found_better_plugin,
 				array(
 					'id'                => self::REASON_NEEDED_FOR_A_SHORT_PERIOD,
-					'text'              => __fs( 'reason-needed-for-a-short-period', $this->_slug ),
+					'text'              => $this->get_text( 'reason-needed-for-a-short-period' ),
 					'input_type'        => '',
 					'input_placeholder' => ''
 				),
 				array(
 					'id'                => self::REASON_BROKE_MY_SITE,
-					'text'              => __fs( 'reason-broke-my-site', $this->_slug ),
+					'text'              => $this->get_text( 'reason-broke-my-site' ),
 					'input_type'        => '',
 					'input_placeholder' => '',
 					'internal_message'  => $contact_support_template
 				),
 				array(
 					'id'                => self::REASON_SUDDENLY_STOPPED_WORKING,
-					'text'              => __fs( 'reason-suddenly-stopped-working', $this->_slug ),
+					'text'              => $this->get_text( 'reason-suddenly-stopped-working' ),
 					'input_type'        => '',
 					'input_placeholder' => '',
 					'internal_message'  => $contact_support_template
@@ -912,15 +912,15 @@
 			if ( $this->is_paying() ) {
 				$long_term_user_reasons[] = array(
 					'id'                => self::REASON_CANT_PAY_ANYMORE,
-					'text'              => __fs( 'reason-cant-pay-anymore', $this->_slug ),
+					'text'              => $this->get_text( 'reason-cant-pay-anymore' ),
 					'input_type'        => 'textfield',
-					'input_placeholder' => __fs( 'placeholder-comfortable-price', $this->_slug )
+					'input_placeholder' => $this->get_text( 'placeholder-comfortable-price' )
 				);
 			}
 
 			$reason_dont_share_info = array(
 				'id'                => self::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION,
-				'text'              => __fs( 'reason-dont-like-to-share-my-information', $this->_slug ),
+				'text'              => $this->get_text( 'reason-dont-like-to-share-my-information' ),
 				'input_type'        => '',
 				'input_placeholder' => ''
 			);
@@ -941,7 +941,7 @@
 				'non-registered-and-non-anonymous-short-term' => array(
 					array(
 						'id'                => self::REASON_DIDNT_WORK,
-						'text'              => __fs( 'reason-didnt-work', $this->_slug ),
+						'text'              => $this->get_text( 'reason-didnt-work' ),
 						'input_type'        => '',
 						'input_placeholder' => ''
 					),
@@ -951,7 +951,7 @@
 				'short-term'                                  => array(
 					array(
 						'id'                => self::REASON_COULDNT_MAKE_IT_WORK,
-						'text'              => __fs( 'reason-couldnt-make-it-work', $this->_slug ),
+						'text'              => $this->get_text( 'reason-couldnt-make-it-work' ),
 						'input_type'        => '',
 						'input_placeholder' => '',
 						'internal_message'  => $contact_support_template
@@ -959,27 +959,27 @@
 					$reason_found_better_plugin,
 					array(
 						'id'                => self::REASON_GREAT_BUT_NEED_SPECIFIC_FEATURE,
-						'text'              => __fs( 'reason-great-but-need-specific-feature', $this->_slug ),
+						'text'              => $this->get_text( 'reason-great-but-need-specific-feature' ),
 						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-feature', $this->_slug )
+						'input_placeholder' => $this->get_text( 'placeholder-feature' )
 					),
 					array(
 						'id'                => self::REASON_NOT_WORKING,
-						'text'              => __fs( 'reason-not-working', $this->_slug ),
+						'text'              => $this->get_text( 'reason-not-working' ),
 						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-share-what-didnt-work', $this->_slug )
+						'input_placeholder' => $this->get_text( 'placeholder-share-what-didnt-work' )
 					),
 					array(
 						'id'                => self::REASON_NOT_WHAT_I_WAS_LOOKING_FOR,
-						'text'              => __fs( 'reason-not-what-i-was-looking-for', $this->_slug ),
+						'text'              => $this->get_text( 'reason-not-what-i-was-looking-for' ),
 						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-what-youve-been-looking-for', $this->_slug )
+						'input_placeholder' => $this->get_text( 'placeholder-what-youve-been-looking-for' )
 					),
 					array(
 						'id'                => self::REASON_DIDNT_WORK_AS_EXPECTED,
-						'text'              => __fs( 'reason-didnt-work-as-expected', $this->_slug ),
+						'text'              => $this->get_text( 'reason-didnt-work-as-expected' ),
 						'input_type'        => 'textarea',
-						'input_placeholder' => __fs( 'placeholder-what-did-you-expect', $this->_slug )
+						'input_placeholder' => $this->get_text( 'placeholder-what-did-you-expect' )
 					)
 				)
 			);
@@ -1373,7 +1373,7 @@
 
 			self::$_static_logger->entrance();
 
-			$title = sprintf( '%s [v.%s]', __fs( 'freemius-debug' ), WP_FS__SDK_VERSION );
+			$title = sprintf( '%s [v.%s]', fs_text( 'freemius-debug' ), WP_FS__SDK_VERSION );
 
 			$hook = null;
 
@@ -1863,15 +1863,15 @@
 							if ( ! empty( $missing_methods ) ) {
 								$missing_methods = sprintf(
 									'<br><br><b>%s</b> %s',
-									__fs( 'curl-disabled-methods', $this->_slug ),
+									$this->get_text( 'curl-disabled-methods' ),
 									$missing_methods
 								);
 							}
 						}
 
 						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'curl-missing-message', $this->_slug ) . ' ' .
+							$this->get_text( 'x-requires-access-to-api' ) . ' ' .
+							$this->get_text( 'curl-missing-message' ) . ' ' .
 							$missing_methods .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
@@ -1879,93 +1879,93 @@
 								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 								sprintf(
 									'<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
-									__fs( 'curl-missing-no-clue-title', $this->_slug ),
+									$this->get_text( 'curl-missing-no-clue-title' ),
 									' - ' . sprintf(
-										__fs( 'curl-missing-no-clue-desc', $this->_slug ),
+										$this->get_text( 'curl-missing-no-clue-desc' ),
 										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 									)
 								),
 								sprintf(
 									'<b>%s</b> - %s',
-									__fs( 'sysadmin-title', $this->_slug ),
-									__fs( 'curl-missing-sysadmin-desc', $this->_slug )
+									$this->get_text( 'sysadmin-title' ),
+									$this->get_text( 'curl-missing-sysadmin-desc' )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a>%s',
 									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', 'freemius', $this->_slug )
+									$this->get_text( 'deactivate-plugin-title' ),
+									' - ' . $this->get_text( 'deactivate-plugin-desc' )
 								)
 							)
 						);
 						break;
 					case 'cloudflare_ddos_protection':
 						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'cloudflare-blocks-connection-message', $this->_slug ) . ' ' .
-							__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
+							$this->get_text( 'x-requires-access-to-api' ) . ' ' .
+							$this->get_text( 'cloudflare-blocks-connection-message' ) . ' ' .
+							$this->get_text( 'happy-to-resolve-issue-asap' ) .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
 							sprintf(
 								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 								sprintf(
 									'<a class="fs-resolve" data-type="cloudflare" href="#"><b>%s</b></a>%s',
-									__fs( 'fix-issue-title', $this->_slug ),
+									$this->get_text( 'fix-issue-title' ),
 									' - ' . sprintf(
-										__fs( 'fix-issue-desc', $this->_slug ),
+										$this->get_text( 'fix-issue-desc' ),
 										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 									)
 								),
 								sprintf(
 									'<a href="%s" target="_blank"><b>%s</b></a>%s',
 									sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-									__fs( 'install-previous-title', $this->_slug ),
-									' - ' . __fs( 'install-previous-desc', $this->_slug )
+									$this->get_text( 'install-previous-title' ),
+									' - ' . $this->get_text( 'install-previous-desc' )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a>%s',
 									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+									$this->get_text( 'deactivate-plugin-title' ),
+									' - ' . $this->get_text( 'deactivate-plugin-desc' )
 								)
 							)
 						);
 						break;
 					case 'squid_cache_block':
 						$message = sprintf(
-							__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-							__fs( 'squid-blocks-connection-message', $this->_slug ) .
+							$this->get_text( 'x-requires-access-to-api' ) . ' ' .
+							$this->get_text( 'squid-blocks-connection-message' ) .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
 							sprintf(
 								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 								sprintf(
 									'<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a>%s',
-									__fs( 'squid-no-clue-title', $this->_slug ),
+									$this->get_text( 'squid-no-clue-title' ),
 									' - ' . sprintf(
-										__fs( 'squid-no-clue-desc', $this->_slug ),
+										$this->get_text( 'squid-no-clue-desc' ),
 										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 									)
 								),
 								sprintf(
 									'<b>%s</b> - %s',
-									__fs( 'sysadmin-title', $this->_slug ),
+									$this->get_text( 'sysadmin-title' ),
 									sprintf(
-										__fs( 'squid-sysadmin-desc', $this->_slug ),
+										$this->get_text( 'squid-sysadmin-desc' ),
 										// We use a filter since the plugin might require additional API connectivity.
 										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>' )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a>%s',
 									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-									__fs( 'deactivate-plugin-title', $this->_slug ),
-									' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+									$this->get_text( 'deactivate-plugin-title' ),
+									' - ' . $this->get_text( 'deactivate-plugin-desc' )
 								)
 							)
 						);
 						break;
 //					default:
-//						$message = __fs( 'connectivity-test-fails-message', $this->_slug );
+//						$message = $this->get_text( 'connectivity-test-fails-message' );
 //						break;
 				}
 			}
@@ -1977,21 +1977,21 @@
 				if ( $is_first_failure ) {
 					// First attempt failed.
 					$message = sprintf(
-						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-maybe-temporary', $this->_slug ) . '<br><br>' .
+						$this->get_text( 'x-requires-access-to-api' ) . ' ' .
+						$this->get_text( 'connectivity-test-fails-message' ) . ' ' .
+						$this->get_text( 'connectivity-test-maybe-temporary' ) . '<br><br>' .
 						'%s',
 						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
 							'<div id="fs_firewall_issue_options">%s %s</div>',
 							sprintf(
 								'<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
-								__fs( 'yes-do-your-thing', $this->_slug )
+								$this->get_text( 'yes-do-your-thing' )
 							),
 							sprintf(
 								'<a href="%s" class="button">%s</a>',
 								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-								__fs( 'no-deactivate', $this->_slug )
+								$this->get_text( 'no-deactivate' )
 							)
 						)
 					);
@@ -2001,32 +2001,32 @@
 				} else {
 					// Second connectivity attempt failed.
 					$message = sprintf(
-						__fs( 'x-requires-access-to-api', $this->_slug ) . ' ' .
-						__fs( 'connectivity-test-fails-message', $this->_slug ) . ' ' .
-						__fs( 'happy-to-resolve-issue-asap', $this->_slug ) .
+						$this->get_text( 'x-requires-access-to-api' ) . ' ' .
+						$this->get_text( 'connectivity-test-fails-message' ) . ' ' .
+						$this->get_text( 'happy-to-resolve-issue-asap' ) .
 						' %s',
 						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
 							'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 							sprintf(
 								'<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-								__fs( 'fix-issue-title', $this->_slug ),
+								$this->get_text( 'fix-issue-title' ),
 								' - ' . sprintf(
-									__fs( 'fix-issue-desc', $this->_slug ),
+									$this->get_text( 'fix-issue-desc' ),
 									'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 								)
 							),
 							sprintf(
 								'<a href="%s" target="_blank"><b>%s</b></a>%s',
 								sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-								__fs( 'install-previous-title', $this->_slug ),
-								' - ' . __fs( 'install-previous-desc', $this->_slug )
+								$this->get_text( 'install-previous-title' ),
+								' - ' . $this->get_text( 'install-previous-desc' )
 							),
 							sprintf(
 								'<a href="%s"><b>%s</b></a>%s',
 								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-								__fs( 'deactivate-plugin-title', $this->_slug ),
-								' - ' . __fs( 'deactivate-plugin-desc', $this->_slug )
+								$this->get_text( 'deactivate-plugin-title' ),
+								' - ' . $this->get_text( 'deactivate-plugin-desc' )
 							)
 						)
 					);
@@ -2036,7 +2036,7 @@
 			$this->_admin_notices->add_sticky(
 				$message,
 				$message_id,
-				__fs( 'oops', $this->_slug ) . '...',
+				$this->get_text( 'oops' ) . '...',
 				$type
 			);
 		}
@@ -2103,7 +2103,7 @@
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__fs( 'fix-request-sent-message', $this->_slug ),
+					$this->get_text( 'fix-request-sent-message' ),
 					'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 				),
 				'server_details_sent'
@@ -2478,10 +2478,10 @@
 
 						$this->_admin_notices->add(
 							( ! empty( $parent_name ) ?
-								sprintf( __fs( 'addon-x-cannot-run-without-y', $this->_slug ), $this->get_plugin_name(), $parent_name ) :
-								sprintf( __fs( 'addon-x-cannot-run-without-parent', $this->_slug ), $this->get_plugin_name() )
+								sprintf( $this->get_text( 'addon-x-cannot-run-without-y' ), $this->get_plugin_name(), $parent_name ) :
+								sprintf( $this->get_text( 'addon-x-cannot-run-without-parent' ), $this->get_plugin_name() )
 							),
-							__fs( 'oops', $this->_slug ) . '...',
+							$this->get_text( 'oops' ) . '...',
 							'error'
 						);
 
@@ -2593,7 +2593,7 @@
 			$this->_logger->api_error( $result );
 
 			self::shoot_ajax_failure(
-				__fs( 'unexpected-api-error', $this->_slug ) .
+				$this->get_text( 'unexpected-api-error' ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
 					var_export( $result, true ) )
@@ -2614,7 +2614,7 @@
 			$this->_logger->api_error( $result );
 
 			self::shoot_ajax_failure(
-				__fs( 'unexpected-api-error', $this->_slug ) .
+				$this->get_text( 'unexpected-api-error' ) .
 				( $this->is_api_error( $result ) && isset( $result->error ) ?
 					$result->error->message :
 					var_export( $result, true ) )
@@ -2984,9 +2984,9 @@
 				) );
 
 				$this->_admin_notices->add_sticky(
-					__fs( 'premium-activated-message', $this->_slug ),
+					$this->get_text( 'premium-activated-message' ),
 					'premium_activated',
-					__fs( 'woot', $this->_slug ) . '!'
+					$this->get_text( 'woot' ) . '!'
 				);
 			} else {
 				// Remove sticky message related to premium code activation.
@@ -2998,11 +2998,11 @@
 				if ( $this->is_paying() && ! $this->is_premium() ) {
 					$this->_admin_notices->add_sticky(
 						sprintf(
-							__fs( 'you-have-x-license', $this->_slug ),
+							$this->get_text( 'you-have-x-license' ),
 							$this->_site->plan->title
 						) . $this->get_complete_upgrade_instructions(),
 						'plan_upgraded',
-						__fs( 'yee-haw', $this->_slug ) . '!'
+						$this->get_text( 'yee-haw' ) . '!'
 					);
 				}
 			}
@@ -3246,20 +3246,19 @@
 
 					$this->_parent->_admin_notices->add_sticky(
 						sprintf(
-							__fs( ( $is_after_trial_cancel ?
+							$this->_parent->get_text( $is_after_trial_cancel ?
 								'addon-trial-cancelled-message' :
-								'addon-no-license-message' ),
-								$this->_parent->_slug
+								'addon-no-license-message'
 							),
 							'<b>' . $this->_plugin->title . '</b>'
 						) . ' ' . sprintf(
 							'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
 							$this->_parent->addon_url( $this->_slug ),
-							esc_attr( sprintf( __fs( 'more-information-about-x', $this->_parent->_slug ), $this->_plugin->title ) ),
-							__fs( 'purchase-license', $this->_parent->_slug )
+							esc_attr( sprintf( $this->_parent->get_text( 'more-information-about-x' ), $this->_plugin->title ) ),
+							$this->_parent->get_text( 'purchase-license' )
 						),
 						'no_addon_license_' . $this->_slug,
-						( $is_after_trial_cancel ? '' : __fs( 'oops', $this->_parent->_slug ) . '...' ),
+						( $is_after_trial_cancel ? '' : $this->_parent->get_text( 'oops' ) . '...' ),
 						( $is_after_trial_cancel ? 'success' : 'error' )
 					);
 
@@ -3691,10 +3690,10 @@
 
 			$this->_admin_notices->add_sticky(
 				sprintf(
-					__fs( 'pending-activation-message', $this->_slug ),
+					$this->get_text( 'pending-activation-message' ),
 					'<b>' . $this->get_plugin_name() . '</b>',
 					'<b>' . $email . '</b>',
-					__fs( $is_pending_trial ? 'start-the-trial' : 'complete-the-install', $this->_slug )
+					$this->get_text( $is_pending_trial ? 'start-the-trial' : 'complete-the-install' )
 				),
 				'activation_pending',
 				'Thanks!'
@@ -3751,10 +3750,10 @@
 							// Show notice for new plugin installations.
 							$this->_admin_notices->add(
 								sprintf(
-									__fs( 'you-are-step-away', $this->_slug ),
+									$this->get_text( 'you-are-step-away' ),
 									sprintf( '<b><a href="%s">%s</a></b>',
 										$this->get_activation_url(),
-										sprintf( __fs( 'activate-x-now', $this->_slug ), $this->get_plugin_name() )
+										sprintf( $this->get_text( 'activate-x-now' ), $this->get_plugin_name() )
 									)
 								),
 								'',
@@ -3767,10 +3766,10 @@
 								// Show notice for new plugin installations.
 								$this->_admin_notices->add_sticky(
 									sprintf(
-										__fs( 'few-plugin-tweaks', $this->_slug ),
+										$this->get_text( 'few-plugin-tweaks' ),
 										sprintf( '<b><a href="%s">%s</a></b>',
 											$this->get_activation_url(),
-											sprintf( __fs( 'optin-x-now', $this->_slug ), $this->get_plugin_name() )
+											sprintf( $this->get_text( 'optin-x-now' ), $this->get_plugin_name() )
 										)
 									),
 									'connect_account',
@@ -4041,8 +4040,8 @@
 				// If activating the premium module version, add an admin notice to congratulate for an upgrade completion.
 				if ( $is_premium_version_activation ) {
 					$this->_admin_notices->add(
-						sprintf( __fs( 'successful-version-upgrade-message', $this->_slug ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
-						__fs( 'woot', $this->_slug ) . '!'
+						sprintf( $this->get_text( 'successful-version-upgrade-message' ), sprintf( '<b>%s</b>', $this->_plugin->title ) ),
+						$this->get_text( 'woot' ) . '!'
 					);
 				}
 			} else if ( $this->is_anonymous() ) {
@@ -6247,9 +6246,9 @@
 				$error = $result->error;
 
 				if ( in_array( $error->code, array( 'invalid_email', 'no_user' ) ) ) {
-					$error = __fs( 'email-not-found' );
+					$error = $this->get_text( 'email-not-found' );
 				} else if ( 'no_license' === $error->code ) {
-					$error = __fs( 'no-active-licenses' );
+					$error = $this->get_text( 'no-active-licenses' );
 				} else {
 					$error = $error->message;
 				}
@@ -6260,7 +6259,7 @@
 			);
 
 			if ( false !== $error ) {
-				$licenses['error'] = sprintf( '%s... %s', __fs( 'oops', $this->_slug ), strtolower( $error ) );
+				$licenses['error'] = sprintf( '%s... %s', $this->get_text( 'oops' ), strtolower( $error ) );
 			}
 
 			echo json_encode( $licenses );
@@ -7393,7 +7392,7 @@
 
 				if ( ! $this->is_paying_or_trial() ) {
 					$this->_admin_notices->add_sticky(
-						sprintf( __fs( 'plugin-x-activation-message', $this->_slug ), '<b>' . $this->get_plugin_name() . '</b>' ),
+						sprintf( $this->get_text( 'plugin-x-activation-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
 						'activation_complete'
 					);
 				}
@@ -7404,20 +7403,20 @@
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
-								__fs( 'activation-with-plan-x-message', $this->_slug ),
+								$this->get_text( 'activation-with-plan-x-message' ),
 								$this->_site->plan->title
 							) . $this->get_complete_upgrade_instructions(),
 							'plan_upgraded',
-							__fs( 'yee-haw', $this->_slug ) . '!'
+							$this->get_text( 'yee-haw' ) . '!'
 						);
 					} else {
 						$this->_admin_notices->add_sticky(
 							sprintf(
-								__fs( 'trial-started-message', $this->_slug ),
+								$this->get_text( 'trial-started-message' ),
 								'<i>' . $this->get_plugin_name() . '</i>'
 							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
 							'trial_started',
-							__fs( 'yee-haw', $this->_slug ) . '!'
+							$this->get_text( 'yee-haw' ) . '!'
 						);
 					}
 				}
@@ -7697,9 +7696,9 @@
 				$install = $this->apply_filters( 'after_install_failure', $install, $args );
 
 				$this->_admin_notices->add(
-					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
-					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $install->error->message . '</b>',
-					__fs( 'oops', $this->_slug ) . '...',
+					sprintf( $this->get_text( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+					$this->get_text( 'contact-us-with-error-message' ) . ' ' . '<b>' . $install->error->message . '</b>',
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -7741,9 +7740,9 @@
 
 			if ( isset( $addon_install->error ) ) {
 				$this->_admin_notices->add(
-					sprintf( __fs( 'could-not-activate-x', $this->_slug ), $this->get_plugin_name() ) . ' ' .
-					__fs( 'contact-us-with-error-message', $this->_slug ) . ' ' . '<b>' . $addon_install->error->message . '</b>',
-					__fs( 'oops', $this->_slug ) . '...',
+					sprintf( $this->get_text( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+					$this->get_text( 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_install->error->message . '</b>',
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -7997,9 +7996,9 @@
 					if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
-							__fs( 'account', $this->_slug ),
+							$this->get_text( 'account' ),
 							array( &$this, '_account_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . __fs( 'account', $this->_slug ),
+							$this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'account' ),
 							'manage_options',
 							'account',
 							array( &$this, '_account_page_load' ),
@@ -8010,9 +8009,9 @@
 
 					// Add contact page.
 					$this->add_submenu_item(
-						__fs( 'contact-us', $this->_slug ),
+						$this->get_text( 'contact-us' ),
 						array( &$this, '_contact_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __fs( 'contact-us', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'contact-us' ),
 						'manage_options',
 						'contact',
 						'Freemius::_clean_admin_content_section',
@@ -8022,9 +8021,9 @@
 
 					if ( $this->has_addons() ) {
 						$this->add_submenu_item(
-							__fs( 'add-ons', $this->_slug ),
+							$this->get_text( 'add-ons' ),
 							array( &$this, '_addons_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . __fs( 'add-ons', $this->_slug ),
+							$this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'add-ons' ),
 							'manage_options',
 							'addons',
 							array( &$this, '_addons_page_load' ),
@@ -8062,9 +8061,9 @@
 
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
-						__fs( $pricing_cta_slug, $this->_slug ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
+						$this->get_text( $pricing_cta_slug ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . __fs( 'pricing', $this->_slug ),
+						$this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'pricing' ),
 						'manage_options',
 						'pricing',
 						'Freemius::_clean_admin_content_section',
@@ -8231,7 +8230,7 @@
 			if ( ! $this->is_activation_mode() ) {
 				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
-						$this->apply_filters( 'support_forum_submenu', __fs( 'support-forum', $this->_slug ) ),
+						$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
 						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
 						'wp-support-forum',
 						null,
@@ -8875,8 +8874,8 @@
 					$this->do_action( 'account_email_verified', $user->email );
 
 					$this->_admin_notices->add(
-						__fs( 'email-verified-message', $this->_slug ),
-						__fs( 'right-on', $this->_slug ) . '!',
+						$this->get_text( 'email-verified-message' ),
+						$this->get_text( 'right-on' ) . '!',
 						'success',
 						// Make admin sticky if account menu item is invisible,
 						// since the page will be auto redirected to the plugin's
@@ -9403,22 +9402,22 @@
 						$this->_admin_notices->add_sticky(
 							FS_Plan_Manager::instance()->has_free_plan( $plans ) ?
 								sprintf(
-									__fs( 'addon-successfully-upgraded-message', $this->_slug ),
+									$this->get_text( 'addon-successfully-upgraded-message' ),
 									$addon->title
 								) . ' ' . $this->get_latest_download_link(
-									__fs( 'download-latest-version', $this->_slug ),
+									$this->get_text( 'download-latest-version' ),
 									$addon_id
 								)
 								:
 								sprintf(
-									__fs( 'addon-successfully-purchased-message', $this->_slug ),
+									$this->get_text( 'addon-successfully-purchased-message' ),
 									$addon->title
 								) . ' ' . $this->get_latest_download_link(
-									__fs( 'download-latest-version', $this->_slug ),
+									$this->get_text( 'download-latest-version' ),
 									$addon_id
 								),
 							'addon_plan_upgraded_' . $addon->slug,
-							__fs( 'yee-haw', $this->_slug ) . '!'
+							$this->get_text( 'yee-haw' ) . '!'
 						);
 					}
 				}
@@ -9463,11 +9462,11 @@
 						if ( ! self::$_global_admin_notices->has_sticky( 'api_blocked' ) ) {
 							self::$_global_admin_notices->add(
 								sprintf(
-									__fs( 'server-blocking-access', $this->_slug ),
+									$this->get_text( 'server-blocking-access' ),
 									$this->get_plugin_name(),
 									'<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
-								) . '<br> ' . __fs( 'server-error-message', $this->_slug ) . var_export( $site->error, true ),
-								__fs( 'oops', $this->_slug ) . '...',
+								) . '<br> ' . $this->get_text( 'server-error-message' ) . var_export( $site->error, true ),
+								$this->get_text( 'oops' ) . '...',
 								'error',
 								$background,
 								false,
@@ -9477,8 +9476,8 @@
 					} else {
 						// Authentication params are broken.
 						$this->_admin_notices->add(
-							__fs( 'wrong-authentication-param-message', $this->_slug ),
-							__fs( 'oops', $this->_slug ) . '...',
+							$this->get_text( 'wrong-authentication-param-message' ),
+							$this->get_text( 'oops' ) . '...',
 							'error'
 						);
 					}
@@ -9605,19 +9604,19 @@
 							if ( $plan->is_free() ) {
 								$this->_admin_notices->add(
 									sprintf(
-										__fs( 'plan-did-not-change-message', $this->_slug ),
-										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . __fs( 'trial', $this->_slug ) : '' ) . '</b></i>'
+										$this->get_text( 'plan-did-not-change-message' ),
+										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . $this->get_text( 'trial' ) : '' ) . '</b></i>'
 									) . ' ' . sprintf(
 										'<a href="%s">%s</a>',
 										$this->contact_url(
 											'bug',
-											sprintf( __fs( 'plan-did-not-change-email-message', $this->_slug ),
+											sprintf( $this->get_text( 'plan-did-not-change-email-message' ),
 												strtoupper( $plan->name )
 											)
 										),
-										__fs( 'contact-us-here', $this->_slug )
+										$this->get_text( 'contact-us-here' )
 									),
-									__fs( 'hmm', $this->_slug ) . '...'
+									$this->get_text( 'hmm' ) . '...'
 								);
 							}
 						}
@@ -9625,11 +9624,11 @@
 					case 'upgraded':
 						$this->_admin_notices->add_sticky(
 							sprintf(
-								__fs( 'plan-upgraded-message', $this->_slug ),
+								$this->get_text( 'plan-upgraded-message' ),
 								'<i>' . $this->get_plugin_name() . '</i>'
 							) . $this->get_complete_upgrade_instructions(),
 							'plan_upgraded',
-							__fs( 'yee-haw', $this->_slug ) . '!'
+							$this->get_text( 'yee-haw' ) . '!'
 						);
 
 						$this->_admin_notices->remove_sticky( array(
@@ -9642,7 +9641,7 @@
 					case 'changed':
 						$this->_admin_notices->add_sticky(
 							sprintf(
-								__fs( 'plan-changed-to-x-message', $this->_slug ),
+								$this->get_text( 'plan-changed-to-x-message' ),
 								$this->_site->plan->title
 							),
 							'plan_changed'
@@ -9657,41 +9656,41 @@
 						break;
 					case 'downgraded':
 						$this->_admin_notices->add_sticky(
-							sprintf( __fs( 'license-expired-blocking-message', $this->_slug ) ),
+							sprintf( $this->get_text( 'license-expired-blocking-message' ) ),
 							'license_expired',
-							__fs( 'hmm', $this->_slug ) . '...'
+							$this->get_text( 'hmm' ) . '...'
 						);
 						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 						break;
 					case 'cancelled':
 						$this->_admin_notices->add(
-							__fs( 'license-cancelled', $this->_slug ) . ' ' .
+							$this->get_text( 'license-cancelled' ) . ' ' .
 							sprintf(
 								'<a href="%s">%s</a>',
 								$this->contact_url( 'bug' ),
-								__fs( 'contact-us-here', $this->_slug )
+								$this->get_text( 'contact-us-here' )
 							),
-							__fs( 'hmm', $this->_slug ) . '...',
+							$this->get_text( 'hmm' ) . '...',
 							'error'
 						);
 						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 						break;
 					case 'expired':
 						$this->_admin_notices->add_sticky(
-							sprintf( __fs( 'license-expired-non-blocking-message', $this->_slug ), $this->_site->plan->title ),
+							sprintf( $this->get_text( 'license-expired-non-blocking-message' ), $this->_site->plan->title ),
 							'license_expired',
-							__fs( 'hmm', $this->_slug ) . '...'
+							$this->get_text( 'hmm' ) . '...'
 						);
 						$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 						break;
 					case 'trial_started':
 						$this->_admin_notices->add_sticky(
 							sprintf(
-								__fs( 'trial-started-message', $this->_slug ),
+								$this->get_text( 'trial-started-message' ),
 								'<i>' . $this->get_plugin_name() . '</i>'
 							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
 							'trial_started',
-							__fs( 'yee-haw', $this->_slug ) . '!'
+							$this->get_text( 'yee-haw' ) . '!'
 						);
 
 						$this->_admin_notices->remove_sticky( array(
@@ -9700,9 +9699,9 @@
 						break;
 					case 'trial_expired':
 						$this->_admin_notices->add_sticky(
-							__fs( 'trial-expired-message', $this->_slug ),
+							$this->get_text( 'trial-expired-message' ),
 							'trial_expired',
-							__fs( 'hmm', $this->_slug ) . '...'
+							$this->get_text( 'hmm' ) . '...'
 						);
 						$this->_admin_notices->remove_sticky( array(
 							'trial_started',
@@ -9770,16 +9769,16 @@
 				if ( ! $background ) {
 					$this->_admin_notices->add( sprintf(
 						'%s %s',
-						__fs( 'license-activation-failed-message', $this->_slug ),
+						$this->get_text( 'license-activation-failed-message' ),
 						( is_object( $license ) && isset( $license->error ) ?
 							$license->error->message :
 							sprintf( '%s<br><code>%s</code>',
-								__fs( 'server-error-message', $this->_slug ),
+								$this->get_text( 'server-error-message' ),
 								var_export( $license, true )
 							)
 						)
 					),
-						__fs( 'hmm', $this->_slug ) . '...',
+						$this->get_text( 'hmm' ) . '...',
 						'error'
 					);
 				}
@@ -9801,10 +9800,10 @@
 
 			if ( ! $background ) {
 				$this->_admin_notices->add_sticky(
-					__fs( 'license-activated-message', $this->_slug ) .
+					$this->get_text( 'license-activated-message' ) .
 					$this->get_complete_upgrade_instructions(),
 					'license_activated',
-					__fs( 'yee-haw', $this->_slug ) . '!'
+					$this->get_text( 'yee-haw' ) . '!'
 				);
 			}
 
@@ -9825,8 +9824,8 @@
 
 			if ( ! is_object( $this->_license ) ) {
 				$this->_admin_notices->add(
-					sprintf( __fs( 'no-active-license-message', $this->_slug ), $this->_site->plan->title ),
-					__fs( 'hmm', $this->_slug ) . '...'
+					sprintf( $this->get_text( 'no-active-license-message' ), $this->_site->plan->title ),
+					$this->get_text( 'hmm' ) . '...'
 				);
 
 				return;
@@ -9837,9 +9836,9 @@
 
 			if ( isset( $license->error ) ) {
 				$this->_admin_notices->add(
-					__fs( 'license-deactivation-failed-message', $this->_slug ) . '<br> ' .
-					__fs( 'server-error-message', $this->_slug ) . ' ' . var_export( $license->error, true ),
-					__fs( 'hmm', $this->_slug ) . '...',
+					$this->get_text( 'license-deactivation-failed-message' ) . '<br> ' .
+					$this->get_text( 'server-error-message' ) . ' ' . var_export( $license->error, true ),
+					$this->get_text( 'hmm' ) . '...',
 					'error'
 				);
 
@@ -9864,8 +9863,8 @@
 
 			if ( $show_notice ) {
 				$this->_admin_notices->add(
-					sprintf( __fs( 'license-deactivation-message', $this->_slug ), $this->_site->plan->title ),
-					__fs( 'ok', $this->_slug )
+					sprintf( $this->get_text( 'license-deactivation-message' ), $this->_site->plan->title ),
+					$this->get_text( 'ok' )
 				);
 			}
 
@@ -9913,7 +9912,7 @@
 				$this->_admin_notices->remove_sticky( 'plan_upgraded' );
 
 				$this->_admin_notices->add(
-					sprintf( __fs( 'plan-x-downgraded-message', $this->_slug ),
+					sprintf( $this->get_text( 'plan-x-downgraded-message' ),
 						$plan->title,
 						human_time_diff( time(), strtotime( $this->_license->expiration ) )
 					)
@@ -9923,8 +9922,8 @@
 				$this->_store_site();
 			} else {
 				$this->_admin_notices->add(
-					__fs( 'plan-downgraded-failure-message', $this->_slug ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'plan-downgraded-failure-message' ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 			}
@@ -9944,8 +9943,8 @@
 			if ( $this->is_trial() ) {
 				// Already in trial mode.
 				$this->_admin_notices->add(
-					__fs( 'in-trial-mode', $this->_slug ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'in-trial-mode' ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -9955,8 +9954,8 @@
 			if ( $this->_site->is_trial_utilized() ) {
 				// Trial was already utilized.
 				$this->_admin_notices->add(
-					__fs( 'trial-utilized', $this->_slug ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'trial-utilized' ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -9969,8 +9968,8 @@
 				if ( false === $plan ) {
 					// Plan doesn't exist.
 					$this->_admin_notices->add(
-						sprintf( __fs( 'trial-plan-x-not-exist', $this->_slug ), $plan_name ),
-						__fs( 'oops', $this->_slug ) . '...',
+						sprintf( $this->get_text( 'trial-plan-x-not-exist' ), $plan_name ),
+						$this->get_text( 'oops' ) . '...',
 						'error'
 					);
 
@@ -9980,8 +9979,8 @@
 				if ( ! $plan->has_trial() ) {
 					// Plan doesn't exist.
 					$this->_admin_notices->add(
-						sprintf( __fs( 'plan-x-no-trial', $this->_slug ), $plan_name ),
-						__fs( 'oops', $this->_slug ) . '...',
+						sprintf( $this->get_text( 'plan-x-no-trial' ), $plan_name ),
+						$this->get_text( 'oops' ) . '...',
 						'error'
 					);
 
@@ -9991,8 +9990,8 @@
 				if ( ! $this->has_trial_plan() ) {
 					// None of the plans have a trial.
 					$this->_admin_notices->add(
-						__fs( 'no-trials', $this->_slug ),
-						__fs( 'oops', $this->_slug ) . '...',
+						$this->get_text( 'no-trials' ),
+						$this->get_text( 'oops' ) . '...',
 						'error'
 					);
 
@@ -10010,8 +10009,8 @@
 			if ( ! $this->is_api_result_entity( $plan ) ) {
 				// Some API error while trying to start the trial.
 				$this->_admin_notices->add(
-					__fs( 'unexpected-api-error', $this->_slug ) . ' ' . var_export( $plan, true ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'unexpected-api-error' ) . ' ' . var_export( $plan, true ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -10037,8 +10036,8 @@
 
 			if ( ! $this->is_trial() ) {
 				$this->_admin_notices->add(
-					__fs( 'trial-cancel-no-trial-message', $this->_slug ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'trial-cancel-no-trial-message' ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 
@@ -10088,7 +10087,7 @@
 				     ! $this->deactivate_premium_only_addon_without_license( true )
 				) {
 					$this->_admin_notices->add(
-						sprintf( __fs( 'trial-cancel-message', $this->_slug ), $this->_storage->trial_plan->title )
+						sprintf( $this->get_text( 'trial-cancel-message' ), $this->_storage->trial_plan->title )
 					);
 				}
 
@@ -10096,8 +10095,8 @@
 				unset( $this->_storage->trial_plan );
 			} else {
 				$this->_admin_notices->add(
-					__fs( 'trial-cancel-failure-message', $this->_slug ),
-					__fs( 'oops', $this->_slug ) . '...',
+					$this->get_text( 'trial-cancel-failure-message' ),
+					$this->get_text( 'oops' ) . '...',
 					'error'
 				);
 			}
@@ -10326,21 +10325,21 @@
 				if ( ! $background ) {
 					$this->_admin_notices->add(
 						sprintf(
-							__fs( 'version-x-released', $this->_slug ) . ' ' . __fs( 'please-download-x', $this->_slug ),
+							$this->get_text( 'version-x-released' ) . ' ' . $this->get_text( 'please-download-x' ),
 							$update->version,
 							sprintf(
 								'<a href="%s" target="_blank">%s</a>',
 								$this->get_account_url( 'download_latest' ),
-								sprintf( __fs( 'latest-x-version', $this->_slug ), $this->_site->plan->title )
+								sprintf( $this->get_text( 'latest-x-version' ), $this->_site->plan->title )
 							)
 						),
-						__fs( 'new', $this->_slug ) . '!'
+						$this->get_text( 'new' ) . '!'
 					);
 				}
 			} else if ( false === $new_version && ! $background ) {
 				$this->_admin_notices->add(
-					__fs( 'you-have-latest', $this->_slug ),
-					__fs( 'you-are-good', $this->_slug )
+					$this->get_text( 'you-have-latest' ),
+					$this->get_text( 'you-are-good' )
 				);
 			}
 
@@ -10606,7 +10605,7 @@
 
 			if ( ! isset( $result->error ) ) {
 				$this->_admin_notices->add( sprintf(
-					__fs( 'verification-email-sent-message', $this->_slug ),
+					$this->get_text( 'verification-email-sent-message' ),
 					sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email )
 				) );
 			} else {
@@ -10762,20 +10761,20 @@
 							$candidate_email = fs_request_get( 'candidate_email', '' );
 
 							if ( $this->init_change_owner( $candidate_email ) ) {
-								$this->_admin_notices->add( sprintf( __fs( 'change-owner-request-sent-x', $this->_slug ), '<b>' . $this->_user->email . '</b>' ) );
+								$this->_admin_notices->add( sprintf( $this->get_text( 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
 							}
 							break;
 						case 'owner_confirmed':
 							$candidate_email = fs_request_get( 'candidate_email', '' );
 
-							$this->_admin_notices->add( sprintf( __fs( 'change-owner-request_owner-confirmed', $this->_slug ), '<b>' . $candidate_email . '</b>' ) );
+							$this->_admin_notices->add( sprintf( $this->get_text( 'change-owner-request_owner-confirmed' ), '<b>' . $candidate_email . '</b>' ) );
 							break;
 						case 'candidate_confirmed':
 							if ( $this->complete_change_owner() ) {
 								$this->_admin_notices->add_sticky(
-									sprintf( __fs( 'change-owner-request_candidate-confirmed', $this->_slug ), '<b>' . $this->_user->email . '</b>' ),
+									sprintf( $this->get_text( 'change-owner-request_candidate-confirmed' ), '<b>' . $this->_user->email . '</b>' ),
 									'ownership_changed',
-									__fs( 'congrats', $this->_slug ) . '!'
+									$this->get_text( 'congrats' ) . '!'
 								);
 							} else {
 								// @todo Handle failed ownership change message.
@@ -10795,23 +10794,23 @@
 						switch ( $result->error->code ) {
 							case 'user_exist':
 								$this->_admin_notices->add(
-									__fs( 'user-exist-message', $this->_slug ) . ' ' .
-									sprintf( __fs( 'user-exist-message_ownership', $this->_slug ), '<b>' . $new_email . '</b>' ) .
+									$this->get_text( 'user-exist-message' ) . ' ' .
+									sprintf( $this->get_text( 'user-exist-message_ownership' ), '<b>' . $new_email . '</b>' ) .
 									sprintf(
 										'<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 										$this->get_account_url( 'change_owner', array(
 											'state'           => 'init',
 											'candidate_email' => $new_email
 										) ),
-										__fs( 'change-ownership', $this->_slug )
+										$this->get_text( 'change-ownership' )
 									),
-									__fs( 'oops', $this->_slug ) . '...',
+									$this->get_text( 'oops' ) . '...',
 									'error'
 								);
 								break;
 						}
 					} else {
-						$this->_admin_notices->add( __fs( 'email-updated-message', $this->_slug ) );
+						$this->_admin_notices->add( $this->get_text( 'email-updated-message' ) );
 					}
 
 					return;
@@ -10823,12 +10822,12 @@
 
 					if ( isset( $result->error ) ) {
 						$this->_admin_notices->add(
-							__fs( 'name-update-failed-message', $this->_slug ),
-							__fs( 'oops', $this->_slug ) . '...',
+							$this->get_text( 'name-update-failed-message' ),
+							$this->get_text( 'oops' ) . '...',
 							'error'
 						);
 					} else {
-						$this->_admin_notices->add( __fs( 'name-updated-message', $this->_slug ) );
+						$this->_admin_notices->add( $this->get_text( 'name-updated-message' ) );
 					}
 
 					return;
@@ -10888,7 +10887,7 @@
 						$this->do_action( 'account_property_edit', 'site', $site_property, $site_property_value );
 
 						$this->_admin_notices->add( sprintf(
-							__fs( 'x-updated', $this->_slug ),
+							$this->get_text( 'x-updated' ),
 							'<b>' . str_replace( '_', ' ', $p ) . '</b>' ) );
 
 						return;
@@ -11013,8 +11012,8 @@
 
 			if ( ! $this->is_registered() && $this->is_org_repo_compliant() ) {
 				$this->_admin_notices->add(
-					sprintf( __fs( 'addons-info-external-message', $this->_slug ), '<b>' . $this->get_plugin_name() . '</b>' ),
-					__fs( 'heads-up', $this->_slug ),
+					sprintf( $this->get_text( 'addons-info-external-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
+					$this->get_text( 'heads-up' ),
 					'update-nag'
 				);
 			}
@@ -11320,7 +11319,7 @@
 			$trial_period    = $this->_trial_days;
 			$require_payment = $this->_is_trial_require_payment;
 			$trial_url       = $this->get_trial_url();
-			$plans_string    = strtolower( __fs( 'awesome', $this->_slug ) );
+			$plans_string    = strtolower( $this->get_text( 'awesome' ) );
 
 			if ( $this->is_registered() ) {
 				// If opted-in, override trial with up to date data from API.
@@ -11360,7 +11359,7 @@
 			}
 
 			$message = sprintf(
-				__fs( 'hey', $this->_slug ) . '! ' . __fs( 'trial-x-promotion-message', $this->_slug ),
+				$this->get_text( 'hey' ) . '! ' . $this->get_text( 'trial-x-promotion-message' ),
 				sprintf( '<b>%s</b>', $this->get_plugin_name() ),
 				$plans_string,
 				$trial_period
@@ -11368,15 +11367,15 @@
 
 			// "No Credit-Card Required" or "No Commitment for N Days".
 			$cc_string = $require_payment ?
-				sprintf( __fs( 'no-commitment-for-x-days', $this->_slug ), $trial_period ) :
-				__fs( 'no-cc-required', $this->_slug ) . '!';
+				sprintf( $this->get_text( 'no-commitment-for-x-days' ), $trial_period ) :
+				$this->get_text( 'no-cc-required' ) . '!';
 
 
 			// Start trial button.
 			$button = ' ' . sprintf(
 					'<a style="margin-left: 10px; vertical-align: super;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
 					$trial_url,
-					__fs( 'start-free-trial', $this->_slug )
+					$this->get_text( 'start-free-trial' )
 				);
 
 			$this->_admin_notices->add_sticky(
@@ -11474,7 +11473,7 @@
 			if ( $this->is_registered() ) {
 				if ( ! $this->is_paying() && $this->has_paid_plan() ) {
 					$this->add_plugin_action_link(
-						__fs( 'upgrade', $this->_slug ),
+						$this->get_text( 'upgrade' ),
 						$this->get_upgrade_url(),
 						false,
 						7,
@@ -11484,7 +11483,7 @@
 
 				if ( $this->has_addons() ) {
 					$this->add_plugin_action_link(
-						__fs( 'add-ons', $this->_slug ),
+						$this->get_text( 'add-ons' ),
 						$this->_get_admin_page_url( 'addons' ),
 						false,
 						9,
@@ -11512,9 +11511,10 @@
 				add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
 			}
 
-			$link_text = __fs(
-				$this->is_free_plan() ? 'activate-license' : 'change-license',
-				$this->_slug
+			$link_text = $this->get_text(
+				$this->is_free_plan() ?
+					'activate-license' :
+					'change-license'
 			);
 
 			$this->add_plugin_action_link(
@@ -11589,7 +11589,7 @@
 			}
 
 			$this->add_plugin_action_link(
-				__fs( $link_text_id, $this->_slug ),
+				$this->get_text( $link_text_id ),
 				$url,
 				false,
 				13,
@@ -11757,20 +11757,20 @@
 
 			// @since 1.2.1.5 The free version is auto deactivated.
 			$deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
-				( '<li>' . __fs( 'deactivate-free-version', $this->_slug ) . '.</li>' ) :
+				( '<li>' . $this->get_text( 'deactivate-free-version' ) . '.</li>' ) :
 				'';
 
 			return sprintf(
 				' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
-				__fs( 'follow-steps-to-complete-upgrade', $this->_slug ),
+				$this->get_text( 'follow-steps-to-complete-upgrade' ),
 				$this->get_latest_download_link( sprintf(
-					__fs( 'download-latest-x-version', $this->_slug ),
+					$this->get_text( 'download-latest-x-version' ),
 					$plan_title
 				) ),
 				$deactivation_step,
-				__fs( 'upload-and-activate', $this->_slug ),
+				$this->get_text( 'upload-and-activate' ),
 				'//bit.ly/upload-wp-plugin',
-				__fs( 'howto-upload-activate', $this->_slug )
+				$this->get_text( 'howto-upload-activate' )
 			);
 		}
 
@@ -11833,9 +11833,9 @@
 		 *
 		 * @return string
 		 */
-		function get_text($key)
+		function get_text( $key )
 		{
-			return __fs($key, $this->_slug);
+			return fs_text( $key, $this->_slug );
 		}
 
 		#----------------------------------------------------------------------------------

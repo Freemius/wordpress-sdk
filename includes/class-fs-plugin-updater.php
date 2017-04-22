@@ -123,7 +123,7 @@
 			$plugin_update_row = preg_replace(
 				'/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
 				'$1 $2 ' . sprintf(
-					__fs( 'renew-license-now' ),
+					$this->_fs->get_text( 'renew-license-now' ),
 					'<a href="' . $this->_fs->pricing_url() . '">', '</a>',
 					$r->new_version ) .
 				'$4',
@@ -324,7 +324,7 @@ if ( !isset($info->error) ) {
 				$data->version = $this->_fs->get_plugin_version();
 			} else {
 				if ( $is_addon ) {
-					$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
+					$data->name    = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
 					$data->slug    = $addon->slug;
 					$data->url     = WP_FS__ADDRESS;
 					$data->package = $new_version->url;
@@ -476,13 +476,13 @@ if ( !isset($info->error) ) {
 				}
 
 				$slug  = $addon->slug;
-				$title = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
+				$title = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
 
 				$is_addon = true;
 			} else {
 				$slug  = $this->_fs->get_slug();
 				$title = $this->_fs->get_plugin_title() .
-				         ( $this->_fs->is_addon() ? ' ' . __fs( 'addon', $this->_fs->get_slug() ) : '' );
+				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text( 'addon' ) : '' );
 			}
 
 			if ( $this->is_premium_plugin_active( $plugin_id ) ) {
@@ -521,7 +521,7 @@ if ( !isset($info->error) ) {
 
 			$skin_args = array(
 				'type'   => 'web',
-				'title'  => sprintf( __fs( 'installing-plugin-x', $slug ), $title ),
+				'title'  => sprintf( fs_text( 'installing-plugin-x', $slug ), $title ),
 				'url'    => esc_url_raw( $install_url ),
 				'nonce'  => 'install-plugin_' . $slug,
 				'plugin' => '',

@@ -17,12 +17,12 @@
 	$fs   = freemius( $slug );
 
 	$message_header  = sprintf(
-		__fs( 'start-trial-prompt-header', $slug ),
+		fs_text( 'start-trial-prompt-header', $slug ),
 		'<span class="var-trial_period"></span>',
 		'<span class="var-plan_title"></span>'
 	);
 	$message_content = sprintf(
-		__fs( 'start-trial-prompt-message', $slug ),
+		fs_text( 'start-trial-prompt-message', $slug ),
 		sprintf(
 			'<a href="%s" target="_blank">%s</a>',
 			'https://freemius.com',

@@ -204,7 +204,7 @@
 	}
 
 	function fs_is_plugin_page( $page_slug ) {
-		return ( is_admin() && $page_slug === fs_request_get( 'page' ) );
+		return ( is_admin() && $page_slug === fs_request_get('page') );
 	}
 
 	/* Core UI.
@@ -539,7 +539,7 @@
 	 * @return string
 	 */
 	function fs_esc_attr( $key, $slug ) {
-		return esc_attr( __fs( $key, $slug ) );
+		return esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -550,7 +550,7 @@
 	 * @param string $slug
 	 */
 	function fs_esc_attr_echo( $key, $slug ) {
-		echo esc_attr( __fs( $key, $slug ) );
+		echo esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -563,7 +563,7 @@
 	 * @return string
 	 */
 	function fs_esc_js( $key, $slug ) {
-		return esc_js( __fs( $key, $slug ) );
+		return esc_js( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -574,7 +574,7 @@
 	 * @param string $slug
 	 */
 	function fs_esc_js_echo( $key, $slug ) {
-		echo esc_js( __fs( $key, $slug ) );
+		echo esc_js( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -585,7 +585,7 @@
 	 * @param string $slug
 	 */
 	function fs_json_encode_echo( $key, $slug ) {
-		echo json_encode( __fs( $key, $slug ) );
+		echo json_encode( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -598,7 +598,7 @@
 	 * @return string
 	 */
 	function fs_esc_html( $key, $slug ) {
-		return esc_html( __fs( $key, $slug ) );
+		return esc_html( fs_text( $key, $slug ) );
 	}
 
 	/**
@@ -609,7 +609,7 @@
 	 * @param string $slug
 	 */
 	function fs_esc_html_echo( $key, $slug ) {
-		echo esc_html( __fs( $key, $slug ) );
+		echo esc_html( fs_text( $key, $slug ) );
 	}
 
 #endregion

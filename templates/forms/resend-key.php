@@ -16,10 +16,10 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	$send_button_text          = __fs( 'send-license-key', $slug );
-	$cancel_button_text        = __fs( 'cancel', $slug );
+	$send_button_text          = fs_text( 'send-license-key', $slug );
+	$cancel_button_text        = fs_text( 'cancel', $slug );
 	$email_address_placeholder = fs_esc_attr( 'email-address', $slug );
-	$other_text                = __fs( 'reason-other', $slug );
+	$other_text                = fs_text( 'reason-other', $slug );
 
 	$is_freemium = $fs->is_freemium();
 
@@ -52,7 +52,7 @@ HTML;
 HTML;
 	}
 
-	$message_above_input_field = esc_html( __fs( 'ask-for-upgrade-email-address', $slug ) );
+	$message_above_input_field = esc_html( fs_text( 'ask-for-upgrade-email-address', $slug ) );
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-resend-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
