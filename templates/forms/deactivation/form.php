@@ -53,7 +53,7 @@ HTML;
 	if ( $is_anonymous ) {
 		$anonymous_feedback_checkbox_html =
 			'<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox"> '
-				. __fs( 'anonymous-feedback', $slug )
+				. fs_text( 'anonymous-feedback', $slug )
 			. '</label>';
 	} else {
 		$anonymous_feedback_checkbox_html = '';
@@ -77,7 +77,7 @@ HTML;
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php _efs(  'cancel' , $slug ) ?></a>'
+		    + '			<a href="#" class="button button-primary button-close"><?php fs_echo(  'cancel' , $slug ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
@@ -236,10 +236,10 @@ HTML;
 			$modal.find('.reason-input').remove();
 			$modal.find( '.internal-message' ).hide();
 			$modal.find('.button-deactivate').text('<?php printf(
-				__fs(  'deactivation-modal-button-submit' , $slug ),
+				fs_text(  'deactivation-modal-button-submit' , $slug ),
 				$fs->is_plugin() ?
-					__fs('deactivate', $slug) :
-					sprintf( __fs( 'activate-x', $slug), __fs( 'theme', $slug) )
+					fs_text('deactivate', $slug) :
+					sprintf( fs_text( 'activate-x', $slug), fs_text( 'theme', $slug) )
 			) ?>');
 
 			enableDeactivateButton();
@@ -257,7 +257,7 @@ HTML;
 				_parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();
 
 				if (isOtherReasonSelected()) {
-					showMessage('<?php printf( __fs(  'ask-for-reason-message' , $slug ) ); ?>');
+					showMessage('<?php printf( fs_text(  'ask-for-reason-message' , $slug ) ); ?>');
 					disableDeactivateButton();
 				}
 			}
@@ -378,17 +378,17 @@ HTML;
 		// Reset the deactivate button's text.
 		if ('confirm' === getCurrentPanel()) {
 			$deactivateButton.text('<?php printf(
-				__fs( 'deactivation-modal-button-confirm' , $slug ),
+				fs_text( 'deactivation-modal-button-confirm' , $slug ),
 				$fs->is_plugin() ?
-					__fs('deactivate', $slug ) :
-					sprintf( __fs( 'activate-x', $slug ), __fs( 'theme', $slug ) )
+					fs_text('deactivate', $slug ) :
+					sprintf( fs_text( 'activate-x', $slug ), fs_text( 'theme', $slug ) )
 			) ?>');
 		} else {
 			$deactivateButton.text('<?php printf(
-				__fs('skip-and-x', $slug ),
+				fs_text('skip-and-x', $slug ),
 				$fs->is_plugin() ?
-					__fs('deactivate', $slug ) :
-					sprintf( __fs( 'activate-x', $slug ), __fs( 'theme', $slug ) )
+					fs_text('deactivate', $slug ) :
+					sprintf( fs_text( 'activate-x', $slug ), fs_text( 'theme', $slug ) )
 			) ?>');
 		}
 	}

@@ -52,7 +52,7 @@
 <?php if ( ! empty( $plugin->info->screenshots ) ) : ?>
 	<?php $screenshots = $plugin->info->screenshots ?>
 	<div class="fs-screenshots clearfix">
-		<h2><?php _efs( 'screenshots', $plugin->slug ) ?></h2>
+		<h2><?php fs_echo( 'screenshots', $plugin->slug ) ?></h2>
 		<ul>
 			<?php $i = 0;
 				foreach ( $screenshots as $s => $url ) : ?>
@@ -68,7 +68,7 @@
 							}
 						</style>
 						<a href="<?php echo $url ?>"
-						   title="<?php printf( __fs( 'view-full-size-x', $plugin->slug ), $i ) ?>"
+						   title="<?php printf( fs_text( 'view-full-size-x', $plugin->slug ), $i ) ?>"
 						   class="fs-screenshot-<?php echo $i ?>"></a>
 					</li>
 					<?php $i ++; endforeach ?>

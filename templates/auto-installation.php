@@ -28,7 +28,7 @@
 		$addon = $fs->get_addon( $plugin_id );
 
 		if ( is_object( $addon ) ) {
-			$title = $addon->title . ' ' . __fs( 'addon', $slug );
+			$title = $addon->title . ' ' . fs_text( 'addon', $slug );
 		}
 	}
 
@@ -39,7 +39,7 @@
 
 	$sec_countdown  = 30;
 	$countdown_html = sprintf(
-		esc_js( __fs( 'x-sec', $slug ) ),
+		esc_js( fs_text( 'x-sec', $slug ) ),
 		sprintf( '<span class="fs-countdown">%s</span>', $sec_countdown )
 	);
 
@@ -76,7 +76,7 @@
 <div class="fs-modal fs-modal-auto-install">
 	<div class="fs-modal-dialog">
 		<div class="fs-modal-header">
-			<h4><?php echo esc_js( __fs( 'auto-installation', $slug ) ) ?></h4>
+			<h4><?php echo esc_js( fs_text( 'auto-installation', $slug ) ) ?></h4>
 		</div>
 		<div class="fs-modal-body">
 			<div class="fs-notice-error" style="display: none"><p></p></div>
@@ -104,7 +104,7 @@
 			<button
 				class="button button-secondary button-cancel"><?php fs_esc_html_echo( 'cancel-installation', $slug ) ?><?php if ( ! $require_credentials ) : ?> (<?php echo $countdown_html ?>)<?php endif ?></button>
 			<button
-				class="button button-primary"<?php //disabled($require_credentials) ?>><?php echo esc_js( __fs( 'install-now', $slug ) ) ?></button>
+				class="button button-primary"<?php //disabled($require_credentials) ?>><?php echo esc_js( fs_text( 'install-now', $slug ) ) ?></button>
 		</div>
 	</div>
 </div>'

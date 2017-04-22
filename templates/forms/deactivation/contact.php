@@ -13,8 +13,8 @@
     $fs   = freemius( $VARS['id'] );
     $slug = $fs->get_slug();
 
-    echo __fs( 'contact-support-before-deactivation', $slug )
+    echo fs_text( 'contact-support-before-deactivation', $slug )
             . sprintf(" <a href='%s' class='button button-small button-primary'>%s</a>",
                 $fs->contact_url( 'technical_support' ),
-                __fs( 'contact-support', $slug )
+                fs_text( 'contact-support', $slug )
             );
