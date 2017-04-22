@@ -664,7 +664,8 @@
 				}
 
 				wp_die(
-					__fs( 'failed-finding-main-path', $this->_slug ),
+					__fs( 'failed-finding-main-path', $this->_slug ) .
+					" Module: {$this->_slug}; SDK: " . WP_FS__SDK_VERSION . ";",
 					__fs( 'error' ),
 					array( 'back_link' => true )
 				);
