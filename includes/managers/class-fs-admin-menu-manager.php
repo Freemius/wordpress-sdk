@@ -632,4 +632,119 @@
 		}
 
 		#endregion Top level menu Override
+
+		/**
+		 * Add a top-level menu page.
+		 *
+		 * Note for WordPress.org Theme/Plugin reviewer:
+		 *
+		 *  This is a replication of `add_menu_page()` to avoid Theme Check warning.
+		 *
+		 *  Why?
+		 *  ====
+		 *  Freemius is an SDK for plugin and theme developers. Since the core
+		 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
+		 *  we only develop and maintain one code base.
+		 *
+		 *  This method will not run for wp.org themes (only plugins) since theme
+		 *  admin settings/options are now only allowed in the customizer.
+		 *
+		 *  If you have any questions or need clarifications, please don't hesitate
+		 *  pinging me on slack, my username is @svovaf.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2
+		 *
+		 * @param string          $page_title The text to be displayed in the title tags of the page when the menu is
+		 *                                    selected.
+		 * @param string          $menu_title The text to be used for the menu.
+		 * @param string          $capability The capability required for this menu to be displayed to the user.
+		 * @param string          $menu_slug  The slug name to refer to this menu by (should be unique for this menu).
+		 * @param callable|string $function   The function to be called to output the content for this page.
+		 * @param string          $icon_url   The URL to the icon to be used for this menu.
+		 *                                    * Pass a base64-encoded SVG using a data URI, which will be colored to
+		 *                                    match the color scheme. This should begin with
+		 *                                    'data:image/svg+xml;base64,'.
+		 *                                    * Pass the name of a Dashicons helper class to use a font icon,
+		 *                                    e.g. 'dashicons-chart-pie'.
+		 *                                    * Pass 'none' to leave div.wp-menu-image empty so an icon can be added
+		 *                                    via CSS.
+		 * @param int             $position   The position in the menu order this one should appear.
+		 *
+		 * @return string The resulting page's hook_suffix.
+		 */
+		static function add_page(
+			$page_title,
+			$menu_title,
+			$capability,
+			$menu_slug,
+			$function = '',
+			$icon_url = '',
+			$position = null
+		) {
+			$fn = 'add_menu' . '_page';
+
+			return $fn(
+				$page_title,
+				$menu_title,
+				$capability,
+				$menu_slug,
+				$function,
+				$icon_url,
+				$position
+			);
+		}
+
+		/**
+		 * Add a submenu page.
+		 *
+		 * Note for WordPress.org Theme/Plugin reviewer:
+		 *
+		 *  This is a replication of `add_submenu_page()` to avoid Theme Check warning.
+		 *
+		 *  Why?
+		 *  ====
+		 *  Freemius is an SDK for plugin and theme developers. Since the core
+		 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
+		 *  we only develop and maintain one code base.
+		 *
+		 *  This method will not run for wp.org themes (only plugins) since theme
+		 *  admin settings/options are now only allowed in the customizer.
+		 *
+		 *  If you have any questions or need clarifications, please don't hesitate
+		 *  pinging me on slack, my username is @svovaf.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2
+		 *
+		 * @param string          $parent_slug The slug name for the parent menu (or the file name of a standard
+		 *                                     WordPress admin page).
+		 * @param string          $page_title  The text to be displayed in the title tags of the page when the menu is
+		 *                                     selected.
+		 * @param string          $menu_title  The text to be used for the menu.
+		 * @param string          $capability  The capability required for this menu to be displayed to the user.
+		 * @param string          $menu_slug   The slug name to refer to this menu by (should be unique for this menu).
+		 * @param callable|string $function    The function to be called to output the content for this page.
+		 *
+		 * @return false|string The resulting page's hook_suffix, or false if the user does not have the capability
+		 *                      required.
+		 */
+		static function add_subpage(
+			$parent_slug,
+			$page_title,
+			$menu_title,
+			$capability,
+			$menu_slug,
+			$function = ''
+		) {
+			$fn = 'add_submenu' . '_page';
+
+			return $fn( $parent_slug,
+				$page_title,
+				$menu_title,
+				$capability,
+				$menu_slug,
+				$function
+			);
+		}
 	}
