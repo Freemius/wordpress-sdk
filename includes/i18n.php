@@ -400,7 +400,7 @@
 		'squid-sysadmin-desc'                      => _fs_text( 'Great, please whitelist the following domains: %s. Once you are done, deactivate the %s and activate it again.' ),
 		'curl-missing-no-clue-title'               => _fs_text( 'I don\'t know what is cURL or how to install it, help me!' ),
 		'curl-missing-no-clue-desc'                => _fs_text( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.' ),
-		'curl-missing-sysadmin-desc'               => _fs_text( 'Great, please install cURL and enable it in your php.ini file. In addition, search for the \'disable_functions\' directive in your php.ini file and remove any disabled methods starting with \'curl_\'. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the plugin and reactivate it back again.' ),
+		'curl-missing-sysadmin-desc'               => _fs_text( 'Great, please install cURL and enable it in your php.ini file. In addition, search for the \'disable_functions\' directive in your php.ini file and remove any disabled methods starting with \'curl_\'. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the %s and reactivate it back again.' ),
 		'happy-to-resolve-issue-asap'              => _fs_text( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.' ),
 		'contact-support-before-deactivation'      => _fs_text( 'Sorry for the inconvenience and we are here to help if you give us a chance.' ),
 		'fix-issue-title'                          => _fs_text( 'Yes - I\'m giving you a chance to fix it' ),
