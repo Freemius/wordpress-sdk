@@ -1348,13 +1348,12 @@
 
 			global $fs_active_plugins;
 
+			// Works both for plugins and themes.
 			load_plugin_textdomain(
 				'freemius',
 				false,
 				$fs_active_plugins->newest->sdk_path . '/languages/'
 			);
-
-			// @todo Load for themes.
 		}
 
 		#endregion
