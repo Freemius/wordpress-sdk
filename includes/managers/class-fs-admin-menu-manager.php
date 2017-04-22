@@ -85,7 +85,7 @@
 		/**
 		 * @param string $plugin_slug
 		 *
-		 * @return FS_Admin_Notice_Manager
+		 * @return FS_Admin_Menu_Manager
 		 */
 		static function instance( $plugin_slug ) {
 			if ( ! isset( self::$_instances[ $plugin_slug ] ) ) {
