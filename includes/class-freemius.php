@@ -9120,7 +9120,7 @@
 				$plugin_id = $this->_plugin->id;
 			}
 
-			$result = $api->get( "/plugins/{$plugin_id}/payments.json", true );
+			$result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", true );
 
 			if ( ! isset( $result->error ) ) {
 				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
