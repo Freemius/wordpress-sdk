@@ -286,6 +286,8 @@
 				});
 
 				FS.PostMessage.receiveOnce('get_dimensions', function (data) {
+					console.debug('receiveOnce', 'get_dimensions');
+
 					FS.PostMessage.post('dimensions', {
 						height   : $(document.body).height(),
 						scrollTop: $(document).scrollTop()
