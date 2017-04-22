@@ -12,9 +12,11 @@
 
 	/**
 	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
 	$slug                  = $VARS['slug'];
 	$fs                    = freemius( $slug );
+
 	$is_pending_activation = $fs->is_pending_activation();
 	$is_premium_only       = $fs->is_only_premium();
 	$has_paid_plans        = $fs->has_paid_plan();

@@ -12,6 +12,7 @@
 
 	/**
 	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
