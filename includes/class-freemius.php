@@ -5169,7 +5169,7 @@
 		 *
 		 * @return string
 		 */
-		private function premium_plugin_basename() {
+		function premium_plugin_basename() {
 			return "{$this->_slug}-premium/" . basename( $this->_free_plugin_basename );
 		}
 
