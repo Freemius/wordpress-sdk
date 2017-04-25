@@ -8060,7 +8060,7 @@
 				}
 			}
 
-			if ( $this->_menu->is_activation_page() ) {
+			if ( $this->is_activation_page() ) {
 				// Clean admin page from distracting content.
 				self::_clean_admin_content_section();
 			}
