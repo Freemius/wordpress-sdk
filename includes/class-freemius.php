@@ -6374,7 +6374,7 @@
 		 *
 		 * @return bool
 		 */
-		private function is_plugins_page() {
+		function is_plugins_page() {
 			global $pagenow;
 
 			return ( 'plugins.php' === $pagenow );
@@ -6826,13 +6826,13 @@
 						admin_url( $this->_menu->get_raw_slug(), 'admin' )
 					);
 				}
-				}
+			}
 
 			// Module has a custom top level settings page.
-				return add_query_arg( array_merge( $params, array(
+			return add_query_arg( array_merge( $params, array(
 				'page' => $page_param,
-				) ), admin_url( 'admin.php', 'admin' ) );
-			}
+			) ), admin_url( 'admin.php', 'admin' ) );
+		}
 
 		/**
 		 * Plugin's account page + sync license URL.
@@ -6986,12 +6986,13 @@
 			 * For more details, look at the function `Base64UrlDecode()`
 			 * in `./sdk/FreemiusBase.php`.
 			 *
-			 * @todo Remove this hack once the base64 error is removed from the Theme Check.
+			 * @todo   Remove this hack once the base64 error is removed from the Theme Check.
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.2.2
+			 * @since  1.2.2
 			 */
 			$fn = 'base64' . '_encode';
+
 			return $fn( $str );
 		}
 
@@ -7009,12 +7010,13 @@
 			 * For more details, look at the function `Base64UrlDecode()`
 			 * in `./sdk/FreemiusBase.php`.
 			 *
-			 * @todo Remove this hack once the base64 error is removed from the Theme Check.
+			 * @todo   Remove this hack once the base64 error is removed from the Theme Check.
 			 *
 			 * @author Vova Feldman (@svovaf)
-			 * @since 1.2.2
+			 * @since  1.2.2
 			 */
 			$fn = 'base64' . '_decode';
+
 			return $fn( $str );
 		}
 
@@ -7489,7 +7491,9 @@
 		 * @param FS_User $user
 		 * @param FS_Site $site
 		 * @param bool    $redirect
-		 * @param bool    $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+		 * @param bool    $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+		 *                              redirect (or return a URL) to the account page with a special parameter to
+		 *                              trigger the auto installation processes.
 		 *
 		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
@@ -7661,7 +7665,9 @@
 		 * @param string $install_public_key
 		 * @param string $install_secret_key
 		 * @param bool   $redirect
-		 * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+		 * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+		 *                             redirect (or return a URL) to the account page with a special parameter to
+		 *                             trigger the auto installation processes.
 		 *
 		 * @return string If redirect is `false`, returns the next page the user should be redirected to.
 		 */
@@ -11983,8 +11989,7 @@
 		 *
 		 * @return string
 		 */
-		function get_text( $key )
-		{
+		function get_text( $key ) {
 			return fs_text( $key, $this->_slug );
 		}
 
@@ -12091,7 +12096,7 @@
 			if ( ! $this->is_registered() ) {
 				// Not registered.
 				self::shoot_ajax_failure( array(
-					'message' => $this->get_text('auto-install-error-not-opted-in'),
+					'message' => $this->get_text( 'auto-install-error-not-opted-in' ),
 					'code'    => 'premium_installed',
 				) );
 			}
@@ -12101,7 +12106,7 @@
 			if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
 				// Invalid ID.
 				self::shoot_ajax_failure( array(
-					'message' => $this->get_text('auto-install-error-invalid-id'),
+					'message' => $this->get_text( 'auto-install-error-invalid-id' ),
 					'code'    => 'invalid_module_id',
 				) );
 			}
@@ -12110,21 +12115,21 @@
 				if ( $this->is_premium() ) {
 					// Already using the premium code version.
 					self::shoot_ajax_failure( array(
-						'message' => $this->get_text('auto-install-error-premium-activated'),
+						'message' => $this->get_text( 'auto-install-error-premium-activated' ),
 						'code'    => 'premium_installed',
 					) );
 				}
 				if ( ! $this->can_use_premium_code() ) {
 					// Don't have access to the premium code.
 					self::shoot_ajax_failure( array(
-						'message' => $this->get_text( 'auto-install-error-invalid-license'),
+						'message' => $this->get_text( 'auto-install-error-invalid-license' ),
 						'code'    => 'invalid_license',
 					) );
 				}
 				if ( ! $this->has_release_on_freemius() ) {
 					// Plugin is a serviceware, no premium code version.
 					self::shoot_ajax_failure( array(
-						'message' => $this->get_text('auto-install-error-serviceware'),
+						'message' => $this->get_text( 'auto-install-error-serviceware' ),
 						'code'    => 'premium_version_missing',
 					) );
 				}
@@ -12134,7 +12139,7 @@
 				if ( ! is_object( $addon ) ) {
 					// Invalid add-on ID.
 					self::shoot_ajax_failure( array(
-						'message' => $this->get_text('auto-install-error-invalid-id'),
+						'message' => $this->get_text( 'auto-install-error-invalid-id' ),
 						'code'    => 'invalid_module_id',
 					) );
 				}
@@ -12142,7 +12147,7 @@
 				if ( $this->is_addon_activated( $plugin_id, true ) ) {
 					// Premium add-on version is already activated.
 					self::shoot_ajax_failure( array(
-						'message' => $this->get_text('auto-install-error-premium-addon-activated'),
+						'message' => $this->get_text( 'auto-install-error-premium-addon-activated' ),
 						'code'    => 'premium_installed',
 					) );
 				}
@@ -12154,7 +12159,7 @@
 			$updater = new FS_Plugin_Updater( $this );
 			$result  = $updater->install_and_activate_plugin( $plugin_id );
 
-			if ( is_array($result) && !empty($result['message']) ) {
+			if ( is_array( $result ) && ! empty( $result['message'] ) ) {
 				self::shoot_ajax_failure( array(
 					'message' => $result['message'],
 					'code'    => $result['code'],
