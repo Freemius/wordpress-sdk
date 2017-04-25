@@ -6771,13 +6771,34 @@
 				}
 			}
 
-			if ( empty( $page ) && ! $this->has_settings_menu() ) {
-				return add_query_arg(
-					$params,
-					admin_url( 'plugins.php' )
-				);
+			$page_param = $this->_menu->get_slug( $page );
+
+			if ( ! $this->has_settings_menu() ) {
+				if ( ! empty( $page ) ) {
+					// Module doesn't have a setting page, but since the request is for
+					// a specific Freemius page, use the admin.php path.
+					return add_query_arg( array_merge( $params, array(
+						'page' => $page_param,
+					) ), admin_url( 'admin.php', 'admin' ) );
+				} else {
+					if ( $this->is_activation_mode() ) {
+						/**
+						 * @author Vova Feldman
+						 * @since  1.2.1.6
+						 *
+						 * If plugin doesn't have a settings page, create one for the opt-in screen.
+						 */
+						return add_query_arg( array_merge( $params, array(
+							'page' => $this->_slug,
+						) ), admin_url( 'admin.php', 'admin' ) );
+					} else {
+						// Plugin without a settings page.
+						return admin_url( 'plugins.php' );
+					}
+				}
 			}
 
+			// Module has a submenu settings page.
 			if ( ! $this->_menu->is_top_level() ) {
 				$parent_slug = $this->_menu->get_parent_slug();
 				$menu_file   = ( false !== strpos( $parent_slug, '.php' ) ) ?
@@ -6785,38 +6806,33 @@
 					'admin.php';
 
 				return add_query_arg( array_merge( $params, array(
-					'page' => $this->_menu->get_slug( $page ),
+					'page' => $page_param,
 				) ), admin_url( $menu_file, 'admin' ) );
 			}
 
+			// Module has a top level CPT settings page.
 			if ( $this->_menu->is_cpt() ) {
 				if ( empty( $page ) && $this->is_activation_mode() ) {
 					return add_query_arg( array_merge( $params, array(
-						'page' => $this->_menu->get_slug()
+						'page' => $page_param
 					) ), admin_url( 'admin.php', 'admin' ) );
 				} else {
 					if ( ! empty( $page ) ) {
-						$params['page'] = $this->_menu->get_slug( $page );
+						$params['page'] = $page_param;
 					}
 
-					return add_query_arg( $params, admin_url( $this->_menu->get_raw_slug(), 'admin' ) );
+					return add_query_arg(
+						$params,
+						admin_url( $this->_menu->get_raw_slug(), 'admin' )
+					);
 				}
-			} else {
-				/**
-				 * @author Vova Feldman
-				 * @since  1.2.1.6
-				 *
-				 * If module doesn't have a settings page, create one for the opt-in screen.
-				 */
-				$menu_slug = $this->_menu->has_menu_slug() ?
-					$this->_menu->get_slug( $page ) :
-					$this->_slug;
+				}
 
+			// Module has a custom top level settings page.
 				return add_query_arg( array_merge( $params, array(
-					'page' => $menu_slug,
+				'page' => $page_param,
 				) ), admin_url( 'admin.php', 'admin' ) );
 			}
-		}
 
 		/**
 		 * Plugin's account page + sync license URL.
