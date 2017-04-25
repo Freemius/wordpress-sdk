@@ -111,7 +111,7 @@
 			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
 		}
 
-		wp_enqueue_style( $handle, fs_asset_url( WP_FS__DIR_CSS . '/' . trim( $path, '/' )  ), $deps, $ver, $media );
+		wp_enqueue_style( $handle, fs_asset_url( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
@@ -243,7 +243,7 @@
 	}
 
 	function fs_is_plugin_page( $page_slug ) {
-		return ( is_admin() && $page_slug === fs_request_get('page') );
+		return ( is_admin() && $page_slug === fs_request_get( 'page' ) );
 	}
 
 	/* Core UI.
@@ -524,7 +524,7 @@
 	/**
 	 * @author Vova Feldman (@svovaf)
 	 *
-	 * @since 1.2.2 Changed to usage of WP_Filesystem_Direct.
+	 * @since  1.2.2 Changed to usage of WP_Filesystem_Direct.
 	 *
 	 * @param string $from URL
 	 * @param string $to   File path.
@@ -534,6 +534,11 @@
 
 		if ( 'direct' !== get_filesystem_method( array(), $dir ) ) {
 			return;
+		}
+
+		if ( ! class_exists( 'WP_Filesystem_Direct' ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
+			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
 		}
 
 		$fs      = new WP_Filesystem_Direct( '' );
@@ -576,7 +581,9 @@
 	/**
 	 * VERY IMPORTANT ----------------------------------------------
 	 *
-	 * @todo IMPORTANT - After merging to main branch rename _efs() to fs_echo() and __fs() to fs_text(). Otherwise, if there's a plugin that runs version < 1.2.2 some of the translation in the plugin dialog will not be translated correctly.
+	 * @todo IMPORTANT - After merging to main branch rename _efs() to fs_echo() and __fs() to fs_text(). Otherwise, if
+	 *       there's a plugin that runs version < 1.2.2 some of the translation in the plugin dialog will not be
+	 *       translated correctly.
 	 *
 	 * VERY IMPORTANT ----------------------------------------------
 	 */
@@ -640,8 +647,8 @@
 		 *
 		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.4
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
 		 *
 		 * @param string $key
 		 * @param string $slug
@@ -651,7 +658,7 @@
 		 * @global       $fs_text , $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			return fs_text($key, $slug);
+			return fs_text( $key, $slug );
 		}
 
 		/**
@@ -672,8 +679,8 @@
 		 *
 		 * @deprecated Use `fs_echo()` instead for consistency with `fs_text()`.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.4
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
 		 *
 		 * @param string $key
 		 * @param string $slug
@@ -714,84 +721,84 @@
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_attr($key, $slug) {
+	function fs_esc_attr( $key, $slug ) {
 		return esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_attr_echo($key, $slug) {
+	function fs_esc_attr_echo( $key, $slug ) {
 		echo esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_js($key, $slug) {
+	function fs_esc_js( $key, $slug ) {
 		return esc_js( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_js_echo($key, $slug) {
+	function fs_esc_js_echo( $key, $slug ) {
 		echo esc_js( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_json_encode_echo($key, $slug) {
+	function fs_json_encode_echo( $key, $slug ) {
 		echo json_encode( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_html($key, $slug) {
+	function fs_esc_html( $key, $slug ) {
 		return esc_html( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_html_echo($key, $slug) {
+	function fs_esc_html_echo( $key, $slug ) {
 		echo esc_html( fs_text( $key, $slug ) );
 	}
 
