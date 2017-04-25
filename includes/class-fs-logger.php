@@ -188,7 +188,7 @@
 
 			self::$LOG[] = $log;
 
-			if ( $this->is_echo_on() ) {
+			if ( $this->is_echo_on() && ! Freemius::is_ajax() ) {
 				echo self::format_html( $log ) . "\n";
 			}
 		}
