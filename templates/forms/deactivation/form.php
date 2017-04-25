@@ -191,12 +191,12 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						'module_id'   : '<?php echo $fs->get_id() ?>',
-						'reason_id'   : $radio.val(),
-						'reason_info' : userReason,
-						'is_anonymous': isAnonymousFeedback()
 						action      : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',
 						security    : '<?php echo $fs->get_ajax_security( 'submit_uninstall_reason' ) ?>',
+						module_id   : '<?php echo $fs->get_id() ?>',
+						reason_id   : $radio.val(),
+						reason_info : userReason,
+						is_anonymous: isAnonymousFeedback()
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
