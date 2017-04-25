@@ -1214,6 +1214,68 @@
 		}
 
 		/**
+		 * Check if current page is the opt-in/pending-activation page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @return bool
+		 */
+		function is_activation_page() {
+			if ( $this->_menu->is_main_settings_page() ) {
+				return true;
+			}
+
+			if ( ! $this->is_activation_mode() ) {
+				return false;
+			}
+
+			// Check if current page is matching the activation page.
+			return $this->is_matching_url( $_SERVER['REQUEST_URI'], $this->get_activation_url() );
+		}
+
+		/**
+		 * Check if URL path's are matching and that all querystring
+		 * arguments of the $sub_url exist in the $url with the same values.
+		 *
+		 * WARNING:
+		 *  1. This method doesn't check if the sub/domain are matching.
+		 *  2. Ignore case sensitivity.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $url
+		 * @param string $sub_url
+		 *
+		 * @return bool
+		 */
+		private function is_matching_url( $url, $sub_url ) {
+			$url     = strtolower( $url );
+			$sub_url = strtolower( $sub_url );
+
+			if ( parse_url( $sub_url, PHP_URL_PATH ) !== parse_url( $url, PHP_URL_PATH ) ) {
+				// Different path - DO NOT OVERRIDE PAGE.
+				return false;
+			}
+
+			$url_params = array();
+			parse_str( parse_url( $url, PHP_URL_QUERY ), $url_params );
+
+			$sub_url_params = array();
+			parse_str( parse_url( $sub_url, PHP_URL_QUERY ), $sub_url_params );
+
+			foreach ( $sub_url_params as $key => $val ) {
+				if ( ! isset( $url_params[ $key ] ) || $val != $url_params[ $key ] ) {
+					// Not matching query string - DO NOT OVERRIDE PAGE.
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		/**
 		 * Get collection of all active plugins.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -7957,27 +8019,8 @@
 				$menus = array( $this->_menu->get_parent_slug() );
 
 				if ( $this->_menu->is_override_exact() ) {
-					// Make sure the current page is matching the activation page.
-					$activation_url = strtolower( $this->get_activation_url() );
-					$request_url    = strtolower( $_SERVER['REQUEST_URI'] );
-
-					if ( parse_url( $activation_url, PHP_URL_PATH ) !== parse_url( $request_url, PHP_URL_PATH ) ) {
-						// Different path - DO NOT OVERRIDE PAGE.
+					if ( ! $this->is_matching_url( $_SERVER['REQUEST_URI'], $this->get_activation_url() ) ) {
 						return;
-					}
-
-					$activation_url_params = array();
-					parse_str( parse_url( $activation_url, PHP_URL_QUERY ), $activation_url_params );
-
-					$request_url_params = array();
-					parse_str( parse_url( $request_url, PHP_URL_QUERY ), $request_url_params );
-
-
-					foreach ( $activation_url_params as $key => $val ) {
-						if ( ! isset( $request_url_params[ $key ] ) || $val != $request_url_params[ $key ] ) {
-							// Not matching query string - DO NOT OVERRIDE PAGE.
-							return;
-						}
 					}
 				}
 
@@ -7995,7 +8038,7 @@
 				}
 			}
 
-			if ( $this->_menu->is_main_settings_page() ) {
+			if ( $this->_menu->is_activation_page() ) {
 				// Clean admin page from distracting content.
 				self::_clean_admin_content_section();
 			}
