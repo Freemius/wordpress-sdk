@@ -65,10 +65,12 @@
 		$fs->_add_license_activation_dialog_box();
 	}
 
-	global $pagenow;
-	$is_theme_page = ( 'themes.php' === $pagenow );
+	$is_optin_dialog = (
+		$fs->is_theme() &&
+		$fs->is_themes_page() &&
+	    ! $fs->has_settings_menu()
+	);
 
-	$is_optin_dialog = ( $is_theme_page && $fs->is_theme() );
 	if ( $is_optin_dialog ) {
 		$show_close_button             = false;
 		$previous_theme_activation_url = '';
