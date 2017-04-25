@@ -343,8 +343,35 @@
 		 *
 		 * @return bool
 		 */
-		private function has_settings_menu() {
+		function has_settings_menu() {
+			/**
+			 * At the moment the wp.org require to show the opt-in in
+			 * the themes page. Therefore, if the theme is .org compliant,
+			 * treat it as if it doesn't have a menu item.
+			 */
+			if ( $this->is_theme() && $this->is_org_repo_compliant() ) {
+				return false;
+			}
+
 			return $this->_menu->has_menu();
+		}
+
+		/**
+		 * Checks whether this a submenu item is visible.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.6
+		 *
+		 * @param string $slug
+		 *
+		 * @return bool
+		 */
+		function is_submenu_item_visible( $slug ) {
+			if ( ! $this->has_settings_menu() ) {
+				return false;
+			}
+
+			return $this->_menu->is_submenu_item_visible( $slug );
 		}
 
 		/**
@@ -6291,6 +6318,20 @@
 			return ( 'plugins.php' === $pagenow );
 		}
 
+		/**
+		 * Helper method to check if user in the themes page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.6
+		 *
+		 * @return bool
+		 */
+		function is_themes_page() {
+			global $pagenow;
+
+			return ( 'themes.php' === $pagenow );
+		}
+
 		#----------------------------------------------------------------------------------
 		#region URL Generators
 		#----------------------------------------------------------------------------------
@@ -8025,7 +8066,7 @@
 							'account',
 							array( &$this, '_account_page_load' ),
 							WP_FS__DEFAULT_PRIORITY,
-							$this->_menu->is_submenu_item_visible( 'account' )
+							$this->is_submenu_item_visible( 'account' )
 						);
 					}
 
@@ -8038,7 +8079,7 @@
 						'contact',
 						'Freemius::_clean_admin_content_section',
 						WP_FS__DEFAULT_PRIORITY,
-						$this->_menu->is_submenu_item_visible( 'contact' )
+						$this->is_submenu_item_visible( 'contact' )
 					);
 
 					if ( $this->has_addons() ) {
@@ -8050,7 +8091,7 @@
 							'addons',
 							array( &$this, '_addons_page_load' ),
 							WP_FS__LOWEST_PRIORITY - 1,
-							$this->_menu->is_submenu_item_visible( 'addons' )
+							$this->is_submenu_item_visible( 'addons' )
 						);
 					}
 
@@ -8058,7 +8099,7 @@
 						// Has at least one paid plan.
 						$this->has_paid_plan() &&
 						// Didn't ask to hide the pricing page.
-						$this->_menu->is_submenu_item_visible( 'pricing' ) &&
+						$this->is_submenu_item_visible( 'pricing' ) &&
 						// Don't have a valid active license or has more than one plan.
 						( ! $this->is_paying() || ! $this->is_single_plan() )
 					);
@@ -8250,7 +8291,7 @@
 			}
 
 			if ( ! $this->is_activation_mode() ) {
-				if ( $this->_menu->is_submenu_item_visible( 'support' ) ) {
+				if ( $this->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
 						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
@@ -8914,7 +8955,7 @@
 				$this->_user->last  = $user->last;
 				$this->_user->email = $user->email;
 
-				$is_menu_item_account_visible = $this->_menu->is_submenu_item_visible( 'account' );
+				$is_menu_item_account_visible = $this->is_submenu_item_visible( 'account' );
 
 				if ( $user->is_verified &&
 				     ( ! isset( $this->_user->is_verified ) || false === $this->_user->is_verified )
