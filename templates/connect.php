@@ -361,6 +361,8 @@
 
 		$('.fs-permissions .fs-trigger').on('click', function () {
 			$('.fs-permissions').toggleClass('fs-open');
+
+			return false;
 		});
 
 		if (requireLicenseKey) {
