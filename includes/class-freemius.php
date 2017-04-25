@@ -6470,6 +6470,18 @@
 		}
 
 		/**
+		 * Checks if the plugin's type is "plugin". The other type is "theme".
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_plugin() {
+			return true;
+		}
+
+		/**
 		 * Check if module has a premium code version.
 		 *
 		 * Serviceware module might be freemium without any

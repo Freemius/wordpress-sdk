@@ -124,6 +124,34 @@
 		#endregion
 
 		#----------------------------------------------------------------------------------
+		#region Module Type
+		#----------------------------------------------------------------------------------
+
+		/**
+		 * Checks if the plugin's type is "plugin". The other type is "theme".
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		abstract function is_plugin();
+
+		/**
+		 * Checks if the module type is "theme". The other type is "plugin".
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @return bool
+		 */
+		function is_theme() {
+			return ( ! $this->is_plugin() );
+		}
+
+		#endregion
+
+		#----------------------------------------------------------------------------------
 		#region Permissions
 		#----------------------------------------------------------------------------------
 
