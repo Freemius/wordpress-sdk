@@ -373,7 +373,16 @@
 		 *
 		 * @return bool
 		 */
-		private function has_settings_menu() {
+		function has_settings_menu() {
+			/**
+			 * At the moment the wp.org require to show the opt-in in
+			 * the themes page. Therefore, if the theme is .org compliant,
+			 * treat it as if it doesn't have a menu item.
+			 */
+			if ( $this->is_theme() && $this->is_org_repo_compliant() ) {
+				return false;
+			}
+
 			return $this->_menu->has_menu();
 		}
 
