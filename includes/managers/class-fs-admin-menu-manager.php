@@ -413,7 +413,7 @@
 				 *
 				 * @since 1.2.2
 				 */
-				return fs_request_is_action( $this->_module_unique_affix . '_show_optin' );
+				return fs_request_get_bool( $this->_module_unique_affix . '_show_optin' );
 			}
 
 			return false;
