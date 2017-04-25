@@ -142,8 +142,8 @@
 				$modal.find('.fs-ajax-loader').show();
 
 				var data = {
-					action   : '<?php echo $fs->get_action_tag( 'install_premium_version' ) ?>',
-					security : '<?php echo wp_create_nonce( $fs->get_action_tag( 'install_premium_version' ) ) ?>',
+					action   : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
+					security : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
 					slug     : '<?php echo $slug ?>',
 					plugin_id: '<?php echo $plugin_id ?>'
 				};
