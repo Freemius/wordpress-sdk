@@ -1003,6 +1003,8 @@
 		 * @since  1.1.2
 		 */
 		function _submit_uninstall_reason_action() {
+			$this->check_ajax_referer( 'activate_license' );
+
 			$reason_id = fs_request_get( 'reason_id' );
 
 			// Check if the given reason ID is an unsigned integer.
@@ -2584,6 +2586,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _stop_tracking_callback() {
+			$this->check_ajax_referer( 'stop_tracking' );
+
 			$result = $this->stop_tracking();
 
 			if ( true === $result ) {
@@ -2605,6 +2609,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _allow_tracking_callback() {
+			$this->check_ajax_referer( 'allow_tracking' );
+
 			$result = $this->allow_tracking();
 
 			if ( true === $result ) {
@@ -6094,6 +6100,8 @@
 		 * @since  1.1.9
 		 */
 		function _activate_license_ajax_action() {
+			$this->check_ajax_referer( 'activate_license' );
+
 			$license_key = trim( fs_request_get( 'license_key' ) );
 
 			if ( empty( $license_key ) ) {
@@ -6155,7 +6163,7 @@
 		 * @since  1.2.1.5
 		 */
 		function _update_billing_ajax_action() {
-			check_ajax_referer( $this->get_action_tag( 'update_billing' ), 'security' );
+			$this->check_ajax_referer( 'update_billing' );
 
 			if ( ! $this->is_user_admin() ) {
 				// Only for admins.
@@ -6188,7 +6196,7 @@
 		function _start_trial_ajax_action() {
 			$this->_logger->entrance();
 
-			check_ajax_referer( $this->get_action_tag( 'start_trial' ), 'security' );
+			$this->check_ajax_referer( 'start_trial' );
 
 			if ( ! $this->is_user_admin() ) {
 				// Only for admins.
@@ -6225,6 +6233,8 @@
 		 */
 		function _resend_license_key_ajax_action() {
 			$this->_logger->entrance();
+
+			$this->check_ajax_referer( 'resend_license_key' );
 
 			$email_address = sanitize_email( trim( fs_request_get( 'email', '', 'post' ) ) );
 
@@ -6585,7 +6595,7 @@
 				$ajax_action = fs_request_get( 'action' );
 
 				foreach ( $actions as $action ) {
-					if ( $ajax_action === self::get_action_tag_static( $action, $slug ) ) {
+					if ( $ajax_action === self::get_ajax_action_static( $action, $slug ) ) {
 						return true;
 					}
 				}
@@ -8393,8 +8403,30 @@
 		 *
 		 * @return string
 		 */
-		private function get_ajax_action_tag( $tag ) {
-			return 'wp_ajax_' . $this->get_action_tag( $tag );
+		function get_ajax_action( $tag ) {
+			return self::get_ajax_action_static( $tag, $this->_slug );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $tag
+		 *
+		 * @return string
+		 */
+		function get_ajax_security( $tag ) {
+			return wp_create_nonce( $this->get_ajax_action( $tag ) );
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $tag
+		 */
+		function check_ajax_referer( $tag ) {
+			check_ajax_referer( $this->get_ajax_action( $tag ), 'security' );
 		}
 
 		/**
@@ -8406,8 +8438,14 @@
 		 *
 		 * @return string
 		 */
-		private static function get_ajax_action_tag_static( $tag, $slug = '' ) {
-			return 'wp_ajax_' . self::get_action_tag_static( $tag, $slug );
+		private static function get_ajax_action_static( $tag, $slug = '' ) {
+			$action = "fs_{$tag}";
+
+			if ( ! empty( $slug ) ) {
+				$action .= "_{$slug}";
+			}
+
+			return $action;
 		}
 
 		/**
@@ -8514,7 +8552,7 @@
 			}
 
 			add_action(
-				self::get_ajax_action_tag_static( $tag, $slug ),
+				'wp_ajax_' . self::get_ajax_action_static( $tag, $slug ),
 				$function_to_add,
 				$priority,
 				0
@@ -11935,6 +11973,8 @@
 		 */
 		function _install_premium_version_ajax_action() {
 			$this->_logger->entrance();
+
+			$this->check_ajax_referer( 'install_premium_version' );
 
 			if ( ! $this->is_registered() ) {
 				// Not registered.

@@ -454,8 +454,8 @@
 						url    : ajaxurl,
 						method : 'POST',
 						data   : {
-							action  : '<?php echo $fs->get_action_tag( 'update_billing' ) ?>',
-							security: '<?php echo wp_create_nonce( $fs->get_action_tag( 'update_billing' ) ) ?>',
+							action   : '<?php echo $fs->get_ajax_action( 'update_billing' ) ?>',
+							security : '<?php echo $fs->get_ajax_security( 'update_billing' ) ?>',
 							slug    : '<?php echo $slug ?>',
 							billing : billing
 						},

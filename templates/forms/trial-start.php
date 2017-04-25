@@ -80,8 +80,8 @@ HTML;
 						url       : ajaxurl,
 						method    : 'POST',
 						data      : {
-							action  : '<?php echo $fs->get_action_tag( 'start_trial' ) ?>',
-							security: '<?php echo wp_create_nonce( $fs->get_action_tag( 'start_trial' ) ) ?>',
+							action  : '<?php echo $fs->get_ajax_action( 'start_trial' ) ?>',
+							security: '<?php echo $fs->get_ajax_security( 'start_trial' ) ?>',
 							slug    : moduleSlug,
 							trial   : trialData
 						},

@@ -315,7 +315,8 @@
 						url    : ajaxurl,
 						method : 'POST',
 						data   : {
-							action     : '<?php echo $fs->get_action_tag( 'activate_license' ) ?>',
+							action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
+							security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
 							license_key: $licenseKeyInput.val(),
 							slug       : '<?php echo $slug ?>'
 						},

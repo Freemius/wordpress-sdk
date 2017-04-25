@@ -133,7 +133,8 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						action     : 'fs_activate_license_' + pluginSlug,
+						action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
+						security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
 						slug       : pluginSlug,
 						license_key: licenseKey
 					},

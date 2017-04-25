@@ -79,8 +79,6 @@ HTML;
 			$modal               = $( modalHtml ),
 			$adminNotice         = $( <?php echo json_encode( $admin_notice_html ) ?> ),
 			action               = '<?php echo $action ?>',
-			optOutActionTag      = '<?php echo $fs->get_action_tag( 'stop_tracking' ) ?>',
-			optInActionTag       = '<?php echo $fs->get_action_tag( 'allow_tracking' ) ?>',
 			$actionLink          = $( 'span.opt-in-or-opt-out.<?php echo $slug ?> a' ),
 			$optOutButton        = $modal.find( '.button-opt-out' ),
 			$optOutErrorMessage  = $modal.find( '.opt-out-error-message' ),
@@ -156,7 +154,14 @@ HTML;
 				url: ajaxurl,
 				method: 'POST',
 				data: {
-					action: ( 'stop_tracking' == action ? optOutActionTag : optInActionTag ),
+					action   : ( 'stop_tracking' == action ?
+							'<?php echo $fs->get_ajax_action( 'stop_tracking' ) ?>' :
+							'<?php echo $fs->get_ajax_action( 'allow_tracking' ) ?>'
+					),
+					security : ( 'stop_tracking' == action ?
+							'<?php echo $fs->get_ajax_security( 'stop_tracking' ) ?>' :
+							'<?php echo $fs->get_ajax_security( 'allow_tracking' ) ?>'
+					),
 					slug  : pluginSlug
 				},
 				beforeSend: function() {
