@@ -8064,7 +8064,9 @@
 				return;
 			}
 
-			if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
+			if ( ($this->is_plugin() && fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) ||
+			$this->is_theme()
+			) {
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
 				if ( fs_request_has( 'user_secret_key' ) ) {
@@ -8396,12 +8398,17 @@
 		 */
 		private function add_menu_action() {
 			if ( $this->is_activation_mode() ) {
-				if ( $this->has_settings_menu() ) {
+				if ( ! $this->is_theme() || $this->has_settings_menu() ) {
 					$this->override_plugin_menu_with_activation();
-				} else if ( $this->is_theme() ) {
+				} else {
+					/**
+					 * Handle theme opt-in when the opt-in form shows as a dialog box in the themes page.
+					 */
 					if ( fs_request_is_action( $this->get_unique_affix() . '_activate_existing' ) ) {
 						add_action( "load-themes.php", array( &$this, '_install_with_current_user' ) );
-					} else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
+					} else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ||
+					            fs_request_get_bool( 'pending_activation' )
+					) {
 						add_action( "load-themes.php", array( &$this, '_install_with_new_user' ) );
 					}
 				}
