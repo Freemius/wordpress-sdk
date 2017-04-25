@@ -1143,6 +1143,8 @@
 		 * @since  1.1.2
 		 */
 		function _submit_uninstall_reason_action() {
+			$this->_logger->entrance();
+
 			$this->check_ajax_referer( 'activate_license' );
 
 			$reason_id = fs_request_get( 'reason_id' );
@@ -2859,6 +2861,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _stop_tracking_callback() {
+			$this->_logger->entrance();
+
 			$this->check_ajax_referer( 'stop_tracking' );
 
 			$result = $this->stop_tracking();
@@ -2882,6 +2886,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _allow_tracking_callback() {
+			$this->_logger->entrance();
+
 			$this->check_ajax_referer( 'allow_tracking' );
 
 			$result = $this->allow_tracking();
@@ -6587,6 +6593,8 @@
 		 * @since  1.1.9
 		 */
 		function _activate_license_ajax_action() {
+			$this->_logger->entrance();
+
 			$this->check_ajax_referer( 'activate_license' );
 
 			$license_key = trim( fs_request_get( 'license_key' ) );
@@ -6650,6 +6658,8 @@
 		 * @since  1.2.1.5
 		 */
 		function _update_billing_ajax_action() {
+			$this->_logger->entrance();
+
 			$this->check_ajax_referer( 'update_billing' );
 
 			if ( ! $this->is_user_admin() ) {
