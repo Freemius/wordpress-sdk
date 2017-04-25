@@ -295,7 +295,7 @@
 					});
 
 					var updateHeight = function () {
-						iframe.css('min-height', $('#wpwrap').height() + 'px');
+						frame.css('min-height', $('#wpwrap').height() + 'px');
 					};
 
 					$(document).ready(updateHeight);
