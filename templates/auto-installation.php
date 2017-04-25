@@ -145,7 +145,7 @@
 					action   : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
 					security : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
 					slug     : '<?php echo $slug ?>',
-					plugin_id: '<?php echo $plugin_id ?>'
+					module_id: '<?php echo $plugin_id ?>'
 				};
 
 				if (requireCredentials) {

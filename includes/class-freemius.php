@@ -12525,7 +12525,7 @@
 				) );
 			}
 
-			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
+			$plugin_id = fs_request_get( 'module_id', $this->get_id() );
 
 			if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
 				// Invalid ID.
