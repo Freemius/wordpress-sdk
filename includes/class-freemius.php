@@ -1032,7 +1032,7 @@
 		function _submit_uninstall_reason_action() {
 			$this->_logger->entrance();
 
-			$this->check_ajax_referer( 'activate_license' );
+			$this->check_ajax_referer( 'submit_uninstall_reason' );
 
 			$reason_id = fs_request_get( 'reason_id' );
 
