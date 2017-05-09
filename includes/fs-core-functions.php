@@ -10,10 +10,6 @@
 		exit;
 	}
 
-	global $fs_core_logger;
-
-	$fs_core_logger = FS_Logger::get_logger( WP_FS__SLUG . '_core', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
 	if ( ! function_exists( 'fs_dummy' ) ) {
 		function fs_dummy() {
 		}
@@ -65,24 +61,10 @@
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
-		global $fs_core_logger;
-		if ( $fs_core_logger->is_on() ) {
-			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'plugin_basename = ' . plugins_url( WP_FS__DIR_CSS . trim( $path, '/' ) ) );
-			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ) );
-		}
-
 		wp_enqueue_style( $handle, plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
-		global $fs_core_logger;
-		if ( $fs_core_logger->is_on() ) {
-			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'plugin_basename = ' . plugins_url( WP_FS__DIR_JS . trim( $path, '/' ) ) );
-			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ) );
-		}
-
 		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
 	}
 
@@ -529,7 +511,39 @@
 	#region Localization
 	#--------------------------------------------------------------------------------
 
-	/**
+    if ( ! function_exists( 'fs_text' ) ) {
+        /**
+         * Retrieve a translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $key
+         * @param string $slug
+         *
+         * @return string
+         *
+         * @global       $fs_text, $fs_text_overrides
+         */
+        function fs_text( $key, $slug = 'freemius' ) {
+            return __fs( $key, $slug );
+        }
+
+        /**
+         * Output a translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_echo( $key, $slug = 'freemius' ) {
+            echo fs_text( $key, $slug );
+        }
+	}
+
+    /**
 	 * @author Vova Feldman
 	 * @since  1.2.1.6
 	 *

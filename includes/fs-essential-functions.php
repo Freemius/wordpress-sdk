@@ -152,54 +152,6 @@
 		/**
 		 * Retrieve a translated text by key.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.1.7
-		 *
-		 * @param string $key
-		 * @param string $slug
-		 *
-		 * @return string
-		 *
-		 * @global       $fs_text , $fs_text_overrides
-		 */
-		function fs_text( $key, $slug = 'freemius' ) {
-			global $fs_text,
-			       $fs_module_info_text,
-			       $fs_text_overrides;
-
-			if ( isset( $fs_text_overrides[ $slug ] ) ) {
-				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
-					return $fs_text_overrides[ $slug ][ $key ];
-				}
-
-				$lower_key = strtolower( $key );
-				if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
-					return $fs_text_overrides[ $slug ][ $lower_key ];
-				}
-			}
-
-			if ( ! isset( $fs_text ) ) {
-				$dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
-					WP_FS__DIR_INCLUDES :
-					dirname( __FILE__ );
-
-				require_once $dir . '/i18n.php';
-			}
-
-			if ( isset( $fs_text[ $key ] ) ) {
-				return $fs_text[ $key ];
-			}
-
-			if ( isset( $fs_module_info_text[ $key ] ) ) {
-				return $fs_module_info_text[ $key ];
-			}
-
-			return $key;
-		}
-
-		/**
-		 * Retrieve a translated text by key.
-		 *
 		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
 		 *
 		 * @author     Vova Feldman (@svovaf)
@@ -210,23 +162,41 @@
 		 *
 		 * @return string
 		 *
-		 * @global       $fs_text , $fs_text_overrides
+		 * @global       $fs_text, $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			return fs_text( $key, $slug );
-		}
+            global $fs_text,
+                   $fs_module_info_text,
+                   $fs_text_overrides;
 
-		/**
-		 * Output a translated text by key.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.1.7
-		 *
-		 * @param string $key
-		 * @param string $slug
-		 */
-		function fs_echo( $key, $slug = 'freemius' ) {
-			echo fs_text( $key, $slug );
+            if ( isset( $fs_text_overrides[ $slug ] ) ) {
+                if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $key ];
+                }
+
+                $lower_key = strtolower( $key );
+                if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $lower_key ];
+                }
+            }
+
+            if ( ! isset( $fs_text ) ) {
+                $dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+                    WP_FS__DIR_INCLUDES :
+                    dirname( __FILE__ );
+
+                require_once $dir . '/i18n.php';
+            }
+
+            if ( isset( $fs_text[ $key ] ) ) {
+                return $fs_text[ $key ];
+            }
+
+            if ( isset( $fs_module_info_text[ $key ] ) ) {
+                return $fs_module_info_text[ $key ];
+            }
+
+            return $key;
 		}
 
 		/**
@@ -340,7 +310,11 @@
 
 		if ( is_null( $plugin_file ) ) {
 			// Throw an error to the developer in case of some edge case dev environment.
-			wp_die( fs_text( 'failed-finding-main-path' ), fs_text( 'error' ), array( 'back_link' => true ) );
+			wp_die(
+                "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error.",
+                'Error',
+                array( 'back_link' => true )
+            );
 		}
 
 		return $plugin_file;
