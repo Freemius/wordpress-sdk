@@ -46,10 +46,10 @@
 			'wordpress/usage-tracking/' . $fs->get_id() . "/{$slug}/" );
 
 	if ( $fs->is_premium() ) {
-	$freemius_site_url .= '?' . http_build_query( array(
-			'id'   => $fs->get_id(),
-			'slug' => $slug,
-		) );
+		$freemius_site_url .= '?' . http_build_query( array(
+				'id'   => $fs->get_id(),
+				'slug' => $slug,
+			) );
 	}
 
 	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="1">freemius.com</a>';
@@ -399,7 +399,7 @@
 								window.location.href = resultObj.next_page;
 							} else {
 								// Show error.
-								$('.fs-content').prepend('<p class="fs-error">' + resultObj.error + '</p>');
+								$('.fs-content').prepend('<p class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</p>');
 
 								// Reset loading mode.
 								$primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
