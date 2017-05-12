@@ -840,6 +840,17 @@
 
 			// Get active plugin's main files real full names (might be symlinks).
 			foreach ( $all_plugins as $relative_path => &$data ) {
+				if ( false === strpos( fs_normalize_path( $relative_path ), '/' ) ) {
+					/**
+					 * Ignore plugins that don't have a folder (e.g. Hello Dolly) since they
+					 * can't really include the SDK.
+					 *
+					 * @author Vova Feldman
+					 * @since  1.2.1.7
+					 */
+					continue;
+				}
+
 				$all_plugins_paths[] = fs_normalize_path( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) );
 			}
 
