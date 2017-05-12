@@ -11716,6 +11716,11 @@
 
 			$this->_logger->entrance();
 
+			if ( ! $this->is_plugins_page() ) {
+				// Only show tracking links on the plugin's page.
+				return;
+			}
+
 			if ( ! $this->is_enable_anonymous() ) {
 				// Don't allow to opt-out if anonymous mode is disabled.
 				return;
