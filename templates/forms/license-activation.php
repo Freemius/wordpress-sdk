@@ -149,7 +149,7 @@ HTML;
 							// Redirect to the "Account" page and sync the license.
 							window.location.href = resultObj.next_page;
 						} else {
-							showError( resultObj.error );
+							showError( resultObj.error.message ? resultObj.error.message : resultObj.error );
 							resetActivateLicenseButton();
 						}
 					}
