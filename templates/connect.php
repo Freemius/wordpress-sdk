@@ -40,15 +40,17 @@
 
 	$freemius_site_www = 'https://freemius.com';
 
-	$freemius_site_url = $freemius_site_www . '/' . ( $fs->has_paid_plan() ?
+	$freemius_site_url = $freemius_site_www . '/' . ( $fs->is_premium() ?
 			'wordpress/' :
 			// Insights platform information.
-			'wordpress/usage-tracking/' );
+			'wordpress/usage-tracking/' . $fs->get_id() . "/{$slug}/" );
 
+	if ( $fs->is_premium() ) {
 	$freemius_site_url .= '?' . http_build_query( array(
 			'id'   => $fs->get_id(),
 			'slug' => $slug,
 		) );
+	}
 
 	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="1">freemius.com</a>';
 
