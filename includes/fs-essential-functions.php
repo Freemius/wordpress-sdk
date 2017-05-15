@@ -52,7 +52,7 @@
 
 			$file = '';
 			$line = '';
-			if ( headers_sent($file, $line) ) {
+			if ( headers_sent( $file, $line ) ) {
 				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notice_Manager' ) ) {
 					$notices = FS_Admin_Notice_Manager::instance( 'global' );
 
@@ -152,64 +152,70 @@
 		/**
 		 * Retrieve a translated text by key.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.4
+		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
+		 *
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
 		 *
 		 * @param string $key
 		 * @param string $slug
 		 *
 		 * @return string
 		 *
-		 * @global       $fs_text , $fs_text_overrides
+		 * @global       $fs_text, $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
-			global $fs_text,
-			       $fs_module_info_text,
-			       $fs_text_overrides;
+            global $fs_text,
+                   $fs_module_info_text,
+                   $fs_text_overrides;
 
-			if ( isset( $fs_text_overrides[ $slug ] ) ) {
-				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
-					return $fs_text_overrides[ $slug ][ $key ];
-				}
+            if ( isset( $fs_text_overrides[ $slug ] ) ) {
+                if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $key ];
+                }
 
-				$lower_key = strtolower( $key );
-				if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
-					return $fs_text_overrides[ $slug ][ $lower_key ];
-				}
-			}
+                $lower_key = strtolower( $key );
+                if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $lower_key ];
+                }
+            }
 
-			if ( ! isset( $fs_text ) ) {
-				$dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
-					WP_FS__DIR_INCLUDES :
-					dirname( __FILE__ );
+            if ( ! isset( $fs_text ) ) {
+                $dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+                    WP_FS__DIR_INCLUDES :
+                    dirname( __FILE__ );
 
-				require_once $dir . '/i18n.php';
-			}
+                require_once $dir . '/i18n.php';
+            }
 
-			if ( isset( $fs_text[ $key ] ) ) {
-				return $fs_text[ $key ];
-			}
+            if ( isset( $fs_text[ $key ] ) ) {
+                return $fs_text[ $key ];
+            }
 
-			if ( isset( $fs_module_info_text[ $key ] ) ) {
-				return $fs_module_info_text[ $key ];
-			}
+            if ( isset( $fs_module_info_text[ $key ] ) ) {
+                return $fs_module_info_text[ $key ];
+            }
 
-			return $key;
+            return $key;
 		}
 
 		/**
-		 * Display a translated text by key.
+		 * Output a translated text by key.
 		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.4
+		 * @deprecated Use `fs_echo()` instead for consistency with `fs_text()`.
+		 *
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
 		 *
 		 * @param string $key
 		 * @param string $slug
 		 */
 		function _efs( $key, $slug = 'freemius' ) {
-			echo __fs( $key, $slug );
+			fs_echo( $key, $slug );
 		}
+	}
 
+	if ( ! function_exists( 'fs_override_i18n' ) ) {
 		/**
 		 * Override default i18n text phrases.
 		 *
@@ -292,6 +298,10 @@
 
 		$plugin_file = null;
 		for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
+			if ( empty( $bt[ $i ]['file'] ) ) {
+				continue;
+			}
+
 			if ( in_array( fs_normalize_path( $bt[ $i ]['file'] ), $all_plugins_paths ) ) {
 				$plugin_file = $bt[ $i ]['file'];
 				break;
@@ -300,7 +310,11 @@
 
 		if ( is_null( $plugin_file ) ) {
 			// Throw an error to the developer in case of some edge case dev environment.
-			wp_die( __fs( 'failed-finding-main-path' ), __fs( 'error' ), array( 'back_link' => true ) );
+			wp_die(
+                "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error.",
+                'Error',
+                array( 'back_link' => true )
+            );
 		}
 
 		return $plugin_file;

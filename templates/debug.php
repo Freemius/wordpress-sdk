@@ -14,16 +14,16 @@
 
 	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 ?>
-<h1><?php echo __fs( 'Freemius Debug' ) . ' - ' . __fs( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
+<h1><?php echo fs_text( 'Freemius Debug' ) . ' - ' . fs_text( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
 	<!-- Debugging Switch -->
 	<?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
-	<span class="switch-label"><?php _efs( 'debugging' ) ?></span>
+	<span class="switch-label"><?php fs_echo( 'debugging' ) ?></span>
 
 	<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
 		<div class="toggle"></div>
-		<span class="on"><?php _efs( 'on' ) ?></span>
-		<span class="off"><?php _efs( 'off' ) ?></span>
+		<span class="on"><?php fs_echo( 'on' ) ?></span>
+		<span class="off"><?php fs_echo( 'off' ) ?></span>
 	</div>
 	<script type="text/javascript">
 		(function ($) {
@@ -48,7 +48,7 @@
 		}(jQuery));
 	</script>
 </div>
-<h2><?php _efs( 'actions' ) ?></h2>
+<h2><?php fs_echo( 'actions' ) ?></h2>
 <table>
 	<tbody>
 	<tr>
@@ -58,26 +58,69 @@
 				<input type="hidden" name="fs_action" value="restart_freemius">
 				<?php wp_nonce_field( 'restart_freemius' ) ?>
 				<button class="button button-primary"
-				        onclick="if (confirm('<?php _efs( 'delete-all-confirm' ) ?>')) this.parentNode.submit(); return false;"><?php _efs( 'delete-all-accounts' ) ?></button>
+				        onclick="if (confirm('<?php fs_echo( 'delete-all-confirm' ) ?>')) this.parentNode.submit(); return false;"><?php fs_echo( 'delete-all-accounts' ) ?></button>
 			</form>
 		</td>
 		<td>
 			<!-- Clear API Cache -->
 			<form action="" method="POST">
 				<input type="hidden" name="fs_clear_api_cache" value="true">
-				<button class="button button-primary"><?php _efs( 'clear-api-cache' ) ?></button>
+				<button class="button button-primary"><?php fs_echo( 'clear-api-cache' ) ?></button>
 			</form>
 		</td>
 		<td>
 			<!-- Sync Data with Server -->
 			<form action="" method="POST">
 				<input type="hidden" name="background_sync" value="true">
-				<button class="button button-primary"><?php _efs( 'sync-data-from-server' ) ?></button>
+				<button class="button button-primary"><?php fs_echo( 'sync-data-from-server' ) ?></button>
 			</form>
+		</td>
+		<td>
+			<button id="fs_load_db_option" class="button"><?php fs_echo( 'Load DB Option' ) ?></button>
+		</td>
+		<td>
+			<button id="fs_set_db_option" class="button"><?php fs_echo( 'Set DB Option' ) ?></button>
 		</td>
 	</tr>
 	</tbody>
 </table>
+<script type="text/javascript">
+	(function($){
+		$('#fs_load_db_option').click(function () {
+			var optionName = prompt('Please enter the option name:');
+
+			if (optionName) {
+				$.post(ajaxurl, {
+					action     : 'fs_get_db_option',
+					option_name: optionName
+				}, function (response) {
+					if (response.data.value)
+						prompt('The option value is:', response.data.value);
+					else
+						alert('Oops... Option does not exist in the DB.');
+				});
+			}
+		});
+
+		$('#fs_set_db_option').click(function () {
+			var optionName = prompt('Please enter the option name:');
+
+			if (optionName) {
+				var optionValue = prompt('Please enter the option value:');
+
+				if (optionValue) {
+					$.post(ajaxurl, {
+						action      : 'fs_set_db_option',
+						option_name : optionName,
+						option_value: optionValue
+					}, function () {
+						alert('Option was successfully set.');
+					});
+				}
+			}
+		});
+	})(jQuery);
+</script>
 <?php
 	if ( ! defined( 'FS_API__ADDRESS' ) ) {
 		define( 'FS_API__ADDRESS', '://api.freemius.com' );
@@ -113,8 +156,8 @@
 <table class="widefat">
 	<thead>
 	<tr>
-		<th><?php _efs( 'key' ) ?></th>
-		<th><?php _efs( 'value' ) ?></th>
+		<th><?php fs_echo( 'key' ) ?></th>
+		<th><?php fs_echo( 'value' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -130,14 +173,14 @@
 		<?php endforeach ?>
 	</tbody>
 </table>
-<h2><?php _efs( 'sdk-versions' ) ?></h2>
+<h2><?php fs_echo( 'sdk-versions' ) ?></h2>
 <table id="fs_sdks" class="widefat">
 	<thead>
 	<tr>
-		<th><?php _efs( 'version' ) ?></th>
-		<th><?php _efs( 'sdk-path' ) ?></th>
-		<th><?php _efs( 'plugin-path' ) ?></th>
-		<th><?php _efs( 'is-active' ) ?></th>
+		<th><?php fs_echo( 'version' ) ?></th>
+		<th><?php fs_echo( 'sdk-path' ) ?></th>
+		<th><?php fs_echo( 'plugin-path' ) ?></th>
+		<th><?php fs_echo( 'is-active' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -156,19 +199,19 @@
 </table>
 <?php $plugins = $fs_options->get_option( 'plugins' ) ?>
 <?php if ( is_array( $plugins ) && 0 < count( $plugins ) ) : ?>
-	<h2><?php _efs( 'plugins' ) ?></h2>
+	<h2><?php fs_echo( 'plugins' ) ?></h2>
 	<table id="fs_plugins" class="widefat">
 		<thead>
 		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'slug' ) ?></th>
-			<th><?php _efs( 'version' ) ?></th>
-			<th><?php _efs( 'title' ) ?></th>
-			<th><?php _efs( 'api' ) ?></th>
-			<th><?php _efs( 'freemius-state' ) ?></th>
-			<th><?php _efs( 'plugin-path' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-			<th><?php _efs( 'actions' ) ?></th>
+			<th><?php fs_echo( 'id' ) ?></th>
+			<th><?php fs_echo( 'slug' ) ?></th>
+			<th><?php fs_echo( 'version' ) ?></th>
+			<th><?php fs_echo( 'title' ) ?></th>
+			<th><?php fs_echo( 'api' ) ?></th>
+			<th><?php fs_echo( 'freemius-state' ) ?></th>
+			<th><?php fs_echo( 'plugin-path' ) ?></th>
+			<th><?php fs_echo( 'public-key' ) ?></th>
+			<th><?php fs_echo( 'actions' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -190,15 +233,15 @@
 					echo ' style="color: red; text-transform: uppercase;"';
 				} ?>><?php if ( $is_active ) {
 						echo $fs->has_api_connectivity() ?
-							__fs( 'connected' ) :
-							__fs( 'blocked' );
+							fs_text( 'connected' ) :
+							fs_text( 'blocked' );
 					} ?></td>
 				<td<?php if ( $is_active && ! $fs->is_on() ) {
 					echo ' style="color: red; text-transform: uppercase;"';
 				} ?>><?php if ( $is_active ) {
 						echo $fs->is_on() ?
-							__fs( 'on' ) :
-							__fs( 'off' );
+							fs_text( 'on' ) :
+							fs_text( 'off' );
 					} ?></td>
 				<td><?php echo $data->file ?></td>
 				<td><?php echo $data->public_key ?></td>
@@ -210,7 +253,7 @@
 							<?php wp_nonce_field( 'simulate_trial' ) ?>
 
 							<button type="submit"
-							        class="button button-primary simulate-trial"><?php _efs( 'Simulate Trial' ) ?></button>
+							        class="button button-primary simulate-trial"><?php fs_echo( 'Simulate Trial' ) ?></button>
 						</form>
 					<?php endif ?>
 				</td>
@@ -227,15 +270,15 @@
 	$sites = $VARS['sites'];
 ?>
 <?php if ( is_array( $sites ) && 0 < count( $sites ) ) : ?>
-	<h2><?php _efs( 'plugin-installs' ) ?> / <?php _efs( 'sites' ) ?></h2>
+	<h2><?php fs_echo( 'plugin-installs' ) ?> / <?php fs_echo( 'sites' ) ?></h2>
 	<table id="fs_installs" class="widefat">
 		<thead>
 		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'slug' ) ?></th>
-			<th><?php _efs( 'plan' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-			<th><?php _efs( 'secret-key' ) ?></th>
+			<th><?php fs_echo( 'id' ) ?></th>
+			<th><?php fs_echo( 'slug' ) ?></th>
+			<th><?php fs_echo( 'plan' ) ?></th>
+			<th><?php fs_echo( 'public-key' ) ?></th>
+			<th><?php fs_echo( 'secret-key' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -245,7 +288,7 @@
 				<td><?php echo $slug ?></td>
 				<td><?php
 						echo is_object( $site->plan ) ?
-							base64_decode( $site->plan->name ) :
+							Freemius::_decrypt( $site->plan->name ) :
 							''
 					?></td>
 				<td><?php echo $site->public_key ?></td>
@@ -259,16 +302,16 @@
 	$addons = $VARS['addons'];
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
-	<h2><?php printf( __fs( 'addons-of-x' ), $plugin_id ) ?></h2>
+	<h2><?php printf( fs_text( 'addons-of-x' ), $plugin_id ) ?></h2>
 	<table id="fs_addons" class="widefat">
 		<thead>
 		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'title' ) ?></th>
-			<th><?php _efs( 'slug' ) ?></th>
-			<th><?php _efs( 'version' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-			<th><?php _efs( 'secret-key' ) ?></th>
+			<th><?php fs_echo( 'id' ) ?></th>
+			<th><?php fs_echo( 'title' ) ?></th>
+			<th><?php fs_echo( 'slug' ) ?></th>
+			<th><?php fs_echo( 'version' ) ?></th>
+			<th><?php fs_echo( 'public-key' ) ?></th>
+			<th><?php fs_echo( 'secret-key' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -296,16 +339,16 @@
 	$users = $VARS['users'];
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
-	<h2><?php _efs( 'users' ) ?></h2>
+	<h2><?php fs_echo( 'users' ) ?></h2>
 	<table id="fs_users" class="widefat">
 		<thead>
 		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'name' ) ?></th>
-			<th><?php _efs( 'email' ) ?></th>
-			<th><?php _efs( 'verified' ) ?></th>
-			<th><?php _efs( 'public-key' ) ?></th>
-			<th><?php _efs( 'secret-key' ) ?></th>
+			<th><?php fs_echo( 'id' ) ?></th>
+			<th><?php fs_echo( 'name' ) ?></th>
+			<th><?php fs_echo( 'email' ) ?></th>
+			<th><?php fs_echo( 'verified' ) ?></th>
+			<th><?php fs_echo( 'public-key' ) ?></th>
+			<th><?php fs_echo( 'secret-key' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -330,19 +373,19 @@
 	$licenses = $VARS['licenses'];
 ?>
 <?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-	<h2><?php _efs( 'licenses' ) ?></h2>
+	<h2><?php fs_echo( 'licenses' ) ?></h2>
 	<table id="fs_users" class="widefat">
 		<thead>
 		<tr>
-			<th><?php _efs( 'id' ) ?></th>
-			<th><?php _efs( 'plugin-id' ) ?></th>
-			<th><?php _efs( 'user-id' ) ?></th>
-			<th><?php _efs( 'plan-id' ) ?></th>
-			<th><?php _efs( 'quota' ) ?></th>
-			<th><?php _efs( 'activated' ) ?></th>
-			<th><?php _efs( 'blocking' ) ?></th>
-			<th><?php _efs( 'license-key' ) ?></th>
-			<th><?php _efs( 'expiration' ) ?></th>
+			<th><?php fs_echo( 'id' ) ?></th>
+			<th><?php fs_echo( 'plugin-id' ) ?></th>
+			<th><?php fs_echo( 'user-id' ) ?></th>
+			<th><?php fs_echo( 'plan-id' ) ?></th>
+			<th><?php fs_echo( 'quota' ) ?></th>
+			<th><?php fs_echo( 'activated' ) ?></th>
+			<th><?php fs_echo( 'blocking' ) ?></th>
+			<th><?php fs_echo( 'license-key' ) ?></th>
+			<th><?php fs_echo( 'expiration' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -371,29 +414,29 @@
 
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>
 
-	<h2><?php _efs( 'debug-log' ) ?></h2>
+	<h2><?php fs_echo( 'debug-log' ) ?></h2>
 
 	<div id="fs_debug_filters">
 		<select name="type">
-			<option value="" selected="selected"><?php _efs( 'all-types' ) ?></option>
+			<option value="" selected="selected"><?php fs_echo( 'all-types' ) ?></option>
 			<option value="warn_error">Warnings & Errors</option>
 			<option value="error">Errors</option>
 			<option value="warn">Warnings</option>
 			<option value="info">Info</option>
 		</select>
 		<select name="request_type">
-			<option value="" selected="selected"><?php _efs( 'all-requests' ) ?></option>
+			<option value="" selected="selected"><?php fs_echo( 'all-requests' ) ?></option>
 			<option value="call">Sync</option>
 			<option value="ajax">AJAX</option>
 			<option value="cron">WP Cron</option>
 		</select>
-		<input name="file" type="text" placeholder="<?php _efs( 'file' ) ?>"/>
-		<input name="function" type="text" placeholder="<?php _efs( 'function' ) ?>"/>
-		<input name="process_id" type="text" placeholder="<?php _efs( 'process-id' ) ?>"/>
-		<input name="logger" type="text" placeholder="<?php _efs( 'logger' ) ?>"/>
-		<input name="message" type="text" placeholder="<?php _efs( 'message' ) ?>"/>
+		<input name="file" type="text" placeholder="<?php fs_echo( 'file' ) ?>"/>
+		<input name="function" type="text" placeholder="<?php fs_echo( 'function' ) ?>"/>
+		<input name="process_id" type="text" placeholder="<?php fs_echo( 'process-id' ) ?>"/>
+		<input name="logger" type="text" placeholder="<?php fs_echo( 'logger' ) ?>"/>
+		<input name="message" type="text" placeholder="<?php fs_echo( 'message' ) ?>"/>
 		<div style="margin: 10px 0">
-			<button id="fs_filter" class="button" style="float: left"><i class="dashicons dashicons-filter"></i> <?php _efs( 'filter' ) ?>
+			<button id="fs_filter" class="button" style="float: left"><i class="dashicons dashicons-filter"></i> <?php fs_echo( 'filter' ) ?>
 			</button>
 
 			<form action="" method="POST" style="float: left; margin-left: 10px;">
@@ -401,7 +444,7 @@
 				<?php wp_nonce_field( 'download_logs' ) ?>
 				<div class="fs-filters"></div>
 				<button id="fs_download" class="button" type="submit"><i
-						class="dashicons dashicons-download"></i> <?php _efs( 'download' ) ?></button>
+						class="dashicons dashicons-download"></i> <?php fs_echo( 'download' ) ?></button>
 			</form>
 			<div style="clear: both"></div>
 		</div>
@@ -412,12 +455,12 @@
 			<thead>
 			<tr>
 				<th>#</th>
-				<th><?php _efs( 'type' ) ?></th>
-				<th><?php _efs( 'id' ) ?></th>
-				<th><?php _efs( 'function' ) ?></th>
-				<th><?php _efs( 'message' ) ?></th>
-				<th><?php _efs( 'file' ) ?></th>
-				<th><?php _efs( 'timestamp' ) ?></th>
+				<th><?php fs_echo( 'type' ) ?></th>
+				<th><?php fs_echo( 'id' ) ?></th>
+				<th><?php fs_echo( 'function' ) ?></th>
+				<th><?php fs_echo( 'message' ) ?></th>
+				<th><?php fs_echo( 'file' ) ?></th>
+				<th><?php fs_echo( 'timestamp' ) ?></th>
 			</tr>
 			</thead>
 			<tbody>

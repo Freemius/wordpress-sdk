@@ -38,8 +38,8 @@
 				require_once dirname( __FILE__ ) . '/class-fs-debug-bar-panel.php';
 				$statuses[] = array(
 					'fs_api_requests',
-					__fs( 'Freemius API' ),
-					Freemius_Debug_Bar_Panel::requests_count() . ' ' . __fs( 'Requests' ) .
+					fs_text( 'Freemius API' ),
+					Freemius_Debug_Bar_Panel::requests_count() . ' ' . fs_text( 'Requests' ) .
 					' (' . Freemius_Debug_Bar_Panel::total_time() . ')'
 				);
 			}

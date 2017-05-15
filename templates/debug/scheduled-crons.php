@@ -54,15 +54,15 @@
 		}
 	}
 ?>
-<h1><?php _efs( 'scheduled-crons' ) ?></h1>
+<h1><?php fs_echo( 'scheduled-crons' ) ?></h1>
 <table class="widefat">
 	<thead>
 	<tr>
-		<th><?php _efs( 'slug' ) ?></th>
-		<th><?php _efs( 'plugin' ) ?></th>
-		<th><?php _efs( 'type' ) ?></th>
-		<th><?php _efs( 'Last' ) ?></th>
-		<th><?php _efs( 'Next' ) ?></th>
+		<th><?php fs_echo( 'slug' ) ?></th>
+		<th><?php fs_echo( 'plugin' ) ?></th>
+		<th><?php fs_echo( 'type' ) ?></th>
+		<th><?php fs_echo( 'Last' ) ?></th>
+		<th><?php fs_echo( 'Next' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -76,13 +76,13 @@
 						if ( is_numeric( $cron['last'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['last'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . __fs( 'sec' ) :
+								$diff . ' ' . fs_text( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
 
 							if ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) {
-								printf( __fs( 'in-x' ), $human_diff );
+								printf( fs_text( 'in-x' ), $human_diff );
 							} else {
-								printf( __fs( 'x-ago' ), $human_diff );
+								printf( fs_text( 'x-ago' ), $human_diff );
 							}
 
 //							echo ' ' . $cron['last'];
@@ -92,13 +92,13 @@
 						if ( is_numeric( $cron['next'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['next'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . __fs( 'sec' ) :
+								$diff . ' ' . fs_text( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
 
 							if ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) {
-								printf( __fs( 'in-x' ), $human_diff );
+								printf( fs_text( 'in-x' ), $human_diff );
 							} else {
-								printf( __fs( 'x-ago' ), $human_diff );
+								printf( fs_text( 'x-ago' ), $human_diff );
 							}
 						}
 					?></td>

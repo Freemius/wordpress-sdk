@@ -5,11 +5,15 @@
   "main": "gulpfile.js",
   "dependencies": {
     "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-fs": "0.0.2",
     "gulp-gettext": "^0.3.0",
+    "gulp-path": "^3.0.3",
     "gulp-pofill": "^1.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
-    "gulp-wp-pot": "^2.0.4"
+    "gulp-wp-pot": "^2.0.4",
+    "gulp-transifex": "^0.1.17"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,10 +27,14 @@
   "homepage": "https://freemius.com",
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-fs": "0.0.2",
     "gulp-gettext": "^0.3.0",
+    "gulp-path": "^3.0.3",
     "gulp-pofill": "^1.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
-    "gulp-wp-pot": "^2.0.4"
+    "gulp-wp-pot": "^2.0.4",
+    "gulp-transifex": "^0.1.17"
   }
 }

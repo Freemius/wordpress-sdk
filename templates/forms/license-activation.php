@@ -16,11 +16,11 @@
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
 
-	$cant_find_license_key_text = __fs( 'cant-find-license-key', $slug );
-	$message_above_input_field  = __fs( 'activate-license-message', $slug );
+	$cant_find_license_key_text = fs_text( 'cant-find-license-key', $slug );
+	$message_above_input_field  = fs_text( 'activate-license-message', $slug );
 	$message_below_input_field  = '';
 
-	$header_title = __fs( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+	$header_title = fs_text( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
 
 	if ( $fs->is_registered() ) {
 		$activate_button_text = $header_title;
@@ -32,12 +32,12 @@
 
 		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
 
-		$message_below_input_field = sprintf( __fs( 'license-sync-disclaimer', $slug ), $freemius_link );
+		$message_below_input_field = sprintf( fs_text( 'license-sync-disclaimer', $slug ), $freemius_link );
 
-		$activate_button_text = __fs( 'agree-activate-license', $slug );
+		$activate_button_text = fs_text( 'agree-activate-license', $slug );
 	}
 
-	$license_key_text = __fs(  'license-key' , $slug );
+	$license_key_text = fs_text(  'license-key' , $slug );
 
 	/**
 	 * IMPORTANT:
@@ -133,7 +133,8 @@ HTML;
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						action     : 'fs_activate_license_' + pluginSlug,
+						action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
+						security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
 						slug       : pluginSlug,
 						license_key: licenseKey
 					},
@@ -148,7 +149,7 @@ HTML;
 							// Redirect to the "Account" page and sync the license.
 							window.location.href = resultObj.next_page;
 						} else {
-							showError( resultObj.error );
+							showError( resultObj.error.message ? resultObj.error.message : resultObj.error );
 							resetActivateLicenseButton();
 						}
 					}

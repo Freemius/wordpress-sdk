@@ -28,7 +28,7 @@
 			$url = 'http' . ( WP_FS__IS_HTTPS ? 's' : '' ) . ':' . $url; ?>
 			<li>
 				<a href="<?php echo $url ?>"
-				   title="<?php printf( __fs( 'view-full-size-x', $plugin->slug ), $i ) ?>"><img
+				   title="<?php printf( fs_text( 'view-full-size-x', $plugin->slug ), $i ) ?>"><img
 						src="<?php echo $url ?>"></a>
 			</li>
 			<?php $i ++; endforeach ?>

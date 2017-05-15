@@ -123,7 +123,7 @@
 			$plugin_update_row = preg_replace(
 				'/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
 				'$1 $2 ' . sprintf(
-					__fs( 'renew-license-now' ),
+					$this->_fs->get_text( 'renew-license-now' ),
 					'<a href="' . $this->_fs->pricing_url() . '">', '</a>',
 					$r->new_version ) .
 				'$4',
@@ -318,13 +318,13 @@ if ( !isset($info->error) ) {
 			}
 
 			// Get plugin's newest update.
-			$new_version = $this->_fs->_fetch_latest_version( $is_addon ? $addon->id : false );
+			$new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
 
 			if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
 				$data->version = $this->_fs->get_plugin_version();
 			} else {
 				if ( $is_addon ) {
-					$data->name    = $addon->title . ' ' . __fs( 'addon', $this->_fs->get_slug() );
+					$data->name    = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
 					$data->slug    = $addon->slug;
 					$data->url     = WP_FS__ADDRESS;
 					$data->package = $new_version->url;
@@ -344,6 +344,18 @@ if ( !isset($info->error) ) {
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param number|bool $addon_id
+		 *
+		 * @return object
+		 */
+		private function get_latest_download_details( $addon_id = false ) {
+			return $this->_fs->_fetch_latest_version( $addon_id );
+		}
+
+		/**
 		 * Checks if a given basename has a matching folder name
 		 * with the current context plugin.
 		 *
@@ -359,7 +371,7 @@ if ( !isset($info->error) ) {
 				$basename = $this->_fs->get_plugin_basename();
 			}
 
-			return ( $this->_fs->get_slug() . ( $this->_fs->is_premium() ? '-premium' : '' ) != trim( dirname( $basename ), '/\\' ) );
+			return ( $this->_fs->get_target_folder_name() != trim( dirname( $basename ), '/\\' ) );
 		}
 
 		/**
@@ -412,4 +424,260 @@ if ( !isset($info->error) ) {
 
 			return $response;
 		}
+
+		#----------------------------------------------------------------------------------
+		#region Auto Activation
+		#----------------------------------------------------------------------------------
+
+		/**
+		 * Installs and active a plugin when explicitly requested that from a 3rd party service.
+		 *
+		 * This logic was inspired by the TGMPA GPL licensed library by Thomas Griffin.
+		 *
+		 * @link   http://tgmpluginactivation.com/
+		 *
+		 * @author Vova Feldman
+		 * @since  1.2.1.7
+		 *
+		 * @link   https://make.wordpress.org/plugins/2017/03/16/clarification-of-guideline-8-executable-code-and-installs/
+		 *
+		 * @uses   WP_Filesystem
+		 * @uses   WP_Error
+		 * @uses   WP_Upgrader
+		 * @uses   Plugin_Upgrader
+		 * @uses   Plugin_Installer_Skin
+		 * @uses   Plugin_Upgrader_Skin
+		 *
+		 * @param number|bool $plugin_id
+		 *
+		 * @return array
+		 */
+		function install_and_activate_plugin( $plugin_id = false ) {
+			if ( ! empty( $plugin_id ) && ! FS_Plugin::is_valid_id( $plugin_id ) ) {
+				// Invalid plugin ID.
+				return array(
+					'message' => $this->_fs->get_text( 'auto-install-error-invalid-id' ),
+					'code'    => 'invalid_module_id',
+				);
+			}
+
+			$is_addon = false;
+			if ( FS_Plugin::is_valid_id( $plugin_id ) &&
+			     $plugin_id != $this->_fs->get_id()
+			) {
+				$addon = $this->_fs->get_addon( $plugin_id );
+
+				if ( ! is_object( $addon ) ) {
+					// Invalid add-on ID.
+					return array(
+						'message' => $this->_fs->get_text( 'auto-install-error-invalid-id' ),
+						'code'    => 'invalid_module_id',
+					);
+				}
+
+				$slug  = $addon->slug;
+				$title = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
+
+				$is_addon = true;
+			} else {
+				$slug  = $this->_fs->get_slug();
+				$title = $this->_fs->get_plugin_title() .
+				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text( 'addon' ) : '' );
+			}
+
+			if ( $this->is_premium_plugin_active( $plugin_id ) ) {
+				// Premium version already activated.
+				return array(
+					'message' => $this->_fs->get_text(
+						$is_addon ?
+							'auto-install-error-premium-addon-activated' :
+							'auto-install-error-premium-activated'
+					),
+					'code'    => 'premium_installed',
+				);
+			}
+
+			$latest_version = $this->get_latest_download_details( $plugin_id );
+			$target_folder  = "{$slug}-premium";
+
+			// Prep variables for Plugin_Installer_Skin class.
+			$extra         = array();
+			$extra['slug'] = $target_folder;
+			$source        = $latest_version->url;
+			$api           = null;
+
+			$install_url = add_query_arg(
+				array(
+					'action' => 'install-plugin',
+					'plugin' => urlencode( $slug ),
+				),
+				'update.php'
+			);
+
+			if ( ! class_exists( 'Plugin_Upgrader', false ) ) {
+				// Include required resources for the installation.
+				require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+			}
+
+			$skin_args = array(
+				'type'   => 'web',
+				'title'  => sprintf( fs_text( 'installing-plugin-x', $slug ), $title ),
+				'url'    => esc_url_raw( $install_url ),
+				'nonce'  => 'install-plugin_' . $slug,
+				'plugin' => '',
+				'api'    => $api,
+				'extra'  => $extra,
+			);
+
+//			$skin = new Automatic_Upgrader_Skin( $skin_args );
+//			$skin = new Plugin_Installer_Skin( $skin_args );
+			$skin = new WP_Ajax_Upgrader_Skin( $skin_args );
+
+			// Create a new instance of Plugin_Upgrader.
+			$upgrader = new Plugin_Upgrader( $skin );
+
+			// Perform the action and install the plugin from the $source urldecode().
+			add_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1, 3 );
+
+			$install_result = $upgrader->install( $source );
+
+			remove_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1 );
+
+			if ( is_wp_error( $install_result ) ) {
+				return array(
+					'message' => $install_result->get_error_message(),
+					'code'    => $install_result->get_error_code(),
+				);
+			} elseif ( is_wp_error( $skin->result ) ) {
+				return array(
+					'message' => $skin->result->get_error_message(),
+					'code'    => $skin->result->get_error_code(),
+				);
+			} elseif ( $skin->get_errors()->get_error_code() ) {
+				return array(
+					'message' => $skin->get_error_messages(),
+					'code'    => 'unknown',
+				);
+			} elseif ( is_null( $install_result ) ) {
+				global $wp_filesystem;
+
+				$error_code    = 'unable_to_connect_to_filesystem';
+				$error_message = __( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+
+				// Pass through the error from WP_Filesystem if one was raised.
+				if ( $wp_filesystem instanceof WP_Filesystem_Base &&
+				     is_wp_error( $wp_filesystem->errors ) &&
+				     $wp_filesystem->errors->get_error_code()
+				) {
+					$error_message = $wp_filesystem->errors->get_error_message();
+				}
+
+				return array(
+					'message' => $error_message,
+					'code'    => $error_code,
+				);
+			}
+
+			// Grab the full path to the main plugin's file.
+			$plugin_activate = $upgrader->plugin_info();
+
+			// Try to activate the plugin.
+			$activation_result = $this->try_activate_plugin( $plugin_activate );
+
+			if ( is_wp_error( $activation_result ) ) {
+				return array(
+					'message' => $activation_result->get_error_message(),
+					'code'    => $activation_result->get_error_code(),
+				);
+			}
+
+			return $skin->get_upgrade_messages();
+		}
+
+		/**
+		 * Tries to activate a plugin. If fails, returns the error.
+		 *
+		 * @author Vova Feldman
+		 * @since  1.2.1.7
+		 *
+		 * @param string $file_path Path within wp-plugins/ to main plugin file.
+		 *                          This determines the styling of the output messages.
+		 *
+		 * @return bool|WP_Error
+		 */
+		protected function try_activate_plugin( $file_path ) {
+			$activate = activate_plugin( $file_path );
+
+			return is_wp_error( $activate ) ?
+				$activate :
+				true;
+		}
+
+		/**
+		 * Check if a premium module version is already active.
+		 *
+		 * @author Vova Feldman
+		 * @since  1.2.1.7
+		 *
+		 * @param number|bool $plugin_id
+		 *
+		 * @return bool
+		 */
+		private function is_premium_plugin_active( $plugin_id = false ) {
+			if ( $plugin_id != $this->_fs->get_id() ) {
+				return $this->_fs->is_addon_activated( $plugin_id, true );
+			}
+
+			return is_plugin_active( $this->_fs->premium_plugin_basename() );
+		}
+
+		/**
+		 * Adjust the plugin directory name if necessary.
+		 * Assumes plugin has a folder (not a single file plugin).
+		 *
+		 * The final destination directory of a plugin is based on the subdirectory name found in the
+		 * (un)zipped source. In some cases this subdirectory name is not the same as the expected
+		 * slug and the plugin will not be recognized as installed. This is fixed by adjusting
+		 * the temporary unzipped source subdirectory name to the expected plugin slug.
+		 *
+		 * @author Vova Feldman
+		 * @since  1.2.1.7
+		 *
+		 * @param string       $source        Path to upgrade/zip-file-name.tmp/subdirectory/.
+		 * @param string       $remote_source Path to upgrade/zip-file-name.tmp.
+		 * @param \WP_Upgrader $upgrader      Instance of the upgrader which installs the plugin.
+		 *
+		 * @return string|WP_Error
+		 */
+		function _maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
+			if ( ! is_object( $GLOBALS['wp_filesystem'] ) ) {
+				return $source;
+			}
+
+			// Figure out what the slug is supposed to be.
+			$desired_slug = $upgrader->skin->options['extra']['slug'];
+
+			$subdir_name = untrailingslashit( str_replace( trailingslashit( $remote_source ), '', $source ) );
+
+			if ( ! empty( $subdir_name ) && $subdir_name !== $desired_slug ) {
+				$from_path = untrailingslashit( $source );
+				$to_path   = trailingslashit( $remote_source ) . $desired_slug;
+
+				if ( true === $GLOBALS['wp_filesystem']->move( $from_path, $to_path ) ) {
+					return trailingslashit( $to_path );
+				} else {
+					return new WP_Error(
+						'rename_failed',
+						$this->_fs->get_text( 'module-package-rename-failure' ),
+						array(
+							'found'    => $subdir_name,
+							'expected' => $desired_slug
+						) );
+				}
+			}
+
+			return $source;
+		}
+
+		#endregion
 	}

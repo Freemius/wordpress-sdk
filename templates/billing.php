@@ -46,21 +46,21 @@
 
 	<div id="fs_account" class="wrap">
 		<h2 class="nav-tab-wrapper">
-			<a href="<?php echo $fs->get_account_url() ?>" class="nav-tab"><?php _efs( 'account', $slug ) ?></a>
+			<a href="<?php echo $fs->get_account_url() ?>" class="nav-tab"><?php fs_echo( 'account', $slug ) ?></a>
 			<?php if ( $fs->has_addons() ) : ?>
 				<a href="<?php echo $fs->_get_admin_page_url( 'addons' ) ?>"
-				   class="nav-tab"><?php _efs( 'add-ons', $slug ) ?></a>
+				   class="nav-tab"><?php fs_echo( 'add-ons', $slug ) ?></a>
 			<?php endif ?>
 			<?php if ( $fs->is_not_paying() && $fs->has_paid_plan() ) : ?>
-				<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php _efs( 'upgrade', $slug ) ?></a>
+				<a href="<?php echo $fs->get_upgrade_url() ?>" class="nav-tab"><?php fs_echo( 'upgrade', $slug ) ?></a>
 				<?php if ( $fs->apply_filters( 'show_trial', true ) && ! $fs->is_trial_utilized() && $fs->has_trial_plan() ) : ?>
 					<a href="<?php echo $fs->get_trial_url() ?>"
-					   class="nav-tab"><?php _efs( 'free-trial', $slug ) ?></a>
+					   class="nav-tab"><?php fs_echo( 'free-trial', $slug ) ?></a>
 				<?php endif ?>
 			<?php endif ?>
 			<?php if ( ! $plan->is_free() ) : ?>
 				<a href="<?php echo $fs->get_account_tab_url( 'billing' ) ?>"
-				   class="nav-tab nav-tab-active"><?php _efs( 'billing', $slug ) ?></a>
+				   class="nav-tab nav-tab-active"><?php fs_echo( 'billing', $slug ) ?></a>
 			<?php endif ?>
 		</h2>
 
@@ -69,21 +69,21 @@
 				<div class="has-sidebar has-right-sidebar">
 					<div class="has-sidebar-content">
 						<div class="postbox">
-							<h3><span class="dashicons dashicons-businessman"></span> <?php _efs( 'billing', $slug ) ?></h3>
+							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_echo( 'billing', $slug ) ?></h3>
 							<table id="fs_billing_address"<?php if ( $has_billing ) {
 								echo ' class="fs-read-mode"';
 							} ?>>
 								<tr>
-									<td><label><span><?php _efs( 'business-name', $slug ) ?>:</span> <input id="business_name" value="<?php echo $billing->business_name ?>" placeholder="<?php _efs( 'business-name', $slug ) ?>"></label></td>
-									<td><label><span><?php _efs( 'tax-vat-id', $slug ) ?>:</span> <input id="tax_id" value="<?php echo $billing->tax_id ?>" placeholder="<?php _efs( 'tax-vat-id', $slug ) ?>"></label></td>
+									<td><label><span><?php fs_echo( 'business-name', $slug ) ?>:</span> <input id="business_name" value="<?php echo $billing->business_name ?>" placeholder="<?php fs_echo( 'business-name', $slug ) ?>"></label></td>
+									<td><label><span><?php fs_echo( 'tax-vat-id', $slug ) ?>:</span> <input id="tax_id" value="<?php echo $billing->tax_id ?>" placeholder="<?php fs_echo( 'tax-vat-id', $slug ) ?>"></label></td>
 								</tr>
 								<tr>
-									<td><label><span><?php printf( __fs( 'address-line-n', $slug ), 1 ) ?>:</span> <input id="address_street" value="<?php echo $billing->address_street ?>" placeholder="<?php printf( __fs( 'address-line-n', $slug ), 1 ) ?>"></label></td>
-									<td><label><span><?php printf( __fs( 'address-line-n', $slug ), 2 ) ?>:</span> <input id="address_apt" value="<?php echo $billing->address_apt ?>" placeholder="<?php printf( __fs( 'address-line-n', $slug ), 2 ) ?>"></label></td>
+									<td><label><span><?php printf( fs_text( 'address-line-n', $slug ), 1 ) ?>:</span> <input id="address_street" value="<?php echo $billing->address_street ?>" placeholder="<?php printf( fs_text( 'address-line-n', $slug ), 1 ) ?>"></label></td>
+									<td><label><span><?php printf( fs_text( 'address-line-n', $slug ), 2 ) ?>:</span> <input id="address_apt" value="<?php echo $billing->address_apt ?>" placeholder="<?php printf( fs_text( 'address-line-n', $slug ), 2 ) ?>"></label></td>
 								</tr>
 								<tr>
-									<td><label><span><?php _efs( 'city', $slug ) ?> / <?php _efs( 'town', $slug ) ?>:</span> <input id="address_city" value="<?php echo $billing->address_city ?>" placeholder="<?php _efs( 'city', $slug ) ?> / <?php _efs( 'town', $slug ) ?>"></label></td>
-									<td><label><span><?php _efs( 'zip-postal-code', $slug ) ?>:</span> <input id="address_zip" value="<?php echo $billing->address_zip ?>" placeholder="<?php _efs( 'zip-postal-code', $slug ) ?>"></label></td>
+									<td><label><span><?php fs_echo( 'city', $slug ) ?> / <?php fs_echo( 'town', $slug ) ?>:</span> <input id="address_city" value="<?php echo $billing->address_city ?>" placeholder="<?php fs_echo( 'city', $slug ) ?> / <?php fs_echo( 'town', $slug ) ?>"></label></td>
+									<td><label><span><?php fs_echo( 'zip-postal-code', $slug ) ?>:</span> <input id="address_zip" value="<?php echo $billing->address_zip ?>" placeholder="<?php fs_echo( 'zip-postal-code', $slug ) ?>"></label></td>
 								</tr>
 								<tr>
 									<?php $countries = array(
@@ -338,29 +338,29 @@
 										'ZM' => 'Zambia',
 										'ZW' => 'Zimbabwe',
 									) ?>
-									<td><label><span><?php _efs( 'country', $slug ) ?>:</span> <select id="address_country_code">
+									<td><label><span><?php fs_echo( 'country', $slug ) ?>:</span> <select id="address_country_code">
 												<?php if ( empty( $billing->address_country_code ) ) : ?>
 													<option value=""
-													        selected><?php _efs( 'select-country', $slug ) ?></option>
+													        selected><?php fs_echo( 'select-country', $slug ) ?></option>
 												<?php endif ?>
 												<?php foreach ( $countries as $code => $country ) : ?>
 													<option
 														value="<?php echo $code ?>" <?php selected( $billing->address_country_code, $code ) ?>><?php echo $country ?></option>
 												<?php endforeach ?>
 											</select></label></td>
-									<td><label><span><?php _efs( 'state', $slug ) ?> / <?php _efs( 'province', $slug ) ?>:</span>
-											<input id="address_state" value="<?php echo $billing->address_state ?>" placeholder="<?php _efs( 'state', $slug ) ?> / <?php _efs( 'province', $slug ) ?>"></label></td>
+									<td><label><span><?php fs_echo( 'state', $slug ) ?> / <?php fs_echo( 'province', $slug ) ?>:</span>
+											<input id="address_state" value="<?php echo $billing->address_state ?>" placeholder="<?php fs_echo( 'state', $slug ) ?> / <?php fs_echo( 'province', $slug ) ?>"></label></td>
 								</tr>
 								<tr>
 									<td colspan="2">
 										<button
-											class="button"><?php _efs( $has_billing ? 'edit' : 'update', $slug ) ?></button>
+											class="button"><?php fs_echo( $has_billing ? 'edit' : 'update', $slug ) ?></button>
 									</td>
 								</tr>
 							</table>
 						</div>
 						<div class="postbox">
-							<h3><span class="dashicons dashicons-paperclip"></span> <?php _efs( 'payments', $slug ) ?></h3>
+							<h3><span class="dashicons dashicons-paperclip"></span> <?php fs_echo( 'payments', $slug ) ?></h3>
 
 							<?php
 								$payments = $fs->_fetch_payments();
@@ -370,11 +370,11 @@
 								<table class="widefat">
 									<thead>
 									<tr>
-										<th><?php _efs( 'id', $slug ) ?></th>
-										<th><?php _efs( 'date', $slug ) ?></th>
-										<!--		<th>--><?php //_efs( 'transaction' ) ?><!--</th>-->
-										<th><?php _efs( 'amount', $slug ) ?></th>
-										<th><?php _efs( 'invoice', $slug ) ?></th>
+										<th><?php fs_echo( 'id', $slug ) ?></th>
+										<th><?php fs_echo( 'date', $slug ) ?></th>
+										<!--		<th>--><?php //fs_echo( 'transaction' ) ?><!--</th>-->
+										<th><?php fs_echo( 'amount', $slug ) ?></th>
+										<th><?php fs_echo( 'invoice', $slug ) ?></th>
 									</tr>
 									</thead>
 									<tbody>
@@ -386,7 +386,7 @@
 											<td>$<?php echo $payment->gross ?></td>
 											<td><a href="<?php echo $fs->_get_invoice_api_url( $payment->id ) ?>"
 											       class="button button-small"
-											       target="_blank"><?php _efs( 'invoice', $slug ) ?></a></td>
+											       target="_blank"><?php fs_echo( 'invoice', $slug ) ?></a></td>
 										</tr>
 										<?php $odd = ! $odd; endforeach ?>
 									</tbody>
@@ -430,7 +430,7 @@
 				var isEditMode = !$billingAddress.hasClass('fs-read-mode');
 
 				$(this)
-					.html(isEditMode ? <?php echo json_encode(__fs('update', $slug)) ?> : <?php echo json_encode(__fs('edit', $slug)) ?>)
+					.html(isEditMode ? <?php echo json_encode(fs_text('update', $slug)) ?> : <?php echo json_encode(fs_text('edit', $slug)) ?>)
 					.toggleClass('button-primary');
 
 				if (isEditMode) {
@@ -454,8 +454,8 @@
 						url    : ajaxurl,
 						method : 'POST',
 						data   : {
-							action  : '<?php echo $fs->get_action_tag( 'update_billing' ) ?>',
-							security: '<?php echo wp_create_nonce( $fs->get_action_tag( 'update_billing' ) ) ?>',
+							action   : '<?php echo $fs->get_ajax_action( 'update_billing' ) ?>',
+							security : '<?php echo $fs->get_ajax_security( 'update_billing' ) ?>',
 							slug    : '<?php echo $slug ?>',
 							billing : billing
 						},
@@ -481,7 +481,7 @@
 
 					$billingAddress.toggleClass('fs-read-mode');
 					$billingAddress.find('.button')
-						.html(<?php echo json_encode( __fs( 'update', $slug ) ) ?>)
+						.html(<?php echo json_encode( fs_text( 'update', $slug ) ) ?>)
 						.toggleClass('button-primary');
 				})
 				// If blured after editing only one field without changes, exit edit mode.
@@ -489,7 +489,7 @@
 					if (!isEditAllFieldsMode && !hasBillingChanged()) {
 						$billingAddress.toggleClass('fs-read-mode');
 						$billingAddress.find('.button')
-							.html(<?php echo json_encode( __fs( 'edit', $slug ) ) ?>)
+							.html(<?php echo json_encode( fs_text( 'edit', $slug ) ) ?>)
 							.toggleClass('button-primary');
 					}
 				});

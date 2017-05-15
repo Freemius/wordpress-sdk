@@ -10,10 +10,6 @@
 		exit;
 	}
 
-	global $fs_core_logger;
-
-	$fs_core_logger = FS_Logger::get_logger( WP_FS__SLUG . '_core', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
 	if ( ! function_exists( 'fs_dummy' ) ) {
 		function fs_dummy() {
 		}
@@ -65,24 +61,10 @@
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
-		global $fs_core_logger;
-		if ( $fs_core_logger->is_on() ) {
-			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'plugin_basename = ' . plugins_url( WP_FS__DIR_CSS . trim( $path, '/' ) ) );
-			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ) );
-		}
-
 		wp_enqueue_style( $handle, plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
-		global $fs_core_logger;
-		if ( $fs_core_logger->is_on() ) {
-			$fs_core_logger->info( 'handle = ' . $handle . '; path = ' . $path . ';' );
-			$fs_core_logger->info( 'plugin_basename = ' . plugins_url( WP_FS__DIR_JS . trim( $path, '/' ) ) );
-			$fs_core_logger->info( 'plugins_url = ' . plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ) );
-		}
-
 		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
 	}
 
@@ -93,13 +75,32 @@
 	/* Request handlers.
 	--------------------------------------------------------------------------------------------*/
 	/**
-	 * @param string $key
-	 * @param mixed  $def
+	 * @param string      $key
+	 * @param mixed       $def
+	 * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
+	 *                          set to 'post' will look for the value passed via the POST request's body, otherwise,
+	 *                          will check if the parameter was passed in any of the two.
 	 *
 	 * @return mixed
 	 */
-	function fs_request_get( $key, $def = false ) {
-		return isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+	function fs_request_get( $key, $def = false, $type = false ) {
+		if ( is_string( $type ) ) {
+			$type = strtolower( $type );
+		}
+
+		switch ( $type ) {
+			case 'post':
+				$value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
+				break;
+			case 'get':
+				$value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
+				break;
+			default:
+				$value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+				break;
+		}
+
+		return $value;
 	}
 
 	function fs_request_has( $key ) {
@@ -184,8 +185,8 @@
 		return true;
 	}
 
-	function fs_is_plugin_page( $menu_slug ) {
-		return ( is_admin() && $_REQUEST['page'] === $menu_slug );
+	function fs_is_plugin_page( $page_slug ) {
+		return ( is_admin() && $page_slug === fs_request_get('page') );
 	}
 
 	/* Core UI.
@@ -467,6 +468,8 @@
 		$ch = curl_init( $from );
 		$fp = fopen( fs_normalize_path( $to ), 'wb' );
 		curl_setopt( $ch, CURLOPT_FILE, $fp );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 		curl_setopt( $ch, CURLOPT_HEADER, 0 );
 		curl_exec( $ch );
 		curl_close( $ch );
@@ -508,87 +511,119 @@
 	#region Localization
 	#--------------------------------------------------------------------------------
 
-	/**
+    if ( ! function_exists( 'fs_text' ) ) {
+        /**
+         * Retrieve a translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $key
+         * @param string $slug
+         *
+         * @return string
+         *
+         * @global       $fs_text, $fs_text_overrides
+         */
+        function fs_text( $key, $slug = 'freemius' ) {
+            return __fs( $key, $slug );
+        }
+
+        /**
+         * Output a translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_echo( $key, $slug = 'freemius' ) {
+            echo fs_text( $key, $slug );
+        }
+	}
+
+    /**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_attr($key, $slug) {
-		return esc_attr( __fs( $key, $slug ) );
+	function fs_esc_attr( $key, $slug ) {
+		return esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_attr_echo($key, $slug) {
-		echo esc_attr( __fs( $key, $slug ) );
+	function fs_esc_attr_echo( $key, $slug ) {
+		echo esc_attr( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
-	 *
-	 * @param string $key
-	 * @param string $slug
-	 *
-	 * @return string
-	 */
-	function fs_esc_js($key, $slug) {
-		return esc_js( __fs( $key, $slug ) );
-	}
-
-	/**
-	 * @author Vova Feldman
-	 * @since 1.2.1.6
-	 *
-	 * @param string $key
-	 * @param string $slug
-	 */
-	function fs_esc_js_echo($key, $slug) {
-		echo esc_js( __fs( $key, $slug ) );
-	}
-
-	/**
-	 * @author Vova Feldman
-	 * @since 1.2.1.6
-	 *
-	 * @param string $key
-	 * @param string $slug
-	 */
-	function fs_json_encode_echo($key, $slug) {
-		echo json_encode( __fs( $key, $slug ) );
-	}
-
-	/**
-	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 *
 	 * @return string
 	 */
-	function fs_esc_html($key, $slug) {
-		return esc_html( __fs( $key, $slug ) );
+	function fs_esc_js( $key, $slug ) {
+		return esc_js( fs_text( $key, $slug ) );
 	}
 
 	/**
 	 * @author Vova Feldman
-	 * @since 1.2.1.6
+	 * @since  1.2.1.6
 	 *
 	 * @param string $key
 	 * @param string $slug
 	 */
-	function fs_esc_html_echo($key, $slug) {
-		echo esc_html( __fs( $key, $slug ) );
+	function fs_esc_js_echo( $key, $slug ) {
+		echo esc_js( fs_text( $key, $slug ) );
 	}
 
-	#endregion
+	/**
+	 * @author Vova Feldman
+	 * @since  1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_json_encode_echo( $key, $slug ) {
+		echo json_encode( fs_text( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since  1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 *
+	 * @return string
+	 */
+	function fs_esc_html( $key, $slug ) {
+		return esc_html( fs_text( $key, $slug ) );
+	}
+
+	/**
+	 * @author Vova Feldman
+	 * @since  1.2.1.6
+	 *
+	 * @param string $key
+	 * @param string $slug
+	 */
+	function fs_esc_html_echo( $key, $slug ) {
+		echo esc_html( fs_text( $key, $slug ) );
+	}
+
+#endregion

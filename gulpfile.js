@@ -1,20 +1,36 @@
 var gulp = require('gulp');
+var path = require('path');
+var filesystem = require('fs');
 var wpPot = require('gulp-wp-pot');
 var gettext = require('gulp-gettext');
 var sort = require('gulp-sort');
 var pofill = require('gulp-pofill');
 var rename = require('gulp-rename');
+var clean = require('gulp-clean');
 
-gulp.task('default', function () {
-    // Create POT out of i18n.php. 
+var languagesFolder = './languages/';
+
+var options = require('./transifex-config.json')
+
+function getFolders(dir) {
+    return filesystem.readdirSync(dir)
+        .filter(function (file) {
+            return filesystem.statSync(path.join(dir, file)).isDirectory();
+        });
+}
+
+var transifex = require('gulp-transifex').createClient(options);
+
+// Create POT out of i18n.php.
+gulp.task('prepare-source', function () {
     gulp.src('includes/i18n.php')
         .pipe(sort())
-        .pipe(wpPot( {
-            destFile:'freemius.pot',
-            package: 'freemius',
-            bugReport: 'https://github.com/Freemius/wordpress-sdk/issues',
-            lastTranslator: 'Vova Feldman <vova@freemius.com>',
-            team: 'Freemius Team <admin@freemius.com>',
+        .pipe(wpPot({
+            destFile        : 'freemius.pot',
+            package         : 'freemius',
+            bugReport       : 'https://github.com/Freemius/wordpress-sdk/issues',
+            lastTranslator  : 'Vova Feldman <vova@freemius.com>',
+            team            : 'Freemius Team <admin@freemius.com>',
             gettextFunctions: [
                 {name: '_fs_text'},
                 {name: '_fs_echo'},
@@ -31,14 +47,14 @@ gulp.task('default', function () {
                 {name: '_fs_nx', plural: 2, context: 4},
                 {name: '_fs_nx_noop', plural: 2, context: 3}
             ]
-        } ))
-        .pipe(gulp.dest('languages/freemius.pot'));
+        }))
+        .pipe(gulp.dest(languagesFolder + 'freemius.pot'));
 
     // Create English PO out of the POT.
-    gulp.src('languages/freemius.pot')
+    return gulp.src(languagesFolder + 'freemius.pot')
         .pipe(pofill({
-            items: function(item) {
-                // If msgstr is empty, use identity translation 
+            items: function (item) {
+                // If msgstr is empty, use identity translation
                 if (!item.msgstr.length) {
                     item.msgstr = [''];
                 }
@@ -49,10 +65,75 @@ gulp.task('default', function () {
             }
         }))
         .pipe(rename('freemius-en.po'))
-        .pipe(gulp.dest('languages/'));
+        .pipe(gulp.dest(languagesFolder));
+});
 
+// Push updated po resource to transifex.
+gulp.task('update-transifex', ['prepare-source'], function () {
+    return gulp.src(languagesFolder + 'freemius-en.po')
+        .pipe(transifex.pushResource());
+});
+
+// Download latest *.po translations.
+gulp.task('download-translations', ['update-transifex'], function () {
+    return gulp.src(languagesFolder + 'freemius-en.po')
+        .pipe(transifex.pullResource());
+});
+
+// Move translations to languages root.
+gulp.task('prepare-translations', ['download-translations'], function () {
+    var folders = getFolders(languagesFolder);
+
+    return folders.map(function (folder) {
+        return gulp.src(path.join(languagesFolder, folder, 'freemius-en.po'))
+            .pipe(rename('freemius-' + folder + '.po'))
+            .pipe(gulp.dest(languagesFolder));
+    });
+});
+
+// Feel up empty translations with English.
+gulp.task('translations-feelup', ['prepare-translations'], function () {
+    return gulp.src(languagesFolder + '*.po')
+        .pipe(pofill({
+            items: function (item) {
+                // If msgstr is empty, use identity translation
+                if (0 == item.msgstr.length) {
+                    item.msgstr = [''];
+                }
+                if (0 == item.msgstr[0].length) {
+//                    item.msgid[0] = item.msgid;
+                    item.msgstr[0] = item.msgid;
+                }
+                return item;
+            }
+        }))
+        .pipe(gulp.dest(languagesFolder));
+});
+
+// Cleanup temporary translation folders.
+gulp.task('cleanup', ['prepare-translations'], function () {
+    var folders = getFolders(languagesFolder);
+
+    return folders.map(function (folder) {
+        return gulp.src(path.join(languagesFolder, folder), {read: false})
+            .pipe(clean());
+    });
+});
+
+// Compile *.po to *.mo binaries for usage.
+gulp.task('compile-translations', ['translations-feelup'], function () {
     // Compile POs to MOs.
-    gulp.src('languages/*.po')
+    return gulp.src(languagesFolder + '*.po')
         .pipe(gettext())
-        .pipe(gulp.dest('languages/'))
+        .pipe(gulp.dest(languagesFolder))
+});
+
+gulp.task('default', [], function () {
+    gulp.run('prepare-source');
+    gulp.run('update-transifex');
+    gulp.run('download-translations');
+    gulp.run('prepare-translations');
+    gulp.run('translations-feelup');
+    gulp.run('cleanup');
+    gulp.run('compile-translations');
 });

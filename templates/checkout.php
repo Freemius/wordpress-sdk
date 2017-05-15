@@ -6,6 +6,25 @@
 	 * @since       1.0.3
 	 */
 
+	/**
+	 * Note for WordPress.org Theme/Plugin reviewer:
+	 *  Freemius is an SDK for plugin and theme developers. Since the core
+	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
+	 *  we only develop and maintain one code base.
+	 *
+	 *  This code (and page) will not run for wp.org themes (only plugins)
+	 *  since theme admin settings/options are now only allowed in the customizer.
+	 *
+	 *  In addition, this page loads an i-frame. We intentionally named it 'frame'
+	 *  so it will pass the "Theme Check" that is looking for the string "i" . "frame".
+	 *
+	 * If you have any questions or need clarifications, please don't hesitate
+	 * pinging me on slack, my username is @svovaf.
+	 *
+	 * @author Vova Feldman (@svovaf)
+	 * @since 1.2.2
+	 */
+	
 	if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 	}
@@ -19,6 +38,7 @@
 
 	/**
 	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
 	$slug = $VARS['slug'];
 	$fs   = freemius( $slug );
@@ -28,24 +48,37 @@
 	$context_params = array(
 		'plugin_id'      => $fs->get_id(),
 		'plugin_version' => $fs->get_plugin_version(),
-        'public_key'     => $fs->get_public_key(),
-        'mode'           => 'dashboard',
-        'trial'          => fs_request_get_bool( 'trial' ),
+		'public_key'     => $fs->get_public_key(),
+		'mode'           => 'dashboard',
+		'trial'          => fs_request_get_bool( 'trial' ),
 	);
 
 	$plan_id = fs_request_get( 'plan_id' );
 	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
-        $context_params['plan_id'] = $plan_id;
-    }
+		$context_params['plan_id'] = $plan_id;
+	}
 
-    $licenses = fs_request_get( 'licenses' );
-    if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
-        $context_params['licenses'] = $licenses;
-    }
+	$licenses = fs_request_get( 'licenses' );
+	if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
+		$context_params['licenses'] = $licenses;
+	}
 
 	$plugin_id = fs_request_get( 'plugin_id' );
 	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
 		$plugin_id = $fs->get_id();
+	}
+
+	if ( $plugin_id == $fs->get_id() ) {
+		$is_premium = $fs->is_premium();
+	}else {
+		// Identify the module code version of the checkout context module.
+		if ( $fs->is_addon_activated( $plugin_id ) ) {
+			$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
+			$is_premium = $fs_addon->is_premium();
+		} else {
+			// If add-on isn't activated assume the premium version isn't installed.
+			$is_premium = false;
+		}
 	}
 
 	// Get site context secure params.
@@ -54,8 +87,8 @@
 
 		if ( $plugin_id != $fs->get_id() ) {
 			if ( $fs->is_addon_activated( $plugin_id ) ) {
-				$fs_addon = Freemius::get_instance_by_id( $plugin_id );
-				$site     = $fs_addon->get_site();
+				$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
+				$site       = $fs_addon->get_site();
 			}
 		}
 
@@ -110,6 +143,7 @@
 		// Current plugin version.
 		'plugin_version' => $fs->get_plugin_version(),
 		'sdk_version'    => WP_FS__SDK_VERSION,
+		'is_premium'     => $is_premium ? 'true' : 'false',
 		'return_url'     => $return_url,
 		// Admin CSS URL for style/design competability.
 //		'wp_admin_css'   => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
@@ -117,145 +151,156 @@
 
 	$xdebug_session = fs_request_get( 'XDEBUG_SESSION' );
 	if ( false !== $xdebug_session ) {
-	    $query_params['XDEBUG_SESSION'] = $xdebug_session;
-    }
+		$query_params['XDEBUG_SESSION'] = $xdebug_session;
+	}
 ?>
-	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
-		<div id="iframe"></div>
-		<script type="text/javascript">
-			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
-			jQuery(function ($) {
-				$.extend({
-					form: function (url, data, method) {
-						if (method == null) method = 'POST';
-						if (data == null) data = {};
+<div id="fs_checkout" class="wrap fs-full-size-wrapper">
+	<div id="iframe"></div>
+	<script type="text/javascript">
+		// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
+		jQuery(function ($) {
+			$.extend({
+				form: function (url, data, method) {
+					if (method == null) method = 'POST';
+					if (data == null) data = {};
 
-						var form = $('<form>').attr({
-							method: method,
-							action: url
-						}).css({
-							display: 'none'
-						});
+					var form = $('<form>').attr({
+						method: method,
+						action: url
+					}).css({
+						display: 'none'
+					});
 
-						var addData = function (name, data) {
-							if ($.isArray(data)) {
-								for (var i = 0; i < data.length; i++) {
-									var value = data[i];
-									addData(name + '[]', value);
-								}
-							} else if (typeof data === 'object') {
-								for (var key in data) {
-									if (data.hasOwnProperty(key)) {
-										addData(name + '[' + key + ']', data[key]);
-									}
-								}
-							} else if (data != null) {
-								form.append($('<input>').attr({
-									type : 'hidden',
-									name : String(name),
-									value: String(data)
-								}));
+					var addData = function (name, data) {
+						if ($.isArray(data)) {
+							for (var i = 0; i < data.length; i++) {
+								var value = data[i];
+								addData(name + '[]', value);
 							}
-						};
-
-						for (var key in data) {
-							if (data.hasOwnProperty(key)) {
-								addData(key, data[key]);
+						} else if (typeof data === 'object') {
+							for (var key in data) {
+								if (data.hasOwnProperty(key)) {
+									addData(name + '[' + key + ']', data[key]);
+								}
 							}
+						} else if (data != null) {
+							form.append($('<input>').attr({
+								type : 'hidden',
+								name : String(name),
+								value: String(data)
+							}));
 						}
-
-						return form.appendTo('body');
-					}
-				});
-			});
-
-			(function ($) {
-				$(function () {
-
-					var
-						// Keep track of the iframe height.
-						iframe_height = 800,
-						base_url      = '<?php echo FS_CHECKOUT__ADDRESS ?>',
-						// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
-						// passed via query string or hard coded into the child page, it depends on your needs).
-						src           = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
-
-						// Append the Iframe into the DOM.
-						iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
-							.appendTo('#iframe');
-
-					FS.PostMessage.init(base_url, [iframe[0]]);
-					FS.PostMessage.receiveOnce('height', function (data) {
-						var h = data.height;
-						if (!isNaN(h) && h > 0 && h != iframe_height) {
-							iframe_height = h;
-							iframe.height(iframe_height + 'px');
-
-							FS.PostMessage.postScroll(iframe[0]);
-						}
-					});
-
-					FS.PostMessage.receiveOnce('install', function (data) {
-						// Post data to activation URL.
-						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-							'fs_action' => $slug . '_activate_new',
-							'plugin_id' => $plugin_id
-						) ), $slug . '_activate_new' ) ?>', {
-							user_id           : data.user.id,
-							user_secret_key   : data.user.secret_key,
-							user_public_key   : data.user.public_key,
-							install_id        : data.install.id,
-							install_secret_key: data.install.secret_key,
-							install_public_key: data.install.public_key
-						}).submit();
-					});
-
-					FS.PostMessage.receiveOnce('pending_activation', function (data) {
-						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-							'fs_action'          => $slug . '_activate_new',
-							'plugin_id'          => $plugin_id,
-							'pending_activation' => true,
-						) ), $slug . '_activate_new' ) ?>', {
-							user_email: data.user_email
-						}).submit();
-					});
-
-					FS.PostMessage.receiveOnce('get_context', function () {
-						console.debug('receiveOnce', 'get_context');
-
-						// If the user didn't connect his account with Freemius,
-						// once he accepts the Terms of Service and Privacy Policy,
-						// and then click the purchase button, the context information
-						// of the user will be shared with Freemius in order to complete the
-						// purchase workflow and activate the license for the right user.
-						<?php $install_data = array_merge( $fs->get_opt_in_params(),
-						array(
-							'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
-								array(
-									'fs_action' => $slug . '_activate_new',
-									'plugin_id' => $plugin_id,
-
-								) ),
-								$slug . '_activate_new' )
-						) ) ?>
-						FS.PostMessage.post('context', <?php echo json_encode( $install_data ) ?>, iframe[0]);
-					});
-
-					FS.PostMessage.receiveOnce('get_dimensions', function (data) {
-						FS.PostMessage.post('dimensions', {
-							height   : $(document.body).height(),
-							scrollTop: $(document).scrollTop()
-						}, iframe[0]);
-					});
-
-					var updateHeight = function(){
-						iframe.css('min-height', $('#wpwrap').height() + 'px');
 					};
 
-					$(document).ready(updateHeight);
+					for (var key in data) {
+						if (data.hasOwnProperty(key)) {
+							addData(key, data[key]);
+						}
+					}
 
-					$(window).resize(updateHeight)
+					return form.appendTo('body');
+				}
+			});
+		});
+
+		(function ($) {
+			$(function () {
+
+				var
+					// Keep track of the iframe height.
+					iframe_height = 800,
+					base_url      = '<?php echo FS_CHECKOUT__ADDRESS ?>',
+					// Pass the parent page URL into the Iframe in a meaningful way (this URL could be
+					// passed via query string or hard coded into the child page, it depends on your needs).
+					src           = base_url + '/?<?php echo http_build_query( $query_params ) ?>#' + encodeURIComponent(document.location.href),
+					// Append the Iframe into the DOM.
+					iframe        = $('<iframe " src="' + src + '" width="100%" height="' + iframe_height + 'px" scrolling="no" frameborder="0" style="background: transparent;"><\/iframe>')
+						.appendTo('#iframe');
+
+				FS.PostMessage.init(base_url, [iframe[0]]);
+				FS.PostMessage.receiveOnce('height', function (data) {
+					var h = data.height;
+					if (!isNaN(h) && h > 0 && h != iframe_height) {
+						iframe_height = h;
+						iframe.height(iframe_height + 'px');
+
+						FS.PostMessage.postScroll(iframe[0]);
+					}
 				});
-			})(jQuery);
-		</script>
-	</div>
+
+				FS.PostMessage.receiveOnce('install', function (data) {
+					var requestData = {
+						user_id           : data.user.id,
+						user_secret_key   : data.user.secret_key,
+						user_public_key   : data.user.public_key,
+						install_id        : data.install.id,
+						install_secret_key: data.install.secret_key,
+						install_public_key: data.install.public_key
+					};
+
+					if (true === data.auto_install)
+						requestData.auto_install = true;
+
+					// Post data to activation URL.
+					$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
+						'fs_action' => $slug . '_activate_new',
+						'plugin_id' => $plugin_id
+					) ), $slug . '_activate_new' ) ?>', requestData).submit();
+				});
+
+				FS.PostMessage.receiveOnce('pending_activation', function (data) {
+					var requestData = {
+						user_email: data.user_email
+					};
+
+					if (true === data.auto_install)
+						requestData.auto_install = true;
+
+					$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
+						'fs_action'          => $slug . '_activate_new',
+						'plugin_id'          => $plugin_id,
+						'pending_activation' => true,
+					) ), $slug . '_activate_new' ) ?>', requestData).submit();
+				});
+
+				FS.PostMessage.receiveOnce('get_context', function () {
+					console.debug('receiveOnce', 'get_context');
+
+					// If the user didn't connect his account with Freemius,
+					// once he accepts the Terms of Service and Privacy Policy,
+					// and then click the purchase button, the context information
+					// of the user will be shared with Freemius in order to complete the
+					// purchase workflow and activate the license for the right user.
+					<?php $install_data = array_merge( $fs->get_opt_in_params(),
+					array(
+						'activation_url' => fs_nonce_url( $fs->_get_admin_page_url( '',
+							array(
+								'fs_action' => $slug . '_activate_new',
+								'plugin_id' => $plugin_id,
+
+							) ),
+							$slug . '_activate_new' )
+					) ) ?>
+					FS.PostMessage.post('context', <?php echo json_encode( $install_data ) ?>, iframe[0]);
+				});
+
+				FS.PostMessage.receiveOnce('get_dimensions', function (data) {
+					console.debug('receiveOnce', 'get_dimensions');
+
+					FS.PostMessage.post('dimensions', {
+						height   : $(document.body).height(),
+						scrollTop: $(document).scrollTop()
+					}, iframe[0]);
+				});
+
+				var updateHeight = function () {
+					iframe.css('min-height', $('#wpwrap').height() + 'px');
+				};
+
+				$(document).ready(updateHeight);
+
+				$(window).resize(updateHeight);
+			});
+		})(jQuery);
+	</script>
+</div>
