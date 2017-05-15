@@ -147,6 +147,104 @@
 
 	#endregion Core Redirect (copied from BuddyPress) -----------------------------------------
 
+	if ( ! function_exists( '__fs' ) ) {
+		global $fs_text_overrides;
+
+		if ( ! isset( $fs_text_overrides ) ) {
+			$fs_text_overrides = array();
+		}
+
+		/**
+		 * Retrieve a translated text by key.
+		 *
+		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
+		 *
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 *
+		 * @return string
+		 *
+		 * @global       $fs_text, $fs_text_overrides
+		 */
+		function __fs( $key, $slug = 'freemius' ) {
+			global $fs_text,
+			       $fs_module_info_text,
+			       $fs_text_overrides;
+
+			if ( isset( $fs_text_overrides[ $slug ] ) ) {
+				if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $key ];
+				}
+
+				$lower_key = strtolower( $key );
+				if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+					return $fs_text_overrides[ $slug ][ $lower_key ];
+				}
+			}
+
+			if ( ! isset( $fs_text ) ) {
+				$dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+					WP_FS__DIR_INCLUDES :
+					dirname( __FILE__ );
+
+				require_once $dir . '/i18n.php';
+			}
+
+			if ( isset( $fs_text[ $key ] ) ) {
+				return $fs_text[ $key ];
+			}
+
+			if ( isset( $fs_module_info_text[ $key ] ) ) {
+				return $fs_module_info_text[ $key ];
+			}
+
+			return $key;
+		}
+
+		/**
+		 * Output a translated text by key.
+		 *
+		 * @deprecated Use `fs_echo()` instead for consistency with `fs_text()`.
+		 *
+		 * @author     Vova Feldman (@svovaf)
+		 * @since      1.1.4
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 */
+		function _efs( $key, $slug = 'freemius' ) {
+			fs_echo( $key, $slug );
+		}
+	}
+
+	if ( ! function_exists( 'fs_override_i18n' ) ) {
+		/**
+		 * Override default i18n text phrases.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.1.6
+		 *
+		 * @param string[] $key_value
+		 * @param string   $slug
+		 *
+		 * @global         $fs_text_overrides
+		 */
+		function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
+			global $fs_text_overrides;
+
+			if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+				$fs_text_overrides[ $slug ] = array();
+			}
+
+			foreach ( $key_value as $key => $value ) {
+				$fs_text_overrides[ $slug ][ $key ] = $value;
+			}
+		}
+	}
+
 	if ( ! function_exists( 'fs_get_ip' ) ) {
 		/**
 		 * Get client IP.
@@ -217,7 +315,11 @@
 
 		if ( is_null( $plugin_file ) ) {
 			// Throw an error to the developer in case of some edge case dev environment.
-			wp_die( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'Error', array( 'back_link' => true ) );
+			wp_die(
+				'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.',
+				'Error',
+				array( 'back_link' => true )
+			);
 		}
 
 		return $plugin_file;
