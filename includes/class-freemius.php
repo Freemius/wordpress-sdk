@@ -1603,9 +1603,6 @@
 
 			self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
-			// Configure which Freemius powered plugins should be auto updated.
-//			add_filter( 'auto_update_plugin', '_include_plugins_in_auto_update', 10, 2 );
-
 			add_action( 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
@@ -12483,57 +12480,6 @@
 				'//bit.ly/upload-wp-' . $this->_module_type . 's',
 				$this->get_text( 'howto-upload-activate' )
 			);
-		}
-
-		/* Plugin Auto-Updates (@since 1.0.4)
-		------------------------------------------------------------------------------------------------------------------*/
-		/**
-		 * @var string[]
-		 */
-		private static $_auto_updated_plugins;
-
-		/**
-		 * @todo   TEST IF IT WORKS!!!
-		 *
-		 * Include plugins for automatic updates based on stored settings.
-		 *
-		 * @see    http://wordpress.stackexchange.com/questions/131394/how-do-i-exclude-plugins-from-getting-automatically-updated/131404#131404
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.4
-		 *
-		 * @param bool   $update Whether to update (not used for plugins)
-		 * @param object $item   The plugin's info
-		 *
-		 * @return bool
-		 */
-		static function _include_plugins_in_auto_update( $update, $item ) {
-			// Before version 3.8.2 the $item was the file name of the plugin,
-			// while in 3.8.2 statistics were added (https://core.trac.wordpress.org/changeset/27905).
-			$by_slug = ( (int) str_replace( '.', '', get_bloginfo( 'version' ) ) >= 382 );
-
-			if ( ! isset( self::$_auto_updated_plugins ) ) {
-				$plugins = self::$_accounts->get_option( 'plugins', array() );
-
-				$identifiers = array();
-				foreach ( $plugins as $p ) {
-					/**
-					 * @var FS_Plugin $p
-					 */
-					if ( isset( $p->auto_update ) && $p->auto_update ) {
-						$identifiers[] = ( $by_slug ? $p->slug : plugin_basename( $p->file ) );
-					}
-				}
-
-				self::$_auto_updated_plugins = $identifiers;
-			}
-
-			if ( in_array( $by_slug ? $item->slug : $item, self::$_auto_updated_plugins ) ) {
-				return true;
-			}
-
-			// Pass update decision to next filters
-			return $update;
 		}
 
 		/**
