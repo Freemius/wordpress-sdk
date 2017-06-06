@@ -4680,7 +4680,7 @@
 			 * @author Leo Fajardo (@leorw)
 			 * @since  1.2.2
 			 */
-			$this->_is_anonymous = false;
+			unset( $this->_is_anonymous );
 		}
 
 		/**
@@ -12276,8 +12276,18 @@
 
 			$this->_logger->entrance();
 
-			if ( ! $this->is_plugins_page() ) {
-				// Only show tracking links on the plugin's page.
+			if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
+				if ( ! $this->is_registered() && $this->is_anonymous() ) {
+					$this->connect_again();
+
+					return;
+				}
+			}
+
+			if ( ( $this->is_plugin() && ! $this->is_plugins_page() ) ||
+			     ( $this->is_theme() && ! $this->is_themes_page() )
+			) {
+				// Only show tracking links on the plugins and themes pages.
 				return;
 			}
 
@@ -12297,14 +12307,6 @@
 
 			if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
 				return;
-			}
-
-			if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
-				if ( ! $this->is_registered() && $this->is_anonymous() ) {
-					$this->connect_again();
-
-					return;
-				}
 			}
 
 			$url = '#';
