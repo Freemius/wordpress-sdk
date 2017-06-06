@@ -6388,6 +6388,44 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.8
+		 *
+		 * @var string
+		 */
+		private static $_pagenow;
+
+		/**
+		 * Get current page or the referer if executing a WP AJAX request.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.8
+		 *
+		 * @return string
+		 */
+		static function get_current_page() {
+			if ( ! isset( self::$_pagenow ) ) {
+				global $pagenow;
+
+				self::$_pagenow = $pagenow;
+
+				if ( self::is_ajax() &&
+				     'admin-ajax.php' === $pagenow
+				) {
+					$referer = wp_get_raw_referer();
+
+					if ( is_string( $referer ) ) {
+						$parts = explode( '?', $referer );
+
+						self::$_pagenow = basename( $parts[0] );
+					}
+				}
+			}
+
+			return self::$_pagenow;
+		}
+
+		/**
 		 * Helper method to check if user in the plugins page.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -6396,9 +6434,7 @@
 		 * @return bool
 		 */
 		function is_plugins_page() {
-			global $pagenow;
-
-			return ( 'plugins.php' === $pagenow );
+			return ( 'plugins.php' === self::get_current_page() );
 		}
 
 		/**
@@ -6410,9 +6446,7 @@
 		 * @return bool
 		 */
 		function is_themes_page() {
-			global $pagenow;
-
-			return ( 'themes.php' === $pagenow );
+			return ( 'themes.php' === self::get_current_page() );
 		}
 
 		#----------------------------------------------------------------------------------
