@@ -4348,6 +4348,7 @@
 		 */
 		private function reset_anonymous_mode() {
 			unset( $this->_storage->is_anonymous );
+			unset( $this->_is_anonymous );
 		}
 
 		/**
@@ -11715,6 +11716,14 @@
 
 			$this->_logger->entrance();
 
+			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
+				if ( ! $this->is_registered() && $this->is_anonymous() ) {
+					$this->connect_again();
+
+					return;
+				}
+			}
+
 			if ( ! $this->is_plugins_page() ) {
 				// Only show tracking links on the plugin's page.
 				return;
@@ -11736,14 +11745,6 @@
 
 			if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
 				return;
-			}
-
-			if ( fs_request_is_action_secure( $this->_slug . '_reconnect' ) ) {
-				if ( ! $this->is_registered() && $this->is_anonymous() ) {
-					$this->connect_again();
-
-					return;
-				}
 			}
 
 			$url = '#';
