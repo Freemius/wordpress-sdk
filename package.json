@@ -1,18 +1,15 @@
 {
   "name": "freemius-wordpress-sdk",
-  "version": "1.0.0",
-  "description": "",
+  "description": "Monetization, analytics, and marketing automation platform for plugin & theme developers.",
+  "author": "Vova Feldman",
+  "version": "1.0.0-development",
+  "private": true,
   "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Freemius/wordpress-sdk.git"
-  },
-  "author": "Vova Feldman",
-  "license": "GPL-2.0",
+  "repository": "Freemius/wordpress-sdk.git",
   "homepage": "https://freemius.com",
   "dependencies": {},
   "devDependencies": {
@@ -27,5 +24,6 @@
     "gulp-transifex": "^0.1.17",
     "gulp-wp-pot": "^2.0.4",
     "rimraf": "^2.6.1"
-  }
+  },
+  "license": "GPL-2.0"
 }
