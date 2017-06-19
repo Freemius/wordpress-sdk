@@ -4,7 +4,8 @@
   "description": "",
   "main": "gulpfile.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,8 @@
     "gulp-pofill": "^1.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
+    "gulp-transifex": "^0.1.17",
     "gulp-wp-pot": "^2.0.4",
-    "gulp-transifex": "^0.1.17"
+    "rimraf": "^2.6.1"
   }
 }
