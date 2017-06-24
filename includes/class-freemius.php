@@ -8897,7 +8897,7 @@
 				if ( $this->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
-						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/plugin/' . $this->_slug ),
+						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/' . $this->_module_type . '/' . $this->_slug ),
 						'wp-support-forum',
 						null,
 						50
