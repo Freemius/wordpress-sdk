@@ -12828,6 +12828,19 @@
 					'priority' => 100,
 				) ) );
 			}
+
+			if ( $this->is_submenu_item_visible( 'contact', true ) || $this->is_submenu_item_visible( 'support', true ) ) {
+				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-support-section.php';
+
+				// Register custom section types.
+				$customizer->register_section_type( 'FS_Customizer_Support_Section' );
+
+				// Main Documentation Link In Customizer Root.
+				$customizer->add_section( new FS_Customizer_Support_Section( $customizer, 'freemius_support', array(
+					'freemius' => $this,
+					'priority' => 1000,
+				) ) );
+			}
 		}
 
 		#endregion
