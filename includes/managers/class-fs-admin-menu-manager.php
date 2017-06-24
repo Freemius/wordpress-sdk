@@ -265,11 +265,12 @@
 		 *
 		 * @param string $id
 		 * @param bool   $default
+		 * @param bool   $ignore_menu_existence Since 1.2.2.7 If true, check if the submenu item visible even if there's no parent menu.
 		 *
 		 * @return bool
 		 */
-		function is_submenu_item_visible( $id, $default = true ) {
-			if ( ! $this->has_menu() ) {
+		function is_submenu_item_visible( $id, $default = true, $ignore_menu_existence = false ) {
+			if ( ! $ignore_menu_existence && ! $this->has_menu() ) {
 				return false;
 			}
 

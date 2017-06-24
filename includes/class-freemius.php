@@ -393,15 +393,16 @@
 		 * @since  1.2.2.6
 		 *
 		 * @param string $slug
+		 * @param bool   $ignore_menu_existence Since 1.2.2.7 If true, check if the submenu item visible even if there's no parent menu.
 		 *
 		 * @return bool
 		 */
-		function is_submenu_item_visible( $slug ) {
-			if ( ! $this->has_settings_menu() ) {
+		function is_submenu_item_visible( $slug, $ignore_menu_existence = false ) {
+			if ( ! $ignore_menu_existence && ! $this->has_settings_menu() ) {
 				return false;
 			}
 
-			return $this->_menu->is_submenu_item_visible( $slug );
+			return $this->_menu->is_submenu_item_visible( $slug, true, $ignore_menu_existence );
 		}
 
 		/**
@@ -608,6 +609,11 @@
 
 			if ( $this->is_plugin() ) {
 				register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
+			}
+
+			if ( $this->is_theme() ) {
+				// Register customizer upsell.
+				add_action( 'customize_register', array( &$this, '_customizer_register' ) );
 			}
 
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
@@ -8615,6 +8621,46 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		function get_pricing_cta_label() {
+			$label = 'upgrade';
+
+			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
+			     ! $this->is_paying_or_trial()
+			) {
+				// If running a trial promotion, modify the pricing to load the trial.
+				$label = 'start-trial';
+			} else if ( $this->is_paying() ) {
+				$label = 'pricing';
+			}
+
+			return $label;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param bool $ignore_menu_existence If true, check if the submenu item visible even if there's no
+		 *
+		 * @return bool
+		 */
+		function is_pricing_visible($ignore_menu_existence = false) {
+			return (
+				// Has at least one paid plan.
+				$this->has_paid_plan() &&
+				// Didn't ask to hide the pricing page.
+				$this->is_submenu_item_visible( 'pricing', $ignore_menu_existence ) &&
+				// Don't have a valid active license or has more than one plan.
+				( ! $this->is_paying() || ! $this->is_single_plan() )
+			);
+		}
+
+		/**
 		 * Add default Freemius menu items.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -8664,29 +8710,17 @@
 						);
 					}
 
-					$show_pricing = (
-						// Has at least one paid plan.
-						$this->has_paid_plan() &&
-						// Didn't ask to hide the pricing page.
-						$this->is_submenu_item_visible( 'pricing' ) &&
-						// Don't have a valid active license or has more than one plan.
-						( ! $this->is_paying() || ! $this->is_single_plan() )
-					);
-					// If user don't have paid plans, add pricing page
-					// to support add-ons checkout but don't add the submenu item.
-					// || (isset( $_GET['page'] ) && $this->_menu->get_slug( 'pricing' ) == $_GET['page']);
+					$show_pricing = $this->is_pricing_visible();
 
-					$pricing_cta_slug = 'upgrade';
+					$pricing_cta_slug = $this->get_pricing_cta_label();
 					$pricing_class    = 'upgrade-mode';
 					if ( $show_pricing ) {
 						if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
 						     ! $this->is_paying_or_trial()
 						) {
 							// If running a trial promotion, modify the pricing to load the trial.
-							$pricing_cta_slug = 'start-trial';
 							$pricing_class    = 'trial-mode';
 						} else if ( $this->is_paying() ) {
-							$pricing_cta_slug = 'pricing';
 							$pricing_class    = '';
 						}
 					}
@@ -12762,6 +12796,38 @@
 			);
 
 			fs_require_template( 'auto-installation.php', $vars );
+		}
+
+		#endregion
+
+		#--------------------------------------------------------------------------------
+		#region Customizer
+		#--------------------------------------------------------------------------------
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 *
+		 * @param WP_Customize_Manager $customizer
+		 */
+		function _customizer_register($customizer) {
+
+			if ( $this->is_pricing_visible(true) ) {
+				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-upsell-control.php';
+
+				$customizer->add_section( 'freemius_upsell', array(
+					'title'    => __( 'View paid features', 'freemius' ),
+					'priority' => 1,
+				) );
+				$customizer->add_setting( 'freemius_upsell', array(
+					'sanitize_callback' => 'esc_html',
+				) );
+
+				$customizer->add_control( new FS_Customizer_Upsell_Control( $customizer, 'freemius_upsell', array(
+					'freemius' => $this,
+					'section'  => 'freemius_upsell',
+					'priority' => 100,
+				) ) );
+			}
 		}
 
 		#endregion
