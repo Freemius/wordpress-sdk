@@ -11367,7 +11367,7 @@
 		 *
 		 * @return string
 		 */
-		private function get_activation_url( $params = array() ) {
+		function get_activation_url( $params = array() ) {
 			if ( $this->is_addon() ) {
 				/**
 				 * @author Vova Feldman (@svovaf)
