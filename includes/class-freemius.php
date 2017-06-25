@@ -12366,6 +12366,7 @@
 				$url = $this->get_activation_url( $params );
 			}
 
+			if ( $this->is_plugin() && $this->is_plugins_page() ) {
 			$this->add_plugin_action_link(
 				$this->get_text( $link_text_id ),
 				$url,
@@ -12373,6 +12374,7 @@
 				13,
 				"opt-in-or-opt-out {$this->_slug}"
 			);
+		}
 		}
 
 		/**
