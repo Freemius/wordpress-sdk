@@ -12,11 +12,19 @@
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
 	 *  we only develop and maintain one code base.
 	 *
-	 *  This code (and page) will not run for wp.org themes (only plugins)
-	 *  since theme admin settings/options are now only allowed in the customizer.
+	 *  This code (and page) will not run for wp.org themes (only plugins).
 	 *
 	 *  In addition, this page loads an i-frame. We intentionally named it 'frame'
 	 *  so it will pass the "Theme Check" that is looking for the string "i" . "frame".
+	 *
+	 * UPDATE:
+	 *  After ongoing conversations with the WordPress.org TRT we received
+	 *  an official approval for including i-frames in the theme's WP Admin setting's
+	 *  page tab (the SDK will never add any i-frames on the sitefront). i-frames
+	 *  were never against the guidelines, but we wanted to get the team's blessings
+	 *  before we move forward. For the record, I got the final approval from
+	 *  Ulrich Pogson (@grapplerulrich), a team lead at the TRT during WordCamp
+	 *  Europe 2017 (June 16th, 2017).
 	 *
 	 * If you have any questions or need clarifications, please don't hesitate
 	 * pinging me on slack, my username is @svovaf.
