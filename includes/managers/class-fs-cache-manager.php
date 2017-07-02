@@ -234,4 +234,27 @@
 
 			$this->_options->unset_option( $key, true );
 		}
+
+		/**
+		 * Set cached item as expired.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $key
+		 */
+		function expire( $key ) {
+			$this->_logger->entrance( 'key = ' . $key );
+
+			$cache_entry = $this->_options->get_option( $key, false );
+
+			if ( is_object( $cache_entry ) &&
+			     isset( $cache_entry->timestamp ) &&
+			     is_numeric( $cache_entry->timestamp ))
+			{
+				// Set to expired.
+				$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME;
+				$this->_options->set_option( $key, $cache_entry, true );
+			}
+		}
 	}

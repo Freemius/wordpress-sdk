@@ -169,6 +169,12 @@
 		private $_storage;
 
 		/**
+		 * @since 1.2.2.7
+		 * @var FS_Cache_Manager
+		 */
+		private $_cache;
+
+		/**
 		 * @since 1.0.0
 		 *
 		 * @var FS_Logger
@@ -308,6 +314,7 @@
 			$this->_module_type = $this->get_module_type();
 
 			$this->_storage = FS_Key_Value_Storage::instance( $this->_module_type . '_data', $this->_slug );
+			$this->_cache   = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -356,6 +363,7 @@
 			     'true' === fs_request_is_action( 'restart_freemius' )
 			) {
 				FS_Api::clear_cache();
+				$this->_cache->clear();
 			}
 
 			$this->_register_hooks();
@@ -493,6 +501,22 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $plugin_prev_version
+		 * @param string $plugin_version
+		 */
+		function _after_version_update( $plugin_prev_version, $plugin_version ) {
+			if ( $this->is_theme() ) {
+				// Expire the cache of the previous tabs since the theme may
+				// have setting updates.
+				$this->_cache->expire( 'tabs' );
+				$this->_cache->expire( 'tabs_stylesheets' );
+			}
+		}
+
+		/**
 		 * This action is connected to the 'plugins_loaded' hook and helps to determine
 		 * if this is a new plugin installation or a plugin update.
 		 *
@@ -579,6 +603,21 @@
 					);
 				} else {
 					add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
+
+					/**
+					 * Include the required hooks to capture the theme settings' page tabs
+					 * and cache them.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 * @since 1.2.2.7
+					 */
+					if ( ! $this->_cache->has_valid( 'tabs' ) ) {
+						add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
+						// Add license activation AJAX callback.
+						$this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
+
+						add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
+					}
 				}
 
 				/**
@@ -631,6 +670,8 @@
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
+			$this->add_action( 'plugin_version_update', array( &$this, '_after_version_update' ), WP_FS__DEFAULT_PRIORITY, 2 );
+			$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
 			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
 			add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
@@ -3265,6 +3306,13 @@
 				&$this,
 				'_plugin_code_type_changed'
 			) );
+
+			if ( $this->is_theme() ) {
+				// Expire the cache of the previous tabs since the theme may
+				// have setting updates after code type has changed.
+				$this->_cache->expire( 'tabs' );
+				$this->_cache->expire( 'tabs_stylesheets' );
+			}
 		}
 
 		/**
@@ -7327,6 +7375,36 @@
 			return add_query_arg( array_merge( $params, array(
 				'page' => $page_param,
 			) ), admin_url( 'admin.php', 'admin' ) );
+		}
+
+		/**
+
+		/**
+		 * Get module's main admin setting page URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		function main_menu_url() {
+			return $this->_menu->main_menu_url();
+		}
+
+		/**
+		 * Check if currently on the theme's setting page or
+		 * on any of the Freemius added pages (via tabs).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		function is_theme_settings_page() {
+			return fs_starts_with(
+				fs_request_get( 'page', '', 'get' ),
+				$this->_menu->get_slug()
+			);
 		}
 
 		/**
@@ -12805,6 +12883,106 @@
 
 		#--------------------------------------------------------------------------------
 		#region Customizer
+		#region Module's Original Tabs
+
+		/**
+		 * Inject a JavaScript logic to capture the theme tabs HTML.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 */
+		function _tabs_capture() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_theme_settings_page() ||
+			     ! $this->is_matching_url( $this->main_menu_url() )
+			) {
+				return;
+			}
+
+			$params = array(
+				'id' => $this->_module_id,
+			);
+
+			fs_require_once_template( 'tabs-capture-js.php', $params );
+		}
+
+		/**
+		 * Cache theme's tabs HTML for a week. The cache will also be set as expired
+		 * after version and type (free/premium) changes, in addition to the week period.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 */
+		function _store_tabs_ajax_action() {
+			$this->_logger->entrance();
+
+			$this->check_ajax_referer( 'store_tabs' );
+
+			// Init filesystem if not yet initiated.
+			WP_Filesystem();
+
+			// Get POST body HTML data.
+			global $wp_filesystem;
+			$tabs_html = $wp_filesystem->get_contents( "php://input" );
+
+			if ( is_string( $tabs_html ) ) {
+				$tabs_html = trim( $tabs_html );
+			}
+
+			if ( ! is_string( $tabs_html ) || empty( $tabs_html ) ) {
+				self::shoot_ajax_failure();
+			}
+
+			$this->_cache->set( 'tabs', $tabs_html, 7 * WP_FS__TIME_24_HOURS_IN_SEC );
+
+			self::shoot_ajax_success();
+		}
+
+		/**
+		 * Cache theme's settings page custom styles. The cache will also be set as expired
+		 * after version and type (free/premium) changes, in addition to the week period.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 */
+		function _store_tabs_styles() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_theme_settings_page() ||
+			     $this->is_matching_url( $this->main_menu_url() )
+			) {
+				return;
+			}
+
+			$wp_styles = wp_styles();
+
+			$theme_styles_url = get_template_directory_uri();
+
+			$stylesheets = array();
+			foreach ( $wp_styles->queue as $handler ) {
+				if ( fs_starts_with( $handler, 'fs_' ) ) {
+					// Assume that stylesheets that their handler starts with "fs_" belong to the SDK.
+					continue;
+				}
+
+				/**
+				 * @var _WP_Dependency $stylesheet
+				 */
+				$stylesheet = $wp_styles->registered[ $handler ];
+
+				if ( fs_starts_with( $stylesheet->src, $theme_styles_url ) ) {
+					$stylesheets[] = $stylesheet->src;
+				}
+			}
+
+			if ( ! empty( $stylesheets ) ) {
+				$this->_cache->set( 'tabs_stylesheets', $stylesheets, 7 * WP_FS__TIME_24_HOURS_IN_SEC );
+			}
+		}
+
+
+		#endregion
 		#--------------------------------------------------------------------------------
 
 		/**
