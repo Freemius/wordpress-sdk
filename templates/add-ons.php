@@ -28,6 +28,8 @@
 	$addons = $fs->get_addons();
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
+
+	$has_tabs = $fs->_add_tabs_before_content();
 ?>
 	<div id="fs_addons" class="wrap">
 		<h2><?php printf( fs_text( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
@@ -154,6 +156,10 @@
 		})(jQuery);
 	</script>
 <?php
+	if ( $has_tabs ) {
+		$fs->_add_tabs_after_content();
+	}
+
 	$params = array(
 		'page'           => 'addons',
 		'module_id'      => $fs->get_id(),

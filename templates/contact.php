@@ -60,6 +60,12 @@
 		'site_url'       => get_site_url(),
 //		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) ) );
+
+	$has_tabs = $fs->_add_tabs_before_content();
+
+	if ( $has_tabs ) {
+		$query_params['tabs'] = 'true';
+	}
 ?>
 	<div class="fs-secure-notice">
 		<i class="dashicons dashicons-lock"></i>
@@ -94,6 +100,10 @@
 		</script>
 	</div>
 <?php
+	if ( $has_tabs ) {
+		$fs->_add_tabs_after_content();
+	}
+
 	$params = array(
 		'page'           => 'contact',
 		'module_id'      => $fs->get_id(),

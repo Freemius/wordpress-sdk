@@ -12981,6 +12981,90 @@
 			}
 		}
 
+		/**
+		 * Check if module's settings page has any tabs.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		private function has_tabs() {
+			return $this->_cache->has( 'tabs' );
+		}
+
+		/**
+		 * Get module's settings page HTML content, starting
+		 * from the beginning of the <div class="wrap"> element,
+		 * until the tabs HTML (including).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		private function get_tabs_html() {
+			$this->_logger->entrance();
+
+			return $this->_cache->get( 'tabs' );
+		}
+
+		/**
+		 * Add the tabs HTML before the setting's page content and
+		 * enqueue any required stylesheets.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool If tabs were included.
+		 */
+		function _add_tabs_before_content() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_theme() || ! $this->has_tabs() ) {
+				return false;
+			}
+
+			/**
+			 * Enqueue the original stylesheets that are included in the
+			 * theme settings page. That way, if the theme settings has
+			 * some custom _styled_ content above the tabs UI, this
+			 * will make sure that the styling is preserved.
+			 */
+			$stylesheets = $this->_cache->get( 'tabs_stylesheets', array() );
+			if ( is_array( $stylesheets ) ) {
+				for ( $i = 0, $len = count( $stylesheets ); $i < $len; $i ++ ) {
+					wp_enqueue_style( "fs_{$this->_module_id}_tabs_{$i}", $stylesheets[ $i ] );
+				}
+			}
+
+			// Cut closing </div> tag.
+			echo substr( trim( $this->get_tabs_html() ), 0, - 6 );
+
+			return true;
+		}
+
+		/**
+		 * Add the tabs closing HTML after the setting's page content.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool If tabs closing HTML was included.
+		 */
+		function _add_tabs_after_content() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_theme() || ! $this->has_tabs() ) {
+				return false;
+			}
+
+			echo '</div>';
+
+			return true;
+		}
+
+		#endregion
 
 		#endregion
 		#--------------------------------------------------------------------------------

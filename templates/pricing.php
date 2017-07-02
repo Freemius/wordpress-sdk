@@ -77,6 +77,12 @@
 		);
 		fs_require_template( 'forms/trial-start.php', $template_data);
 	} ?>
+	$has_tabs = $fs->_add_tabs_before_content();
+
+	if ( $has_tabs ) {
+		$query_params['tabs'] = 'true';
+	}
+?>
 	<div id="fs_pricing" class="wrap" style="margin: 0 0 -65px -20px;">
 		<div id="frame"></div>
 		<form action="" method="POST">
@@ -128,6 +134,10 @@
 		</script>
 	</div>
 <?php
+	if ( $has_tabs ) {
+		$fs->_add_tabs_after_content();
+	}
+
 	$params = array(
 		'page'           => 'pricing',
 		'module_id'      => $fs->get_id(),

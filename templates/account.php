@@ -41,6 +41,12 @@
 	if ( fs_request_get_bool( 'auto_install' ) ) {
 		$fs->_add_auto_installation_dialog_box();
 	}
+
+	$has_tabs = $fs->_add_tabs_before_content();
+
+	if ( $has_tabs ) {
+		$query_params['tabs'] = 'true';
+	}
 ?>
 	<div class="wrap">
 		<h2 class="nav-tab-wrapper">
@@ -725,6 +731,10 @@
 		</div>
 	</div>
 <?php
+	if ( $has_tabs ) {
+		$fs->_add_tabs_after_content();
+	}
+
 	$params = array(
 		'page'           => 'account',
 		'module_id'      => $fs->get_id(),
