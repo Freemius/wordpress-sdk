@@ -13231,7 +13231,7 @@
 				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-upsell-control.php';
 
 				$customizer->add_section( 'freemius_upsell', array(
-					'title'    => __( 'View paid features', 'freemius' ),
+					'title'    => '&#9733; ' . $this->get_text( 'view-paid-features' ),
 					'priority' => 1,
 				) );
 				$customizer->add_setting( 'freemius_upsell', array(

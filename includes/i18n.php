@@ -494,6 +494,7 @@
 		/* translators: %s: Page name */
 		'secure-x-page-header' => _fs_text( 'Secure HTTPS %s page, running from an external domain' ),
 		'pci-compliant'        => _fs_text( 'PCI compliant' ),
+		'view-paid-features'   => _fs_text( 'View paid features' ),
 	);
 
 	/**
