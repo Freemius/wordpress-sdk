@@ -681,7 +681,7 @@
 				register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
 			}
 
-			if ( $this->is_theme() ) {
+			if ( $this->is_theme() && self::is_customizer() ) {
 				// Register customizer upsell.
 				add_action( 'customize_register', array( &$this, '_customizer_register' ) );
 			}
@@ -7362,6 +7362,22 @@
 		 */
 		function is_user_in_admin() {
 			return is_admin() && ! self::is_ajax() && ! $this->is_cron();
+		}
+
+		/**
+		 * Check if a real user is in the customizer view.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		static function is_customizer() {
+			return (
+				'customize.php' == self::get_current_page() &&
+				! self::is_ajax() &&
+				! self::is_cron()
+			);
 		}
 
 		/**
