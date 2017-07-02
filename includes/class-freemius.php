@@ -794,12 +794,6 @@
 			) {
 				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 			}
-
-			if ( ! $this->is_addon() ) {
-				if ( $this->is_registered() ) {
-					$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
-				}
-			}
 		}
 
 		/**
@@ -3344,10 +3338,14 @@
 		function _after_code_type_change() {
 			$this->_logger->entrance();
 
-			add_action( is_admin() ? 'admin_init' : 'init', array(
-				&$this,
-				'_plugin_code_type_changed'
-			) );
+			if ( ! $this->is_addon() ) {
+				if ( $this->is_registered() ) {
+					add_action(
+						is_admin() ? 'admin_init' : 'init',
+						array( &$this, '_plugin_code_type_changed' )
+					);
+				}
+			}
 
 			if ( $this->is_theme() ) {
 				// Expire the cache of the previous tabs since the theme may
