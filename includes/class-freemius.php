@@ -2018,7 +2018,7 @@
 					'sdk'       => $this->version,
 					'is_admin'  => json_encode( is_admin() ),
 					'is_ajax'   => json_encode( self::is_ajax() ),
-					'is_cron'   => json_encode( $this->is_cron() ),
+					'is_cron'   => json_encode( self::is_cron() ),
 					'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
 				)
 			);
@@ -2791,7 +2791,7 @@
 			}
 
 			if ( $this->has_api_connectivity() ) {
-				if ( $this->is_cron() ) {
+				if ( self::is_cron() ) {
 					$this->hook_callback_to_sync_cron();
 				} else if ( $this->is_user_in_admin() ) {
 					/**
@@ -3300,7 +3300,7 @@
 					return true;
 				}
 
-				if ( $this->is_cron() ) {
+				if ( self::is_cron() ) {
 					/**
 					 * If in activation mode, don't execute Freemius during wp crons
 					 * (wp crons have HTTP context - called as HTTP request).
@@ -7348,7 +7348,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_cron() {
+		static function is_cron() {
 			return ( defined( 'DOING_CRON' ) && DOING_CRON );
 		}
 
@@ -7361,7 +7361,7 @@
 		 * @return bool
 		 */
 		function is_user_in_admin() {
-			return is_admin() && ! self::is_ajax() && ! $this->is_cron();
+			return is_admin() && ! self::is_ajax() && ! self::is_cron();
 		}
 
 		/**
