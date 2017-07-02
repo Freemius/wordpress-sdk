@@ -632,6 +632,7 @@
 						11
 					);
 
+					add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
 				}
 
 				/**
@@ -12896,7 +12897,9 @@
 		#endregion
 
 		#--------------------------------------------------------------------------------
-		#region Customizer
+		#region Tabs Integration
+		#--------------------------------------------------------------------------------
+
 		#region Module's Original Tabs
 
 		/**
@@ -13106,6 +13109,9 @@
 		}
 
 		#endregion
+
+		#--------------------------------------------------------------------------------
+		#region Customizer Integration for Themes
 		#--------------------------------------------------------------------------------
 
 		/**
@@ -13148,6 +13154,40 @@
 		}
 
 		#endregion
+
+		/**
+		 * If the theme has a paid version, add some custom
+		 * styling to the theme's premium version (if exists)
+		 * to highlight that it's the premium version of the
+		 * same theme, making it easier for identification
+		 * after the user upgrades and upload it to the site.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 */
+		function _style_premium_theme() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_themes_page() ) {
+				// Only include in the themes page.
+				return;
+			}
+
+			if ( ! $this->has_paid_plan() ) {
+				// Only include if has any paid plans.
+				return;
+			}
+
+			$params = null;
+			fs_require_once_template( '/js/jquery.content-change.php', $params );
+
+			$params = array(
+				'slug' => $this->_slug,
+				'id'   => $this->_module_id,
+			);
+
+			fs_require_template( '/js/style-premium-theme.php', $params );
+		}
 
 		#----------------------------------------------------------------------------------
 		#region Marketing
