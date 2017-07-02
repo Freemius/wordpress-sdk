@@ -1848,6 +1848,13 @@
 				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
 				// Unset the trial shown timestamp.
 				unset( $fs->_storage->trial_promotion_shown );
+			} else if ( fs_request_is_action( 'delete_install' ) ) {
+				check_admin_referer( 'delete_install' );
+
+				self::_delete_site_by_slug(
+					fs_request_get( 'slug' ),
+					fs_request_get( 'module_type' )
+				);
 			} else if ( fs_request_is_action( 'download_logs' ) ) {
 				check_admin_referer( 'download_logs' );
 
@@ -4320,13 +4327,27 @@
 		 * @param bool $store
 		 */
 		function _delete_site( $store = true ) {
-			$sites = self::get_all_sites( $this->_module_type );
+			self::_delete_site_by_slug( $this->_slug, $this->_module_type, $store );
+		}
 
-			if ( isset( $sites[ $this->_slug ] ) ) {
-				unset( $sites[ $this->_slug ] );
+		/**
+		 * Delete site install from Database.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $slug
+		 * @param string $module_type
+		 * @param bool   $store
+		 */
+		static function _delete_site_by_slug($slug, $module_type, $store = true ) {
+			$sites = self::get_all_sites( $module_type );
+
+			if ( isset( $sites[ $slug ] ) ) {
+				unset( $sites[ $slug ] );
 			}
 
-			$this->set_account_option( 'sites', $sites, $store );
+			self::set_account_option_by_module( $module_type, 'sites', $sites, $store );
 		}
 
 		/**
@@ -5744,8 +5765,27 @@
 		 * @param bool   $store
 		 */
 		private function set_account_option( $option_name, $option_value, $store ) {
-			if ( ! $this->is_plugin() ) {
-				$option_name = $this->_module_type . '_' . $option_name;
+			self::set_account_option_by_module(
+				$this->_module_type,
+				$option_name,
+				$option_value,
+				$store
+			);
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 *
+		 * @since  1.2.2.7
+		 *
+		 * @param string $module_type
+		 * @param string $option_name
+		 * @param mixed  $option_value
+		 * @param bool   $store
+		 */
+		private static function set_account_option_by_module( $module_type, $option_name, $option_value, $store ) {
+			if ( WP_FS__MODULE_TYPE_PLUGIN != $module_type ) {
+				$option_name = $module_type . '_' . $option_name;
 			}
 
 			self::$_accounts->set_option( $option_name, $option_value, $store );
