@@ -56,10 +56,6 @@
 					<a href="<?php echo $fs->get_trial_url() ?>" class="nav-tab"><?php fs_echo( 'free-trial', $slug ) ?></a>
 				<?php endif ?>
 			<?php endif ?>
-			<?php if ( ! $plan->is_free() ) : ?>
-				<a href="<?php echo $fs->get_account_tab_url( 'billing' ) ?>"
-				   class="nav-tab"><?php fs_echo( 'billing', $slug ) ?></a>
-			<?php endif ?>
 		</h2>
 
 		<div id="poststuff">
@@ -67,7 +63,7 @@
 				<div class="has-sidebar has-right-sidebar">
 					<div class="has-sidebar-content">
 						<div class="postbox">
-							<h3><?php fs_echo( 'account-details', $slug ) ?></h3>
+							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_echo( 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
 									<?php if ( ! $is_paying ) : ?>
@@ -717,6 +713,12 @@
 						<?php endif ?>
 
 						<?php $fs->do_action( 'after_account_details' ) ?>
+
+						<?php
+							$view_params = array( 'id' => $VARS['id'] );
+							fs_require_once_template( 'account/billing.php', $view_params );
+							fs_require_once_template( 'account/payments.php', $view_params );
+						?>
 					</div>
 				</div>
 			</div>
