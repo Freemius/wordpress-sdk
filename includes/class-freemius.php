@@ -4548,25 +4548,25 @@
 			// Clear API cache on activation.
 			FS_Api::clear_cache();
 
-				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+			$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
 
-				$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
+			$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
-				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
-				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
-				$other_version_basename = $is_premium_version_activation ?
-					$this->_free_plugin_basename :
-					$this->premium_plugin_basename();
+			// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
+			// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
+			$other_version_basename = $is_premium_version_activation ?
+				$this->_free_plugin_basename :
+				$this->premium_plugin_basename();
 
-				/**
-				 * If the other module version is activate, deactivate it.
-				 *
-				 * @author Leo Fajardo (@leorw)
-				 * @since  1.2.2
-				 */
-				if ( is_plugin_active( $other_version_basename ) ) {
-					deactivate_plugins( $other_version_basename );
-				}
+			/**
+			 * If the other module version is activate, deactivate it.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since  1.2.2
+			 */
+			if ( is_plugin_active( $other_version_basename ) ) {
+				deactivate_plugins( $other_version_basename );
+			}
 
 			if ( $this->is_registered() ) {
 				if ( $is_premium_version_activation ) {
@@ -4599,7 +4599,7 @@
 				if ( WP_FS__DEV_MODE ||
 				     (
 				     	( $this->is_plugin() || ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) &&
-				     $this->get_plugin_version() == $this->_storage->is_anonymous['version']
+				        $this->get_plugin_version() == $this->_storage->is_anonymous['version']
 				     )
 				) {
 					$this->reset_anonymous_mode();
@@ -8834,7 +8834,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_pricing_visible($ignore_menu_existence = false) {
+		function is_pricing_visible( $ignore_menu_existence = false ) {
 			return (
 				// Has at least one paid plan.
 				$this->has_paid_plan() &&
@@ -12567,14 +12567,14 @@
 			}
 
 			if ( $this->is_plugin() && $this->is_plugins_page() ) {
-			$this->add_plugin_action_link(
-				$this->get_text( $link_text_id ),
-				$url,
-				false,
-				13,
-				"opt-in-or-opt-out {$this->_slug}"
-			);
-		}
+				$this->add_plugin_action_link(
+					$this->get_text( $link_text_id ),
+					$url,
+					false,
+					13,
+					"opt-in-or-opt-out {$this->_slug}"
+				);
+			}
 		}
 
 		/**
@@ -13222,10 +13222,12 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
 		 *
 		 * @param WP_Customize_Manager $customizer
 		 */
 		function _customizer_register($customizer) {
+			$this->_logger->entrance();
 
 			if ( $this->is_pricing_visible(true) ) {
 				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-upsell-control.php';
