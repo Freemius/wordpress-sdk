@@ -13247,7 +13247,7 @@
 				) );
 
 				$customizer->add_control( new FS_Customizer_Upsell_Control( $customizer, 'freemius_upsell', array(
-					'freemius' => $this,
+					'fs'       => $this,
 					'section'  => 'freemius_upsell',
 					'priority' => 100,
 				) ) );
@@ -13261,7 +13261,7 @@
 
 				// Main Documentation Link In Customizer Root.
 				$customizer->add_section( new FS_Customizer_Support_Section( $customizer, 'freemius_support', array(
-					'freemius' => $this,
+					'fs'       => $this,
 					'priority' => 1000,
 				) ) );
 			}
