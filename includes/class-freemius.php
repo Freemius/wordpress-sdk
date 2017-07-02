@@ -618,6 +618,20 @@
 
 						add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
 					}
+
+					add_action(
+						'admin_footer',
+						array( &$this, '_add_freemius_tabs' ),
+						/**
+						 * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
+						 * That's why the priority is 11 while the tabs capture logic is added
+						 * with priority 10.
+						 *
+						 * @author Vova Feldman (@svovaf)
+						 */
+						11
+					);
+
 				}
 
 				/**
@@ -13065,6 +13079,31 @@
 		}
 
 		#endregion
+
+		/**
+		 * Add in-page JavaScript to inject the Freemius tabs into
+		 * the module's setting tabs section.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 */
+		function _add_freemius_tabs() {
+			$this->_logger->entrance();
+
+			if ( ! $this->is_theme_settings_page() ) {
+				// Only add tabs if browsing one of the theme's setting pages.
+				return;
+			}
+
+			if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
+				// Don't add tabs on checkout page, we want to reduce distractions
+				// as much as possible.
+				return;
+			}
+
+			$params = array( 'id' => $this->_module_id );
+			fs_require_once_template( 'tabs.php', $params );
+		}
 
 		#endregion
 		#--------------------------------------------------------------------------------
