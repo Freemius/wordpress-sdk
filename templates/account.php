@@ -49,6 +49,7 @@
 	}
 ?>
 	<div class="wrap">
+		<?php if ( ! $has_tabs ) : ?>
 		<h2 class="nav-tab-wrapper">
 			<a href="<?php echo $fs->get_account_url() ?>"
 			   class="nav-tab nav-tab-active"><?php fs_echo( 'account', $slug ) ?></a>
@@ -63,6 +64,7 @@
 				<?php endif ?>
 			<?php endif ?>
 		</h2>
+		<?php endif ?>
 
 		<div id="poststuff">
 			<div id="fs_account">
