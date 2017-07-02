@@ -149,6 +149,7 @@
 	$params = array(
 		'page'           => 'pricing',
 		'module_id'      => $fs->get_id(),
+		'module_type'    => $fs->get_module_type(),
 		'module_slug'    => $slug,
 		'module_version' => $fs->get_plugin_version(),
 	);
