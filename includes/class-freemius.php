@@ -4588,13 +4588,19 @@
 			} else if ( $this->is_anonymous() ) {
 				/**
 				 * Reset "skipped" click cache on the following:
-				 *  1. Development mode.
-				 *  2. If the user skipped the exact same version before.
+				 *  1. Freemius DEV mode.
+				 *  2. WordPress DEBUG mode.
+				 *  3. If a plugin and the user skipped the exact same version before.
 				 *
-				 * @todo 3. If explicitly asked to retry after every activation.
+				 * @since 1.2.2.7 Ulrich Pogson (@grapplerulrich) asked to not reset the SKIPPED flag if the exact same THEME version was activated before unless the developer is running with WP_DEBUG on, or Freemius debug mode on (WP_FS__DEV_MODE).
+				 *
+				 * @todo 4. If explicitly asked to retry after every activation.
 				 */
 				if ( WP_FS__DEV_MODE ||
+				     (
+				     	( $this->is_plugin() || ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) &&
 				     $this->get_plugin_version() == $this->_storage->is_anonymous['version']
+				     )
 				) {
 					$this->reset_anonymous_mode();
 				}
