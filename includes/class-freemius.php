@@ -9034,6 +9034,18 @@
 		}
 
 		/**
+		 * Helper method to return the module's support forum URL.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		function get_support_forum_url() {
+			return $this->apply_filters( 'support_forum_url', "https://wordpress.org/support/{$this->_module_type}/{$this->_slug}" );
+		}
+
+		/**
 		 * Displays the Support Forum link when enabled.
 		 *
 		 * Can be filtered like so:
@@ -9056,7 +9068,7 @@
 				if ( $this->is_submenu_item_visible( 'support' ) ) {
 					$this->add_submenu_link_item(
 						$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
-						$this->apply_filters( 'support_forum_url', 'https://wordpress.org/support/' . $this->_module_type . '/' . $this->_slug ),
+						$this->get_support_forum_url(),
 						'wp-support-forum',
 						null,
 						50
