@@ -79,7 +79,7 @@
 				<# if ( data.plans ) { #>
 					<ul class="fs-customizer-plans">
 						<# for (i in data.plans) { #>
-							<# if ( 'free' != data.plans[i].name || (null != data.plans[i].features && 0 < data.plans[i].features.length) ) { #>
+							<# if ( 'free' != data.plans[i].name && (null != data.plans[i].features && 0 < data.plans[i].features.length) ) { #>
 								<li class="fs-customizer-plan">
 									<div class="fs-accordion-section-open">
 										<h2 class="fs-accordion-section-title menu-item">
