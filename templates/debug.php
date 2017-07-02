@@ -262,7 +262,8 @@
 					<td><?php echo $data->file ?></td>
 					<td><?php echo $data->public_key ?></td>
 					<td>
-						<?php if ( $is_active && $fs->has_trial_plan() ) : ?>
+						<?php if ( $is_active ) : ?>
+						<?php if ( $fs->has_trial_plan() ) : ?>
 							<form action="" method="POST">
 								<input type="hidden" name="fs_action" value="simulate_trial">
 								<input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
@@ -270,6 +271,10 @@
 
 							<button type="submit" class="button button-primary simulate-trial"><?php fs_echo( 'Simulate Trial' ) ?></button>
 							</form>
+						<?php endif ?>
+						<?php if ( $fs->is_registered() ) : ?>
+							<a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_echo('account') ?></a>
+						<?php endif ?>
 						<?php endif ?>
 					</td>
 				</tr>
