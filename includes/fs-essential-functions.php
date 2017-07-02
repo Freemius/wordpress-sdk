@@ -365,7 +365,7 @@
 			$in_activation = ( ! is_plugin_active( $plugin_file ) );
 		} else {
 			$theme         = wp_get_theme();
-			$in_activation = ( $newest_sdk->plugin_path != $theme->stylesheet );
+			$in_activation = ( $newest_sdk->plugin_path == $theme->stylesheet );
 		}
 
 		$fs_active_plugins->newest = (object) array(
