@@ -7396,7 +7396,7 @@
 					// a specific Freemius page, use the admin.php path.
 					return add_query_arg( array_merge( $params, array(
 						'page' => $page_param,
-					) ), admin_url( 'admin.php', 'admin' ) );
+					) ), admin_url( $this->is_plugin() ? 'admin.php' : 'themes.php' ) );
 				} else {
 					if ( $this->is_theme() ) {
 						// Theme without a settings page (or wp.org theme).
