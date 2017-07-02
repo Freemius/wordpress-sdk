@@ -1508,7 +1508,7 @@
 			}
 
 			// Check if current page is matching the activation page.
-			return $this->is_matching_url( $_SERVER['REQUEST_URI'], $this->get_activation_url() );
+			return $this->is_matching_url( $this->get_activation_url() );
 		}
 
 		/**
@@ -1522,12 +1522,16 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.1.7
 		 *
-		 * @param string $url
 		 * @param string $sub_url
+		 * @param string $url     If argument is not set, check if the sub_url matching the current's page URL.
 		 *
 		 * @return bool
 		 */
-		private function is_matching_url( $url, $sub_url ) {
+		private function is_matching_url( $sub_url, $url = '' ) {
+			if ( empty( $url ) ) {
+				$url = $_SERVER['REQUEST_URI'];
+			}
+
 			$url     = strtolower( $url );
 			$sub_url = strtolower( $sub_url );
 
@@ -8706,7 +8710,7 @@
 
 				if ( $this->_menu->is_override_exact() ) {
 					// Make sure the current page is matching the activation page.
-					if ( ! $this->is_matching_url( $_SERVER['REQUEST_URI'], $this->get_activation_url() ) ) {
+					if ( ! $this->is_matching_url( $this->get_activation_url() ) ) {
 						return;
 					}
 				}
