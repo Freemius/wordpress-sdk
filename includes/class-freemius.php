@@ -3353,6 +3353,12 @@
 				$this->_cache->expire( 'tabs' );
 				$this->_cache->expire( 'tabs_stylesheets' );
 			}
+
+			if ( $this->is_premium() ) {
+				// Purge cached payments after switching to the premium version.
+				// @todo This logic doesn't handle purging the cache for serviceware module upgrade.
+				$this->get_api_user_scope()->purge_cache( "/plugins/{$this->_module_id}/payments.json?include_addons=true" );
+			}
 		}
 
 		/**
