@@ -78,6 +78,7 @@
 				$tab = $tab.clone();
 				// Open in current page.
 				$tab.removeAttr('target');
+				$tab.removeClass('nav-tab-active');
 
 				var $tabClone = null;
 
