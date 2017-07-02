@@ -1,12 +1,15 @@
 @import "../start";
+@import "themes";
 
-#iframe {
+#iframe
+{
     line-height: 0;
-    font-size: 0;
+    font-size:   0;
 }
 
-.fs-full-size-wrapper {
-    margin: 0 0 -65px -20px;
+.fs-full-size-wrapper
+{
+    margin: 40px 0 -65px -20px;
 
     @media (max-width: $admin_mobile_max_width) {
         margin: 0 0 -65px -10px;
@@ -121,7 +124,14 @@
     }
 }
 
-@media screen and (max-width:500px) {
+@media screen and (max-width: 600px) {
+    .fs-secure-notice
+    {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 500px) {
     #fs_promo_tab {
         display: none;
     }

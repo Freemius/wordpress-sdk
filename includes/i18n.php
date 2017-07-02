@@ -490,6 +490,10 @@
 		'auto-install-error-invalid-license'         => _fs_text( 'You do not have a valid license to access the premium version.' ),
 		'auto-install-error-serviceware'             => _fs_text( 'Plugin is a "Serviceware" which means it does not have a premium code version.' ),
         #endregion
+
+		/* translators: %s: Page name */
+		'secure-x-page-header' => _fs_text( 'Secure HTTPS %s page, running from an external domain' ),
+		'pci-compliant'        => _fs_text( 'PCI compliant' ),
 	);
 
 	/**

@@ -61,16 +61,18 @@
 //		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
 	) ) );
 
+	$view_params = array(
+		'id'   => $VARS['id'],
+		'page' => strtolower( $fs->get_text( 'contact' ) ),
+	);
+	fs_require_once_template('secure-https-header.php', $view_params);
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
 		$query_params['tabs'] = 'true';
 	}
 ?>
-	<div class="fs-secure-notice">
-		<i class="dashicons dashicons-lock"></i>
-		<span><b>Secure HTTPS contact page</b>, running via an <?php echo 'i' . 'frame' ?> from external domain</span>
-	</div>
 	<div id="fs_contact" class="wrap" style="margin: 40px 0 -65px -20px;">
 		<div id="frame"></div>
 		<script type="text/javascript">

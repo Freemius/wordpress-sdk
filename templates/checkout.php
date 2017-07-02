@@ -154,6 +154,12 @@
 	if ( false !== $xdebug_session ) {
 		$query_params['XDEBUG_SESSION'] = $xdebug_session;
 	}
+
+	$view_params = array(
+		'id'   => $VARS['id'],
+		'page' => strtolower( $fs->get_text( 'checkout' ) ) . ' ' . $fs->get_text( 'pci-compliant' ),
+	);
+	fs_require_once_template('secure-https-header.php', $view_params);
 ?>
 	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
 		<div id="frame"></div>

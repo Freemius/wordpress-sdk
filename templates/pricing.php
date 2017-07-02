@@ -70,13 +70,21 @@
 		// Billing cycle.
 		'billing_cycle'  => fs_request_get( 'billing_cycle', WP_FS__PERIOD_ANNUALLY ),
 	) );
-?>
-	<?php if ( ! $fs->is_registered() ) {
+
+
+	if ( ! $fs->is_registered() ) {
 		$template_data = array(
 			'id' => $fs->get_id(),
 		);
 		fs_require_template( 'forms/trial-start.php', $template_data);
-	} ?>
+	}
+
+	$view_params = array(
+		'id'   => $VARS['id'],
+		'page' => strtolower( $fs->get_text( 'pricing' ) ),
+	);
+	fs_require_once_template('secure-https-header.php', $view_params);
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
