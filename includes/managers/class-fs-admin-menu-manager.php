@@ -600,6 +600,28 @@
 		}
 
 		/**
+		 * Get module's main admin setting page URL.
+		 *
+		 * @todo This method was only tested for wp.org compliant themes with a submenu item. Need to test for plugins with top level, submenu, and CPT top level, menu items.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		function main_menu_url() {
+			$this->_logger->entrance();
+
+			if ( $this->_is_top_level ) {
+				$menu = $this->find_top_level_menu();
+			} else {
+				$menu = $this->find_main_submenu();
+			}
+
+			return admin_url( $menu['parent_slug'] . '?page=' . $menu['menu'][2] );
+		}
+
+		/**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.4
 		 *

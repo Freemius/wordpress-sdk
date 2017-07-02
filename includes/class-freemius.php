@@ -7458,6 +7458,18 @@
 		}
 
 		/**
+		 * Check if currently in a specified admin page.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $page
+		 *
+		 * @return bool
+		 */
+		function is_admin_page( $page ) {
+			return ( $this->_menu->get_slug( $page ) === fs_request_get( 'page', '', 'get' ) );
+		}
 
 		/**
 		 * Get module's main admin setting page URL.
@@ -8580,6 +8592,16 @@
 		#----------------------------------------------------------------------------------
 
 		private $_menu_items = array();
+
+		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.8
+		 *
+		 * @return array
+		 */
+		function get_menu_items() {
+			return $this->_menu_items;
+		}
 
 		/**
 		 * @author Vova Feldman (@svovaf)
