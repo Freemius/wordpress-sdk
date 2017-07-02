@@ -589,7 +589,7 @@ if ( !isset($info->error) ) {
 				global $wp_filesystem;
 
 				$error_code    = 'unable_to_connect_to_filesystem';
-				$error_message = __( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+				$error_message = $this->_fs->get_text( 'Unable to connect to the filesystem. Please confirm your credentials.' );
 
 				// Pass through the error from WP_Filesystem if one was raised.
 				if ( $wp_filesystem instanceof WP_Filesystem_Base &&
