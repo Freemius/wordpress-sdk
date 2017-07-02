@@ -25,12 +25,12 @@
 		/**
 		 * @var Freemius
 		 */
-		public $freemius = null;
+		public $fs = null;
 
 		/**
-		 * @param WP_Customize_Manager  $manager the customize manager class.
-		 * @param string                $id      id.
-		 * @param array                 $args    customizer manager parameters.
+		 * @param WP_Customize_Manager $manager the customize manager class.
+		 * @param string               $id      id.
+		 * @param array                $args    customizer manager parameters.
 		 */
 		public function __construct( WP_Customize_Manager $manager, $id, array $args ) {
 			$manager->register_control_type( 'FS_Customizer_Upsell_Control' );
@@ -42,31 +42,31 @@
 		 * Enqueue resources for the control.
 		 */
 		public function enqueue() {
-			fs_enqueue_local_style('fs_customizer', 'customizer.css');
+			fs_enqueue_local_style( 'fs_customizer', 'customizer.css' );
 		}
 
 		/**
 		 * Json conversion
 		 */
 		public function to_json() {
-			$pricing_cta = esc_html($this->freemius->get_text( $this->freemius->get_pricing_cta_label() )) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' );
+			$pricing_cta = esc_html( $this->fs->get_text( $this->fs->get_pricing_cta_label() ) ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' );
 
 			parent::to_json();
 
-			$this->json['button_text']        = $pricing_cta;
-			$this->json['button_url']         = $this->freemius->get_upgrade_url();
+			$this->json['button_text'] = $pricing_cta;
+			$this->json['button_url']  = $this->fs->get_upgrade_url();
 
 			// Load features.
-			$pricing = $this->freemius->get_api_plugin_scope()->get( 'pricing.json' );
+			$pricing = $this->fs->get_api_plugin_scope()->get( 'pricing.json' );
 
-			if ($this->freemius->is_api_result_object($pricing, 'plans')){
+			if ( $this->fs->is_api_result_object( $pricing, 'plans' ) ) {
 
 			}
 
-			$this->json['plans']            = $pricing->plans;
+			$this->json['plans'] = $pricing->plans;
 
-			$this->json['strings']            = array(
-				'plan' => $this->freemius->get_text('plan'),
+			$this->json['strings'] = array(
+				'plan' => $this->fs->get_text( 'plan' ),
 			);
 		}
 

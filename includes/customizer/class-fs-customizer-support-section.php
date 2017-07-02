@@ -34,7 +34,7 @@
 		/**
 		 * @var Freemius
 		 */
-		public $freemius = null;
+		public $fs = null;
 
 		/**
 		 * Add custom parameters to pass to the JS via JSON.
@@ -44,26 +44,26 @@
 		public function json() {
 			$json = parent::json();
 
-			$is_contact_visible = $this->freemius->is_submenu_item_visible( 'contact', true );
-			$is_support_visible = $this->freemius->is_submenu_item_visible( 'support', true );
+			$is_contact_visible = $this->fs->is_submenu_item_visible( 'contact', true );
+			$is_support_visible = $this->fs->is_submenu_item_visible( 'support', true );
 
-			$json['theme_title'] = $this->freemius->get_plugin_name();
+			$json['theme_title'] = $this->fs->get_plugin_name();
 
 			if ( $is_contact_visible && $is_support_visible ) {
-				$json['theme_title'] .= ' ' . $this->freemius->get_text( 'support' );
+				$json['theme_title'] .= ' ' . $this->fs->get_text( 'support' );
 			}
 
 			if ( $is_contact_visible ) {
 				$json['contact'] = array(
-					'label' => $this->freemius->get_text( 'contact-us' ),
-					'url'   => $this->freemius->contact_url(),
+					'label' => $this->fs->get_text( 'contact-us' ),
+					'url'   => $this->fs->contact_url(),
 				);
 			}
 
 			if ( $is_support_visible ) {
 				$json['support'] = array(
-					'label' => $this->freemius->get_text( 'support-forum' ),
-					'url'   => $this->freemius->apply_filters( 'support_forum_url', 'https://wordpress.org/support/' . $this->freemius->get_module_type() . '/' . $this->freemius->get_slug() )
+					'label' => $this->fs->get_text( 'support-forum' ),
+					'url'   => $this->fs->get_support_forum_url()
 				);
 			}
 
