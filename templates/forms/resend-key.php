@@ -63,7 +63,7 @@ HTML;
     </div>
 HTML;
 
-	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
+	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 	(function ($) {

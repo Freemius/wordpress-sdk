@@ -53,7 +53,7 @@
 		<p>{$opt_out_message_clicking_opt_out}</p>
 HTML;
 
-	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
+	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 ?>
 <script type="text/javascript">
