@@ -13073,7 +13073,7 @@
 			$this->_logger->entrance();
 
 			if ( ! $this->is_theme_settings_page() ||
-			     $this->is_matching_url( $this->main_menu_url() )
+			     ! $this->is_matching_url( $this->main_menu_url() )
 			) {
 				return;
 			}
