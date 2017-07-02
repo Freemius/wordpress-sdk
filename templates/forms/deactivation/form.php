@@ -106,15 +106,18 @@ HTML;
 		});
 		<?php
 		/**
-		 * For "theme" module type, the modal is shown when the current user clicks on the "Activate" button of any
-		 * other theme. The "Activate" button is actually a link to the "Themes" page (/wp-admin/themes.php) containing query
-		 * params that tell WordPress to deactivate the current theme and activate a different theme.
+		 * For "theme" module type, the modal is shown when the current user clicks on
+		 * the "Activate" button of any other theme. The "Activate" button is actually
+		 * a link to the "Themes" page (/wp-admin/themes.php) containing query params
+		 * that tell WordPress to deactivate the current theme and activate a different theme.
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since 1.2.2
+		 *        
+		 * @since 1.2.2.7 Don't trigger the deactivation feedback form if activating the premium version of the theme.
 		 */
 		} else { ?>
-		$('body').on('click', '.theme-actions .button.activate', function (evt) {
+		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $slug ?>-premium]) .theme-actions .button.activate', function (evt) {
 			evt.preventDefault();
 
 			redirectLink = $(this).attr('href');
