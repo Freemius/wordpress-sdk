@@ -10018,10 +10018,11 @@
 		 * @uses   FS_Api
 		 *
 		 * @param number|bool $plugin_id
+		 * @param bool        $flush
 		 *
 		 * @return FS_Payment[]|object
 		 */
-		function _fetch_payments( $plugin_id = false ) {
+		function _fetch_payments( $plugin_id = false, $flush = false ) {
 			$this->_logger->entrance();
 
 			$api = $this->get_api_user_scope();
@@ -10030,7 +10031,7 @@
 				$plugin_id = $this->_plugin->id;
 			}
 
-			$result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", true );
+			$result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", $flush );
 
 			if ( ! isset( $result->error ) ) {
 				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
@@ -10047,12 +10048,14 @@
 		 * @since  1.2.1.5
 		 * @uses   FS_Api
 		 *
+		 * @param bool $flush
+		 *
 		 * @return \FS_Billing|mixed
 		 */
-		function _fetch_billing() {
+		function _fetch_billing( $flush = false ) {
 			require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-billing.php';
 
-			$billing = $this->get_api_user_scope()->call( 'billing.json' );
+			$billing = $this->get_api_user_scope()->get( 'billing.json', $flush );
 
 			if ( $this->is_api_result_entity( $billing ) ) {
 				$billing = new FS_Billing( $billing );
