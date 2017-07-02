@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '1.2.2.6';
+	$this_sdk_version = '1.2.2.7';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -105,7 +105,7 @@
 					unset( $fs_active_plugins->plugins[ $sdk_path ] );
 					$has_changes = true;
 				}
-				}
+			}
 
 			if ( $has_changes ) {
 				update_option( 'fs_active_plugins', $fs_active_plugins );
