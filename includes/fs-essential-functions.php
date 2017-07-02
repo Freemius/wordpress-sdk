@@ -436,9 +436,16 @@
 			if ( is_null( $newest_sdk_data ) || version_compare( $data->version, $newest_sdk_data->version, '>' )
 			) {
 				// If plugin inactive or SDK starter file doesn't exist, remove SDK reference.
-				if ( ! is_plugin_active( $data->plugin_path ) ||
-				     ! file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $sdk_relative_path . '/start.php' ) )
-				) {
+				if ( 'plugin' === $data->type ) {
+					$is_module_active = is_plugin_active( $data->plugin_path );
+				} else {
+					$active_theme     = wp_get_theme();
+					$is_module_active = ( $data->plugin_path === $active_theme->get_template() );
+				}
+
+				$is_sdk_exists = file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $sdk_relative_path . '/start.php' ) );
+
+				if ( ! $is_module_active || ! $is_sdk_exists ) {
 					unset( $fs_active_plugins->plugins[ $sdk_relative_path ] );
 
 					// No need to store the data since it will be stored in fs_update_sdk_newest_version()
