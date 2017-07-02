@@ -6667,6 +6667,11 @@
 		 * @since  1.2.1.5
 		 */
 		function _add_optout_dialog() {
+			if ( $this->is_theme() ) {
+				$vars = null;
+				fs_require_once_template( '/js/jquery.content-change.php', $params );
+			}
+
 			$vars = array( 'id' => $this->_module_id );
 			fs_require_template( 'forms/optout.php', $vars );
 		}

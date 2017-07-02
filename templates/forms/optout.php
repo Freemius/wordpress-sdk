@@ -21,6 +21,11 @@
 		'stop_tracking' :
 		'allow_tracking';
 
+	$reconnect_url = $fs->get_activation_url( array(
+		'nonce'     => wp_create_nonce( $fs->get_unique_affix() . '_reconnect' ),
+		'fs_action' => ( $fs->get_unique_affix() . '_reconnect' ),
+	) );
+
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
 	$opt_out_button_text              = fs_text( 'opt-out', $slug );
 	$opt_out_message_appreciation     = sprintf( fs_text( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
@@ -86,7 +91,7 @@ HTML;
 			$actionLink.attr( 'data-action', action );
 			$modal.appendTo( $( 'body' ) );
 
-			function registerEventHandlers() {
+			function registerActionLinkClick() {
 				$actionLink.click(function( evt ) {
 					evt.preventDefault();
 
@@ -95,7 +100,13 @@ HTML;
 					} else {
 						optIn();
 					}
+
+					return false;
 				});
+			}
+
+			function registerEventHandlers() {
+				registerActionLinkClick();
 
 				$modal.on( 'click', '.button-opt-out', function( evt ) {
 					evt.preventDefault();
@@ -216,6 +227,40 @@ HTML;
 				$optOutErrorMessage.find( ' > p' ).html( msg );
 				$optOutErrorMessage.show();
 			}
+
+			<?php if ( $fs->is_theme() ) : ?>
+			/**
+			 * Add opt-in/out button to the active theme's buttons collection
+			 * in the theme's extended details overlay.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.2.2.7
+			 */
+			$('.theme-overlay').contentChange(function () {
+				if (!$(this).find('.theme-overlay').hasClass('active')) {
+					// Add opt-in/out button only to the currently active theme.
+					return;
+				}
+
+				if ($('#fs_theme_opt_in_out').length > 0){
+					// Button already there.
+					return;
+				}
+
+				var label = (('stop_tracking' == action) ?
+				        <?php fs_json_encode_echo( 'opt-out', $slug ) ?> :
+				        <?php fs_json_encode_echo( 'opt-in', $slug ) ?>),
+				    href = (('stop_tracking' != action) ?
+					    '<?php echo esc_js( $reconnect_url ) ?>' :
+					    '');
+
+				$actionLink = $('<a id="fs_theme_opt_in_out" href="' + encodeURI(href) + '" class="button" data-action="' + action + '">' + label + '</a>');
+
+				$('.theme-wrap .theme-actions .active-theme').append($actionLink);
+
+				registerActionLinkClick();
+			});
+			<?php endif ?>
 		});
 	})( jQuery );
 </script>
