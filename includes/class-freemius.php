@@ -375,6 +375,19 @@
 
 		/**
 		 * Checks whether this plugin or theme has settings menu.
+		 * If it's a free version of a wp.org compliant theme, treat
+		 * it as if it doesn't have a menu item at all because:
+		 *      1. wp.org themes are limited to a single submenu item,
+		 *         and sub-submenu items are most likely not allowed (never verified).
+		 *      2. wp.org themes are not allowed to redirect the user
+		 *         after the theme activation, therefore, the agreed UX
+		 *         is showing the opt-in as a modal dialog box after
+		 *         activation (approved by @otto42, @emiluzelac, @greenshady, @grapplerulrich).
+		 *
+		 * At the moment the wp.org require to show the opt-in in
+		 * the themes page. Therefore, if the context theme is the free
+		 * version and it's .org compliant, treat it as if it doesn't have
+		 * a menu item.
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
@@ -382,12 +395,10 @@
 		 * @return bool
 		 */
 		function has_settings_menu() {
-			/**
-			 * At the moment the wp.org require to show the opt-in in
-			 * the themes page. Therefore, if the theme is .org compliant,
-			 * treat it as if it doesn't have a menu item.
-			 */
-			if ( $this->is_theme() && $this->is_org_repo_compliant() ) {
+			if ( $this->is_theme() &&
+			     ! $this->is_premium() &&
+			     $this->is_org_repo_compliant()
+			) {
 				return false;
 			}
 
