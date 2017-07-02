@@ -181,3 +181,15 @@ span.fs-submenu-item.fs-sub:before
 #adminmenu .update-plugins.fs-trial {
     background-color: #00b9eb;
 }
+
+.fs-ajax-spinner
+{
+    border:          0;
+    width:           20px;
+    height:          20px;
+    margin-right:    5px;
+    vertical-align:  sub;
+    display:         inline-block;
+    background:      url('../../../../../../../wp-admin/images/wpspin_light-2x.gif');
+    background-size: contain;
+}
