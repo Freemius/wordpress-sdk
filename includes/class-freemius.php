@@ -7447,15 +7447,7 @@
 
 			$page_param = $this->_menu->get_slug( $page );
 
-			if ( ! $this->has_settings_menu() ) {
-				if ( ! empty( $page ) ) {
-					// Module doesn't have a setting page, but since the request is for
-					// a specific Freemius page, use the admin.php path.
-					return add_query_arg( array_merge( $params, array(
-						'page' => $page_param,
-					) ), admin_url( 'admin.php' ) );
-				} else {
-					if ( $this->is_theme() ) {
+			if ( $this->is_free_wp_org_theme() && empty($page) ) {
 				// Theme without a settings page (or wp.org theme).
 				$params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
@@ -7465,6 +7457,14 @@
 				);
 			}
 
+			if ( ! $this->has_settings_menu() ) {
+				if ( ! empty( $page ) ) {
+					// Module doesn't have a setting page, but since the request is for
+					// a specific Freemius page, use the admin.php path.
+					return add_query_arg( array_merge( $params, array(
+						'page' => $page_param,
+					) ), admin_url( 'admin.php' ) );
+				} else {
 					if ( $this->is_activation_mode() ) {
 						/**
 						 * @author Vova Feldman
