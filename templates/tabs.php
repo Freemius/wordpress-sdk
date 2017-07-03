@@ -85,13 +85,15 @@
 				// Open in current page.
 				$tab.removeAttr('target');
 				$tab.removeClass('nav-tab-active');
+				$tab.addClass('fs-tab');
+				$tab.addClass('<?php echo $fs->get_unique_affix() ?>');
 
 				var $tabClone = null;
 
 				<?php $freemius_context_page = null ?>
 
 				<?php foreach ($tabs as $tab) : ?>
-				<?php $is_support_tab = ('wp-support-forum' == $tab['slug']) ?>
+				<?php $is_support_tab = ( 'wp-support-forum' == $tab['slug'] ) ?>
 				// Add the Freemius tabs.
 				$tabClone = $tab.clone();
 				$tabClone.html(<?php echo json_encode( $tab['label'] ) ?>)
@@ -99,6 +101,7 @@
 					.appendTo($tabsWrapper)
 					// Remove any custom click events.
 					.off('click', '**')
+					.addClass('<?php echo $tab['slug'] ?>')
 					// Avoid tab click triggering parent events.
 					.click(function (e) {
 						e.stopPropagation();
