@@ -32,7 +32,9 @@
 	$has_tabs = $fs->_add_tabs_before_content();
 ?>
 	<div id="fs_addons" class="wrap fs-section">
+		<?php if ( ! $has_tabs ) : ?>
 		<h2><?php printf( fs_text( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
+		<?php endif ?>
 
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
