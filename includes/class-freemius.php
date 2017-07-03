@@ -11638,7 +11638,10 @@
 				return $this->get_parent_instance()->get_activation_url( $params );
 			}
 
-			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+			return add_query_arg(
+				$params,
+				$this->apply_filters( 'connect_url', $this->_get_admin_page_url() )
+			);
 		}
 
 		/**
