@@ -69,7 +69,7 @@
 				<?php foreach ($tabs as $tab) : ?>
 				// @todo What happens when one of the pages is loaded and there's no tabs.
 				// @todo What about the Billing and account tabs?
-				$('<a href="<?php echo esc_js( $tab['href'] ) ?>" class="nav-tab"><?php echo esc_html( $tab['label'] ) ?></a>')
+				$('<a href="<?php echo $tab['href'] ?>" class="nav-tab"><?php echo esc_html( $tab['label'] ) ?></a>')
 					.appendTo($tabsWrapper);
 				<?php endforeach ?>
 
@@ -95,7 +95,7 @@
 				// Add the Freemius tabs.
 				$tabClone = $tab.clone();
 				$tabClone.html(<?php echo json_encode( $tab['label'] ) ?>)
-					.attr('href', '<?php echo esc_js( esc_attr( $is_support_tab ? $fs->get_support_forum_url() : $tab['href'] ) ) ?>')
+					.attr('href', '<?php echo $is_support_tab ? $fs->get_support_forum_url() : $tab['href'] ?>')
 					.appendTo($tabsWrapper)
 					// Remove any custom click events.
 					.off('click', '**')
