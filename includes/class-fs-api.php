@@ -232,7 +232,7 @@
 
 			$cached_result = self::$_cache->get( $cache_key );
 
-			if ( $flush || ! self::$_cache->has_valid( $cache_key ) ) {
+			if ( $flush || ! self::$_cache->has_valid( $cache_key, $expiration ) ) {
 				$result = $this->call( $path );
 
 				if ( ! is_object( $result ) || isset( $result->error ) ) {
