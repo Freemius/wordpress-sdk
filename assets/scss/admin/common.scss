@@ -11,7 +11,7 @@
 {
     margin: 40px 0 -65px -20px;
 
-    @media (max-width: $admin_mobile_max_width) {
+    @media (max-width: 600px) {
         margin: 0 0 -65px -10px;
     }
 }
