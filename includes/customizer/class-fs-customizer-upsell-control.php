@@ -96,7 +96,12 @@
 											<# if ( data.plans[i].features ) { #>
 												<ul>
 													<# for ( j in data.plans[i].features ) { #>
-														<li><span class="dashicons dashicons-yes"></span><span><# if ( data.plans[i].features[j].value ) { #>{{ data.plans[i].features[j].value }} <# } #>{{ data.plans[i].features[j].title }}</span></li>
+														<li><div class="fs-feature">
+																<span class="dashicons dashicons-yes"></span><span><# if ( data.plans[i].features[j].value ) { #>{{ data.plans[i].features[j].value }} <# } #>{{ data.plans[i].features[j].title }}</span>
+																<# if ( data.plans[i].features[j].description ) { #>
+																	<span class="dashicons dashicons-editor-help"><span class="fs-feature-desc">{{ data.plans[i].features[j].description }}</span></span>
+																	<# } #>
+															</div></li>
 														<# } #>
 												</ul>
 												<# } #>
