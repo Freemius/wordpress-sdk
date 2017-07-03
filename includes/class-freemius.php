@@ -7408,11 +7408,7 @@
 		 * @return bool
 		 */
 		static function is_customizer() {
-			return (
-				'customize.php' == self::get_current_page() &&
-				! self::is_ajax() &&
-				! self::is_cron()
-			);
+			return is_customize_preview();
 		}
 
 		/**
