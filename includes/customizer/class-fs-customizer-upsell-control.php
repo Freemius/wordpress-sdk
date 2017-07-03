@@ -54,7 +54,9 @@
 			parent::to_json();
 
 			$this->json['button_text'] = $pricing_cta;
-			$this->json['button_url']  = $this->fs->get_upgrade_url();
+			$this->json['button_url']  = $this->fs->is_in_trial_promotion() ?
+				$this->fs->get_trial_url() :
+				$this->fs->get_upgrade_url();
 
 			// Load features.
 			$pricing = $this->fs->get_api_plugin_scope()->get( 'pricing.json' );
