@@ -8867,7 +8867,7 @@
 		function get_pricing_cta_label() {
 			$label = 'upgrade';
 
-			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
+			if ( $this->is_in_trial_promotion() &&
 			     ! $this->is_paying_or_trial()
 			) {
 				// If running a trial promotion, modify the pricing to load the trial.
@@ -8957,7 +8957,7 @@
 					$pricing_cta_slug = $this->get_pricing_cta_label();
 					$pricing_class    = 'upgrade-mode';
 					if ( $show_pricing ) {
-						if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) &&
+						if ( $this->is_in_trial_promotion() &&
 						     ! $this->is_paying_or_trial()
 						) {
 							// If running a trial promotion, modify the pricing to load the trial.
@@ -12259,6 +12259,18 @@
 		}
 
 		/**
+		 * Check if module is currently in a trial promotion mode.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		function is_in_trial_promotion() {
+			return $this->_admin_notices->has_sticky( 'trial_promotion' );
+		}
+
+		/**
 		 * Show trial promotional notice (if any trial exist).
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -12276,7 +12288,7 @@
 			}
 
 			// Check if trial message is already shown.
-			if ( $this->_admin_notices->has_sticky( 'trial_promotion' ) ) {
+			if ( $this->is_in_trial_promotion() ) {
 				add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
 
 				$this->_menu->add_counter_to_menu_item( 1, 'fs-trial' );
