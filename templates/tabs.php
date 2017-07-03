@@ -85,10 +85,11 @@
 				<?php $freemius_context_page = null ?>
 
 				<?php foreach ($tabs as $tab) : ?>
+				<?php $is_support_tab = ('wp-support-forum' == $tab['slug']) ?>
 				// Add the Freemius tabs.
 				$tabClone = $tab.clone();
 				$tabClone.html(<?php echo json_encode( $tab['label'] ) ?>)
-					.attr('href', '<?php echo esc_js( esc_attr( $tab['href'] ) ) ?>')
+					.attr('href', '<?php echo esc_js( esc_attr( $is_support_tab ? $fs->get_support_forum_url() : $tab['href'] ) ) ?>')
 					.appendTo($tabsWrapper)
 					// Remove any custom click events.
 					.off('click', '**')
@@ -96,6 +97,11 @@
 					.click(function (e) {
 						e.stopPropagation();
 					});
+
+				<?php if ($is_support_tab) : ?>
+				// Open support in a new tab/page.
+				$tabClone.attr('target', '_blank');
+				<?php endif ?>
 
 				<?php if ($fs->is_admin_page( $tab['slug'] )) : ?>
 				<?php $freemius_context_page = $tab['slug'] ?>
