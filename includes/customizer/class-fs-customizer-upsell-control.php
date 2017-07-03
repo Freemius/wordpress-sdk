@@ -60,7 +60,41 @@
 			$pricing = $this->fs->get_api_plugin_scope()->get( 'pricing.json' );
 
 			if ( $this->fs->is_api_result_object( $pricing, 'plans' ) ) {
+				// Add support features.
+				if ( is_array( $pricing->plans ) && 0 < count( $pricing->plans ) ) {
+					$support_features = array(
+						'kb'                 => 'Help Center',
+						'forum'              => 'Support Forum',
+						'email'              => 'Priority Email Support',
+						'phone'              => 'Phone Support',
+						'skype'              => 'Skype Support',
+						'is_success_manager' => 'Personal Success Manager',
+					);
 
+					for ( $i = 0, $len = count( $pricing->plans ); $i < $len; $i ++ ) {
+						if ( 'free' == $pricing->plans[$i]->name ) {
+							continue;
+						}
+
+						if ( ! is_array( $pricing->plans[ $i ]->features ) ) {
+							$pricing->plans[$i]->features = array();
+						}
+
+						foreach ( $support_features as $key => $label ) {
+							$key = ( 'is_success_manager' !== $key ) ?
+								"support_{$key}" :
+								$key;
+
+							if ( ! empty( $pricing->plans[ $i ]->{$key} ) ) {
+
+								$support_feature        = new stdClass();
+								$support_feature->title = $label;
+
+								$pricing->plans[ $i ]->features[] = $support_feature;
+							}
+						}
+					}
+				}
 			}
 
 			$this->json['plans'] = $pricing->plans;
