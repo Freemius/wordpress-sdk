@@ -7978,10 +7978,7 @@
 				// If skipped already, then return to the account page.
 				$this->get_account_url( $activation_action, array(), false ) :
 				// Return to the module's main page.
-				$this->_get_admin_page_url(
-					'',
-					array( 'fs_action' => $activation_action )
-				);
+				$this->get_after_activation_url( 'after_connect_url', array( 'fs_action' => $activation_action ) );
 
 			$params = array(
 				'user_firstname'               => $current_user->user_firstname,
@@ -11667,24 +11664,25 @@
 		 * @since  1.1.3
 		 *
 		 * @param string $filter Filter name.
+		 * @param array  $params Since 1.2.2.7
 		 *
 		 * @return string
 		 */
-		function get_after_activation_url( $filter ) {
+		function get_after_activation_url( $filter, $params = array() ) {
 			if ( $this->is_free_wp_org_theme() &&
 			     fs_request_has( 'pending_activation' )
 			) {
-				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
+				$first_time_path = '';
+			} else {
+				$first_time_path = $this->_menu->get_first_time_path();
 			}
 
-			$first_time_path = $this->_menu->get_first_time_path();
-
-			return $this->apply_filters(
+			return add_query_arg($params, $this->apply_filters(
 				$filter,
 				empty( $first_time_path ) ?
 					$this->_get_admin_page_url() :
 					$first_time_path
-			);
+			) );
 		}
 
 		/**
