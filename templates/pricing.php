@@ -99,7 +99,7 @@
 		$query_params['tabs'] = 'true';
 	}
 ?>
-	<div id="fs_pricing" class="wrap fs-full-size-wrapper">
+	<div id="fs_pricing" class="wrap fs-section fs-full-size-wrapper">
 		<div id="frame"></div>
 		<form action="" method="POST">
 			<input type="hidden" name="user_id"/>

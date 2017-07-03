@@ -210,3 +210,9 @@ span.fs-submenu-item.fs-sub:before
     background:      url('../../../../../../../wp-admin/images/wpspin_light-2x.gif');
     background-size: contain;
 }
+
+.wrap.fs-section {
+    h2 {
+        text-align: left;
+    }
+}

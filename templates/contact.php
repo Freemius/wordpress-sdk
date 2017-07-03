@@ -81,7 +81,7 @@
 		$query_params['tabs'] = 'true';
 	}
 ?>
-	<div id="fs_contact" class="wrap fs-full-size-wrapper">
+	<div id="fs_contact" class="wrap fs-section fs-full-size-wrapper">
 		<div id="frame"></div>
 		<script type="text/javascript">
 			(function ($) {

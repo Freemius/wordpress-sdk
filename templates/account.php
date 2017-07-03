@@ -48,7 +48,7 @@
 		$query_params['tabs'] = 'true';
 	}
 ?>
-	<div class="wrap">
+	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
 		<h2 class="nav-tab-wrapper">
 			<a href="<?php echo $fs->get_account_url() ?>"

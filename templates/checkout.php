@@ -169,7 +169,7 @@
 	);
 	fs_require_once_template('secure-https-header.php', $view_params);
 ?>
-	<div id="fs_checkout" class="wrap fs-full-size-wrapper">
+	<div id="fs_checkout" class="wrap fs-section fs-full-size-wrapper">
 		<div id="frame"></div>
 		<script type="text/javascript">
 			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
