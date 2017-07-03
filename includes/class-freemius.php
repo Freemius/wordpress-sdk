@@ -7456,14 +7456,14 @@
 					) ), admin_url( 'admin.php' ) );
 				} else {
 					if ( $this->is_theme() ) {
-						// Theme without a settings page (or wp.org theme).
-						$params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
+				// Theme without a settings page (or wp.org theme).
+				$params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
-						return add_query_arg(
-							$params,
-							admin_url( 'themes.php' )
-						);
-					}
+				return add_query_arg(
+					$params,
+					admin_url( 'themes.php' )
+				);
+			}
 
 					if ( $this->is_activation_mode() ) {
 						/**
@@ -9048,7 +9048,9 @@
 						}
 					} else {
 						FS_Admin_Menu_Manager::add_subpage(
-							$this->get_top_level_menu_slug(),
+							$item['show_submenu'] ?
+								$this->get_top_level_menu_slug() :
+								null,
 							$item['page_title'],
 							$menu_item,
 							$capability,
@@ -9152,15 +9154,14 @@
 			}
 
 			if ( ! $this->is_activation_mode() ) {
-				if ( $this->is_submenu_item_visible( 'support' ) ) {
-					$this->add_submenu_link_item(
-						$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
-						$this->get_support_forum_url(),
-						'wp-support-forum',
-						null,
-						50
-					);
-				}
+				$this->add_submenu_link_item(
+					$this->apply_filters( 'support_forum_submenu', $this->get_text( 'support-forum' ) ),
+					$this->get_support_forum_url(),
+					'wp-support-forum',
+					null,
+					50,
+					$this->is_submenu_item_visible( 'support' )
+				);
 			}
 		}
 
@@ -9236,14 +9237,15 @@
 		 * @param bool   $menu_slug
 		 * @param string $capability
 		 * @param int    $priority
-		 *
+		 * @param bool   $show_submenu
 		 */
 		function add_submenu_link_item(
 			$menu_title,
 			$url,
 			$menu_slug = false,
 			$capability = 'read',
-			$priority = WP_FS__DEFAULT_PRIORITY
+			$priority = WP_FS__DEFAULT_PRIORITY,
+			$show_submenu = true
 		) {
 			$this->_logger->entrance( 'Title = ' . $menu_title . '; Url = ' . $url );
 
@@ -9256,7 +9258,8 @@
 						$url,
 						$menu_slug,
 						$capability,
-						$priority
+						$priority,
+						$show_submenu
 					);
 
 					return;
@@ -9275,6 +9278,7 @@
 				'page_title'             => $menu_title,
 				'render_function'        => 'fs_dummy',
 				'before_render_function' => '',
+				'show_submenu'           => $show_submenu,
 			);
 		}
 
