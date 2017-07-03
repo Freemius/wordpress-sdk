@@ -13260,6 +13260,11 @@
 		function _add_freemius_tabs() {
 			$this->_logger->entrance();
 
+			if ( ! $this->has_settings_menu() ) {
+				// Don't add tabs if no settings at all.
+				return;
+			}
+
 			if ( ! $this->is_theme_settings_page() ) {
 				// Only add tabs if browsing one of the theme's setting pages.
 				return;
