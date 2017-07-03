@@ -26,11 +26,17 @@
 			$url   = $fs->_get_admin_page_url( $item['menu_slug'] );
 			$title = $item['menu_title'];
 
-			$tabs[] = array(
+			$tab = array(
 				'label' => $title,
 				'href'  => $url,
 				'slug'  => $item['menu_slug'],
 			);
+
+			if ( 'pricing' === $item['menu_slug'] && $fs->is_in_trial_promotion() ) {
+				$tab['href'] .= '&trial=true';
+			}
+
+			$tabs[] = $tab;
 		}
 	}
 ?>
