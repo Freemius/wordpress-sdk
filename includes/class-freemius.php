@@ -8906,7 +8906,10 @@
 			$this->_logger->entrance();
 
 			if ( ! $this->is_addon() ) {
-				if ( ! $this->is_activation_mode() ) {
+				/**
+				 * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
+				 */
+				if ( ! $this->is_activation_mode() || $this->is_free_wp_org_theme() ) {
 					if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
