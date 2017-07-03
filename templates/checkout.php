@@ -309,7 +309,7 @@
 					});
 
 					var updateHeight = function () {
-						frame.css('min-height', $('#wpwrap').height() + 'px');
+						frame.css('min-height', $(document.body).height() + 'px');
 					};
 
 					$(document).ready(updateHeight);
