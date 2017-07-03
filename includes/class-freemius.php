@@ -11656,7 +11656,7 @@
 			$params['fs_action']       = 'reset_anonymous_mode';
 			$params['fs_unique_affix'] = $this->get_unique_affix();
 
-			return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+			return $this->get_activation_url($params);
 		}
 
 		/**
