@@ -44,8 +44,8 @@
 		public function json() {
 			$json = parent::json();
 
-			$is_contact_visible = $this->fs->is_submenu_item_visible( 'contact', true );
-			$is_support_visible = $this->fs->is_submenu_item_visible( 'support', true );
+			$is_contact_visible = $this->fs->is_page_visible( 'contact' );
+			$is_support_visible = $this->fs->is_page_visible( 'support' );
 
 			$json['theme_title'] = $this->fs->get_plugin_name();
 

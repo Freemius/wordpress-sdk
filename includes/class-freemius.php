@@ -374,20 +374,7 @@
 		}
 
 		/**
-		 * Checks whether this plugin or theme has settings menu.
-		 * If it's a free version of a wp.org compliant theme, treat
-		 * it as if it doesn't have a menu item at all because:
-		 *      1. wp.org themes are limited to a single submenu item,
-		 *         and sub-submenu items are most likely not allowed (never verified).
-		 *      2. wp.org themes are not allowed to redirect the user
-		 *         after the theme activation, therefore, the agreed UX
-		 *         is showing the opt-in as a modal dialog box after
-		 *         activation (approved by @otto42, @emiluzelac, @greenshady, @grapplerulrich).
-		 *
-		 * At the moment the wp.org require to show the opt-in in
-		 * the themes page. Therefore, if the context theme is the free
-		 * version and it's .org compliant, treat it as if it doesn't have
-		 * a menu item.
+		 * Checks whether this module has a settings menu.
 		 *
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
@@ -395,14 +382,31 @@
 		 * @return bool
 		 */
 		function has_settings_menu() {
-			if ( $this->is_theme() &&
-			     ! $this->is_premium() &&
-			     $this->is_org_repo_compliant()
-			) {
-				return false;
-			}
-
 			return $this->_menu->has_menu();
+		}
+
+		/**
+		 * Check if the context module is free wp.org theme.
+		 *
+		 * This method is helpful because:
+		 *      1. wp.org themes are limited to a single submenu item,
+		 *         and sub-submenu items are most likely not allowed (never verified).
+		 *      2. wp.org themes are not allowed to redirect the user
+		 *         after the theme activation, therefore, the agreed UX
+		 *         is showing the opt-in as a modal dialog box after
+		 *         activation (approved by @otto42, @emiluzelac, @greenshady, @grapplerulrich).
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		function is_free_wp_org_theme() {
+			return (
+				$this->is_theme() &&
+				$this->is_org_repo_compliant() &&
+				! $this->is_premium()
+			);
 		}
 
 		/**
@@ -413,20 +417,51 @@
 		 * @since  1.2.2.7 Even if the menu item was specified to be hidden, when it is the context page, then show the submenu item so the user will have the right context page.
 		 *
 		 * @param string $slug
-		 * @param bool   $ignore_menu_existence Since 1.2.2.7 If true, check if the submenu item visible even if there's no parent menu.
 		 *
 		 * @return bool
 		 */
-		function is_submenu_item_visible( $slug, $ignore_menu_existence = false ) {
+		function is_submenu_item_visible( $slug ) {
+			if ( $this->is_admin_page( $slug ) ) {
+				/**
+				 * It is the current context page, so show the submenu item
+				 * so the user will have the right context page, even if it
+				 * was set to hidden.
+				 */
+				return true;
+			}
+
+			if ( ! $this->has_settings_menu() ) {
+				// No menu settings at all.
+				return false;
+			}
+
+			if ( $this->is_free_wp_org_theme() ) {
+				/**
+				 * wp.org themes are limited to a single submenu item, and
+				 * sub-submenu items are most likely not allowed (never verified).
+				 */
+				return false;
+			}
+
+			return $this->_menu->is_submenu_item_visible( $slug );
+		}
+
+		/**
+		 * Check if a Freemius page should be accessible via the UI.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $slug
+		 *
+		 * @return bool
+		 */
+		function is_page_visible( $slug ) {
 			if ( $this->is_admin_page( $slug ) ) {
 				return true;
 			}
 
-			if ( ! $ignore_menu_existence && ! $this->has_settings_menu() ) {
-				return false;
-			}
-
-			return $this->_menu->is_submenu_item_visible( $slug, true, $ignore_menu_existence );
+			return $this->_menu->is_submenu_item_visible( $slug, true, true );
 		}
 
 		/**
@@ -7418,7 +7453,7 @@
 					// a specific Freemius page, use the admin.php path.
 					return add_query_arg( array_merge( $params, array(
 						'page' => $page_param,
-					) ), admin_url( $this->is_plugin() ? 'admin.php' : 'themes.php' ) );
+					) ), admin_url( 'admin.php' ) );
 				} else {
 					if ( $this->is_theme() ) {
 						// Theme without a settings page (or wp.org theme).
@@ -8669,7 +8704,7 @@
 		 */
 		private function add_menu_action() {
 			if ( $this->is_activation_mode() ) {
-				if ( ! $this->is_theme() || $this->has_settings_menu() ) {
+				if ( $this->is_plugin() || ( $this->has_settings_menu() && ! $this->is_free_wp_org_theme() ) ) {
 					$this->override_plugin_menu_with_activation();
 				} else {
 					/**
@@ -8689,7 +8724,10 @@
 					if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
 						$this->_install_with_new_user();
 					}
-				} else if ( fs_request_is_action( 'sync_user' ) && ! $this->has_settings_menu() ) {
+				} else if (
+					fs_request_is_action( 'sync_user' ) &&
+					( ! $this->has_settings_menu() || $this->is_free_wp_org_theme() )
+				) {
 					$this->_handle_account_user_sync();
 				}
 			}
@@ -8852,16 +8890,14 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.2.7
 		 *
-		 * @param bool $ignore_menu_existence If true, check if the submenu item visible even if there's no
-		 *
 		 * @return bool
 		 */
-		function is_pricing_visible( $ignore_menu_existence = false ) {
+		function is_pricing_page_visible() {
 			return (
 				// Has at least one paid plan.
 				$this->has_paid_plan() &&
 				// Didn't ask to hide the pricing page.
-				$this->is_submenu_item_visible( 'pricing', $ignore_menu_existence ) &&
+				$this->is_page_visible( 'pricing' ) &&
 				// Don't have a valid active license or has more than one plan.
 				( ! $this->is_paying() || ! $this->is_single_plan() )
 			);
@@ -8917,7 +8953,10 @@
 						);
 					}
 
-					$show_pricing = $this->is_pricing_visible();
+					$show_pricing = (
+						$this->is_submenu_item_visible( 'pricing' ) &&
+						$this->is_pricing_page_visible()
+					);
 
 					$pricing_cta_slug = $this->get_pricing_cta_label();
 					$pricing_class    = 'upgrade-mode';
@@ -11617,7 +11656,8 @@
 		}
 
 		/**
-		 * Get the URL of the page that should be loaded after the user connect or skip in the opt-in screen.
+		 * Get the URL of the page that should be loaded after the user connect
+		 * or skip in the opt-in screen.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.3
@@ -11627,8 +11667,7 @@
 		 * @return string
 		 */
 		function get_after_activation_url( $filter ) {
-			if ( $this->is_theme() &&
-			     ! $this->has_settings_menu() &&
+			if ( $this->is_free_wp_org_theme() &&
 			     fs_request_has( 'pending_activation' )
 			) {
 				return $this->apply_filters( $filter, $this->_get_admin_page_url() );
@@ -13251,7 +13290,7 @@
 		function _customizer_register($customizer) {
 			$this->_logger->entrance();
 
-			if ( $this->is_pricing_visible(true) ) {
+			if ( $this->is_pricing_page_visible() ) {
 				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-upsell-control.php';
 
 				$customizer->add_section( 'freemius_upsell', array(
@@ -13269,7 +13308,7 @@
 				) ) );
 			}
 
-			if ( $this->is_submenu_item_visible( 'contact', true ) || $this->is_submenu_item_visible( 'support', true ) ) {
+			if ( $this->is_page_visible( 'contact' ) || $this->is_page_visible( 'support' ) ) {
 				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-support-section.php';
 
 				// Register custom section types.

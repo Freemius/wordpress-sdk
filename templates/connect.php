@@ -70,7 +70,7 @@
 	$is_optin_dialog = (
 		$fs->is_theme() &&
 		$fs->is_themes_page() &&
-	    ! $fs->has_settings_menu()
+		( ! $fs->has_settings_menu() || $fs->is_free_wp_org_theme() )
 	);
 
 	if ( $is_optin_dialog ) {
