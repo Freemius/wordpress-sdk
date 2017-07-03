@@ -13321,9 +13321,6 @@
 			if ( $this->is_page_visible( 'contact' ) || $this->is_page_visible( 'support' ) ) {
 				require_once WP_FS__DIR_INCLUDES . '/customizer/class-fs-customizer-support-section.php';
 
-				// Register custom section types.
-				$customizer->register_section_type( 'FS_Customizer_Support_Section' );
-
 				// Main Documentation Link In Customizer Root.
 				$customizer->add_section( new FS_Customizer_Support_Section( $customizer, 'freemius_support', array(
 					'fs'       => $this,

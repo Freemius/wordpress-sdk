@@ -19,6 +19,8 @@
 	class FS_Customizer_Support_Section extends WP_Customize_Section {
 
 		function __construct( $manager, $id, $args = array() ) {
+			$manager->register_section_type( 'FS_Customizer_Support_Section' );
+
 			parent::__construct( $manager, $id, $args );
 		}
 
