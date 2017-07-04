@@ -21,7 +21,7 @@
 	/**
 	 * @var FS_Plugin_Tag $update
 	 */
-	$update = $fs->get_update( false, false );
+	$update = $fs->get_update( false, false, WP_FS__TIME_24_HOURS_IN_SEC / 24 );
 
 	$is_paying              = $fs->is_paying();
 	$user                   = $fs->get_user();

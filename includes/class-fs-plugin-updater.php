@@ -204,7 +204,11 @@
 
 			if ( ! isset( $this->_update_details ) ) {
 				// Get plugin's newest update.
-				$new_version = $this->_fs->get_update( false, false );
+				$new_version = $this->_fs->get_update(
+					false,
+					fs_request_get_bool( 'force-check' ),
+					WP_FS__TIME_24_HOURS_IN_SEC / 24
+				);
 
 				$this->_update_details = false;
 
