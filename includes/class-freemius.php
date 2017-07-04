@@ -8911,6 +8911,14 @@
 				 */
 				if ( ! $this->is_activation_mode() || $this->is_free_wp_org_theme() ) {
 					if ( $this->is_registered() ) {
+						$show_account = (
+							$this->is_submenu_item_visible( 'account' ) &&
+							/**
+							 * @since 1.2.2.7 Don't show the Account for free WP.org themes without any paid plans.
+							 */
+							( ! $this->is_free_wp_org_theme() || $this->has_paid_plan() )
+						);
+
 						// Add user account page.
 						$this->add_submenu_item(
 							$this->get_text( 'account' ),
@@ -8920,7 +8928,7 @@
 							'account',
 							array( &$this, '_account_page_load' ),
 							WP_FS__DEFAULT_PRIORITY,
-							$this->is_submenu_item_visible( 'account' )
+							$show_account
 						);
 					}
 
