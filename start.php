@@ -108,6 +108,10 @@
 			}
 
 			if ( $has_changes ) {
+				if ( empty( $fs_active_plugins->plugins ) ) {
+					unset( $fs_active_plugins->newest );
+				}
+
 				update_option( 'fs_active_plugins', $fs_active_plugins );
 			}
 		}
