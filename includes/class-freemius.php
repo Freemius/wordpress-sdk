@@ -252,6 +252,24 @@
 		 */
 		private static $_instances = array();
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.1.7.2
+         *
+         * @var FS_Affiliate
+         */
+        private $affiliate = null;
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.1.7.2
+         *
+         * @var FS_AffiliateTerms
+         */
+        private $affiliate_terms = null;
+
 		#region Uninstall Reasons IDs
 
 		const REASON_NO_LONGER_NEEDED = 1;
@@ -2907,6 +2925,7 @@
 				'file'             => $this->_plugin_basename,
 				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
+				'affiliation'      => $this->get_option( $plugin_info, 'has_affiliation'),
 //				'secret_key' => $secret_key,
 			) );
 
@@ -6450,6 +6469,77 @@
 		}
 
 		#----------------------------------------------------------------------------------
+		#region Affiliation
+		#----------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return bool
+         */
+        function has_affiliation() {
+		    return $this->_plugin->has_affiliation();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.1.7.2
+         *
+         * @return FS_AffiliateTerms
+         */
+        private function load_affiliate_and_terms() {
+            $this->_logger->entrance();
+
+            $plugins_api = $this->get_api_plugin_scope();
+            $terms       = $plugins_api->get( '/aff.json?type=affiliation', true );
+            if ( ! $this->is_api_result_entity( $terms ) ) {
+                return null;
+            }
+
+            $users_api = $this->get_api_user_scope();
+            $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$terms->id}/affiliates.json", true );
+            if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
+                if ( ! empty( $result->affiliates ) ) {
+                    $affiliate = new FS_Affiliate($result->affiliates[0]);
+                    if ( $affiliate->is_using_custom_terms ) {
+                        $affiliate_terms = $plugins_api->get( "/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                        if ( $this->is_api_result_entity( $affiliate_terms ) ) {
+                            $terms = $affiliate_terms;
+                        }
+                    }
+
+                    $this->affiliate = $affiliate;
+                }
+            }
+
+            return new FS_AffiliateTerms( $terms );
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return FS_Affiliate
+         */
+        function get_affiliate() {
+            return $this->affiliate;
+        }
+
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return FS_AffiliateTerms
+         */
+        function get_affiliate_terms() {
+            return $this->affiliate_terms;
+        }
+
+        #endregion Affiliation ------------------------------------------------------------
+
+		#----------------------------------------------------------------------------------
 		#region URL Generators
 		#----------------------------------------------------------------------------------
 
@@ -7261,6 +7351,10 @@
 					$this->update_plugin_version_event();
 				}
 			}
+
+            if ( $this->has_affiliation() ) {
+                $this->affiliate_terms = $this->load_affiliate_and_terms();
+            }
 
 			$this->_register_account_hooks();
 		}
@@ -8176,7 +8270,21 @@
 
 			if ( ! $this->is_addon() ) {
 				if ( ! $this->is_activation_mode() ) {
-					if ( $this->is_registered() ) {
+				    if ( $this->has_affiliation() ) {
+                        // Add affiliation page.
+                        $this->add_submenu_item(
+                            $this->get_text( 'affiliation' ),
+                            array( &$this, '_affiliation_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'affiliation' ),
+                            'manage_options',
+                            'affiliation',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'affiliation' )
+                        );
+                    }
+
+                    if ( $this->is_registered() ) {
 						// Add user account page.
 						$this->add_submenu_item(
 							$this->get_text( 'account' ),
@@ -11151,6 +11259,28 @@
 
 			$this->do_action( 'account_page_load_before_departure' );
 		}
+
+		/**
+		 * Renders the "Affiliation" page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.1.7.2
+		 */
+		function _affiliation_page_render() {
+			$this->_logger->entrance();
+
+			$vars = array( 'slug' => $this->_slug );
+
+			/**
+			 * Added filter to the template to allow developers wrapping the template
+			 * in custom HTML (e.g. within a wizard/tabs).
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.1.6
+			 */
+			echo $this->apply_filters( "templates/affiliation.php", fs_get_template( 'affiliation.php', $vars ) );
+		}
+
 
 		/**
 		 * Render account page.

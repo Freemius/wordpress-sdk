@@ -95,8 +95,25 @@
 		'optin-x-now'                   => _fs_text( 'Opt-in to make "%s" Better!' ),
 		'error'                         => _fs_text( 'Error' ),
 		'failed-finding-main-path'      => _fs_text( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.' ),
-		#region Account
 
+		#region Affiliation
+        'affiliation'                     => _fs_text( 'Affiliation' ),
+        'affiliate-application-thank-you' => _fs_text( "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information." ),
+        'affiliate-application-rejected'  => _fs_text( "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days." ),
+        'affiliate-account-suspended'     => _fs_text( 'Your affiliation account was temporarily suspended.' ),
+        'become-an-ambassador'            => _fs_text( 'Like the %s? Become our ambassador and earn cache ;-)' ),
+        'refer-new-customers'             => _fs_text( 'Refer new customers to our %s and earn %s commission on each successful sale you refer!' ),
+        'program-summary'                 => _fs_text( 'Program summary:' ),
+        'commission-new-license'          => _fs_text( '%s commission when a customer purchases a new license.' ),
+        'unlimited-commissions'           => _fs_text( 'Unlimited commissions.' ),
+        'minimum-payout-amount'           => _fs_text( '%s minimum payout amount.' ),
+        'payouts-unit-and-processing'     => _fs_text( 'Payouts are in USD and processed monthly via PayPal.' ),
+        'commission-payment'              => _fs_text( 'As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days.' ),
+        'become-an-affiliate'             => _fs_text( 'Become an Affiliate' ),
+        'apply-to-become-an-affiliate'    => _fs_text( 'Apply to Become an Affiliate' ),
+        #endregion Affiliation
+
+		#region Account
 		'expiration'                   => _fs_x( 'Expiration', 'as expiration date' ),
 		'license'                      => _fs_x( 'License', 'as software license' ),
 		'not-verified'                 => _fs_text( 'not verified' ),

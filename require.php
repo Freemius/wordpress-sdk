@@ -28,6 +28,8 @@
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-user.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-site.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin.php';
+	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-affiliate.php';
+	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-affiliate-terms.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-info.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-tag.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-plan.php';

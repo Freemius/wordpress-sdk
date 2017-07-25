@@ -59,6 +59,14 @@
 		 * @var bool
 		 */
 		public $is_live;
+		/**
+         * @author Leo Fajardo (@leorw)
+         *
+		 * @since 1.2.1.7.2
+		 *
+		 * @var string
+		 */
+		public $affiliation;
 
 		#endregion Install Specific Properties
 
@@ -87,6 +95,16 @@
 		function is_addon() {
 			return isset( $this->parent_plugin_id ) && is_numeric( $this->parent_plugin_id );
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.1.7.2
+         *
+         * @return bool
+         */
+		function has_affiliation() {
+		    return ( ! empty( $this->affiliation ) );
+        }
 
 		static function get_type() {
 			return 'plugin';
