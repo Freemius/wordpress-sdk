@@ -114,7 +114,7 @@
 						$plan        = $plans[ $i ];
 
 						if ( is_array( $pricing ) && 0 < count( $pricing ) ) {
-								$is_free = false;
+							$is_free = false;
 
 							foreach ( $pricing as &$prices ) {
 								$prices = new FS_Pricing( $prices );
@@ -310,7 +310,12 @@
 
 				if ( ! empty( $api->checkout_link ) && isset( $api->plans ) && 0 < is_array( $api->plans ) ) {
 					if ( is_null( $plan ) ) {
-						$plan = $api->plans[0];
+						foreach ($api->plans as $p) {
+							if (!empty($p->pricing)) {
+								$plan = $p;
+								break;
+							}
+						}
 					}
 
 					return ' <a class="button button-primary right" href="' . $this->_fs->addon_checkout_url(
@@ -562,6 +567,10 @@
 						<div class="plugin-information-pricing">
 						<?php foreach ( $api->plans as $plan ) : ?>
 							<?php
+							if ( empty( $plan->pricing ) ) {
+								continue;
+							}
+
 							/**
 							 * @var FS_Plugin_Plan $plan
 							 */
