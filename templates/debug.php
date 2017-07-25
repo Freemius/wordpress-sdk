@@ -276,9 +276,11 @@
 		<tr>
 			<th><?php fs_echo( 'id' ) ?></th>
 			<th><?php fs_echo( 'slug' ) ?></th>
+			<th><?php fs_echo( 'user-id' ) ?></th>
 			<th><?php fs_echo( 'plan' ) ?></th>
 			<th><?php fs_echo( 'public-key' ) ?></th>
 			<th><?php fs_echo( 'secret-key' ) ?></th>
+			<th><?php fs_echo( 'actions' ) ?></th>
 		</tr>
 		</thead>
 		<tbody>
@@ -286,6 +288,7 @@
 			<tr>
 				<td><?php echo $site->id ?></td>
 				<td><?php echo $slug ?></td>
+				<td><?php echo $site->user_id ?></td>
 				<td><?php
 						echo is_object( $site->plan ) ?
 							Freemius::_decrypt( $site->plan->name ) :
@@ -293,6 +296,11 @@
 					?></td>
 				<td><?php echo $site->public_key ?></td>
 				<td><?php echo $site->secret_key ?></td>
+				<td><form action="" method="POST">
+						<input type="hidden" name="fs_action" value="delete_install">
+						<?php wp_nonce_field( 'delete_install' ) ?>
+						<input type="hidden" name="slug" value="<?php echo $slug ?>">
+						<button type="submit" class="button"><?php fs_echo( 'delete' ) ?></button></td>
 			</tr>
 		<?php endforeach ?>
 		</tbody>

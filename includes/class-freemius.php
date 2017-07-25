@@ -1605,6 +1605,10 @@
 				$fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
 				// Unset the trial shown timestamp.
 				unset( $fs->_storage->trial_promotion_shown );
+			} else if ( fs_request_is_action( 'delete_install' ) ) {
+				check_admin_referer( 'delete_install' );
+
+				self::_delete_site_by_slug( fs_request_get( 'slug' ) );
 			} else if ( fs_request_is_action( 'download_logs' ) ) {
 				check_admin_referer( 'download_logs' );
 
@@ -4024,10 +4028,23 @@
 		 * @param bool $store
 		 */
 		function _delete_site( $store = true ) {
+			self::_delete_site_by_slug($this->_slug, $store);
+		}
+
+		/**
+		 * Delete site install from Database.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $slug
+		 * @param bool   $store
+		 */
+		static function _delete_site_by_slug($slug, $store = true ) {
 			$sites = self::get_all_sites();
 
-			if ( isset( $sites[ $this->_slug ] ) ) {
-				unset( $sites[ $this->_slug ] );
+			if ( isset( $sites[ $slug ] ) ) {
+				unset( $sites[ $slug ] );
 			}
 
 			self::$_accounts->set_option( 'sites', $sites, $store );
