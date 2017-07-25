@@ -3491,7 +3491,7 @@
 		 * @since  1.1.7.3
 		 */
 		private function run_manual_sync() {
-			$this->require_pluggable_essentials();
+			self::require_pluggable_essentials();
 
 			if ( ! $this->is_user_admin() ) {
 				return;
