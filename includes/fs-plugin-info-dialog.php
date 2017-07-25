@@ -99,37 +99,34 @@
 			$has_pricing  = false;
 			$has_features = false;
 			$plans        = false;
-			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json?type=visible" );
-			if ( ! isset( $plans_result->error ) ) {
-				$plans = $plans_result->plans;
+
+			$result = $this->_fs->get_api_plugin_scope()->get( "/addons/{$selected_addon->id}/pricing.json?type=visible" );
+
+			if ( ! isset( $result->error ) ) {
+				$plans = $result->plans;
+
 				if ( is_array( $plans ) ) {
 					for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
+						$pricing  = isset( $plans[ $i ]->pricing ) ? $plans[ $i ]->pricing : null;
+						$features = isset( $plans[ $i ]->features ) ? $plans[ $i ]->features : null;
+
 						$plans[ $i ] = new FS_Plugin_Plan( $plans[ $i ] );
 						$plan        = $plans[ $i ];
 
-						$pricing_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/pricing.json" );
-						if ( ! isset( $pricing_result->error ) ) {
-							// Update plan's pricing.
-							$plan->pricing = $pricing_result->pricing;
-
-							if ( is_array( $plan->pricing ) && ! empty( $plan->pricing ) ) {
+						if ( is_array( $pricing ) && 0 < count( $pricing ) ) {
 								$is_free = false;
 
-								foreach ( $plan->pricing as &$pricing ) {
-									$pricing = new FS_Pricing( $pricing );
-								}
+							foreach ( $pricing as &$prices ) {
+								$prices = new FS_Pricing( $prices );
 							}
+
+							$plan->pricing = $pricing;
 
 							$has_pricing = true;
 						}
 
-						$features_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/features.json" );
-						if ( ! isset( $features_result->error ) &&
-						     is_array( $features_result->features ) &&
-						     0 < count( $features_result->features )
-						) {
-							// Update plan's pricing.
-							$plan->features = $features_result->features;
+						if ( is_array( $features ) && 0 < count( $features ) ) {
+							$plan->features = $features;
 
 							$has_features = true;
 						}
