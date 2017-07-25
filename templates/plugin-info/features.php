@@ -21,12 +21,14 @@
 
 	$features_plan_map = array();
 	foreach ( $plans as $plan ) {
-		foreach ( $plan->features as $feature ) {
-			if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
-				$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
-			}
+		if (!empty($plan->features) && is_array($plan->features)) {
+			foreach ( $plan->features as $feature ) {
+				if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
+					$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
+				}
 
-			$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+				$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+			}
 		}
 
 		// Add support as a feature.
@@ -65,13 +67,26 @@
 			<?php foreach ( $plans as $plan ) : ?>
 				<th>
 					<?php echo $plan->title ?>
-					<span class="fs-price">
-						<?php foreach ( $plan->pricing as $pricing ) : ?>
-							<?php if ( 1 == $pricing->licenses ) : ?>
-								$<?php echo $pricing->annual_price ?> / year
-							<?php endif ?>
-						<?php endforeach ?>
-						</span>
+					<span class="fs-price"><?php
+							if ( empty( $plan->pricing ) ) {
+								fs_echo( 'free', $plugin->slug );
+							} else {
+								foreach ( $plan->pricing as $pricing ) {
+									/**
+									 * @var FS_Pricing $pricing
+									 */
+									if ( 1 == $pricing->licenses ) {
+										if ( $pricing->has_annual() ) {
+											echo "\${$pricing->annual_price} / " . fs_text( 'year', $plugin->slug );
+										} else if ( $pricing->has_monthly() ) {
+											echo "\${$pricing->monthly_price} / " . fs_text( 'mo', $plugin->slug );
+										} else {
+											echo "\${$pricing->lifetime_price}";
+										}
+									}
+								}
+							}
+						?></span>
 				</th>
 			<?php endforeach ?>
 		</tr>
