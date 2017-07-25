@@ -47,7 +47,7 @@
 						<?php
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
-						$price        = 0;
+						$price     = 0;
 						$has_trial = false;
 						$has_free_plan = false;
 						$has_paid_plan = false;
@@ -71,18 +71,18 @@
 									$has_paid_plan = true;
 									$has_trial     = $has_trial || ( is_numeric( $plan->trial_period ) && ( $plan->trial_period > 0 ) );
 
-										$min_price = 999999;
-										foreach ( $plan->pricing as $pricing ) {
-											if ( ! is_null( $pricing->annual_price ) && $pricing->annual_price > 0 ) {
-												$min_price = min( $min_price, $pricing->annual_price );
-											} else if ( ! is_null( $pricing->monthly_price ) && $pricing->monthly_price > 0 ) {
-												$min_price = min( $min_price, 12 * $pricing->monthly_price );
-											}
+									$min_price = 999999;
+									foreach ( $plan->pricing as $pricing ) {
+										if ( ! is_null( $pricing->annual_price ) && $pricing->annual_price > 0 ) {
+											$min_price = min( $min_price, $pricing->annual_price );
+										} else if ( ! is_null( $pricing->monthly_price ) && $pricing->monthly_price > 0 ) {
+											$min_price = min( $min_price, 12 * $pricing->monthly_price );
 										}
+									}
 
-										if ( $min_price < 999999 ) {
-											$price = $min_price;
-										}
+									if ( $min_price < 999999 ) {
+										$price = $min_price;
+									}
 
 								}
 							}
@@ -116,7 +116,17 @@
 									<li class="fs-title"><?php echo $addon->title ?></li>
 									<li class="fs-offer">
 									<span
-										class="fs-price"><?php echo ( 0 == $price ) ? fs_text( 'free', $slug ) : ('$' . number_format( $price, 2 ) . ($plan->has_trial() ? ' - ' . fs_text('trial', $slug) : '')) ?></span>
+										class="fs-price"><?php
+											$descriptors = array();
+
+											if ($has_free_plan)
+												$descriptors[] = fs_text( 'free', $slug );
+											if ($has_paid_plan && $price > 0)
+												$descriptors[] = '$' . number_format( $price, 2 );
+											if ($has_trial)
+												$descriptors[] = fs_text('trial', $slug);
+
+											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
 									<li class="fs-cta"><a class="button"><?php fs_echo( 'view-details', $slug ) ?></a></li>
