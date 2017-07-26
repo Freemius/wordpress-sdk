@@ -78,4 +78,16 @@
          * @var bool If `true`, allow referrals from any site.
          */
         public $is_any_site_allowed;
-	}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return string
+         */
+        function get_formatted_commission()
+        {
+            return ( 'dollar' === $this->commission_type ) ?
+                ( '$' . $this->commission ) :
+                ( $this->commission . '%' );
+        }
+    }

@@ -589,6 +589,8 @@
 				'_install_premium_version_ajax_action'
 			) );
 
+            $this->add_ajax_action( 'submit_affiliate_application', array( &$this, '_submit_affiliate_application' ) );
+
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
@@ -6543,6 +6545,56 @@
             return $this->affiliate_terms;
         }
 
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return FS_Affiliate|null
+         */
+        function _submit_affiliate_application() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'submit_affiliate_application' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $affiliate = fs_request_get( 'affiliate' );
+            $endpoint  = "/aff/{$this->affiliate_terms->id}/affiliates.json";
+
+            if ( ! $this->is_registered() ) {
+                $api = $this->get_api_plugin_scope();
+            } else {
+                $endpoint = ( "/plugins/{$this->_plugin->id}" . $endpoint );
+                $api      = $this->get_api_user_scope();
+            }
+
+            $result = $api->call(
+                $endpoint,
+                'post',
+                $affiliate
+            );
+
+            if ( ! $this->is_api_result_entity( $result ) ) {
+                if ( ! empty( $result->error )
+                    && is_object( $result->error )
+                    && ! empty( $result->error->message ) ) {
+                    $error_message = ucfirst( $result->error->message );
+                } else {
+                    $error_message = '';
+                }
+
+                self::shoot_ajax_failure( $error_message );
+            }
+
+            // Purge cached affiliate.
+            $api->purge_cache( 'affiliate.json' );
+
+            self::shoot_ajax_success( $result );
+        }
+
         #endregion Affiliation ------------------------------------------------------------
 
 		#----------------------------------------------------------------------------------
@@ -11275,16 +11327,10 @@
 		function _affiliation_page_render() {
 			$this->_logger->entrance();
 
-			$vars = array( 'slug' => $this->_slug );
+            fs_enqueue_local_style( 'fs_affiliation', '/admin/affiliation.css' );
 
-			/**
-			 * Added filter to the template to allow developers wrapping the template
-			 * in custom HTML (e.g. within a wizard/tabs).
-			 *
-			 * @author Vova Feldman (@svovaf)
-			 * @since  1.2.1.6
-			 */
-			echo $this->apply_filters( "templates/affiliation.php", fs_get_template( 'affiliation.php', $vars ) );
+			$vars = array( 'slug' => $this->_slug );
+			echo $this->apply_filters( "/forms/affiliation.php", fs_get_template( '/forms/affiliation.php', $vars ) );
 		}
 
 
