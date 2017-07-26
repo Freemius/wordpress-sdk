@@ -6479,6 +6479,10 @@
          * @return bool
          */
         function has_affiliation() {
+            if ( ! is_object( $this->_plugin ) ) {
+                return false;
+            }
+
 		    return $this->_plugin->has_affiliation();
         }
 
@@ -6497,19 +6501,21 @@
                 return null;
             }
 
-            $users_api = $this->get_api_user_scope();
-            $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$terms->id}/affiliates.json", true );
-            if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
-                if ( ! empty( $result->affiliates ) ) {
-                    $affiliate = new FS_Affiliate($result->affiliates[0]);
-                    if ( $affiliate->is_using_custom_terms ) {
-                        $affiliate_terms = $plugins_api->get( "/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
-                        if ( $this->is_api_result_entity( $affiliate_terms ) ) {
-                            $terms = $affiliate_terms;
+            if ( $this->is_registered() ) {
+                $users_api = $this->get_api_user_scope();
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$terms->id}/affiliates.json", true );
+                if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
+                    if ( ! empty( $result->affiliates ) ) {
+                        $affiliate = new FS_Affiliate($result->affiliates[0]);
+                        if ( $affiliate->is_using_custom_terms ) {
+                            $affiliate_terms = $plugins_api->get( "/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            if ( $this->is_api_result_entity( $affiliate_terms ) ) {
+                                $terms = $affiliate_terms;
+                            }
                         }
-                    }
 
-                    $this->affiliate = $affiliate;
+                        $this->affiliate = $affiliate;
+                    }
                 }
             }
 
