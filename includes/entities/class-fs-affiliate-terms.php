@@ -11,6 +11,9 @@
 	}
 
 	class FS_AffiliateTerms extends FS_Scope_Entity {
+
+        #region Properties
+
         /**
          * @var bool
          */
@@ -79,6 +82,8 @@
          */
         public $is_any_site_allowed;
 
+        #endregion Properties
+
         /**
          * @author Leo Fajardo (@leorw)
          *
@@ -89,5 +94,32 @@
             return ( 'dollar' === $this->commission_type ) ?
                 ( '$' . $this->commission ) :
                 ( $this->commission . '%' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        function has_lifetime_commission() {
+            return ( 0 !== $this->future_payments_days );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        function is_session_cookie() {
+            return ( 0 == $this->cookie_days );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        function has_renewals_commission() {
+            return is_null( $this->commission_renewals_days );
         }
     }

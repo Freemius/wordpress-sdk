@@ -1,4 +1,8 @@
 #fs_affiliation_content_wrapper {
+  #messages {
+    margin-top: 25px;
+  }
+
   h3 {
     font-size: 24px;
     padding: 0;
@@ -14,17 +18,21 @@
     }
   }
 
-  p, li {
+  p:not(.description), li, label {
     font-size: 16px !important;
     line-height: 26px !important;
   }
 
-  #apply_button {
+  .button {
     margin-top: 20px;
     margin-bottom: 7px;
     line-height: 35px;
     height: 40px;
     font-size: 16px;
+
+    &#cancel_button {
+      margin-right: 5px;
+    }
   }
 
   form {
@@ -38,7 +46,6 @@
       &.input-container-text {
         label, input, textarea {
           display: block;
-          width: 100%;
         }
       }
 

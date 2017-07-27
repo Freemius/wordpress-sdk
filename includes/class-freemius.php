@@ -6564,6 +6564,10 @@
             $affiliate = fs_request_get( 'affiliate' );
             $endpoint  = "/aff/{$this->affiliate_terms->id}/affiliates.json";
 
+            if ( empty( $affiliate['promotion_methods'] ) ) {
+                unset( $affiliate['promotion_methods'] );
+            }
+
             if ( ! $this->is_registered() ) {
                 $api = $this->get_api_plugin_scope();
             } else {
@@ -6588,11 +6592,32 @@
 
                 self::shoot_ajax_failure( $error_message );
             }
+            else
+            {
+                $this->_storage->affiliate_application_data = array_merge( $affiliate, array(
+                    'id'     => $result->id,
+                    'status' => $result->status
+                ) );
+            }
 
             // Purge cached affiliate.
             $api->purge_cache( 'affiliate.json' );
 
             self::shoot_ajax_success( $result );
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return array|null
+         */
+        function get_affiliate_application_data() {
+            if ( empty( $this->_storage->affiliate_application_data ) ) {
+                return null;
+            }
+
+            return $this->_storage->affiliate_application_data;
         }
 
         #endregion Affiliation ------------------------------------------------------------

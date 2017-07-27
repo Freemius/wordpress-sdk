@@ -11,6 +11,13 @@
 	}
 
 	class FS_Affiliate extends FS_Scope_Entity {
+
+        #region Properties
+
+        /**
+         * @var string
+         */
+        public $paypal_email;
         /**
          * @var number
          */
@@ -23,6 +30,8 @@
          * @var string status Enum: `pending`, `rejected`, `suspended`, or `active`. Defaults to `pending`.
          */
         public $status;
+
+        #endregion Properties
 
         /**
          * @author Leo Fajardo
