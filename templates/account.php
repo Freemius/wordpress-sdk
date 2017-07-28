@@ -692,7 +692,7 @@
 						<?php endif ?>
 					</td>
 				<?php endif ?>
-				<?php if ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE ) : ?>
+				<?php if (! $is_paying && defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE ) : ?>
 					<td>
 						<!-- Optional Delete Action -->
 						<?php
