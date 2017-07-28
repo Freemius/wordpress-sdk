@@ -552,6 +552,9 @@
 				if ( ! self::is_ajax() ) {
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
+					}
+
+					if ( ! $this->is_addon() || $this->is_only_premium() ) {
 						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
 					}
 				}
@@ -1222,7 +1225,7 @@
 		function is_activation_mode( $and_on = true ) {
 			return (
 				( $this->is_on() || ! $and_on ) &&
-				! $this->is_registered() &&
+				( ! $this->is_registered() || ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
 				( ! $this->is_enable_anonymous() ||
 				  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
 			);
@@ -2608,7 +2611,7 @@
 							) );
 						}
 
-						$this->deactivate_premium_only_addon_without_license();
+//						$this->deactivate_premium_only_addon_without_license();
 					}
 				} else {
 					if ( $this->has_addons() &&
@@ -10871,7 +10874,7 @@
 		 * @return string
 		 */
 		private function get_activation_url( $params = array() ) {
-			if ( $this->is_addon() ) {
+			if ( $this->is_addon() && $this->has_free_plan() ) {
 				/**
 				 * @author Vova Feldman (@svovaf)
 				 * @since  1.2.1.7 Add-on's activation is the parent's module activation.
@@ -11862,11 +11865,10 @@
 			$url       = false;
 			$plugin_fs = false;
 
-			if ( ! $this->is_addon() ) {
+			if ( ! $this->is_addon() || ! $this->has_free_plan() ) {
 				$first_time_path = $this->_menu->get_first_time_path();
-				$plugin_fs       = $this;
-				$url             = $plugin_fs->is_activation_mode() ?
-					$plugin_fs->get_activation_url() :
+				$url             = $this->is_activation_mode() ?
+					$this->get_activation_url() :
 					( empty( $first_time_path ) ?
 						$this->_get_admin_page_url() :
 						$first_time_path );
