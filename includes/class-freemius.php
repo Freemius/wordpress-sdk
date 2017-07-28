@@ -5207,6 +5207,26 @@
 
 		/**
 		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param bool $lowercase
+		 *
+		 * @return string
+		 */
+		function get_module_label( $lowercase = false ) {
+			$label = $this->is_addon() ?
+				$this->get_text( 'addon' ) :
+				$this->get_text( 'plugin' );
+
+			if ( $lowercase ) {
+				$label = strtolower( $lowercase );
+			}
+
+			return $label;
+		}
+
+		/**
+		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 *
 		 * @return string
