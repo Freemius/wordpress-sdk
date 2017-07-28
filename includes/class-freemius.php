@@ -3341,6 +3341,7 @@
 			     ! $this->has_features_enabled_license() &&
 			     ! $this->_has_premium_license()
 			) {
+				if ( $this->is_registered() ) {
 				// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
 //                if (empty($this->_storage->activation_timestamp) ||
 //                    (WP_FS__SCRIPT_START_TIME - $this->_storage->activation_timestamp) > 30
@@ -3356,6 +3357,7 @@
 
 				// Try to activate premium license.
 				$this->_activate_license( true );
+				}
 
 				if ( ! $this->has_free_plan() &&
 				     ! $this->has_features_enabled_license() &&
