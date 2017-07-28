@@ -3365,8 +3365,6 @@
 				) {
 					// @todo Check if deactivate plugins also call the deactivation hook.
 
-					deactivate_plugins( array( $this->_plugin_basename ), true );
-
 					$this->_parent->_admin_notices->add_sticky(
 						sprintf(
 							$this->_parent->get_text( $is_after_trial_cancel ?
@@ -3384,6 +3382,8 @@
 						( $is_after_trial_cancel ? '' : $this->_parent->get_text( 'oops' ) . '...' ),
 						( $is_after_trial_cancel ? 'success' : 'error' )
 					);
+
+					deactivate_plugins( array( $this->_plugin_basename ), true );
 
 					return true;
 				}
