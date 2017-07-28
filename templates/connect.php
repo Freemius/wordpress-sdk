@@ -68,7 +68,7 @@
 	}
 
 	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
-	$activate_with_current_user = is_object( $fs_user ) && ! $is_pending_activation;
+	$activate_with_current_user = is_object( $fs_user ) && ! $is_pending_activation && ! $require_license_key;
 ?>
 <div id="fs_connect"
      class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
@@ -166,9 +166,7 @@
 				<input type="hidden" name="fs_action" value="<?php echo $slug ?>_activate_existing">
 				<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 				<button class="button button-primary" tabindex="1"
-				        type="submit"<?php if ( $require_license_key ) {
-					echo ' disabled="disabled"';
-				} ?>><?php fs_echo( $button_label, $slug ) ?></button>
+				        type="submit"><?php fs_echo( $button_label, $slug ) ?></button>
 			</form>
 		<?php else : ?>
 			<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
