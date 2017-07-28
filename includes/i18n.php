@@ -120,11 +120,20 @@
         'promotion-methods'                  => _fs_text( 'Promotion methods' ),
         'social-media'                       => _fs_text( 'Social media (Facebook, Twitter, etc.)' ),
         'mobile-apps'                        => _fs_text( 'Mobile apps' ),
-        'where-to-promote-the-module'        => _fs_text( 'Where are you going to promote the plugin?' ),
+        'statistics-information-field-label' => _fs_text( 'Website, email, and social media statistics (optional)' ),
+        'statistics-information-field-desc'  => _fs_text( 'Please fell free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential).' ),
+        'promotion-method-desc-field-label'  => _fs_text( 'How will you promote us?' ),
+        'promotion-method-desc-field-desc'   => _fs_text( 'Please provide details on how you intend to promote Rating-Widget: Star Review System (Premium) (Premium) (please be as specific as possible).' ),
+        'domain-field-label'                 => _fs_text( 'Where are you going to promote the plugin?' ),
+        'domain-field-desc'                  => _fs_text( 'Enter the domain of your website or other websites from where you plan to promote the plugin.' ),
+        'extra-domain-fields-label'          => _fs_text( 'Extra Domains' ),
+        'extra-domain-fields-desc'           => _fs_text( 'Extra domains where you will be marketing the product from.' ),
         'add-another-domain'                 => _fs_text( 'Add another domain' ),
         'email-address-is-required'          => _fs_text( 'Email address is required.' ),
+        'domain-is-required'                 => _fs_text( 'Domain is required.' ),
         'paypal-email-address-is-required'   => _fs_text( 'PayPal email address is required.' ),
         'processing'                         => _fs_text( 'Processing...' ),
+        'non-expiring'                       => _fs_text( 'Non-expiring' ),
         #endregion Affiliation
 
 		#region Account

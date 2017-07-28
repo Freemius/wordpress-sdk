@@ -33,9 +33,16 @@
 
     $readonly                      = false;
     $is_affiliate                  = false;
-    $email_address                 = '';
-    $full_name                     = '';
+    $is_pending_affiliate          = false;
+    $email_address                 = ( is_object( $user ) ?
+        $user->email :
+        '' );
+    $full_name                     = ( is_object( $user ) ?
+        $user->get_name() :
+        '' );
     $paypal_email_address          = '';
+    $domain                        = '';
+    $extra_domains                 = array();
     $promotion_method_social_media = false;
     $promotion_method_mobile_apps  = false;
     $statistics_information        = false;
@@ -44,29 +51,29 @@
 
     $affiliate_application_data = $fs->get_affiliate_application_data();
 
-    if ( is_array( $affiliate_application_data ) && ( ! empty( $affiliate_application_data['id'] ) ) ) {
-        if ( ! is_object( $affiliate ) ) {
-            $affiliate = new FS_Affiliate();
-            $affiliate->paypal_email = $affiliate_application_data['paypal_email'];
-            $affiliate->status       = $affiliate_application_data['status'];
-        }
-
+    if ( is_object( $affiliate ) ) {
         $is_affiliate = true;
-        $readonly     = 'readonly';
 
-        $email_address                 = $affiliate_application_data['email'];
-        $paypal_email_address          = $affiliate->paypal_email;
-        $full_name                     = $affiliate_application_data['full_name'];
-        $statistics_information        = $affiliate_application_data['stats_description'];
-        $promotion_method_description  = $affiliate_application_data['promotion_method_description'];
+        if ( $affiliate->is_pending() ) {
+            $readonly             = 'readonly';
+            $is_pending_affiliate = true;
 
-        $promotion_methods             = explode( ',', $affiliate_application_data['promotion_methods'] );
-        $promotion_method_social_media = in_array( 'social_media', $promotion_methods );
-        $promotion_method_mobile_apps  = in_array( 'mobile_apps', $promotion_methods );
-    }
-    else if ( $fs->is_registered() )
-    {
-        $email_address = $fs->get_user()->email;
+            $paypal_email_address         = $affiliate->paypal_email;
+            $domain                       = $affiliate->domain;
+            $extra_domains                = $affiliate_application_data['extra_domains'];
+            $statistics_information       = $affiliate_application_data['stats_description'];
+            $promotion_method_description = $affiliate_application_data['promotion_method_description'];
+
+            if ( ! $affiliate_terms->is_any_site_allowed ) {
+                $domain = $affiliate->domain;
+            }
+
+            if ( ! empty( $affiliate_application_data['promotion_methods'] ) ) {
+                $promotion_methods             = explode( ',', $affiliate_application_data['promotion_methods'] );
+                $promotion_method_social_media = in_array( 'social_media', $promotion_methods );
+                $promotion_method_mobile_apps  = in_array( 'mobile_apps', $promotion_methods );
+            }
+        }
     }
 
     $affiliate_tracking = 30;
@@ -74,7 +81,7 @@
     if ( is_object( $affiliate_terms ) ) {
         $affiliate_tracking = ( ! is_null( $affiliate_terms->cookie_days ) ?
             ( $affiliate_terms->cookie_days . '-day' ) :
-            'Non-expiring' );
+            fs_text( 'non-expiring', $slug ) );
     }
 ?>
 <div id="fs_affiliation_content_wrapper" class="wrap">
@@ -100,27 +107,31 @@
                                         );
                                     ?></strong></p>
                                 </div>
-                            <?php elseif ( $affiliate->is_pending() ) : ?>
-                                <div id="thankyou_message" class="updated">
-                                    <p><strong><?php fs_echo( 'affiliate-application-thank-you', $slug ) ?></strong></p>
-                                </div>
-                            <?php elseif ( $affiliate->is_suspended() ) : ?>
-                                <div class="notice notice-warning">
-                                    <p><strong><?php fs_echo( 'affiliate-account-suspended', $slug ) ?></strong></p>
-                                </div>
-                            <?php elseif ( $affiliate->is_rejected() ) : ?>
-                                <div class="error">
-                                    <p><strong><?php fs_echo( 'affiliate-application-rejected', $slug ) ?></strong></p>
-                                </div>
+                            <?php else : ?>
+                                    <?php
+                                        if ( $is_pending_affiliate ) {
+                                            $text_key                = 'affiliate-application-thank-you';
+                                            $message_container_class = 'updated';
+                                        } else if ( $affiliate->is_suspended() ) {
+                                            $text_key                = 'affiliate-account-suspended';
+                                            $message_container_class = 'notice notice-warning';
+                                        } else if ( $affiliate->is_rejected() ) {
+                                            $text_key                = 'affiliate-application-rejected';
+                                            $message_container_class = 'error';
+                                        }
+                                    ?>
+                                    <div class="<?php echo $message_container_class ?>">
+                                        <p><strong><?php fs_echo( $text_key, $slug ) ?></strong></p>
+                                    </div>
                             <?php endif ?>
                         <?php endif ?>
                     </div>
                     <div class="entry-content">
                         <?php if ( ! $is_affiliate ) : ?>
-                        <div id="application_messages_container">
-                            <p><?php printf( fs_text( 'become-an-ambassador', $slug ), $module_type ) ?></p>
-                            <p><?php printf( fs_text( 'refer-new-customers', $slug ), $module_type, $commission ) ?></p>
-                        </div>
+                            <div id="application_messages_container">
+                                <p><?php printf( fs_text( 'become-an-ambassador', $slug ), $module_type ) ?></p>
+                                <p><?php printf( fs_text( 'refer-new-customers', $slug ), $module_type, $commission ) ?></p>
+                            </div>
                         <?php endif ?>
                         <h3><?php fs_echo( 'program-summary', $slug ) ?></h3>
                         <ul>
@@ -138,7 +149,7 @@
                             <li><?php fs_echo( 'payouts-unit-and-processing', $slug ) ?></li>
                             <li><?php fs_echo( 'commission-payment', $slug ) ?></li>
                         </ul>
-                        <div id="application_form_container" <?php echo $is_affiliate ? '' : 'style="display: none"' ?>>
+                        <div id="application_form_container" <?php echo ( $is_pending_affiliate ) ? '' : 'style="display: none"' ?>>
                             <h3><?php fs_echo( 'affiliate', $slug ) ?></h3>
                             <form>
                                 <?php if ( $fs->is_registered() ) : ?>
@@ -157,6 +168,25 @@
                                     <label class="input-label"><?php fs_echo( 'paypal-account-email-address', $slug ) ?></label>
                                     <input id="paypal_email" type="text" value="<?php echo esc_attr( $paypal_email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
                                 </div>
+                                <?php if ( ! $affiliate_terms->is_any_site_allowed ) : ?>
+                                    <div class="input-container input-container-text">
+                                        <label class="input-label"><?php fs_echo( 'domain-field-label', $slug ) ?></label>
+                                        <input id="domain" type="text" value="<?php echo esc_attr( $domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
+                                        <p class="description"><?php fs_echo( 'domain-field-desc', $slug ) ?></p>
+                                        <?php if ( ! $is_affiliate ) : ?>
+                                            <a id="add_domain" href="#" class="disabled">+ <?php fs_echo( 'add-another-domain', $slug ) ?>...</a>
+                                        <?php endif ?>
+                                    </div>
+                                    <div id="extra_domains_container" class="input-container input-container-text" <?php echo $is_pending_affiliate ? '' : 'style="display: none"' ?>>
+                                        <label class="input-label"><?php fs_echo( 'extra-domain-fields-label', $slug ) ?></label>
+                                        <p class="description"><?php fs_echo( 'extra-domain-fields-desc', $slug ) ?></p>
+                                        <?php if ( $is_pending_affiliate && ! empty( $extra_domains ) ) : ?>
+                                            <?php foreach ( $extra_domains as $extra_domain ) : ?>
+                                                <input type="text" value="<?php echo esc_attr( $extra_domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
+                                            <?php endforeach ?>
+                                        <?php endif ?>
+                                    </div>
+                                <?php endif ?>
                                 <div class="input-container">
                                     <label class="input-label"><?php fs_echo( 'promotion-methods', $slug ) ?></label>
                                     <div>
@@ -168,28 +198,18 @@
                                         <label for="promotion_method_mobile_apps"><?php fs_echo( 'mobile-apps', $slug ) ?></label>
                                     </div>
                                 </div>
-                                <?php if ( ! $affiliate_terms->is_any_site_allowed ) : ?>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php fs_echo( 'where-to-promote-the-module', $slug ) ?></label>
-                                    <input type="text">
-                                    <a id="add_domain" href="#"><?php fs_echo( 'add-another-domain', $slug ) ?></a>
-                                    <div id="additional_domains_container">
-
-                                    </div>
-                                </div>
-                                <?php endif ?>
-                                <div class="input-container input-container-text">
-                                    <label class="input-label"><nobr>Website, email, and social media statistics (optional)</nobr></label>
+                                    <label class="input-label"><nobr><?php fs_echo( 'statistics-information-field-label', $slug ) ?></nobr></label>
                                     <textarea id="statistics_information" rows="5" <?php echo $readonly ?> class="regular-text"><?php echo $statistics_information ?></textarea>
                                     <?php if ( ! $is_affiliate ) : ?>
-                                    <p class="description">Please fell free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential).</p>
+                                        <p class="description"><?php fs_echo( 'statistics-information-field-desc', $slug ) ?></p>
                                     <?php endif ?>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label">How will you promote us?</label>
+                                    <label class="input-label"><?php fs_echo( 'promotion-method-desc-field-label', $slug ) ?></label>
                                     <textarea id="promotion_method_description" rows="5" <?php echo $readonly ?> class="regular-text"><?php echo $promotion_method_description ?></textarea>
                                     <?php if ( ! $is_affiliate ) : ?>
-                                    <p class="description">Please provide details on how you intend to promote <?php echo $plugin_title ?> (please be as specific as possible).</p>
+                                        <p class="description"><?php printf( fs_text( 'promotion-method-desc-field-desc', $slug ), $plugin_title ) ?></p>
                                     <?php endif ?>
                                 </div>
                             </form>
@@ -215,7 +235,11 @@
                 $cancelButton             = $( '#cancel_button' ),
                 $applicationFormContainer = $( '#application_form_container' ),
                 $messageContainer         = $( '#message' ),
-                $errorMessageContainer    = $( '#error_message' );
+                $errorMessageContainer    = $( '#error_message' ),
+                $domain                   = $( '#domain' ),
+                $addDomain                = $( '#add_domain' ),
+                $extraDomainsContainer    = $( '#extra_domains_container'),
+                isAnySiteAllowed          = <?php echo $affiliate_terms->is_any_site_allowed ? 'true' : 'false' ?>;
 
             $applyButton.click(function( evt ) {
                 evt.preventDefault();
@@ -243,7 +267,28 @@
 
                 var
                     emailAddress       = $( '#email_address' ).val().trim(),
-                    paypalEmailAddress = $( '#paypal_email' ).val().trim();
+                    paypalEmailAddress = $( '#paypal_email' ).val().trim(),
+                    $domains           = $extraDomainsContainer.find( '.domain' ),
+                    domain             = $domain.val().trim(),
+                    extraDomains       = [];
+
+                if ( ! isAnySiteAllowed ) {
+                    if ( 0 === domain.length ) {
+                        showErrorMessage( '<?php fs_echo( 'domain-is-required', $slug ) ?>' );
+                        return;
+                    }
+
+                    if ( $domains.length > 0 ) {
+                        $domains.each(function() {
+                            var domain = $( this ).val().trim();
+                            if ( 0 === domain.length ) {
+                                return;
+                            }
+
+                            extraDomains.push( domain );
+                        });
+                    }
+                }
 
                 if ( 0 === emailAddress.length ) {
                     showErrorMessage( '<?php fs_echo( 'email-address-is-required', $slug ) ?>' );
@@ -268,10 +313,21 @@
                     promotionMethods.push( 'mobile_apps' );
                 }
 
+                var affiliate = {
+                    full_name                   : $( '#full_name' ).val().trim(),
+                    email                       : emailAddress,
+                    paypal_email                : paypalEmailAddress,
+                    stats_description           : statisticsInformation,
+                    promotion_method_description: promotionMethodDescription
+                };
+
+                if ( ! isAnySiteAllowed ) {
+                    affiliate.domain        = domain;
+                    affiliate.extra_domains = extraDomains;
+                }
+
                 if ( promotionMethods.length > 0 ) {
-                    promotionMethods = promotionMethods.join( ',' );
-                } else {
-                    promotionMethods = '';
+                    affiliate.promotion_methods = promotionMethods.join( ',' );
                 }
 
                 $.ajax({
@@ -281,14 +337,7 @@
                         action   : '<?php echo $fs->get_ajax_action( 'submit_affiliate_application' ) ?>',
                         security : '<?php echo $fs->get_ajax_security( 'submit_affiliate_application' ) ?>',
                         slug     : '<?php echo $slug ?>',
-                        affiliate: {
-                            full_name                   : $( '#full_name' ).val().trim(),
-                            email                       : emailAddress,
-                            paypal_email                : paypalEmailAddress,
-                            promotion_methods           : promotionMethods,
-                            stats_description           : statisticsInformation,
-                            promotion_method_description: promotionMethodDescription
-                        }
+                        affiliate: affiliate
                     },
                     beforeSend: function() {
                         $cancelButton.addClass( 'disabled' );
@@ -305,6 +354,10 @@
                             $contentWrapper.find( '.description' ).hide();
 
                             $( '#application_messages_container' ).hide();
+
+                            if ( ! isAnySiteAllowed ) {
+                                $addDomain.hide();
+                            }
 
                             $cancelButton.hide();
                             $submitButton.hide();
@@ -340,7 +393,48 @@
                 window.scrollTo( 0, 0 );
             });
 
-                /**
+            if ( ! isAnySiteAllowed ) {
+                $domain.on( 'input propertychange', onDomainChange );
+
+                $addDomain.click(function( evt ) {
+                    evt.preventDefault();
+
+                    var
+                        $this  = $( this ),
+                        domain = $domain.val().trim();
+
+                    if ( $this.hasClass( 'disabled' ) || 0 === domain.length ) {
+                        return;
+                    }
+
+                    $domain.off( 'input propertychange' );
+                    $this.addClass( 'disabled' );
+
+                    var $emptyDomainField = $( '<input type="text" class="domain regular-text"/>' );
+                    $emptyDomainField.on( 'input propertychange', onDomainChange );
+
+                    $extraDomainsContainer.show();
+
+                    $emptyDomainField.appendTo( $extraDomainsContainer ).focus();
+                    $this.appendTo( $extraDomainsContainer );
+                });
+            }
+
+            /**
+             * @author Leo Fajardo (@leorw)
+             */
+            function onDomainChange() {
+                var
+                    domain = $( this ).val().trim();
+
+                if ( domain.length > 0 ) {
+                    $addDomain.removeClass( 'disabled' );
+                } else {
+                    $addDomain.addClass( 'disabled' );
+                }
+            }
+
+            /**
              * @author Leo Fajardo (@leorw)
              *
              * @param {String} message

@@ -30,6 +30,10 @@
          * @var string status Enum: `pending`, `rejected`, `suspended`, or `active`. Defaults to `pending`.
          */
         public $status;
+        /**
+         * @var string
+         */
+        public $domain;
 
         #endregion Properties
 

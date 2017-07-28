@@ -6509,6 +6509,11 @@
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate($result->affiliates[0]);
+
+                        if ( ! $affiliate->is_pending() && ! empty( $this->_storage->affiliate_application_data ) ) {
+                            unset( $this->_storage->affiliate_application_data );
+                        }
+
                         if ( $affiliate->is_using_custom_terms ) {
                             $affiliate_terms = $plugins_api->get( "/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
@@ -6594,10 +6599,24 @@
             }
             else
             {
-                $this->_storage->affiliate_application_data = array_merge( $affiliate, array(
-                    'id'     => $result->id,
-                    'status' => $result->status
-                ) );
+                $affiliate_application_data = array(
+                    'stats_description'            => $affiliate['stats_description'],
+                    'promotion_method_description' => $affiliate['promotion_method_description'],
+                );
+
+                if ( ! empty( $affiliate['promotion_methods'] ) ) {
+                    $affiliate_application_data['promotion_methods'] = $affiliate['promotion_methods'];
+                }
+
+                if ( ! empty( $affiliate['domain'] ) ) {
+                    $affiliate_application_data['domain'] = $affiliate['domain'];
+                }
+
+                if ( ! empty( $affiliate['extra_domains'] ) ) {
+                    $affiliate_application_data['extra_domains'] = $affiliate['extra_domains'];
+                }
+
+                $this->_storage->affiliate_application_data = $affiliate_application_data;
             }
 
             // Purge cached affiliate.

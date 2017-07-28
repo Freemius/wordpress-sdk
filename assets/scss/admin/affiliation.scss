@@ -54,6 +54,37 @@
       }
 
       margin-bottom: 15px;
+
+      #add_domain {
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 3px;
+
+        &:focus {
+          box-shadow: none;
+        }
+
+        &.disabled {
+          color: #aaa;
+          cursor: default;
+        }
+      }
+    }
+
+    #extra_domains_container {
+      .description {
+        margin-top: 0;
+        position: relative;
+        top: -4px;
+      }
+
+      .domain {
+        margin-bottom: 15px;
+
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+      }
     }
   }
 }
