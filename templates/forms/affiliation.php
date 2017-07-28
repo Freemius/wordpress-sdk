@@ -60,12 +60,15 @@
 
             $paypal_email_address         = $affiliate->paypal_email;
             $domain                       = $affiliate->domain;
-            $extra_domains                = $affiliate_application_data['extra_domains'];
             $statistics_information       = $affiliate_application_data['stats_description'];
             $promotion_method_description = $affiliate_application_data['promotion_method_description'];
 
             if ( ! $affiliate_terms->is_any_site_allowed ) {
                 $domain = $affiliate->domain;
+
+                if ( ! empty( $affiliate_application_data['additional_domains'] ) ) {
+                    $extra_domains = $affiliate_application_data['additional_domains'];
+                }
             }
 
             if ( ! empty( $affiliate_application_data['promotion_methods'] ) ) {
@@ -152,9 +155,7 @@
                         <div id="application_form_container" <?php echo ( $is_pending_affiliate ) ? '' : 'style="display: none"' ?>>
                             <h3><?php fs_echo( 'affiliate', $slug ) ?></h3>
                             <form>
-                                <?php if ( $fs->is_registered() ) : ?>
-                                    <input id="email_address" type="hidden" value="<?php echo esc_attr( $email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
-                                <?php else : ?>
+                                <?php if ( ! $fs->is_registered() ) : ?>
                                     <div class="input-container input-container-text">
                                         <label class="input-label"><?php fs_echo( 'email-address', $slug ) ?></label>
                                         <input id="email_address" type="text" value="<?php echo esc_attr( $email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
@@ -266,13 +267,16 @@
                 $errorMessageContainer.hide();
 
                 var
-                    emailAddress       = $( '#email_address' ).val().trim(),
-                    paypalEmailAddress = $( '#paypal_email' ).val().trim(),
-                    $domains           = $extraDomainsContainer.find( '.domain' ),
-                    domain             = $domain.val().trim(),
-                    extraDomains       = [];
+                    $emailAddress      = $( '#email_address' ),
+                    emailAddress       = null,
+                    paypalEmailAddress = $( '#paypal_email' ).val().trim();
 
                 if ( ! isAnySiteAllowed ) {
+                    var
+                        $domains     = $extraDomainsContainer.find( '.domain' ),
+                        domain       = $domain.val().trim(),
+                        extraDomains = [];
+
                     if ( 0 === domain.length ) {
                         showErrorMessage( '<?php fs_echo( 'domain-is-required', $slug ) ?>' );
                         return;
@@ -290,9 +294,13 @@
                     }
                 }
 
-                if ( 0 === emailAddress.length ) {
-                    showErrorMessage( '<?php fs_echo( 'email-address-is-required', $slug ) ?>' );
-                    return;
+                if ( 1 === $emailAddress.length ) {
+                    emailAddress = $emailAddress.val().trim();
+
+                    if ( 0 === emailAddress.length ) {
+                        showErrorMessage( '<?php fs_echo( 'email-address-is-required', $slug ) ?>' );
+                        return;
+                    }
                 }
 
                 if ( 0 === paypalEmailAddress.length ) {
@@ -315,15 +323,18 @@
 
                 var affiliate = {
                     full_name                   : $( '#full_name' ).val().trim(),
-                    email                       : emailAddress,
                     paypal_email                : paypalEmailAddress,
                     stats_description           : statisticsInformation,
                     promotion_method_description: promotionMethodDescription
                 };
 
+                if ( null !== emailAddress ) {
+                    affiliate.email = emailAddress;
+                }
+
                 if ( ! isAnySiteAllowed ) {
-                    affiliate.domain        = domain;
-                    affiliate.extra_domains = extraDomains;
+                    affiliate.domain             = domain;
+                    affiliate.additional_domains = extraDomains;
                 }
 
                 if ( promotionMethods.length > 0 ) {
@@ -345,7 +356,7 @@
                         $submitButton.text( '<?php fs_echo( 'processing' ) ?>' );
                     },
                     success   : function( result ) {
-                        if ( ! result.error ) {
+                        if ( result.success ) {
                             $messageContainer.find( 'strong' ).text( '<?php fs_esc_js_echo( 'affiliate-application-thank-you', $slug ) ?>' );
                             $messageContainer.show();
 
@@ -361,7 +372,7 @@
 
                             $cancelButton.hide();
                             $submitButton.hide();
-                        } else if ( result.error.length > 0 ) {
+                        } else if ( result.error && result.error.length > 0 ) {
                             showErrorMessage( result.error );
                         }
 

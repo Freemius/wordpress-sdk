@@ -268,6 +268,15 @@
          *
          * @var FS_AffiliateTerms
          */
+        private $plugin_affiliate_terms = null;
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.1.7.2
+         *
+         * @var FS_AffiliateTerms
+         */
         private $affiliate_terms = null;
 
 		#region Uninstall Reasons IDs
@@ -6491,33 +6500,36 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 1.2.1.7.2
-         *
-         * @return FS_AffiliateTerms
          */
         private function load_affiliate_and_terms() {
             $this->_logger->entrance();
 
-            $plugins_api = $this->get_api_plugin_scope();
-            $terms       = $plugins_api->get( '/aff.json?type=affiliation', true );
-            if ( ! $this->is_api_result_entity( $terms ) ) {
-                return null;
+            if ( ! is_object( $this->plugin_affiliate_terms ) ) {
+                $plugins_api     = $this->get_api_plugin_scope();
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', true );
+
+                if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
+                    return;
+                }
+
+                $this->plugin_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
             }
 
             if ( $this->is_registered() ) {
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$terms->id}/affiliates.json", true );
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", true );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
-                        $affiliate = new FS_Affiliate($result->affiliates[0]);
+                        $affiliate = new FS_Affiliate( $result->affiliates[0] );
 
                         if ( ! $affiliate->is_pending() && ! empty( $this->_storage->affiliate_application_data ) ) {
                             unset( $this->_storage->affiliate_application_data );
                         }
 
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $plugins_api->get( "/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
-                                $terms = $affiliate_terms;
+                                $this->affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
                         }
 
@@ -6525,8 +6537,6 @@
                     }
                 }
             }
-
-            return new FS_AffiliateTerms( $terms );
         }
 
         /**
@@ -6547,7 +6557,9 @@
          * @return FS_AffiliateTerms
          */
         function get_affiliate_terms() {
-            return $this->affiliate_terms;
+            return is_object( $this->affiliate_terms ) ?
+                $this->affiliate_terms :
+                $this->plugin_affiliate_terms;
         }
 
         /**
@@ -6567,35 +6579,45 @@
             }
 
             $affiliate = fs_request_get( 'affiliate' );
-            $endpoint  = "/aff/{$this->affiliate_terms->id}/affiliates.json";
 
             if ( empty( $affiliate['promotion_methods'] ) ) {
                 unset( $affiliate['promotion_methods'] );
             }
 
             if ( ! $this->is_registered() ) {
-                $api = $this->get_api_plugin_scope();
-            } else {
-                $endpoint = ( "/plugins/{$this->_plugin->id}" . $endpoint );
-                $api      = $this->get_api_user_scope();
+                // Opt in but don't track usage.
+                $next_page = $this->opt_in(
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true
+                );
+
+                if ( is_object( $next_page ) && $this->is_api_error( $next_page ) ) {
+                    self::shoot_ajax_failure(
+                        isset( $next_page->error ) ?
+                            $next_page->error->message :
+                            var_export( $next_page, true )
+                    );
+                }
             }
 
+            $api    = $this->get_api_user_scope();
             $result = $api->call(
-                $endpoint,
+                ( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json" ),
                 'post',
                 $affiliate
             );
 
-            if ( ! $this->is_api_result_entity( $result ) ) {
-                if ( ! empty( $result->error )
-                    && is_object( $result->error )
-                    && ! empty( $result->error->message ) ) {
-                    $error_message = ucfirst( $result->error->message );
-                } else {
-                    $error_message = '';
-                }
-
-                self::shoot_ajax_failure( $error_message );
+            if ( $this->is_api_error( $result ) ) {
+                self::shoot_ajax_failure(
+                    isset( $result->error ) ?
+                        $result->error->message :
+                        var_export( $result, true )
+                );
             }
             else
             {
@@ -6612,8 +6634,8 @@
                     $affiliate_application_data['domain'] = $affiliate['domain'];
                 }
 
-                if ( ! empty( $affiliate['extra_domains'] ) ) {
-                    $affiliate_application_data['extra_domains'] = $affiliate['extra_domains'];
+                if ( ! empty( $affiliate['additional_domains'] ) ) {
+                    $affiliate_application_data['additional_domains'] = $affiliate['additional_domains'];
                 }
 
                 $this->_storage->affiliate_application_data = $affiliate_application_data;
@@ -7455,7 +7477,7 @@
 			}
 
             if ( $this->has_affiliation() ) {
-                $this->affiliate_terms = $this->load_affiliate_and_terms();
+                $this->load_affiliate_and_terms();
             }
 
 			$this->_register_account_hooks();
