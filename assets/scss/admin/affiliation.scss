@@ -10,11 +10,15 @@
   }
 
   ul {
-    margin-left: 40px;
-
     li {
       box-sizing: border-box;
-      list-style-type: disc;
+      list-style-type: none;
+
+      &:before {
+        content: '✓';
+        margin-right: 10px;
+        font-weight: bold;
+      }
     }
   }
 
