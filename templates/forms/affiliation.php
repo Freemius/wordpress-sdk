@@ -155,12 +155,10 @@
                         <div id="application_form_container" <?php echo ( $is_pending_affiliate ) ? '' : 'style="display: none"' ?>>
                             <h3><?php fs_echo( 'affiliate', $slug ) ?></h3>
                             <form>
-                                <?php if ( ! $fs->is_registered() ) : ?>
-                                    <div class="input-container input-container-text">
-                                        <label class="input-label"><?php fs_echo( 'email-address', $slug ) ?></label>
-                                        <input id="email_address" type="text" value="<?php echo esc_attr( $email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
-                                    </div>
-                                <?php endif ?>
+                                <div class="input-container input-container-text">
+                                    <label class="input-label"><?php fs_echo( 'email-address', $slug ) ?></label>
+                                    <input id="email_address" type="text" value="<?php echo esc_attr( $email_address ) ?>" class="regular-text" <?php echo ( $readonly || is_object( $user ) ) ? 'readonly' : '' ?>>
+                                </div>
                                 <div class="input-container input-container-text">
                                     <label class="input-label"><?php fs_echo( 'full-name', $slug ) ?></label>
                                     <input id="full_name" type="text" value="<?php echo esc_attr( $full_name ) ?>" class="regular-text" <?php echo $readonly ?>>
