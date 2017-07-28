@@ -2600,6 +2600,9 @@
 						if ( $this->_parent->is_registered() && ! $this->is_registered() ) {
 							// If parent plugin activated, automatically install add-on for the user.
 							$this->_activate_addon_account( $this->_parent );
+						} else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
+							// If add-on activated and parent not, automatically install parent for the user.
+							$this->activate_parent_account( $this->_parent );
 						}
 
 						// @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
@@ -8011,6 +8014,61 @@
 
 			// Try to activate premium license.
 			$this->_activate_license( true );
+		}
+
+		/**
+		 * Tries to activate parent account based on add-on's info.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param Freemius $parent_fs
+		 */
+		private function activate_parent_account( Freemius $parent_fs ) {
+			if ( ! $this->is_addon() ) {
+				// This is not an add-on.
+				return;
+			}
+
+			if ( $parent_fs->is_registered() ) {
+				// Already activated.
+				return;
+			}
+
+			// Activate parent with add-on's user credentials.
+			$parent_install = $this->get_api_user_scope()->call(
+				"/plugins/{$parent_fs->_plugin->id}/installs.json",
+				'post',
+				$parent_fs->get_install_data_for_api( array(
+					'uid' => $parent_fs->get_anonymous_id(),
+				), false, false )
+			);
+
+			if ( isset( $parent_install->error ) ) {
+				$this->_admin_notices->add(
+					sprintf( $this->get_text( 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+					$this->get_text( 'contact-us-with-error-message' ) . ' ' . '<b>' . $parent_install->error->message . '</b>',
+					$this->get_text( 'oops' ) . '...',
+					'error'
+				);
+
+				return;
+			}
+
+			// First of all, set site info - otherwise we won't
+			// be able to invoke API calls.
+			$parent_fs->_site = new FS_Site( $parent_install );
+
+			// Sync add-on plans.
+			$parent_fs->_sync_plans();
+
+			// Get site's current plan.
+			$parent_fs->_site->plan = $parent_fs->_get_plan_by_id( $parent_fs->_site->plan->id );
+
+			// Get user information based on parent's plugin.
+			$user = $this->get_user();
+
+			$parent_fs->_set_account( $user, $parent_fs->_site );
 		}
 
 		#endregion
