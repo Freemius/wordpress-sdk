@@ -3257,6 +3257,16 @@
 				return $premium_basename;
 			}
 
+			$all_plugins = $this->get_all_plugins();
+
+			foreach ( $all_plugins as $basename => &$data ) {
+				if ( $slug === $data['slug'] ||
+				     $slug . '-premium' === $data['slug']
+				) {
+					return $basename;
+				}
+			}
+
 			$free_basename = "{$slug}/{$slug}.php";
 
 			return $free_basename;
@@ -3342,21 +3352,21 @@
 			     ! $this->_has_premium_license()
 			) {
 				if ( $this->is_registered() ) {
-				// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
+					// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
 //                if (empty($this->_storage->activation_timestamp) ||
 //                    (WP_FS__SCRIPT_START_TIME - $this->_storage->activation_timestamp) > 30
 //                ) {
-				/**
-				 * @todo When it's first fail, there's no reason to try and re-sync because the licenses were just synced after initial activation.
-				 *
-				 * Retry syncing the user add-on licenses.
-				 */
-				// Sync licenses.
-				$this->_sync_licenses();
+					/**
+					 * @todo When it's first fail, there's no reason to try and re-sync because the licenses were just synced after initial activation.
+					 *
+					 * Retry syncing the user add-on licenses.
+					 */
+					// Sync licenses.
+					$this->_sync_licenses();
 //                }
 
-				// Try to activate premium license.
-				$this->_activate_license( true );
+					// Try to activate premium license.
+					$this->_activate_license( true );
 				}
 
 				if ( ! $this->has_free_plan() &&
@@ -4036,7 +4046,7 @@
 		 * @param bool $store
 		 */
 		function _delete_site( $store = true ) {
-			self::_delete_site_by_slug($this->_slug, $store);
+			self::_delete_site_by_slug( $this->_slug, $store );
 		}
 
 		/**
@@ -4048,7 +4058,7 @@
 		 * @param string $slug
 		 * @param bool   $store
 		 */
-		static function _delete_site_by_slug($slug, $store = true ) {
+		static function _delete_site_by_slug( $slug, $store = true ) {
 			$sites = self::get_all_sites();
 
 			if ( isset( $sites[ $slug ] ) ) {
@@ -4144,25 +4154,25 @@
 			// Clear API cache on activation.
 			FS_Api::clear_cache();
 
-				$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+			$is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
 
-				$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
+			$this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
-				// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
-				// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
-				$other_version_basename = $is_premium_version_activation ?
-					$this->_free_plugin_basename :
-					$this->premium_plugin_basename();
+			// 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
+			// 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
+			$other_version_basename = $is_premium_version_activation ?
+				$this->_free_plugin_basename :
+				$this->premium_plugin_basename();
 
-				/**
-				 * If the other module version is activate, deactivate it.
-				 *
-				 * @author Leo Fajardo (@leorw)
-				 * @since  1.2.2
-				 */
-				if ( is_plugin_active( $other_version_basename ) ) {
-					deactivate_plugins( $other_version_basename );
-				}
+			/**
+			 * If the other module version is activate, deactivate it.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since  1.2.2
+			 */
+			if ( is_plugin_active( $other_version_basename ) ) {
+				deactivate_plugins( $other_version_basename );
+			}
 
 			if ( $this->is_registered() ) {
 				if ( $is_premium_version_activation ) {
