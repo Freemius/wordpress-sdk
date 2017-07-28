@@ -7575,6 +7575,7 @@
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
 		 * @param number|bool $trial_plan_id
+		 * @param bool        $is_disconnected Whether or not to opt in without tracking.
 		 *
 		 * @return string|object
 		 * @use    WP_Error
@@ -7585,7 +7586,8 @@
 			$last = false,
 			$license_key = false,
 			$is_uninstall = false,
-			$trial_plan_id = false
+			$trial_plan_id = false,
+            $is_disconnected = false
 		) {
 			$this->_logger->entrance();
 
@@ -7638,7 +7640,8 @@
 				);
 			}
 
-			$params['format'] = 'json';
+            $params['is_disconnected'] = $is_disconnected;
+			$params['format']          = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
 			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
