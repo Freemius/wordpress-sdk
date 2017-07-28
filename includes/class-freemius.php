@@ -6602,6 +6602,8 @@
                             $next_page->error->message :
                             var_export( $next_page, true )
                     );
+                } else if ( $this->is_pending_activation() ) {
+                    self::shoot_ajax_failure( $this->get_text( 'account-is-pending-activation' ) );
                 }
             }
 

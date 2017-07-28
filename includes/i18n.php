@@ -134,6 +134,7 @@
         'paypal-email-address-is-required'   => _fs_text( 'PayPal email address is required.' ),
         'processing'                         => _fs_text( 'Processing...' ),
         'non-expiring'                       => _fs_text( 'Non-expiring' ),
+        'account-is-pending-activation'      => _fs_text( 'Account is pending activation.' ),
         #endregion Affiliation
 
 		#region Account
