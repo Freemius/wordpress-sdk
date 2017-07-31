@@ -169,9 +169,9 @@
                                 </div>
                                 <?php if ( ! $affiliate_terms->is_any_site_allowed ) : ?>
                                     <div class="input-container input-container-text">
-                                        <label class="input-label"><?php fs_echo( 'domain-field-label', $slug ) ?></label>
+                                        <label class="input-label"><?php printf( fs_text( 'domain-field-label', $slug ), $module_type ) ?></label>
                                         <input id="domain" type="text" value="<?php echo esc_attr( $domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
-                                        <p class="description"><?php fs_echo( 'domain-field-desc', $slug ) ?></p>
+                                        <p class="description"><?php printf( fs_text( 'domain-field-desc', $slug ), $module_type ) ?></p>
                                         <?php if ( ! $is_affiliate ) : ?>
                                             <a id="add_domain" href="#" class="disabled">+ <?php fs_echo( 'add-another-domain', $slug ) ?>...</a>
                                         <?php endif ?>
