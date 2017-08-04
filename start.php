@@ -305,7 +305,7 @@
 			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
 		}
 
-		$plugins_or_theme_dir_path = WP_PLUGIN_DIR;
+		$plugins_or_theme_dir_path = trailingslashit( WP_PLUGIN_DIR );
 
 		if ( 0 === strpos( $file_path, fs_normalize_path( $plugins_or_theme_dir_path ) ) ) {
 			// No symlinks
