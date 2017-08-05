@@ -271,9 +271,8 @@
 					<?php if ( $require_license_key ) : ?>
 						<p class="fs-license-sync-disclaimer"><?php
 								printf( fs_esc_html( 'license-sync-disclaimer', $slug ),
-									$fs->get_module_type(),
-									$freemius_link,
-									$fs->get_module_type()
+									$fs->get_module_label( true ),
+									$freemius_link
 								) ?></p>
 					<?php endif ?>
 					<a class="fs-trigger" href="#" tabindex="1"><?php fs_echo( 'what-permissions', $slug ) ?></a>
