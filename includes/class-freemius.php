@@ -2222,6 +2222,49 @@
 		}
 
 		/**
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $email
+		 *
+		 * @return bool
+		 */
+		static function is_valid_email( $email ) {
+			if ( false === filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
+				return false;
+			}
+
+			$parts = explode( '@', $email );
+
+			if ( 2 !== count( $parts ) || empty( $parts[1] ) ) {
+				return false;
+			}
+
+			$blacklist = array(
+				'admin.',
+				'webmaster.',
+				'localhost.',
+				'dev.',
+				'development.',
+				'test.',
+				'stage.',
+				'staging.',
+			);
+
+			// Make sure domain is not one of the blacklisted.
+			foreach ( $blacklist as $invalid ) {
+				if ( 0 === strpos( $parts[1], $invalid ) ) {
+					return false;
+				}
+			}
+
+			// Get the UTF encoded domain name.
+			$domain = idn_to_ascii( $parts[1] ) . '.';
+
+			return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
+		}
+		
+		/**
 		 * Generate API connectivity issue message.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -3699,7 +3742,7 @@
 					// Try to activate premium license.
 					$this->_activate_license( true );
 				}
-				
+
 				if ( ! $this->has_free_plan() &&
 				     ! $this->has_features_enabled_license() &&
 				     ! $this->_has_premium_license()
