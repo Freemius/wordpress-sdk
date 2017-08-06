@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2017-05-12 17:32+0000\n"
-"Last-Translator: Vova Feldman <vova@freemius.com>\n"
+"PO-Revision-Date: 2017-06-24 11:30+0000\n"
+"Last-Translator: Rami Yushuvaev <r_a_m_i@hotmail.com>\n"
 "Language: he\n"
 "Language-Team: Hebrew (http://www.transifex.com/freemius/wordpress-sdk/language/he/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -85,7 +85,7 @@ msgstr "שנמך"
 #: includes/i18n.php:51
 msgctxt "verb"
 msgid "Cancel Subscription"
-msgstr "Cancel Subscription"
+msgstr "בטל מנוי"
 
 #: includes/i18n.php:52
 msgid "Cancel Trial"
@@ -919,7 +919,7 @@ msgstr "Click to view full-size screenshot %d"
 
 #: includes/i18n.php:266
 msgid "Freemius Debug"
-msgstr "Freemius Debug"
+msgstr "ניפוי תקלות פרימיוס"
 
 #: includes/i18n.php:267
 msgctxt "as turned on"
@@ -938,7 +938,7 @@ msgstr "דיבוג"
 
 #: includes/i18n.php:270
 msgid "Freemius State"
-msgstr "Freemius State"
+msgstr "מצב פרימיוס"
 
 #: includes/i18n.php:271
 msgctxt "as connection was successful"
@@ -1080,7 +1080,7 @@ msgstr "אופס"
 #: includes/i18n.php:306
 msgctxt "interjection expressing joy or exuberance"
 msgid "Yee-haw"
-msgstr "Yee-haw"
+msgstr "יששש"
 
 #: includes/i18n.php:307
 msgctxt ""
@@ -1617,11 +1617,11 @@ msgstr "Installing plugin: %s"
 
 #: includes/i18n.php:474
 msgid "Automatic Installation"
-msgstr "Automatic Installation"
+msgstr "התקנה אוטומטית"
 
 #: includes/i18n.php:476
 msgid "%s sec"
-msgstr "%s sec"
+msgstr "%s שניות"
 
 #: includes/i18n.php:477
 msgid "An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now."
@@ -1633,7 +1633,7 @@ msgstr "The installation process has started and may take a few minutes to compl
 
 #: includes/i18n.php:479
 msgid "Cancel Installation"
-msgstr "Cancel Installation"
+msgstr "בטל התקנה"
 
 #: includes/i18n.php:480
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
@@ -1727,7 +1727,7 @@ msgstr "עודכן לאחרונה"
 
 #: includes/i18n.php:522
 msgid "Requires WordPress Version:"
-msgstr "Requires WordPress Version:"
+msgstr "דורש וורדפרס גרסה:"
 
 #: includes/i18n.php:523
 msgctxt "as the plugin author"
@@ -1748,7 +1748,7 @@ msgstr "WordPress.org Plugin Page"
 
 #: includes/i18n.php:527
 msgid "Plugin Homepage"
-msgstr "Plugin Homepage"
+msgstr "עמוד התוסף"
 
 #: includes/i18n.php:528
 msgid "Donate to this plugin"

@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2017-05-12 17:32+0000\n"
-"Last-Translator: Vova Feldman <vova@freemius.com>\n"
+"PO-Revision-Date: 2017-05-16 08:29+0000\n"
+"Last-Translator: Pelly Benassi <plasmax@gmail.com>\n"
 "Language: it_IT\n"
 "Language-Team: Italian (Italy) (http://www.transifex.com/freemius/wordpress-sdk/language/it_IT/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -87,7 +87,7 @@ msgstr "Downgrade"
 #: includes/i18n.php:51
 msgctxt "verb"
 msgid "Cancel Subscription"
-msgstr "Cancel Subscription"
+msgstr "Annulla sottoscrizione"
 
 #: includes/i18n.php:52
 msgid "Cancel Trial"
@@ -1371,11 +1371,11 @@ msgstr "Si tratta probabilmente di un problema nei nostri sistemi. Per esserne s
 
 #: includes/i18n.php:386
 msgid "We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server."
-msgstr "We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server."
+msgstr "Per le chiamate API usiamo la libreria PHP cURL, una libreria molto comune. Purtroppo, questa libreria non è attiva (o è disabilitata) sul tuo server."
 
 #: includes/i18n.php:387
 msgid "Disabled method(s):"
-msgstr "Disabled method(s):"
+msgstr "Disattiva metodo(i)"
 
 #: includes/i18n.php:388
 msgid "From unknown reason, CloudFlare, the firewall we use, blocks the connection."
@@ -1412,7 +1412,7 @@ msgstr "Non ho idea di cosa sia cURL o come installarlo, aiutami!"
 
 #: includes/i18n.php:398
 msgid "Great, please install cURL and enable it in your php.ini file. In addition, search for the 'disable_functions' directive in your php.ini file and remove any disabled methods starting with 'curl_'. To make sure it was successfully activated, use 'phpinfo()'. Once activated, deactivate the plugin and reactivate it back again."
-msgstr "Great, please install cURL and enable it in your php.ini file. In addition, search for the 'disable_functions' directive in your php.ini file and remove any disabled methods starting with 'curl_'. To make sure it was successfully activated, use 'phpinfo()'. Once activated, deactivate the plugin and reactivate it back again."
+msgstr "Perfetto, per favore installa la libreria cURL ed attivala nel tuo file php.ini. In aggiunta, cerca la direttiva 'disable_functions' nel tuo file php.ini e rimuovi ogni metodo disabilitato che inizia con 'curl_'. Per assicurarti che la libreria sia stata attivata correttamente, usa 'phpinfo()'. Una volta attivata, disattiva il plugin e riattivalo di nuovo."
 
 #: includes/i18n.php:399
 msgid "We are sure it's an issue on our side and more than happy to resolve it for you ASAP if you give us a chance."
@@ -1615,11 +1615,11 @@ msgstr "CAP"
 
 #: includes/i18n.php:473
 msgid "Installing plugin: %s"
-msgstr "Installing plugin: %s"
+msgstr "Installazione plugin: %s"
 
 #: includes/i18n.php:474
 msgid "Automatic Installation"
-msgstr "Automatic Installation"
+msgstr "Installazione automatica"
 
 #: includes/i18n.php:476
 msgid "%s sec"
@@ -1627,43 +1627,43 @@ msgstr "%s sec"
 
 #: includes/i18n.php:477
 msgid "An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now."
-msgstr "An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now."
+msgstr "Un download con installazione automatica di %s (versione a pagamento) da %s inizierà in %s. Se preferisci farlo manualmente, fai clic sul pulsante per annullare."
 
 #: includes/i18n.php:478
 msgid "The installation process has started and may take a few minutes to complete. Please wait until it is done - do not refresh this page."
-msgstr "The installation process has started and may take a few minutes to complete. Please wait until it is done - do not refresh this page."
+msgstr "Il processo d'installazione è iniziato e potrebbe impiegare alcuni minuti per completarsi. Attendi finchè non ha finito, assicurandoti di non ricaricare questa pagina."
 
 #: includes/i18n.php:479
 msgid "Cancel Installation"
-msgstr "Cancel Installation"
+msgstr "Annulla installazione"
 
 #: includes/i18n.php:480
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
-msgstr "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
+msgstr "Il pacchetto remoto del plugin non contiene una cartella con lo slug desiderato e la rinominazione non ha funzionato."
 
 #: includes/i18n.php:481
 msgid "Invalid module ID."
-msgstr "Invalid module ID."
+msgstr "ID modulo non valida."
 
 #: includes/i18n.php:482
 msgid "Auto installation only works for opted-in users."
-msgstr "Auto installation only works for opted-in users."
+msgstr "L'installazione automatica funziona solo per gli utenti che hanno dato il consenso."
 
 #: includes/i18n.php:483
 msgid "Premium version already active."
-msgstr "Premium version already active."
+msgstr "Versione Premium già attiva."
 
 #: includes/i18n.php:484
 msgid "Premium add-on version already installed."
-msgstr "Premium add-on version already installed."
+msgstr "Versione Premium dell'add-on già installata."
 
 #: includes/i18n.php:485
 msgid "You do not have a valid license to access the premium version."
-msgstr "You do not have a valid license to access the premium version."
+msgstr "Non disponi di una licenza valida per accedere alla versione Premium."
 
 #: includes/i18n.php:486
 msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
-msgstr "Plugin is a \"Serviceware\" which means it does not have a premium code version."
+msgstr "Il plugin è un \"Serviceware\", quindi non dispone di una versione del codice Premium."
 
 #: includes/i18n.php:501
 msgctxt "Plugin installer section title"
