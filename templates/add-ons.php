@@ -12,12 +12,11 @@
 
 	/**
 	 * @var array $VARS
-	 */
-	$slug = $VARS['slug'];
-	/**
 	 * @var Freemius
 	 */
-	$fs = freemius( $slug );
+	$fs = freemius( $VARS['id'] );
+
+	$slug = $fs->get_slug();
 
 	$open_addon_slug = fs_request_get( 'slug' );
 
@@ -29,9 +28,13 @@
 	$addons = $fs->get_addons();
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
+
+	$has_tabs = $fs->_add_tabs_before_content();
 ?>
-	<div id="fs_addons" class="wrap">
+	<div id="fs_addons" class="wrap fs-section">
+		<?php if ( ! $has_tabs ) : ?>
 		<h2><?php printf( fs_text( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
+		<?php endif ?>
 
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
@@ -112,7 +115,7 @@
 								<ul>
 									<li class="fs-card-banner"
 									    style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"></li>
-<!--									<li class="fs-tag"></li>-->
+									<!-- <li class="fs-tag"></li> -->
 									<li class="fs-title"><?php echo $addon->title ?></li>
 									<li class="fs-offer">
 									<span
@@ -176,11 +179,15 @@
 		})(jQuery);
 	</script>
 <?php
+	if ( $has_tabs ) {
+		$fs->_add_tabs_after_content();
+	}
+
 	$params = array(
 		'page'           => 'addons',
 		'module_id'      => $fs->get_id(),
+		'module_type'    => $fs->get_module_type(),
 		'module_slug'    => $slug,
 		'module_version' => $fs->get_plugin_version(),
 	);
 	fs_require_template( 'powered-by.php', $params );
-?>

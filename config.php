@@ -126,6 +126,7 @@
 	/**
 	 * Domain / URL / Address
 	 */
+	define( 'WP_FS__ROOT_DOMAIN_PRODUCTION', 'freemius.com' );
 	define( 'WP_FS__DOMAIN_PRODUCTION', 'wp.freemius.com' );
 	define( 'WP_FS__ADDRESS_PRODUCTION', 'https://' . WP_FS__DOMAIN_PRODUCTION );
 

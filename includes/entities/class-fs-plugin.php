@@ -25,6 +25,8 @@
 		 */
 		public $slug;
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string 'plugin' or 'theme'
 		 */
 		public $type;
