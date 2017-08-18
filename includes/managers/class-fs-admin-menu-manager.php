@@ -618,7 +618,11 @@
 				$menu = $this->find_main_submenu();
 			}
 
-			return admin_url( $menu['parent_slug'] . '?page=' . $menu['menu'][2] );
+			$parent_slug = isset( $menu['parent_slug'] ) ?
+                $menu['parent_slug'] :
+                'admin.php';
+
+			return admin_url( $parent_slug . '?page=' . $menu['menu'][2] );
 		}
 
 		/**
