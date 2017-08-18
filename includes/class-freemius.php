@@ -708,10 +708,6 @@
 					if ( ! $this->is_addon() ) {
 						add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
 					}
-
-					if ( ! $this->is_addon() || $this->is_only_premium() ) {
-						add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
-					}
 				}
 			}
 
@@ -2824,6 +2820,12 @@
 			if ( $this->should_stop_execution() ) {
 				return;
 			}
+
+            if ( ! self::is_ajax() ) {
+                if ( ! $this->is_addon() || $this->is_only_premium() ) {
+                    add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
+                }
+            }
 
 			if ( ! $this->is_registered() ) {
 				if ( $this->is_anonymous() ) {
