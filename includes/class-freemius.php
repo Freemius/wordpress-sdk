@@ -7528,15 +7528,18 @@
 
 			$page_param = $this->_menu->get_slug( $page );
 
-			if ( $this->is_free_wp_org_theme() && empty($page) ) {
-				// Theme without a settings page (or wp.org theme).
-				$params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
+            if ( empty($page) ) {
+                if ( $this->is_free_wp_org_theme() ||
+                    ( $this->is_theme() && ! $this->has_settings_menu() ) ) {
+                    // Theme without a settings page (or wp.org theme).
+                    $params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
-				return add_query_arg(
-					$params,
-					admin_url( 'themes.php' )
-				);
-			}
+                    return add_query_arg(
+                        $params,
+                        admin_url( 'themes.php' )
+                    );
+                }
+            }
 
 			if ( ! $this->has_settings_menu() ) {
 				if ( ! empty( $page ) ) {
