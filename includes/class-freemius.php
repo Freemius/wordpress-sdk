@@ -3634,8 +3634,8 @@
 			$all_plugins = $this->get_all_plugins();
 
 			foreach ( $all_plugins as $basename => &$data ) {
-				if ( $slug === $data['slug'] ||
-				     $slug . '-premium' === $data['slug']
+				if ( $addon->slug === $data['slug'] ||
+                    $addon->slug . '-premium' === $data['slug']
 				) {
 					return $basename;
 				}
