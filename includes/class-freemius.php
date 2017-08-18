@@ -13442,7 +13442,9 @@
 				return;
 			}
 
-			if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
+			if ( $this->is_admin_page( 'account' ) ) {
+                return;
+            } else if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
 				// Don't add tabs on checkout page, we want to reduce distractions
 				// as much as possible.
 				return;
