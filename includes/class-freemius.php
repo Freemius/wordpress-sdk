@@ -824,8 +824,8 @@
 				array( &$this, '_submit_uninstall_reason_action' )
 			);
 
-			if ( ( $this->is_plugin() && $this->is_plugins_page() ) ||
-			     ( $this->is_theme() && $this->is_themes_page() )
+			if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
+			     ( $this->is_theme() && self::is_themes_page() )
 			) {
 				add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 			}
@@ -2869,7 +2869,7 @@
 			}
 
 			if ( $this->is_user_in_admin() ) {
-				if ( $this->is_plugins_page() && $this->is_plugin() ) {
+				if ( self::is_plugins_page() && $this->is_plugin() ) {
 					$this->hook_plugin_action_links();
 				}
 
@@ -6786,7 +6786,7 @@
 			}
 
 			// Add license activation link and AJAX request handler.
-			if ( $this->is_plugins_page() ) {
+			if ( self::is_plugins_page() ) {
 				/**
 				 * @since 1.2.0 Add license action link only on plugins page.
 				 */
@@ -7032,7 +7032,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_plugins_page() {
+		static function is_plugins_page() {
 			return ( 'plugins.php' === self::get_current_page() );
 		}
 
@@ -7044,7 +7044,7 @@
 		 *
 		 * @return bool
 		 */
-		function is_themes_page() {
+		static function is_themes_page() {
 			return ( 'themes.php' === self::get_current_page() );
 		}
 
@@ -12635,8 +12635,8 @@
 				}
 			}
 
-			if ( ( $this->is_plugin() && ! $this->is_plugins_page() ) ||
-			     ( $this->is_theme() && ! $this->is_themes_page() )
+			if ( ( $this->is_plugin() && ! self::is_plugins_page() ) ||
+			     ( $this->is_theme() && ! self::is_themes_page() )
 			) {
 				// Only show tracking links on the plugins and themes pages.
 				return;
@@ -12683,7 +12683,7 @@
 				$url = $this->get_activation_url( $params );
 			}
 
-			if ( $this->is_plugin() && $this->is_plugins_page() ) {
+			if ( $this->is_plugin() && self::is_plugins_page() ) {
 				$this->add_plugin_action_link(
 					$this->get_text( $link_text_id ),
 					$url,
@@ -13395,7 +13395,7 @@
 		function _style_premium_theme() {
 			$this->_logger->entrance();
 
-			if ( ! $this->is_themes_page() ) {
+			if ( ! self::is_themes_page() ) {
 				// Only include in the themes page.
 				return;
 			}
