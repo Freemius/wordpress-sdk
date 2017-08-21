@@ -2721,8 +2721,18 @@
 				'api'      => array(
 					'title' => 'API Subdomain',
 					'rows'  => array(
-						'dns' => array( 'DNS_CNAME', var_export( @dns_get_record( $api_domain, DNS_CNAME ), true ) ),
-						'ip'  => array( 'IP', @gethostbyname( $api_domain ) ),
+						'dns' => array(
+							'DNS_CNAME',
+							function_exists( 'dns_get_record' ) ?
+								var_export( dns_get_record( $api_domain, DNS_CNAME ), true ) :
+								'dns_get_record() disabled/blocked'
+						),
+						'ip'  => array(
+							'IP',
+							function_exists( 'gethostbyname' ) ?
+								gethostbyname( $api_domain ) :
+								'gethostbyname() disabled/blocked'
+						),
 					),
 				),
 				'site'     => array(
