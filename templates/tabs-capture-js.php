@@ -20,7 +20,15 @@
 <script type="text/javascript">
 	(function ($) {
 		$(document).ready(function () {
-			var $wrap         = $('.wrap').clone().wrap('<div>').parent(),
+		    var $wrap = $( '.wrap' );
+		    if ( 0 === $wrap.length ) {
+		        $wrap = $( '<div class="wrap">' );
+		        $wrap.insertBefore( $( '#wpbody-content .clear' ) );
+            }
+
+            $wrap = $wrap.clone().wrap( '<div>' ).parent();
+
+		    var
 			    settingHtml   = $wrap.html(),
 			    tabsPosition  = settingHtml.indexOf('nav-tab-wrapper'),
 			    aboveTabsHtml = '';
