@@ -13353,7 +13353,7 @@
 		}
 
 		/**
-		 * Check if module's settings page has any tabs.
+		 * Check if module's original settings page has any tabs.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.2.2.7
@@ -13381,6 +13381,40 @@
 		}
 
 		/**
+		 * Check if page should include tabs.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return bool
+		 */
+		private function should_page_include_tabs()
+		{
+			if ( ! $this->has_settings_menu() ) {
+				// Don't add tabs if no settings at all.
+				return false;
+			}
+
+			if ( ! $this->is_theme() ) {
+				// Only add tabs to themes for now.
+				return false;
+			}
+
+			if ( ! $this->is_theme_settings_page() ) {
+				// Only add tabs if browsing one of the theme's setting pages.
+				return false;
+			}
+
+			if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
+				// Don't add tabs on checkout page, we want to reduce distractions
+				// as much as possible.
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
 		 * Add the tabs HTML before the setting's page content and
 		 * enqueue any required stylesheets.
 		 *
@@ -13392,7 +13426,7 @@
 		function _add_tabs_before_content() {
 			$this->_logger->entrance();
 
-			if ( ! $this->is_theme() || ! $this->has_tabs() ) {
+			if ( ! $this->should_page_include_tabs() ) {
 				return false;
 			}
 
@@ -13426,7 +13460,7 @@
 		function _add_tabs_after_content() {
 			$this->_logger->entrance();
 
-			if ( ! $this->is_theme() || ! $this->has_tabs() ) {
+			if ( ! $this->should_page_include_tabs() ) {
 				return false;
 			}
 
@@ -13447,21 +13481,7 @@
 		function _add_freemius_tabs() {
 			$this->_logger->entrance();
 
-			if ( ! $this->has_settings_menu() ) {
-				// Don't add tabs if no settings at all.
-				return;
-			}
-
-			if ( ! $this->is_theme_settings_page() ) {
-				// Only add tabs if browsing one of the theme's setting pages.
-				return;
-			}
-
-			if ( $this->is_admin_page( 'account' ) ) {
-                return;
-            } else if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
-				// Don't add tabs on checkout page, we want to reduce distractions
-				// as much as possible.
+			if ( ! $this->should_page_include_tabs() ) {
 				return;
 			}
 
