@@ -7540,17 +7540,16 @@
 
 			$page_param = $this->_menu->get_slug( $page );
 
-            if ( empty($page) ) {
-                if ( $this->is_free_wp_org_theme() ||
-                    ( $this->is_theme() && ! $this->has_settings_menu() ) ) {
-                    // Theme without a settings page (or wp.org theme).
+            if ( empty( $page ) &&
+                $this->is_theme() &&
+                // Show the opt-in as an overlay for free wp.org themes or themes without any settings page.
+                ( $this->is_free_wp_org_theme() || ! $this->has_settings_menu() ) ) {
                     $params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
                     return add_query_arg(
                         $params,
                         admin_url( 'themes.php' )
                     );
-                }
             }
 
 			if ( ! $this->has_settings_menu() ) {
