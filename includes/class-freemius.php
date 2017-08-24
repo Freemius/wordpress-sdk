@@ -2403,7 +2403,7 @@
 									sprintf(
 										$this->get_text( 'squid-sysadmin-desc' ),
 										// We use a filter since the plugin might require additional API connectivity.
-										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com' ) ) ) . '</b>',
+										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com', 'wp.freemius.com' ) ) ) . '</b>',
 										$this->_module_type
 									)
 								),
