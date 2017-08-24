@@ -568,7 +568,16 @@
 				return false;
 			}
 
-			$submenu[ $menu_slug ] = array();
+			/**
+			 * This method is NOT executed for WordPress.org themes.
+			 * Since we maintain only one version of the SDK we added this small
+			 * hack to avoid the error from Theme Check since it's a false-positive.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.2.7
+			 */
+			$submenu_ref               = &$submenu;
+			$submenu_ref[ $menu_slug ] = array();
 
 			return true;
 		}
@@ -618,7 +627,11 @@
 				$menu = $this->find_main_submenu();
 			}
 
-			return admin_url( $menu['parent_slug'] . '?page=' . $menu['menu'][2] );
+			$parent_slug = isset( $menu['parent_slug'] ) ?
+                $menu['parent_slug'] :
+                'admin.php';
+
+			return admin_url( $parent_slug . '?page=' . $menu['menu'][2] );
 		}
 
 		/**
@@ -678,13 +691,24 @@
 
 			$mask = '%s <span class="update-plugins %s count-%3$s" aria-hidden="true"><span>%3$s<span class="screen-reader-text">%3$s notifications</span></span></span>';
 
-			if ($this->_is_top_level) {
+			/**
+			 * This method is NOT executed for WordPress.org themes.
+			 * Since we maintain only one version of the SDK we added this small
+			 * hack to avoid the error from Theme Check since it's a false-positive.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.2.7
+			 */
+			$menu_ref    = &$menu;
+			$submenu_ref = &$submenu;
+
+			if ( $this->_is_top_level ) {
 				// Find main menu item.
 				$found_menu = $this->find_top_level_menu();
 
 				if ( false !== $found_menu ) {
 					// Override menu label.
-					$menu[ $found_menu['position'] ][0] = sprintf(
+					$menu_ref[ $found_menu['position'] ][0] = sprintf(
 						$mask,
 						$found_menu['menu'][0],
 						$class,
@@ -696,7 +720,7 @@
 
 				if ( false !== $found_submenu ) {
 					// Override menu label.
-					$submenu[ $found_submenu['parent_slug'] ][ $found_submenu['position'] ][0] = sprintf(
+					$submenu_ref[ $found_submenu['parent_slug'] ][ $found_submenu['position'] ][0] = sprintf(
 						$mask,
 						$found_submenu['menu'][0],
 						$class,

@@ -78,7 +78,8 @@
 							continue;
 						}
 
-						if ( ! is_array( $pricing->plans[ $i ]->features ) ) {
+						if ( ! isset( $pricing->plans[ $i ]->features ) ||
+                            ! is_array( $pricing->plans[ $i ]->features ) ) {
 							$pricing->plans[$i]->features = array();
 						}
 

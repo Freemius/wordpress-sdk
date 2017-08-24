@@ -69,7 +69,7 @@
 					<?php echo $plan->title ?>
 					<span class="fs-price"><?php
 							if ( empty( $plan->pricing ) ) {
-								fs_echo( 'free', $plugin->slug );
+								fs_esc_html_echo( 'free', $plugin->slug );
 							} else {
 								foreach ( $plan->pricing as $pricing ) {
 									/**
@@ -77,9 +77,9 @@
 									 */
 									if ( 1 == $pricing->licenses ) {
 										if ( $pricing->has_annual() ) {
-											echo "\${$pricing->annual_price} / " . fs_text( 'year', $plugin->slug );
+											echo "\${$pricing->annual_price} / " . fs_esc_html( 'year', $plugin->slug );
 										} else if ( $pricing->has_monthly() ) {
-											echo "\${$pricing->monthly_price} / " . fs_text( 'mo', $plugin->slug );
+											echo "\${$pricing->monthly_price} / " . fs_esc_html( 'mo', $plugin->slug );
 										} else {
 											echo "\${$pricing->lifetime_price}";
 										}
@@ -95,12 +95,12 @@
 		<?php $odd = true;
 			foreach ( $features_plan_map as $feature_id => $data ) : ?>
 				<tr class="fs-<?php echo $odd ? 'odd' : 'even' ?>">
-					<td><?php echo ucfirst( $data['feature']->title ) ?></td>
+					<td><?php echo esc_html( ucfirst( $data['feature']->title ) ) ?></td>
 					<?php foreach ( $plans as $plan ) : ?>
 						<td>
 							<?php if ( isset( $data['plans'][ $plan->id ] ) ) : ?>
 								<?php if ( ! empty( $data['plans'][ $plan->id ]->value ) ) : ?>
-									<b><?php echo $data['plans'][ $plan->id ]->value ?></b>
+									<b><?php echo esc_html( $data['plans'][ $plan->id ]->value ) ?></b>
 								<?php else : ?>
 									<i class="dashicons dashicons-yes"></i>
 								<?php endif ?>
