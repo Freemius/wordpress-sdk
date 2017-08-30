@@ -3251,10 +3251,24 @@
 			}
 
 			if ( false === $id ) {
-				throw new Freemius_Exception( 'Plugin id parameter is not set.' );
+				throw new Freemius_Exception( array(
+					'error' => array(
+						'type'    => 'ParameterNotSet',
+						'message' => 'Plugin id parameter is not set.',
+						'code'    => 'plugin_id_not_set',
+						'http'    => 500,
+					)
+				) );
 			}
 			if ( false === $public_key ) {
-				throw new Freemius_Exception( 'Plugin public_key parameter is not set.' );
+				throw new Freemius_Exception( array(
+					'error' => array(
+						'type'    => 'ParameterNotSet',
+						'message' => 'Plugin public_key parameter is not set.',
+						'code'    => 'plugin_public_key_not_set',
+						'http'    => 500,
+					)
+				) );
 			}
 
 			$plugin = ( $this->_plugin instanceof FS_Plugin ) ?
