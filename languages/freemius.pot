@@ -267,7 +267,7 @@ msgid "We made a few tweaks to the %s, %s"
 msgstr ""
 
 #: includes/i18n.php:95
-msgid "Opt-in to make \"%s\" Better!"
+msgid "Opt in to make \"%s\" Better!"
 msgstr ""
 
 #: includes/i18n.php:96
@@ -747,11 +747,11 @@ msgid "Thanks %s!"
 msgstr ""
 
 #: includes/i18n.php:220
-msgid "Never miss an important update - opt-in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s."
+msgid "Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s."
 msgstr ""
 
 #: includes/i18n.php:221
-msgid "Please help us improve %1$s! If you opt-in, some data about your usage of %1$s will be sent to %4$s. If you skip this, that's okay! %1$s will still work just fine."
+msgid "Please help us improve %1$s! If you opt in, some data about your usage of %1$s will be sent to %4$s. If you skip this, that's okay! %1$s will still work just fine."
 msgstr ""
 
 #: includes/i18n.php:222
@@ -1586,7 +1586,7 @@ msgid "You are 1-click away from starting your %1$s-day free trial of the %2$s p
 msgstr ""
 
 #: includes/i18n.php:459
-msgid "For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt-in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial."
+msgid "For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial."
 msgstr ""
 
 #: includes/i18n.php:465

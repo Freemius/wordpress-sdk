@@ -92,7 +92,7 @@
 		'activate-x-now'                => _fs_x( 'Complete "%s" Activation Now',
 			'%s - plugin name. As complete "Jetpack" activation now' ),
 		'few-plugin-tweaks'             => _fs_text( 'We made a few tweaks to the %s, %s' ),
-		'optin-x-now'                   => _fs_text( 'Opt-in to make "%s" Better!' ),
+		'optin-x-now'                   => _fs_text( 'Opt in to make "%s" Better!' ),
 		'error'                         => _fs_text( 'Error' ),
 		'failed-finding-main-path'      => _fs_text( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.' ),
 		#region Account
@@ -217,8 +217,8 @@
 		#region Connect
 		'hey-x'                                    => _fs_x( 'Hey %s,', 'greeting' ),
 		'thanks-x'                                 => _fs_x( 'Thanks %s!', 'a greeting. E.g. Thanks John!' ),
-		'connect-message'                          => _fs_text( 'Never miss an important update - opt-in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.' ),
-		'connect-message_on-update'                => _fs_text( 'Please help us improve %1$s! If you opt-in, some data about your usage of %1$s will be sent to %4$s. If you skip this, that\'s okay! %1$s will still work just fine.' ),
+		'connect-message'                          => _fs_text( 'Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.' ),
+		'connect-message_on-update'                => _fs_text( 'Please help us improve %1$s! If you opt in, some data about your usage of %1$s will be sent to %4$s. If you skip this, that\'s okay! %1$s will still work just fine.' ),
 		'pending-activation-message'               => _fs_text( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s.' ),
 		'complete-the-install'                     => _fs_text( 'complete the install' ),
 		'start-the-trial'                          => _fs_text( 'start the trial' ),
@@ -456,7 +456,7 @@
 		/* translators: %1$s: Number of trial days; %2$s: Plan name; */
 		'start-trial-prompt-header'                => _fs_text( 'You are 1-click away from starting your %1$s-day free trial of the %2$s plan.' ),
 		/* translators: %s: Link to freemius.com */
-		'start-trial-prompt-message'               => _fs_text( 'For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt-in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial.' ),
+		'start-trial-prompt-message'               => _fs_text( 'For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial.' ),
 
 		#endregion
 		#--------------------------------------------------------------------------------

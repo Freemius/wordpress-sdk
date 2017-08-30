@@ -43,7 +43,13 @@
 <script type="text/javascript">
 	(function ($) {
 		$(document).ready(function () {
-			var $wrap        = $('.wrap'),
+            var $wrap = $( '.wrap' );
+            if ( 0 === $wrap.length ) {
+                $wrap = $( '<div class="wrap">' );
+                $wrap.insertBefore( $( '#wpbody-content .clear' ) );
+            }
+
+            var
 			    $tabsWrapper = $('.nav-tab-wrapper'),
 			    $tabs        = $tabsWrapper.find('.nav-tab'),
 			    $tab         = null;
