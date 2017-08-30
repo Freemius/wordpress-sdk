@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.6
 	 */
 
@@ -21,12 +21,14 @@
 
 	$features_plan_map = array();
 	foreach ( $plans as $plan ) {
-		foreach ( $plan->features as $feature ) {
-			if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
-				$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
-			}
+		if (!empty($plan->features) && is_array($plan->features)) {
+			foreach ( $plan->features as $feature ) {
+				if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
+					$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
+				}
 
-			$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+				$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+			}
 		}
 
 		// Add support as a feature.
@@ -65,13 +67,26 @@
 			<?php foreach ( $plans as $plan ) : ?>
 				<th>
 					<?php echo $plan->title ?>
-					<span class="fs-price">
-						<?php foreach ( $plan->pricing as $pricing ) : ?>
-							<?php if ( 1 == $pricing->licenses ) : ?>
-								$<?php echo $pricing->annual_price ?> / year
-							<?php endif ?>
-						<?php endforeach ?>
-						</span>
+					<span class="fs-price"><?php
+							if ( empty( $plan->pricing ) ) {
+								fs_esc_html_echo( 'free', $plugin->slug );
+							} else {
+								foreach ( $plan->pricing as $pricing ) {
+									/**
+									 * @var FS_Pricing $pricing
+									 */
+									if ( 1 == $pricing->licenses ) {
+										if ( $pricing->has_annual() ) {
+											echo "\${$pricing->annual_price} / " . fs_esc_html( 'year', $plugin->slug );
+										} else if ( $pricing->has_monthly() ) {
+											echo "\${$pricing->monthly_price} / " . fs_esc_html( 'mo', $plugin->slug );
+										} else {
+											echo "\${$pricing->lifetime_price}";
+										}
+									}
+								}
+							}
+						?></span>
 				</th>
 			<?php endforeach ?>
 		</tr>
@@ -80,12 +95,12 @@
 		<?php $odd = true;
 			foreach ( $features_plan_map as $feature_id => $data ) : ?>
 				<tr class="fs-<?php echo $odd ? 'odd' : 'even' ?>">
-					<td><?php echo ucfirst( $data['feature']->title ) ?></td>
+					<td><?php echo esc_html( ucfirst( $data['feature']->title ) ) ?></td>
 					<?php foreach ( $plans as $plan ) : ?>
 						<td>
 							<?php if ( isset( $data['plans'][ $plan->id ] ) ) : ?>
 								<?php if ( ! empty( $data['plans'][ $plan->id ]->value ) ) : ?>
-									<b><?php echo $data['plans'][ $plan->id ]->value ?></b>
+									<b><?php echo esc_html( $data['plans'][ $plan->id ]->value ) ?></b>
 								<?php else : ?>
 									<i class="dashicons dashicons-yes"></i>
 								<?php endif ?>

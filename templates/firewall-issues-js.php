@@ -6,7 +6,7 @@
 	 *
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.9
 	 */
 
@@ -15,42 +15,41 @@
 	}
 ?>
 <script type="text/javascript">
-	jQuery(document).ready(function ($) {
-		$('#fs_firewall_issue_options a.fs-resolve').click(function () {
+	jQuery( document ).ready(function( $ ) {
+		$( '#fs_firewall_issue_options a.fs-resolve' ).click(function() {
 			var
-				error_type = $(this).attr('data-type'),
-				notice = $(this).parents('.fs-notice'),
-				slug = notice.attr('data-slug');
+				error_type       = $( this ).attr( 'data-type' ),
+				notice           = $( this ).parents( '.fs-notice' ),
+				ajaxActionSuffix = notice.attr( 'data-manager-id' ).replace( ':', '-' );
 
 			var data = {
-				action    : 'fs_resolve_firewall_issues_' + slug,
-				slug      : slug,
+				action    : 'fs_resolve_firewall_issues_' + ajaxActionSuffix,
 				error_type: error_type
 			};
 
-			if ('squid' === error_type) {
-				data.hosting_company = prompt('What is the name or URL of your hosting company?');
-				if (null == data.hosting_company)
+			if ( 'squid' === error_type ) {
+				data.hosting_company = prompt( 'What is the name or URL of your hosting company?' );
+				if ( null == data.hosting_company )
 					return false;
 
-				if ('' === data.hosting_company) {
-					alert('We won\'t be able to help without knowing your hosting company.');
+				if ( '' === data.hosting_company ) {
+					alert( 'We won\'t be able to help without knowing your hosting company.' );
 					return false;
 				}
 			}
 
-			if ('retry_ping' === error_type) {
-				data.action = 'fs_retry_connectivity_test_' + slug;
+			if ( 'retry_ping' === error_type ) {
+				data.action = 'fs_retry_connectivity_test_' + ajaxActionSuffix;
 			}
 
-			$(this).css({'cursor': 'wait'});
+			$( this ).css({'cursor': 'wait'});
 
 			// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-			$.post(ajaxurl, data, function (response) {
-				if (1 == response) {
+			$.post( ajaxurl, data, function( response ) {
+				if ( 1 == response ) {
 					// Refresh page on success.
 					location.reload();
-				} else if ('http' === response.substr(0, 4)) {
+				} else if ( 'http' === response.substr( 0, 4 ) ) {
 					// Ping actually worked, redirect.
 					window.location = response;
 				}

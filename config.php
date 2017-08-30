@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.4
 	 */
 
@@ -126,6 +126,7 @@
 	/**
 	 * Domain / URL / Address
 	 */
+	define( 'WP_FS__ROOT_DOMAIN_PRODUCTION', 'freemius.com' );
 	define( 'WP_FS__DOMAIN_PRODUCTION', 'wp.freemius.com' );
 	define( 'WP_FS__ADDRESS_PRODUCTION', 'https://' . WP_FS__DOMAIN_PRODUCTION );
 

@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.1.3
 	 */
 
@@ -15,9 +15,25 @@
 		#region Properties
 
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string
 		 */
-		protected $_plugin_slug;
+		protected $_module_unique_affix;
+
+		/**
+		 * @since 1.2.2
+		 *
+		 * @var number
+		 */
+		protected $_module_id;
+
+		/**
+		 * @since 1.2.2
+		 *
+		 * @var string
+		 */
+		protected $_module_type;
 
 		/**
 		 * @since 1.0.6
@@ -89,22 +105,28 @@
 		private static $_instances = array();
 
 		/**
-		 * @param string $plugin_slug
+		 * @param number $module_id
+		 * @param string $module_type
+		 * @param string $module_unique_affix
 		 *
 		 * @return FS_Admin_Menu_Manager
 		 */
-		static function instance( $plugin_slug ) {
-			if ( ! isset( self::$_instances[ $plugin_slug ] ) ) {
-				self::$_instances[ $plugin_slug ] = new FS_Admin_Menu_Manager( $plugin_slug );
+		static function instance( $module_id, $module_type, $module_unique_affix ) {
+			$key = 'm_' . $module_id;
+
+			if ( ! isset( self::$_instances[ $key ] ) ) {
+				self::$_instances[ $key ] = new FS_Admin_Menu_Manager( $module_id, $module_type, $module_unique_affix );
 			}
 
-			return self::$_instances[ $plugin_slug ];
+			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $plugin_slug ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $plugin_slug . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+		protected function __construct( $module_id, $module_type, $module_unique_affix ) {
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_admin_menu', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_plugin_slug = $plugin_slug;
+			$this->_module_id           = $module_id;
+			$this->_module_type         = $module_type;
+			$this->_module_unique_affix = $module_unique_affix;
 		}
 
 		#endregion Singleton
@@ -128,7 +150,7 @@
 		function init( $menu, $is_addon = false ) {
 			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
 
-			$this->_menu_slug = ! empty( $menu['slug'] ) ? $menu['slug'] : null;
+			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_module_unique_affix );
 
 			$this->_default_submenu_items = array();
 			// @deprecated
@@ -243,16 +265,17 @@
 		 *
 		 * @param string $id
 		 * @param bool   $default
+		 * @param bool   $ignore_menu_existence Since 1.2.2.7 If true, check if the submenu item visible even if there's no parent menu.
 		 *
 		 * @return bool
 		 */
-		function is_submenu_item_visible( $id, $default = true ) {
-			if ( ! $this->has_menu() ) {
+		function is_submenu_item_visible( $id, $default = true, $ignore_menu_existence = false ) {
+			if ( ! $ignore_menu_existence && ! $this->has_menu() ) {
 				return false;
 			}
 
 			return fs_apply_filter(
-				$this->_plugin_slug,
+				$this->_module_unique_affix,
 				'is_submenu_visible',
 				$this->get_bool_option( $this->_default_submenu_items, $id, $default ),
 				$id
@@ -273,19 +296,7 @@
 		function get_slug( $page = '' ) {
 			return ( ( false === strpos( $this->_menu_slug, '.php?' ) ) ?
 				$this->_menu_slug :
-				$this->_plugin_slug ) . ( empty( $page ) ? '' : ( '-' . $page ) );
-		}
-
-		/**
-		 * Check if module has a menu slug set.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.1.6
-		 *
-		 * @return bool
-		 */
-		function has_menu_slug() {
-			return $this->has_menu();
+				$this->_module_unique_affix ) . ( empty( $page ) ? '' : ( '-' . $page ) );
 		}
 
 		/**
@@ -359,7 +370,7 @@
 			if ( false === strpos( $this->_menu_slug, '.php?' ) ) {
 				return $this->_menu_slug;
 			} else {
-				return $this->_plugin_slug;
+				return $this->_module_unique_affix;
 			}
 		}
 
@@ -385,7 +396,7 @@
 		 */
 		function is_main_settings_page() {
 			if ( $this->_menu_exists &&
-			     ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_plugin_slug ) )
+			     ( fs_is_plugin_page( $this->_menu_slug ) || fs_is_plugin_page( $this->_module_unique_affix ) )
 			) {
 				/**
 				 * Module has a settings menu and the context page is the main settings page, so assume it's in
@@ -394,6 +405,16 @@
 				 * @since 1.2.2
 				 */
 				return true;
+			}
+
+			global $pagenow;
+			if ( ( WP_FS__MODULE_TYPE_THEME === $this->_module_type ) && Freemius::is_themes_page() ) {
+				/**
+				 * In activation only when show_optin query string param is given.
+				 *
+				 * @since 1.2.2
+				 */
+				return fs_request_get_bool( $this->_module_unique_affix . '_show_optin' );
 			}
 
 			return false;
@@ -506,14 +527,14 @@
 
 			$submenu_slug = $this->get_raw_slug();
 
-			$position      = - 1;
+			$position   = - 1;
 			$found_submenu = false;
 
 			$hook_name = get_plugin_page_hookname( $submenu_slug, '' );
 
 			foreach ( $submenu[ $top_level_menu_slug ] as $pos => $sub ) {
 				if ( $submenu_slug === $sub[2] ) {
-					$position      = $pos;
+					$position   = $pos;
 					$found_submenu = $sub;
 				}
 			}
@@ -547,7 +568,16 @@
 				return false;
 			}
 
-			$submenu[ $menu_slug ] = array();
+			/**
+			 * This method is NOT executed for WordPress.org themes.
+			 * Since we maintain only one version of the SDK we added this small
+			 * hack to avoid the error from Theme Check since it's a false-positive.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.2.7
+			 */
+			$submenu_ref               = &$submenu;
+			$submenu_ref[ $menu_slug ] = array();
 
 			return true;
 		}
@@ -576,6 +606,32 @@
 			$this->remove_all_submenu_items();
 
 			return $menu;
+		}
+
+		/**
+		 * Get module's main admin setting page URL.
+		 *
+		 * @todo This method was only tested for wp.org compliant themes with a submenu item. Need to test for plugins with top level, submenu, and CPT top level, menu items.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @return string
+		 */
+		function main_menu_url() {
+			$this->_logger->entrance();
+
+			if ( $this->_is_top_level ) {
+				$menu = $this->find_top_level_menu();
+			} else {
+				$menu = $this->find_main_submenu();
+			}
+
+			$parent_slug = isset( $menu['parent_slug'] ) ?
+                $menu['parent_slug'] :
+                'admin.php';
+
+			return admin_url( $parent_slug . '?page=' . $menu['menu'][2] );
 		}
 
 		/**
@@ -635,13 +691,24 @@
 
 			$mask = '%s <span class="update-plugins %s count-%3$s" aria-hidden="true"><span>%3$s<span class="screen-reader-text">%3$s notifications</span></span></span>';
 
+			/**
+			 * This method is NOT executed for WordPress.org themes.
+			 * Since we maintain only one version of the SDK we added this small
+			 * hack to avoid the error from Theme Check since it's a false-positive.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since  1.2.2.7
+			 */
+			$menu_ref    = &$menu;
+			$submenu_ref = &$submenu;
+
 			if ( $this->_is_top_level ) {
 				// Find main menu item.
 				$found_menu = $this->find_top_level_menu();
 
 				if ( false !== $found_menu ) {
 					// Override menu label.
-					$menu[ $found_menu['position'] ][0] = sprintf(
+					$menu_ref[ $found_menu['position'] ][0] = sprintf(
 						$mask,
 						$found_menu['menu'][0],
 						$class,
@@ -653,7 +720,7 @@
 
 				if ( false !== $found_submenu ) {
 					// Override menu label.
-					$submenu[ $found_submenu['parent_slug'] ][ $found_submenu['position'] ][0] = sprintf(
+					$submenu_ref[ $found_submenu['parent_slug'] ][ $found_submenu['position'] ][0] = sprintf(
 						$mask,
 						$found_submenu['menu'][0],
 						$class,

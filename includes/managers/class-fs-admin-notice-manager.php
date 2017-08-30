@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.7
 	 */
 
@@ -12,9 +12,15 @@
 
 	class FS_Admin_Notice_Manager {
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string
 		 */
-		protected $_slug;
+		protected $_module_unique_affix;
+		/**
+		 * @var string
+		 */
+		protected $_id;
 		/**
 		 * @var string
 		 */
@@ -37,36 +43,39 @@
 		protected $_logger;
 
 		/**
-		 * @param string $slug
+		 * @param string $id
 		 * @param string $title
+		 * @param string $module_unique_affix
 		 *
 		 * @return FS_Admin_Notice_Manager
 		 */
-		static function instance( $slug, $title = '' ) {
-			if ( ! isset( self::$_instances[ $slug ] ) ) {
-				self::$_instances[ $slug ] = new FS_Admin_Notice_Manager( $slug, $title );
+		static function instance( $id, $title = '', $module_unique_affix = '' ) {
+			if ( ! isset( self::$_instances[ $id ] ) ) {
+				self::$_instances[ $id ] = new FS_Admin_Notice_Manager( $id, $title, $module_unique_affix );
 			}
 
-			return self::$_instances[ $slug ];
+			return self::$_instances[ $id ];
 		}
 
-		protected function __construct( $slug, $title = '' ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
-
-			$this->_slug           = $slug;
-			$this->_title          = ! empty( $title ) ? $title : '';
-			$this->_sticky_storage = FS_Key_Value_Storage::instance( 'admin_notices', $this->_slug );
+		protected function __construct( $id, $title = '', $module_unique_affix = '' ) {
+			$this->_id                  = $id;
+			$this->_logger              = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_title               = ! empty( $title ) ? $title : '';
+			$this->_module_unique_affix = $module_unique_affix;
+			$this->_sticky_storage      = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id );
 
 			if ( is_admin() ) {
 				if ( 0 < count( $this->_sticky_storage ) ) {
+					$ajax_action_suffix = str_replace( ':', '-', $this->_id );
+
 					// If there are sticky notices for the current slug, add a callback
 					// to the AJAX action that handles message dismiss.
-					add_action( "wp_ajax_fs_dismiss_notice_action_{$slug}", array(
+					add_action( "wp_ajax_fs_dismiss_notice_action_{$ajax_action_suffix}", array(
 						&$this,
 						'dismiss_notice_ajax_callback'
 					) );
 
-					foreach ( $this->_sticky_storage as $id => $msg ) {
+					foreach ( $this->_sticky_storage as $msg ) {
 						// Add admin notice.
 						$this->add(
 							$msg['message'],
@@ -210,14 +219,14 @@
 			}
 
 			$message_object = array(
-				'message' => $message,
-				'title'   => $title,
-				'type'    => $type,
-				'sticky'  => $is_sticky,
-				'id'      => $id,
-				'all'     => $all_admin,
-				'slug'    => $this->_slug,
-				'plugin'  => $this->_title,
+				'message' 	   => $message,
+				'title'   	   => $title,
+				'type'    	   => $type,
+				'sticky'  	   => $is_sticky,
+				'id'      	   => $id,
+				'all'     	   => $all_admin,
+				'manager_id'   => $this->_id,
+				'plugin'  	   => $this->_title,
 			);
 
 			if ( $is_sticky && $store_if_sticky ) {
@@ -279,8 +288,10 @@
 		 * @param bool   $all_admin
 		 */
 		function add_sticky( $message, $id, $title = '', $type = 'success', $all_admin = false ) {
-			$message = fs_apply_filter( $this->_slug, "sticky_message_{$id}", $message );
-			$title   = fs_apply_filter( $this->_slug, "sticky_title_{$id}", $title );
+			if ( ! empty( $this->_module_unique_affix ) ) {
+				$message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
+				$title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
+			}
 
 			$this->add( $message, $title, $type, true, $all_admin, $id );
 		}

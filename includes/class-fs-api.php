@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.4
 	 */
 
@@ -41,7 +41,7 @@
 		private static $_clock_diff;
 
 		/**
-		 * @var Freemius_Api
+		 * @var Freemius_Api_WordPress
 		 */
 		private $_api;
 
@@ -83,18 +83,18 @@
 				return;
 			}
 
-			if ( ! class_exists( 'Freemius_Api' ) ) {
-				require_once WP_FS__DIR_SDK . '/Freemius.php';
+			if ( ! class_exists( 'Freemius_Api_WordPress' ) ) {
+				require_once WP_FS__DIR_SDK . '/FreemiusWordPress.php';
 			}
 
 			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
 			self::$_cache   = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 
 			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
-			Freemius_Api::SetClockDiff( self::$_clock_diff );
+			Freemius_Api_WordPress::SetClockDiff( self::$_clock_diff );
 
 			if ( self::$_options->get_option( 'api_force_http', false ) ) {
-				Freemius_Api::SetHttp();
+				Freemius_Api_WordPress::SetHttp();
 			}
 		}
 
@@ -107,7 +107,7 @@
 		 * @param bool        $is_sandbox
 		 */
 		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox ) {
-			$this->_api = new Freemius_Api( $scope, $id, $public_key, $secret_key, $is_sandbox );
+			$this->_api = new Freemius_Api_WordPress( $scope, $id, $public_key, $secret_key, $is_sandbox );
 
 			$this->_slug   = $slug;
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
@@ -125,7 +125,7 @@
 
 			// Sync clock and store.
 			$new_clock_diff = ( false === $diff ) ?
-				Freemius_Api::FindClockDiff() :
+				Freemius_Api_WordPress::FindClockDiff() :
 				$diff;
 
 			if ( $new_clock_diff === self::$_clock_diff ) {
@@ -135,7 +135,7 @@
 			self::$_clock_diff = $new_clock_diff;
 
 			// Update API clock's diff.
-			Freemius_Api::SetClockDiff( self::$_clock_diff );
+			Freemius_Api_WordPress::SetClockDiff( self::$_clock_diff );
 
 			// Store new clock diff in storage.
 			self::$_options->set_option( 'api_clock_diff', self::$_clock_diff, true );
@@ -232,7 +232,7 @@
 
 			$cached_result = self::$_cache->get( $cache_key );
 
-			if ( $flush || ! self::$_cache->has_valid( $cache_key ) ) {
+			if ( $flush || ! self::$_cache->has_valid( $cache_key, $expiration ) ) {
 				$result = $this->call( $path );
 
 				if ( ! is_object( $result ) || isset( $result->error ) ) {
@@ -333,15 +333,15 @@
 			$test = self::$_cache->get_valid( $cache_key, null );
 
 			if ( is_null( $test ) ) {
-				$test = Freemius_Api::Test();
+				$test = Freemius_Api_WordPress::Test();
 
-				if ( false === $test && Freemius_Api::IsHttps() ) {
+				if ( false === $test && Freemius_Api_WordPress::IsHttps() ) {
 					// Fallback to HTTP, since HTTPS fails.
-					Freemius_Api::SetHttp();
+					Freemius_Api_WordPress::SetHttp();
 
 					self::$_options->set_option( 'api_force_http', true, true );
 
-					$test = Freemius_Api::Test();
+					$test = Freemius_Api_WordPress::Test();
 
 					if ( false === $test ) {
 						/**
@@ -412,7 +412,7 @@
 			}
 
 			$pong = is_null( $unique_anonymous_id ) ?
-				Freemius_Api::Ping() :
+				Freemius_Api_WordPress::Ping() :
 				$this->_call( 'ping.json?' . http_build_query( array_merge(
 						array( 'uid' => $unique_anonymous_id ),
 						$params
@@ -424,12 +424,12 @@
 
 			if ( self::should_try_with_http( $pong ) ) {
 				// Fallback to HTTP, since HTTPS fails.
-				Freemius_Api::SetHttp();
+				Freemius_Api_WordPress::SetHttp();
 
 				self::$_options->set_option( 'api_force_http', true, true );
 
 				$pong = is_null( $unique_anonymous_id ) ?
-					Freemius_Api::Ping() :
+					Freemius_Api_WordPress::Ping() :
 					$this->_call( 'ping.json?' . http_build_query( array_merge(
 							array( 'uid' => $unique_anonymous_id ),
 							$params
@@ -455,7 +455,7 @@
 		 * @return bool
 		 */
 		private static function should_try_with_http( $result ) {
-			if ( ! Freemius_Api::IsHttps() ) {
+			if ( ! Freemius_Api_WordPress::IsHttps() ) {
 				return false;
 			}
 
@@ -483,11 +483,11 @@
 		 * @return bool
 		 */
 		function is_valid_ping( $pong ) {
-			return Freemius_Api::Test( $pong );
+			return Freemius_Api_WordPress::Test( $pong );
 		}
 
 		function get_url( $path = '' ) {
-			return Freemius_Api::GetUrl( $path, $this->_api->IsSandbox() );
+			return Freemius_Api_WordPress::GetUrl( $path, $this->_api->IsSandbox() );
 		}
 
 		/**

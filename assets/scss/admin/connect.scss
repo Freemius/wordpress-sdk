@@ -405,6 +405,55 @@ $form_width: 480px;
     }
 }
 
+#fs_theme_connect_wrapper {
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 99990;
+    background: rgba(0, 0, 0, 0.75);
+    text-align: center;
+    overflow-y: auto;
+
+    &:before {
+        content: "";
+        display: inline-block;
+        vertical-align: middle;
+        height: 100%;
+    }
+
+    > button.close {
+        color: white;
+        cursor: pointer;
+        height: 40px;
+        width: 40px;
+        position: absolute;
+        right: 0;
+        border: 0;
+        background-color: transparent;
+        top: 32px;
+    }
+
+    #fs_connect {
+        top: 0;
+        text-align: left;
+        display: inline-block;
+        vertical-align: middle;
+        margin-top: 52px;
+        margin-bottom: 20px;
+
+        .fs-terms
+        {
+            background: rgba(140, 140, 140, 0.64);
+
+            &, a
+            {
+                color: #c5c5c5;
+            }
+        }
+    }
+}
+
 .wp-pointer-content
 {
     #fs_connect

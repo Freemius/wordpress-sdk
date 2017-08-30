@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.2.0
 	 */
 
@@ -12,9 +12,10 @@
 
 	/**
 	 * @var array $VARS
+	 * @var Freemius $fs
 	 */
-	$slug = $VARS['slug'];
-	$fs   = freemius( $slug );
+	$fs   = freemius( $VARS['id'] );
+	$slug = $fs->get_slug();
 
 	$message_header  = sprintf(
 		fs_text( 'start-trial-prompt-header', $slug ),
@@ -23,6 +24,7 @@
 	);
 	$message_content = sprintf(
 		fs_text( 'start-trial-prompt-message', $slug ),
+		$fs->get_module_type(),
 		sprintf(
 			'<a href="%s" target="_blank">%s</a>',
 			'https://freemius.com',
@@ -36,7 +38,7 @@
 	<p>{$message_content}</p>
 HTML;
 
-	fs_enqueue_local_style( 'dialog-boxes', '/admin/dialog-boxes.css' );
+	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 	(function ($) {
@@ -55,8 +57,7 @@ HTML;
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',
-			    $modal           = $(modalHtml),
-			    moduleSlug       = '<?php echo $slug; ?>',
+			    $modal = $( modalHtml ),
 			    trialData;
 
 			$modal.appendTo($('body'));
@@ -80,10 +81,10 @@ HTML;
 						url       : ajaxurl,
 						method    : 'POST',
 						data      : {
-							action  : '<?php echo $fs->get_ajax_action( 'start_trial' ) ?>',
-							security: '<?php echo $fs->get_ajax_security( 'start_trial' ) ?>',
-							slug    : moduleSlug,
-							trial   : trialData
+							action   : '<?php echo $fs->get_ajax_action( 'start_trial' ) ?>',
+							security : '<?php echo $fs->get_ajax_security( 'start_trial' ) ?>',
+							module_id: '<?php echo $fs->get_id() ?>',
+							trial    : trialData
 						},
 						beforeSend: function () {
 							// Disable all buttons during trial activation.

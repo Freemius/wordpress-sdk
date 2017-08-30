@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.6
 	 */
 
@@ -12,13 +12,17 @@
 
 	class FS_Plugin_Manager {
 		/**
-		 * @var string
+		 * @since 1.2.2
+		 *
+		 * @var string|number
 		 */
-		protected $_slug;
+		protected $_module_id;
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var FS_Plugin
 		 */
-		protected $_plugin;
+		protected $_module;
 
 		/**
 		 * @var FS_Plugin_Manager[]
@@ -30,22 +34,36 @@
 		protected $_logger;
 
 		/**
-		 * @param string $slug
+		 * Option names
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 */
+		const OPTION_NAME_PLUGINS = 'plugins';
+		const OPTION_NAME_THEMES  = 'themes';
+
+		/**
+		 * @param  string|number $module_id
 		 *
 		 * @return FS_Plugin_Manager
 		 */
-		static function instance( $slug ) {
-			if ( ! isset( self::$_instances[ $slug ] ) ) {
-				self::$_instances[ $slug ] = new FS_Plugin_Manager( $slug );
+		static function instance( $module_id ) {
+			$key = 'm_' . $module_id;
+
+			if ( ! isset( self::$_instances[ $key ] ) ) {
+				self::$_instances[ $key ] = new FS_Plugin_Manager( $module_id );
 			}
 
-			return self::$_instances[ $slug ];
-		}
+			return self::$_instances[ $key ];
+        }
 
-		protected function __construct( $slug ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+		/**
+		 * @param string|number $module_id
+		 */
+		protected function __construct( $module_id ) {
+			$this->_logger    = FS_Logger::get_logger( WP_FS__SLUG . '_' . $module_id . '_' . 'plugins', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_module_id = $module_id;
 
-			$this->_slug = $slug;
 			$this->load();
 		}
 
@@ -53,8 +71,25 @@
 			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 		}
 
-		protected function get_all_plugins() {
-			return $this->get_option_manager()->get_option( 'plugins', array() );
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2
+		 *
+		 * @param  string|false $module_type "plugin", "theme", or "false" for all modules.
+		 *
+		 * @return array
+		 */
+		protected function get_all_modules( $module_type = false ) {
+			$option_manager = $this->get_option_manager();
+
+			if ( false !== $module_type ) {
+				return $option_manager->get_option( $module_type . 's', array() );
+			}
+
+			return array(
+				self::OPTION_NAME_PLUGINS => $option_manager->get_option( self::OPTION_NAME_PLUGINS, array() ),
+				self::OPTION_NAME_THEMES  => $option_manager->get_option( self::OPTION_NAME_THEMES, array() ),
+			);
 		}
 
 		/**
@@ -64,10 +99,42 @@
 		 * @since  1.0.6
 		 */
 		function load() {
-			$all_plugins   = $this->get_all_plugins();
-			$this->_plugin = isset( $all_plugins[ $this->_slug ] ) ?
-				$all_plugins[ $this->_slug ] :
-				null;
+			$all_modules = $this->get_all_modules();
+
+			if ( ! is_numeric( $this->_module_id ) ) {
+				unset( $all_modules[ self::OPTION_NAME_THEMES ] );
+			}
+
+			foreach ( $all_modules as $modules ) {
+				/**
+				 * @since 1.2.2
+				 *
+				 * @var $modules FS_Plugin[]
+				 */
+				foreach ( $modules as $module ) {
+					$found_module = false;
+
+					/**
+					 * If module ID is not numeric, it must be a plugin's slug.
+					 *
+					 * @author Leo Fajardo (@leorw)
+					 * @since  1.2.2
+					 */
+					if ( ! is_numeric( $this->_module_id ) ) {
+						if ( $this->_module_id === $module->slug ) {
+							$this->_module_id = $module->id;
+							$found_module     = true;
+						}
+					} else if ( $this->_module_id == $module->id ) {
+						$found_module = true;
+					}
+
+					if ( $found_module ) {
+						$this->_module = $module;
+						break;
+					}
+				}
+			}
 		}
 
 		/**
@@ -76,24 +143,23 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.6
 		 *
-		 * @param bool|FS_Plugin $plugin
+		 * @param bool|FS_Plugin $module
 		 * @param bool           $flush
 		 *
 		 * @return bool|\FS_Plugin
 		 */
-		function store( $plugin = false, $flush = true ) {
-			$all_plugins = $this->get_all_plugins();
-
-			if ( false !== $plugin ) {
-				$this->_plugin = $plugin;
+		function store( $module = false, $flush = true ) {
+			if ( false !== $module ) {
+				$this->_module = $module;
 			}
 
-			$all_plugins[ $this->_slug ] = $this->_plugin;
+			$all_modules = $this->get_all_modules( $this->_module->type );
+			$all_modules[ $this->_module->slug ] = $this->_module;
 
 			$options_manager = $this->get_option_manager();
-			$options_manager->set_option( 'plugins', $all_plugins, $flush );
+			$options_manager->set_option( $this->_module->type . 's', $all_modules, $flush );
 
-			return $this->_plugin;
+			return $this->_module;
 		}
 
 		/**
@@ -108,12 +174,12 @@
 		 * @return bool True if plugin was updated.
 		 */
 		function update( FS_Plugin $plugin, $store = true ) {
-			if ( ! ( $this->_plugin instanceof FS_Plugin ) ||
-			     $this->_plugin->slug != $plugin->slug ||
-			     $this->_plugin->public_key != $plugin->public_key ||
-			     $this->_plugin->secret_key != $plugin->secret_key ||
-			     $this->_plugin->parent_plugin_id != $plugin->parent_plugin_id ||
-			     $this->_plugin->title != $plugin->title
+			if ( ! ($this->_module instanceof FS_Plugin ) ||
+			     $this->_module->slug != $plugin->slug ||
+			     $this->_module->public_key != $plugin->public_key ||
+			     $this->_module->secret_key != $plugin->secret_key ||
+			     $this->_module->parent_plugin_id != $plugin->parent_plugin_id ||
+			     $this->_module->title != $plugin->title
 			) {
 				$this->store( $plugin, $store );
 
@@ -131,7 +197,7 @@
 		 * @param bool      $store
 		 */
 		function set( FS_Plugin $plugin, $store = false ) {
-			$this->_plugin = $plugin;
+			$this->_module = $plugin;
 
 			if ( $store ) {
 				$this->store();
@@ -145,8 +211,8 @@
 		 * @return bool|\FS_Plugin
 		 */
 		function get() {
-			return isset( $this->_plugin ) ?
-				$this->_plugin :
+			return isset( $this->_module ) ?
+				$this->_module :
 				false;
 		}
 

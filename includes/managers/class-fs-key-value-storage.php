@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.7
 	 */
 
@@ -47,9 +47,11 @@
 		 */
 		protected $_id;
 		/**
+		 * @since 1.2.2
+		 *
 		 * @var string
 		 */
-		protected $_slug;
+		protected $_secondary_id;
 		/**
 		 * @var array
 		 */
@@ -66,24 +68,24 @@
 
 		/**
 		 * @param string $id
-		 * @param string $slug
+		 * @param string $secondary_id
 		 *
 		 * @return FS_Key_Value_Storage
 		 */
-		static function instance( $id, $slug ) {
-			$key = $id . ':' . $slug;
+		static function instance( $id, $secondary_id ) {
+			$key = $id . ':' . $secondary_id;
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $slug );
+				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id );
 			}
 
 			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $id, $slug ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+		protected function __construct( $id, $secondary_id ) {
+			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $secondary_id . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_slug = $slug;
-			$this->_id   = $id;
+			$this->_secondary_id = $secondary_id;
+			$this->_id   	     = $id;
 			$this->load();
 		}
 
@@ -103,8 +105,8 @@
 		 */
 		function load() {
 			$all_plugins_data = $this->get_all_data();
-			$this->_data      = isset( $all_plugins_data[ $this->_slug ] ) ?
-				$all_plugins_data[ $this->_slug ] :
+			$this->_data      = isset( $all_plugins_data[ $this->_secondary_id ] ) ?
+				$all_plugins_data[ $this->_secondary_id ] :
 				array();
 		}
 
@@ -130,7 +132,7 @@
 
 			$this->_data[ $key ] = $value;
 
-			$all_data[ $this->_slug ] = $this->_data;
+			$all_data[ $this->_secondary_id ] = $this->_data;
 
 			$options_manager = $this->get_option_manager();
 			$options_manager->set_option( $this->_id, $all_data, $flush );
@@ -155,7 +157,7 @@
 
 			if ( $store ) {
 				$all_data                 = $this->get_all_data();
-				$all_data[ $this->_slug ] = $this->_data;
+				$all_data[ $this->_secondary_id ] = $this->_data;
 				$options_manager          = $this->get_option_manager();
 				$options_manager->set_option( $this->_id, $all_data, true );
 			}
@@ -171,7 +173,7 @@
 			$this->_data = array();
 
 			$all_data = $this->get_all_data();
-			unset( $all_data[ $this->_slug ] );
+			unset( $all_data[ $this->_secondary_id ] );
 			$options_manager = $this->get_option_manager();
 			$options_manager->set_option( $this->_id, $all_data, true );
 		}
@@ -192,7 +194,7 @@
 
 			if ( $store ) {
 				$all_data                 = $this->get_all_data();
-				$all_data[ $this->_slug ] = $this->_data;
+				$all_data[ $this->_secondary_id ] = $this->_data;
 				$options_manager          = $this->get_option_manager();
 				$options_manager->set_option( $this->_id, $all_data, true );
 			}

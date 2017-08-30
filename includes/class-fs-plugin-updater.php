@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.4
 	 *
 	 * @link        https://github.com/easydigitaldownloads/EDD-License-handler/blob/master/EDD_SL_Plugin_Updater.php
@@ -53,6 +53,11 @@
 
 			// WP 3.0+
 			add_filter( 'pre_set_site_transient_update_plugins', array(
+				&$this,
+				'pre_set_site_transient_update_plugins_filter'
+			) );
+
+			add_filter( 'pre_set_site_transient_update_themes', array(
 				&$this,
 				'pre_set_site_transient_update_plugins_filter'
 			) );
@@ -173,6 +178,24 @@
 		function pre_set_site_transient_update_plugins_filter( $transient_data ) {
 			$this->_logger->entrance();
 
+			/**
+			 * "plugins" or "themes".
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
+			 */
+			$module_type = $this->_fs->get_module_type() . 's';
+
+			/**
+			 * Ensure that we don't mix plugins update info with themes update info.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 1.2.2
+			 */
+			if ( "pre_set_site_transient_update_{$module_type}" !== current_filter() ) {
+				return $transient_data;
+			}
+
 			if ( empty( $transient_data ) ||
 			     defined( 'WP_FS__UNINSTALL_MODE' )
 			) {
@@ -181,7 +204,11 @@
 
 			if ( ! isset( $this->_update_details ) ) {
 				// Get plugin's newest update.
-				$new_version = $this->_fs->get_update( false, false );
+				$new_version = $this->_fs->get_update(
+					false,
+					fs_request_get_bool( 'force-check' ),
+					WP_FS__TIME_24_HOURS_IN_SEC / 24
+				);
 
 				$this->_update_details = false;
 
@@ -193,7 +220,7 @@
 					$plugin_details->new_version = $new_version->version;
 					$plugin_details->url         = WP_FS__ADDRESS;
 					$plugin_details->package     = $new_version->url;
-					$plugin_details->plugin      = $this->_fs->get_plugin_basename();
+					$plugin_details->{ $this->_fs->get_module_type() } = $this->_fs->get_plugin_basename();
 
 					/**
 					 * Cache plugin details locally since set_site_transient( 'update_plugins' )
@@ -208,7 +235,11 @@
 
 			if ( is_object( $this->_update_details ) ) {
 				// Add plugin to transient data.
-				$transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_update_details;
+				if ( $this->_fs->is_plugin() ) {
+					$transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_update_details;
+				} else {
+					$transient_data->response[ $this->_update_details->theme ] = (array) $this->_update_details;
+				}
 			}
 
 			return $transient_data;
@@ -521,7 +552,7 @@ if ( !isset($info->error) ) {
 
 			$skin_args = array(
 				'type'   => 'web',
-				'title'  => sprintf( fs_text( 'installing-plugin-x', $slug ), $title ),
+				'title'  => sprintf( $this->_fs->get_text( 'installing-plugin-x' ), $title ),
 				'url'    => esc_url_raw( $install_url ),
 				'nonce'  => 'install-plugin_' . $slug,
 				'plugin' => '',
@@ -562,7 +593,7 @@ if ( !isset($info->error) ) {
 				global $wp_filesystem;
 
 				$error_code    = 'unable_to_connect_to_filesystem';
-				$error_message = __( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+				$error_message = $this->_fs->get_text( 'Unable to connect to the filesystem. Please confirm your credentials.' );
 
 				// Pass through the error from WP_Filesystem if one was raised.
 				if ( $wp_filesystem instanceof WP_Filesystem_Base &&

@@ -1,6 +1,6 @@
 <?php
 	/**
-	 * Copyright 2014 Freemius, Inc.
+	 * Copyright 2016 Freemius, Inc.
 	 *
 	 * Licensed under the GPL v2 (the "License"); you may
 	 * not use this file except in compliance with the License. You may obtain
@@ -78,11 +78,11 @@
 		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
 	}
 
-	if ( class_exists( 'Freemius_Api' ) ) {
+	if ( class_exists( 'Freemius_Api_WordPress' ) ) {
 		return;
 	}
 
-	class Freemius_Api extends Freemius_Api_Base {
+	class Freemius_Api_WordPress extends Freemius_Api_Base {
 		private static $_logger = array();
 
 		/**
@@ -172,32 +172,69 @@
 		/**
 		 * Sign request with the following HTTP headers:
 		 *      Content-MD5: MD5(HTTP Request body)
-		 *      Date: Current date (i.e Sat, 14 Feb 2015 20:24:46 +0000)
+		 *      Date: Current date (i.e Sat, 14 Feb 2016 20:24:46 +0000)
 		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign,
 		 *      {scope_entity_secret_key}))
 		 *
 		 * @param string $pResourceUrl
-		 * @param array  $pCurlOptions
+		 * @param array  $pWPRemoteArgs
 		 *
 		 * @return array
 		 */
-		function SignRequest( $pResourceUrl, $pCurlOptions ) {
-			$eol          = "\n";
-			$content_md5  = '';
-			$now          = ( time() - self::$_clock_diff );
-			$date         = date( 'r', $now );
-			$content_type = '';
+		function SignRequest( $pResourceUrl, $pWPRemoteArgs ) {
+			$auth = $this->GenerateAuthorizationParams(
+				$pResourceUrl,
+				$pWPRemoteArgs['method'],
+				! empty( $pWPRemoteArgs['body'] ) ? $pWPRemoteArgs['body'] : ''
+			);
 
-			if ( isset( $pCurlOptions[ CURLOPT_POST ] ) && 0 < $pCurlOptions[ CURLOPT_POST ] ) {
-				$content_md5                          = md5( $pCurlOptions[ CURLOPT_POSTFIELDS ] );
-				$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Content-MD5: ' . $content_md5;
-				$content_type                         = 'application/json';
+			$pWPRemoteArgs['headers']['Date']          = $auth['date'];
+			$pWPRemoteArgs['headers']['Authorization'] = $auth['authorization'];
+
+			if ( ! empty( $auth['content_md5'] ) ) {
+				$pWPRemoteArgs['headers']['Content-MD5'] = $auth['content_md5'];
 			}
 
-			$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Date: ' . $date;
+			return $pWPRemoteArgs;
+		}
+
+		/**
+		 * Generate Authorization request headers:
+		 *
+		 *      Content-MD5: MD5(HTTP Request body)
+		 *      Date: Current date (i.e Sat, 14 Feb 2016 20:24:46 +0000)
+		 *      Authorization: FS {scope_entity_id}:{scope_entity_public_key}:base64encode(sha256(string_to_sign,
+		 *      {scope_entity_secret_key}))
+		 *
+		 * @author Vova Feldman
+		 *
+		 * @param string $pResourceUrl
+		 * @param string $pMethod
+		 * @param string $pPostParams
+		 *
+		 * @return array
+		 * @throws Freemius_Exception
+		 */
+		function GenerateAuthorizationParams(
+			$pResourceUrl,
+			$pMethod = 'GET',
+			$pPostParams = ''
+		) {
+			$pMethod = strtoupper( $pMethod );
+
+			$eol          = "\n";
+			$content_md5  = '';
+			$content_type = '';
+			$now          = ( time() - self::$_clock_diff );
+			$date         = date( 'r', $now );
+
+			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) && ! empty( $pPostParams ) ) {
+				$content_md5  = md5( $pPostParams );
+				$content_type = 'application/json';
+			}
 
 			$string_to_sign = implode( $eol, array(
-				$pCurlOptions[ CURLOPT_CUSTOMREQUEST ],
+				$pMethod,
 				$content_md5,
 				$content_type,
 				$date,
@@ -208,16 +245,20 @@
 			// the signature uses public key hash encoding.
 			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
 
-			// Add authorization header.
-			$pCurlOptions[ CURLOPT_HTTPHEADER ][] = 'Authorization: ' .
-			                                        $auth_type . ' ' .
-			                                        $this->_id . ':' .
-			                                        $this->_public . ':' .
-			                                        self::Base64UrlEncode(
-				                                        hash_hmac( 'sha256', $string_to_sign, $this->_secret )
-			                                        );
+			$auth = array(
+				'date'          => $date,
+				'authorization' => $auth_type . ' ' . $this->_id . ':' .
+				                   $this->_public . ':' .
+				                   self::Base64UrlEncode( hash_hmac(
+					                   'sha256', $string_to_sign, $this->_secret
+				                   ) )
+			);
 
-			return $pCurlOptions;
+			if ( ! empty( $content_md5 ) ) {
+				$auth['content_md5'] = $content_md5;
+			}
+
+			return $auth;
 		}
 
 		/**
@@ -233,68 +274,53 @@
 			$resource     = explode( '?', $this->CanonizePath( $pPath ) );
 			$pResourceUrl = $resource[0];
 
-			$eol          = "\n";
-			$content_md5  = '';
-			$content_type = '';
-			$now          = ( time() - self::$_clock_diff );
-			$date         = date( 'r', $now );
+			$auth = $this->GenerateAuthorizationParams( $pResourceUrl );
 
-			$string_to_sign = implode( $eol, array(
-				'GET',
-				$content_md5,
-				$content_type,
-				$date,
-				$pResourceUrl
-			) );
-
-			// If secret and public keys are identical, it means that
-			// the signature uses public key hash encoding.
-			$auth_type = ( $this->_secret !== $this->_public ) ? 'FS' : 'FSP';
-
-			return Freemius_Api::GetUrl(
+			return Freemius_Api_WordPress::GetUrl(
 				$pResourceUrl . '?' .
 				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
 				http_build_query( array(
-					'auth_date'     => $date,
-					'authorization' => $auth_type . ' ' . $this->_id . ':' .
-					                   $this->_public . ':' .
-					                   self::Base64UrlEncode( hash_hmac(
-						                   'sha256', $string_to_sign, $this->_secret
-					                   ) )
+					'auth_date'     => $auth['date'],
+					'authorization' => $auth['authorization']
 				) ), $this->_isSandbox );
 		}
 
 		/**
-		 * @param resource $pCurlHandler
-		 * @param array    $pCurlOptions
+		 * @author Vova Feldman
+		 *
+		 * @param string $pUrl
+		 * @param array  $pWPRemoteArgs
 		 *
 		 * @return mixed
 		 */
-		private static function ExecuteRequest( &$pCurlHandler, &$pCurlOptions ) {
+		private static function ExecuteRequest( $pUrl, &$pWPRemoteArgs ) {
 			$start = microtime( true );
 
-			$result = curl_exec( $pCurlHandler );
+			$response = wp_remote_request( $pUrl, $pWPRemoteArgs );
 
 			if ( FS_API__LOGGER_ON ) {
 				$end = microtime( true );
 
-				$has_body = ( isset( $pCurlOptions[ CURLOPT_POST ] ) && 0 < $pCurlOptions[ CURLOPT_POST ] );
+				$has_body      = ( isset( $pWPRemoteArgs['body'] ) && ! empty( $pWPRemoteArgs['body'] ) );
+				$is_http_error = is_wp_error( $response );
 
 				self::$_logger[] = array(
 					'id'        => count( self::$_logger ),
 					'start'     => $start,
 					'end'       => $end,
 					'total'     => ( $end - $start ),
-					'method'    => $pCurlOptions[ CURLOPT_CUSTOMREQUEST ],
-					'path'      => $pCurlOptions[ CURLOPT_URL ],
-					'body'      => $has_body ? $pCurlOptions[ CURLOPT_POSTFIELDS ] : null,
-					'result'    => $result,
-					'code'      => curl_getinfo( $pCurlHandler, CURLINFO_HTTP_CODE ),
+					'method'    => $pWPRemoteArgs['method'],
+					'path'      => $pUrl,
+					'body'      => $has_body ? $pWPRemoteArgs['body'] : null,
+					'result'    => ! $is_http_error ?
+						$response['body'] :
+						json_encode( $response->get_error_messages() ),
+					'code'      => ! $is_http_error ? $response['response']['code'] : null,
 					'backtrace' => debug_backtrace(),
 				);
 			}
 
-			return $result;
+			return $response;
 		}
 
 		/**
@@ -308,7 +334,7 @@
 		 * @param string        $pCanonizedPath
 		 * @param string        $pMethod
 		 * @param array         $pParams
-		 * @param null|resource $pCurlHandler
+		 * @param null|array    $pWPRemoteArgs
 		 * @param bool          $pIsSandbox
 		 * @param null|callable $pBeforeExecutionFunction
 		 *
@@ -320,14 +346,10 @@
 			$pCanonizedPath,
 			$pMethod = 'GET',
 			$pParams = array(),
-			$pCurlHandler = null,
+			$pWPRemoteArgs = null,
 			$pIsSandbox = false,
 			$pBeforeExecutionFunction = null
 		) {
-			if ( ! FS_SDK__HAS_CURL ) {
-				self::ThrowNoCurlException();
-			}
-
 			// Connectivity errors simulation.
 			if ( FS_SDK__SIMULATE_NO_API_CONNECTIVITY_CLOUDFLARE ) {
 				self::ThrowCloudFlareDDoSException();
@@ -335,105 +357,107 @@
 				self::ThrowSquidAclException();
 			}
 
-			if ( ! $pCurlHandler ) {
-				$pCurlHandler = curl_init();
+			if ( empty( $pWPRemoteArgs ) ) {
+				$user_agent = 'Freemius/WordPress-SDK/' . Freemius_Api_Base::VERSION . '; ' .
+				              home_url();
+
+				$pWPRemoteArgs = array(
+					'method'           => strtoupper( $pMethod ),
+					'connect_timeout'  => 10,
+					'timeout'          => 60,
+					'follow_redirects' => true,
+					'redirection'      => 5,
+					'user-agent'       => $user_agent,
+					'blocking'         => true,
+				);
 			}
 
-			$opts = array(
-				CURLOPT_CONNECTTIMEOUT => 10,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_TIMEOUT        => 60,
-				CURLOPT_USERAGENT      => FS_SDK__USER_AGENT,
-				CURLOPT_HTTPHEADER     => array(),
-			);
+			if ( ! isset( $pWPRemoteArgs['headers'] ) ||
+			     ! is_array( $pWPRemoteArgs['headers'] )
+			) {
+				$pWPRemoteArgs['headers'] = array();
+			}
 
-			if ( 'POST' === $pMethod || 'PUT' === $pMethod ) {
+			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) ) {
 				if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
-					$opts[ CURLOPT_HTTPHEADER ][] = 'Content-Type: application/json';
-					$opts[ CURLOPT_POST ]         = count( $pParams );
-					$opts[ CURLOPT_POSTFIELDS ]   = json_encode( $pParams );
+					$pWPRemoteArgs['headers']['Content-type'] = 'application/json';
+					$pWPRemoteArgs['body']                    = json_encode( $pParams );
 				}
-
-				$opts[ CURLOPT_RETURNTRANSFER ] = true;
 			}
 
 			$request_url = self::GetUrl( $pCanonizedPath, $pIsSandbox );
 
-			$opts[ CURLOPT_URL ]           = $request_url;
-			$opts[ CURLOPT_CUSTOMREQUEST ] = $pMethod;
-
 			$resource = explode( '?', $pCanonizedPath );
 
-			// Disable the 'Expect: 100-continue' behaviour. This causes CURL to wait
+			// Disable the 'Expect: 100-continue' behaviour. This causes cURL to wait
 			// for 2 seconds if the server does not support this header.
-			$opts[ CURLOPT_HTTPHEADER ][] = 'Expect:';
+			$pWPRemoteArgs['headers']['Expect'] = '';
 
 			if ( 'https' === substr( strtolower( $request_url ), 0, 5 ) ) {
-				$opts[ CURLOPT_SSL_VERIFYHOST ] = false;
-				$opts[ CURLOPT_SSL_VERIFYPEER ] = false;
+				$pWPRemoteArgs['sslverify'] = false;
 			}
 
 			if ( false !== $pBeforeExecutionFunction &&
 			     is_callable( $pBeforeExecutionFunction )
 			) {
-				$opts = call_user_func( $pBeforeExecutionFunction, $resource[0], $opts );
+				$pWPRemoteArgs = call_user_func( $pBeforeExecutionFunction, $resource[0], $pWPRemoteArgs );
 			}
 
-			curl_setopt_array( $pCurlHandler, $opts );
-			$result = self::ExecuteRequest( $pCurlHandler, $opts );
+			$result = self::ExecuteRequest( $request_url, $pWPRemoteArgs );
 
-			/*if (curl_errno($ch) == 60) // CURLE_SSL_CACERT
-			{
-				self::errorLog('Invalid or no certificate authority found, using bundled information');
-				curl_setopt($ch, CURLOPT_CAINFO,
-				dirname(__FILE__) . '/fb_ca_chain_bundle.crt');
-				$result = curl_exec($ch);
-			}*/
+			if ( is_wp_error( $result ) ) {
+				/**
+				 * @var WP_Error $result
+				 */
+				if ( self::IsCurlError( $result ) ) {
+					/**
+					 * With dual stacked DNS responses, it's possible for a server to
+					 * have IPv6 enabled but not have IPv6 connectivity.  If this is
+					 * the case, cURL will try IPv4 first and if that fails, then it will
+					 * fall back to IPv6 and the error EHOSTUNREACH is returned by the
+					 * operating system.
+					 */
+					$matches = array();
+					$regex   = '/Failed to connect to ([^:].*): Network is unreachable/';
+					if ( preg_match( $regex, $result->get_error_message( 'http_request_failed' ), $matches ) ) {
+						if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
+//						    error_log('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
+							// Hook to an action triggered just before cURL is executed to resolve the IP version to v4.
+							add_action( 'http_api_curl', 'Freemius_Api_WordPress::CurlResolveToIPv4', 10, 1 );
 
-			// With dual stacked DNS responses, it's possible for a server to
-			// have IPv6 enabled but not have IPv6 connectivity.  If this is
-			// the case, curl will try IPv4 first and if that fails, then it will
-			// fall back to IPv6 and the error EHOSTUNREACH is returned by the
-			// operating system.
-			if ( false === $result && empty( $opts[ CURLOPT_IPRESOLVE ] ) ) {
-				$matches = array();
-				$regex   = '/Failed to connect to ([^:].*): Network is unreachable/';
-				if ( preg_match( $regex, curl_error( $pCurlHandler ), $matches ) ) {
-					if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
-//						self::errorLog('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
-						$opts[ CURLOPT_IPRESOLVE ] = CURL_IPRESOLVE_V4;
-						curl_setopt( $pCurlHandler, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
-						$result = self::ExecuteRequest( $pCurlHandler, $opts );
+							// Re-run request.
+							$result = self::ExecuteRequest( $request_url, $pWPRemoteArgs );
+						}
 					}
+				}
+
+				if ( is_wp_error( $result ) ) {
+					self::ThrowWPRemoteException( $result );
 				}
 			}
 
-			if ( $result === false ) {
-				self::ThrowCurlException( $pCurlHandler );
-			}
+			$response_body = $result['body'];
 
-			curl_close( $pCurlHandler );
-
-			if ( empty( $result ) ) {
+			if ( empty( $response_body ) ) {
 				return null;
 			}
 
-			$decoded = json_decode( $result );
+			$decoded = json_decode( $response_body );
 
 			if ( is_null( $decoded ) ) {
-				if ( preg_match( '/Please turn JavaScript on/i', $result ) &&
-				     preg_match( '/text\/javascript/', $result )
+				if ( preg_match( '/Please turn JavaScript on/i', $response_body ) &&
+				     preg_match( '/text\/javascript/', $response_body )
 				) {
-					self::ThrowCloudFlareDDoSException( $result );
-				} else if ( preg_match( '/Access control configuration prevents your request from being allowed at this time. Please contact your service provider if you feel this is incorrect./', $result ) &&
-				            preg_match( '/squid/', $result )
+					self::ThrowCloudFlareDDoSException( $response_body );
+				} else if ( preg_match( '/Access control configuration prevents your request from being allowed at this time. Please contact your service provider if you feel this is incorrect./', $response_body ) &&
+				            preg_match( '/squid/', $response_body )
 				) {
-					self::ThrowSquidAclException( $result );
+					self::ThrowSquidAclException( $response_body );
 				} else {
 					$decoded = (object) array(
 						'error' => (object) array(
 							'type'    => 'Unknown',
-							'message' => $result,
+							'message' => $response_body,
 							'code'    => 'unknown',
 							'http'    => 402
 						)
@@ -447,13 +471,13 @@
 
 		/**
 		 * Makes an HTTP request. This method can be overridden by subclasses if
-		 * developers want to do fancier things or use something other than curl to
-		 * make the request.
+		 * developers want to do fancier things or use something other than wp_remote_request()
+		 * to make the request.
 		 *
-		 * @param string        $pCanonizedPath The URL to make the request to
-		 * @param string        $pMethod        HTTP method
-		 * @param array         $pParams        The parameters to use for the POST body
-		 * @param null|resource $pCurlHandler   Initialized curl handle
+		 * @param string     $pCanonizedPath The URL to make the request to
+		 * @param string     $pMethod        HTTP method
+		 * @param array      $pParams        The parameters to use for the POST body
+		 * @param null|array $pWPRemoteArgs  wp_remote_request options.
 		 *
 		 * @return object[]|object|null
 		 *
@@ -463,7 +487,7 @@
 			$pCanonizedPath,
 			$pMethod = 'GET',
 			$pParams = array(),
-			$pCurlHandler = null
+			$pWPRemoteArgs = null
 		) {
 			$resource = explode( '?', $pCanonizedPath );
 
@@ -474,15 +498,32 @@
 				$pCanonizedPath,
 				$pMethod,
 				$pParams,
-				$pCurlHandler,
+				$pWPRemoteArgs,
 				$this->_isSandbox,
 				$sign_request ? array( &$this, 'SignRequest' ) : null
 			);
 		}
 
+		/**
+		 * Sets CURLOPT_IPRESOLVE to CURL_IPRESOLVE_V4 for cURL-Handle provided as parameter
+		 *
+		 * @param resource $handle A cURL handle returned by curl_init()
+		 *
+		 * @return resource $handle A cURL handle returned by curl_init() with CURLOPT_IPRESOLVE set to
+		 *                  CURL_IPRESOLVE_V4
+		 *
+		 * @link https://gist.github.com/golderweb/3a2aaec2d56125cc004e
+		 */
+		static function CurlResolveToIPv4( $handle ) {
+			curl_setopt( $handle, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+
+			return $handle;
+		}
+
 		#----------------------------------------------------------------------------------
 		#region Connectivity Test
 		#----------------------------------------------------------------------------------
+
 		/**
 		 * If successful connectivity to the API endpoint using ping.json endpoint.
 		 *
@@ -539,56 +580,83 @@
 		#----------------------------------------------------------------------------------
 
 		/**
-		 * @param resource $pCurlHandler
+		 * @param \WP_Error $pError
 		 *
-		 * @throws Freemius_Exception
+		 * @return bool
 		 */
-		private static function ThrowCurlException( $pCurlHandler ) {
-			$e = new Freemius_Exception( array(
-				'error' => array(
-					'code'    => curl_errno( $pCurlHandler ),
-					'message' => curl_error( $pCurlHandler ),
-					'type'    => 'CurlException',
-				),
-			) );
+		private static function IsCurlError( WP_Error $pError ) {
+			$message = $pError->get_error_message( 'http_request_failed' );
 
-			curl_close( $pCurlHandler );
-			throw $e;
+			return ( 0 === strpos( $message, 'cURL' ) );
 		}
 
 		/**
-		 * @param string $pResult
+		 * @param WP_Error $pError
 		 *
 		 * @throws Freemius_Exception
 		 */
-		private static function ThrowNoCurlException( $pResult = '' ) {
-			$curl_required_methods = array(
-				'curl_version',
-				'curl_exec',
-				'curl_init',
-				'curl_close',
-				'curl_setopt',
-				'curl_setopt_array',
-				'curl_error',
-			);
+		private static function ThrowWPRemoteException( WP_Error $pError ) {
+			if ( self::IsCurlError( $pError ) ) {
+				$message = $pError->get_error_message( 'http_request_failed' );
 
-			// Find all missing methods.
-			$missing_methods = array();
-			foreach ( $curl_required_methods as $m ) {
-				if ( ! function_exists( $m ) ) {
-					$missing_methods[] = $m;
+				#region Check if there are any missing cURL methods.
+
+				$curl_required_methods = array(
+					'curl_version',
+					'curl_exec',
+					'curl_init',
+					'curl_close',
+					'curl_setopt',
+					'curl_setopt_array',
+					'curl_error',
+				);
+
+				// Find all missing methods.
+				$missing_methods = array();
+				foreach ( $curl_required_methods as $m ) {
+					if ( ! function_exists( $m ) ) {
+						$missing_methods[] = $m;
+					}
 				}
+
+				if ( ! empty( $missing_methods ) ) {
+					throw new Freemius_Exception( array(
+						'error'           => (object) array(
+							'type'    => 'cUrlMissing',
+							'message' => $message,
+							'code'    => 'curl_missing',
+							'http'    => 402
+						),
+						'missing_methods' => $missing_methods,
+					) );
+				}
+
+				#endregion
+
+				// cURL error - "cURL error {{errno}}: {{error}}".
+				$parts = explode( ':', substr( $message, strlen( 'cURL error ' ) ), 2 );
+
+				$code    = ( 0 < count( $parts ) ) ? $parts[0] : 'http_request_failed';
+				$message = ( 1 < count( $parts ) ) ? $parts[1] : $message;
+
+				$e = new Freemius_Exception( array(
+					'error' => array(
+						'code'    => $code,
+						'message' => $message,
+						'type'    => 'CurlException',
+					),
+				) );
+			} else {
+				$e = new Freemius_Exception( array(
+					'error' => array(
+						'code'    => $pError->get_error_code(),
+						'message' => $pError->get_error_message(),
+						'type'    => 'WPRemoteException',
+					),
+				) );
 			}
 
-			throw new Freemius_Exception( array(
-				'error'           => (object) array(
-					'type'    => 'cUrlMissing',
-					'message' => $pResult,
-					'code'    => 'curl_missing',
-					'http'    => 402
-				),
-				'missing_methods' => $missing_methods,
-			) );
+			throw $e;
 		}
 
 		/**

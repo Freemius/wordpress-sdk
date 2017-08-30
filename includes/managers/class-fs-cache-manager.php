@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.1.6
 	 */
 
@@ -115,18 +115,37 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.6
 		 *
-		 * @param string $key
+		 * @param string   $key
+		 * @param null|int $expiration Since 1.2.2.7
 		 *
 		 * @return bool
 		 */
-		function has_valid( $key ) {
+		function has_valid( $key, $expiration = null ) {
 			$cache_entry = $this->_options->get_option( $key, false );
 
-			return ( is_object( $cache_entry ) &&
-			         isset( $cache_entry->timestamp ) &&
-			         is_numeric( $cache_entry->timestamp ) &&
-			         $cache_entry->timestamp > WP_FS__SCRIPT_START_TIME
+			$is_valid = ( is_object( $cache_entry ) &&
+			              isset( $cache_entry->timestamp ) &&
+			              is_numeric( $cache_entry->timestamp ) &&
+			              $cache_entry->timestamp > WP_FS__SCRIPT_START_TIME
 			);
+
+			if ( $is_valid &&
+			     is_numeric( $expiration ) &&
+			     isset( $cache_entry->created ) &&
+			     is_numeric( $cache_entry->created ) &&
+			     $cache_entry->created + $expiration < WP_FS__SCRIPT_START_TIME
+			) {
+				/**
+				 * Even if the cache is still valid, since we are checking for validity
+				 * with an explicit expiration period, if the period has past, return
+				 * `false` as if the cache is invalid.
+				 *
+				 * @since 1.2.2.7
+				 */
+				$is_valid = false;
+			}
+
+			return $is_valid;
 		}
 
 		/**
@@ -191,6 +210,7 @@
 
 			$cache_entry            = new stdClass();
 			$cache_entry->result    = $value;
+			$cache_entry->created   = WP_FS__SCRIPT_START_TIME;
 			$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
 			$this->_options->set_option( $key, $cache_entry, true );
 		}
@@ -233,5 +253,28 @@
 			$this->_logger->entrance( 'key = ' . $key );
 
 			$this->_options->unset_option( $key, true );
+		}
+
+		/**
+		 * Set cached item as expired.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.2.7
+		 *
+		 * @param string $key
+		 */
+		function expire( $key ) {
+			$this->_logger->entrance( 'key = ' . $key );
+
+			$cache_entry = $this->_options->get_option( $key, false );
+
+			if ( is_object( $cache_entry ) &&
+			     isset( $cache_entry->timestamp ) &&
+			     is_numeric( $cache_entry->timestamp ))
+			{
+				// Set to expired.
+				$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME;
+				$this->_options->set_option( $key, $cache_entry, true );
+			}
 		}
 	}

@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.3
 	 */
 
@@ -60,16 +60,47 @@
 
 	/* Scripts and styles including.
 	--------------------------------------------------------------------------------------------*/
+
+	/**
+	 * Generates an absolute URL to the given path. This function ensures that the URL will be correct whether the asset
+	 * is inside a plugin's folder or a theme's folder.
+	 *
+	 * Examples:
+	 * 1. "themes" folder
+	 *    Path: C:/xampp/htdocs/fswp/wp-content/themes/twentytwelve/freemius/assets/css/admin/common.css
+	 *    URL: http://fswp:8080/wp-content/themes/twentytwelve/freemius/assets/css/admin/common.css
+	 *
+	 * 2. "plugins" folder
+	 *    Path: C:/xampp/htdocs/fswp/wp-content/plugins/rating-widget-premium/freemius/assets/css/admin/common.css
+	 *    URL: http://fswp:8080/wp-content/plugins/rating-widget-premium/freemius/assets/css/admin/common.css
+	 *
+	 * @author Leo Fajardo (@leorw)
+	 * @since  1.2.2
+	 *
+	 * @param  string $asset_abs_path Asset's absolute path.
+	 *
+	 * @return string Asset's URL.
+	 */
+	function fs_asset_url( $asset_abs_path ) {
+		$wp_content_dir = fs_normalize_path( WP_CONTENT_DIR );
+		$asset_abs_path = fs_normalize_path( $asset_abs_path );
+		$asset_rel_path = str_replace( $wp_content_dir, '', $asset_abs_path );
+
+		$asset_url = content_url( fs_normalize_path( $asset_rel_path ) );
+
+		return $asset_url;
+	}
+
 	function fs_enqueue_local_style( $handle, $path, $deps = array(), $ver = false, $media = 'all' ) {
-		wp_enqueue_style( $handle, plugins_url( plugin_basename( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $media );
+		wp_enqueue_style( $handle, fs_asset_url( WP_FS__DIR_CSS . '/' . trim( $path, '/' ) ), $deps, $ver, $media );
 	}
 
 	function fs_enqueue_local_script( $handle, $path, $deps = array(), $ver = false, $in_footer = 'all' ) {
-		wp_enqueue_script( $handle, plugins_url( plugin_basename( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ) ), $deps, $ver, $in_footer );
+		wp_enqueue_script( $handle, fs_asset_url( WP_FS__DIR_JS . '/' . trim( $path, '/' ) ), $deps, $ver, $in_footer );
 	}
 
 	function fs_img_url( $path, $img_dir = WP_FS__DIR_IMG ) {
-		return plugins_url( plugin_basename( $img_dir . '/' . trim( $path, '/' ) ) );
+		return ( fs_asset_url( $img_dir . '/' . trim( $path, '/' ) ) );
 	}
 
 	/* Request handlers.
@@ -186,13 +217,13 @@
 	}
 
 	function fs_is_plugin_page( $page_slug ) {
-		return ( is_admin() && $page_slug === fs_request_get('page') );
+		return ( is_admin() && $page_slug === fs_request_get( 'page' ) );
 	}
 
 	/* Core UI.
 	--------------------------------------------------------------------------------------------*/
 	/**
-	 * @param string      $slug
+	 * @param number      $module_id
 	 * @param string      $page
 	 * @param string      $action
 	 * @param string      $title
@@ -205,7 +236,7 @@
 	 * @uses fs_ui_get_action_button()
 	 */
 	function fs_ui_action_button(
-		$slug,
+		$module_id,
 		$page,
 		$action,
 		$title,
@@ -216,7 +247,7 @@
 		$method = 'GET'
 	) {
 		echo fs_ui_get_action_button(
-			$slug,
+			$module_id,
 			$page,
 			$action,
 			$title,
@@ -232,7 +263,7 @@
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.1.7
 	 *
-	 * @param string      $slug
+	 * @param number      $module_id
 	 * @param string      $page
 	 * @param string      $action
 	 * @param string      $title
@@ -245,7 +276,7 @@
 	 * @return string
 	 */
 	function fs_ui_get_action_button(
-		$slug,
+		$module_id,
 		$page,
 		$action,
 		$title,
@@ -260,7 +291,7 @@
 
 		if ( is_string( $confirmation ) ) {
 			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="if (confirm(\'%s\')) this.parentNode.submit(); return false;">%s</a></form>',
-				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				freemius( $module_id )->_get_admin_page_url( $page, $params ),
 				$method,
 				$action,
 				wp_nonce_field( $action, '_wpnonce', true, false ),
@@ -270,7 +301,7 @@
 			);
 		} else if ( 'GET' !== strtoupper( $method ) ) {
 			return sprintf( '<form action="%s" method="%s"><input type="hidden" name="fs_action" value="%s">%s<a href="#" class="%s" onclick="this.parentNode.submit(); return false;">%s</a></form>',
-				freemius( $slug )->_get_admin_page_url( $page, $params ),
+				freemius( $module_id )->_get_admin_page_url( $page, $params ),
 				$method,
 				$action,
 				wp_nonce_field( $action, '_wpnonce', true, false ),
@@ -279,16 +310,16 @@
 			);
 		} else {
 			return sprintf( '<a href="%s" class="%s">%s</a></form>',
-				wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
+				wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
 				'button' . ( $is_primary ? ' button-primary' : '' ),
 				$title
 			);
 		}
 	}
 
-	function fs_ui_action_link( $slug, $page, $action, $title, $params = array() ) {
+	function fs_ui_action_link( $module_id, $page, $action, $title, $params = array() ) {
 		?><a class=""
-		     href="<?php echo wp_nonce_url( freemius( $slug )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
+		     href="<?php echo wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
 	}
 
 	/*function fs_error_handler($errno, $errstr, $errfile, $errline)
@@ -464,16 +495,30 @@
 
 	#endregion Url Canonization ------------------------------------------------------------------
 
+	/**
+	 * @author Vova Feldman (@svovaf)
+	 *
+	 * @since  1.2.2 Changed to usage of WP_Filesystem_Direct.
+	 *
+	 * @param string $from URL
+	 * @param string $to   File path.
+	 */
 	function fs_download_image( $from, $to ) {
-		$ch = curl_init( $from );
-		$fp = fopen( fs_normalize_path( $to ), 'wb' );
-		curl_setopt( $ch, CURLOPT_FILE, $fp );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_exec( $ch );
-		curl_close( $ch );
-		fclose( $fp );
+		$dir = dirname( $to );
+
+		if ( 'direct' !== get_filesystem_method( array(), $dir ) ) {
+			return;
+		}
+
+		if ( ! class_exists( 'WP_Filesystem_Direct' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+			require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+		}
+
+		$fs      = new WP_Filesystem_Direct( '' );
+		$tmpfile = download_url( $from );
+		$fs->copy( $tmpfile, $to );
+		$fs->delete( $tmpfile );
 	}
 
 	/* General Utilities
@@ -511,39 +556,39 @@
 	#region Localization
 	#--------------------------------------------------------------------------------
 
-    if ( ! function_exists( 'fs_text' ) ) {
-        /**
-         * Retrieve a translated text by key.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.1.7
-         *
-         * @param string $key
-         * @param string $slug
-         *
-         * @return string
-         *
-         * @global       $fs_text, $fs_text_overrides
-         */
-        function fs_text( $key, $slug = 'freemius' ) {
-            return __fs( $key, $slug );
-        }
+	if ( ! function_exists( 'fs_text' ) ) {
+		/**
+		 * Retrieve a translated text by key.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 *
+		 * @return string
+		 *
+		 * @global       $fs_text, $fs_text_overrides
+		 */
+		function fs_text( $key, $slug = 'freemius' ) {
+			return __fs( $key, $slug );
+		}
 
-        /**
-         * Output a translated text by key.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.1.7
-         *
-         * @param string $key
-         * @param string $slug
-         */
-        function fs_echo( $key, $slug = 'freemius' ) {
-            echo fs_text( $key, $slug );
-        }
+		/**
+		 * Output a translated text by key.
+		 *
+		 * @author Vova Feldman (@svovaf)
+		 * @since  1.2.1.7
+		 *
+		 * @param string $key
+		 * @param string $slug
+		 */
+		function fs_echo( $key, $slug = 'freemius' ) {
+			echo fs_text( $key, $slug );
+		}
 	}
 
-    /**
+	/**
 	 * @author Vova Feldman
 	 * @since  1.2.1.6
 	 *

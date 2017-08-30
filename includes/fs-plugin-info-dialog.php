@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.0.6
 	 */
 
@@ -99,37 +99,34 @@
 			$has_pricing  = false;
 			$has_features = false;
 			$plans        = false;
-			$plans_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans.json?type=visible" );
-			if ( ! isset( $plans_result->error ) ) {
-				$plans = $plans_result->plans;
+
+			$result = $this->_fs->get_api_plugin_scope()->get( "/addons/{$selected_addon->id}/pricing.json?type=visible" );
+
+			if ( ! isset( $result->error ) ) {
+				$plans = $result->plans;
+
 				if ( is_array( $plans ) ) {
 					for ( $i = 0, $len = count( $plans ); $i < $len; $i ++ ) {
+						$pricing  = isset( $plans[ $i ]->pricing ) ? $plans[ $i ]->pricing : null;
+						$features = isset( $plans[ $i ]->features ) ? $plans[ $i ]->features : null;
+
 						$plans[ $i ] = new FS_Plugin_Plan( $plans[ $i ] );
 						$plan        = $plans[ $i ];
 
-						$pricing_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/pricing.json" );
-						if ( ! isset( $pricing_result->error ) ) {
-							// Update plan's pricing.
-							$plan->pricing = $pricing_result->pricing;
+						if ( is_array( $pricing ) && 0 < count( $pricing ) ) {
+							$is_free = false;
 
-							if ( is_array( $plan->pricing ) && ! empty( $plan->pricing ) ) {
-								$is_free = false;
-
-								foreach ( $plan->pricing as &$pricing ) {
-									$pricing = new FS_Pricing( $pricing );
-								}
+							foreach ( $pricing as &$prices ) {
+								$prices = new FS_Pricing( $prices );
 							}
+
+							$plan->pricing = $pricing;
 
 							$has_pricing = true;
 						}
 
-						$features_result = $this->_fs->get_api_site_or_plugin_scope()->get( "/addons/{$selected_addon->id}/plans/{$plan->id}/features.json" );
-						if ( ! isset( $features_result->error ) &&
-						     is_array( $features_result->features ) &&
-						     0 < count( $features_result->features )
-						) {
-							// Update plan's pricing.
-							$plan->features = $features_result->features;
+						if ( is_array( $features ) && 0 < count( $features ) ) {
+							$plan->features = $features;
 
 							$has_features = true;
 						}
@@ -313,7 +310,12 @@
 
 				if ( ! empty( $api->checkout_link ) && isset( $api->plans ) && 0 < is_array( $api->plans ) ) {
 					if ( is_null( $plan ) ) {
-						$plan = $api->plans[0];
+						foreach ($api->plans as $p) {
+							if (!empty($p->pricing)) {
+								$plan = $p;
+								break;
+							}
+						}
 					}
 
 					return ' <a class="button button-primary right" href="' . $this->_fs->addon_checkout_url(
@@ -565,6 +567,10 @@
 						<div class="plugin-information-pricing">
 						<?php foreach ( $api->plans as $plan ) : ?>
 							<?php
+							if ( empty( $plan->pricing ) ) {
+								continue;
+							}
+
 							/**
 							 * @var FS_Plugin_Plan $plan
 							 */

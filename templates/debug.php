@@ -2,7 +2,7 @@
 	/**
 	 * @package     Freemius
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.1.1
 	 */
 
@@ -85,7 +85,7 @@
 	</tbody>
 </table>
 <script type="text/javascript">
-	(function($){
+	(function ($) {
 		$('#fs_load_db_option').click(function () {
 			var optionName = prompt('Please enter the option name:');
 
@@ -197,107 +197,140 @@
 	<?php endforeach ?>
 	</tbody>
 </table>
-<?php $plugins = $fs_options->get_option( 'plugins' ) ?>
-<?php if ( is_array( $plugins ) && 0 < count( $plugins ) ) : ?>
-	<h2><?php fs_echo( 'plugins' ) ?></h2>
-	<table id="fs_plugins" class="widefat">
-		<thead>
-		<tr>
-			<th><?php fs_echo( 'id' ) ?></th>
-			<th><?php fs_echo( 'slug' ) ?></th>
-			<th><?php fs_echo( 'version' ) ?></th>
-			<th><?php fs_echo( 'title' ) ?></th>
-			<th><?php fs_echo( 'api' ) ?></th>
-			<th><?php fs_echo( 'freemius-state' ) ?></th>
-			<th><?php fs_echo( 'plugin-path' ) ?></th>
-			<th><?php fs_echo( 'public-key' ) ?></th>
-			<th><?php fs_echo( 'actions' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $plugins as $slug => $data ) : ?>
-			<?php $is_active = is_plugin_active( $data->file ) ?>
-			<?php $fs = $is_active ? freemius( $slug ) : null ?>
-			<tr<?php if ( $is_active ) {
-				if ( $fs->has_api_connectivity() && $fs->is_on() ) {
-					echo ' style="background: #E6FFE6; font-weight: bold"';
-				} else {
-					echo ' style="background: #ffd0d0; font-weight: bold"';
-				}
-			} ?>>
-				<td><?php echo $data->id ?></td>
-				<td><?php echo $slug ?></td>
-				<td><?php echo $data->version ?></td>
-				<td><?php echo $data->title ?></td>
-				<td<?php if ( $is_active && ! $fs->has_api_connectivity() ) {
-					echo ' style="color: red; text-transform: uppercase;"';
-				} ?>><?php if ( $is_active ) {
-						echo $fs->has_api_connectivity() ?
-							fs_text( 'connected' ) :
-							fs_text( 'blocked' );
-					} ?></td>
-				<td<?php if ( $is_active && ! $fs->is_on() ) {
-					echo ' style="color: red; text-transform: uppercase;"';
-				} ?>><?php if ( $is_active ) {
-						echo $fs->is_on() ?
-							fs_text( 'on' ) :
-							fs_text( 'off' );
-					} ?></td>
-				<td><?php echo $data->file ?></td>
-				<td><?php echo $data->public_key ?></td>
-				<td>
-					<?php if ( $is_active && $fs->has_trial_plan() ) : ?>
-						<form action="" method="POST">
-							<input type="hidden" name="fs_action" value="simulate_trial">
-							<input type="hidden" name="slug" value="<?php echo $slug ?>">
-							<?php wp_nonce_field( 'simulate_trial' ) ?>
 
-							<button type="submit"
-							        class="button button-primary simulate-trial"><?php fs_echo( 'Simulate Trial' ) ?></button>
-						</form>
-					<?php endif ?>
-				</td>
-			</tr>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
 <?php
+	$module_types = array(
+		WP_FS__MODULE_TYPE_PLUGIN,
+		WP_FS__MODULE_TYPE_THEME
+	);
+?>
+
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php $modules = $fs_options->get_option( $module_type . 's' ) ?>
+	<?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
+		<h2><?php fs_echo( $module_type . 's' ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>" class="widefat">
+			<thead>
+			<tr>
+				<th><?php fs_echo( 'id' ) ?></th>
+				<th><?php fs_echo( 'slug' ) ?></th>
+				<th><?php fs_echo( 'version' ) ?></th>
+				<th><?php fs_echo( 'title' ) ?></th>
+				<th><?php fs_echo( 'api' ) ?></th>
+				<th><?php fs_echo( 'freemius-state' ) ?></th>
+				<th><?php fs_echo( 'plugin-path' ) ?></th>
+				<th><?php fs_echo( 'public-key' ) ?></th>
+				<th><?php fs_echo( 'actions' ) ?></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $modules as $slug => $data ) : ?>
+				<?php
+				if ( WP_FS__MODULE_TYPE_THEME === $module_type ) {
+					$current_theme = wp_get_theme();
+					$is_active     = ( $current_theme->stylesheet === $data->file );
+				} else {
+					$is_active = is_plugin_active( $data->file );
+				}
+				?>
+				<?php $fs = $is_active ? freemius( $data->id ) : null ?>
+				<tr<?php if ( $is_active ) {
+					if ( $fs->has_api_connectivity() && $fs->is_on() ) {
+						echo ' style="background: #E6FFE6; font-weight: bold"';
+					} else {
+						echo ' style="background: #ffd0d0; font-weight: bold"';
+					}
+				} ?>>
+					<td><?php echo $data->id ?></td>
+					<td><?php echo $slug ?></td>
+					<td><?php echo $data->version ?></td>
+					<td><?php echo $data->title ?></td>
+					<td<?php if ( $is_active && ! $fs->has_api_connectivity() ) {
+						echo ' style="color: red; text-transform: uppercase;"';
+					} ?>><?php if ( $is_active ) {
+							echo $fs->has_api_connectivity() ?
+								fs_text( 'connected' ) :
+								fs_text( 'blocked' );
+						} ?></td>
+					<td<?php if ( $is_active && ! $fs->is_on() ) {
+						echo ' style="color: red; text-transform: uppercase;"';
+					} ?>><?php if ( $is_active ) {
+							echo $fs->is_on() ?
+								fs_text( 'on' ) :
+								fs_text( 'off' );
+						} ?></td>
+					<td><?php echo $data->file ?></td>
+					<td><?php echo $data->public_key ?></td>
+					<td>
+						<?php if ( $is_active ) : ?>
+							<?php if ( $fs->has_trial_plan() ) : ?>
+								<form action="" method="POST">
+									<input type="hidden" name="fs_action" value="simulate_trial">
+									<input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
+									<?php wp_nonce_field( 'simulate_trial' ) ?>
+
+								<button type="submit" class="button button-primary simulate-trial"><?php fs_echo( 'Simulate Trial' ) ?></button>
+								</form>
+							<?php endif ?>
+							<?php if ( $fs->is_registered() ) : ?>
+								<a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_echo('account') ?></a>
+							<?php endif ?>
+						<?php endif ?>
+					</td>
+				</tr>
+			<?php endforeach ?>
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php
 	/**
 	 * @var array     $VARS
 	 * @var FS_Site[] $sites
 	 */
-	$sites = $VARS['sites'];
-?>
-<?php if ( is_array( $sites ) && 0 < count( $sites ) ) : ?>
-	<h2><?php fs_echo( 'plugin-installs' ) ?> / <?php fs_echo( 'sites' ) ?></h2>
-	<table id="fs_installs" class="widefat">
-		<thead>
-		<tr>
-			<th><?php fs_echo( 'id' ) ?></th>
-			<th><?php fs_echo( 'slug' ) ?></th>
-			<th><?php fs_echo( 'plan' ) ?></th>
-			<th><?php fs_echo( 'public-key' ) ?></th>
-			<th><?php fs_echo( 'secret-key' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $sites as $slug => $site ) : ?>
+	$sites = $VARS[ $module_type . '_sites' ];
+	?>
+	<?php if ( is_array( $sites ) && count( $sites ) > 0 ) : ?>
+		<h2><?php printf( fs_text( 'module-installs' ), fs_text( $module_type ) ) ?> / <?php fs_echo( 'sites' ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>_installs" class="widefat">
+			<thead>
 			<tr>
-				<td><?php echo $site->id ?></td>
-				<td><?php echo $slug ?></td>
-				<td><?php
-						echo is_object( $site->plan ) ?
-							Freemius::_decrypt( $site->plan->name ) :
-							''
-					?></td>
-				<td><?php echo $site->public_key ?></td>
-				<td><?php echo $site->secret_key ?></td>
+				<th><?php fs_echo( 'id' ) ?></th>
+				<th><?php fs_echo( 'slug' ) ?></th>
+				<th><?php fs_echo( 'user-id' ) ?></th>
+				<th><?php fs_echo( 'plan' ) ?></th>
+				<th><?php fs_echo( 'public-key' ) ?></th>
+				<th><?php fs_echo( 'secret-key' ) ?></th>
+				<th><?php fs_echo( 'actions' ) ?></th>
 			</tr>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
+			</thead>
+			<tbody>
+			<?php foreach ( $sites as $slug => $site ) : ?>
+				<tr>
+					<td><?php echo $site->id ?></td>
+					<td><?php echo $slug ?></td>
+					<td><?php echo $site->user_id ?></td>
+					<td><?php
+							echo is_object( $site->plan ) ?
+								Freemius::_decrypt( $site->plan->name ) :
+								''
+						?></td>
+					<td><?php echo $site->public_key ?></td>
+					<td><?php echo $site->secret_key ?></td>
+					<td><form action="" method="POST">
+							<input type="hidden" name="fs_action" value="delete_install">
+							<?php wp_nonce_field( 'delete_install' ) ?>
+							<input type="hidden" name="module_id" value="<?php echo $site->plugin_id ?>">
+							<input type="hidden" name="module_type" value="<?php echo $module_type ?>">
+							<input type="hidden" name="slug" value="<?php echo $slug ?>">
+							<button type="submit" class="button"><?php fs_echo( 'delete' ) ?></button></td>
+				</tr>
+			<?php endforeach ?>
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>
 <?php
 	$addons = $VARS['addons'];
 ?>
@@ -365,53 +398,48 @@
 		</tbody>
 	</table>
 <?php endif ?>
-
-<?php
-	/**
-	 * @var FS_Plugin_License[] $licenses
-	 */
-	$licenses = $VARS['licenses'];
-?>
-<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-	<h2><?php fs_echo( 'licenses' ) ?></h2>
-	<table id="fs_users" class="widefat">
-		<thead>
-		<tr>
-			<th><?php fs_echo( 'id' ) ?></th>
-			<th><?php fs_echo( 'plugin-id' ) ?></th>
-			<th><?php fs_echo( 'user-id' ) ?></th>
-			<th><?php fs_echo( 'plan-id' ) ?></th>
-			<th><?php fs_echo( 'quota' ) ?></th>
-			<th><?php fs_echo( 'activated' ) ?></th>
-			<th><?php fs_echo( 'blocking' ) ?></th>
-			<th><?php fs_echo( 'license-key' ) ?></th>
-			<th><?php fs_echo( 'expiration' ) ?></th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $licenses as $slug => $module_licenses ) : ?>
-			<?php foreach ( $module_licenses as $id => $licenses ) : ?>
-				<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-					<?php foreach ( $licenses as $license ) : ?>
-						<tr>
-							<td><?php echo $license->id ?></td>
-							<td><?php echo $license->plugin_id ?></td>
-							<td><?php echo $license->user_id ?></td>
-							<td><?php echo $license->plan_id ?></td>
-							<td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
-							<td><?php echo $license->activated ?></td>
-							<td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
-							<td><?php echo htmlentities( $license->secret_key ) ?></td>
-							<td><?php echo $license->expiration ?></td>
-						</tr>
-					<?php endforeach ?>
-				<?php endif ?>
+<?php foreach ( $module_types as $module_type ) : ?>
+	<?php $licenses = $VARS[ $module_type . '_licenses' ] ?>
+	<?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
+		<h2><?php printf( fs_text( 'module-licenses' ), fs_text( $module_type ) ) ?></h2>
+		<table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
+			<thead>
+			<tr>
+				<th><?php fs_echo( 'id' ) ?></th>
+				<th><?php fs_echo( 'plugin-id' ) ?></th>
+				<th><?php fs_echo( 'user-id' ) ?></th>
+				<th><?php fs_echo( 'plan-id' ) ?></th>
+				<th><?php fs_echo( 'quota' ) ?></th>
+				<th><?php fs_echo( 'activated' ) ?></th>
+				<th><?php fs_echo( 'blocking' ) ?></th>
+				<th><?php fs_echo( 'license-key' ) ?></th>
+				<th><?php fs_echo( 'expiration' ) ?></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $licenses as $slug => $module_licenses ) : ?>
+				<?php foreach ( $module_licenses as $id => $licenses ) : ?>
+					<?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
+						<?php foreach ( $licenses as $license ) : ?>
+							<tr>
+								<td><?php echo $license->id ?></td>
+								<td><?php echo $license->plugin_id ?></td>
+								<td><?php echo $license->user_id ?></td>
+								<td><?php echo $license->plan_id ?></td>
+								<td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
+								<td><?php echo $license->activated ?></td>
+								<td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+								<td><?php echo htmlentities( $license->secret_key ) ?></td>
+								<td><?php echo $license->expiration ?></td>
+							</tr>
+						<?php endforeach ?>
+					<?php endif ?>
+				<?php endforeach ?>
 			<?php endforeach ?>
-		<?php endforeach ?>
-		</tbody>
-	</table>
-<?php endif ?>
-
+			</tbody>
+		</table>
+	<?php endif ?>
+<?php endforeach ?>
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>
 
 	<h2><?php fs_echo( 'debug-log' ) ?></h2>
@@ -484,9 +512,9 @@
 	</div>
 	<script type="text/javascript">
 		jQuery(document).ready(function ($) {
-			var filtersChanged = false,
-			    offset = 0,
-			    limit = 200,
+			var filtersChanged       = false,
+			    offset               = 0,
+			    limit                = 200,
 			    prevFiltersSignature = null;
 
 			var getFilters = function () {
@@ -518,8 +546,8 @@
 			};
 
 			$('#fs_download').parent().submit(function () {
-				var filters = getFilters(),
-					hiddenFields = '';
+				var filters      = getFilters(),
+				    hiddenFields = '';
 
 				for (var f in filters) {
 					if (filters.hasOwnProperty(f)) {
@@ -533,13 +561,13 @@
 			var loadLogs = function () {
 				var $tbody   = $('#fs_log_book tbody'),
 				    template = $tbody.find('tr:first-child').html(),
-				    filters = getFilters();
+				    filters  = getFilters();
 
 				if (!filtersChanged) {
 					offset += limit;
 				} else {
 					// Cleanup table for new filter (only keep template row).
-					$tbody.find('tr').each(function(i, e){
+					$tbody.find('tr').each(function (i, e) {
 						if (0 == i)
 							return;
 
@@ -552,8 +580,8 @@
 				$.post(ajaxurl, {
 					action : 'fs_get_debug_log',
 					filters: filters,
-					offset: offset,
-					limit: limit
+					offset : offset,
+					limit  : limit
 				}, function (response) {
 
 					for (var i = 0; i < response.data.length; i++) {
