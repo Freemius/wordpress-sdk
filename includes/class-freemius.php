@@ -13413,6 +13413,11 @@
 				return false;
 			}
 
+			if ( ! $this->has_paid_plan() && ! $this->has_addons() ) {
+				// Only add tabs to monetizing themes.
+				return false;
+			}
+
 			if ( ! $this->is_theme_settings_page() ) {
 				// Only add tabs if browsing one of the theme's setting pages.
 				return false;
