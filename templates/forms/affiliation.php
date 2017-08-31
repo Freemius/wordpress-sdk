@@ -148,7 +148,7 @@
                             <?php if ( is_object( $affiliate_terms ) && $affiliate_terms->has_lifetime_commission() ) : ?>
                                 <li><?php fs_echo( 'unlimited-commissions', $slug ) ?></li>
                             <?php endif ?>
-                            <li><?php printf( fs_text( 'minimum-payout-amount', $slug ), $commission ) ?></li>
+                            <li><?php printf( fs_text( 'minimum-payout-amount', $slug ), '$100' ) ?></li>
                             <li><?php fs_echo( 'payouts-unit-and-processing', $slug ) ?></li>
                             <li><?php fs_echo( 'commission-payment', $slug ) ?></li>
                         </ul>
