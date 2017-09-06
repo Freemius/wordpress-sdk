@@ -6584,6 +6584,10 @@
                 unset( $affiliate['promotion_methods'] );
             }
 
+            if ( ! empty( $affiliate['additional_domains'] ) ) {
+                $affiliate['additional_domains'] = array_unique( $affiliate['additional_domains'] );
+            }
+
             if ( ! $this->is_registered() ) {
                 // Opt in but don't track usage.
                 $next_page = $this->opt_in(

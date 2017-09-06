@@ -63,12 +63,8 @@
             $statistics_information       = $affiliate_application_data['stats_description'];
             $promotion_method_description = $affiliate_application_data['promotion_method_description'];
 
-            if ( ! $affiliate_terms->is_any_site_allowed ) {
-                $domain = $affiliate->domain;
-
-                if ( ! empty( $affiliate_application_data['additional_domains'] ) ) {
-                    $extra_domains = $affiliate_application_data['additional_domains'];
-                }
+            if ( ! empty( $affiliate_application_data['additional_domains'] ) ) {
+                $extra_domains = $affiliate_application_data['additional_domains'];
             }
 
             if ( ! empty( $affiliate_application_data['promotion_methods'] ) ) {
@@ -167,25 +163,23 @@
                                     <label class="input-label"><?php fs_echo( 'paypal-account-email-address', $slug ) ?></label>
                                     <input id="paypal_email" type="text" value="<?php echo esc_attr( $paypal_email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
                                 </div>
-                                <?php if ( ! $affiliate_terms->is_any_site_allowed ) : ?>
-                                    <div class="input-container input-container-text">
-                                        <label class="input-label"><?php printf( fs_text( 'domain-field-label', $slug ), $module_type ) ?></label>
-                                        <input id="domain" type="text" value="<?php echo esc_attr( $domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
-                                        <p class="description"><?php printf( fs_text( 'domain-field-desc', $slug ), $module_type ) ?></p>
-                                        <?php if ( ! $is_affiliate ) : ?>
-                                            <a id="add_domain" href="#" class="disabled">+ <?php fs_echo( 'add-another-domain', $slug ) ?>...</a>
-                                        <?php endif ?>
-                                    </div>
-                                    <div id="extra_domains_container" class="input-container input-container-text" <?php echo $is_pending_affiliate ? '' : 'style="display: none"' ?>>
-                                        <label class="input-label"><?php fs_echo( 'extra-domain-fields-label', $slug ) ?></label>
-                                        <p class="description"><?php fs_echo( 'extra-domain-fields-desc', $slug ) ?></p>
-                                        <?php if ( $is_pending_affiliate && ! empty( $extra_domains ) ) : ?>
-                                            <?php foreach ( $extra_domains as $extra_domain ) : ?>
-                                                <input type="text" value="<?php echo esc_attr( $extra_domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
-                                            <?php endforeach ?>
-                                        <?php endif ?>
-                                    </div>
-                                <?php endif ?>
+                                <div class="input-container input-container-text">
+                                    <label class="input-label"><?php printf( fs_text( 'domain-field-label', $slug ), $module_type ) ?></label>
+                                    <input id="domain" type="text" value="<?php echo esc_attr( $domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
+                                    <p class="description"><?php printf( fs_text( 'domain-field-desc', $slug ), $module_type ) ?></p>
+                                    <?php if ( ! $is_affiliate ) : ?>
+                                        <a id="add_domain" href="#" class="disabled">+ <?php fs_echo( 'add-another-domain', $slug ) ?>...</a>
+                                    <?php endif ?>
+                                </div>
+                                <div id="extra_domains_container" class="input-container input-container-text" <?php echo $is_pending_affiliate ? '' : 'style="display: none"' ?>>
+                                    <label class="input-label"><?php fs_echo( 'extra-domain-fields-label', $slug ) ?></label>
+                                    <p class="description"><?php fs_echo( 'extra-domain-fields-desc', $slug ) ?></p>
+                                    <?php if ( $is_pending_affiliate && ! empty( $extra_domains ) ) : ?>
+                                        <?php foreach ( $extra_domains as $extra_domain ) : ?>
+                                            <input type="text" value="<?php echo esc_attr( $extra_domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
+                                        <?php endforeach ?>
+                                    <?php endif ?>
+                                </div>
                                 <div class="input-container">
                                     <label class="input-label"><?php fs_echo( 'promotion-methods', $slug ) ?></label>
                                     <div>
@@ -237,8 +231,7 @@
                 $errorMessageContainer    = $( '#error_message' ),
                 $domain                   = $( '#domain' ),
                 $addDomain                = $( '#add_domain' ),
-                $extraDomainsContainer    = $( '#extra_domains_container'),
-                isAnySiteAllowed          = <?php echo $affiliate_terms->is_any_site_allowed ? 'true' : 'false' ?>;
+                $extraDomainsContainer    = $( '#extra_domains_container');
 
             $applyButton.click(function( evt ) {
                 evt.preventDefault();
@@ -269,29 +262,6 @@
                     emailAddress       = null,
                     paypalEmailAddress = $( '#paypal_email' ).val().trim();
 
-                if ( ! isAnySiteAllowed ) {
-                    var
-                        $domains     = $extraDomainsContainer.find( '.domain' ),
-                        domain       = $domain.val().trim(),
-                        extraDomains = [];
-
-                    if ( 0 === domain.length ) {
-                        showErrorMessage( '<?php fs_echo( 'domain-is-required', $slug ) ?>' );
-                        return;
-                    }
-
-                    if ( $domains.length > 0 ) {
-                        $domains.each(function() {
-                            var domain = $( this ).val().trim();
-                            if ( 0 === domain.length ) {
-                                return;
-                            }
-
-                            extraDomains.push( domain );
-                        });
-                    }
-                }
-
                 if ( 1 === $emailAddress.length ) {
                     emailAddress = $emailAddress.val().trim();
 
@@ -304,6 +274,42 @@
                 if ( 0 === paypalEmailAddress.length ) {
                     showErrorMessage( '<?php fs_echo( 'paypal-email-address-is-required', $slug ) ?>' );
                     return;
+                }
+
+                var
+                    $extraDomains = $extraDomainsContainer.find( '.domain' ),
+                    domain        = $domain.val().trim().toLowerCase(),
+                    extraDomains  = [];
+
+                if ( 0 === domain.length ) {
+                    showErrorMessage( '<?php fs_echo( 'domain-is-required', $slug ) ?>' );
+                    return;
+                } else if ( 'freemius.com' === domain ) {
+                    showErrorMessage( '<?php fs_echo( 'invalid-domain', $slug ) ?>' + ' [' + domain + '].' );
+                    return;
+                }
+
+                if ( $extraDomains.length > 0 ) {
+                    var hasError = false;
+
+                    $extraDomains.each(function() {
+                        var
+                            $this       = $( this ),
+                            extraDomain = $this.val().trim().toLowerCase();
+                        if ( 0 === extraDomain.length || extraDomain === domain ) {
+                            return true;
+                        } else if ( 'freemius.com' === extraDomain ) {
+                            showErrorMessage( '<?php fs_echo( 'invalid-domain', $slug ) ?>' + ' [' + extraDomain + '].' );
+                            hasError = true;
+                            return false;
+                        }
+
+                        extraDomains.push( extraDomain );
+                    });
+
+                    if ( hasError ) {
+                        return;
+                    }
                 }
 
                 var
@@ -330,10 +336,8 @@
                     affiliate.email = emailAddress;
                 }
 
-                if ( ! isAnySiteAllowed ) {
-                    affiliate.domain             = domain;
-                    affiliate.additional_domains = extraDomains;
-                }
+                affiliate.domain             = domain;
+                affiliate.additional_domains = extraDomains;
 
                 if ( promotionMethods.length > 0 ) {
                     affiliate.promotion_methods = promotionMethods.join( ',' );
@@ -355,31 +359,14 @@
                     },
                     success   : function( result ) {
                         if ( result.success ) {
-                            $messageContainer.find( 'strong' ).text( '<?php fs_esc_js_echo( 'affiliate-application-thank-you', $slug ) ?>' );
-                            $messageContainer.show();
-
-                            $contentWrapper.find( 'input[type="text"], textarea' ).prop( 'readonly', true );
-                            $contentWrapper.find( 'input[type="checkbox"]' ).prop( 'disabled', true );
-                            $contentWrapper.find( '.description' ).hide();
-
-                            $( '#application_messages_container' ).hide();
-
-                            if ( ! isAnySiteAllowed ) {
-                                $addDomain.hide();
-                            }
-
-                            $cancelButton.hide();
-                            $submitButton.hide();
+                            location.reload();
                         } else if ( result.error && result.error.length > 0 ) {
                             showErrorMessage( result.error );
-                        }
 
-                        window.scrollTo( 0, 0 );
-                    },
-                    complete  : function() {
-                        $cancelButton.removeClass( 'disabled' );
-                        $submitButton.removeClass( 'disabled' );
-                        $submitButton.text( '<?php fs_echo( 'apply-to-become-an-affiliate', $slug ) ?>' )
+                            $cancelButton.removeClass( 'disabled' );
+                            $submitButton.removeClass( 'disabled' );
+                            $submitButton.text( '<?php fs_echo( 'apply-to-become-an-affiliate', $slug ) ?>' )
+                        }
                     }
                 });
             });
@@ -402,32 +389,30 @@
                 window.scrollTo( 0, 0 );
             });
 
-            if ( ! isAnySiteAllowed ) {
-                $domain.on( 'input propertychange', onDomainChange );
+            $domain.on( 'input propertychange', onDomainChange );
 
-                $addDomain.click(function( evt ) {
-                    evt.preventDefault();
+            $addDomain.click(function( evt ) {
+                evt.preventDefault();
 
-                    var
-                        $this  = $( this ),
-                        domain = $domain.val().trim();
+                var
+                    $this  = $( this ),
+                    domain = $domain.val().trim();
 
-                    if ( $this.hasClass( 'disabled' ) || 0 === domain.length ) {
-                        return;
-                    }
+                if ( $this.hasClass( 'disabled' ) || 0 === domain.length ) {
+                    return;
+                }
 
-                    $domain.off( 'input propertychange' );
-                    $this.addClass( 'disabled' );
+                $domain.off( 'input propertychange' );
+                $this.addClass( 'disabled' );
 
-                    var $emptyDomainField = $( '<input type="text" class="domain regular-text"/>' );
-                    $emptyDomainField.on( 'input propertychange', onDomainChange );
+                var $emptyDomainField = $( '<input type="text" class="domain regular-text"/>' );
+                $emptyDomainField.on( 'input propertychange', onDomainChange );
 
-                    $extraDomainsContainer.show();
+                $extraDomainsContainer.show();
 
-                    $emptyDomainField.appendTo( $extraDomainsContainer ).focus();
-                    $this.appendTo( $extraDomainsContainer );
-                });
-            }
+                $emptyDomainField.appendTo( $extraDomainsContainer ).focus();
+                $this.appendTo( $extraDomainsContainer );
+            });
 
             /**
              * @author Leo Fajardo (@leorw)

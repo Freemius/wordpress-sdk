@@ -131,6 +131,7 @@
         'add-another-domain'                 => _fs_text( 'Add another domain' ),
         'email-address-is-required'          => _fs_text( 'Email address is required.' ),
         'domain-is-required'                 => _fs_text( 'Domain is required.' ),
+        'invalid-domain'                     => _fs_text( 'Invalid domain' ),
         'paypal-email-address-is-required'   => _fs_text( 'PayPal email address is required.' ),
         'processing'                         => _fs_text( 'Processing...' ),
         'non-expiring'                       => _fs_text( 'Non-expiring' ),
