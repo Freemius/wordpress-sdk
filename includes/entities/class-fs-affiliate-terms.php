@@ -59,10 +59,13 @@
          * @var string Required default target link, e.g.: pricing page.
          */
         public $default_url;
-        /**
-         * @var bool If `true`, referral will only be rewarded for new users who never used the plugin before.
-         */
-        public $is_new_user_only;
+		/**
+		 * @var string One of the following: 'all', 'new_customer', 'new_user'.
+		 *             If 'all' - reward for any user type.
+		 *             If 'new_customer' - reward only for new customers.
+		 *             If 'new_user' - reward only for new users.
+		 */
+        public $reward_customer_type;
         /**
          * @var int Defaults to `0` (affiliate only on directly affiliated links). `null` if an affiliate will get
          *          paid for all customers' lifetime payments. If greater than `0`, an affiliate will get paid for all
