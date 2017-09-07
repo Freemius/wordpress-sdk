@@ -129,6 +129,7 @@
         'extra-domain-fields-label'          => _fs_text( 'Extra Domains' ),
         'extra-domain-fields-desc'           => _fs_text( 'Extra domains where you will be marketing the product from.' ),
         'add-another-domain'                 => _fs_text( 'Add another domain' ),
+        'remove'                             => _fs_x( 'Remove', 'Remove domain' ),
         'email-address-is-required'          => _fs_text( 'Email address is required.' ),
         'domain-is-required'                 => _fs_text( 'Domain is required.' ),
         'invalid-domain'                     => _fs_text( 'Invalid domain' ),

@@ -55,7 +55,7 @@
 
       margin-bottom: 15px;
 
-      #add_domain {
+      #add_domain, .remove-domain {
         text-decoration: none;
         display: inline-block;
         margin-top: 3px;
@@ -78,11 +78,16 @@
         top: -4px;
       }
 
-      .domain {
+      .extra-domain-input-container {
         margin-bottom: 15px;
 
-        &:last-of-type {
-          margin-bottom: 0;
+        .domain {
+          display: inline-block;
+          margin-right: 5px;
+
+          &:last-of-type {
+            margin-bottom: 0;
+          }
         }
       }
     }

@@ -176,7 +176,9 @@
                                     <p class="description"><?php fs_echo( 'extra-domain-fields-desc', $slug ) ?></p>
                                     <?php if ( $is_pending_affiliate && ! empty( $extra_domains ) ) : ?>
                                         <?php foreach ( $extra_domains as $extra_domain ) : ?>
+                                        <div class="extra-domain-input-container">
                                             <input type="text" value="<?php echo esc_attr( $extra_domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
+                                        </div>
                                         <?php endforeach ?>
                                     <?php endif ?>
                                 </div>
@@ -405,12 +407,32 @@
                 $domain.off( 'input propertychange' );
                 $this.addClass( 'disabled' );
 
-                var $emptyDomainField = $( '<input type="text" class="domain regular-text"/>' );
-                $emptyDomainField.on( 'input propertychange', onDomainChange );
+                var
+                    $extraDomainInputContainer = $( '<div class="extra-domain-input-container"><input type="text" class="domain regular-text"/></div>' ),
+                    $extraDomainInput          = $extraDomainInputContainer.find( 'input' ),
+                    $removeDomain              = $( '<a href="#" class="remove-domain"><i class="dashicons dashicons-no" title="<?php fs_esc_js_echo( 'remove', $slug ) ?>"></i></a>' );
+
+                $extraDomainInputContainer.append( $removeDomain );
+
+                $extraDomainInput.on( 'input propertychange', onDomainChange );
+
+                $removeDomain.click(function( evt ) {
+                    evt.preventDefault();
+
+                    var
+                        $extraDomainInputs = $( '.extra-domain-input-container .domain' );
+
+                    if ( 1 === $extraDomainInputs.length )
+                        $extraDomainInputs.val( '' ).focus();
+                    else
+                        $( this ).parent().remove();
+                });
 
                 $extraDomainsContainer.show();
 
-                $emptyDomainField.appendTo( $extraDomainsContainer ).focus();
+                $extraDomainInputContainer.appendTo( $extraDomainsContainer );
+                $extraDomainInput.focus();
+
                 $this.appendTo( $extraDomainsContainer );
             });
 
