@@ -76,4 +76,14 @@
         function is_rejected() {
             return ( 'rejected' === $this->status );
         }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.1.7.2
+         *
+         * @return bool
+         */
+        function is_blocked() {
+            return ( 'blocked' === $this->status );
+        }
 	}

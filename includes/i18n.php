@@ -105,6 +105,7 @@
         'affiliate-application-thank-you'    => _fs_text( "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information." ),
         'affiliate-application-rejected'     => _fs_text( "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days." ),
         'affiliate-account-suspended'        => _fs_text( 'Your affiliation account was temporarily suspended.' ),
+        'affiliate-account-blocked'          => _fs_text( 'Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support.' ),
         'become-an-ambassador'               => _fs_text( 'Like the %s? Become our ambassador and earn cash ;-)' ),
         'refer-new-customers'                => _fs_text( 'Refer new customers to our %s and earn %s commission on each successful sale you refer!' ),
         'program-summary'                    => _fs_text( 'Program Summary' ),

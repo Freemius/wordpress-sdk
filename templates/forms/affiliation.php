@@ -117,6 +117,9 @@
                                         } else if ( $affiliate->is_rejected() ) {
                                             $text_key                = 'affiliate-application-rejected';
                                             $message_container_class = 'error';
+                                        } else if ( $affiliate->is_blocked() ) {
+                                            $text_key                = 'affiliate-account-blocked';
+                                            $message_container_class = 'error';
                                         }
                                     ?>
                                     <div class="<?php echo $message_container_class ?>">
