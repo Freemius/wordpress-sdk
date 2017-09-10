@@ -10310,13 +10310,9 @@
 			$result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", $flush );
 
 			if ( ! isset( $result->error ) ) {
-			    $total_payments = count( $result->payments );
-			    if ( $total_payments > 0 && ( ! $result->payments[0] instanceof FS_Payment ) ) {
-                    for ( $i = 0, $len = $total_payments; $i < $len; $i ++ ) {
-                        $result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
-                    }
-                }
-
+				for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
+					$result->payments[ $i ] = new FS_Payment( $result->payments[ $i ] );
+				}
 				$result = $result->payments;
 			}
 
