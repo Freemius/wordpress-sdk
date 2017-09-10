@@ -12156,11 +12156,7 @@
 			$this->_logger->entrance();
 
 			$template = 'account.php';
-			if ( 'billing' === fs_request_get( 'tab' ) ) {
-				$template = 'billing.php';
-			}
-
-			$vars = array( 'id' => $this->_module_id );
+			$vars     = array( 'id' => $this->_module_id );
 
 			/**
 			 * Added filter to the template to allow developers wrapping the template
