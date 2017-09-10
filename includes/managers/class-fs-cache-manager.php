@@ -166,8 +166,8 @@
 			     isset( $cache_entry->timestamp ) &&
 			     is_numeric( $cache_entry->timestamp )
 			) {
-				return $cache_entry->result;
-			}
+                return is_object( $cache_entry->result ) ? clone $cache_entry->result : $cache_entry->result;
+            }
 
 			return $default;
 		}
