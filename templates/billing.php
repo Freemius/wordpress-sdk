@@ -10,14 +10,13 @@
 		exit;
 	}
 
-	/**
-	 * @var array $VARS
-	 */
-	$slug = $VARS['slug'];
-	/**
-	 * @var Freemius $fs
-	 */
-	$fs = freemius( $slug );
+    /**
+     * @var array $VARS
+     * @var Freemius $fs
+     */
+    $fs = freemius( $VARS['id'] );
+
+    $slug = $fs->get_slug();
 
 	/**
 	 * @var FS_Plugin_Tag $update
@@ -456,8 +455,8 @@
 						data   : {
 							action   : '<?php echo $fs->get_ajax_action( 'update_billing' ) ?>',
 							security : '<?php echo $fs->get_ajax_security( 'update_billing' ) ?>',
-							slug    : '<?php echo $slug ?>',
-							billing : billing
+                            module_id: '<?php echo $fs->get_id() ?>',
+							billing  : billing
 						},
 						success: function (resultObj) {
 							if (resultObj.success) {
