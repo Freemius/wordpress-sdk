@@ -420,13 +420,19 @@
 					$matches = array();
 					$regex   = '/Failed to connect to ([^:].*): Network is unreachable/';
 					if ( preg_match( $regex, $result->get_error_message( 'http_request_failed' ), $matches ) ) {
-						if ( strlen( @inet_pton( $matches[1] ) ) === 16 ) {
+						/**
+						 * Validate IP before calling `inet_pton()` to avoid PHP un-catchable warning.
+						 * @author Vova Feldman (@svovaf)
+						 */
+						if ( filter_var( $matches[1], FILTER_VALIDATE_IP ) ) {
+							if ( strlen( inet_pton( $matches[1] ) ) === 16 ) {
 //						    error_log('Invalid IPv6 configuration on server, Please disable or get native IPv6 on your server.');
-							// Hook to an action triggered just before cURL is executed to resolve the IP version to v4.
-							add_action( 'http_api_curl', 'Freemius_Api_WordPress::CurlResolveToIPv4', 10, 1 );
+								// Hook to an action triggered just before cURL is executed to resolve the IP version to v4.
+								add_action( 'http_api_curl', 'Freemius_Api_WordPress::CurlResolveToIPv4', 10, 1 );
 
-							// Re-run request.
-							$result = self::ExecuteRequest( $request_url, $pWPRemoteArgs );
+								// Re-run request.
+								$result = self::ExecuteRequest( $request_url, $pWPRemoteArgs );
+							}
 						}
 					}
 				}
