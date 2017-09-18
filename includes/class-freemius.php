@@ -912,7 +912,16 @@
 				$store_option = true;
 			}
 
-			if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ) {
+			if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ||
+			     /**
+			      * This verification is for cases when suddenly the same module
+			      * is installed but with a different folder name.
+			      *
+			      * @author Vova Feldman (@svovaf)
+			      * @since 1.2.3
+			      */
+			     ! file_exists( $id_slug_type_path_map[ $module_id ]['path'] )
+			) {
 				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
 
 				$id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
