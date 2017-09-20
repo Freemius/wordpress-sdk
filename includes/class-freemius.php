@@ -6934,7 +6934,9 @@
 				} else {
                     $fs->_sync_license( true );
 
-                    $next_page = $fs->get_account_url();
+                    $next_page = $fs->is_addon() ?
+                        $fs->get_parent_instance()->get_account_url() :
+                        $fs->get_account_url();
 
                     $fs->reconnect_locally();
 				}
