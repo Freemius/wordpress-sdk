@@ -6932,13 +6932,11 @@
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
 				} else {
-					$parent_fs = $fs->is_addon() ?
-						$fs->get_parent_instance() :
-						$fs;
+                    $fs->_sync_license( true );
 
-					$next_page = $parent_fs->_get_sync_license_url( $fs->get_id(), true );
+                    $next_page = $fs->get_account_url();
 
-					$fs->reconnect_locally();
+                    $fs->reconnect_locally();
 				}
 			} else {
 				$next_page = $fs->opt_in( false, false, false, $license_key );
