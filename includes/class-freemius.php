@@ -11949,6 +11949,14 @@
 
 					if ( $plugin_id == $this->get_id() ) {
 						$this->_deactivate_license();
+
+                        if ( $this->is_only_premium() ) {
+                            // Clear user and site.
+                            $this->_site = null;
+                            $this->_user = null;
+
+                            fs_redirect( $this->get_activation_url() );
+                        }
 					} else {
 						if ( $this->is_addon_activated( $plugin_id ) ) {
 							$fs_addon = self::get_instance_by_id( $plugin_id );
