@@ -3504,11 +3504,13 @@
 					'license_activated',
 				) );
 
-				$this->_admin_notices->add_sticky(
-					sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
-					'premium_activated',
-					$this->get_text( 'woot' ) . '!'
-				);
+				if ( ! $this->is_only_premium() ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
+                        'premium_activated',
+                        $this->get_text( 'woot' ) . '!'
+                    );
+                }
 			} else {
 				// Remove sticky message related to premium code activation.
 				$this->_admin_notices->remove_sticky( 'premium_activated' );
