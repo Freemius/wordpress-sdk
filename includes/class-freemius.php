@@ -8803,6 +8803,14 @@
 				return;
 			}
 
+            $parent_fs->_admin_notices->remove_sticky( 'connect_account' );
+
+            if ( $parent_fs->is_pending_activation() ) {
+                $parent_fs->_admin_notices->remove_sticky( 'activation_pending' );
+
+                unset( $parent_fs->_storage->is_pending_activation );
+            }
+
 			// First of all, set site info - otherwise we won't
 			// be able to invoke API calls.
 			$parent_fs->_site = new FS_Site( $parent_install );
