@@ -7595,7 +7595,10 @@
 						) ), admin_url( 'admin.php', 'admin' ) );
 					} else {
 						// Plugin without a settings page.
-						return admin_url( 'plugins.php' );
+                        return add_query_arg(
+                            $params,
+                            admin_url( 'plugins.php' )
+                        );
 					}
 				}
 			}
