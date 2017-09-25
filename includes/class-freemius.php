@@ -3504,11 +3504,13 @@
 					'license_activated',
 				) );
 
-				$this->_admin_notices->add_sticky(
-					sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
-					'premium_activated',
-					$this->get_text( 'woot' ) . '!'
-				);
+				if ( ! $this->is_only_premium() ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
+                        'premium_activated',
+                        $this->get_text( 'woot' ) . '!'
+                    );
+                }
 			} else {
 				// Remove sticky message related to premium code activation.
 				$this->_admin_notices->remove_sticky( 'premium_activated' );
@@ -6930,13 +6932,13 @@
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
 				} else {
-					$parent_fs = $fs->is_addon() ?
-						$fs->get_parent_instance() :
-						$fs;
+                    $fs->_sync_license( true );
 
-					$next_page = $parent_fs->_get_sync_license_url( $fs->get_id(), true );
+                    $next_page = $fs->is_addon() ?
+                        $fs->get_parent_instance()->get_account_url() :
+                        $fs->get_account_url();
 
-					$fs->reconnect_locally();
+                    $fs->reconnect_locally();
 				}
 			} else {
 				$next_page = $fs->opt_in( false, false, false, $license_key );
@@ -8815,6 +8817,14 @@
 
 				return;
 			}
+
+            $parent_fs->_admin_notices->remove_sticky( 'connect_account' );
+
+            if ( $parent_fs->is_pending_activation() ) {
+                $parent_fs->_admin_notices->remove_sticky( 'activation_pending' );
+
+                unset( $parent_fs->_storage->is_pending_activation );
+            }
 
 			// First of all, set site info - otherwise we won't
 			// be able to invoke API calls.
@@ -11964,6 +11974,14 @@
 
 					if ( $plugin_id == $this->get_id() ) {
 						$this->_deactivate_license();
+
+                        if ( $this->is_only_premium() ) {
+                            // Clear user and site.
+                            $this->_site = null;
+                            $this->_user = null;
+
+                            fs_redirect( $this->get_activation_url() );
+                        }
 					} else {
 						if ( $this->is_addon_activated( $plugin_id ) ) {
 							$fs_addon = self::get_instance_by_id( $plugin_id );
