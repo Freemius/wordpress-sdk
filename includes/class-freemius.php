@@ -8369,7 +8369,7 @@
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
 
-			if ( $this->is_pending_activation() ) {
+			if ( $this->is_pending_activation() || ! $this->has_settings_menu() ) {
 				// Remove pending activation sticky notice (if still exist).
 				$this->_admin_notices->remove_sticky( 'activation_pending' );
 
