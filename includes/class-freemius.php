@@ -7595,7 +7595,10 @@
 						) ), admin_url( 'admin.php', 'admin' ) );
 					} else {
 						// Plugin without a settings page.
-						return admin_url( 'plugins.php' );
+                        return add_query_arg(
+                            $params,
+                            admin_url( 'plugins.php' )
+                        );
 					}
 				}
 			}
@@ -8369,7 +8372,7 @@
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
 
-			if ( $this->is_pending_activation() ) {
+			if ( $this->is_pending_activation() || ! $this->has_settings_menu() ) {
 				// Remove pending activation sticky notice (if still exist).
 				$this->_admin_notices->remove_sticky( 'activation_pending' );
 
@@ -8385,7 +8388,7 @@
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if ( ! $this->is_premium() || ! $this->has_premium_version() ) {
+				if ( ! $this->is_premium() || ! $this->has_premium_version() || ! $this->has_settings_menu() ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
@@ -8694,7 +8697,19 @@
 				);
 
 				if ( $redirect ) {
-					fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
+                    /**
+                     * We set the user before getting the user scope API handler, so the user became temporarily
+                     * registered (`is_registered() = true`). Since the API returned an error and we will redirect,
+                     * we have to set the user to `null`, otherwise, the user will be redirected to the wrong
+                     * activation page based on the return value of `is_registered()`. In addition, in case the
+                     * context plugin doesn't have a settings menu and the default page is the `Plugins` page,
+                     * misleading plugin activation errors will be shown on the `Plugins` page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_user = null;
+
+                    fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
 				}
 
 				return $install;
@@ -8993,9 +9008,9 @@
 
 			if ( false !== $hook ) {
 				if ( fs_request_is_action( $this->get_unique_affix() . '_activate_existing' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
+                    $this->_install_with_current_user();
 				} else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+                    $this->_install_with_new_user();
 				}
 			}
 		}
