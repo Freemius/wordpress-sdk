@@ -8697,7 +8697,19 @@
 				);
 
 				if ( $redirect ) {
-					fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
+                    /**
+                     * We set the user before getting the user scope API handler, so the user became temporarily
+                     * registered (`is_registered() = true`). Since the API returned an error and we will redirect,
+                     * we have to set the user to `null`, otherwise, the user will be redirected to the wrong
+                     * activation page based on the return value of `is_registered()`. In addition, in case the
+                     * context plugin doesn't have a settings menu and the default page is the `Plugins` page,
+                     * misleading plugin activation errors will be shown on the `Plugins` page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_user = null;
+
+                    fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
 				}
 
 				return $install;
