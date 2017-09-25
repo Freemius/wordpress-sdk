@@ -8385,7 +8385,7 @@
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if ( ! $this->is_premium() || ! $this->has_premium_version() ) {
+				if ( ! $this->is_premium() || ! $this->has_premium_version() || ! $this->has_settings_menu() ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
