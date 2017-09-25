@@ -8993,9 +8993,9 @@
 
 			if ( false !== $hook ) {
 				if ( fs_request_is_action( $this->get_unique_affix() . '_activate_existing' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
+                    $this->_install_with_current_user();
 				} else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+                    $this->_install_with_new_user();
 				}
 			}
 		}
