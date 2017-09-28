@@ -8233,6 +8233,18 @@
 				);
 			}
 
+			if ( isset( $params['license_key'] ) ) {
+				$fs_user = Freemius::_get_user_by_email( $email );
+
+				if ( is_object( $fs_user ) ) {
+					$params = array_merge( $params, FS_Security::instance()->get_context_params(
+						$fs_user,
+						false,
+						'install_with_existing_user'
+					) );
+				}
+            }
+
 			$params['format'] = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
@@ -8308,7 +8320,9 @@
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
 				return $this->set_pending_confirmation(
-					true,
+                    ( isset( $decoded->email ) ?
+                        $decoded->email :
+                        true ),
 					false,
 					$filtered_license_key,
 					! empty( $params['trial_plan_id'] )
