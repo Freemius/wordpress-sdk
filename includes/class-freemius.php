@@ -8237,13 +8237,21 @@
 				$fs_user = Freemius::_get_user_by_email( $email );
 
 				if ( is_object( $fs_user ) ) {
+					/**
+					 * If opting in with a context license and the context WP Admin user already opted in
+					 * before from the current site, add the user context security params to avoid the
+					 * unnecessry email activation when the context license is owned by the same context user.
+					 * 
+					 * @author Leo Fajardo (@leorw)
+					 * @since 1.2.3
+					 */
 					$params = array_merge( $params, FS_Security::instance()->get_context_params(
 						$fs_user,
 						false,
 						'install_with_existing_user'
 					) );
 				}
-            }
+			}
 
 			$params['format'] = 'json';
 
