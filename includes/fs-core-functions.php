@@ -502,12 +502,14 @@
 	 *
 	 * @param string $from URL
 	 * @param string $to   File path.
+	 *
+	 * @return bool Is successfully downloaded.
 	 */
 	function fs_download_image( $from, $to ) {
 		$dir = dirname( $to );
 
 		if ( 'direct' !== get_filesystem_method( array(), $dir ) ) {
-			return;
+			return false;
 		}
 
 		if ( ! class_exists( 'WP_Filesystem_Direct' ) ) {
@@ -517,8 +519,16 @@
 
 		$fs      = new WP_Filesystem_Direct( '' );
 		$tmpfile = download_url( $from );
+
+		if ($tmpfile instanceof WP_Error) {
+			// Issue downloading the file.
+			return false;
+		}
+
 		$fs->copy( $tmpfile, $to );
 		$fs->delete( $tmpfile );
+		
+		return true;
 	}
 
 	/* General Utilities
