@@ -123,6 +123,6 @@
          * @return bool
          */
         function has_renewals_commission() {
-            return is_null( $this->commission_renewals_days );
+            return ( is_null( $this->commission_renewals_days ) || $this->commission_renewals_days > 0 );
         }
     }
