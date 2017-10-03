@@ -6527,7 +6527,7 @@
                         }
 
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
                                 $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
