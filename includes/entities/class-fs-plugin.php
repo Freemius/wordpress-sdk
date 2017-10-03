@@ -60,14 +60,12 @@
 		 */
 		public $is_live;
 		/**
-         * `false` if the module doesn't have an affiliate program or one of the following: `selected`, `customers`,
-         * or `all`.
-         *
          * @author Leo Fajardo (@leorw)
          *
 		 * @since 1.2.1.7.2
 		 *
-		 * @var string|bool
+		 * @var string|false false if the module doesn't have an affiliate program or one of the following:
+         *                   'selected', 'customers', or 'all'.
 		 */
 		public $affiliate_moderation;
 
