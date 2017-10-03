@@ -277,7 +277,7 @@
          *
          * @var FS_AffiliateTerms
          */
-        private $affiliate_terms = null;
+        private $custom_affiliate_terms = null;
 
 		#region Uninstall Reasons IDs
 
@@ -2927,16 +2927,16 @@
 				new FS_Plugin();
 
 			$plugin->update( array(
-				'id'               => $id,
-				'public_key'       => $public_key,
-				'slug'             => $this->_slug,
-				'parent_plugin_id' => $parent_id,
-				'version'          => $this->get_plugin_version(),
-				'title'            => $this->get_plugin_name(),
-				'file'             => $this->_plugin_basename,
-				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
-				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
-				'affiliation'      => $this->get_option( $plugin_info, 'has_affiliation'),
+				'id'                   => $id,
+				'public_key'           => $public_key,
+				'slug'                 => $this->_slug,
+				'parent_plugin_id'     => $parent_id,
+				'version'              => $this->get_plugin_version(),
+				'title'                => $this->get_plugin_name(),
+				'file'                 => $this->_plugin_basename,
+				'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+				'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
+				'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation'),
 //				'secret_key' => $secret_key,
 			) );
 
@@ -6494,14 +6494,14 @@
                 return false;
             }
 
-		    return $this->_plugin->has_affiliation();
+		    return $this->_plugin->has_affiliate_program();
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since 1.2.1.7.2
          */
-        private function load_affiliate_and_terms() {
+        private function fetch_affiliate_and_terms() {
             $this->_logger->entrance();
 
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
@@ -6529,7 +6529,7 @@
                         if ( $affiliate->is_using_custom_terms ) {
                             $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
-                                $this->affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
+                                $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
                         }
 
@@ -6557,8 +6557,8 @@
          * @return FS_AffiliateTerms
          */
         function get_affiliate_terms() {
-            return is_object( $this->affiliate_terms ) ?
-                $this->affiliate_terms :
+            return is_object( $this->custom_affiliate_terms ) ?
+                $this->custom_affiliate_terms :
                 $this->plugin_affiliate_terms;
         }
 
@@ -7483,7 +7483,7 @@
 			}
 
             if ( $this->has_affiliation() ) {
-                $this->load_affiliate_and_terms();
+                $this->fetch_affiliate_and_terms();
             }
 
 			$this->_register_account_hooks();

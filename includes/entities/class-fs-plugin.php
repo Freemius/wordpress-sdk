@@ -60,13 +60,16 @@
 		 */
 		public $is_live;
 		/**
+         * `false` if the module doesn't have an affiliate program or one of the following: `selected`, `customers`,
+         * or `all`.
+         *
          * @author Leo Fajardo (@leorw)
          *
 		 * @since 1.2.1.7.2
 		 *
-		 * @var string
+		 * @var string|bool
 		 */
-		public $affiliation;
+		public $affiliate_moderation;
 
 		#endregion Install Specific Properties
 
@@ -102,8 +105,8 @@
          *
          * @return bool
          */
-		function has_affiliation() {
-		    return ( ! empty( $this->affiliation ) );
+		function has_affiliate_program() {
+		    return ( ! empty( $this->affiliate_moderation ) );
         }
 
 		static function get_type() {
