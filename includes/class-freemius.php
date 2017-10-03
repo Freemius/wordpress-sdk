@@ -6489,7 +6489,7 @@
          *
          * @return bool
          */
-        function has_affiliation() {
+        function has_affiliate_program() {
             if ( ! is_object( $this->_plugin ) ) {
                 return false;
             }
@@ -7482,7 +7482,7 @@
 				}
 			}
 
-            if ( $this->has_affiliation() ) {
+            if ( $this->has_affiliate_program() ) {
                 $this->fetch_affiliate_and_terms();
             }
 
@@ -8403,7 +8403,7 @@
 
 			if ( ! $this->is_addon() ) {
 				if ( ! $this->is_activation_mode() ) {
-				    if ( $this->has_affiliation() ) {
+				    if ( $this->has_affiliate_program() ) {
                         // Add affiliation page.
                         $this->add_submenu_item(
                             $this->get_text( 'affiliation' ),
