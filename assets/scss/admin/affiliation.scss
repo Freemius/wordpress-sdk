@@ -1,3 +1,5 @@
+@import "../start";
+
 #fs_affiliation_content_wrapper {
   #messages {
     margin-top: 25px;
@@ -11,7 +13,7 @@
 
   ul {
     li {
-      box-sizing: border-box;
+      @include box-sizing(border-box);
       list-style-type: none;
 
       &:before {
