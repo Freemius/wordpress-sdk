@@ -274,7 +274,7 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @var FS_Affiliate
          */
@@ -283,7 +283,7 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @var FS_AffiliateTerms
          */
@@ -292,7 +292,7 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @var FS_AffiliateTerms
          */
@@ -7187,7 +7187,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @return bool
          */
@@ -7201,7 +7201,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          */
         private function fetch_affiliate_and_terms() {
             $this->_logger->entrance();
@@ -7243,7 +7243,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @return FS_Affiliate
          */
@@ -7254,7 +7254,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @return FS_AffiliateTerms
          */
@@ -7266,7 +7266,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @return FS_Affiliate|null
          */
@@ -7357,7 +7357,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since 1.2.1.7.2
+         * @since 1.2.3
          *
          * @return array|null
          */
@@ -12450,7 +12450,7 @@
 		 * Renders the "Affiliation" page.
 		 *
 		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.1.7.2
+		 * @since  1.2.3
 		 */
 		function _affiliation_page_render() {
 			$this->_logger->entrance();
