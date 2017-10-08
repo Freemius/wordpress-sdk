@@ -2731,7 +2731,7 @@
 				);
 			}
 
-			$server_ip = WP_FS__REMOTE_ADDR;
+			$server_ip = WP_FS__SERVER_ADDR;
 
 			// Add PHP info for deeper investigation.
 			ob_start();
@@ -5312,6 +5312,7 @@
 				'platform_version'             => get_bloginfo( 'version' ),
 				'sdk_version'                  => $this->version,
 				'programming_language_version' => phpversion(),
+                'ip'                           => WP_FS__SERVER_ADDR,
 				'title'                        => get_bloginfo( 'name' ),
 				'url'                          => get_site_url(),
 				// Special params.
@@ -8347,6 +8348,7 @@
 				'platform_version'             => get_bloginfo( 'version' ),
 				'sdk_version'                  => $this->version,
 				'programming_language_version' => phpversion(),
+                'server_ip'                    => WP_FS__SERVER_ADDR,
 				'language'                     => get_bloginfo( 'language' ),
 				'charset'                      => get_bloginfo( 'charset' ),
 				'is_premium'                   => $this->is_premium(),

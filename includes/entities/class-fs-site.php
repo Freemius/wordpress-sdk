@@ -64,6 +64,14 @@
 		 * @var string Programming language version (e.g PHP version).
 		 */
 		public $programming_language_version;
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since  1.2.3
+         *
+         * @var string|null
+         */
+        public $ip = null;
 		/**
 		 * @var FS_Plugin_Plan $plan
 		 */
