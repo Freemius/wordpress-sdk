@@ -5347,7 +5347,9 @@
 
 				foreach ( $check_properties as $p => $v ) {
 					if ( property_exists( $this->_site, $p ) ) {
-						if ( ( is_bool( $this->_site->{$p} ) || ! empty( $this->_site->{$p} ) ) &&
+					    if ( ( is_bool( $this->_site->{$p} ) ||
+                                ! is_null( $this->_site->{$p} ) ||
+                                ( is_null( $this->_site->{$p} ) && ! is_null( $v ) ) ) &&
 						     $this->_site->{$p} != $v
 						) {
 							$this->_site->{$p} = $v;
