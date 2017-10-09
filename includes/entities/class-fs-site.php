@@ -71,7 +71,7 @@
          *
          * @var string|null
          */
-        public $ip = null;
+        public $ip;
 		/**
 		 * @var FS_Plugin_Plan $plan
 		 */
