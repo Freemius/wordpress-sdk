@@ -3319,6 +3319,7 @@
 
 			$plugin->update( array(
 				'id'                   => $id,
+				'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type),
 				'public_key'           => $public_key,
 				'slug'                 => $this->_slug,
 				'parent_plugin_id'     => $parent_id,
@@ -3328,7 +3329,6 @@
 				'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
 				'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation'),
-//				'secret_key' => $secret_key,
 			) );
 
 			if ( $plugin->is_updated() ) {
