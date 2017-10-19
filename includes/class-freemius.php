@@ -12946,6 +12946,26 @@
 				return false;
 			}
 
+            if (
+                // Product has no affiliate program.
+                ! $this->has_affiliate_program() ||
+                // User is already an affiliate.
+                is_object( $this->affiliate ) ||
+                // User has applied for an affiliate account.
+                ! empty( $this->_storage->affiliate_application_data ) ) {
+                return false;
+            }
+
+            if ( ! $this->apply_filters( 'show_affiliate_program_notice', true ) ) {
+                // Developer explicitly asked not to show the notice about the affiliate program.
+                return false;
+            }
+
+            if ( $this->is_activation_mode() || $this->is_pending_activation() ) {
+                // If not yet opted in/skipped, or pending activation, don't show the notice.
+                return false;
+            }
+
             $last_time_notice_was_shown = $this->_storage->get( 'affiliate_program_notice_shown', false );
             $was_notice_shown_before    = ( false !== $last_time_notice_was_shown );
 
@@ -12959,30 +12979,10 @@
                 return false;
             }
 
-            if (
-                // Product has no affiliate program.
-                ! $this->has_affiliate_program() ||
-                // User is already an affiliate.
-                is_object( $this->affiliate ) ||
-                // User has applied for an affiliate account.
-                ! empty( $this->_storage->affiliate_application_data ) ) {
-				return false;
-			}
-
 			if ( ! $this->is_paying() &&
                 FS_Plugin::AFFILIATE_MODERATION_CUSTOMERS == $this->_plugin->affiliate_moderation ) {
 			    // If the user is not a customer and the affiliate program is only for customers, don't show the notice.
                 return false;
-			}
-
-			if ( ! $this->apply_filters( 'show_affiliate_program_notice', true ) ) {
-				// Developer explicitly asked not to show the notice about the affiliate program.
-				return false;
-			}
-
-			if ( $this->is_activation_mode() || $this->is_pending_activation() ) {
-				// If not yet opted in/skipped, or pending activation, don't show the notice.
-				return false;
 			}
 
 			$message = sprintf(
