@@ -768,6 +768,7 @@
 			$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
 			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+			add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
 			add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
 
 			/**
@@ -3328,7 +3329,7 @@
 				'file'                 => $this->_plugin_basename,
 				'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
 				'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
-				'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation'),
+				'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
 			) );
 
 			if ( $plugin->is_updated() ) {
@@ -7329,6 +7330,10 @@
             }
             else
             {
+                if ( $this->_admin_notices->has_sticky( 'affiliate_program' ) ) {
+                    $this->_admin_notices->remove_sticky( 'affiliate_program' );
+                }
+
                 $affiliate_application_data = array(
                     'stats_description'            => $affiliate['stats_description'],
                     'promotion_method_description' => $affiliate['promotion_method_description'],
@@ -12915,6 +12920,92 @@
 			);
 
 			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
+
+			return true;
+		}
+
+		/**
+		 * Lets users/customers know that the product has an affiliate program.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2.11
+		 *
+		 * @return bool Returns true if the notice has been added.
+		 */
+		function _add_affiliate_program_notice() {
+			if ( ! $this->is_user_admin() ) {
+				return false;
+			}
+
+			if ( ! $this->is_user_in_admin() ) {
+				return false;
+			}
+
+			// Check if the notice is already shown.
+			if ( $this->_admin_notices->has_sticky( 'affiliate_program' ) ) {
+				return false;
+			}
+
+            if (
+                // Product has no affiliate program.
+                ! $this->has_affiliate_program() ||
+                // User is already an affiliate.
+                is_object( $this->affiliate ) ||
+                // User has applied for an affiliate account.
+                ! empty( $this->_storage->affiliate_application_data ) ) {
+                return false;
+            }
+
+            if ( ! $this->apply_filters( 'show_affiliate_program_notice', true ) ) {
+                // Developer explicitly asked not to show the notice about the affiliate program.
+                return false;
+            }
+
+            if ( $this->is_activation_mode() || $this->is_pending_activation() ) {
+                // If not yet opted in/skipped, or pending activation, don't show the notice.
+                return false;
+            }
+
+            $last_time_notice_was_shown = $this->_storage->get( 'affiliate_program_notice_shown', false );
+            $was_notice_shown_before    = ( false !== $last_time_notice_was_shown );
+
+            /**
+             * Do not show the notice if it was already shown before or less than 30 days have passed since the initial
+             * activation with FS.
+             */
+            if ( $was_notice_shown_before ||
+                $this->_storage->install_timestamp > ( time() - ( WP_FS__TIME_24_HOURS_IN_SEC * 30 ) )
+            ) {
+                return false;
+            }
+
+			if ( ! $this->is_paying() &&
+                FS_Plugin::AFFILIATE_MODERATION_CUSTOMERS == $this->_plugin->affiliate_moderation ) {
+			    // If the user is not a customer and the affiliate program is only for customers, don't show the notice.
+                return false;
+			}
+
+			$message = sprintf(
+				$this->get_text( 'become-an-ambassador-admin-notice' ),
+				sprintf( '<strong>%s</strong>', $this->get_plugin_name() ),
+				$this->get_module_label( true )
+			);
+
+			// HTML code for the "Learn more..." button.
+			$button = ' ' . sprintf(
+					'<a style="display: block; margin-top: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+                    $this->_get_admin_page_url( 'affiliation' ),
+					$this->get_text( 'learn-more' ) . '...'
+				);
+
+			$this->_admin_notices->add_sticky(
+				$this->apply_filters( 'affiliate_program_notice', "{$message} {$button}" ),
+				'affiliate_program',
+				'',
+				'promotion'
+			);
+
+			$this->_storage->affiliate_program_notice_shown = WP_FS__SCRIPT_START_TIME;
 
 			return true;
 		}
