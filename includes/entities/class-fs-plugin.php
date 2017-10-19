@@ -71,6 +71,8 @@
 		 */
 		public $affiliate_moderation;
 
+        const AFFILIATE_MODERATION_CUSTOMERS = 'customers';
+
 		#endregion Install Specific Properties
 
 		/**
