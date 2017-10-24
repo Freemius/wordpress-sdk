@@ -164,14 +164,18 @@
 
 	function fs_get_action( $action_key = 'action' ) {
 		if ( ! empty( $_REQUEST[ $action_key ] ) ) {
-			return strtolower( $_REQUEST[ $action_key ] );
+			if ( is_string( $_REQUEST[ $action_key ] ) ) {
+				return strtolower( $_REQUEST[ $action_key ] );
+			}
 		}
 
 		if ( 'action' == $action_key ) {
 			$action_key = 'fs_action';
 
 			if ( ! empty( $_REQUEST[ $action_key ] ) ) {
-				return strtolower( $_REQUEST[ $action_key ] );
+				if ( is_string( $_REQUEST[ $action_key ] ) ) {
+					return strtolower( $_REQUEST[ $action_key ] );
+				}
 			}
 		}
 
