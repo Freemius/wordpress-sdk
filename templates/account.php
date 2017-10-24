@@ -49,7 +49,7 @@
 	}
 ?>
 	<div class="wrap fs-section">
-		<?php if ( ! $has_tabs ) : ?>
+		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
 		<h2 class="nav-tab-wrapper">
 			<a href="<?php echo $fs->get_account_url() ?>"
 			   class="nav-tab nav-tab-active"><?php fs_echo( 'account', $slug ) ?></a>
