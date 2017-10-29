@@ -8249,8 +8249,26 @@
 				$this->_site       = clone $site;
 				$this->_site->plan = self::decrypt_entity( $this->_site->plan );
 
-				// Load relevant user.
-				$this->_user = clone $users[ $this->_site->user_id ];
+                if ( ! isset( $users[ $this->_site->user_id ] ) ) {
+                    if ( FS_Plugin_License::is_valid_id( $this->_site->license_id ) ) {
+                        $this->_user = $this->recover_user_entity();
+
+                        if ( is_object( $this->_user ) ) {
+                            $this->_store_user();
+                        } else {
+                            $this->_delete_site();
+
+                            if ( $this->is_enable_anonymous() ) {
+                                $this->skip_connection();
+
+                                fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
+                            }
+                        }
+                    }
+                }
+
+                // Load relevant user.
+                $this->_user = clone $users[ $this->_site->user_id ];
 
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
@@ -8286,6 +8304,69 @@
 
 			$this->_register_account_hooks();
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return FS_User|null
+         */
+		private function recover_user_entity() {
+            $license = $this->get_site_license();
+
+            if ( is_null( $license ) ) {
+                return null;
+            }
+
+            $api = $this->get_api_site_scope();
+
+            $result = $api->get( 'users.json?uid=' . $this->get_anonymous_id() . '&license_key=' . urlencode( $license->secret_key ) );
+
+            if ( $this->is_api_result_object( $result, 'users' ) && is_array( $result->users ) ) {
+                $users = $result->users;
+
+                if ( ! empty( $users ) ) {
+                    return new FS_User( $users[0] );
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return FS_Plugin_License|null
+         */
+        private function get_site_license() {
+            $install = $this->_site;
+            $license = $this->_get_license_by_id( $install->license_id );
+            if ( is_object( $license ) ) {
+                return $license;
+            }
+
+            $all_licenses = self::get_all_licenses( $this->_module_type );
+            if ( ! isset( $all_licenses[ $this->_slug ] ) ) {
+                return null;
+            }
+
+            $module_licenses = $all_licenses[ $this->_slug ];
+            foreach ( $module_licenses as $user_licenses ) {
+                /**
+                 * @var FS_Plugin_License $license
+                 */
+                foreach ( $user_licenses as $license ) {
+                    if ( $license->id == $install->license_id ) {
+                        if ( $license->user_id == $install->user_id ) {
+                            return $license;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return null;
+        }
 
 		/**
 		 * @author Vova Feldman (@svovaf)
