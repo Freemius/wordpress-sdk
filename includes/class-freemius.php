@@ -8255,10 +8255,25 @@
 
                         if ( is_object( $this->_user ) ) {
                             $this->_store_user();
-                        } else {
-                            $this->_delete_site();
 
+                            /**
+                             * Store the user to the `$users` variable in this scope so that the clone-related logic
+                             * below will work.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             */
+                            $users[ $this->_site->user_id ] = $this->_user;
+                        } else {
+                            /**
+                             * If no user could be found and anonymous mode is enabled, delete the install entity and
+                             * set the opt-in as "skipped".
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             */
                             if ( $this->is_enable_anonymous() ) {
+                                // Delete the install entity locally (no API request will be made).
+                                $this->_delete_site();
+
                                 $this->skip_connection();
 
                                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
@@ -8311,8 +8326,7 @@
          * @return FS_User|null
          */
 		private function recover_user_entity() {
-            $license = $this->get_site_license();
-
+            $license = $this->get_any_user_license( $this->_site->user_id );
             if ( is_null( $license ) ) {
                 return null;
             }
@@ -8335,15 +8349,11 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
+         * @param number $user_id
+         *
          * @return FS_Plugin_License|null
          */
-        private function get_site_license() {
-            $install = $this->_site;
-            $license = $this->_get_license_by_id( $install->license_id );
-            if ( is_object( $license ) ) {
-                return $license;
-            }
-
+        private function get_any_user_license( $user_id ) {
             $all_licenses = self::get_all_licenses( $this->_module_type );
             if ( ! isset( $all_licenses[ $this->_slug ] ) ) {
                 return null;
@@ -8355,8 +8365,14 @@
                  * @var FS_Plugin_License $license
                  */
                 foreach ( $user_licenses as $license ) {
-                    if ( $license->id == $install->license_id ) {
-                        if ( $license->user_id == $install->user_id ) {
+                    if ( $license->id == $this->_site->license_id ) {
+                        /**
+                         * For now, only an install license that is associated with the install's owner will be
+                         * retrieved.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         */
+                        if ( $license->user_id == $user_id ) {
                             return $license;
                         }
 
