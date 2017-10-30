@@ -17,8 +17,10 @@
 
 	/* Url.
 	--------------------------------------------------------------------------------------------*/
-	function fs_get_url_daily_cache_killer() {
-		return date( '\YY\Mm\Dd' );
+	if ( ! function_exists( 'fs_get_url_daily_cache_killer' ) ) {
+		function fs_get_url_daily_cache_killer() {
+			return date( '\YY\Mm\Dd' );
+		}
 	}
 
 	/* Templates / Views.
