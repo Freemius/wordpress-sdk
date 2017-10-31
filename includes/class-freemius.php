@@ -8249,8 +8249,19 @@
 				$this->_site       = clone $site;
 				$this->_site->plan = self::decrypt_entity( $this->_site->plan );
 
+                /**
+                 * If the install owner's details are not stored locally, use the previous user's details if available.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+				if ( ! isset( $users[ $this->_site->user_id ] ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
+                    $user_id = $this->_storage->prev_user_id;
+                } else {
+                    $user_id = $this->_site->user_id;
+                }
+
 				// Load relevant user.
-				$this->_user = clone $users[ $this->_site->user_id ];
+				$this->_user = clone $users[ $user_id ];
 
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
@@ -10141,7 +10152,18 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
 
-			$sites                 = self::get_all_sites( $this->_module_type );
+			$sites = self::get_all_sites( $this->_module_type );
+
+            if ( empty( $this->_storage->prev_user_id ) && $this->_user->id != $this->_site->user_id ) {
+                /**
+                 * Store the current user ID as the previous user ID so that the previous user can be used
+                 * as the install's owner while the new owner's details are not yet available.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $this->_storage->prev_user_id = $sites[ $this->_slug ]->user_id;
+            }
+
 			$sites[ $this->_slug ] = $encrypted_site;
 
 			$this->set_account_option( 'sites', $sites, $store );
