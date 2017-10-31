@@ -10159,6 +10159,11 @@
                  * Store the current user ID as the previous user ID so that the previous user can be used
                  * as the install's owner while the new owner's details are not yet available.
                  *
+                 * This will be executed only in the `replica` site. For example, there are 2 sites, namely `original`
+                 * and `replica`, then an ownership change was initiated and completed in the `original`, the `replica`
+                 * will be using the previous user until it is updated again (e.g.: until the next clone of `original`
+                 * into `replica`.
+                 *
                  * @author Leo Fajardo (@leorw)
                  */
                 $this->_storage->prev_user_id = $sites[ $this->_slug ]->user_id;
