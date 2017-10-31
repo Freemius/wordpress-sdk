@@ -208,8 +208,16 @@
 		function set( $key, $value, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
 			$this->_logger->entrance( 'key = ' . $key );
 
-			$cache_entry            = new stdClass();
-			$cache_entry->result    = $value;
+			$cache_entry = new stdClass();
+
+            /**
+             * If the value is an object, clone it before storing so that it will not be affected when it is
+             * manipulated immediately after storing it (i.e., not retrieved using the `get` method which clones an
+             * object result before returning it).
+             *
+             * @author Leo Fajardo (@leorw)
+             */
+			$cache_entry->result    = is_object( $value ) ? clone $value : $value;
 			$cache_entry->created   = WP_FS__SCRIPT_START_TIME;
 			$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
 			$this->_options->set_option( $key, $cache_entry, true );
