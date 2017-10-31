@@ -163,11 +163,12 @@
 
 			if ( ! $is_addon && isset( $menu ) ) {
 				$this->_default_submenu_items = array(
-					'contact' => $this->get_bool_option( $menu, 'contact', true ),
-					'support' => $this->get_bool_option( $menu, 'support', true ),
-					'account' => $this->get_bool_option( $menu, 'account', true ),
-					'pricing' => $this->get_bool_option( $menu, 'pricing', true ),
-					'addons'  => $this->get_bool_option( $menu, 'addons', true ),
+					'contact'     => $this->get_bool_option( $menu, 'contact', true ),
+					'support'     => $this->get_bool_option( $menu, 'support', true ),
+                    'affiliation' => $this->get_bool_option( $menu, 'affiliation', true ),
+					'account'     => $this->get_bool_option( $menu, 'account', true ),
+					'pricing'     => $this->get_bool_option( $menu, 'pricing', true ),
+					'addons'      => $this->get_bool_option( $menu, 'addons', true ),
 				);
 
 				// @deprecated

@@ -100,9 +100,9 @@
 						$ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
 
 						$local_path = fs_normalize_path( $img_dir . '/' . $slug . '.' . $ext );
-						fs_download_image( $icon, $local_path );
 
-						$icon_found = true;
+						// Try to download the icon.
+						$icon_found = fs_download_image( $icon, $local_path );
 					}
 				}
 

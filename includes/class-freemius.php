@@ -271,6 +271,33 @@
 		 */
 		private static $_instances = array();
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.3
+         *
+         * @var FS_Affiliate
+         */
+        private $affiliate = null;
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.3
+         *
+         * @var FS_AffiliateTerms
+         */
+        private $plugin_affiliate_terms = null;
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.3
+         *
+         * @var FS_AffiliateTerms
+         */
+        private $custom_affiliate_terms = null;
+
 		#region Uninstall Reasons IDs
 
 		const REASON_NO_LONGER_NEEDED = 1;
@@ -732,6 +759,8 @@
 				'_install_premium_version_ajax_action'
 			) );
 
+            $this->add_ajax_action( 'submit_affiliate_application', array( &$this, '_submit_affiliate_application' ) );
+
 			$this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
 			$this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
@@ -739,6 +768,7 @@
 			$this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
 			add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+			add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
 			add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
 
 			/**
@@ -912,7 +942,16 @@
 				$store_option = true;
 			}
 
-			if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ) {
+			if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ||
+			     /**
+			      * This verification is for cases when suddenly the same module
+			      * is installed but with a different folder name.
+			      *
+			      * @author Vova Feldman (@svovaf)
+			      * @since 1.2.3
+			      */
+			     ! file_exists( $id_slug_type_path_map[ $module_id ]['path'] )
+			) {
 				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
 
 				$id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
@@ -2827,6 +2866,10 @@
 
 			$this->parse_settings( $plugin_info );
 
+            if ( $this->has_affiliate_program() ) {
+                $this->fetch_affiliate_and_terms();
+            }
+
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
                     add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
@@ -3276,17 +3319,17 @@
 				new FS_Plugin();
 
 			$plugin->update( array(
-				'id'               => $id,
-				'public_key'       => $public_key,
-				'slug'             => $this->_slug,
-				'parent_plugin_id' => $parent_id,
-				'version'          => $this->get_plugin_version(),
-				'title'            => $this->get_plugin_name(),
-				'file'             => $this->_plugin_basename,
-				'is_premium'       => $this->get_bool_option( $plugin_info, 'is_premium', true ),
-				'is_live'          => $this->get_bool_option( $plugin_info, 'is_live', true ),
-				'type'             => $this->_module_type,
-//				'secret_key' => $secret_key,
+				'id'                   => $id,
+				'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type),
+				'public_key'           => $public_key,
+				'slug'                 => $this->_slug,
+				'parent_plugin_id'     => $parent_id,
+				'version'              => $this->get_plugin_version(),
+				'title'                => $this->get_plugin_name(),
+				'file'                 => $this->_plugin_basename,
+				'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+				'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
+				'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
 			) );
 
 			if ( $plugin->is_updated() ) {
@@ -3495,11 +3538,13 @@
 					'license_activated',
 				) );
 
-				$this->_admin_notices->add_sticky(
-					sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
-					'premium_activated',
-					$this->get_text( 'woot' ) . '!'
-				);
+				if ( ! $this->is_only_premium() ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf( $this->get_text( 'premium-activated-message' ), $this->_module_type ),
+                        'premium_activated',
+                        $this->get_text( 'woot' ) . '!'
+                    );
+                }
 			} else {
 				// Remove sticky message related to premium code activation.
 				$this->_admin_notices->remove_sticky( 'premium_activated' );
@@ -5800,7 +5845,7 @@
 					$this->get_text( 'theme' ) );
 
 			if ( $lowercase ) {
-				$label = strtolower( $lowercase );
+				$label = strtolower( $label );
 			}
 
 			return $label;
@@ -6921,13 +6966,13 @@
 				if ( isset( $install->error ) ) {
 					$error = $install->error->message;
 				} else {
-					$parent_fs = $fs->is_addon() ?
-						$fs->get_parent_instance() :
-						$fs;
+                    $fs->_sync_license( true );
 
-					$next_page = $parent_fs->_get_sync_license_url( $fs->get_id(), true );
+                    $next_page = $fs->is_addon() ?
+                        $fs->get_parent_instance()->get_account_url() :
+                        $fs->get_account_url();
 
-					$fs->reconnect_locally();
+                    $fs->reconnect_locally();
 				}
 			} else {
 				$next_page = $fs->opt_in( false, false, false, $license_key );
@@ -7136,6 +7181,200 @@
 		static function is_themes_page() {
 			return ( 'themes.php' === self::get_current_page() );
 		}
+
+		#----------------------------------------------------------------------------------
+		#region Affiliation
+		#----------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.3
+         *
+         * @return bool
+         */
+        function has_affiliate_program() {
+            if ( ! is_object( $this->_plugin ) ) {
+                return false;
+            }
+
+		    return $this->_plugin->has_affiliate_program();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         */
+        private function fetch_affiliate_and_terms() {
+            $this->_logger->entrance();
+
+            if ( ! is_object( $this->plugin_affiliate_terms ) ) {
+                $plugins_api     = $this->get_api_plugin_scope();
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', true );
+
+                if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
+                    return;
+                }
+
+                $this->plugin_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
+            }
+
+            if ( $this->is_registered() ) {
+                $users_api = $this->get_api_user_scope();
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", true );
+                if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
+                    if ( ! empty( $result->affiliates ) ) {
+                        $affiliate = new FS_Affiliate( $result->affiliates[0] );
+
+                        if ( ! $affiliate->is_pending() && ! empty( $this->_storage->affiliate_application_data ) ) {
+                            unset( $this->_storage->affiliate_application_data );
+                        }
+
+                        if ( $affiliate->is_using_custom_terms ) {
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            if ( $this->is_api_result_entity( $affiliate_terms ) ) {
+                                $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
+                            }
+                        }
+
+                        $this->affiliate = $affiliate;
+                    }
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.3
+         *
+         * @return FS_Affiliate
+         */
+        function get_affiliate() {
+            return $this->affiliate;
+        }
+
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.3
+         *
+         * @return FS_AffiliateTerms
+         */
+        function get_affiliate_terms() {
+            return is_object( $this->custom_affiliate_terms ) ?
+                $this->custom_affiliate_terms :
+                $this->plugin_affiliate_terms;
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.3
+         *
+         * @return FS_Affiliate|null
+         */
+        function _submit_affiliate_application() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'submit_affiliate_application' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $affiliate = fs_request_get( 'affiliate' );
+
+            if ( empty( $affiliate['promotion_methods'] ) ) {
+                unset( $affiliate['promotion_methods'] );
+            }
+
+            if ( ! empty( $affiliate['additional_domains'] ) ) {
+                $affiliate['additional_domains'] = array_unique( $affiliate['additional_domains'] );
+            }
+
+            if ( ! $this->is_registered() ) {
+                // Opt in but don't track usage.
+                $next_page = $this->opt_in(
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true
+                );
+
+                if ( is_object( $next_page ) && $this->is_api_error( $next_page ) ) {
+                    self::shoot_ajax_failure(
+                        isset( $next_page->error ) ?
+                            $next_page->error->message :
+                            var_export( $next_page, true )
+                    );
+                } else if ( $this->is_pending_activation() ) {
+                    self::shoot_ajax_failure( $this->get_text( 'account-is-pending-activation' ) );
+                }
+            }
+
+            $api    = $this->get_api_user_scope();
+            $result = $api->call(
+                ( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json" ),
+                'post',
+                $affiliate
+            );
+
+            if ( $this->is_api_error( $result ) ) {
+                self::shoot_ajax_failure(
+                    isset( $result->error ) ?
+                        $result->error->message :
+                        var_export( $result, true )
+                );
+            }
+            else
+            {
+                if ( $this->_admin_notices->has_sticky( 'affiliate_program' ) ) {
+                    $this->_admin_notices->remove_sticky( 'affiliate_program' );
+                }
+
+                $affiliate_application_data = array(
+                    'stats_description'            => $affiliate['stats_description'],
+                    'promotion_method_description' => $affiliate['promotion_method_description'],
+                );
+
+                if ( ! empty( $affiliate['promotion_methods'] ) ) {
+                    $affiliate_application_data['promotion_methods'] = $affiliate['promotion_methods'];
+                }
+
+                if ( ! empty( $affiliate['domain'] ) ) {
+                    $affiliate_application_data['domain'] = $affiliate['domain'];
+                }
+
+                if ( ! empty( $affiliate['additional_domains'] ) ) {
+                    $affiliate_application_data['additional_domains'] = $affiliate['additional_domains'];
+                }
+
+                $this->_storage->affiliate_application_data = $affiliate_application_data;
+            }
+
+            // Purge cached affiliate.
+            $api->purge_cache( 'affiliate.json' );
+
+            self::shoot_ajax_success( $result );
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since 1.2.3
+         *
+         * @return array|null
+         */
+        function get_affiliate_application_data() {
+            if ( empty( $this->_storage->affiliate_application_data ) ) {
+                return null;
+            }
+
+            return $this->_storage->affiliate_application_data;
+        }
+
+        #endregion Affiliation ------------------------------------------------------------
 
 		#----------------------------------------------------------------------------------
 		#region URL Generators
@@ -7586,7 +7825,10 @@
 						) ), admin_url( 'admin.php', 'admin' ) );
 					} else {
 						// Plugin without a settings page.
-						return admin_url( 'plugins.php' );
+                        return add_query_arg(
+                            $params,
+                            admin_url( 'plugins.php' )
+                        );
 					}
 				}
 			}
@@ -8007,8 +8249,19 @@
 				$this->_site       = clone $site;
 				$this->_site->plan = self::decrypt_entity( $this->_site->plan );
 
+                /**
+                 * If the install owner's details are not stored locally, use the previous user's details if available.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+				if ( ! isset( $users[ $this->_site->user_id ] ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
+                    $user_id = $this->_storage->prev_user_id;
+                } else {
+                    $user_id = $this->_site->user_id;
+                }
+
 				// Load relevant user.
-				$this->_user = clone $users[ $this->_site->user_id ];
+				$this->_user = clone $users[ $user_id ];
 
 				// Load plans.
 				$this->_plans = $plans[ $this->_slug ];
@@ -8156,6 +8409,7 @@
 		 *                                        In this case, the user and site info will be sent to the server but no
 		 *                                        data will be saved to the WP installation's database.
 		 * @param number|bool $trial_plan_id
+		 * @param bool        $is_disconnected Whether or not to opt in without tracking.
 		 *
 		 * @return string|object
 		 * @use    WP_Error
@@ -8166,7 +8420,8 @@
 			$last = false,
 			$license_key = false,
 			$is_uninstall = false,
-			$trial_plan_id = false
+			$trial_plan_id = false,
+            $is_disconnected = false
 		) {
 			$this->_logger->entrance();
 
@@ -8219,7 +8474,28 @@
 				);
 			}
 
-			$params['format'] = 'json';
+			if ( isset( $params['license_key'] ) ) {
+				$fs_user = Freemius::_get_user_by_email( $email );
+
+				if ( is_object( $fs_user ) ) {
+					/**
+					 * If opting in with a context license and the context WP Admin user already opted in
+					 * before from the current site, add the user context security params to avoid the
+					 * unnecessry email activation when the context license is owned by the same context user.
+					 * 
+					 * @author Leo Fajardo (@leorw)
+					 * @since 1.2.3
+					 */
+					$params = array_merge( $params, FS_Security::instance()->get_context_params(
+						$fs_user,
+						false,
+						'install_with_existing_user'
+					) );
+				}
+			}
+
+            $params['is_disconnected'] = $is_disconnected;
+			$params['format']          = 'json';
 
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
 			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
@@ -8294,7 +8570,9 @@
 			} else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
 				// Pending activation, add message.
 				return $this->set_pending_confirmation(
-					true,
+                    ( isset( $decoded->email ) ?
+                        $decoded->email :
+                        true ),
 					false,
 					$filtered_license_key,
 					! empty( $params['trial_plan_id'] )
@@ -8360,7 +8638,7 @@
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
 
-			if ( $this->is_pending_activation() ) {
+			if ( $this->is_pending_activation() || ! $this->has_settings_menu() ) {
 				// Remove pending activation sticky notice (if still exist).
 				$this->_admin_notices->remove_sticky( 'activation_pending' );
 
@@ -8376,7 +8654,7 @@
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if ( ! $this->is_premium() || ! $this->has_premium_version() ) {
+				if ( ! $this->is_premium() || ! $this->has_premium_version() || ! $this->has_settings_menu() ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
@@ -8685,7 +8963,19 @@
 				);
 
 				if ( $redirect ) {
-					fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
+                    /**
+                     * We set the user before getting the user scope API handler, so the user became temporarily
+                     * registered (`is_registered() = true`). Since the API returned an error and we will redirect,
+                     * we have to set the user to `null`, otherwise, the user will be redirected to the wrong
+                     * activation page based on the return value of `is_registered()`. In addition, in case the
+                     * context plugin doesn't have a settings menu and the default page is the `Plugins` page,
+                     * misleading plugin activation errors will be shown on the `Plugins` page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_user = null;
+
+                    fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
 				}
 
 				return $install;
@@ -8791,6 +9081,14 @@
 
 				return;
 			}
+
+            $parent_fs->_admin_notices->remove_sticky( 'connect_account' );
+
+            if ( $parent_fs->is_pending_activation() ) {
+                $parent_fs->_admin_notices->remove_sticky( 'activation_pending' );
+
+                unset( $parent_fs->_storage->is_pending_activation );
+            }
 
 			// First of all, set site info - otherwise we won't
 			// be able to invoke API calls.
@@ -8984,9 +9282,9 @@
 
 			if ( false !== $hook ) {
 				if ( fs_request_is_action( $this->get_unique_affix() . '_activate_existing' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_current_user' ) );
+                    $this->_install_with_current_user();
 				} else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) {
-					add_action( "load-$hook", array( &$this, '_install_with_new_user' ) );
+                    $this->_install_with_new_user();
 				}
 			}
 		}
@@ -9079,6 +9377,20 @@
 				 * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
 				 */
 				if ( ! $this->is_activation_mode() || $this->is_free_wp_org_theme() ) {
+                    if ( $this->has_affiliate_program() ) {
+                        // Add affiliation page.
+                        $this->add_submenu_item(
+                            $this->get_text( 'affiliation' ),
+                            array( &$this, '_affiliation_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text( 'affiliation' ),
+                            'manage_options',
+                            'affiliation',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'affiliation' )
+                        );
+                    }
+
 					if ( $this->is_registered() ) {
 						$show_account = (
 							$this->is_submenu_item_visible( 'account' ) &&
@@ -9840,7 +10152,18 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
 
-			$sites                 = self::get_all_sites( $this->_module_type );
+			$sites = self::get_all_sites( $this->_module_type );
+
+            if ( empty( $this->_storage->prev_user_id ) && $this->_user->id != $this->_site->user_id ) {
+                /**
+                 * Store the current user ID as the previous user ID so that the previous user can be used
+                 * as the install's owner while the new owner's details are not yet available.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $this->_storage->prev_user_id = $sites[ $this->_slug ]->user_id;
+            }
+
 			$sites[ $this->_slug ] = $encrypted_site;
 
 			$this->set_account_option( 'sites', $sites, $store );
@@ -11940,6 +12263,14 @@
 
 					if ( $plugin_id == $this->get_id() ) {
 						$this->_deactivate_license();
+
+                        if ( $this->is_only_premium() ) {
+                            // Clear user and site.
+                            $this->_site = null;
+                            $this->_user = null;
+
+                            fs_redirect( $this->get_activation_url() );
+                        }
 					} else {
 						if ( $this->is_addon_activated( $plugin_id ) ) {
 							$fs_addon = self::get_instance_by_id( $plugin_id );
@@ -12143,6 +12474,22 @@
 		}
 
 		/**
+		 * Renders the "Affiliation" page.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.3
+		 */
+		function _affiliation_page_render() {
+			$this->_logger->entrance();
+
+            fs_enqueue_local_style( 'fs_affiliation', '/admin/affiliation.css' );
+
+            $vars = array( 'id' => $this->_module_id );
+			echo $this->apply_filters( "/forms/affiliation.php", fs_get_template( '/forms/affiliation.php', $vars ) );
+		}
+
+
+		/**
 		 * Render account page.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -12152,11 +12499,7 @@
 			$this->_logger->entrance();
 
 			$template = 'account.php';
-			if ( 'billing' === fs_request_get( 'tab' ) ) {
-				$template = 'billing.php';
-			}
-
-			$vars = array( 'id' => $this->_module_id );
+			$vars     = array( 'id' => $this->_module_id );
 
 			/**
 			 * Added filter to the template to allow developers wrapping the template
@@ -12599,6 +12942,92 @@
 			);
 
 			$this->_storage->trial_promotion_shown = WP_FS__SCRIPT_START_TIME;
+
+			return true;
+		}
+
+		/**
+		 * Lets users/customers know that the product has an affiliate program.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.2.11
+		 *
+		 * @return bool Returns true if the notice has been added.
+		 */
+		function _add_affiliate_program_notice() {
+			if ( ! $this->is_user_admin() ) {
+				return false;
+			}
+
+			if ( ! $this->is_user_in_admin() ) {
+				return false;
+			}
+
+			// Check if the notice is already shown.
+			if ( $this->_admin_notices->has_sticky( 'affiliate_program' ) ) {
+				return false;
+			}
+
+            if (
+                // Product has no affiliate program.
+                ! $this->has_affiliate_program() ||
+                // User is already an affiliate.
+                is_object( $this->affiliate ) ||
+                // User has applied for an affiliate account.
+                ! empty( $this->_storage->affiliate_application_data ) ) {
+                return false;
+            }
+
+            if ( ! $this->apply_filters( 'show_affiliate_program_notice', true ) ) {
+                // Developer explicitly asked not to show the notice about the affiliate program.
+                return false;
+            }
+
+            if ( $this->is_activation_mode() || $this->is_pending_activation() ) {
+                // If not yet opted in/skipped, or pending activation, don't show the notice.
+                return false;
+            }
+
+            $last_time_notice_was_shown = $this->_storage->get( 'affiliate_program_notice_shown', false );
+            $was_notice_shown_before    = ( false !== $last_time_notice_was_shown );
+
+            /**
+             * Do not show the notice if it was already shown before or less than 30 days have passed since the initial
+             * activation with FS.
+             */
+            if ( $was_notice_shown_before ||
+                $this->_storage->install_timestamp > ( time() - ( WP_FS__TIME_24_HOURS_IN_SEC * 30 ) )
+            ) {
+                return false;
+            }
+
+			if ( ! $this->is_paying() &&
+                FS_Plugin::AFFILIATE_MODERATION_CUSTOMERS == $this->_plugin->affiliate_moderation ) {
+			    // If the user is not a customer and the affiliate program is only for customers, don't show the notice.
+                return false;
+			}
+
+			$message = sprintf(
+				$this->get_text( 'become-an-ambassador-admin-notice' ),
+				sprintf( '<strong>%s</strong>', $this->get_plugin_name() ),
+				$this->get_module_label( true )
+			);
+
+			// HTML code for the "Learn more..." button.
+			$button = ' ' . sprintf(
+					'<a style="display: block; margin-top: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+                    $this->_get_admin_page_url( 'affiliation' ),
+					$this->get_text( 'learn-more' ) . '...'
+				);
+
+			$this->_admin_notices->add_sticky(
+				$this->apply_filters( 'affiliate_program_notice', "{$message} {$button}" ),
+				'affiliate_program',
+				'',
+				'promotion'
+			);
+
+			$this->_storage->affiliate_program_notice_shown = WP_FS__SCRIPT_START_TIME;
 
 			return true;
 		}
