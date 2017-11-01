@@ -78,8 +78,10 @@
     if ( is_object( $affiliate_terms ) ) {
         $affiliate_tracking = ( ! is_null( $affiliate_terms->cookie_days ) ?
             ( $affiliate_terms->cookie_days . '-day' ) :
-            fs_text( 'non-expiring', $slug ) );
+            fs_text_inline( 'Non-expiring', 'non-expiring', $slug ) );
     }
+
+    $apply_to_become_affiliate_text = fs_text_inline( 'Apply to become an affiliate', 'apply-to-become-an-affiliate', $slug );
 ?>
 <div id="fs_affiliation_content_wrapper" class="wrap">
     <form method="post" action="">
@@ -97,31 +99,33 @@
                             <?php if ( $affiliate->is_active() ) : ?>
                                 <div class="updated">
                                     <p><strong><?php
-                                        printf(
-                                            fs_text( 'affiliate-application-accepted', $slug ),
+                                        echo esc_html( sprintf(
+                                            fs_text_inline( "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s.", 'affiliate-application-accepted', $slug ),
                                             $plugin_title,
                                             sprintf( '<a href="%s" target="_blank">%s</a>', $members_dashboard_login_url, $members_dashboard_login_url )
-                                        );
+                                        ) );
                                     ?></strong></p>
                                 </div>
                             <?php else : ?>
                                     <?php
+                                        $message_text = '';
+
                                         if ( $is_pending_affiliate ) {
-                                            $text_key                = 'affiliate-application-thank-you';
+                                            $message_text                = fs_text_inline( "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information.", 'affiliate-application-thank-you', $slug );
                                             $message_container_class = 'updated';
                                         } else if ( $affiliate->is_suspended() ) {
-                                            $text_key                = 'affiliate-account-suspended';
+                                            $message_text                = fs_text_inline( 'Your affiliation account was temporarily suspended.', 'affiliate-account-suspended', $slug );
                                             $message_container_class = 'notice notice-warning';
                                         } else if ( $affiliate->is_rejected() ) {
-                                            $text_key                = 'affiliate-application-rejected';
+                                            $message_text                = fs_text_inline( "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days.", 'affiliate-application-rejected', $slug );
                                             $message_container_class = 'error';
                                         } else if ( $affiliate->is_blocked() ) {
-                                            $text_key                = 'affiliate-account-blocked';
+                                            $message_text                = fs_text_inline( 'Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support.', 'affiliate-account-blocked', $slug );
                                             $message_container_class = 'error';
                                         }
                                     ?>
                                     <div class="<?php echo $message_container_class ?>">
-                                        <p><strong><?php fs_echo( $text_key, $slug ) ?></strong></p>
+                                        <p><strong><?php echo esc_html( $message_text ) ?></strong></p>
                                     </div>
                             <?php endif ?>
                         <?php endif ?>
@@ -129,52 +133,52 @@
                     <div class="entry-content">
                         <?php if ( ! $is_affiliate ) : ?>
                             <div id="application_messages_container">
-                                <p><?php printf( fs_text( 'become-an-ambassador', $slug ), $module_type ) ?></p>
-                                <p><?php printf( fs_text( 'refer-new-customers', $slug ), $module_type, $commission ) ?></p>
+                                <p><?php echo esc_html( sprintf( fs_text_inline( 'Like the %s? Become our ambassador and earn cash ;-)', 'become-an-ambassador', $slug ), $module_type ) ) ?></p>
+                                <p><?php echo esc_html( sprintf( fs_text_inline( 'Refer new customers to our %s and earn %s commission on each successful sale you refer!', 'refer-new-customers', $slug ), $module_type, $commission ) ) ?></p>
                             </div>
                         <?php endif ?>
-                        <h3><?php fs_echo( 'program-summary', $slug ) ?></h3>
+                        <h3><?php fs_esc_html_echo_inline( 'Program Summary', 'program-summary', $slug ) ?></h3>
                         <ul>
-                            <li><?php printf( fs_text( 'commission-on-new-license-purchase', $slug ), $commission ) ?></li>
+                            <li><?php echo esc_html( sprintf( fs_text_inline( '%s commission when a customer purchases a new license.', 'commission-on-new-license-purchase', $slug ), $commission ) ) ?></li>
                             <?php if ( is_object( $affiliate_terms ) && $affiliate_terms->has_renewals_commission() ) : ?>
-                                <li><?php printf( fs_text( 'renewals-commission', $slug ) ) ?></li>
+                                <li><?php echo esc_html( sprintf( fs_text_inline( 'Get commission for automated subscription renewals.', 'renewals-commission', $slug ) ) ) ?></li>
                             <?php endif ?>
                             <?php if ( is_object( $affiliate_terms ) && ( ! $affiliate_terms->is_session_cookie() ) ) : ?>
-                                <li><?php printf( fs_text( 'affiliate-tracking', $slug ), $affiliate_tracking ) ?></li>
+                                <li><?php echo esc_html( sprintf( fs_text_inline( '%s tracking cookie after the first visit to maximize earnings potential.', 'affiliate-tracking', $slug ), $affiliate_tracking ) ) ?></li>
                             <?php endif ?>
                             <?php if ( is_object( $affiliate_terms ) && $affiliate_terms->has_lifetime_commission() ) : ?>
-                                <li><?php fs_echo( 'unlimited-commissions', $slug ) ?></li>
+                                <li><?php fs_esc_html_echo_inline( 'Unlimited commissions.', 'unlimited-commissions', $slug ) ?></li>
                             <?php endif ?>
-                            <li><?php printf( fs_text( 'minimum-payout-amount', $slug ), '$100' ) ?></li>
-                            <li><?php fs_echo( 'payouts-unit-and-processing', $slug ) ?></li>
-                            <li><?php fs_echo( 'commission-payment', $slug ) ?></li>
+                            <li><?php echo esc_html( sprintf( fs_text_inline( '%s minimum payout amount.', 'minimum-payout-amount', $slug ), '$100' ) ) ?></li>
+                            <li><?php fs_esc_html_echo_inline( 'Payouts are in USD and processed monthly via PayPal.', 'payouts-unit-and-processing', $slug ) ?></li>
+                            <li><?php fs_esc_html_echo_inline( 'As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days.', 'commission-payment', $slug ) ?></li>
                         </ul>
                         <div id="application_form_container" <?php echo ( $is_pending_affiliate ) ? '' : 'style="display: none"' ?>>
-                            <h3><?php fs_echo( 'affiliate', $slug ) ?></h3>
+                            <h3><?php fs_esc_html_echo_inline( 'Affiliate', 'affiliate', $slug ) ?></h3>
                             <form>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php fs_echo( 'email-address', $slug ) ?></label>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'Email address', 'email-address', $slug ) ?></label>
                                     <input id="email_address" type="text" value="<?php echo esc_attr( $email_address ) ?>" class="regular-text" <?php echo ( $readonly || is_object( $user ) ) ? 'readonly' : '' ?>>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php fs_echo( 'full-name', $slug ) ?></label>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'Full name', 'full-name', $slug ) ?></label>
                                     <input id="full_name" type="text" value="<?php echo esc_attr( $full_name ) ?>" class="regular-text" <?php echo $readonly ?>>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php fs_echo( 'paypal-account-email-address', $slug ) ?></label>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'PayPal account email address', 'paypal-account-email-address', $slug ) ?></label>
                                     <input id="paypal_email" type="text" value="<?php echo esc_attr( $paypal_email_address ) ?>" class="regular-text" <?php echo $readonly ?>>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php printf( fs_text( 'domain-field-label', $slug ), $module_type ) ?></label>
+                                    <label class="input-label"><?php echo esc_html( sprintf( fs_text_inline( 'Where are you going to promote the %s?', 'domain-field-label', $slug ), $module_type ) ) ?></label>
                                     <input id="domain" type="text" value="<?php echo esc_attr( $domain ) ?>" class="domain regular-text" <?php echo $readonly ?>>
-                                    <p class="description"><?php printf( fs_text( 'domain-field-desc', $slug ), $module_type ) ?></p>
+                                    <p class="description"><?php echo esc_html( sprintf( fs_text_inline( 'Enter the domain of your website or other websites from where you plan to promote the %s.', 'domain-field-desc', $slug ), $module_type ) ) ?></p>
                                     <?php if ( ! $is_affiliate ) : ?>
-                                        <a id="add_domain" href="#" class="disabled">+ <?php fs_echo( 'add-another-domain', $slug ) ?>...</a>
+                                        <a id="add_domain" href="#" class="disabled">+ <?php fs_esc_html_echo_inline( 'Add another domain', 'add-another-domain', $slug ) ?>...</a>
                                     <?php endif ?>
                                 </div>
                                 <div id="extra_domains_container" class="input-container input-container-text" <?php echo $is_pending_affiliate ? '' : 'style="display: none"' ?>>
-                                    <label class="input-label"><?php fs_echo( 'extra-domain-fields-label', $slug ) ?></label>
-                                    <p class="description"><?php fs_echo( 'extra-domain-fields-desc', $slug ) ?></p>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'Extra Domains', 'extra-domain-fields-label', $slug ) ?></label>
+                                    <p class="description"><?php fs_esc_html_echo_inline( 'Extra domains where you will be marketing the product from.', 'extra-domain-fields-desc', $slug ) ?></p>
                                     <?php if ( $is_pending_affiliate && ! empty( $extra_domains ) ) : ?>
                                         <?php foreach ( $extra_domains as $extra_domain ) : ?>
                                         <div class="extra-domain-input-container">
@@ -184,36 +188,36 @@
                                     <?php endif ?>
                                 </div>
                                 <div class="input-container">
-                                    <label class="input-label"><?php fs_echo( 'promotion-methods', $slug ) ?></label>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'Promotion methods', 'promotion-methods', $slug ) ?></label>
                                     <div>
                                         <input id="promotion_method_social_media" type="checkbox" <?php checked( $promotion_method_social_media ) ?> <?php disabled( $is_affiliate ) ?>/>
-                                        <label for="promotion_method_social_media"><?php fs_echo( 'social-media', $slug ) ?></label>
+                                        <label for="promotion_method_social_media"><?php fs_esc_html_echo_inline( 'Social media (Facebook, Twitter, etc.)', 'social-media', $slug ) ?></label>
                                     </div>
                                     <div>
                                         <input id="promotion_method_mobile_apps" type="checkbox" <?php checked( $promotion_method_mobile_apps ) ?> <?php disabled( $is_affiliate ) ?>/>
-                                        <label for="promotion_method_mobile_apps"><?php fs_echo( 'mobile-apps', $slug ) ?></label>
+                                        <label for="promotion_method_mobile_apps"><?php fs_esc_html_echo_inline( 'Mobile apps', 'mobile-apps', $slug ) ?></label>
                                     </div>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><nobr><?php fs_echo( 'statistics-information-field-label', $slug ) ?></nobr></label>
+                                    <label class="input-label"><nobr><?php fs_esc_html_echo_inline( 'Website, email, and social media statistics (optional)', 'statistics-information-field-label', $slug ) ?></nobr></label>
                                     <textarea id="statistics_information" rows="5" <?php echo $readonly ?> class="regular-text"><?php echo $statistics_information ?></textarea>
                                     <?php if ( ! $is_affiliate ) : ?>
-                                        <p class="description"><?php fs_echo( 'statistics-information-field-desc', $slug ) ?></p>
+                                        <p class="description"><?php fs_esc_html_echo_inline( 'Please feel free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential).', 'statistics-information-field-desc', $slug ) ?></p>
                                     <?php endif ?>
                                 </div>
                                 <div class="input-container input-container-text">
-                                    <label class="input-label"><?php fs_echo( 'promotion-method-desc-field-label', $slug ) ?></label>
+                                    <label class="input-label"><?php fs_esc_html_echo_inline( 'How will you promote us?', 'promotion-method-desc-field-label', $slug ) ?></label>
                                     <textarea id="promotion_method_description" rows="5" <?php echo $readonly ?> class="regular-text"><?php echo $promotion_method_description ?></textarea>
                                     <?php if ( ! $is_affiliate ) : ?>
-                                        <p class="description"><?php printf( fs_text( 'promotion-method-desc-field-desc', $slug ), $plugin_title ) ?></p>
+                                        <p class="description"><?php echo esc_html( sprintf( fs_text_inline( 'Please provide details on how you intend to promote %s (please be as specific as possible).', 'promotion-method-desc-field-desc', $slug ), $plugin_title ) ) ?></p>
                                     <?php endif ?>
                                 </div>
                             </form>
                         </div>
                         <?php if ( ! $is_affiliate ) : ?>
-                            <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_echo( 'cancel', $slug ) ?></a>
-                            <a id="submit_button" class="button button-primary" title="<?php fs_esc_attr_echo( 'apply-to-become-an-affiliate', $slug ) ?>" href="#" style="display: none"><?php fs_echo( 'apply-to-become-an-affiliate', $slug ); ?></a>
-                            <a id="apply_button" class="button button-primary" title="<?php fs_esc_attr_echo( 'become-an-affiliate', $slug ) ?>" href="#"><?php fs_echo( 'become-an-affiliate', $slug ); ?></a>
+                            <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_echo_inline( 'cancel', $slug ) ?></a>
+                            <a id="submit_button" class="button button-primary" href="#" style="display: none"><?php echo esc_html( $apply_to_become_affiliate_text ) ?></a>
+                            <a id="apply_button" class="button button-primary" href="#"><?php fs_esc_html_echo_inline( 'Become an affiliate', 'become-an-affiliate', $slug ) ?></a>
                         <?php endif ?>
                     </div>
                 </div>
@@ -230,7 +234,6 @@
                 $submitButton             = $( '#submit_button' ),
                 $cancelButton             = $( '#cancel_button' ),
                 $applicationFormContainer = $( '#application_form_container' ),
-                $messageContainer         = $( '#message' ),
                 $errorMessageContainer    = $( '#error_message' ),
                 $domain                   = $( '#domain' ),
                 $addDomain                = $( '#add_domain' ),
@@ -269,13 +272,13 @@
                     emailAddress = $emailAddress.val().trim();
 
                     if ( 0 === emailAddress.length ) {
-                        showErrorMessage( '<?php fs_echo( 'email-address-is-required', $slug ) ?>' );
+                        showErrorMessage( '<?php fs_echo_inline( 'Email address is required.', 'email-address-is-required', $slug ) ?>' );
                         return;
                     }
                 }
 
                 if ( 0 === paypalEmailAddress.length ) {
-                    showErrorMessage( '<?php fs_echo( 'paypal-email-address-is-required', $slug ) ?>' );
+                    showErrorMessage( '<?php fs_echo_inline( 'PayPal email address is required.', 'paypal-email-address-is-required', $slug ) ?>' );
                     return;
                 }
 
@@ -285,10 +288,10 @@
                     extraDomains  = [];
 
                 if ( 0 === domain.length ) {
-                    showErrorMessage( '<?php fs_echo( 'domain-is-required', $slug ) ?>' );
+                    showErrorMessage( '<?php fs_echo_inline( 'Domain is required.', 'domain-is-required', $slug ) ?>' );
                     return;
                 } else if ( 'freemius.com' === domain ) {
-                    showErrorMessage( '<?php fs_echo( 'invalid-domain', $slug ) ?>' + ' [' + domain + '].' );
+                    showErrorMessage( '<?php fs_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + domain + '].' );
                     return;
                 }
 
@@ -302,7 +305,7 @@
                         if ( 0 === extraDomain.length || extraDomain === domain ) {
                             return true;
                         } else if ( 'freemius.com' === extraDomain ) {
-                            showErrorMessage( '<?php fs_echo( 'invalid-domain', $slug ) ?>' + ' [' + extraDomain + '].' );
+                            showErrorMessage( '<?php fs_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + extraDomain + '].' );
                             hasError = true;
                             return false;
                         }
@@ -358,7 +361,7 @@
                     beforeSend: function() {
                         $cancelButton.addClass( 'disabled' );
                         $submitButton.addClass( 'disabled' );
-                        $submitButton.text( '<?php fs_echo( 'processing' ) ?>' );
+                        $submitButton.text( '<?php fs_esc_js_inline( 'Processing', 'processing' ) ?>...' );
                     },
                     success   : function( result ) {
                         if ( result.success ) {
@@ -368,7 +371,7 @@
 
                             $cancelButton.removeClass( 'disabled' );
                             $submitButton.removeClass( 'disabled' );
-                            $submitButton.text( '<?php fs_echo( 'apply-to-become-an-affiliate', $slug ) ?>' )
+                            $submitButton.text( '<?php echo esc_js( $apply_to_become_affiliate_text ) ?>' )
                         }
                     }
                 });
@@ -411,7 +414,7 @@
                 var
                     $extraDomainInputContainer = $( '<div class="extra-domain-input-container"><input type="text" class="domain regular-text"/></div>' ),
                     $extraDomainInput          = $extraDomainInputContainer.find( 'input' ),
-                    $removeDomain              = $( '<a href="#" class="remove-domain"><i class="dashicons dashicons-no" title="<?php fs_esc_js_echo( 'remove', $slug ) ?>"></i></a>' );
+                    $removeDomain              = $( '<a href="#" class="remove-domain"><i class="dashicons dashicons-no" title="<?php fs_esc_js_echo_inline( 'Remove', 'remove', $slug ) ?>"></i></a>' );
 
                 $extraDomainInputContainer.append( $removeDomain );
 

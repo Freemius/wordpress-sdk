@@ -52,19 +52,19 @@
 			$json['theme_title'] = $this->fs->get_plugin_name();
 
 			if ( $is_contact_visible && $is_support_visible ) {
-				$json['theme_title'] .= ' ' . $this->fs->get_text( 'support' );
+				$json['theme_title'] .= ' ' . $this->fs->get_text_inline( 'support' );
 			}
 
 			if ( $is_contact_visible ) {
 				$json['contact'] = array(
-					'label' => $this->fs->get_text( 'contact-us' ),
+					'label' => $this->fs->get_text_inline( 'contact-us' ),
 					'url'   => $this->fs->contact_url(),
 				);
 			}
 
 			if ( $is_support_visible ) {
 				$json['support'] = array(
-					'label' => $this->fs->get_text( 'support-forum' ),
+					'label' => $this->fs->get_text_inline( 'support-forum' ),
 					'url'   => $this->fs->get_support_forum_url()
 				);
 			}

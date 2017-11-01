@@ -69,7 +69,7 @@
 							}
 						</style>
 						<a href="<?php echo $url ?>"
-						   title="<?php echo esc_attr( sprintf( fs_text( 'view-full-size-x', $plugin->slug ), $i ) ) ?>"
+						   title="<?php echo esc_attr( sprintf( fs_text_inline( 'view-full-size-x', $plugin->slug ), $i ) ) ?>"
 						   class="fs-screenshot-<?php echo $i ?>"></a>
 					</li>
 					<?php $i ++; endforeach ?>

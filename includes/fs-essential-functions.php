@@ -158,6 +158,7 @@
 		 * Retrieve a translated text by key.
 		 *
 		 * @deprecated Use `fs_text()` instead since methods starting with `__` trigger warnings in Php 7.
+         * @todo Remove this method in the future.
 		 *
 		 * @author     Vova Feldman (@svovaf)
 		 * @since      1.1.4
@@ -209,6 +210,8 @@
 		 *
 		 * @deprecated Use `fs_echo()` instead for consistency with `fs_text()`.
 		 *
+         * @todo Remove this method in the future.
+         *
 		 * @author     Vova Feldman (@svovaf)
 		 * @since      1.1.4
 		 *

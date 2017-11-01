@@ -72,16 +72,16 @@
 		}
 	}
 ?>
-<h1><?php fs_echo( 'scheduled-crons' ) ?></h1>
+<h1><?php fs_esc_html_echo_inline( 'scheduled-crons' ) ?></h1>
 <table class="widefat">
 	<thead>
 	<tr>
-		<th><?php fs_echo( 'slug' ) ?></th>
-		<th><?php fs_echo( 'module' ) ?></th>
-		<th><?php fs_echo( 'module-type' ) ?></th>
-		<th><?php fs_echo( 'cron-type' ) ?></th>
-		<th><?php fs_echo( 'Last' ) ?></th>
-		<th><?php fs_echo( 'Next' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Module' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Module Type' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Cron Type' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Last' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Next' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -96,13 +96,13 @@
 						if ( is_numeric( $cron['last'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['last'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . fs_text( 'sec' ) :
+								$diff . ' ' . fs_text_inline( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
 
 							if ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) {
-								printf( fs_text( 'in-x' ), $human_diff );
+								printf( fs_text_inline( 'in-x' ), $human_diff );
 							} else {
-								printf( fs_text( 'x-ago' ), $human_diff );
+								printf( fs_text_inline( 'x-ago' ), $human_diff );
 							}
 
 //							echo ' ' . $cron['last'];
@@ -112,13 +112,13 @@
 						if ( is_numeric( $cron['next'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['next'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . fs_text( 'sec' ) :
+								$diff . ' ' . fs_text_inline( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
 
 							if ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) {
-								printf( fs_text( 'in-x' ), $human_diff );
+								printf( fs_text_inline( 'in-x' ), $human_diff );
 							} else {
-								printf( fs_text( 'x-ago' ), $human_diff );
+								printf( fs_text_inline( 'x-ago' ), $human_diff );
 							}
 						}
 					?></td>

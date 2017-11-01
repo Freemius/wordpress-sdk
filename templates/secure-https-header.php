@@ -24,7 +24,7 @@
 				$fs = freemius( $VARS['id'] );
 
 				echo  esc_html( sprintf(
-					     $fs->get_text( 'secure-x-page-header' ),
+					     $fs->get_text_inline( 'secure-x-page-header' ),
 					     $VARS['page']
 				     ) ) .
 				     ' - ' .

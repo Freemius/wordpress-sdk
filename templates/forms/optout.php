@@ -27,11 +27,11 @@
 	) );
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
-	$opt_out_button_text              = fs_text( 'opt-out', $slug );
-	$opt_out_message_appreciation     = sprintf( fs_text( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
-	$opt_out_message_usage_tracking   = sprintf( fs_text( 'opt-out-message-usage-tracking', $slug ), $plugin_title );
+	$opt_out_button_text              = fs_text_inline( 'opt-out', $slug );
+	$opt_out_message_appreciation     = sprintf( fs_text_inline( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
+	$opt_out_message_usage_tracking   = sprintf( fs_text_inline( 'opt-out-message-usage-tracking', $slug ), $plugin_title );
 	$opt_out_message_clicking_opt_out = sprintf(
-		fs_text( 'opt-out-message-clicking-opt-out', $slug ),
+		fs_text_inline( 'opt-out-message-clicking-opt-out', $slug ),
 		$plugin_title,
 		sprintf(
 			'<a href="%s" target="_blank">%s</a>',
