@@ -211,12 +211,39 @@
 			$this->_logger->entrance( 'option = ' . $option );
 
 			if ( is_array( $this->_options ) ) {
-				return isset( $this->_options[ $option ] ) ? $this->_options[ $option ] : $default;
+				$value = isset( $this->_options[ $option ] ) ?
+                    $this->_options[ $option ] :
+                    $default;
 			} else if ( is_object( $this->_options ) ) {
-				return isset( $this->_options->{$option} ) ? $this->_options->{$option} : $default;
-			}
+                $value = isset( $this->_options->{$option} ) ?
+                    $this->_options->{$option} :
+                    $default;
+			} else {
+                $value = $default;
+            }
 
-			return $default;
+            /**
+             * If it's an object, return a clone of the object, otherwise,
+             * external changes of the object will actually change the value
+             * of the object in the options manager which may lead to an unexpected
+             * behaviour and data integrity when a store() call is triggered.
+             *
+             * Example:
+             *      $object1    = $options->get_option( 'object1' );
+             *      $object1->x = 123;
+             *
+             *      $object2    = $options->get_option( 'object2' );
+             *      $object2->y = 'dummy';
+             *
+             *      $options->set_option( 'object2', $object2, true );
+             *
+             * If we don't return a clone of option 'object1', setting 'object2'
+             * will also store the updated value of 'object1' which is quite not
+             * an expected behaviour.
+             *
+             * @author Vova Feldman
+             */
+			return is_object($value) ? clone $value : $value;
 		}
 
 		/**
@@ -234,10 +261,34 @@
 				$this->clear();
 			}
 
+            /**
+             * If it's an object, store a clone of the object, otherwise,
+             * external changes of the object will actually change the value
+             * of the object in the options manager which may lead to an unexpected
+             * behaviour and data integrity when a store() call is triggered.
+             *
+             * Example:
+             *      $object1    = new stdClass();
+             *      $object1->x = 123;
+             *
+             *      $options->set_option( 'object1', $object1 );
+             *
+             *      $object1->x = 456;
+             *
+             *      $options->set_option( 'object2', $object2, true );
+             *
+             * If we don't set the option as a clone of option 'object1', setting 'object2'
+             * will also store the updated value of 'object1' ($object1->x = 456 instead of
+             * $object1->x = 123) which is quite not an expected behaviour.
+             *
+             * @author Vova Feldman
+             */
+            $copy = is_object($value) ? clone $value : $value;
+
 			if ( is_array( $this->_options ) ) {
-				$this->_options[ $option ] = $value;
+				$this->_options[ $option ] = $copy;
 			} else if ( is_object( $this->_options ) ) {
-				$this->_options->{$option} = $value;
+				$this->_options->{$option} = $copy;
 			}
 
 			if ( $flush ) {
