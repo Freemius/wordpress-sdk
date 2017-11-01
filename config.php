@@ -171,7 +171,7 @@
 	}
 
     if ( ! defined( 'WP_FS__SERVER_ADDR' ) ) {
-        define( 'WP_FS__SERVER_ADDR', ! empty ( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : WP_FS__REMOTE_ADDR );
+        define( 'WP_FS__SERVER_ADDR', ! empty( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : WP_FS__REMOTE_ADDR );
     }
 
 	if ( ! defined( 'WP_FS__IS_LOCALHOST' ) ) {
