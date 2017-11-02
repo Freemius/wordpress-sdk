@@ -1813,7 +1813,7 @@
 
 			self::$_static_logger->entrance();
 
-			$title = sprintf( '%s [v.%s]', fs_text_inline( 'freemius-debug' ), WP_FS__SDK_VERSION );
+			$title = sprintf( '%s [v.%s]', fs_text_inline( 'Freemius Debug' ), WP_FS__SDK_VERSION );
 
 			if ( WP_FS__DEV_MODE ) {
 				// Add top-level debug menu item.
@@ -2323,12 +2323,16 @@
 			$admin_email = $current_user->user_email;
 
 			// Aliases.
-			$deactivate_plugin_title = $this->esc_html_inline( 'That\'s exhausting, please deactivate', 'deactivate-plugin-title' );
-			$deactivate_plugin_desc = $this->esc_html_inline( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', 'deactivate-plugin-desc' );
-			$install_previous_title = $this->esc_html_inline( 'Let\'s try your previous version', 'install-previous-title' );
-			$install_previous_desc = $this->esc_html_inline( 'Uninstall this version and install the previous one.', 'install-previous-desc' );
-			$fix_issue_title = $this->esc_html_inline( 'Yes - I\'m giving you a chance to fix it', 'fix-issue-title' );
-			$fix_issue_desc = $this->esc_html_inline( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'fix-issue-desc' );
+            $deactivate_plugin_title  = $this->esc_html_inline( 'That\'s exhausting, please deactivate', 'deactivate-plugin-title' );
+            $deactivate_plugin_desc   = $this->esc_html_inline( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', 'deactivate-plugin-desc' );
+            $install_previous_title   = $this->esc_html_inline( 'Let\'s try your previous version', 'install-previous-title' );
+            $install_previous_desc    = $this->esc_html_inline( 'Uninstall this version and install the previous one.', 'install-previous-desc' );
+            $fix_issue_title          = $this->esc_html_inline( 'Yes - I\'m giving you a chance to fix it', 'fix-issue-title' );
+            $fix_issue_desc           = $this->esc_html_inline( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'fix-issue-desc' );
+            /* translators: %s: product title (e.g. "Awesome Plugin" requires an access to...) */
+            $x_requires_access_to_api = $this->esc_html_inline( '%s requires an access to our API.', 'x-requires-access-to-api' );
+            $sysadmin_title = $this->esc_html_inline( 'I\'m a system administrator', 'sysadmin-title' );
+            $happy_to_resolve_issue_asap = $this->esc_html_inline( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'happy-to-resolve-issue-asap' );
 
 			$message = false;
 			if ( is_object( $api_result ) &&
@@ -2356,15 +2360,15 @@
 							if ( ! empty( $missing_methods ) ) {
 								$missing_methods = sprintf(
 									'<br><br><b>%s</b> %s',
-									$this->get_text_inline( 'curl-disabled-methods' ),
+									$this->esc_html_inline( 'Disabled method(s):', 'curl-disabled-methods' ),
 									$missing_methods
 								);
 							}
 						}
 
 						$message = sprintf(
-							$this->get_text_inline( 'x-requires-access-to-api' ) . ' ' .
-							$this->get_text_inline( 'curl-missing-message' ) . ' ' .
+                            $x_requires_access_to_api . ' ' .
+							$this->esc_html_inline( 'We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server.', 'curl-missing-message' ) . ' ' .
 							$missing_methods .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
@@ -2372,16 +2376,16 @@
 								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 								sprintf(
 									'<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
-									$this->get_text_inline( 'curl-missing-no-clue-title' ),
+									$this->get_text_inline( 'I don\'t know what is cURL or how to install it, help me!', 'curl-missing-no-clue-title' ),
 									' - ' . sprintf(
-										$this->get_text_inline( 'curl-missing-no-clue-desc' ),
+										$this->get_text_inline( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'curl-missing-no-clue-desc' ),
 										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 									)
 								),
 								sprintf(
 									'<b>%s</b> - %s',
-									$this->get_text_inline( 'sysadmin-title' ),
-									sprintf( $this->get_text_inline( 'curl-missing-sysadmin-desc' ), $this->_module_type )
+                                    $sysadmin_title,
+									esc_html( sprintf( $this->get_text_inline( 'Great, please install cURL and enable it in your php.ini file. In addition, search for the \'disable_functions\' directive in your php.ini file and remove any disabled methods starting with \'curl_\'. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the %s and reactivate it back again.', 'curl-missing-sysadmin-desc' ), $this->get_module_label( true ) ) )
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a> - %s',
@@ -2394,9 +2398,9 @@
 						break;
 					case 'cloudflare_ddos_protection':
 						$message = sprintf(
-							$this->get_text_inline( 'x-requires-access-to-api' ) . ' ' .
-							$this->get_text_inline( 'cloudflare-blocks-connection-message' ) . ' ' .
-							$this->get_text_inline( 'happy-to-resolve-issue-asap' ) .
+                            $x_requires_access_to_api . ' ' .
+							$this->esc_html_inline( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'cloudflare-blocks-connection-message' ) . ' ' .
+                            $happy_to_resolve_issue_asap .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
 							sprintf(
@@ -2426,25 +2430,25 @@
 						break;
 					case 'squid_cache_block':
 						$message = sprintf(
-							$this->get_text_inline( 'x-requires-access-to-api' ) . ' ' .
-							$this->get_text_inline( 'squid-blocks-connection-message' ) .
+                            $x_requires_access_to_api . ' ' .
+							$this->esc_html_inline( 'It looks like your server is using Squid ACL (access control lists), which blocks the connection.', 'squid-blocks-connection-message' ) .
 							' %s',
 							'<b>' . $this->get_plugin_name() . '</b>',
 							sprintf(
 								'<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
 								sprintf(
-									'<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a>%s',
-									$this->get_text_inline( 'squid-no-clue-title' ),
-									' - ' . sprintf(
-										$this->get_text_inline( 'squid-no-clue-desc' ),
+									'<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a> - %s',
+									$this->esc_html_inline( 'I don\'t know what is Squid or ACL, help me!', 'squid-no-clue-title' ),
+									sprintf(
+										$this->esc_html_inline( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'squid-no-clue-desc' ),
 										'<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
 									)
 								),
 								sprintf(
 									'<b>%s</b> - %s',
-									$this->get_text_inline( 'sysadmin-title' ),
+                                    $sysadmin_title,
 									sprintf(
-										$this->get_text_inline( 'squid-sysadmin-desc' ),
+										$this->esc_html_inline( 'Great, please whitelist the following domains: %s. Once you are done, deactivate the %s and activate it again.', 'squid-sysadmin-desc' ),
 										// We use a filter since the plugin might require additional API connectivity.
 										'<b>' . implode( ', ', $this->apply_filters( 'api_domains', array( 'api.freemius.com', 'wp.freemius.com' ) ) ) . '</b>',
 										$this->_module_type
@@ -2468,25 +2472,27 @@
 			$message_id = 'failed_connect_api';
 			$type       = 'error';
 
+            $connectivity_test_fails_message = $this->esc_html_inline( 'From unknown reason, the API connectivity test failed.', 'connectivity-test-fails-message' );
+
 			if ( false === $message ) {
 				if ( $is_first_failure ) {
 					// First attempt failed.
 					$message = sprintf(
-						$this->get_text_inline( 'x-requires-access-to-api' ) . ' ' .
-						$this->get_text_inline( 'connectivity-test-fails-message' ) . ' ' .
-						$this->get_text_inline( 'connectivity-test-maybe-temporary' ) . '<br><br>' .
+                        $x_requires_access_to_api . ' ' .
+                        $connectivity_test_fails_message . ' ' .
+						$this->esc_html_inline( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?', 'connectivity-test-maybe-temporary' ) . '<br><br>' .
 						'%s',
 						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
 							'<div id="fs_firewall_issue_options">%s %s</div>',
 							sprintf(
 								'<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
-								$this->get_text_inline( 'yes-do-your-thing' )
+								$this->get_text_inline( 'Yes - do your thing', 'yes-do-your-thing' )
 							),
 							sprintf(
 								'<a href="%s" class="button">%s</a>',
 								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-								$this->get_text_inline( 'no-deactivate' )
+								$this->get_text_inline( 'No - just deactivate', 'no-deactivate' )
 							)
 						)
 					);
@@ -2496,9 +2502,9 @@
 				} else {
 					// Second connectivity attempt failed.
 					$message = sprintf(
-						$this->get_text_inline( 'x-requires-access-to-api' ) . ' ' .
-						$this->get_text_inline( 'connectivity-test-fails-message' ) . ' ' .
-						$this->get_text_inline( 'happy-to-resolve-issue-asap' ) .
+                        $x_requires_access_to_api . ' ' .
+                        $connectivity_test_fails_message . ' ' .
+                        $happy_to_resolve_issue_asap .
 						' %s',
 						'<b>' . $this->get_plugin_name() . '</b>',
 						sprintf(
@@ -3846,7 +3852,7 @@
 						) . ' ' . sprintf(
 							'<a href="%s" aria-label="%s" class="button button-primary" style="margin-left: 10px; vertical-align: middle;">%s &nbsp;&#10140;</a>',
 							$this->_parent->addon_url( $this->_slug ),
-							esc_attr( sprintf( $this->_parent->get_text_inline( 'more-information-about-x' ), $this->_plugin->title ) ),
+							esc_attr( sprintf( $this->_parent->get_text_inline( 'More information about %s', 'more-information-about-x' ), $this->_plugin->title ) ),
 							$this->_parent->get_text_inline( 'Purchase License', 'purchase-license' )
 						),
 						'no_addon_license_' . $this->_slug,
@@ -5859,10 +5865,10 @@
 		 */
 		function get_module_label( $lowercase = false ) {
 			$label = $this->is_addon() ?
-				$this->get_text_inline( 'addon' ) :
+				$this->get_text_inline( 'Add-On', 'addon' ) :
 				( $this->is_plugin() ?
-					$this->get_text_inline( 'plugin' ) :
-					$this->get_text_inline( 'theme' ) );
+					$this->get_text_inline( 'Plugin', 'plugin' ) :
+					$this->get_text_inline( 'Theme', 'theme' ) );
 
 			if ( $lowercase ) {
 				$label = strtolower( $label );
@@ -9436,9 +9442,9 @@
 
 					// Add contact page.
 					$this->add_submenu_item(
-						$this->get_text_inline( 'contact-us' ),
+						$this->get_text_inline( 'Contact Us', 'contact-us' ),
 						array( &$this, '_contact_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'contact-us' ),
+						$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
 						'manage_options',
 						'contact',
 						'Freemius::_clean_admin_content_section',
@@ -9448,9 +9454,9 @@
 
 					if ( $this->has_addons() ) {
 						$this->add_submenu_item(
-							$this->get_text_inline( 'add-ons' ),
+							$this->get_text_inline( 'Add-Ons', 'add-ons' ),
 							array( &$this, '_addons_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'add-ons' ),
+							$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Add-Ons', 'add-ons' ),
 							'manage_options',
 							'addons',
 							array( &$this, '_addons_page_load' ),
@@ -9481,7 +9487,7 @@
 					$this->add_submenu_item(
 						$this->get_text_inline( $pricing_cta_slug ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
-						$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'pricing' ),
+						$this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
 						'manage_options',
 						'pricing',
 						'Freemius::_clean_admin_content_section',
@@ -9661,7 +9667,7 @@
 
 			if ( ! $this->is_activation_mode() ) {
 				$this->add_submenu_link_item(
-					$this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'support-forum' ) ),
+					$this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'Support Forum', 'support-forum' ) ),
 					$this->get_support_forum_url(),
 					'wp-support-forum',
 					null,
@@ -11870,21 +11876,26 @@
 				if ( ! $background ) {
 					$this->_admin_notices->add(
 						sprintf(
-							$this->get_text_inline( 'version-x-released' ) . ' ' . $this->get_text_inline( 'Please download %s.', 'please-download-x' ),
+                            /* translators: %s: Numeric version number (e.g. '2.1.9' */
+							$this->get_text_inline( 'Version %s was released.', 'version-x-released' ) . ' ' . $this->get_text_inline( 'Please download %s.', 'please-download-x' ),
 							$update->version,
 							sprintf(
 								'<a href="%s" target="_blank">%s</a>',
 								$this->get_account_url( 'download_latest' ),
-								sprintf( $this->get_text_inline( 'latest-x-version' ), $this->_site->plan->title )
+								sprintf(
+                                    /* translators: %s: plan name (e.g. latest "Professional" version) */
+								    $this->get_text_inline( 'the latest %s version here', 'latest-x-version' ),
+                                    $this->_site->plan->title
+                                )
 							)
 						),
-						$this->get_text_inline( 'new' ) . '!'
+						$this->get_text_inline( 'New', 'new' ) . '!'
 					);
 				}
 			} else if ( false === $new_version && ! $background ) {
 				$this->_admin_notices->add(
-					$this->get_text_inline( 'you-have-latest' ),
-					$this->get_text_inline( 'you-are-good' )
+					$this->get_text_inline( 'Seems like you got the latest release.', 'you-have-latest' ),
+					$this->get_text_inline( 'You are all good!', 'you-are-good' )
 				);
 			}
 
@@ -12909,7 +12920,7 @@
 			$trial_period    = $this->_trial_days;
 			$require_payment = $this->_is_trial_require_payment;
 			$trial_url       = $this->get_trial_url();
-			$plans_string    = strtolower( $this->get_text_inline( 'awesome' ) );
+			$plans_string    = strtolower( $this->get_text_inline( 'Awesome', 'awesome' ) );
 
 			if ( $this->is_registered() ) {
 				// If opted-in, override trial with up to date data from API.
@@ -13178,7 +13189,7 @@
 
 				if ( $this->has_addons() ) {
 					$this->add_plugin_action_link(
-						$this->get_text_inline( 'add-ons' ),
+						$this->get_text_inline( 'Add-Ons', 'add-ons' ),
 						$this->_get_admin_page_url( 'addons' ),
 						false,
 						9,
@@ -13498,7 +13509,7 @@
 		 *
 		 * @return string
 		 */
-		function get_text_inline( $text, $key ) {
+		function get_text_inline( $text, $key = '' ) {
 			return fs_text_inline( $text, $key, $this->_slug );
 		}
 

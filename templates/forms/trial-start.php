@@ -24,7 +24,8 @@
 		'<span class="var-plan_title"></span>'
 	);
 	$message_content = sprintf(
-		fs_text_inline( 'start-trial-prompt-message', $slug ),
+		/* translators: %s: Link to freemius.com */
+		fs_text_inline( 'For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial.', 'start-trial-prompt-message', $slug ),
 		$fs->get_module_type(),
 		sprintf(
 			'<a href="%s" target="_blank">%s</a>',

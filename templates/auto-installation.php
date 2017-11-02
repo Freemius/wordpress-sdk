@@ -28,7 +28,7 @@
 		$addon = $fs->get_addon( $plugin_id );
 
 		if ( is_object( $addon ) ) {
-			$title = $addon->title . ' ' . fs_text_inline( 'addon', $slug );
+			$title = $addon->title . ' ' . fs_text_inline( 'Add-On', 'addon', $slug );
 		}
 	}
 
@@ -104,7 +104,7 @@
 			<button
 				class="button button-secondary button-cancel"><?php fs_esc_html_echo_inline( 'Cancel Installation', 'cancel-installation', $slug ) ?><?php if ( ! $require_credentials ) : ?> (<?php echo $countdown_html ?>)<?php endif ?></button>
 			<button
-				class="button button-primary"<?php //disabled($require_credentials) ?>><?php echo esc_js( fs_text_inline( 'install-now', $slug ) ) ?></button>
+				class="button button-primary"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></button>
 		</div>
 	</div>
 </div>'

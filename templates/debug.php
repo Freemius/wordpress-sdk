@@ -18,7 +18,7 @@
 <div>
 	<!-- Debugging Switch -->
 	<?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
-	<span class="switch-label"><?php fs_echo_inline( 'debugging' ) ?></span>
+	<span class="switch-label"><?php fs_esc_html_echo_x_inline( 'Debugging', 'as code debugging' ) ?></span>
 
 	<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
 		<div class="toggle"></div>
@@ -58,28 +58,28 @@
 				<input type="hidden" name="fs_action" value="restart_freemius">
 				<?php wp_nonce_field( 'restart_freemius' ) ?>
 				<button class="button button-primary"
-				        onclick="if (confirm('<?php fs_echo_inline( 'delete-all-confirm' ) ?>')) this.parentNode.submit(); return false;"><?php fs_echo_inline( 'delete-all-accounts' ) ?></button>
+				        onclick="if (confirm('<?php fs_esc_attr_echo_inline( 'Are you sure you want to delete all Freemius data?', 'delete-all-confirm' ) ?>')) this.parentNode.submit(); return false;"><?php fs_esc_html_echo_inline( 'Delete All Accounts' ) ?></button>
 			</form>
 		</td>
 		<td>
 			<!-- Clear API Cache -->
 			<form action="" method="POST">
 				<input type="hidden" name="fs_clear_api_cache" value="true">
-				<button class="button button-primary"><?php fs_echo_inline( 'clear-api-cache' ) ?></button>
+				<button class="button button-primary"><?php fs_esc_html_echo_inline( 'Clear API Cache' ) ?></button>
 			</form>
 		</td>
 		<td>
 			<!-- Sync Data with Server -->
 			<form action="" method="POST">
 				<input type="hidden" name="background_sync" value="true">
-				<button class="button button-primary"><?php fs_echo_inline( 'sync-data-from-server' ) ?></button>
+				<button class="button button-primary"><?php fs_esc_html_echo_inline( 'Sync Data From Server' ) ?></button>
 			</form>
 		</td>
 		<td>
-			<button id="fs_load_db_option" class="button"><?php fs_echo_inline( 'Load DB Option' ) ?></button>
+			<button id="fs_load_db_option" class="button"><?php fs_esc_html_echo_inline( 'Load DB Option' ) ?></button>
 		</td>
 		<td>
-			<button id="fs_set_db_option" class="button"><?php fs_echo_inline( 'Set DB Option' ) ?></button>
+			<button id="fs_set_db_option" class="button"><?php fs_esc_html_echo_inline( 'Set DB Option' ) ?></button>
 		</td>
 	</tr>
 	</tbody>
@@ -173,14 +173,14 @@
 		<?php endforeach ?>
 	</tbody>
 </table>
-<h2><?php fs_echo_inline( 'sdk-versions' ) ?></h2>
+<h2><?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?></h2>
 <table id="fs_sdks" class="widefat">
 	<thead>
 	<tr>
-		<th><?php fs_echo_inline( 'version' ) ?></th>
-		<th><?php fs_echo_inline( 'sdk-path' ) ?></th>
-		<th><?php fs_echo_inline( 'plugin-path' ) ?></th>
-		<th><?php fs_echo_inline( 'is-active' ) ?></th>
+		<th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'SDK Path' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Module Path' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Is Active' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -212,15 +212,15 @@
 		<table id="fs_<?php echo $module_type ?>" class="widefat">
 			<thead>
 			<tr>
-				<th><?php fs_echo_inline( 'id' ) ?></th>
-				<th><?php fs_echo_inline( 'slug' ) ?></th>
-				<th><?php fs_echo_inline( 'version' ) ?></th>
-				<th><?php fs_echo_inline( 'title' ) ?></th>
-				<th><?php fs_echo_inline( 'api' ) ?></th>
-				<th><?php fs_echo_inline( 'freemius-state' ) ?></th>
-				<th><?php fs_echo_inline( 'plugin-path' ) ?></th>
-				<th><?php fs_echo_inline( 'public-key' ) ?></th>
-				<th><?php fs_echo_inline( 'actions' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
+                <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Title' ) ?></th>
+				<th><?php fs_esc_html_echo_x_inline( 'API', 'as application program interface' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Freemius State' ) ?></th>
+                <th><?php fs_esc_html_echo_inline( 'Module Path' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Actions' ) ?></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -248,9 +248,10 @@
 					<td<?php if ( $is_active && ! $fs->has_api_connectivity() ) {
 						echo ' style="color: red; text-transform: uppercase;"';
 					} ?>><?php if ( $is_active ) {
-							echo $fs->has_api_connectivity() ?
-								fs_text_inline( 'connected' ) :
-								fs_text_inline( 'blocked' );
+							echo esc_html( $fs->has_api_connectivity() ?
+								fs_text_x_inline( 'Connected', 'as connection was successful' ) :
+                                fs_text_x_inline( 'Blocked', 'as connection blocked' )
+                            );
 						} ?></td>
 					<td<?php if ( $is_active && ! $fs->is_on() ) {
 						echo ' style="color: red; text-transform: uppercase;"';
@@ -292,17 +293,21 @@
 	$sites = $VARS[ $module_type . '_sites' ];
 	?>
 	<?php if ( is_array( $sites ) && count( $sites ) > 0 ) : ?>
-		<h2><?php printf( fs_text_inline( 'module-installs' ), fs_text_inline( $module_type ) ) ?> / <?php fs_echo_inline( 'sites' ) ?></h2>
+		<h2><?php echo esc_html( sprintf(
+				/* translators: %s: 'plugin' or 'theme' */
+				fs_text_inline( '%s Installs', 'module-installs' ),
+				fs_text_inline( $module_type )
+			) ) ?> / <?php fs_esc_html_echo_inline( 'sites' ) ?></h2>
 		<table id="fs_<?php echo $module_type ?>_installs" class="widefat">
 			<thead>
 			<tr>
-				<th><?php fs_echo_inline( 'id' ) ?></th>
-				<th><?php fs_echo_inline( 'slug' ) ?></th>
-				<th><?php fs_echo_inline( 'user-id' ) ?></th>
-				<th><?php fs_echo_inline( 'plan' ) ?></th>
-				<th><?php fs_echo_inline( 'public-key' ) ?></th>
-				<th><?php fs_echo_inline( 'secret-key' ) ?></th>
-				<th><?php fs_echo_inline( 'actions' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Plan' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'Actions' ) ?></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -335,17 +340,17 @@
 	$addons = $VARS['addons'];
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
-	<h2><?php printf( fs_text_inline( 'addons-of-x' ), $plugin_id ) ?></h2>
+	<h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?></h2>
 	<table id="fs_addons" class="widefat">
 		<thead>
 		<tr>
-			<th><?php fs_echo_inline( 'id' ) ?></th>
-			<th><?php fs_echo_inline( 'title' ) ?></th>
-			<th><?php fs_echo_inline( 'slug' ) ?></th>
-			<th><?php fs_echo_inline( 'version' ) ?></th>
-			<th><?php fs_echo_inline( 'public-key' ) ?></th>
-			<th><?php fs_echo_inline( 'secret-key' ) ?></th>
-		</tr>
+			<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'Title' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
+            <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
+            <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
+            <th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
+        </tr>
 		</thead>
 		<tbody>
 		<?php
@@ -413,7 +418,7 @@
 				<th><?php fs_esc_html_echo_inline( 'Activated' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Blocking' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'License Key' ) ?></th>
-				<th><?php fs_esc_html_echo_inline( 'Expiration' ) ?></th>
+				<th><?php fs_esc_html_echo_x_inline( 'Expiration', 'as expiration date' ) ?></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -458,11 +463,11 @@
 			<option value="ajax">AJAX</option>
 			<option value="cron">WP Cron</option>
 		</select>
-		<input name="file" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'File', 'file' ) ?>"/>
-		<input name="function" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'function' ) ?>"/>
-		<input name="process_id" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'process-id' ) ?>"/>
-		<input name="logger" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Logger', 'logger' ) ?>"/>
-		<input name="message" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'message' ) ?>"/>
+		<input name="file" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'File' ) ?>"/>
+		<input name="function" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Function' ) ?>"/>
+		<input name="process_id" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Process ID' ) ?>"/>
+		<input name="logger" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Logger' ) ?>"/>
+		<input name="message" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Message' ) ?>"/>
 		<div style="margin: 10px 0">
 			<button id="fs_filter" class="button" style="float: left"><i class="dashicons dashicons-filter"></i> <?php fs_esc_html_echo_inline( 'Filter', 'filter' ) ?>
 			</button>
@@ -472,7 +477,7 @@
 				<?php wp_nonce_field( 'download_logs' ) ?>
 				<div class="fs-filters"></div>
 				<button id="fs_download" class="button" type="submit"><i
-						class="dashicons dashicons-download"></i> <?php fs_echo_inline( 'download' ) ?></button>
+						class="dashicons dashicons-download"></i> <?php fs_esc_html_echo_inline( 'Download' ) ?></button>
 			</form>
 			<div style="clear: both"></div>
 		</div>

@@ -53,7 +53,7 @@
 	// Add updates as a feature for all plans.
 	$updates_feature        = new stdClass();
 	$updates_feature->id    = 'updates';
-	$updates_feature->title = fs_text_inline( 'unlimited-updates', $plugin->slug );
+	$updates_feature->title = fs_text_inline( 'Unlimited Updates', 'unlimited-updates', $plugin->slug );
 	$features_plan_map[ $updates_feature->id ] = array( 'feature' => $updates_feature, 'plans' => array() );
 	foreach ( $plans as $plan ) {
 		$features_plan_map[ $updates_feature->id ]['plans'][ $plan->id ] = $updates_feature;

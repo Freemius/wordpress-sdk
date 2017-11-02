@@ -28,10 +28,10 @@
 
 	$plugin_title                     = "<strong>{$fs->get_plugin()->title}</strong>";
 	$opt_out_button_text              = fs_text_inline( 'opt-out', $slug );
-	$opt_out_message_appreciation     = sprintf( fs_text_inline( 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
-	$opt_out_message_usage_tracking   = sprintf( fs_text_inline( 'opt-out-message-usage-tracking', $slug ), $plugin_title );
+	$opt_out_message_appreciation     = sprintf( fs_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-out-message-appreciation', $slug ), $fs->get_module_type() );
+	$opt_out_message_usage_tracking   = sprintf( fs_text_inline( "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking.", 'opt-out-message-usage-tracking', $slug ), $plugin_title );
 	$opt_out_message_clicking_opt_out = sprintf(
-		fs_text_inline( 'opt-out-message-clicking-opt-out', $slug ),
+		fs_text_inline( 'By clicking "Opt Out", we will no longer be sending any data from %s to %s.', 'opt-out-message-clicking-opt-out', $slug ),
 		$plugin_title,
 		sprintf(
 			'<a href="%s" target="_blank">%s</a>',
@@ -76,7 +76,7 @@ HTML;
 				    + '		</div>'
 				    + '		<div class="fs-modal-footer">'
 				    + '			<button class="button button-secondary button-opt-out" tabindex="1"><?php echo esc_js( $opt_out_button_text ) ?></button>'
-				    + '			<button class="button button-primary button-close" tabindex="2"><?php fs_esc_js_echo( 'opt-out-cancel', $slug ) ?></button>'
+				    + '			<button class="button button-primary button-close" tabindex="2"><?php fs_esc_js_echo_inline( 'On second thought - I want to continue helping', 'opt-out-cancel', $slug ) ?></button>'
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',

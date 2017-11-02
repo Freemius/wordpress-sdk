@@ -72,7 +72,7 @@
 		}
 	}
 ?>
-<h1><?php fs_esc_html_echo_inline( 'scheduled-crons' ) ?></h1>
+<h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?></h1>
 <table class="widefat">
 	<thead>
 	<tr>

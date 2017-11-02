@@ -73,7 +73,7 @@ HTML;
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-header">'
-		    + '		    <h4><?php fs_esc_attr_echo('quick-feedback' , $slug) ?></h4>'
+		    + '		    <h4><?php fs_esc_attr_echo_inline( 'Quick feedback', 'quick-feedback' , $slug ) ?></h4>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'

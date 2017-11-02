@@ -305,7 +305,7 @@
 						<?php fs_esc_html_echo_inline( 'Don\'t have a license key?', 'dont-have-license-key', $slug ) ?>
 						<a data-require-license="false" tabindex="1"><?php fs_esc_html_echo_inline( 'Activate Free Version', 'activate-free-version', $slug ) ?></a>
 					<?php else : ?>
-						<?php fs_echo_inline( 'have-license-key', $slug ) ?>
+						<?php fs_echo_inline( 'Have a license key?', 'have-license-key', $slug ) ?>
 						<a data-require-license="true" tabindex="1"><?php fs_esc_html_echo_inline( 'Activate License', 'activate-license', $slug ) ?></a>
 					<?php endif ?>
 				</p>
@@ -315,7 +315,7 @@
 			<a href="https://freemius.com/privacy/" target="_blank"
 			   tabindex="1"><?php fs_esc_html_echo_inline( 'Privacy Policy', 'privacy-policy', $slug ) ?></a>
 			&nbsp;&nbsp;-&nbsp;&nbsp;
-			<a href="<?php echo $freemius_site_www ?>/terms/" target="_blank" tabindex="1"><?php fs_echo_inline( 'tos', $slug ) ?></a>
+			<a href="<?php echo $freemius_site_www ?>/terms/" target="_blank" tabindex="1"><?php fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
 		</div>
 	</div>
 	<?php

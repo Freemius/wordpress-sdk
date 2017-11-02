@@ -33,7 +33,7 @@
 ?>
 	<div id="fs_addons" class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
-		<h2><?php printf( fs_text_inline( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
+		<h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons for %s', 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ) ?></h2>
 		<?php endif ?>
 
 		<div id="poststuff">
@@ -41,7 +41,7 @@
 				<h3><?php echo esc_html( sprintf(
 						'%s... %s',
 						fs_text_x_inline( 'Oops', 'exclamation', 'oops', $slug ),
-						fs_text_inline( 'add-ons-missing', $slug )
+						fs_text_inline( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'add-ons-missing', $slug )
 					) ) ?></h3>
 			<?php endif ?>
 			<ul class="fs-cards-list">
@@ -96,7 +96,7 @@
 								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 									esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
-									esc_attr( sprintf( fs_text_inline( 'more-information-about-x', $slug ), $addon->title ) ),
+									esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
 								);
 							?>

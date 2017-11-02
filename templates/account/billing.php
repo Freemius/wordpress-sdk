@@ -33,7 +33,7 @@
 <!-- Billing -->
 <div class="postbox">
 	<div id="fs_billing">
-		<h3><span class="dashicons dashicons-portfolio"></span> <?php fs_esc_html_echo_inline( 'billing', $slug ) ?></h3>
+		<h3><span class="dashicons dashicons-portfolio"></span> <?php fs_esc_html_echo_inline( 'Billing', 'billing', $slug ) ?></h3>
 		<table id="fs_billing_address"<?php if ( $has_billing ) {
 			echo ' class="fs-read-mode"';
 		} ?>>

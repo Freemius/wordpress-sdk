@@ -355,13 +355,13 @@
 								return ' <a class="button button-primary right" href="' . esc_url( $api->download_link ) . '" target="_blank">' . fs_esc_html_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $api->slug ) . '</a>';
 							} else {
 								if ( $status['url'] ) {
-									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text_inline( 'install-now', $api->slug ) . '</a>';
+									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) . '</a>';
 								}
 							}
 							break;
 						case 'update_available':
 							if ( $status['url'] ) {
-								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text_inline( 'install-update-now', $api->slug ) . '</a>';
+								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text_inline( 'Install Update Now', 'install-update-now', $api->slug ) . '</a>';
 							}
 							break;
 						case 'newer_installed':
@@ -481,13 +481,13 @@
 			);
 
 			$plugins_section_titles = array(
-				'description'  => fs_text_inline( 'description', $api->slug ),
-				'installation' => fs_text_inline( 'installation', $api->slug ),
-				'faq'          => fs_text_inline( 'faq', $api->slug ),
-				'screenshots'  => fs_text_inline( 'screenshots', $api->slug ),
-				'changelog'    => fs_text_inline( 'changelog', $api->slug ),
-				'reviews'      => fs_text_inline( 'reviews', $api->slug ),
-				'other_notes'  => fs_text_inline( 'other_notes', $api->slug ),
+				'description'  => fs_text_x_inline( 'Description', 'Plugin installer section title', 'description', $api->slug ),
+				'installation' => fs_text_x_inline( 'Installation', 'Plugin installer section title', 'installation', $api->slug ),
+				'faq'          => fs_text_x_inline( 'FAQ', 'Plugin installer section title', 'faq', $api->slug ),
+				'screenshots'  => fs_text_inline( 'Screenshots', 'screenshots', $api->slug ),
+				'changelog'    => fs_text_x_inline( 'Changelog', 'Plugin installer section title', 'changelog', $api->slug ),
+				'reviews'      => fs_text_x_inline( 'Reviews', 'Plugin installer section title', 'reviews', $api->slug ),
+				'other_notes'  => fs_text_x_inline( 'Other Notes', 'Plugin installer section title', 'other-notes', $api->slug ),
 			);
 
 			// Sanitize HTML
@@ -718,7 +718,7 @@
 
 													// Render licenses prices.
 													if (1 == pricing.length) {
-														html = '<li><label><?php fs_echo_inline( 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
+														html = '<li><label><?php echo fs_esc_attr_x_inline( 'Price', 'noun', 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
 													} else {
 														for (var i = 0; i < pricing.length; i++) {
 															html += '<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="' + pricing[i].id + '">' + _formatPrice(pricing[i], billingCycle) + '</label></li>';
@@ -774,10 +774,10 @@
 										<?php $trial_period = $this->get_trial_period( $plan ) ?>
 										<ul class="fs-trial-terms">
 											<li>
-												<i class="dashicons dashicons-yes"></i><?php printf( fs_text_inline( 'no-commitment-x', $api->slug ), $trial_period ) ?>
+												<i class="dashicons dashicons-yes"></i><?php echo esc_html( sprintf( fs_text_inline( 'No commitment for %s - cancel anytime', 'no-commitment-x', $api->slug ), $trial_period ) ) ?>
 											</li>
 											<li>
-												<i class="dashicons dashicons-yes"></i><?php printf( fs_text_inline( 'after-x-pay-as-little-y', $api->slug ), $trial_period, '<var class="fs-price">' . $this->get_price_tag( $plan, $plan->pricing[0] ) . '</var>' ) ?>
+												<i class="dashicons dashicons-yes"></i><?php printf( esc_html( fs_text_inline( 'After your free %s, pay as little as %s', 'after-x-pay-as-little-y', $api->slug ) ), $trial_period, '<var class="fs-price">' . $this->get_price_tag( $plan, $plan->pricing[0] ) . '</var>' ) ?>
 											</li>
 										</ul>
 									<?php endif ?>
@@ -791,7 +791,7 @@
 					<h3><?php fs_echo_inline( 'details', $api->slug ) ?></h3>
 					<ul>
 						<?php if ( ! empty( $api->version ) ) { ?>
-							<li><strong><?php fs_echo_inline( 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
+							<li><strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
 							<?php
 						}
 							if ( ! empty( $api->author ) ) {

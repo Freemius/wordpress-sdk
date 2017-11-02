@@ -355,7 +355,7 @@ if ( !isset($info->error) ) {
 				$data->version = $this->_fs->get_plugin_version();
 			} else {
 				if ( $is_addon ) {
-					$data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'addon' );
+					$data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 					$data->slug    = $addon->slug;
 					$data->url     = WP_FS__ADDRESS;
 					$data->package = $new_version->url;
@@ -507,13 +507,13 @@ if ( !isset($info->error) ) {
 				}
 
 				$slug  = $addon->slug;
-				$title = $addon->title . ' ' . $this->_fs->get_text_inline( 'addon' );
+				$title = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 
 				$is_addon = true;
 			} else {
 				$slug  = $this->_fs->get_slug();
 				$title = $this->_fs->get_plugin_title() .
-				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'addon' ) : '' );
+				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
 			}
 
 			if ( $this->is_premium_plugin_active( $plugin_id ) ) {
