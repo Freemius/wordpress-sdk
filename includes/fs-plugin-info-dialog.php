@@ -805,7 +805,11 @@
 								?>
 								<li><strong><?php fs_echo_inline( 'Last Updated', 'last-updated', $api->slug ); ?>:</strong> <span
 										title="<?php echo $api->last_updated; ?>">
-				<?php printf( fs_text_inline( 'x-ago', $api->slug ), human_time_diff( strtotime( $api->last_updated ) ) ); ?>
+				<?php echo esc_html( sprintf(
+					/* translators: %s: time period (e.g. "2 hours" ago) */
+					fs_text_x_inline( '%s ago', 'x-ago', $api->slug ),
+					human_time_diff( strtotime( $api->last_updated ) )
+				) ) ?>
 			</span></li>
 								<?php
 							}

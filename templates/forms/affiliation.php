@@ -215,7 +215,7 @@
                             </form>
                         </div>
                         <?php if ( ! $is_affiliate ) : ?>
-                            <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_echo_inline( 'cancel', $slug ) ?></a>
+                            <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>
                             <a id="submit_button" class="button button-primary" href="#" style="display: none"><?php echo esc_html( $apply_to_become_affiliate_text ) ?></a>
                             <a id="apply_button" class="button button-primary" href="#"><?php fs_esc_html_echo_inline( 'Become an affiliate', 'become-an-affiliate', $slug ) ?></a>
                         <?php endif ?>

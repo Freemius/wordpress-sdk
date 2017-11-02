@@ -13,6 +13,8 @@
 	global $fs_active_plugins;
 
 	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+
+    $off_text = fs_text_x_inline( 'Off', 'as turned off' );
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -23,7 +25,7 @@
 	<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
 		<div class="toggle"></div>
 		<span class="on"><?php fs_echo_inline( 'on' ) ?></span>
-		<span class="off"><?php fs_echo_inline( 'off' ) ?></span>
+		<span class="off"><?php echo esc_html( $off_text ) ?></span>
 	</div>
 	<script type="text/javascript">
 		(function ($) {
@@ -256,9 +258,9 @@
 					<td<?php if ( $is_active && ! $fs->is_on() ) {
 						echo ' style="color: red; text-transform: uppercase;"';
 					} ?>><?php if ( $is_active ) {
-							echo $fs->is_on() ?
+							echo esc_html( $fs->is_on() ?
 								fs_text_inline( 'on' ) :
-								fs_text_inline( 'off' );
+                                $off_text );
 						} ?></td>
 					<td><?php echo $data->file ?></td>
 					<td><?php echo $data->public_key ?></td>

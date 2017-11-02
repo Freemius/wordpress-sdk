@@ -13,6 +13,11 @@
 	$fs_options  = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$all_plugins = $fs_options->get_option( 'all_plugins' );
 	$all_themes  = $fs_options->get_option( 'all_themes' );
+
+    /* translators: %s: time period (e.g. In "2 hours") */
+	$in_x_text = fs_text_inline( 'In %s', 'in-x' );
+    /* translators: %s: time period (e.g. "2 hours" ago) */
+	$x_ago_text = fs_text_inline( '%s ago', 'x-ago' );
 ?>
 <h1><?php fs_esc_html_echo_inline( 'Plugins & Themes Sync', 'plugins-themes-sync' ) ?></h1>
 <table class="widefat">
@@ -35,11 +40,12 @@
 							$diff . ' ' . fs_text_inline( 'sec' ) :
 							human_time_diff( WP_FS__SCRIPT_START_TIME, $all_plugins->timestamp );
 
-						if ( WP_FS__SCRIPT_START_TIME < $all_plugins->timestamp ) {
-							printf( fs_text_inline( 'in-x' ), $human_diff );
-						} else {
-							printf( fs_text_inline( 'x-ago' ), $human_diff );
-						}
+                        echo esc_html( sprintf(
+                            ( ( WP_FS__SCRIPT_START_TIME < $all_plugins->timestamp ) ?
+                                $in_x_text :
+                                $x_ago_text ),
+                            $human_diff
+                        ) );
 					}
 				?></td>
 		</tr>
@@ -55,11 +61,12 @@
 							$diff . ' ' . fs_text_inline( 'sec' ) :
 							human_time_diff( WP_FS__SCRIPT_START_TIME, $all_themes->timestamp );
 
-						if ( WP_FS__SCRIPT_START_TIME < $all_themes->timestamp ) {
-							printf( fs_text_inline( 'in-x' ), $human_diff );
-						} else {
-							printf( fs_text_inline( 'x-ago' ), $human_diff );
-						}
+                        echo esc_html( sprintf(
+                            ( ( WP_FS__SCRIPT_START_TIME < $all_themes->timestamp ) ?
+                                $in_x_text :
+                                $x_ago_text ),
+                            $human_diff
+                        ) );
 					}
 				?></td>
 		</tr>

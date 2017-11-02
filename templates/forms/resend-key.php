@@ -19,7 +19,7 @@
 	$slug = $fs->get_slug();
 
 	$send_button_text          = fs_text_inline( 'Send License Key', 'send-license-key', $slug );
-	$cancel_button_text        = fs_text_inline( 'cancel', $slug );
+	$cancel_button_text        = fs_text_inline( 'Cancel', 'cancel', $slug );
 	$email_address_placeholder = fs_esc_attr_inline( 'Email address', 'email-address', $slug );
 	$other_text                = fs_text_inline( 'Other', 'other', $slug );
 
@@ -74,7 +74,7 @@ HTML;
 				    + ' <div class="fs-modal-dialog">'
 				    + '     <div class="fs-modal-header">'
 				    + '         <h4><?php echo esc_js( $send_button_text ) ?></h4>'
-				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php fs_esc_js_echo( 'dismiss', $slug ) ?>"></i></a>'
+				    + '         <a href="#!" class="fs-close" tabindex="3" title="Close"><i class="dashicons dashicons-no" title="<?php echo esc_js( fs_text_x_inline( 'Dismiss', 'as close a window', 'dismiss', $slug ) ) ?>"></i></a>'
 				    + '     </div>'
 				    + '     <div class="fs-modal-body">'
 				    + '         <div class="fs-modal-panel active">' + contentHtml + '</div>'

@@ -63,16 +63,16 @@
 	<thead>
 	<tr>
 		<th>#</th>
-		<th><?php fs_echo_inline( 'Method' ) ?></th>
-		<th><?php fs_echo_inline( 'Code' ) ?></th>
-		<th><?php fs_echo_inline( 'Length' ) ?></th>
-		<th><?php fs_echo_inline( 'Path' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Method' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Code' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Length' ) ?></th>
+		<th><?php fs_esc_html_echo_x_inline( 'Path', 'as file/folder path' ) ?></th>
 		<?php if ( $show_body ) : ?>
-			<th><?php fs_echo_inline( 'Body' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'Body' ) ?></th>
 		<?php endif ?>
-		<th><?php fs_echo_inline( 'Result' ) ?></th>
-		<th><?php fs_echo_inline( 'Start' ) ?></th>
-		<th><?php fs_echo_inline( 'End' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Result' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Start' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'End' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>

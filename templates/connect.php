@@ -196,7 +196,7 @@
 		<div class="fs-actions">
 			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
 				<a href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
-				   class="button button-secondary" tabindex="2"><?php fs_echo_inline( 'skip', $slug ) ?></a>
+				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
 
 			<?php if ( $activate_with_current_user ) : ?>

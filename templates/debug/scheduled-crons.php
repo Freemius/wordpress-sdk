@@ -85,6 +85,12 @@
 	</tr>
 	</thead>
 	<tbody>
+	<?php
+		/* translators: %s: time period (e.g. In "2 hours") */
+		$in_x_text = fs_text_inline( 'In %s', 'in-x' );
+		/* translators: %s: time period (e.g. "2 hours" ago) */
+		$x_ago_text = fs_text_inline( '%s ago', 'x-ago' );
+	?>
 	<?php foreach ( $scheduled_crons as $slug => $crons ) : ?>
 		<?php foreach ( $crons as $cron ) : ?>
 			<tr>
@@ -99,13 +105,12 @@
 								$diff . ' ' . fs_text_inline( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
 
-							if ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) {
-								printf( fs_text_inline( 'in-x' ), $human_diff );
-							} else {
-								printf( fs_text_inline( 'x-ago' ), $human_diff );
-							}
-
-//							echo ' ' . $cron['last'];
+							echo esc_html( sprintf(
+								( ( WP_FS__SCRIPT_START_TIME < $cron['last'] ) ?
+									$in_x_text :
+									$x_ago_text ),
+								$human_diff
+							) );
 						}
 					?></td>
 				<td><?php
@@ -115,11 +120,12 @@
 								$diff . ' ' . fs_text_inline( 'sec' ) :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
 
-							if ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) {
-								printf( fs_text_inline( 'in-x' ), $human_diff );
-							} else {
-								printf( fs_text_inline( 'x-ago' ), $human_diff );
-							}
+							echo esc_html( sprintf(
+								( ( WP_FS__SCRIPT_START_TIME < $cron['next'] ) ?
+									$in_x_text :
+									$x_ago_text ),
+								$human_diff
+							) );
 						}
 					?></td>
 			</tr>

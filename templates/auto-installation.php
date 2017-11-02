@@ -39,7 +39,10 @@
 
 	$sec_countdown  = 30;
 	$countdown_html = sprintf(
-		esc_js( fs_text_inline( 'x-sec', $slug ) ),
+		esc_js(
+			/* translators: %s: Number of seconds */
+			fs_text_inline( '%s sec', 'x-sec', $slug )
+		),
 		sprintf( '<span class="fs-countdown">%s</span>', $sec_countdown )
 	);
 

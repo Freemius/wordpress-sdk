@@ -26,7 +26,7 @@
 ?>
 <div class="postbox">
 	<div id="fs_payments">
-		<h3><span class="dashicons dashicons-paperclip"></span> <?php fs_echo_inline( 'payments', $slug ) ?></h3>
+		<h3><span class="dashicons dashicons-paperclip"></span> <?php fs_esc_html_echo_inline( 'Payments', 'payments', $slug ) ?></h3>
 
 		<div class="inside">
 			<table class="widefat">

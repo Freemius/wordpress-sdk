@@ -54,7 +54,7 @@ HTML;
 				    + '		</div>'
 				    + '		<div class="fs-modal-body">' + modalContentHtml + '</div>'
 				    + '		<div class="fs-modal-footer">'
-				    + '			<button class="button button-secondary button-close">' + <?php fs_json_encode_echo( 'cancel', $slug ) ?> +'</button>'
+				    + '			<button class="button button-secondary button-close">' + <?php fs_json_encode_echo_inline( 'Cancel', 'cancel', $slug ) ?> +'</button>'
 				    + '			<button class="button button-primary button-connect">' + <?php fs_json_encode_echo_inline( 'Approve & Start Trial', 'approve-start-trial', $slug ) ?> +'</button>'
 				    + '		</div>'
 				    + '	</div>'

@@ -49,7 +49,7 @@
 		 * Json conversion
 		 */
 		public function to_json() {
-			$pricing_cta = esc_html( $this->fs->get_text_inline( $this->fs->get_pricing_cta_label() ) ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' );
+			$pricing_cta = esc_html( $this->fs->get_pricing_cta_label() ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' );
 
 			parent::to_json();
 

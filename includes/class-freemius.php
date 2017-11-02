@@ -9359,15 +9359,15 @@
 		 * @return string
 		 */
 		function get_pricing_cta_label() {
-			$label = 'upgrade';
+			$label = $this->get_text_inline( 'Upgrade', 'upgrade' );
 
 			if ( $this->is_in_trial_promotion() &&
 			     ! $this->is_paying_or_trial()
 			) {
 				// If running a trial promotion, modify the pricing to load the trial.
-				$label = 'start-trial';
+				$label = $this->get_text_inline( 'Start Trial', 'start-trial' );
 			} else if ( $this->is_paying() ) {
-				$label = 'pricing';
+				$label = $this->get_text_inline( 'Pricing', 'pricing' );
 			}
 
 			return $label;
@@ -9470,7 +9470,7 @@
 						$this->is_pricing_page_visible()
 					);
 
-					$pricing_cta_slug = $this->get_pricing_cta_label();
+					$pricing_cta_text = $this->get_pricing_cta_label();
 					$pricing_class    = 'upgrade-mode';
 					if ( $show_pricing ) {
 						if ( $this->is_in_trial_promotion() &&
@@ -9485,7 +9485,7 @@
 
 					// Add upgrade/pricing page.
 					$this->add_submenu_item(
-						$this->get_text_inline( $pricing_cta_slug ) . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
+                        $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
 						array( &$this, '_pricing_page_render' ),
 						$this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
 						'manage_options',

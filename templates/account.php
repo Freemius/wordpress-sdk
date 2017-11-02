@@ -191,17 +191,17 @@
 										if ( is_numeric( $user->id ) ) {
 											$profile[] = array(
 												'id'    => 'user_id',
-												'title' => fs_text_inline( 'user-id', $slug ),
+												'title' => fs_text_inline( 'User ID', 'user-id', $slug ),
 												'value' => $user->id
 											);
 										}
 
 										$profile[] = array(
 											'id'    => 'site_id',
-											'title' => fs_text_inline( 'site-id', $slug ),
+											'title' => fs_text_inline( 'Site ID', 'site-id', $slug ),
 											'value' => is_string( $site->id ) ?
 												$site->id :
-												fs_text_inline( 'no-id', $slug )
+												fs_text_inline( 'No ID', 'no-id', $slug )
 										);
 
 										$profile[] = array(
@@ -309,7 +309,7 @@
                                                                                $activate_plan_text . '%s',
 																		       $premium_plan->title,
 																		       ( $site->is_localhost() && $available_license->is_free_localhost ) ?
-																			       ' [' . fs_text_inline( 'localhost', $slug ) . ']' :
+																			       ' [' . fs_text_inline( 'Localhost', 'localhost', $slug ) . ']' :
 																			       ( $available_license->is_single_site() ?
 																				       '' :
 																				       ' [' . ( 1 < $available_license->left() ?
@@ -542,12 +542,12 @@
 																	if ( is_object( $license ) ) {
 																		if ( $license->is_cancelled ) {
 																			$tags[] = array(
-																				'label' => fs_text_inline( 'cancelled', $slug ),
+																				'label' => fs_text_inline( 'Cancelled', 'cancelled', $slug ),
 																				'type'  => 'error'
 																			);
 																		} else if ( $license->is_expired() ) {
 																			$tags[] = array(
-																				'label' => fs_text_inline( 'expired', $slug ),
+																				'label' => fs_text_inline( 'Expired', 'expired', $slug ),
 																				'type'  => 'error'
 																			);
 																		} else if ( $license->is_lifetime() ) {
