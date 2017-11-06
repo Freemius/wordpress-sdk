@@ -24,6 +24,9 @@
 
 	if ( $show_billing ) :
 
+		$edit_text   = fs_text_x_inline( 'Edit', 'verb', 'edit', $slug );
+		$update_text = fs_text_x_inline( 'Update', 'verb', 'update', $slug );
+
 		$billing     = $fs->_fetch_billing();
 		$has_billing = ( $billing instanceof FS_Billing );
 		if ( ! $has_billing ) {
@@ -317,10 +320,10 @@
 			<tr>
 				<td colspan="2">
 					<button
-						class="button"><?php $has_billing ?
-							fs_esc_html_echo_inline( 'edit', $slug ) :
-							fs_esc_html_echo_inline( 'update', $slug )
-						?></button>
+						class="button"><?php echo esc_html( $has_billing ?
+							$edit_text :
+							$update_text
+						) ?></button>
 				</td>
 			</tr>
 		</table>
@@ -359,7 +362,7 @@
 			var isEditMode = !$billingAddress.hasClass('fs-read-mode');
 
 			$(this)
-				.html(isEditMode ? <?php echo json_encode(fs_text_inline('update', $slug)) ?> : <?php echo json_encode(fs_text_inline('edit', $slug)) ?>)
+				.html(isEditMode ? '<?php echo esc_js( $update_text ) ?>' : '<?php echo esc_js( $edit_text ) ?>')
 				.toggleClass('button-primary');
 
 			if (isEditMode) {
@@ -410,7 +413,7 @@
 
 				$billingAddress.toggleClass('fs-read-mode');
 				$billingAddress.find('.button')
-					.html(<?php echo json_encode( fs_text_inline( 'update', $slug ) ) ?>)
+					.html('<?php echo esc_js( $update_text ) ?>')
 					.toggleClass('button-primary');
 			})
 			// If blured after editing only one field without changes, exit edit mode.
@@ -418,7 +421,7 @@
 				if (!isEditAllFieldsMode && !hasBillingChanged()) {
 					$billingAddress.toggleClass('fs-read-mode');
 					$billingAddress.find('.button')
-						.html(<?php echo json_encode( fs_text_inline( 'edit', $slug ) ) ?>)
+						.html('<?php echo esc_js( $edit_text ) ?>')
 						.toggleClass('button-primary');
 				}
 			});

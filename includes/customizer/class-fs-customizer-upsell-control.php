@@ -103,7 +103,7 @@
 			$this->json['plans'] = $pricing->plans;
 
 			$this->json['strings'] = array(
-				'plan' => $this->fs->get_text_inline( 'plan' ),
+				'plan' => $this->fs->get_text_x_inline( 'Plan', 'as product pricing plan', 'plan' ),
 			);
 		}
 

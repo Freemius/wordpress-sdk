@@ -837,6 +837,36 @@
     }
 
     /**
+     * @author Vova Feldman (@svovaf)
+     * @since  1.2.3
+     *
+     * @param string $text    Translatable string.
+     * @param string $context Context information for the translators.
+     * @param string $key     String key for overrides.
+     * @param string $slug    Module slug for overrides.
+     *
+     * @return string
+     */
+    function fs_esc_js_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+        return esc_js( fs_text_x_inline( $text, $context, $key, $slug ) );
+    }
+
+    /**
+     * @author Vova Feldman (@svovaf)
+     * @since  1.2.3
+     *
+     * @param string $text    Translatable string.
+     * @param string $context Context information for the translators.
+     * @param string $key     String key for overrides.
+     * @param string $slug    Module slug for overrides.
+     *
+     * @return string
+     */
+    function fs_esc_js_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+        echo esc_js( fs_text_x_inline( $text, $context, $key, $slug ) );
+    }
+
+    /**
      * @author Vova Feldman
      * @since  1.2.1.6
      *

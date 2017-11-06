@@ -67,12 +67,16 @@
     $upgrade_text       = fs_text_x_inline( 'Upgrade', 'verb', 'upgrade', $slug );
     $addons_text        = fs_text_inline( 'Add-Ons', 'add-ons', $slug );
     $downgrade_text     = fs_text_x_inline( 'Downgrade', 'verb', 'downgrade', $slug );
+	$trial_text         = fs_text_x_inline( 'Trial', 'trial period', 'trial', $slug );
+	$free_text          = fs_text_inline( 'Free', 'free', $slug );
+	$activate_text      = fs_text_inline( 'Activate', 'activate', $slug );
+	$plan_text          = fs_text_x_inline( 'Plan', 'as product pricing plan', 'plan', $slug );
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
 		<h2 class="nav-tab-wrapper">
 			<a href="<?php echo $fs->get_account_url() ?>"
-			   class="nav-tab nav-tab-active"><?php fs_echo_inline( 'account', $slug ) ?></a>
+			   class="nav-tab nav-tab-active"><?php fs_esc_html_echo_inline( 'Account', 'account', $slug ) ?></a>
 			<?php if ( $fs->has_addons() ) : ?>
 				<a href="<?php echo $fs->_get_admin_page_url( 'addons' ) ?>"
 				   class="nav-tab"><?php echo esc_html( $addons_text ) ?></a>
@@ -178,13 +182,13 @@
 										$profile   = array();
 										$profile[] = array(
 											'id'    => 'user_name',
-											'title' => fs_text_inline( 'name', $slug ),
+											'title' => fs_text_inline( 'Name', 'name', $slug ),
 											'value' => $name
 										);
 										//					if (isset($user->email) && false !== strpos($user->email, '@'))
 										$profile[] = array(
 											'id'    => 'email',
-											'title' => fs_text_inline( 'email', $slug ),
+											'title' => fs_text_inline( 'Email', 'email', $slug ),
 											'value' => $user->email
 										);
 
@@ -231,18 +235,19 @@
 
 												$profile[] = array(
 													'id'    => 'plan',
-													'title' => fs_text_inline( 'plan', $slug ),
+													'title' => $plan_text,
 													'value' => ( is_string( $trial_plan->name ) ?
 														strtoupper( $trial_plan->title ) :
-														fs_text_inline( 'trial', $slug ) )
+														fs_text_inline( 'Trial', 'trial', $slug ) )
 												);
 											} else {
 												$profile[] = array(
 													'id'    => 'plan',
-													'title' => fs_text_inline( 'plan', $slug ),
-													'value' => is_string( $site->plan->name ) ?
-														strtoupper( $site->plan->title ) :
-														strtoupper( fs_text_inline( 'free', $slug ) )
+													'title' => $plan_text,
+													'value' => strtoupper( is_string( $site->plan->name ) ?
+														$site->plan->title :
+														strtoupper( $free_text )
+													)
 												);
 
 												if ( is_object( $license ) ) {
@@ -283,7 +288,7 @@
 													<?php endif ?>
 													<?php if ( 'plan' === $p['id'] ) : ?>
 														<?php if ( $fs->is_trial() ) : ?>
-															<label class="fs-tag fs-success"><?php fs_esc_html_echo( 'trial', $slug ) ?></label>
+															<label class="fs-tag fs-success"><?php echo esc_html( $trial_text ) ?></label>
 														<?php endif ?>
 														<?php if ( is_object( $license ) && ! $license->is_lifetime() ) : ?>
 															<?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
@@ -383,7 +388,7 @@
 															<?php endif ?>
 															<?php
 														elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-															<button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo( 'show', $slug ) ?></button>
+															<button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
 															<?php if ('license_key' === $p['id']) : ?>
 																<button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
 															<?php endif ?>
@@ -405,7 +410,7 @@
 																       value="">
 																<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
 																<input type="submit" class="button button-small"
-																       value="<?php fs_esc_attr_echo( 'edit', $slug ) ?>">
+																       value="<?php echo fs_esc_attr_x_inline( 'Edit', 'verb', 'edit', $slug ) ?>">
 															</form>
 														<?php endif ?>
 													</td>
@@ -428,13 +433,13 @@
 									$input.toggle();
 
 									if ($input.is(':visible')) {
-										$this.html(<?php fs_json_encode_echo( 'hide', $slug ) ?>);
+										$this.html('<?php fs_esc_js_echo_x_inline( 'Hide', 'verb', 'hide', $slug ) ?>');
 										setTimeout(function () {
 											$input.select().focus();
 										}, 100);
 									}
 									else {
-										$this.html(<?php fs_json_encode_echo( 'show', $slug ) ?>);
+										$this.html( '<?php fs_esc_js_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?>' );
 									}
 								});
 							}(jQuery));
@@ -464,10 +469,10 @@
 										<thead>
 										<tr>
 											<th><h3><?php echo esc_html( $addons_text ) ?></h3></th>
-											<th><?php fs_esc_html_echo( 'id', $slug ) ?></th>
+											<th><?php fs_esc_html_echo_inline( 'ID', 'id', $slug ) ?></th>
 											<th><?php echo esc_html( $version_text ) ?></th>
-											<th><?php fs_esc_html_echo( 'plan', $slug ) ?></th>
-											<th><?php fs_esc_html_echo( 'license', $slug ) ?></th>
+											<th><?php echo esc_html( $plan_text ) ?></th>
+											<th><?php fs_esc_html_echo_x_inline( 'License', 'as software license', 'license', $slug ) ?></th>
 											<th></th>
 											<?php if ( defined( 'WP_FS__DEV_MODE' ) && WP_FS__DEV_MODE ) : ?>
 												<th></th>
@@ -519,7 +524,7 @@
 														</td>
 														<td>
 															<!-- Plan Title -->
-															<?php echo is_string( $addon_site->plan->name ) ? strtoupper( $addon_site->plan->title ) : 'FREE' ?>
+															<?php echo strtoupper( is_string( $addon_site->plan->name ) ? $addon_site->plan->title : $free_text ) ?>
 														</td>
 														<td>
 															<!-- Expiration -->
@@ -527,7 +532,7 @@
 																$tags = array();
 
 																if ( $fs_addon->is_trial() ) {
-																	$tags[] = array( 'label' => fs_text_inline( 'trial', $slug ), 'type' => 'success' );
+																	$tags[] = array( 'label' => $trial_text, 'type' => 'success' );
 
 																	$tags[] = array(
 																		'label' => sprintf(
@@ -661,7 +666,7 @@
 																	'<a class="button button-primary edit" href="%s" title="%s">%s</a>',
 																	wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ),
 																	fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $slug ),
-																	fs_text_inline( 'activate', $slug )
+																	$activate_text
 																);
 															} else {
 																if ( $fs->is_allowed_to_install() ) {
@@ -717,7 +722,7 @@
 																<a class="button button-primary"
 																   href="<?php echo wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ) ?>"
 																   title="<?php fs_esc_attr_echo_inline( 'Activate this add-on', 'activate-this-addon', $slug ) ?>"
-																   class="edit"><?php fs_esc_html_echo( 'activate', $slug ) ?></a>
+																   class="edit"><?php echo esc_html( $activate_text ) ?></a>
 															<?php else : ?>
 																<?php if ( $fs->is_allowed_to_install() ) : ?>
 																	<a class="button button-primary"
@@ -737,7 +742,7 @@
 																	fs_ui_action_button(
 																		$fs->get_id(), 'account',
 																		'delete_account',
-																		fs_text_inline( 'delete', $slug ),
+																		fs_text_x_inline( 'Delete', 'verb', 'delete', $slug ),
 																		array( 'plugin_id' => $addon_id ),
 																		false
 																	);

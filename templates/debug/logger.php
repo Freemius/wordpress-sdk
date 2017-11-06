@@ -18,7 +18,7 @@
 	<thead>
 	<tr>
 		<th>#</th>
-		<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 		<th><?php fs_esc_html_echo_inline( 'Type' ) ?></th>
 		<th><?php fs_esc_html_echo_inline( 'Function' ) ?></th>
 		<th><?php fs_esc_html_echo_inline( 'Message' ) ?></th>

@@ -2389,7 +2389,7 @@
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a> - %s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
 									$deactivate_plugin_title,
 									$deactivate_plugin_desc
 								)
@@ -2421,7 +2421,7 @@
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a> - %s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
 									$deactivate_plugin_title,
 									$deactivate_plugin_desc
 								)
@@ -2456,7 +2456,7 @@
 								),
 								sprintf(
 									'<a href="%s"><b>%s</b></a> - %s',
-									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+									wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
 									$deactivate_plugin_title,
 									$deactivate_plugin_desc
 								)
@@ -2491,7 +2491,7 @@
 							),
 							sprintf(
 								'<a href="%s" class="button">%s</a>',
-								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
 								$this->get_text_inline( 'No - just deactivate', 'no-deactivate' )
 							)
 						)
@@ -2525,7 +2525,7 @@
 							),
 							sprintf(
 								'<a href="%s"><b>%s</b></a> - %s',
-								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=' . 'all' . '&amp;paged=' . '1' . '&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
+								wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
 								$deactivate_plugin_title,
 								$deactivate_plugin_desc
 							)
@@ -9429,7 +9429,7 @@
 
 						// Add user account page.
 						$this->add_submenu_item(
-							$this->get_text_inline( 'account' ),
+							$this->get_text_inline( 'Account', 'account' ),
 							array( &$this, '_account_page_render' ),
 							$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'account' ),
 							'manage_options',
@@ -11140,7 +11140,7 @@
 								$this->_admin_notices->add(
 									sprintf(
 										$this->get_text_inline( 'It looks like you are still on the %s plan. If you did upgrade or change your plan, it\'s probably an issue on our side - sorry.', 'plan-did-not-change-message' ),
-										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . $this->get_text_inline( 'trial' ) : '' ) . '</b></i>'
+										'<i><b>' . $plan->title . ( $this->is_trial() ? ' ' . $this->get_text_x_inline( 'Trial', 'trial period', 'trial' ) : '' ) . '</b></i>'
 									) . ' ' . sprintf(
 										'<a href="%s">%s</a>',
 										$this->contact_url(
@@ -11400,7 +11400,7 @@
 			if ( $show_notice ) {
 				$this->_admin_notices->add(
 					sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->_site->plan->title ),
-					$this->get_text_inline( 'ok' )
+					$this->get_text_inline( 'O.K', 'ok' )
 				);
 			}
 
@@ -12960,7 +12960,7 @@
 			}
 
 			$message = sprintf(
-				$this->get_text_inline( 'hey' ) . '! ' . $this->get_text_inline( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.', 'trial-x-promotion-message' ),
+				$this->get_text_x_inline( 'Hey', 'exclamation', 'hey' ) . '! ' . $this->get_text_inline( 'How do you like %s so far? Test all our %s premium features with a %d-day free trial.', 'trial-x-promotion-message' ),
 				sprintf( '<b>%s</b>', $this->get_plugin_name() ),
 				$plans_string,
 				$trial_period
@@ -13062,7 +13062,7 @@
 			$button = ' ' . sprintf(
 					'<a style="display: block; margin-top: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
                     $this->_get_admin_page_url( 'affiliation' ),
-					$this->get_text_inline( 'learn-more' ) . '...'
+					$this->get_text_inline( 'Learn more', 'learn-more' ) . '...'
 				);
 
 			$this->_admin_notices->add_sticky(

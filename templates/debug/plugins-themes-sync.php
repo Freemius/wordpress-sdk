@@ -31,7 +31,7 @@
 	<tbody>
 	<?php if ( is_object( $all_plugins ) ) : ?>
 		<tr>
-			<td><?php fs_echo_inline( 'plugins' ) ?></td>
+			<td><?php fs_echo_inline( 'Plugins', 'plugins' ) ?></td>
 			<td><?php echo count( $all_plugins->plugins ) ?></td>
 			<td><?php
 					if ( isset( $all_plugins->timestamp ) && is_numeric( $all_plugins->timestamp ) ) {
@@ -52,7 +52,7 @@
 	<?php endif ?>
 	<?php if ( is_object( $all_themes ) ) : ?>
 		<tr>
-			<td><?php fs_echo_inline( 'themes' ) ?></td>
+			<td><?php fs_echo_inline( 'Themes', 'themes' ) ?></td>
 			<td><?php echo count( $all_themes->themes ) ?></td>
 			<td><?php
 					if ( isset( $all_themes->timestamp ) && is_numeric( $all_themes->timestamp ) ) {

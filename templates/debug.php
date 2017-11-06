@@ -15,6 +15,7 @@
 	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
+    $on_text  = fs_text_x_inline( 'On', 'as turned on' );
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -24,7 +25,7 @@
 
 	<div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
 		<div class="toggle"></div>
-		<span class="on"><?php fs_echo_inline( 'on' ) ?></span>
+		<span class="on"><?php echo esc_html( $on_text ) ?></span>
 		<span class="off"><?php echo esc_html( $off_text ) ?></span>
 	</div>
 	<script type="text/javascript">
@@ -50,7 +51,7 @@
 		}(jQuery));
 	</script>
 </div>
-<h2><?php fs_echo_inline( 'actions' ) ?></h2>
+<h2><?php fs_esc_html_echo_inline( 'actions' ) ?></h2>
 <table>
 	<tbody>
 	<tr>
@@ -210,11 +211,11 @@
 <?php foreach ( $module_types as $module_type ) : ?>
 	<?php $modules = $fs_options->get_option( $module_type . 's' ) ?>
 	<?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
-		<h2><?php fs_echo_inline( $module_type . 's' ) ?></h2>
+		<h2><?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?></h2>
 		<table id="fs_<?php echo $module_type ?>" class="widefat">
 			<thead>
 			<tr>
-				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
                 <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Title' ) ?></th>
@@ -259,8 +260,9 @@
 						echo ' style="color: red; text-transform: uppercase;"';
 					} ?>><?php if ( $is_active ) {
 							echo esc_html( $fs->is_on() ?
-								fs_text_inline( 'on' ) :
-                                $off_text );
+                                $on_text :
+                                $off_text
+                            );
 						} ?></td>
 					<td><?php echo $data->file ?></td>
 					<td><?php echo $data->public_key ?></td>
@@ -276,7 +278,7 @@
 								</form>
 							<?php endif ?>
 							<?php if ( $fs->is_registered() ) : ?>
-								<a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_echo_inline('account') ?></a>
+								<a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_esc_html_echo_inline( 'Account', 'account' ) ?></a>
 							<?php endif ?>
 						<?php endif ?>
 					</td>
@@ -299,14 +301,14 @@
 				/* translators: %s: 'plugin' or 'theme' */
 				fs_text_inline( '%s Installs', 'module-installs' ),
 				fs_text_inline( $module_type )
-			) ) ?> / <?php fs_esc_html_echo_inline( 'sites' ) ?></h2>
+			) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?></h2>
 		<table id="fs_<?php echo $module_type ?>_installs" class="widefat">
 			<thead>
 			<tr>
-				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
-				<th><?php fs_esc_html_echo_inline( 'Plan' ) ?></th>
+				<th><?php fs_esc_html_echo_x_inline( 'Plan', 'as product pricing plan', 'plan' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Actions' ) ?></th>
@@ -331,7 +333,7 @@
 							<input type="hidden" name="module_id" value="<?php echo $site->plugin_id ?>">
 							<input type="hidden" name="module_type" value="<?php echo $module_type ?>">
 							<input type="hidden" name="slug" value="<?php echo $slug ?>">
-							<button type="submit" class="button"><?php fs_echo_inline( 'delete' ) ?></button></td>
+							<button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button></td>
 				</tr>
 			<?php endforeach ?>
 			</tbody>
@@ -346,7 +348,7 @@
 	<table id="fs_addons" class="widefat">
 		<thead>
 		<tr>
-			<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Title' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
             <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
@@ -383,9 +385,9 @@
 	<table id="fs_users" class="widefat">
 		<thead>
 		<tr>
-			<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Name' ) ?></th>
-			<th><?php fs_esc_html_echo_inline( 'email' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'Email' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Verified' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
 			<th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
@@ -412,7 +414,7 @@
 		<table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
 			<thead>
 			<tr>
-				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Plugin ID' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Plan ID' ) ?></th>
@@ -491,7 +493,7 @@
 			<tr>
 				<th>#</th>
 				<th><?php fs_esc_html_echo_inline( 'Type' ) ?></th>
-				<th><?php fs_esc_html_echo_inline( 'ID' ) ?></th>
+				<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Function' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'Message' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'File' ) ?></th>

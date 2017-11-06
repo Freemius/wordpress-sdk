@@ -123,11 +123,11 @@
 											$descriptors = array();
 
 											if ($has_free_plan)
-												$descriptors[] = fs_text_inline( 'free', $slug );
+												$descriptors[] = fs_text_inline( 'Free', 'free', $slug );
 											if ($has_paid_plan && $price > 0)
 												$descriptors[] = '$' . number_format( $price, 2 );
 											if ($has_trial)
-												$descriptors[] = fs_text_inline('trial', $slug);
+												$descriptors[] = fs_text_x_inline( 'Trial', 'trial period',  'trial', $slug );
 
 											echo implode(' - ', $descriptors) ?></span>
 									</li>

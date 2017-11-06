@@ -788,7 +788,7 @@
 					<?php endif ?>
 				<?php endif ?>
 				<div>
-					<h3><?php fs_echo_inline( 'details', $api->slug ) ?></h3>
+					<h3><?php fs_echo_inline( 'Details', 'details', $api->slug ) ?></h3>
 					<ul>
 						<?php if ( ! empty( $api->version ) ) { ?>
 							<li><strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
@@ -829,10 +829,15 @@
 							if ( ! empty( $api->downloaded ) ) {
 								?>
 								<li>
-									<strong><?php fs_esc_html_echo_inline( 'Downloaded', 'downloaded', $api->slug ) ?>:</strong> <?php printf(
-										fs_text_inline( ( 1 == $api->downloaded ) ? 'x-time' : 'x-times', $api->slug ),
+									<strong><?php fs_esc_html_echo_inline( 'Downloaded', 'downloaded', $api->slug ) ?>:</strong> <?php echo esc_html( sprintf(
+										( ( 1 == $api->downloaded ) ?
+											/* translators: %s: 1 or One (Number of times downloaded) */
+											fs_text_inline( '%s time', 'x-time', $api->slug ) :
+											/* translators: %s: Number of times downloaded */
+											fs_text_inline( '%s times', 'x-times', $api->slug )
+										),
 										number_format_i18n( $api->downloaded )
-									); ?>
+									) ); ?>
 								</li>
 								<?php
 							}
@@ -865,12 +870,17 @@
 						'type'   => 'percent',
 						'number' => $api->num_ratings
 					) ); ?>
-					<small>(<?php printf(
+					<small>(<?php echo esc_html( sprintf(
 							fs_text_inline( 'based on %s', 'based-on-x', $api->slug ),
 							sprintf(
-								fs_text_inline( ( 1 == $api->num_ratings ) ? 'x-rating' : 'x-ratings', $api->slug ),
+								( ( 1 == $api->num_ratings ) ?
+									/* translators: %s: 1 or One */
+									fs_text_inline( '%s rating', 'x-rating', $api->slug ) :
+									/* translators: %s: Number larger than 1 */
+									fs_text_inline( '%s ratings', 'x-ratings', $api->slug )
+								),
 								number_format_i18n( $api->num_ratings )
-							) ); ?>)</small>
+							) ) ) ?>)</small>
 					<?php
 				}
 
@@ -879,7 +889,12 @@
 							// Avoid div-by-zero.
 							$_rating = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
 							$stars_label = sprintf(
-								fs_text_inline( ( 1 == $key ) ? 'x-star' : 'x-stars', $api->slug ),
+								( ( 1 == $key ) ?
+									/* translators: %s: 1 or One */
+									fs_text_inline( '%s star', 'x-star', $api->slug ) :
+									/* translators: %s: Number larger than 1 */
+									fs_text_inline( '%s stars', 'x-stars', $api->slug )
+								),
 								number_format_i18n( $key )
 							);
 							?>
@@ -887,7 +902,11 @@
 					<span class="counter-label"><a
 							href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
 							target="_blank"
-							title="<?php echo esc_attr( sprintf( fs_text_inline('click-to-reviews', $api->slug), $stars_label) ) ?>"><?php echo $stars_label ?></a></span>
+							title="<?php echo esc_attr( sprintf(
+								/* translators: %s: # of stars (e.g. 5 stars) */
+								fs_text_inline( 'Click to see reviews that provided a rating of %s', 'click-to-reviews', $api->slug ),
+								$stars_label
+							) ) ?>"><?php echo $stars_label ?></a></span>
 								<span class="counter-back">
 						<span class="counter-bar" style="width: <?php echo 92 * $_rating; ?>px;"></span>
 					</span>

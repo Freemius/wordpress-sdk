@@ -69,7 +69,7 @@
 					<?php echo $plan->title ?>
 					<span class="fs-price"><?php
 							if ( empty( $plan->pricing ) ) {
-								fs_esc_html_echo( 'free', $plugin->slug );
+								fs_esc_html_echo_inline( 'Free', 'free', $plugin->slug );
 							} else {
 								foreach ( $plan->pricing as $pricing ) {
 									/**

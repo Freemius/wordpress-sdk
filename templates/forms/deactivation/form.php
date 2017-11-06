@@ -394,7 +394,7 @@ HTML;
 			) ) ?>');
 		} else {
 			$deactivateButton.text('<?php echo esc_js( sprintf(
-				fs_text_inline('skip-and-x', $slug ),
+				fs_text_inline('Skip & %s', 'skip-and-x', $slug ),
 				$fs->is_plugin() ?
 					$deactivate_text :
 					sprintf( $activate_x_text, $theme_text )
