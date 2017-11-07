@@ -16,7 +16,7 @@
 	$slug      = $VARS['slug'];
 	$plugin_id = $VARS['id'];
 
-	$fs = freemius( $slug );
+	$fs = freemius( $plugin_id );
 
 	$action = $fs->is_tracking_allowed() ?
 		'stop_tracking' :
