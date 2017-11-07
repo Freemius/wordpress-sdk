@@ -972,12 +972,9 @@
          * @return string
          */
         private function get_relative_path( $path ) {
-            $module_root_dir = fs_normalize_path( trailingslashit( $this->is_plugin() ?
-                WP_PLUGIN_DIR :
-                get_theme_root() ) );
-
+            $module_root_dir = $this->get_module_root_dir_path();
             if ( 0 === strpos( $path, $module_root_dir ) ) {
-                $path = str_replace( $module_root_dir, '', $path );
+                $path = substr( $path, strlen( $module_root_dir ) );
             }
 
             return $path;
@@ -993,19 +990,30 @@
          * @return string
          */
         private function get_absolute_path( $path, $module_type = false ) {
+            $module_root_dir = $this->get_module_root_dir_path( $module_type );
+            if ( 0 !== strpos( $path, $module_root_dir ) ) {
+                $path = fs_normalize_path( $module_root_dir . $path );
+            }
+
+            return $path;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         *
+         * @param string|bool $module_type
+         *
+         * @return string
+         */
+        private function get_module_root_dir_path( $module_type = false ) {
             $is_plugin = empty( $module_type ) ?
                 $this->is_plugin() :
                 ( WP_FS__MODULE_TYPE_PLUGIN === $module_type );
 
-            $module_root_dir = fs_normalize_path( $is_plugin ?
+            return fs_normalize_path( trailingslashit( $is_plugin ?
                 WP_PLUGIN_DIR :
-                get_theme_root() );
-
-            if ( 0 !== strpos( $path, $module_root_dir ) ) {
-                $path = trailingslashit( $module_root_dir ) . $path;
-            }
-
-            return $path;
+                get_theme_root() ) );
         }
 
 		/**
