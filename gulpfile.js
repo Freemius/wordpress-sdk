@@ -10,7 +10,7 @@ var clean = require('gulp-clean');
 
 var languagesFolder = './languages/';
 
-var options = require('./transifex-config.json')
+var options = require('./transifex-config.json');
 
 function getFolders(dir) {
     return filesystem.readdirSync(dir)
@@ -23,7 +23,7 @@ var transifex = require('gulp-transifex').createClient(options);
 
 // Create POT out of i18n.php.
 gulp.task('prepare-source', function () {
-    gulp.src('includes/i18n.php')
+    gulp.src('**/*.php')
         .pipe(sort())
         .pipe(wpPot({
             destFile        : 'freemius.pot',
@@ -31,21 +31,49 @@ gulp.task('prepare-source', function () {
             bugReport       : 'https://github.com/Freemius/wordpress-sdk/issues',
             lastTranslator  : 'Vova Feldman <vova@freemius.com>',
             team            : 'Freemius Team <admin@freemius.com>',
+            /*gettextMethods: {
+                instances: ['this', '_fs'],
+                methods: [
+                    'get_text_inline'
+                ]
+            },*/
             gettextFunctions: [
+                {name: 'get_text_inline'},
+
+                {name: 'fs_text_inline'},
+                {name: 'fs_echo_inline'},
+                {name: 'fs_esc_js_inline'},
+                {name: 'fs_esc_attr_inline'},
+                {name: 'fs_esc_attr_echo_inline'},
+                {name: 'fs_esc_html_inline'},
+                {name: 'fs_esc_html_echo_inline'},
+
+                {name: 'get_text_x_inline', context: 2},
+                {name: 'fs_text_x_inline', context: 2},
+                {name: 'fs_echo_x_inline', context: 2},
+                {name: 'fs_esc_attr_x_inline', context: 2},
+                {name: 'fs_esc_js_x_inline', context: 2},
+                {name: 'fs_esc_js_echo_x_inline', context: 2},
+                {name: 'fs_esc_html_x_inline', context: 2},
+                {name: 'fs_esc_html_echo_x_inline', context: 2}
+                /*,
+
+
                 {name: '_fs_text'},
+                {name: '_fs_x', context: 2},
                 {name: '_fs_echo'},
                 {name: '_fs_esc_attr'},
                 {name: '_fs_esc_attr_echo'},
                 {name: '_fs_esc_html'},
                 {name: '_fs_esc_html_echo'},
-                {name: '_fs_x', context: 2},
                 {name: '_fs_ex', context: 2},
                 {name: '_fs_esc_attr_x', context: 2},
                 {name: '_fs_esc_html_x', context: 2},
+
                 {name: '_fs_n', plural: 2},
                 {name: '_fs_n_noop', plural: 2},
                 {name: '_fs_nx', plural: 2, context: 4},
-                {name: '_fs_nx_noop', plural: 2, context: 3}
+                {name: '_fs_nx_noop', plural: 2, context: 3}*/
             ]
         }))
         .pipe(gulp.dest(languagesFolder + 'freemius.pot'));
