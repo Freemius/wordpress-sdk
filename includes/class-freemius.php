@@ -1139,7 +1139,7 @@
                          *
                          * @author Leo Fajardo (@leorw)
                          */
-						$caller_file_candidate = basename( dirname( $caller_file_path ) ) .
+                        $caller_file_candidate = basename( dirname( $caller_file_path ) ) .
                             '/' .
                             basename( $caller_file_path );
 
