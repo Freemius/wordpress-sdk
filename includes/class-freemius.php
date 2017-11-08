@@ -5800,7 +5800,7 @@
 					$this->get_text( 'theme' ) );
 
 			if ( $lowercase ) {
-				$label = strtolower( $lowercase );
+				$label = strtolower( $label );
 			}
 
 			return $label;
