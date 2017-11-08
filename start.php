@@ -364,11 +364,11 @@
 			define( 'WP_FS__SDK_VERSION', $this_sdk_version );
 		}
 
-		$plugins_or_theme_dir_path = trailingslashit( $is_theme ?
+		$plugins_or_theme_dir_path = fs_normalize_path( trailingslashit( $is_theme ?
 			get_theme_root() :
-			WP_PLUGIN_DIR );
+			WP_PLUGIN_DIR ) );
 
-		if ( 0 === strpos( $file_path, fs_normalize_path( $plugins_or_theme_dir_path ) ) ) {
+		if ( 0 === strpos( $file_path, $plugins_or_theme_dir_path ) ) {
 			// No symlinks
 		} else {
 			/**
@@ -384,13 +384,24 @@
 			     is_object( $fs_active_plugins->plugins[ $this_sdk_relative_path ] ) &&
 			     ! empty( $fs_active_plugins->plugins[ $this_sdk_relative_path ]->sdk_symlink )
 			) {
-				$sdk_symlink = $fs_active_plugins->plugins[ $this_sdk_relative_path ]->sdk_symlink;
-				$realpath    = realpath( $sdk_symlink );
+                $sdk_symlink = $fs_active_plugins->plugins[ $this_sdk_relative_path ]->sdk_symlink;
+                if ( 0 === strpos( $sdk_symlink, $plugins_or_theme_dir_path ) ) {
+                    /**
+                     * Make the symlink path relative.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $sdk_symlink = substr( $sdk_symlink, strlen( $plugins_or_theme_dir_path ) );
 
-				if ( ! is_string( $realpath ) || ! file_exists( $realpath ) ) {
-					$sdk_symlink = null;
-				}
-			}
+                    $fs_active_plugins->plugins[ $this_sdk_relative_path ]->sdk_symlink = $sdk_symlink;
+                    update_option( 'fs_active_plugins', $fs_active_plugins );
+                }
+
+                $realpath = realpath( $plugins_or_theme_dir_path . $sdk_symlink );
+                if ( ! is_string( $realpath ) || ! file_exists( $realpath ) ) {
+                    $sdk_symlink = null;
+                }
+            }
 
 			if ( empty( $sdk_symlink ) ) // Has symlinks, therefore, we need to configure WP_FS__DIR based on the symlink.
 			{
@@ -401,13 +412,26 @@
 				while ( '/' !== $partial_path_left &&
 				        ( false === $realpath || $file_path !== fs_normalize_path( $realpath ) )
 				) {
-					$partial_path_right = trailingslashit( basename( $partial_path_left ) ) . $partial_path_right;
-					$partial_path_left  = dirname( $partial_path_left );
-					$realpath           = realpath( $plugins_or_theme_dir_path . $partial_path_right );
+                    $partial_path_right     = trailingslashit( basename( $partial_path_left ) ) . $partial_path_right;
+                    $partial_path_left_prev = $partial_path_left;
+                    $partial_path_left      = dirname( $partial_path_left_prev );
+
+                    /**
+                     * Avoid infinite loop if for example `$partial_path_left_prev` is `C:/`, in this case,
+                     * `dirname( 'C:/' )` will return `C:/`.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    if ( $partial_path_left === $partial_path_left_prev ) {
+                        $partial_path_left = '';
+                        break;
+                    }
+
+                    $realpath = realpath( $plugins_or_theme_dir_path . $partial_path_right );
 				}
 
-				if ( '/' !== $partial_path_left ) {
-					$sdk_symlink = fs_normalize_path( $plugins_or_theme_dir_path . dirname( $partial_path_right ) );
+                if ( ! empty( $partial_path_left ) && '/' !== $partial_path_left ) {
+                    $sdk_symlink = fs_normalize_path( dirname( $partial_path_right ) );
 
 					// Cache value.
 					if ( isset( $fs_active_plugins->plugins[ $this_sdk_relative_path ] ) &&
@@ -416,13 +440,12 @@
 						$fs_active_plugins->plugins[ $this_sdk_relative_path ]->sdk_symlink = $sdk_symlink;
 						update_option( 'fs_active_plugins', $fs_active_plugins );
 					}
-
 				}
 			}
 
 			if ( ! empty( $sdk_symlink ) ) {
 				// Set SDK dir to the symlink path.
-				define( 'WP_FS__DIR', $sdk_symlink );
+				define( 'WP_FS__DIR', $plugins_or_theme_dir_path . $sdk_symlink );
 			}
 		}
 
