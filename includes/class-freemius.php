@@ -10516,7 +10516,13 @@
 			$this->_logger->entrance();
 			$api = $this->get_api_site_scope();
 
-			$result = $api->get( '/plans.json', true );
+            $endpoint = '/plans.json';
+
+            if ( $this->has_secret_key() ) {
+                $endpoint = add_query_arg( 'show_pending', 'true', $endpoint );
+            }
+
+            $result = $api->get( $endpoint, true );
 
 			if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
 				for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
