@@ -71,6 +71,8 @@
 			}
 		}
 	}
+
+	$sec_text = fs_text_x_inline( 'sec', 'seconds' );
 ?>
 <h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?></h1>
 <table class="widefat">
@@ -102,7 +104,7 @@
 						if ( is_numeric( $cron['last'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['last'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . fs_text_inline( 'sec' ) :
+								$diff . ' ' . $sec_text :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['last'] );
 
 							echo esc_html( sprintf(
@@ -117,7 +119,7 @@
 						if ( is_numeric( $cron['next'] ) ) {
 							$diff       = abs( WP_FS__SCRIPT_START_TIME - $cron['next'] );
 							$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-								$diff . ' ' . fs_text_inline( 'sec' ) :
+								$diff . ' ' . $sec_text :
 								human_time_diff( WP_FS__SCRIPT_START_TIME, $cron['next'] );
 
 							echo esc_html( sprintf(

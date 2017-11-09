@@ -50,6 +50,8 @@
 	$encode = 'json_encode';
 
 	$root_path_len = strlen( ABSPATH );
+
+	$ms_text = fs_text_x_inline( 'ms', 'milliseconds' );
 ?>
 <h1><?php fs_echo_inline( 'API' ) ?></h1>
 
@@ -81,7 +83,7 @@
 			<td><?php echo $log['id'] ?>.</td>
 			<td><?php echo $log['method'] ?></td>
 			<td><?php echo $log['code'] ?></td>
-			<td><?php echo number_format( 100 * $log['total'], 2 ) . ' ' . fs_text_inline( 'ms' ) ?></td>
+			<td><?php echo number_format( 100 * $log['total'], 2 ) . ' ' . $ms_text ?></td>
 			<td>
 				<?php
 					printf( '<a href="#" onclick="jQuery(this).parent().find(\'table\').toggle(); return false;">%s</a>',
@@ -145,8 +147,8 @@
 				?>
 				<pre<?php if ( $is_not_empty_result ) : ?> style="display: none"<?php endif ?>><code><?php echo esc_html( $result ) ?></code></pre>
 			</td>
-			<td><?php echo number_format( 100 * ( $log['start'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text_inline( 'ms' ) ?></td>
-			<td><?php echo number_format( 100 * ( $log['end'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text_inline( 'ms' ) ?></td>
+			<td><?php echo number_format( 100 * ( $log['start'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . $ms_text ?></td>
+			<td><?php echo number_format( 100 * ( $log['end'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . $ms_text ?></td>
 		</tr>
 	<?php endforeach ?>
 	</tbody>

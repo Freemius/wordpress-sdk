@@ -51,7 +51,7 @@
 		}(jQuery));
 	</script>
 </div>
-<h2><?php fs_esc_html_echo_inline( 'actions' ) ?></h2>
+<h2><?php fs_esc_html_echo_inline( 'Actions', 'actions' ) ?></h2>
 <table>
 	<tbody>
 	<tr>
@@ -159,8 +159,8 @@
 <table class="widefat">
 	<thead>
 	<tr>
-		<th><?php fs_echo_inline( 'key' ) ?></th>
-		<th><?php fs_echo_inline( 'value' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Key', 'key' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Value', 'value' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -274,7 +274,7 @@
 									<input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
 									<?php wp_nonce_field( 'simulate_trial' ) ?>
 
-								<button type="submit" class="button button-primary simulate-trial"><?php fs_echo_inline( 'Simulate Trial' ) ?></button>
+								<button type="submit" class="button button-primary simulate-trial"><?php fs_esc_html_echo_inline( 'Simulate Trial' ) ?></button>
 								</form>
 							<?php endif ?>
 							<?php if ( $fs->is_registered() ) : ?>

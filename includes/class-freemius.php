@@ -9431,7 +9431,7 @@
 						$this->add_submenu_item(
 							$this->get_text_inline( 'Account', 'account' ),
 							array( &$this, '_account_page_render' ),
-							$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'account' ),
+							$this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Account', 'account' ),
 							'manage_options',
 							'account',
 							array( &$this, '_account_page_load' ),
@@ -13179,7 +13179,7 @@
 			if ( $this->is_registered() ) {
 				if ( ! $this->is_paying() && $this->has_paid_plan() ) {
 					$this->add_plugin_action_link(
-						$this->get_text_inline( 'upgrade' ),
+						$this->get_text_inline( 'Upgrade', 'upgrade' ),
 						$this->get_upgrade_url(),
 						false,
 						7,
@@ -13478,7 +13478,7 @@
 				$this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
 				$this->get_latest_download_link( sprintf(
 					/* translators: %s: Plan title */
-					$this->get_text_inline( 'download-latest-x-version', 'Download the latest %s version' ),
+					$this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
 					$plan_title
 				) ),
 				$deactivation_step,

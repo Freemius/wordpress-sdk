@@ -59,7 +59,7 @@
 							echo substr( $log['file'], $logger->get_file() ) . ':' . $log['line'];
 						}
 					?></td>
-				<td><?php echo number_format( 100 * ( $log['timestamp'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text_inline( 'ms' ) ?></td>
+				<td><?php echo number_format( 100 * ( $log['timestamp'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text_x_inline( 'ms', 'milliseconds' ) ?></td>
 			</tr>
 			<?php $i ++; endforeach ?>
 	</tbody>
