@@ -89,7 +89,7 @@
 
 	$view_params = array(
 		'id'   => $VARS['id'],
-		'page' => strtolower( $fs->get_text( 'pricing' ) ),
+		'page' => strtolower( $fs->get_text_x_inline( 'Pricing', 'noun', 'pricing' ) ),
 	);
 	fs_require_once_template('secure-https-header.php', $view_params);
 
