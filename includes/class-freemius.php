@@ -614,6 +614,20 @@
                     $this->_storage->plugin_main_file->prev_path = $this->get_relative_path( $this->_storage->plugin_main_file->prev_path );
                 }
             }
+
+            // Remove invalid path that is still associated with the current slug if there's any.
+            $file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
+            foreach ( $file_slug_map as $plugin_basename => $slug ) {
+                if ( $slug === $this->_slug &&
+                    $plugin_basename !== $this->_plugin_basename &&
+                    ! file_exists( $this->get_absolute_path( $plugin_basename ) )
+                ) {
+                    unset( $file_slug_map[ $plugin_basename ] );
+                    self::$_accounts->set_option( 'file_slug_map', $file_slug_map, true );
+
+                    break;
+                }
+            }
         }
 
 		/**
