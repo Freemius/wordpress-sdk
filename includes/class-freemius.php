@@ -13280,14 +13280,14 @@
 
 			if ( $this->is_registered() ) {
 				if ( $this->is_tracking_allowed() ) {
-					$link_text_id = 'opt-out';
+					$link_text_id = $this->get_text_inline( 'Opt Out', 'opt-out' );
 				} else {
-					$link_text_id = 'opt-in';
+					$link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );
 				}
 
 				add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 			} else {
-				$link_text_id = 'opt-in';
+				$link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );
 
 				$params = ! $this->is_anonymous() ?
 					array() :
@@ -13301,7 +13301,7 @@
 
 			if ( $this->is_plugin() && self::is_plugins_page() ) {
 				$this->add_plugin_action_link(
-					$this->get_text_inline( $link_text_id ),
+                    $link_text_id,
 					$url,
 					false,
 					13,

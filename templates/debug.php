@@ -300,7 +300,7 @@
 		<h2><?php echo esc_html( sprintf(
 				/* translators: %s: 'plugin' or 'theme' */
 				fs_text_inline( '%s Installs', 'module-installs' ),
-				fs_text_inline( $module_type )
+				( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) )
 			) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?></h2>
 		<table id="fs_<?php echo $module_type ?>_installs" class="widefat">
 			<thead>
@@ -410,7 +410,7 @@
 <?php foreach ( $module_types as $module_type ) : ?>
 	<?php $licenses = $VARS[ $module_type . '_licenses' ] ?>
 	<?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
-		<h2><?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), fs_text_inline( $module_type ) ) ) ?></h2>
+		<h2><?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?></h2>
 		<table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
 			<thead>
 			<tr>
