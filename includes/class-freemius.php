@@ -8578,7 +8578,19 @@
 				return true;
 			}
 
-			$decoded = @json_decode( $response['body'] );
+            /**
+             * When json_decode() executed on PHP 5.2 with an invalid JSON, it will throw a PHP warning. Unfortunately, the new Theme Check doesn't allow PHP silencing and the theme review team isn't open to change that, therefore, instead of using `@json_decode()` we had to use the method without the `@` directive.
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  1.2.3
+             * @link   https://themes.trac.wordpress.org/ticket/46134#comment:5
+             * @link   https://themes.trac.wordpress.org/ticket/46134#comment:9
+             * @link   https://themes.trac.wordpress.org/ticket/46134#comment:12
+             * @link   https://themes.trac.wordpress.org/ticket/46134#comment:14
+             */
+			$decoded = is_string( $response['body'] ) ?
+                json_decode( $response['body'] ) :
+                null;
 
 			if ( empty( $decoded ) ) {
 				return false;
