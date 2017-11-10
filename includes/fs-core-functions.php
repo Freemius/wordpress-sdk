@@ -654,6 +654,8 @@
             return array( $text, $text_domain );
         }
 
+        #region Private
+
         /**
          * Retrieve an inline translated text by key.
          *
@@ -668,7 +670,7 @@
          *
          * @global       $fs_text_overrides
          */
-        function fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
+        function _fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
             list( $text, $text_domain ) = fs_text_and_domain( $text, $key, $slug );
 
             // Avoid misleading Theme Check warning.
@@ -692,13 +694,52 @@
          *
          * @global       $fs_text_overrides
          */
-        function fs_text_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+        function _fs_text_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
             list( $text, $text_domain ) = fs_text_and_domain( $text, $key, $slug );
 
             // Avoid misleading Theme Check warning.
             $fn = 'translate_with_gettext_context';
 
             return $fn( $text, $context, $text_domain );
+        }
+
+        #endregion
+
+        /**
+         * Retrieve an inline translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         *
+         * @global       $fs_text_overrides
+         */
+        function fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
+            return _fs_text_inline( $text, $key, $slug );
+        }
+
+        /**
+         * Retrieve an inline translated text by key with a context.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         *
+         * @return string
+         *
+         * @global       $fs_text_overrides
+         */
+        function fs_text_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            return _fs_text_x_inline( $text, $context, $key, $slug );
         }
 
         /**
@@ -725,7 +766,7 @@
          * @param string $slug Module slug for overrides.
          */
         function fs_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-            echo fs_text_inline( $text, $key, $slug );
+            echo _fs_text_inline( $text, $key, $slug );
         }
 
         /**
@@ -740,7 +781,7 @@
          * @param string $slug    Module slug for overrides.
          */
         function fs_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-            echo fs_text_x_inline( $text, $context, $key, $slug );
+            echo _fs_text_x_inline( $text, $context, $key, $slug );
         }
     }
 
@@ -768,7 +809,7 @@
      * @return string
      */
     function fs_esc_attr_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_attr( fs_text_inline( $text, $key, $slug ) );
+        return esc_attr( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -783,7 +824,7 @@
      * @return string
      */
     function fs_esc_attr_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_attr( fs_text_x_inline( $text, $context, $key, $slug ) );
+        return esc_attr( _fs_text_x_inline( $text, $context, $key, $slug ) );
     }
 
     /**
@@ -806,7 +847,7 @@
      * @param string $slug Module slug for overrides.
      */
     function fs_esc_attr_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_attr( fs_text_inline( $text, $key, $slug ) );
+        echo esc_attr( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -833,7 +874,7 @@
      * @return string
      */
     function fs_esc_js_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_js( fs_text_inline( $text, $key, $slug ) );
+        return esc_js( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -848,7 +889,7 @@
      * @return string
      */
     function fs_esc_js_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_js( fs_text_x_inline( $text, $context, $key, $slug ) );
+        return esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
     }
 
     /**
@@ -863,7 +904,7 @@
      * @return string
      */
     function fs_esc_js_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        echo esc_js( fs_text_x_inline( $text, $context, $key, $slug ) );
+        echo esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
     }
 
     /**
@@ -886,7 +927,7 @@
      * @param string $slug Module slug for overrides.
      */
     function fs_esc_js_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_js( fs_text_inline( $text, $key, $slug ) );
+        echo esc_js( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -909,7 +950,7 @@
      * @param string $slug Module slug for overrides.
      */
     function fs_json_encode_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo json_encode( fs_text_inline( $text, $key, $slug ) );
+        echo json_encode( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -936,7 +977,7 @@
      * @return string
      */
     function fs_esc_html_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_html( fs_text_inline( $text, $key, $slug ) );
+        return esc_html( _fs_text_inline( $text, $key, $slug ) );
     }
 
     /**
@@ -951,7 +992,7 @@
      * @return string
      */
     function fs_esc_html_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_html( fs_text_x_inline( $text, $context, $key, $slug ) );
+        return esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
     }
 
     /**
@@ -964,7 +1005,7 @@
      * @param string $slug    Module slug for overrides.
      */
     function fs_esc_html_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        echo fs_esc_html_x_inline( $text, $context, $key, $slug );
+        echo esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
     }
 
     /**
@@ -987,7 +1028,7 @@
      * @param string $slug Module slug for overrides.
      */
     function fs_esc_html_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_html( fs_text_inline( $text, $key, $slug ) );
+        echo esc_html( _fs_text_inline( $text, $key, $slug ) );
     }
 
 #endregion

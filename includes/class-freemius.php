@@ -13510,7 +13510,7 @@
 		 * @return string
 		 */
 		function get_text_inline( $text, $key = '' ) {
-			return fs_text_inline( $text, $key, $this->_slug );
+			return _fs_text_inline( $text, $key, $this->_slug );
 		}
 
 		/**
@@ -13524,7 +13524,7 @@
 		 * @return string
 		 */
 		function get_text_x_inline( $text, $context, $key ) {
-			return fs_text_x_inline( $text, $context, $key, $this->_slug );
+			return _fs_text_x_inline( $text, $context, $key, $this->_slug );
 		}
 
 		/**
@@ -13537,9 +13537,8 @@
 		 * @return string
 		 */
 		function esc_html_inline( $text, $key ) {
-			return fs_esc_html_inline( $text, $key, $this->_slug );
+            return esc_html( _fs_text_inline( $text, $key, $this->_slug ) );
 		}
-
 
 		#----------------------------------------------------------------------------------
 		#region Versioning
