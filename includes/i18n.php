@@ -4,6 +4,8 @@
 	 * @copyright   Copyright (c) 2015, Freemius, Inc.
 	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
 	 * @since       1.1.4
+     *
+     * @deprecated  This file is no longer in use. It's still in the project for backward compatibility.
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -29,7 +31,7 @@
 	 *      my_freemius->override_i18n( array(
 	 *          'opt-in-connect' => __( "Yes - I'm in!", '{your-text_domain}' ),
 	 *          'skip'           => __( 'Not today', '{your-text_domain}' ),
-	 *      );
+	 *      ) );
 	 */
 	global $fs_text;
 
