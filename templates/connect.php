@@ -275,11 +275,11 @@
 				<div class="fs-permissions">
 					<?php if ( $require_license_key ) : ?>
 						<p class="fs-license-sync-disclaimer"><?php
-								echo esc_html( sprintf(
-									fs_text_inline( 'The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
+								echo sprintf(
+									fs_esc_html_inline( 'The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
 									$fs->get_module_label( true ),
 									$freemius_link
-								) ) ?></p>
+								) ?></p>
 					<?php endif ?>
 					<a class="fs-trigger" href="#" tabindex="1"><?php fs_esc_html_echo_inline( 'What permissions are being granted?', 'what-permissions', $slug ) ?></a>
 					<ul><?php
