@@ -555,6 +555,18 @@
 				return;
 			}
 
+            if ( version_compare( $sdk_prev_version, '1.2.3', '<' ) &&
+                version_compare( $sdk_version, '1.2.3', '>=' )
+            ) {
+                /**
+                 * Starting from version 1.2.3, paths are stored as relative paths and not absolute paths; so when
+                 * upgrading to 1.2.3, make paths relative.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $this->make_paths_relative();
+            }
+
 			if ( version_compare( $sdk_prev_version, '1.1.5', '<' ) &&
 			     version_compare( $sdk_version, '1.1.5', '>=' )
 			) {
@@ -577,6 +589,46 @@
 				}
 			}
 		}
+
+        /**
+         * Makes paths relative.
+         *
+         * @author Leo Fajardo
+         * @since 1.2.3
+         */
+        private function make_paths_relative() {
+            $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
+
+            if ( isset( $id_slug_type_path_map[ $this->_module_id ]['path'] ) ) {
+                $id_slug_type_path_map[ $this->_module_id ]['path'] = $this->get_relative_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+
+                self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
+            }
+
+            if ( isset( $this->_storage->plugin_main_file ) ) {
+                $plugin_main_file = $this->_storage->plugin_main_file;
+
+                if ( isset( $plugin_main_file->path ) ) {
+                    $this->_storage->plugin_main_file->path = $this->get_relative_path( $this->_storage->plugin_main_file->path );
+                } else if ( isset( $plugin_main_file->prev_path ) ) {
+                    $this->_storage->plugin_main_file->prev_path = $this->get_relative_path( $this->_storage->plugin_main_file->prev_path );
+                }
+            }
+
+            // Remove invalid path that is still associated with the current slug if there's any.
+            $file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
+            foreach ( $file_slug_map as $plugin_basename => $slug ) {
+                if ( $slug === $this->_slug &&
+                    $plugin_basename !== $this->_plugin_basename &&
+                    ! file_exists( $this->get_absolute_path( $plugin_basename ) )
+                ) {
+                    unset( $file_slug_map[ $plugin_basename ] );
+                    self::$_accounts->set_option( 'file_slug_map', $file_slug_map, true );
+
+                    break;
+                }
+            }
+        }
 
 		/**
 		 * @author Vova Feldman (@svovaf)
@@ -874,8 +926,11 @@
 			// Try to load the cached value of the file path.
 			if ( isset( $this->_storage->plugin_main_file ) ) {
 				$plugin_main_file = $this->_storage->plugin_main_file;
-				if ( isset( $plugin_main_file->path ) && file_exists( $plugin_main_file->path ) ) {
-					return $plugin_main_file->path;
+                if ( isset( $plugin_main_file->path ) ) {
+                    $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
+                    if ( file_exists( $absolute_path ) ) {
+                        return $absolute_path;
+                    }
 				}
 			}
 
@@ -894,8 +949,9 @@
 				if ( isset( $this->_storage->plugin_main_file ) &&
 				     isset( $this->_storage->plugin_main_file->prev_path )
 				) {
-					if ( file_exists( $this->_storage->plugin_main_file->prev_path ) ) {
-						return $this->_storage->plugin_main_file->prev_path;
+                    $absolute_path = $this->get_absolute_path( $this->_storage->plugin_main_file->prev_path );
+					if ( file_exists( $absolute_path ) ) {
+						return $absolute_path;
 					}
 				}
 
@@ -918,8 +974,61 @@
 				'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
 			);
 
-			return $id_slug_type_path_map[ $this->_module_id ]['path'];
+			return $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         *
+         * @param string $path
+         *
+         * @return string
+         */
+        private function get_relative_path( $path ) {
+            $module_root_dir = $this->get_module_root_dir_path();
+            if ( 0 === strpos( $path, $module_root_dir ) ) {
+                $path = substr( $path, strlen( $module_root_dir ) );
+            }
+
+            return $path;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         *
+         * @param string      $path
+         * @param string|bool $module_type
+         *
+         * @return string
+         */
+        private function get_absolute_path( $path, $module_type = false ) {
+            $module_root_dir = $this->get_module_root_dir_path( $module_type );
+            if ( 0 !== strpos( $path, $module_root_dir ) ) {
+                $path = fs_normalize_path( $module_root_dir . $path );
+            }
+
+            return $path;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         *
+         * @param string|bool $module_type
+         *
+         * @return string
+         */
+        private function get_module_root_dir_path( $module_type = false ) {
+            $is_plugin = empty( $module_type ) ?
+                $this->is_plugin() :
+                ( WP_FS__MODULE_TYPE_PLUGIN === $module_type );
+
+            return fs_normalize_path( trailingslashit( $is_plugin ?
+                WP_PLUGIN_DIR :
+                get_theme_root() ) );
+        }
 
 		/**
 		 * @author Leo Fajardo (@leorw)
@@ -950,7 +1059,10 @@
 			      * @author Vova Feldman (@svovaf)
 			      * @since 1.2.3
 			      */
-			     ! file_exists( $id_slug_type_path_map[ $module_id ]['path'] )
+                ! file_exists( $this->get_absolute_path(
+                    $id_slug_type_path_map[ $module_id ]['path'],
+                    $id_slug_type_path_map[ $module_id ]['type']
+                ) )
 			) {
 				$caller_main_file_and_type = $this->get_caller_main_file_and_type();
 
@@ -1041,8 +1153,18 @@
 					 */
 
 					if ( $caller_file_path == fs_normalize_path( realpath( trailingslashit( $themes_dir ) . basename( dirname( $caller_file_path ) ) . '/' . basename( $caller_file_path ) ) ) ) {
-						$module_type           = WP_FS__MODULE_TYPE_THEME;
-						$caller_file_candidate = $caller_file_path;
+						$module_type = WP_FS__MODULE_TYPE_THEME;
+
+                        /**
+                         * Relative path of the theme, e.g.:
+                         * `my-theme/functions.php`
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         */
+                        $caller_file_candidate = basename( dirname( $caller_file_path ) ) .
+                            '/' .
+                            basename( $caller_file_path );
+
 						continue;
 					}
 				}
@@ -1060,7 +1182,7 @@
 
 				if ( isset( $caller_map[ $caller_file_hash ] ) ) {
 					$module_type           = WP_FS__MODULE_TYPE_PLUGIN;
-					$caller_file_candidate = $caller_map[ $caller_file_hash ];
+					$caller_file_candidate = plugin_basename( $caller_map[ $caller_file_hash ] );
 				}
 			}
 
