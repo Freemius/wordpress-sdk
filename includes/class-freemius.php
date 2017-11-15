@@ -2342,29 +2342,36 @@
 		 *
 		 * @return string
 		 */
-		function get_anonymous_id() {
-			$unique_id = self::$_accounts->get_option( 'unique_id' );
+        function get_anonymous_id() {
+            $unique_id = self::$_accounts->get_option( 'unique_id' );
 
-			if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
-				$key = get_site_url();
+            if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
+                $key = get_site_url();
 
-				// If localhost, assign microtime instead of domain.
-				if ( WP_FS__IS_LOCALHOST ||
-				     false !== strpos( $key, 'localhost' ) ||
-				     false === strpos( $key, '.' )
-				) {
-					$key = microtime();
-				}
+                // If localhost, assign microtime instead of domain.
+                if ( WP_FS__IS_LOCALHOST ||
+                     false !== strpos( $key, 'localhost' ) ||
+                     false === strpos( $key, '.' )
+                ) {
+                    $key = microtime();
+                }
 
-				$unique_id = md5( $key );
+                /**
+                 * Base the unique identifier on the WP secure authentication key. Which
+                 * turns the key into a secret anonymous identifier.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since 1.2.3
+                 */
+                $unique_id = md5( $key . SECURE_AUTH_KEY );
 
-				self::$_accounts->set_option( 'unique_id', $unique_id, true );
-			}
+                self::$_accounts->set_option( 'unique_id', $unique_id, true );
+            }
 
-			$this->_logger->departure( $unique_id );
+            $this->_logger->departure( $unique_id );
 
-			return $unique_id;
-		}
+            return $unique_id;
+        }
 
 		/**
 		 * @author Vova Feldman (@svovaf)
