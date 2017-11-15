@@ -10681,21 +10681,24 @@
 		 * @return FS_Plugin_Plan[]|object
 		 */
 		private function _fetch_plugin_plans() {
-			$this->_logger->entrance();
-			$api = $this->get_api_site_scope();
+            $this->_logger->entrance();
+            $api = $this->get_api_site_scope();
 
-			$result = $api->get( '/plans.json', true );
+            /**
+             * @since 1.2.3 When running in DEV mode, retrieve pending plans as well.
+             */
+            $result = $api->get( '/plans.json?show_pending=' . ( $this->has_secret_key() ? 'true' : 'false' ), true );
 
-			if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
-				for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
-					$result->plans[ $i ] = new FS_Plugin_Plan( $result->plans[ $i ] );
-				}
+            if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
+                for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
+                    $result->plans[ $i ] = new FS_Plugin_Plan( $result->plans[ $i ] );
+                }
 
-				$result = $result->plans;
-			}
+                $result = $result->plans;
+            }
 
-			return $result;
-		}
+            return $result;
+        }
 
 		/**
 		 * @author Vova Feldman (@svovaf)
