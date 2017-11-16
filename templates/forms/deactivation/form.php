@@ -244,7 +244,7 @@ HTML;
 
 			$modal.find('.reason-input').remove();
 			$modal.find( '.internal-message' ).hide();
-			$modal.find('.button-deactivate').text('<?php echo esc_js( sprintf(
+			$modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
 				fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
 				$fs->is_plugin() ?
 					$deactivate_text :
@@ -393,7 +393,7 @@ HTML;
 					sprintf( $activate_x_text, $theme_text )
 			) ) ?>');
 		} else {
-			$deactivateButton.text('<?php echo esc_js( sprintf(
+			$deactivateButton.html('<?php echo esc_js( sprintf(
 				fs_text_inline('Skip & %s', 'skip-and-x', $slug ),
 				$fs->is_plugin() ?
 					$deactivate_text :
