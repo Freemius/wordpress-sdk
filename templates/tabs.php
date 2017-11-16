@@ -23,6 +23,10 @@
 	$tabs = array();
 	foreach ( $menu_items as $priority => $items ) {
 		foreach ( $items as $item ) {
+            if ( ! $item['show_submenu'] ) {
+                continue;
+            }
+
 			$url   = $fs->_get_admin_page_url( $item['menu_slug'] );
 			$title = $item['menu_title'];
 
