@@ -7300,7 +7300,7 @@
 				if ( self::is_ajax() &&
 				     'admin-ajax.php' === $pagenow
 				) {
-					$referer = wp_get_raw_referer();
+					$referer = fs_get_raw_referer();
 
 					if ( is_string( $referer ) ) {
 						$parts = explode( '?', $referer );
