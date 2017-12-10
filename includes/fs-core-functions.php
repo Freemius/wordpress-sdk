@@ -184,42 +184,46 @@
         return ( strtolower( $action ) === fs_get_action( $action_key ) );
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.0.0
-     *
-     * @since  1.2.1.5 Allow nonce verification.
-     *
-     * @param string $action
-     * @param string $action_key
-     * @param string $nonce_key
-     *
-     * @return bool
-     */
-    function fs_request_is_action_secure(
-        $action,
-        $action_key = 'action',
-        $nonce_key = 'nonce'
-    ) {
-        if ( strtolower( $action ) !== fs_get_action( $action_key ) ) {
-            return false;
-        }
-
-        $nonce = ! empty( $_REQUEST[ $nonce_key ] ) ?
-            $_REQUEST[ $nonce_key ] :
-            '';
-
-        if ( empty( $nonce ) ||
-             ( false === wp_verify_nonce( $nonce, $action ) )
+    if ( ! function_exists( 'fs_request_is_action_secure' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.0
+         *
+         * @since  1.2.1.5 Allow nonce verification.
+         *
+         * @param string $action
+         * @param string $action_key
+         * @param string $nonce_key
+         *
+         * @return bool
+         */
+        function fs_request_is_action_secure(
+            $action,
+            $action_key = 'action',
+            $nonce_key = 'nonce'
         ) {
-            return false;
-        }
+            if ( strtolower( $action ) !== fs_get_action( $action_key ) ) {
+                return false;
+            }
 
-        return true;
+            $nonce = ! empty( $_REQUEST[ $nonce_key ] ) ?
+                $_REQUEST[ $nonce_key ] :
+                '';
+
+            if ( empty( $nonce ) ||
+                 ( false === wp_verify_nonce( $nonce, $action ) )
+            ) {
+                return false;
+            }
+
+            return true;
+        }
     }
 
-    function fs_is_plugin_page( $page_slug ) {
-        return ( is_admin() && $page_slug === fs_request_get( 'page' ) );
+    if ( ! function_exists( 'fs_is_plugin_page' ) ) {
+        function fs_is_plugin_page( $page_slug ) {
+            return ( is_admin() && $page_slug === fs_request_get( 'page' ) );
+        }
     }
 
     if ( ! function_exists( 'fs_get_raw_referer' ) ) {
