@@ -263,6 +263,8 @@
 
 		/**
 		 * Get API request URL signed via query string.
+         *
+         * @since 1.2.3 Stopped using http_build_query(). Instead, use urlencode(). In some environments the encoding of http_build_query() can generate a URL that once used with a redirect, the `&` querystring separator is escaped to `&amp;` which breaks the URL (Added by @svovaf).
 		 *
 		 * @param string $pPath
 		 *
@@ -270,20 +272,19 @@
 		 *
 		 * @return string
 		 */
-		function GetSignedUrl( $pPath ) {
-			$resource     = explode( '?', $this->CanonizePath( $pPath ) );
-			$pResourceUrl = $resource[0];
+        function GetSignedUrl( $pPath ) {
+            $resource     = explode( '?', $this->CanonizePath( $pPath ) );
+            $pResourceUrl = $resource[0];
 
-			$auth = $this->GenerateAuthorizationParams( $pResourceUrl );
+            $auth = $this->GenerateAuthorizationParams( $pResourceUrl );
 
-			return Freemius_Api_WordPress::GetUrl(
-				$pResourceUrl . '?' .
-				( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
-				http_build_query( array(
-					'auth_date'     => $auth['date'],
-					'authorization' => $auth['authorization']
-				) ), $this->_isSandbox );
-		}
+            return Freemius_Api_WordPress::GetUrl(
+                $pResourceUrl . '?' .
+                ( 1 < count( $resource ) && ! empty( $resource[1] ) ? $resource[1] . '&' : '' ) .
+                'authorization=' . urlencode( $auth['authorization'] ) .
+                '&auth_date=' . urlencode( $auth['date'] )
+                , $this->_isSandbox );
+        }
 
 		/**
 		 * @author Vova Feldman
