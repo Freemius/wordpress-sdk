@@ -189,7 +189,7 @@
 					       placeholder="<?php fs_esc_attr_echo_inline( 'License key', 'license-key', $slug ) ?>" tabindex="1"/>
 					<i class="dashicons dashicons-admin-network"></i>
 					<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix() ?>"
-					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
+					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key', $slug ); ?></a>
 				</div>
 			<?php endif ?>
 		</div>
