@@ -192,7 +192,7 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
 				</div>
 			<?php endif ?>
-            <?php if ( $fs->is_network_activated() ) : ?>
+            <?php if ( $fs->is_network_active() ) : ?>
                 <?php $sites    = $fs->get_sites() ?>
                 <?php $has_site = ( ! empty( $sites ) ) ?>
                 <div id="multisite_options_container" class="apply-on-all-sites">
@@ -250,7 +250,7 @@
 				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
-            <?php if ( $fs->is_network_activated() ) : ?>
+            <?php if ( $fs->is_network_active() ) : ?>
                 <a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="#"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
             <?php endif ?>
 			<?php if ( $activate_with_current_user ) : ?>
@@ -408,7 +408,7 @@
 
 		var $primaryCta          = $('.fs-actions .button.button-primary'),
 		    $form                = $('.fs-actions form'),
-            isNetworkActivated = <?php echo $fs->is_network_activated() ?>,
+            isNetworkActive      = <?php echo $fs->is_network_active() ?>,
 		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
@@ -426,7 +426,7 @@
 			}, 200);
 		});
 
-		if ( isNetworkActivated ) {
+		if ( isNetworkActive ) {
 		    var
                 $multisiteOptionsContainer  = $( '#multisite_options_container' ),
                 $allSitesOptions            = $( '#all_sites_options' ),

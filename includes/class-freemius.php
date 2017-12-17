@@ -303,9 +303,9 @@
          *
          * @since 1.2.3
          *
-         * @var bool True if the current request is for a network admin screen and the plugin is network activated.
+         * @var bool True if the current request is for a network admin screen and the plugin is network active.
          */
-        private $is_network_activated;
+        private $is_network_active;
 
 		#region Uninstall Reasons IDs
 
@@ -357,7 +357,7 @@
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
-			$this->is_network_activated   = ( is_network_admin() && is_plugin_active_for_network( $this->_plugin_basename ) );
+			$this->is_network_active      = ( is_network_admin() && is_plugin_active_for_network( $this->_plugin_basename ) );
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
@@ -8038,8 +8038,8 @@
          *
          * @return bool
          */
-		function is_network_activated() {
-		    return $this->is_network_activated;
+		function is_network_active() {
+		    return $this->is_network_active;
         }
 
         /**
@@ -8071,7 +8071,7 @@
          * @param string $scheme
          */
 		private function admin_url( $path = '', $scheme = 'admin' ) {
-            return ( $this->is_network_activated ) ?
+            return ( $this->is_network_active ) ?
                 network_admin_url( $path, $scheme ) :
                 admin_url( $path, $scheme );
         }
