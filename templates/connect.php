@@ -192,13 +192,67 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
 				</div>
 			<?php endif ?>
+            <?php if ( $fs->is_network_activated() ) : ?>
+                <?php $sites    = $fs->get_sites() ?>
+                <?php $has_site = ( ! empty( $sites ) ) ?>
+                <div id="multisite_options_container" class="apply-on-all-sites">
+                    <table id="all_sites_options">
+                        <tbody>
+                            <tr>
+                                <td width="600">
+                                    <label>
+                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_site ) ?>><?php fs_esc_html_echo_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug ) ?>
+                                    </label>
+                                </td>
+                                <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+                                <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <?php if ( $has_site ) : ?>
+                    <div id="sites_list_container">
+                        <table cellspacing="0">
+                            <tbody>
+                            <?php foreach ( $sites as $site ) : ?>
+                                <?php
+                                    /**
+                                     * In case `wp_get_sites` was used to retrieve the sites, `$sites` is an array of
+                                     * arrays. In the other cases, it is an array of objects.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     */
+                                    $blog_id = is_array( $site ) ?
+                                        $site['blog_id'] :
+                                        $site->blog_id;
+
+                                    $site_url = ( $site instanceof WP_Site ) ?
+                                        $site->siteurl :
+                                        get_site_url( $blog_id );
+                                    ?>
+                                <tr>
+                                    <td><?php echo $blog_id ?></td>
+                                    <td width="600"><?php echo $site_url ?></td>
+                                    <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+                                    <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                    <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php endif ?>
+                </div>
+            <?php endif ?>
 		</div>
-		<div class="fs-actions">
+        <div class="fs-actions">
 			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
-				<a href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
+				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
-
+            <?php if ( $fs->is_network_activated() ) : ?>
+                <a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="#"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
+            <?php endif ?>
 			<?php if ( $activate_with_current_user ) : ?>
 				<form action="" method="POST">
 					<input type="hidden" name="fs_action"
@@ -352,12 +406,13 @@
 		}
 		?>
 
-		var $primaryCta       = $('.fs-actions .button.button-primary'),
-		    $form             = $('.fs-actions form'),
-		    requireLicenseKey = <?php echo $require_license_key ? 'true' : 'false' ?>,
-		    hasContextUser    = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
+		var $primaryCta          = $('.fs-actions .button.button-primary'),
+		    $form                = $('.fs-actions form'),
+            isNetworkActivated = <?php echo $fs->is_network_activated() ?>,
+		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
+		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
-		    $licenseKeyInput  = $('#fs_license_key');
+		    $licenseKeyInput     = $('#fs_license_key');
 
 		$('.fs-actions .button').on('click', function () {
 			// Set loading mode.
@@ -370,6 +425,101 @@
 				$this.attr('disabled', 'disabled');
 			}, 200);
 		});
+
+		if ( isNetworkActivated ) {
+		    var
+                $multisiteOptionsContainer  = $( '#multisite_options_container' ),
+                $allSitesOptions            = $( '#all_sites_options' ),
+                $sitesListContainer         = $( '#sites_list_container' ),
+                totalSites                  = <?php echo count( $sites ) ?>,
+                maxSitesListHeight          = null,
+                $skipActivationButton       = $( '#skip_activation' ),
+                $delegateToSiteAdminsButton = $( '#delegate_to_site_admins' );
+
+            $( '#apply_on_all_sites' ).click(function() {
+                var isChecked = $( this ).is( ':checked' );
+
+                if ( ! isChecked ) {
+                    $multisiteOptionsContainer.find( '.action-allow' ).addClass( 'selected' );
+                } else {
+                    $multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
+                    updatePrimaryCtaText( 'allow' );
+                }
+
+                if ( 0 !== $skipActivationButton.length ) {
+                    $skipActivationButton.toggle();
+                }
+
+                $delegateToSiteAdminsButton.toggle();
+
+                $multisiteOptionsContainer.toggleClass( 'apply-on-all-sites', isChecked );
+
+                $sitesListContainer.toggle( ! isChecked );
+                if ( ! isChecked && null === maxSitesListHeight ) {
+                    /**
+                     * Set the visible number of rows to 5 (5 * height of the first row).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    maxSitesListHeight = ( 5 * $sitesListContainer.find( 'tr:first' ).height() );
+                    $sitesListContainer.css( 'max-height', maxSitesListHeight );
+                }
+            });
+
+            $allSitesOptions.find( '.action' ).click(function( evt ) {
+                var actionType = $( evt.target ).data( 'action-type' );
+
+                $multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
+                $multisiteOptionsContainer.find( '.action-' + actionType ).toggleClass( 'selected' );
+
+                updatePrimaryCtaText( actionType );
+            });
+
+            $sitesListContainer.delegate( '.action', 'click', function( evt ) {
+                var $this = $( evt.target );
+                if ( $this.hasClass( 'selected' ) ) {
+                    return false;
+                }
+
+                $this.parents( 'tr:first' ).find( '.action' ).removeClass( 'selected' );
+                $this.toggleClass( 'selected' );
+
+                var
+                    singleSiteActionType = $this.data( 'action-type' ),
+                    totalSelected        = $sitesListContainer.find( '.action-' + singleSiteActionType + '.selected' ).length;
+
+                $allSitesOptions.find( '.action.selected' ).removeClass( 'selected' );
+
+                if ( totalSelected === totalSites ) {
+                    $allSitesOptions.find( '.action-' + singleSiteActionType ).addClass( 'selected' );
+
+                    updatePrimaryCtaText( singleSiteActionType );
+                } else {
+                    updatePrimaryCtaText( 'mixed' );
+                }
+            });
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         */
+        function updatePrimaryCtaText( actionType ) {
+		    var text = '<?php fs_echo( 'Continue', 'continue', $slug ) ?>';
+
+		    switch ( actionType ) {
+                case 'allow':
+                    text = '<?php fs_echo( 'Allow & Continue', 'opt-in-connect', $slug ) ?>';
+                    break;
+                case 'delegate':
+                    text = '<?php fs_echo( 'Delegate to Site Admins & Continue', 'delegate-to-site-admins-and-continue', $slug ) ?>';
+                    break;
+                case 'skip':
+                    text = '<?php fs_echo( 'Skip', 'verb', 'skip', $slug ) ?>';
+                    break;
+            }
+
+            $primaryCta.text( text );
+        }
 
 		$form.on('submit', function () {
 			/**

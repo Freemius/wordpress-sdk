@@ -298,6 +298,15 @@
          */
         private $custom_affiliate_terms = null;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.3
+         *
+         * @var bool True if the current request is for a network admin screen and the plugin is network activated.
+         */
+        private $is_network_activated;
+
 		#region Uninstall Reasons IDs
 
 		const REASON_NO_LONGER_NEEDED = 1;
@@ -348,6 +357,7 @@
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
+			$this->is_network_activated   = ( is_network_admin() && is_plugin_active_for_network( $this->_plugin_basename ) );
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
@@ -3015,7 +3025,7 @@
 
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
-                    add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
+                    add_action( ( is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
                 }
             }
 
@@ -4463,11 +4473,8 @@
 				               . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
 				               . "{$this->_slug}_activated" );
 
-				if ( ! function_exists( 'is_network_admin' ) || ! is_network_admin() ) {
-					$this->_redirect_on_activation_hook();
-
-					return;
-				}
+                $this->_redirect_on_activation_hook();
+                return;
 			}
 
 			if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
@@ -4809,7 +4816,7 @@
 				 * @author Leo Fajardo (@leorw)
 				 * @since  1.2.2
 				 */
-				fs_redirect( admin_url( $pagenow ) );
+				fs_redirect( $this->admin_url( $pagenow ) );
 			}
 		}
 
@@ -4831,7 +4838,7 @@
 			 * @since  1.2.2
 			 */
 			return wp_nonce_url(
-				admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $this->get_previous_theme_slug() ) ),
+                $this->admin_url( 'themes.php?action=activate&stylesheet=' . urlencode( $this->get_previous_theme_slug() ) ),
 				'switch-theme_' . $this->get_previous_theme_slug()
 			);
 		}
@@ -7956,7 +7963,7 @@
 
                     return add_query_arg(
                         $params,
-                        admin_url( 'themes.php' )
+                        $this->admin_url( 'themes.php' )
                     );
             }
 
@@ -7966,7 +7973,7 @@
 					// a specific Freemius page, use the admin.php path.
 					return add_query_arg( array_merge( $params, array(
 						'page' => $page_param,
-					) ), admin_url( 'admin.php' ) );
+					) ), $this->admin_url( 'admin.php' ) );
 				} else {
 					if ( $this->is_activation_mode() ) {
 						/**
@@ -7977,12 +7984,12 @@
 						 */
 						return add_query_arg( array_merge( $params, array(
 							'page' => $this->_slug,
-						) ), admin_url( 'admin.php', 'admin' ) );
+						) ), $this->admin_url( 'admin.php', 'admin' ) );
 					} else {
 						// Plugin without a settings page.
                         return add_query_arg(
                             $params,
-                            admin_url( 'plugins.php' )
+                            $this->admin_url( 'plugins.php' )
                         );
 					}
 				}
@@ -7997,7 +8004,7 @@
 
 				return add_query_arg( array_merge( $params, array(
 					'page' => $page_param,
-				) ), admin_url( $menu_file, 'admin' ) );
+				) ), $this->admin_url( $menu_file, 'admin' ) );
 			}
 
 			// Module has a top level CPT settings page.
@@ -8005,7 +8012,7 @@
 				if ( empty( $page ) && $this->is_activation_mode() ) {
 					return add_query_arg( array_merge( $params, array(
 						'page' => $page_param
-					) ), admin_url( 'admin.php', 'admin' ) );
+					) ), $this->admin_url( 'admin.php', 'admin' ) );
 				} else {
 					if ( ! empty( $page ) ) {
 						$params['page'] = $page_param;
@@ -8013,7 +8020,7 @@
 
 					return add_query_arg(
 						$params,
-						admin_url( $this->_menu->get_raw_slug(), 'admin' )
+                        $this->admin_url( $this->_menu->get_raw_slug(), 'admin' )
 					);
 				}
 			}
@@ -8021,8 +8028,53 @@
 			// Module has a custom top level settings page.
 			return add_query_arg( array_merge( $params, array(
 				'page' => $page_param,
-			) ), admin_url( 'admin.php', 'admin' ) );
+			) ), $this->admin_url( 'admin.php', 'admin' ) );
 		}
+
+		#region Multi-site
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+		function is_network_activated() {
+		    return $this->is_network_activated;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return array Sites collection.
+         */
+        function get_sites() {
+		    if ( function_exists( 'get_sites' ) ) {
+		        // For WP 4.6 and above.
+		        return get_sites();
+            } else if ( function_exists( 'wp_get_sites' ) ) {
+                // For WP 3.7 to WP 4.5.
+		        return wp_get_sites();
+            } else {
+                global $wpdb;
+
+                // For WP 3.6 and below.
+                return $wpdb->get_results( "SELECT * FROM {$wpdb->blogs} WHERE site_id = {$wpdb->siteid}" );
+            }
+        }
+
+        #endregion Multi-site
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param string $path
+         * @param string $scheme
+         */
+		private function admin_url( $path = '', $scheme = 'admin' ) {
+            return ( $this->is_network_activated ) ?
+                network_admin_url( $path, $scheme ) :
+                admin_url( $path, $scheme );
+        }
 
 		/**
 		 * Check if currently in a specified admin page.
