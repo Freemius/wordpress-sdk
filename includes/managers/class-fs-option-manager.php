@@ -47,14 +47,16 @@
 		 *
 		 * @param string $id
 		 * @param bool   $load
+		 * @param bool   $is_multisite
 		 */
-		private function __construct( $id, $load = false ) {
+		private function __construct( $id, $load = false, $is_multisite = false ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_opt_mngr_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_logger->entrance();
 			$this->_logger->log( 'id = ' . $id );
 
-			$this->_id = $id;
+			$this->_id           = $id;
+			$this->_is_multisite = $is_multisite;
 
 			if ( $load ) {
 				$this->load();
@@ -67,14 +69,15 @@
 		 *
 		 * @param $id
 		 * @param $load
+		 * @param $is_multisite
 		 *
 		 * @return FS_Option_Manager
 		 */
-		static function get_manager( $id, $load = false ) {
+		static function get_manager( $id, $load = false, $is_multisite = false ) {
 			$id = strtolower( $id );
 
 			if ( ! isset( self::$_MANAGERS[ $id ] ) ) {
-				self::$_MANAGERS[ $id ] = new FS_Option_Manager( $id, $load );
+				self::$_MANAGERS[ $id ] = new FS_Option_Manager( $id, $load, $is_multisite );
 			} // If load required but not yet loaded, load.
 			else if ( $load && ! self::$_MANAGERS[ $id ]->is_loaded() ) {
 				self::$_MANAGERS[ $id ]->load();
@@ -106,7 +109,10 @@
 				}
 
 				if ( ! WP_FS__DEBUG_SDK ) {
-					$this->_options = wp_cache_get( $option_name, WP_FS__SLUG );
+					$this->_options = wp_cache_get(
+					    $option_name,
+                        WP_FS__SLUG . ( $this->_is_multisite ? '_ms' : '' )
+                    );
 				}
 
 //				$this->_logger->info('wp_cache_get = ' . var_export($this->_options, true));
@@ -118,7 +124,9 @@
 				$cached = true;
 
 				if ( empty( $this->_options ) ) {
-					$this->_options = get_option( $option_name );
+					$this->_options = $this->_is_multisite ?
+                        get_site_option( $option_name ) :
+                        get_option( $option_name );
 
 					if ( is_string( $this->_options ) ) {
 						$this->_options = json_decode( $this->_options );
@@ -183,7 +191,11 @@
 		 * @since  1.0.9
 		 */
 		function delete() {
-			delete_option( $this->_get_option_manager_name() );
+		    if ( $this->_is_multisite ) {
+                delete_site_option( $this->_get_option_manager_name() );
+            } else {
+                delete_option( $this->_get_option_manager_name() );
+            }
 		}
 
 		/**
@@ -344,7 +356,11 @@
 			}
 
 			// Update DB.
-			update_option( $option_name, $this->_options );
+            if ( $this->_is_multisite ) {
+                update_site_option( $option_name, $this->_options );
+            } else {
+                update_option( $option_name, $this->_options );
+            }
 
 			if ( ! WP_FS__DEBUG_SDK ) {
 				wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );

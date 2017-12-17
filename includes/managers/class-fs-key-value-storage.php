@@ -53,6 +53,12 @@
 		 */
 		protected $_secondary_id;
 		/**
+		 * @since 1.2.3
+		 *
+		 * @var string
+		 */
+		protected $_is_multisite;
+		/**
 		 * @var array
 		 */
 		protected $_data;
@@ -69,28 +75,30 @@
 		/**
 		 * @param string $id
 		 * @param string $secondary_id
+		 * @param bool   $is_multisite
 		 *
 		 * @return FS_Key_Value_Storage
 		 */
-		static function instance( $id, $secondary_id ) {
+		static function instance( $id, $secondary_id, $is_multisite = false ) {
 			$key = $id . ':' . $secondary_id;
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id );
+				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $is_multisite );
 			}
 
 			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $id, $secondary_id ) {
+		protected function __construct( $id, $secondary_id, $is_multisite ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $secondary_id . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_secondary_id = $secondary_id;
 			$this->_id   	     = $id;
+			$this->_is_multisite = $is_multisite;
 			$this->load();
 		}
 
 		protected function get_option_manager() {
-			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true, $this->_is_multisite );
 		}
 
 		protected function get_all_data() {
