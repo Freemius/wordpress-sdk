@@ -13,10 +13,10 @@
 	/**
 	 * @var array $VARS
 	 */
-	$slug      = $VARS['slug'];
-	$plugin_id = $VARS['id'];
+    $slug      = $VARS['slug'];
+    $plugin_id = $VARS['target_module_id'];
 
-	$fs = freemius( $plugin_id );
+    $fs = freemius( $VARS['id'] );
 
 	$action = $fs->is_tracking_allowed() ?
 		'stop_tracking' :
@@ -145,10 +145,11 @@
 				$modal.find('.fs-ajax-loader').show();
 
 				var data = {
-					action   : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
-					security : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
-					slug     : '<?php echo $slug ?>',
-					module_id: '<?php echo $plugin_id ?>'
+					action          : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
+					security        : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
+					slug            : '<?php echo $slug ?>',
+					module_id       : '<?php echo $fs->get_id() ?>',
+                    target_module_id: '<?php echo $plugin_id ?>'
 				};
 
 				if (requireCredentials) {

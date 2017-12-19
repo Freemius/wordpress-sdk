@@ -132,7 +132,7 @@
 											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
-									<li class="fs-cta"><a class="button"><?php fs_esc_html_inline( 'View details', 'view-details', $slug ) ?></a></li>
+									<li class="fs-cta"><a class="button"><?php fs_esc_html_echo_inline( 'View details', 'view-details', $slug ) ?></a></li>
 								</ul>
 							</div>
 						</li>
