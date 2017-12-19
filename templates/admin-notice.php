@@ -9,6 +9,8 @@
 	if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 	}
+
+	$dismiss_text = fs_text_x_inline( 'Dismiss', 'as close a window', 'dismiss' );
 ?>
 <div<?php if ( ! empty( $VARS['id'] ) ) : ?> data-id="<?php echo $VARS['id'] ?>"<?php endif ?><?php if ( ! empty( $VARS['manager_id'] ) ) : ?> data-manager-id="<?php echo $VARS['manager_id'] ?>"<?php endif ?>
 	class="<?php
@@ -36,7 +38,7 @@
 	<?php endif ?>
 	<?php if ( ! empty( $VARS['sticky'] ) ) : ?>
 		<div class="fs-close"><i class="dashicons dashicons-no"
-		                         title="<?php fs_echo( 'dismiss' ) ?>"></i> <span><?php fs_echo( 'dismiss' ) ?></span>
+		                         title="<?php echo esc_attr( $dismiss_text ) ?>"></i> <span><?php echo esc_html( $dismiss_text ) ?></span>
 		</div>
 	<?php endif ?>
 	<div class="fs-notice-body">

@@ -3,7 +3,7 @@
     "description": "Freemius WordPress SDK",
     "keywords": ["freemius", "wordpress", "plugin", "sdk"],
     "homepage": "https://freemius.com",
-    "license": "GPL-2.0+",	
+    "license": "GPL-3.0",
     "require": {
         "php": ">=5.2"
 	}

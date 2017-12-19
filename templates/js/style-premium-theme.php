@@ -34,7 +34,7 @@
 			    if (0 === $theme.find('.fs-premium-theme-badge').length) {
 				    $theme.addClass('fs-premium');
 
-				    $theme.append('<span class="fs-premium-theme-badge">' + <?php echo json_encode( $fs->get_text( 'premium' ) ) ?> +'</span>');
+				    $theme.append('<span class="fs-premium-theme-badge">' + <?php echo json_encode( $fs->get_text_inline( 'Premium', 'premium' ) ) ?> +'</span>');
 			    }
 		    };
 

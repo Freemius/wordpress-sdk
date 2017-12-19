@@ -71,7 +71,7 @@
 
 	$view_params = array(
 		'id'   => $VARS['id'],
-		'page' => strtolower( $fs->get_text( 'contact' ) ),
+		'page' => strtolower( $fs->get_text_inline( 'Contact', 'contact' ) ),
 	);
 	fs_require_once_template('secure-https-header.php', $view_params);
 

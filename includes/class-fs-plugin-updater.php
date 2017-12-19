@@ -128,7 +128,7 @@
 			$plugin_update_row = preg_replace(
 				'/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
 				'$1 $2 ' . sprintf(
-					$this->_fs->get_text( 'renew-license-now' ),
+					$this->_fs->get_text_inline( '%sRenew your license now%s to access version %s features and support.', 'renew-license-now' ),
 					'<a href="' . $this->_fs->pricing_url() . '">', '</a>',
 					$r->new_version ) .
 				'$4',
@@ -355,7 +355,7 @@ if ( !isset($info->error) ) {
 				$data->version = $this->_fs->get_plugin_version();
 			} else {
 				if ( $is_addon ) {
-					$data->name    = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
+					$data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 					$data->slug    = $addon->slug;
 					$data->url     = WP_FS__ADDRESS;
 					$data->package = $new_version->url;
@@ -487,7 +487,7 @@ if ( !isset($info->error) ) {
 			if ( ! empty( $plugin_id ) && ! FS_Plugin::is_valid_id( $plugin_id ) ) {
 				// Invalid plugin ID.
 				return array(
-					'message' => $this->_fs->get_text( 'auto-install-error-invalid-id' ),
+					'message' => $this->_fs->get_text_inline( 'Invalid module ID.', 'auto-install-error-invalid-id' ),
 					'code'    => 'invalid_module_id',
 				);
 			}
@@ -501,29 +501,27 @@ if ( !isset($info->error) ) {
 				if ( ! is_object( $addon ) ) {
 					// Invalid add-on ID.
 					return array(
-						'message' => $this->_fs->get_text( 'auto-install-error-invalid-id' ),
+						'message' => $this->_fs->get_text_inline( 'Invalid module ID.', 'auto-install-error-invalid-id' ),
 						'code'    => 'invalid_module_id',
 					);
 				}
 
 				$slug  = $addon->slug;
-				$title = $addon->title . ' ' . $this->_fs->get_text( 'addon' );
+				$title = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 
 				$is_addon = true;
 			} else {
 				$slug  = $this->_fs->get_slug();
 				$title = $this->_fs->get_plugin_title() .
-				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text( 'addon' ) : '' );
+				         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
 			}
 
 			if ( $this->is_premium_plugin_active( $plugin_id ) ) {
 				// Premium version already activated.
 				return array(
-					'message' => $this->_fs->get_text(
-						$is_addon ?
-							'auto-install-error-premium-addon-activated' :
-							'auto-install-error-premium-activated'
-					),
+					'message' => $is_addon ?
+                        $this->_fs->get_text_inline( 'Premium add-on version already installed.', 'auto-install-error-premium-addon-activated' ) :
+                        $this->_fs->get_text_inline( 'Premium version already active.', 'auto-install-error-premium-activated' ),
 					'code'    => 'premium_installed',
 				);
 			}
@@ -552,7 +550,7 @@ if ( !isset($info->error) ) {
 
 			$skin_args = array(
 				'type'   => 'web',
-				'title'  => sprintf( $this->_fs->get_text( 'installing-plugin-x' ), $title ),
+				'title'  => sprintf( $this->_fs->get_text_inline( 'Installing plugin: %s', 'installing-plugin-x' ), $title ),
 				'url'    => esc_url_raw( $install_url ),
 				'nonce'  => 'install-plugin_' . $slug,
 				'plugin' => '',
@@ -593,7 +591,7 @@ if ( !isset($info->error) ) {
 				global $wp_filesystem;
 
 				$error_code    = 'unable_to_connect_to_filesystem';
-				$error_message = $this->_fs->get_text( 'Unable to connect to the filesystem. Please confirm your credentials.' );
+				$error_message = $this->_fs->get_text_inline( 'Unable to connect to the filesystem. Please confirm your credentials.' );
 
 				// Pass through the error from WP_Filesystem if one was raised.
 				if ( $wp_filesystem instanceof WP_Filesystem_Base &&
@@ -699,7 +697,7 @@ if ( !isset($info->error) ) {
 				} else {
 					return new WP_Error(
 						'rename_failed',
-						$this->_fs->get_text( 'module-package-rename-failure' ),
+						$this->_fs->get_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
 						array(
 							'found'    => $subdir_name,
 							'expected' => $desired_slug

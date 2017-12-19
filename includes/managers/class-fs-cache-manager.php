@@ -166,10 +166,10 @@
 			     isset( $cache_entry->timestamp ) &&
 			     is_numeric( $cache_entry->timestamp )
 			) {
-				return $cache_entry->result;
-			}
+                return $cache_entry->result;
+            }
 
-			return $default;
+			return is_object($default) ? clone $default : $default;
 		}
 
 		/**
@@ -194,7 +194,7 @@
 				return $cache_entry->result;
 			}
 
-			return $default;
+            return is_object($default) ? clone $default : $default;
 		}
 
 		/**
@@ -208,7 +208,8 @@
 		function set( $key, $value, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
 			$this->_logger->entrance( 'key = ' . $key );
 
-			$cache_entry            = new stdClass();
+			$cache_entry = new stdClass();
+
 			$cache_entry->result    = $value;
 			$cache_entry->created   = WP_FS__SCRIPT_START_TIME;
 			$cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;

@@ -61,6 +61,17 @@
 		 * @var bool
 		 */
 		public $is_live;
+		/**
+         * @author Leo Fajardo (@leorw)
+         *
+		 * @since 1.2.3
+		 *
+		 * @var string|false false if the module doesn't have an affiliate program or one of the following:
+         *                   'selected', 'customers', or 'all'.
+		 */
+		public $affiliate_moderation;
+
+        const AFFILIATE_MODERATION_CUSTOMERS = 'customers';
 
 		#endregion Install Specific Properties
 
@@ -89,6 +100,16 @@
 		function is_addon() {
 			return isset( $this->parent_plugin_id ) && is_numeric( $this->parent_plugin_id );
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         *
+         * @return bool
+         */
+		function has_affiliate_program() {
+            return ( ! empty( $this->affiliate_moderation ) );
+        }
 
 		static function get_type() {
 			return 'plugin';

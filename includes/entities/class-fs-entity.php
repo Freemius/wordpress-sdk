@@ -42,9 +42,9 @@
 		 * @param bool|object $entity
 		 */
 		function __construct( $entity = false ) {
-			if ( ! ( $entity instanceof stdClass ) ) {
-				return;
-			}
+            if ( ! ( $entity instanceof stdClass ) && ! ( $entity instanceof FS_Entity ) ) {
+                return;
+            }
 
 			$props = fs_get_object_public_vars( $this );
 

@@ -33,16 +33,16 @@
 ?>
 	<div id="fs_addons" class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
-		<h2><?php printf( fs_text( 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ?></h2>
+		<h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons for %s', 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ) ?></h2>
 		<?php endif ?>
 
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
-				<h3><?php printf(
+				<h3><?php echo esc_html( sprintf(
 						'%s... %s',
-						fs_text( 'oops', $slug ),
-						fs_text( 'add-ons-missing', $slug )
-					) ?></h3>
+						fs_text_x_inline( 'Oops', 'exclamation', 'oops', $slug ),
+						fs_text_inline( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'add-ons-missing', $slug )
+					) ) ?></h3>
 			<?php endif ?>
 			<ul class="fs-cards-list">
 				<?php if ( $has_addons ) : ?>
@@ -96,7 +96,7 @@
 								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
 									esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
-									esc_attr( sprintf( fs_text( 'more-information-about-x', $slug ), $addon->title ) ),
+									esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
 								);
 							?>
@@ -123,16 +123,16 @@
 											$descriptors = array();
 
 											if ($has_free_plan)
-												$descriptors[] = fs_text( 'free', $slug );
+												$descriptors[] = fs_text_inline( 'Free', 'free', $slug );
 											if ($has_paid_plan && $price > 0)
 												$descriptors[] = '$' . number_format( $price, 2 );
 											if ($has_trial)
-												$descriptors[] = fs_text('trial', $slug);
+												$descriptors[] = fs_text_x_inline( 'Trial', 'trial period',  'trial', $slug );
 
 											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
-									<li class="fs-cta"><a class="button"><?php fs_echo( 'view-details', $slug ) ?></a></li>
+									<li class="fs-cta"><a class="button"><?php fs_esc_html_echo_inline( 'View details', 'view-details', $slug ) ?></a></li>
 								</ul>
 							</div>
 						</li>

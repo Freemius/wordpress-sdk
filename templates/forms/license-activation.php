@@ -16,11 +16,13 @@
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
-	$cant_find_license_key_text = fs_text( 'cant-find-license-key', $slug );
-	$message_above_input_field  = fs_text( 'activate-license-message', $slug );
+	$cant_find_license_key_text = fs_text_inline( "Can't find your license key?", 'cant-find-license-key', $slug );
+	$message_above_input_field  = fs_text_inline( 'Please enter the license key that you received in the email right after the purchase:', 'activate-license-message', $slug );
 	$message_below_input_field  = '';
 
-	$header_title = fs_text( $fs->is_free_plan() ? 'activate-license' : 'update-license', $slug );
+	$header_title = $fs->is_free_plan() ?
+		fs_text_inline( 'Activate License', 'activate-license', $slug ) :
+		fs_text_inline( 'Update License', 'update-license', $slug );
 
 	if ( $fs->is_registered() ) {
 		$activate_button_text = $header_title;
@@ -33,15 +35,15 @@
 		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
 
 		$message_below_input_field = sprintf(
-			fs_text( 'license-sync-disclaimer', $slug ),
+			fs_text_inline( 'The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
 			$fs->get_module_label( true ),
 			$freemius_link
 		);
 
-		$activate_button_text = fs_text( 'agree-activate-license', $slug );
+		$activate_button_text = fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
 	}
 
-	$license_key_text = fs_text( 'license-key' , $slug );
+	$license_key_text = fs_text_inline( 'License key', 'license-key' , $slug );
 
 	/**
 	 * IMPORTANT:
@@ -68,13 +70,13 @@ HTML;
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
 				+ '		    <h4><?php echo esc_js($header_title) ?></h4>'
-				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php fs_esc_attr_echo( 'dismiss', $slug ) ?>"></i></a>'
+				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php echo esc_js( fs_text_x_inline( 'Dismiss', 'as close a window', 'dismiss', $slug ) ) ?>"></i></a>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
 				+ '		</div>'
 				+ '		<div class="fs-modal-footer">'
-				+ '			<button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo( 'cancel', $slug ) ?></button>'
+				+ '			<button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></button>'
 				+ '			<button class="button button-primary button-activate-license"  tabindex="3"><?php echo esc_js( $activate_button_text ) ?></button>'
 				+ '		</div>'
 				+ '	</div>'
@@ -142,7 +144,7 @@ HTML;
 						module_id  : '<?php echo $fs->get_id() ?>'
 					},
 					beforeSend: function () {
-						$activateLicenseButton.text( <?php fs_json_encode_echo( 'activating-license', $slug ) ?> );
+						$activateLicenseButton.text( '<?php fs_esc_js_echo_inline( 'Activating license', 'activating-license', $slug ) ?>...' );
 					},
 					success: function( result ) {
 						var resultObj = $.parseJSON( result );

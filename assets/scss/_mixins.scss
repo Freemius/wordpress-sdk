@@ -132,19 +132,6 @@ $useIEFilters: 0;
     }
 }
 
-/*@mixin rgba-bg ($hex, $alpha, $ie: $useIEFilters) {
-  @if $ie == 1 { 
-    background-color: none;
-    $hexopac: ie-hex-str(rgba($hex, $alpha));
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#{$hexopac}',EndColorStr='#{$hexopac}}');
-    -ms-filter: quote(progid:DXImageTransform.Microsoft.gradient(startColorStr='#{$hexopac}',EndColorStr='#{$hexopac}'));
-  }
-  @else {
-    background-color: $hex;
-    background-color: rgba($hex, $alpha);
-  }
-}*/
-
 @mixin perspective($perspective) {
      -moz-perspective: $perspective;
       -ms-perspective: $perspective;

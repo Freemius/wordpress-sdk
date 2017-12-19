@@ -13,53 +13,61 @@
 	$fs_options  = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$all_plugins = $fs_options->get_option( 'all_plugins' );
 	$all_themes  = $fs_options->get_option( 'all_themes' );
+
+    /* translators: %s: time period (e.g. In "2 hours") */
+	$in_x_text = fs_text_inline( 'In %s', 'in-x' );
+    /* translators: %s: time period (e.g. "2 hours" ago) */
+	$x_ago_text = fs_text_inline( '%s ago', 'x-ago' );
+	$sec_text   = fs_text_x_inline( 'sec', 'seconds' );
 ?>
-<h1><?php fs_echo( 'plugins-themes-sync' ) ?></h1>
+<h1><?php fs_esc_html_echo_inline( 'Plugins & Themes Sync', 'plugins-themes-sync' ) ?></h1>
 <table class="widefat">
 	<thead>
 	<tr>
 		<th></th>
-		<th><?php fs_echo( 'total' ) ?></th>
-		<th><?php fs_echo( 'Last' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Total', 'total' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Last', 'last' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
 	<?php if ( is_object( $all_plugins ) ) : ?>
 		<tr>
-			<td><?php fs_echo( 'plugins' ) ?></td>
+			<td><?php fs_esc_html_echo_inline( 'Plugins', 'plugins' ) ?></td>
 			<td><?php echo count( $all_plugins->plugins ) ?></td>
 			<td><?php
 					if ( isset( $all_plugins->timestamp ) && is_numeric( $all_plugins->timestamp ) ) {
 						$diff       = abs( WP_FS__SCRIPT_START_TIME - $all_plugins->timestamp );
 						$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-							$diff . ' ' . fs_text( 'sec' ) :
+							$diff . ' ' . $sec_text :
 							human_time_diff( WP_FS__SCRIPT_START_TIME, $all_plugins->timestamp );
 
-						if ( WP_FS__SCRIPT_START_TIME < $all_plugins->timestamp ) {
-							printf( fs_text( 'in-x' ), $human_diff );
-						} else {
-							printf( fs_text( 'x-ago' ), $human_diff );
-						}
+                        echo esc_html( sprintf(
+                            ( ( WP_FS__SCRIPT_START_TIME < $all_plugins->timestamp ) ?
+                                $in_x_text :
+                                $x_ago_text ),
+                            $human_diff
+                        ) );
 					}
 				?></td>
 		</tr>
 	<?php endif ?>
 	<?php if ( is_object( $all_themes ) ) : ?>
 		<tr>
-			<td><?php fs_echo( 'themes' ) ?></td>
+			<td><?php fs_esc_html_echo_inline( 'Themes', 'themes' ) ?></td>
 			<td><?php echo count( $all_themes->themes ) ?></td>
 			<td><?php
 					if ( isset( $all_themes->timestamp ) && is_numeric( $all_themes->timestamp ) ) {
 						$diff       = abs( WP_FS__SCRIPT_START_TIME - $all_themes->timestamp );
 						$human_diff = ( $diff < MINUTE_IN_SECONDS ) ?
-							$diff . ' ' . fs_text( 'sec' ) :
+							$diff . ' ' . $sec_text :
 							human_time_diff( WP_FS__SCRIPT_START_TIME, $all_themes->timestamp );
 
-						if ( WP_FS__SCRIPT_START_TIME < $all_themes->timestamp ) {
-							printf( fs_text( 'in-x' ), $human_diff );
-						} else {
-							printf( fs_text( 'x-ago' ), $human_diff );
-						}
+                        echo esc_html( sprintf(
+                            ( ( WP_FS__SCRIPT_START_TIME < $all_themes->timestamp ) ?
+                                $in_x_text :
+                                $x_ago_text ),
+                            $human_diff
+                        ) );
 					}
 				?></td>
 		</tr>

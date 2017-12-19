@@ -45,7 +45,7 @@
 				$total_time += $l['total'];
 			}
 
-			return number_format( 100 * $total_time, 2 ) . ' ' . fs_text( 'ms' );
+			return number_format( 100 * $total_time, 2 ) . ' ' . fs_text_x_inline( 'ms', 'milliseconds' );
 		}
 
 		function render() {

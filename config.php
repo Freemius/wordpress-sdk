@@ -231,7 +231,7 @@
 	}
 
 	if ( ! defined( 'FS_CHECKOUT__ADDRESS_LOCALHOST' ) ) {
-		define( 'FS_CHECKOUT__ADDRESS_LOCALHOST', 'http://checkout.freemius:8080' );
+		define( 'FS_CHECKOUT__ADDRESS_LOCALHOST', 'http://checkout.freemius-local.com:8080' );
 	}
 
 	if ( ! defined( 'FS_CHECKOUT__ADDRESS' ) ) {

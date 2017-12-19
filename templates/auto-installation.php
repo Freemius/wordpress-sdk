@@ -13,10 +13,10 @@
 	/**
 	 * @var array $VARS
 	 */
-	$slug      = $VARS['slug'];
-	$plugin_id = $VARS['id'];
+    $slug      = $VARS['slug'];
+    $plugin_id = $VARS['target_module_id'];
 
-	$fs = freemius( $slug );
+    $fs = freemius( $VARS['id'] );
 
 	$action = $fs->is_tracking_allowed() ?
 		'stop_tracking' :
@@ -28,7 +28,7 @@
 		$addon = $fs->get_addon( $plugin_id );
 
 		if ( is_object( $addon ) ) {
-			$title = $addon->title . ' ' . fs_text( 'addon', $slug );
+			$title = $addon->title . ' ' . fs_text_inline( 'Add-On', 'addon', $slug );
 		}
 	}
 
@@ -39,7 +39,10 @@
 
 	$sec_countdown  = 30;
 	$countdown_html = sprintf(
-		esc_js( fs_text( 'x-sec', $slug ) ),
+		esc_js(
+			/* translators: %s: Number of seconds */
+			fs_text_inline( '%s sec', 'x-sec', $slug )
+		),
 		sprintf( '<span class="fs-countdown">%s</span>', $sec_countdown )
 	);
 
@@ -76,7 +79,7 @@
 <div class="fs-modal fs-modal-auto-install">
 	<div class="fs-modal-dialog">
 		<div class="fs-modal-header">
-			<h4><?php echo esc_js( fs_text( 'auto-installation', $slug ) ) ?></h4>
+			<h4><?php echo esc_js( fs_text_inline( 'Automatic Installation', 'auto-installation', $slug ) ) ?></h4>
 		</div>
 		<div class="fs-modal-body">
 			<div class="fs-notice-error" style="display: none"><p></p></div>
@@ -86,7 +89,7 @@
 				</div>
 			<?php else : ?>
 				<p class="fs-installation-notice"><?php echo sprintf(
-						fs_esc_html( 'installing-in-n', $slug ),
+						fs_esc_html_inline( 'An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now.', 'installing-in-n', $slug ),
 						$plugin_title,
 						sprintf(
 							'<a href="%s" target="_blank">%s</a>',
@@ -97,14 +100,14 @@
 					) ?></p>
 			<?php endif ?>
 			<p class="fs-installing"
-			   style="display: none"><?php echo sprintf( fs_esc_html( 'installing-module-x', $slug ), $plugin_title ) ?></p>
+			   style="display: none"><?php echo sprintf( fs_esc_html_inline( 'The installation process has started and may take a few minutes to complete. Please wait until it is done - do not refresh this page.', 'installing-module-x', $slug ), $plugin_title ) ?></p>
 		</div>
 		<div class="fs-modal-footer">
 			<?php echo $loader_html ?>
 			<button
-				class="button button-secondary button-cancel"><?php fs_esc_html_echo( 'cancel-installation', $slug ) ?><?php if ( ! $require_credentials ) : ?> (<?php echo $countdown_html ?>)<?php endif ?></button>
+				class="button button-secondary button-cancel"><?php fs_esc_html_echo_inline( 'Cancel Installation', 'cancel-installation', $slug ) ?><?php if ( ! $require_credentials ) : ?> (<?php echo $countdown_html ?>)<?php endif ?></button>
 			<button
-				class="button button-primary"<?php //disabled($require_credentials) ?>><?php echo esc_js( fs_text( 'install-now', $slug ) ) ?></button>
+				class="button button-primary"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></button>
 		</div>
 	</div>
 </div>'
@@ -142,10 +145,11 @@
 				$modal.find('.fs-ajax-loader').show();
 
 				var data = {
-					action   : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
-					security : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
-					slug     : '<?php echo $slug ?>',
-					module_id: '<?php echo $plugin_id ?>'
+					action          : '<?php echo $fs->get_ajax_action( 'install_premium_version' ) ?>',
+					security        : '<?php echo $fs->get_ajax_security( 'install_premium_version' ) ?>',
+					slug            : '<?php echo $slug ?>',
+					module_id       : '<?php echo $fs->get_id() ?>',
+                    target_module_id: '<?php echo $plugin_id ?>'
 				};
 
 				if (requireCredentials) {
@@ -181,7 +185,7 @@
 									$modal.removeClass('fs-warn');
 									$modal.find('.fs-installing').hide();
 									$modal.find('.fs-ajax-loader').hide();
-									$modal.find('.button-cancel').html(<?php fs_json_encode_echo( 'cancel-installation', $slug ) ?>);
+									$modal.find('.button-cancel').html(<?php fs_json_encode_echo_inline( 'Cancel Installation', 'cancel-installation', $slug ) ?>);
 									$modal.find('button').show();
 
 									$errorNotice.find('p').text(resultObj.error.message);

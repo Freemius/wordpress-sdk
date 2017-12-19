@@ -24,7 +24,8 @@
 				$fs = freemius( $VARS['id'] );
 
 				echo  esc_html( sprintf(
-					     $fs->get_text( 'secure-x-page-header' ),
+						/* translators: %s: Page name */
+					     $fs->get_text_inline( 'Secure HTTPS %s page, running from an external domain', 'secure-x-page-header' ),
 					     $VARS['page']
 				     ) ) .
 				     ' - ' .

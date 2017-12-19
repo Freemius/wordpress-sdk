@@ -165,7 +165,7 @@
 
 	$view_params = array(
 		'id'   => $VARS['id'],
-		'page' => strtolower( $fs->get_text( 'checkout' ) ) . ' ' . $fs->get_text( 'pci-compliant' ),
+		'page' => strtolower( $fs->get_text_inline( 'Checkout', 'checkout' ) ) . ' ' . $fs->get_text_inline( 'PCI compliant', 'pci-compliant' ),
 	);
 	fs_require_once_template('secure-https-header.php', $view_params);
 ?>

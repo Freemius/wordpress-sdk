@@ -325,8 +325,12 @@
 						$plan->has_trial()
 					) . '" target="_parent">' .
 					       ( ! $plan->has_trial() ?
-						       fs_text( 'purchase', $api->slug ) :
-						       sprintf( fs_text( 'start-free-x', $api->slug ), $this->get_trial_period( $plan ) )
+						       fs_text_x_inline( 'Purchase', 'verb', 'purchase', $api->slug ) :
+						       sprintf(
+						            /* translators: %s: N-days trial */
+						       	    fs_text_inline( 'Start my free %s', 'start-free-x', $api->slug ),
+							       $this->get_trial_period( $plan )
+						       )
 					       ) .
 					       '</a>';
 
@@ -348,23 +352,23 @@
 								 * plugin is wordpress.org compliant. Therefore, require a download
 								 * since installing external plugins is not allowed by the wp.org guidelines.
 								 */
-								return ' <a class="button button-primary right" href="' . esc_url( $api->download_link ) . '" target="_blank">' . fs_text( 'download-latest', $api->slug ) . '</a>';
+								return ' <a class="button button-primary right" href="' . esc_url( $api->download_link ) . '" target="_blank">' . fs_esc_html_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $api->slug ) . '</a>';
 							} else {
 								if ( $status['url'] ) {
-									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text( 'install-now', $api->slug ) . '</a>';
+									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) . '</a>';
 								}
 							}
 							break;
 						case 'update_available':
 							if ( $status['url'] ) {
-								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text( 'install-update-now', $api->slug ) . '</a>';
+								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text_inline( 'Install Update Now', 'install-update-now', $api->slug ) . '</a>';
 							}
 							break;
 						case 'newer_installed':
-							return '<a class="button button-primary right disabled">' . sprintf( fs_text( 'newer-installed', $api->slug ), $status['version'] ) . '</a>';
+							return '<a class="button button-primary right disabled">' . sprintf( fs_text_inline( 'Newer Version (%s) Installed', 'newer-installed', $api->slug ), $status['version'] ) . '</a>';
 							break;
 						case 'latest_installed':
-							return '<a class="button button-primary right disabled">' . fs_text( 'latest-installed', $api->slug ) . '</a>';
+							return '<a class="button button-primary right disabled">' . fs_text_inline( 'Latest Version Installed', 'latest-installed', $api->slug ) . '</a>';
 							break;
 					}
 
@@ -477,13 +481,13 @@
 			);
 
 			$plugins_section_titles = array(
-				'description'  => fs_text( 'description', $api->slug ),
-				'installation' => fs_text( 'installation', $api->slug ),
-				'faq'          => fs_text( 'faq', $api->slug ),
-				'screenshots'  => fs_text( 'screenshots', $api->slug ),
-				'changelog'    => fs_text( 'changelog', $api->slug ),
-				'reviews'      => fs_text( 'reviews', $api->slug ),
-				'other_notes'  => fs_text( 'other_notes', $api->slug ),
+				'description'  => fs_text_x_inline( 'Description', 'Plugin installer section title', 'description', $api->slug ),
+				'installation' => fs_text_x_inline( 'Installation', 'Plugin installer section title', 'installation', $api->slug ),
+				'faq'          => fs_text_x_inline( 'FAQ', 'Plugin installer section title', 'faq', $api->slug ),
+				'screenshots'  => fs_text_inline( 'Screenshots', 'screenshots', $api->slug ),
+				'changelog'    => fs_text_x_inline( 'Changelog', 'Plugin installer section title', 'changelog', $api->slug ),
+				'reviews'      => fs_text_x_inline( 'Reviews', 'Plugin installer section title', 'reviews', $api->slug ),
+				'other_notes'  => fs_text_x_inline( 'Other Notes', 'Plugin installer section title', 'other-notes', $api->slug ),
 			);
 
 			// Sanitize HTML
@@ -498,7 +502,7 @@
 			}
 
 			// Add after $api->slug is ready.
-			$plugins_section_titles['features'] = fs_text( 'features-and-pricing', $api->slug );
+			$plugins_section_titles['features'] = fs_text_x_inline( 'Features & Pricing', 'Plugin installer section title', 'features-and-pricing', $api->slug );
 
 			$_tab = esc_attr( $tab );
 
@@ -508,7 +512,7 @@
 				$section        = array_shift( $section_titles );
 			}
 
-			iframe_header( fs_text( 'plugin-install', $api->slug ) );
+			iframe_header( fs_text_inline( 'Plugin Install', 'plugin-install', $api->slug ) );
 
 			$_with_banner = '';
 
@@ -580,7 +584,7 @@
 							<div class="fs-plan<?php if ( ! $is_multi_cycle ) {
 								echo ' fs-single-cycle';
 							} ?>" data-plan-id="<?php echo $plan->id ?>">
-								<h3 data-plan="<?php echo $plan->id ?>"><?php printf( fs_text( 'x-plan', $api->slug ), $plan->title ) ?></h3>
+								<h3 data-plan="<?php echo $plan->id ?>"><?php echo esc_html( sprintf( fs_text_x_inline( '%s Plan', 'e.g. Professional Plan', 'x-plan', $api->slug ), $plan->title ) ) ?></h3>
 								<?php $has_annual = $first_pricing->has_annual() ?>
 								<?php $has_monthly = $first_pricing->has_monthly() ?>
 								<div class="nav-tab-wrapper">
@@ -605,9 +609,22 @@
 												<a class="nav-tab" data-billing-cycle="<?php echo $cycle ?>"
 												   data-pricing="<?php echo esc_attr( json_encode( $prices ) ) ?>">
 													<?php if ( $is_featured ) : ?>
-														<label>&#9733; <?php fs_echo( 'best', $api->slug ) ?> &#9733;</label>
+														<label>&#9733; <?php fs_esc_html_echo_x_inline( 'Best', 'e.g. the best product', 'best', $api->slug ) ?> &#9733;</label>
 													<?php endif ?>
-													<?php fs_echo( $cycle, $api->slug ) ?>
+													<?php
+														switch ($cycle)
+														{
+															case 'monthly':
+																fs_esc_html_echo_x_inline( 'Monthly', 'as every month', 'monthly', $api->slug );
+																break;
+															case 'annual':
+																fs_esc_html_echo_x_inline( 'Annual', 'as once a year', 'annual', $api->slug );
+																break;
+															case 'lifetime':
+																fs_esc_html_echo_inline( 'Lifetime', 'lifetime', $api->slug );
+																break;
+														}
+													?>
 												</a>
 											<?php endif ?>
 											<?php $i ++; endforeach ?>
@@ -618,21 +635,21 @@
 												_formatBillingFrequency = function (cycle) {
 													switch (cycle) {
 														case 'monthly':
-															return '<?php printf(fs_text('billed-x', $api->slug), fs_text('monthly', $api->slug)) ?>';
+															return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug), fs_text_x_inline( 'Monthly', 'as every month', 'monthly', $api->slug ) ) ?>';
 														case 'annual':
-															return '<?php printf(fs_text('billed-x', $api->slug), fs_text('annually', $api->slug)) ?>';
+															return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug), fs_text_x_inline( 'Annually', 'as once a year', 'annually', $api->slug ) ) ?>';
 														case 'lifetime':
-															return '<?php printf(fs_text('billed-x', $api->slug), fs_text('once', $api->slug)) ?>';
+															return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug), fs_text_x_inline( 'Once', 'as once a year', 'once', $api->slug ) ) ?>';
 													}
 												},
 												_formatLicensesTitle = function (pricing) {
 													switch (pricing.licenses) {
 														case 1:
-															return '<?php fs_echo( 'license-single-site', $api->slug ) ?>';
+															return '<?php fs_esc_attr_echo_inline( 'Single Site License', 'license-single-site', $api->slug ) ?>';
 														case null:
-															return '<?php fs_echo( 'license-unlimited', $api->slug ) ?>';
+															return '<?php fs_esc_attr_echo_inline( 'Unlimited Licenses', 'license-unlimited', $api->slug ) ?>';
 														default:
-															return '<?php fs_echo( 'license-x-sites', $api->slug ) ?>'.replace('%s', pricing.licenses);
+															return '<?php fs_esc_attr_echo_inline( 'Up to %s Sites', 'license-x-sites', $api->slug ) ?>'.replace('%s', pricing.licenses);
 													}
 												},
 												_formatPrice = function (pricing, cycle, multipleLicenses) {
@@ -642,14 +659,14 @@
 													var priceCycle;
 													switch (cycle) {
 														case 'monthly':
-															priceCycle = ' / <?php fs_echo('mo', $api->slug) ?>';
+															priceCycle = ' / <?php fs_echo_x_inline( 'mo', 'as monthly period', 'mo', $api->slug ) ?>';
 															break;
 														case 'lifetime':
 															priceCycle = '';
 															break;
 														case 'annual':
 														default:
-															priceCycle = ' / <?php fs_echo('year', $api->slug) ?>';
+															priceCycle = ' / <?php fs_echo_x_inline('year', 'as annual period', 'year', $api->slug) ?>';
 															break;
 													}
 
@@ -701,7 +718,7 @@
 
 													// Render licenses prices.
 													if (1 == pricing.length) {
-														html = '<li><label><?php fs_echo( 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
+														html = '<li><label><?php echo fs_esc_attr_x_inline( 'Price', 'noun', 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
 													} else {
 														for (var i = 0; i < pricing.length; i++) {
 															html += '<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="' + pricing[i].id + '">' + _formatPrice(pricing[i], billingCycle) + '</label></li>';
@@ -747,7 +764,7 @@
 									<?php $annual_discount = ( $has_annual && $has_monthly ) ? $plan->pricing[0]->annual_discount_percentage() : 0 ?>
 									<?php if ( $annual_discount > 0 ) : ?>
 										<span
-											class="fs-annual-discount"><?php printf( fs_text( 'save-x', $api->slug ), $annual_discount . '%' ) ?></span>
+											class="fs-annual-discount"><?php printf( fs_esc_html_x_inline( 'Save %s', 'as a discount of $5 or 10%', 'save-x', $api->slug ), $annual_discount . '%' ) ?></span>
 									<?php endif ?>
 									<ul class="fs-licenses">
 									</ul>
@@ -757,10 +774,10 @@
 										<?php $trial_period = $this->get_trial_period( $plan ) ?>
 										<ul class="fs-trial-terms">
 											<li>
-												<i class="dashicons dashicons-yes"></i><?php printf( fs_text( 'no-commitment-x', $api->slug ), $trial_period ) ?>
+												<i class="dashicons dashicons-yes"></i><?php echo esc_html( sprintf( fs_text_inline( 'No commitment for %s - cancel anytime', 'no-commitment-x', $api->slug ), $trial_period ) ) ?>
 											</li>
 											<li>
-												<i class="dashicons dashicons-yes"></i><?php printf( fs_text( 'after-x-pay-as-little-y', $api->slug ), $trial_period, '<var class="fs-price">' . $this->get_price_tag( $plan, $plan->pricing[0] ) . '</var>' ) ?>
+												<i class="dashicons dashicons-yes"></i><?php printf( esc_html( fs_text_inline( 'After your free %s, pay as little as %s', 'after-x-pay-as-little-y', $api->slug ) ), $trial_period, '<var class="fs-price">' . $this->get_price_tag( $plan, $plan->pricing[0] ) . '</var>' ) ?>
 											</li>
 										</ul>
 									<?php endif ?>
@@ -771,85 +788,99 @@
 					<?php endif ?>
 				<?php endif ?>
 				<div>
-					<h3><?php fs_echo( 'details', $api->slug ) ?></h3>
+					<h3><?php fs_echo_inline( 'Details', 'details', $api->slug ) ?></h3>
 					<ul>
 						<?php if ( ! empty( $api->version ) ) { ?>
-							<li><strong><?php fs_echo( 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
+							<li><strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
 							<?php
 						}
 							if ( ! empty( $api->author ) ) {
 								?>
 								<li>
-									<strong><?php fs_echo( 'author:', $api->slug ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
+									<strong><?php fs_echo_x_inline( 'Author', 'as the plugin author', 'author', $api->slug ); ?>:</strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->last_updated ) ) {
 								?>
-								<li><strong><?php fs_echo( 'last-updated:', $api->slug ); ?></strong> <span
+								<li><strong><?php fs_echo_inline( 'Last Updated', 'last-updated', $api->slug ); ?>:</strong> <span
 										title="<?php echo $api->last_updated; ?>">
-				<?php printf( fs_text( 'x-ago', $api->slug ), human_time_diff( strtotime( $api->last_updated ) ) ); ?>
+				<?php echo esc_html( sprintf(
+					/* translators: %s: time period (e.g. "2 hours" ago) */
+					fs_text_x_inline( '%s ago', 'x-ago', $api->slug ),
+					human_time_diff( strtotime( $api->last_updated ) )
+				) ) ?>
 			</span></li>
 								<?php
 							}
 							if ( ! empty( $api->requires ) ) {
 								?>
 								<li>
-									<strong><?php fs_echo( 'requires-wordpress-version:', $api->slug ); ?></strong> <?php printf( fs_text( 'x-or-higher', $api->slug ), $api->requires ); ?>
+									<strong><?php fs_esc_html_echo_inline( 'Requires WordPress Version', 'requires-wordpress-version', $api->slug ) ?>:</strong> <?php echo esc_html( sprintf( fs_text_inline( '%s or higher', 'x-or-higher', $api->slug ), $api->requires ) ) ?>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->tested ) ) {
 								?>
-								<li><strong><?php fs_echo( 'compatible-up-to:', $api->slug ); ?></strong> <?php echo $api->tested; ?>
+								<li><strong><?php fs_esc_html_echo_inline( 'Compatible up to', 'compatible-up-to', $api->slug ); ?>:</strong> <?php echo $api->tested; ?>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->downloaded ) ) {
 								?>
 								<li>
-									<strong><?php fs_echo( 'downloaded:', $api->slug ); ?></strong> <?php printf(
-										fs_text( ( 1 == $api->downloaded ) ? 'x-time' : 'x-times', $api->slug ),
+									<strong><?php fs_esc_html_echo_inline( 'Downloaded', 'downloaded', $api->slug ) ?>:</strong> <?php echo esc_html( sprintf(
+										( ( 1 == $api->downloaded ) ?
+											/* translators: %s: 1 or One (Number of times downloaded) */
+											fs_text_inline( '%s time', 'x-time', $api->slug ) :
+											/* translators: %s: Number of times downloaded */
+											fs_text_inline( '%s times', 'x-times', $api->slug )
+										),
 										number_format_i18n( $api->downloaded )
-									); ?>
+									) ); ?>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->slug ) && empty( $api->external ) ) {
 								?>
 								<li><a target="_blank"
-								       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_echo( 'wp-org-plugin-page', $api->slug ); ?> &#187;</a>
+								       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?> &#187;</a>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->homepage ) ) {
 								?>
 								<li><a target="_blank"
-								       href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_echo( 'plugin-homepage', $api->slug ); ?> &#187;</a>
+								       href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?> &#187;</a>
 								</li>
 								<?php
 							}
 							if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
 								?>
 								<li><a target="_blank"
-								       href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo( 'donate-to-plugin', $api->slug ); ?> &#187;</a>
+								       href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?> &#187;</a>
 								</li>
 							<?php } ?>
 					</ul>
 				</div>
 				<?php if ( ! empty( $api->rating ) ) { ?>
-					<h3><?php fs_echo( 'average-rating', $api->slug ); ?></h3>
+					<h3><?php fs_echo_inline( 'Average Rating', 'average-rating', $api->slug ); ?></h3>
 					<?php wp_star_rating( array(
 						'rating' => $api->rating,
 						'type'   => 'percent',
 						'number' => $api->num_ratings
 					) ); ?>
-					<small>(<?php printf(
-							fs_text( 'based-on-x', $api->slug ),
+					<small>(<?php echo esc_html( sprintf(
+							fs_text_inline( 'based on %s', 'based-on-x', $api->slug ),
 							sprintf(
-								fs_text( ( 1 == $api->num_ratings ) ? 'x-rating' : 'x-ratings', $api->slug ),
+								( ( 1 == $api->num_ratings ) ?
+									/* translators: %s: 1 or One */
+									fs_text_inline( '%s rating', 'x-rating', $api->slug ) :
+									/* translators: %s: Number larger than 1 */
+									fs_text_inline( '%s ratings', 'x-ratings', $api->slug )
+								),
 								number_format_i18n( $api->num_ratings )
-							) ); ?>)</small>
+							) ) ) ?>)</small>
 					<?php
 				}
 
@@ -858,7 +889,12 @@
 							// Avoid div-by-zero.
 							$_rating = $api->num_ratings ? ( $ratecount / $api->num_ratings ) : 0;
 							$stars_label = sprintf(
-								fs_text( ( 1 == $key ) ? 'x-star' : 'x-stars', $api->slug ),
+								( ( 1 == $key ) ?
+									/* translators: %s: 1 or One */
+									fs_text_inline( '%s star', 'x-star', $api->slug ) :
+									/* translators: %s: Number larger than 1 */
+									fs_text_inline( '%s stars', 'x-stars', $api->slug )
+								),
 								number_format_i18n( $key )
 							);
 							?>
@@ -866,7 +902,11 @@
 					<span class="counter-label"><a
 							href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
 							target="_blank"
-							title="<?php echo esc_attr( sprintf( fs_text('click-to-reviews', $api->slug), $stars_label) ) ?>"><?php echo $stars_label ?></a></span>
+							title="<?php echo esc_attr( sprintf(
+								/* translators: %s: # of stars (e.g. 5 stars) */
+								fs_text_inline( 'Click to see reviews that provided a rating of %s', 'click-to-reviews', $api->slug ),
+								$stars_label
+							) ) ?>"><?php echo $stars_label ?></a></span>
 								<span class="counter-back">
 						<span class="counter-bar" style="width: <?php echo 92 * $_rating; ?>px;"></span>
 					</span>
@@ -877,7 +917,7 @@
 					}
 					if ( ! empty( $api->contributors ) ) {
 						?>
-						<h3><?php fs_echo( 'contributors', $api->slug ); ?></h3>
+						<h3><?php fs_echo_inline( 'Contributors', 'contributors', $api->slug ); ?></h3>
 						<ul class="contributors">
 							<?php
 								foreach ( (array) $api->contributors as $contrib_username => $contrib_profile ) {
@@ -898,16 +938,16 @@
 						</ul>
 						<?php if ( ! empty( $api->donate_link ) ) { ?>
 							<a target="_blank"
-							   href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo( 'donate-to-plugin', $api->slug ) ?> &#187;</a>
+							   href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?> &#187;</a>
 						<?php } ?>
 					<?php } ?>
 			</div>
 			<div id="section-holder" class="wrap">
 			<?php
 			if ( ! empty( $api->tested ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->tested ) ), $api->tested, '>' ) ) {
-				echo '<div class="notice notice-warning"><p>' . '<strong>' . fs_text( 'warning:', $api->slug ) . '</strong> ' . fs_text( 'not-tested-warning', $api->slug ) . '</p></div>';
+				echo '<div class="notice notice-warning"><p>' . '<strong>' . fs_text_inline( 'Warning', 'warning', $api->slug ) . ':</strong> ' . fs_text_inline( 'This plugin has not been tested with your current version of WordPress.', 'not-tested-warning', $api->slug ) . '</p></div>';
 			} else if ( ! empty( $api->requires ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $api->requires ) ), $api->requires, '<' ) ) {
-				echo '<div class="notice notice-warning"><p>' . '<strong>' . fs_text( 'warning:', $api->slug ) . '</strong> ' . fs_text( 'not-compatible-warning', $api->slug ) . '</p></div>';
+				echo '<div class="notice notice-warning"><p>' . '<strong>' . fs_text_inline( 'Warning', 'warning', $api->slug ) . ':</strong> ' . fs_text_inline( 'This plugin has not been marked as compatible with your version of WordPress.', 'not-compatible-warning', $api->slug ) . '</p></div>';
 			}
 
 			foreach ( (array) $api->sections as $section_name => $content ) {
@@ -925,7 +965,9 @@
 					$missing_notice = array(
 						'type'    => 'error',
 						'id'      => md5( microtime() ),
-						'message' => fs_text( ( $api->is_paid ? 'paid-addon-not-deployed' : 'free-addon-not-deployed' ), $api->slug ),
+						'message' => $api->is_paid ?
+							fs_text_inline( 'Paid add-on must be deployed to Freemius.', 'paid-addon-not-deployed', $api->slug ) :
+							fs_text_inline( 'Add-on must be deployed to WordPress.org or Freemius.', 'free-addon-not-deployed', $api->slug ),
 					);
 					fs_require_template( 'admin-notice.php', $missing_notice );
 				}

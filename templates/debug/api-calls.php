@@ -50,8 +50,10 @@
 	$encode = 'json_encode';
 
 	$root_path_len = strlen( ABSPATH );
+
+	$ms_text = fs_text_x_inline( 'ms', 'milliseconds' );
 ?>
-<h1><?php fs_echo( 'API' ) ?></h1>
+<h1><?php fs_echo_inline( 'API' ) ?></h1>
 
 <h2><span>Total Time:</span><?php echo Freemius_Debug_Bar_Panel::total_time() ?></h2>
 
@@ -63,16 +65,16 @@
 	<thead>
 	<tr>
 		<th>#</th>
-		<th><?php fs_echo( 'Method' ) ?></th>
-		<th><?php fs_echo( 'Code' ) ?></th>
-		<th><?php fs_echo( 'Length' ) ?></th>
-		<th><?php fs_echo( 'Path' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Method' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Code' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Length' ) ?></th>
+		<th><?php fs_esc_html_echo_x_inline( 'Path', 'as file/folder path' ) ?></th>
 		<?php if ( $show_body ) : ?>
-			<th><?php fs_echo( 'Body' ) ?></th>
+			<th><?php fs_esc_html_echo_inline( 'Body' ) ?></th>
 		<?php endif ?>
-		<th><?php fs_echo( 'Result' ) ?></th>
-		<th><?php fs_echo( 'Start' ) ?></th>
-		<th><?php fs_echo( 'End' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Result' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'Start' ) ?></th>
+		<th><?php fs_esc_html_echo_inline( 'End' ) ?></th>
 	</tr>
 	</thead>
 	<tbody>
@@ -81,7 +83,7 @@
 			<td><?php echo $log['id'] ?>.</td>
 			<td><?php echo $log['method'] ?></td>
 			<td><?php echo $log['code'] ?></td>
-			<td><?php echo number_format( 100 * $log['total'], 2 ) . ' ' . fs_text( 'ms' ) ?></td>
+			<td><?php echo number_format( 100 * $log['total'], 2 ) . ' ' . $ms_text ?></td>
 			<td>
 				<?php
 					printf( '<a href="#" onclick="jQuery(this).parent().find(\'table\').toggle(); return false;">%s</a>',
@@ -145,8 +147,8 @@
 				?>
 				<pre<?php if ( $is_not_empty_result ) : ?> style="display: none"<?php endif ?>><code><?php echo esc_html( $result ) ?></code></pre>
 			</td>
-			<td><?php echo number_format( 100 * ( $log['start'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text( 'ms' ) ?></td>
-			<td><?php echo number_format( 100 * ( $log['end'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . fs_text( 'ms' ) ?></td>
+			<td><?php echo number_format( 100 * ( $log['start'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . $ms_text ?></td>
+			<td><?php echo number_format( 100 * ( $log['end'] - WP_FS__SCRIPT_START_TIME ), 2 ) . ' ' . $ms_text ?></td>
 		</tr>
 	<?php endforeach ?>
 	</tbody>
