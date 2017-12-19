@@ -303,9 +303,18 @@
          *
          * @since 1.2.3
          *
+         * @var bool
+         */
+        private $_is_multisite;
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 1.2.3
+         *
          * @var bool True if the current request is for a network admin screen and the plugin is network active.
          */
-        private $is_network_active;
+        private $_is_network_active;
 
 		#region Uninstall Reasons IDs
 
@@ -349,16 +358,26 @@
 			$this->_slug        = $this->get_slug();
 			$this->_module_type = $this->get_module_type();
 
-			$this->_storage = FS_Key_Value_Storage::instance( $this->_module_type . '_data', $this->_slug );
-			$this->_cache   = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
+			$this->_is_multisite = is_multisite();
+
+            $this->_storage = FS_Storage::instance(
+                $this->_module_type,
+                $this->_slug,
+                ( WP_FS__MODULE_TYPE_THEME === $this->_module_type ),
+                $this->_is_multisite
+            );
+
+			$this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
 			$this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
 			$this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
 			$this->_plugin_basename       = $this->get_plugin_basename();
-			$this->is_network_active      = ( is_network_admin() && is_plugin_active_for_network( $this->_plugin_basename ) );
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
+
+            $this->_is_network_active = is_plugin_active_for_network( $this->_plugin_basename );
+            $this->_storage->set_network_mode( $this->_is_network_active );
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
 			$this->_plugin_dir_name = $base_name_split[0];

@@ -80,7 +80,7 @@
 		 * @return FS_Key_Value_Storage
 		 */
 		static function instance( $id, $secondary_id, $is_multisite = false ) {
-			$key = $id . ':' . $secondary_id;
+            $key = $id . ':' . $secondary_id . ( $is_multisite ? ':ms' : '' );
 			if ( ! isset( self::$_instances[ $key ] ) ) {
 				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $is_multisite );
 			}

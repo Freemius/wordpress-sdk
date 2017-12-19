@@ -76,14 +76,16 @@
 		static function get_manager( $id, $load = false, $is_multisite = false ) {
 			$id = strtolower( $id );
 
-			if ( ! isset( self::$_MANAGERS[ $id ] ) ) {
-				self::$_MANAGERS[ $id ] = new FS_Option_Manager( $id, $load, $is_multisite );
+            $key = $id . ( $is_multisite ? ':ms' : '' );
+
+			if ( ! isset( self::$_MANAGERS[ $key ] ) ) {
+				self::$_MANAGERS[ $key ] = new FS_Option_Manager( $id, $load, $is_multisite );
 			} // If load required but not yet loaded, load.
-			else if ( $load && ! self::$_MANAGERS[ $id ]->is_loaded() ) {
-				self::$_MANAGERS[ $id ]->load();
+			else if ( $load && ! self::$_MANAGERS[ $key ]->is_loaded() ) {
+				self::$_MANAGERS[ $key ]->load();
 			}
 
-			return self::$_MANAGERS[ $id ];
+			return self::$_MANAGERS[ $key ];
 		}
 
 		private function _get_option_manager_name() {
