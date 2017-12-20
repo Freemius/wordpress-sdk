@@ -377,7 +377,10 @@
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
             $this->_is_network_active = is_plugin_active_for_network( $this->_plugin_basename );
-            $this->_storage->set_network_mode( $this->_is_network_active );
+
+            if ( $this->is_plugin() && $this->_is_network_active ) {
+                $this->_storage->set_network_active();
+            }
 
 			$base_name_split        = explode( '/', $this->_plugin_basename );
 			$this->_plugin_dir_name = $base_name_split[0];

@@ -127,12 +127,56 @@
 		}
 
         /**
+         * Tells this storage wrapper class that the context plugin is network active. This flag will affect how values
+         * are retrieved/stored from/into the storage.
+         *
+         * @author Leo Fajardo (@leorw)
+         */
+		function set_network_active() {
+            $this->_is_network_active = true;
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
-         * @param bool $is_network_active
+         * @param string $key
+         * @param mixed  $value
+         * @param bool   $flush
          */
-		function set_network_mode( $is_network_active ) {
-            $this->_is_network_active = $is_network_active;
+        function store( $key, $value, $flush = true ) {
+            if ( $this->is_multisite_storage( $key ) ) {
+                $this->_network_storage->store( $key, $value, $flush );
+            } else {
+                $this->_storage->store( $key, $value, $flush );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param bool     $store
+         * @param string[] $exceptions Set of keys to keep and not clear.
+         */
+        function clear_all( $store = true, $exceptions = array() ) {
+            $this->_storage->clear_all( $store, $exceptions );
+
+            if ( $this->is_multisite ) {
+                $this->_network_storage->clear_all( $store, $exceptions );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param string $key
+         * @param bool   $store
+         */
+        function remove( $key, $store = true ) {
+            if ( $this->is_multisite_storage( $key ) ) {
+                $this->_network_storage->remove( $key, $store );
+            } else {
+                $this->_storage->remove( $key, $store );
+            }
         }
 
         /**
@@ -187,11 +231,9 @@
         }
 
         function __isset( $k ) {
-            if ( $this->is_multisite_storage( $k ) ) {
-                return isset( $this->_network_storage->{ $k } );
-            } else {
-                return isset( $this->_storage->{ $k } );
-            }
+            return $this->is_multisite_storage( $k ) ?
+                isset( $this->_network_storage->{ $k } ) :
+                isset( $this->_storage->{ $k } );
         }
 
         function __unset( $k ) {
@@ -203,11 +245,9 @@
         }
 
         function __get( $k ) {
-            if ( $this->is_multisite_storage( $k ) ) {
-                return $this->_network_storage->{ $k };
-            } else {
-                return $this->_storage->{ $k };
-            }
+            return $this->is_multisite_storage( $k ) ?
+                $this->_network_storage->{ $k } :
+                $this->_storage->{ $k };
         }
 
         # endregion Magic methods
