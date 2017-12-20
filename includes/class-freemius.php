@@ -834,6 +834,7 @@
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
 			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+			add_action( 'admin_init', array( &$this, '_add_network_activation' ) );
 			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
 			$this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
 			$this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -7119,6 +7120,22 @@
 		}
 
 		/**
+		 * Includes all required UI and logic for the network activation dialog.
+		 *
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.3
+		 */
+		function _add_network_activation() {
+			if ( ! is_super_admin( get_current_user_id() ) || ! $this->is_user_admin() ) {
+				// Only super admins can network activate a plugin.
+				return;
+			}
+
+			// Add activation AJAX callback.
+			$this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
+		}
+
+		/**
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.1.9
 		 */
@@ -7165,6 +7182,52 @@
 					$error = $next_page->error;
 				}
 			}
+
+			$result = array(
+				'success' => ( false === $error )
+			);
+
+			if ( false !== $error ) {
+				$result['error'] = $error;
+			} else {
+				$result['next_page'] = $next_page;
+			}
+
+			echo json_encode( $result );
+
+			exit;
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  1.2.3
+		 */
+		function _network_activate_ajax_action() {
+            $this->_logger->entrance();
+
+			$this->check_ajax_referer( 'network_activate' );
+
+			$plugin_id = fs_request_get( 'module_id', '', 'post' );
+			$fs        = ( $plugin_id == $this->_module_id ) ?
+				$this :
+				$this->get_addon_instance( $plugin_id );
+
+			$error     = false;
+            $next_page = $fs->opt_in(
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                // Network level opt-in
+                true
+            );
+
+            if ( isset( $next_page->error ) ) {
+                $error = $next_page->error;
+            }
 
 			$result = array(
 				'success' => ( false === $error )
@@ -8053,7 +8116,7 @@
 			) ), $this->admin_url( 'admin.php', 'admin' ) );
 		}
 
-		#region Multi-site
+		#region Multisite
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -8061,7 +8124,7 @@
          * @return bool
          */
 		function is_network_active() {
-		    return $this->is_network_active;
+		    return $this->_is_network_active;
         }
 
         /**
@@ -8077,14 +8140,12 @@
                 // For WP 3.7 to WP 4.5.
 		        return wp_get_sites();
             } else {
-                global $wpdb;
-
                 // For WP 3.6 and below.
-                return $wpdb->get_results( "SELECT * FROM {$wpdb->blogs} WHERE site_id = {$wpdb->siteid}" );
+                return get_blog_list( 0, 'all' );
             }
         }
 
-        #endregion Multi-site
+        #endregion Multisite
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -8093,7 +8154,7 @@
          * @param string $scheme
          */
 		private function admin_url( $path = '', $scheme = 'admin' ) {
-            return ( $this->is_network_active ) ?
+            return ( $this->_is_network_active ) ?
                 network_admin_url( $path, $scheme ) :
                 admin_url( $path, $scheme );
         }
@@ -8556,10 +8617,11 @@
 		 * @since  1.1.7.4
 		 *
 		 * @param array $override_with
+         * @param bool  $is_network    If true, return params for network level opt-in.
 		 *
 		 * @return array
 		 */
-		function get_opt_in_params( $override_with = array() ) {
+        function get_opt_in_params( $override_with = array(), $is_network = false ) {
 			$this->_logger->entrance();
 
 			$current_user = self::_get_current_wp_user();
@@ -8586,18 +8648,64 @@
 					'account',
 					array( 'fs_action' => 'sync_user' )
 				), 'sync_user' ),
-				'site_uid'                     => $this->get_anonymous_id(),
-				'site_url'                     => get_site_url(),
-				'site_name'                    => get_bloginfo( 'name' ),
 				'platform_version'             => get_bloginfo( 'version' ),
 				'sdk_version'                  => $this->version,
 				'programming_language_version' => phpversion(),
-				'language'                     => get_bloginfo( 'language' ),
-				'charset'                      => get_bloginfo( 'charset' ),
 				'is_premium'                   => $this->is_premium(),
 				'is_active'                    => true,
 				'is_uninstalled'               => false,
 			);
+
+			$params['sites'] = array();
+
+            if ( $is_network ) {
+			    $sites = $this->get_sites();
+
+                $previous_blog_id = get_current_blog_id();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = ( $site instanceof WP_Site ) ?
+                        $site->blog_id :
+                        $site['blog_id'];
+
+                    switch_to_blog( $blog_id );
+
+                    if ( $site instanceof WP_Site ) {
+                        $url  = $site->siteurl;
+                        $name = $site->blogname;
+                    } else {
+                        $url  = get_site_url( $blog_id );
+                        $name = get_bloginfo( 'name' );
+                    }
+
+                    $site_info = array(
+                        'uid'      => $this->get_anonymous_id(),
+                        'url'      => $url,
+                        'name'     => $name,
+                        'language' => get_bloginfo( 'language' ),
+                        'charset'  => get_bloginfo( 'charset' ),
+                    );
+
+                    $params['sites'][ 's_' . $site->blog_id ] = $site_info;
+                }
+
+                /**
+                 * Restore previous blog
+                 *
+                 * @author Leo Fajardo
+                 */
+                switch_to_blog( $previous_blog_id );
+			}
+			else
+            {
+                $params = array_merge( $params, array(
+                    'site_uid'  => $this->get_anonymous_id(),
+                    'site_url'  => get_site_url(),
+                    'site_name' => get_bloginfo( 'name' ),
+                    'language'  => get_bloginfo( 'language' ),
+                    'charset'   => get_bloginfo( 'charset' ),
+                ) );
+            }
 
 			if ( $this->is_pending_activation() &&
 			     ! empty( $this->_storage->pending_license_key )
@@ -8639,6 +8747,7 @@
 		 *                                        data will be saved to the WP installation's database.
 		 * @param number|bool $trial_plan_id
 		 * @param bool        $is_disconnected Whether or not to opt in without tracking.
+         * @param bool        $is_network      If true, this is a network level opt-in.
 		 *
 		 * @return string|object
 		 * @use    WP_Error
@@ -8650,7 +8759,8 @@
 			$license_key = false,
 			$is_uninstall = false,
 			$trial_plan_id = false,
-            $is_disconnected = false
+            $is_disconnected = false,
+            $is_network = false
 		) {
 			$this->_logger->entrance();
 
@@ -8686,7 +8796,7 @@
 				$user_info['user_lastname'] = $last;
 			}
 
-			$params = $this->get_opt_in_params( $user_info );
+            $params = $this->get_opt_in_params( $user_info, $is_network );
 
 			$filtered_license_key = false;
 			if ( is_string( $license_key ) ) {
@@ -8711,7 +8821,7 @@
 					 * If opting in with a context license and the context WP Admin user already opted in
 					 * before from the current site, add the user context security params to avoid the
 					 * unnecessry email activation when the context license is owned by the same context user.
-					 * 
+					 *
 					 * @author Leo Fajardo (@leorw)
 					 * @since 1.2.3
 					 */

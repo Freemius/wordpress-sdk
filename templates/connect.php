@@ -192,16 +192,17 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
 				</div>
 			<?php endif ?>
+            <?php $optin_params = $fs->get_opt_in_params( array(), $fs->is_network_active() ) ?>
+            <?php $sites        = $optin_params['sites'] ?>
             <?php if ( $fs->is_network_active() ) : ?>
-                <?php $sites    = $fs->get_sites() ?>
-                <?php $has_site = ( ! empty( $sites ) ) ?>
+                <?php $has_many_sites = ( count( $sites ) > 1 ) ?>
                 <div id="multisite_options_container" class="apply-on-all-sites">
                     <table id="all_sites_options">
                         <tbody>
                             <tr>
                                 <td width="600">
                                     <label>
-                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_site ) ?>><?php fs_esc_html_echo_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug ) ?>
+                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_many_sites ) ?>><?php fs_esc_html_echo_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug ) ?>
                                     </label>
                                 </td>
                                 <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
@@ -210,34 +211,20 @@
                             </tr>
                         </tbody>
                     </table>
-                    <?php if ( $has_site ) : ?>
+                    <?php if ( $has_many_sites ) : ?>
                     <div id="sites_list_container">
                         <table cellspacing="0">
                             <tbody>
-                            <?php foreach ( $sites as $site ) : ?>
-                                <?php
-                                    /**
-                                     * In case `wp_get_sites` was used to retrieve the sites, `$sites` is an array of
-                                     * arrays. In the other cases, it is an array of objects.
-                                     *
-                                     * @author Leo Fajardo (@leorw)
-                                     */
-                                    $blog_id = is_array( $site ) ?
-                                        $site['blog_id'] :
-                                        $site->blog_id;
-
-                                    $site_url = ( $site instanceof WP_Site ) ?
-                                        $site->siteurl :
-                                        get_site_url( $blog_id );
-                                    ?>
+                            <?php foreach ( $sites as $site_key => $site ) : ?>
+                                <?php $blog_id = str_replace( 's_', '', $site_key ) ?>
                                 <tr>
                                     <td><?php echo $blog_id ?></td>
-                                    <td width="600"><?php echo $site_url ?></td>
+                                    <td width="600"><?php echo $site['url'] ?></td>
                                     <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                                     <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
                                     <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
                                 </tr>
-                                <?php endforeach ?>
+                            <?php endforeach ?>
                             </tbody>
                         </table>
                     </div>
@@ -263,10 +250,15 @@
 				</form>
 			<?php else : ?>
 				<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
-					<?php $params = $fs->get_opt_in_params() ?>
-					<?php foreach ( $params as $name => $value ) : ?>
+                    <?php unset( $optin_params['sites']) ?>
+					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
+                    <?php foreach ( $sites as $site_key => $site_details ) : ?>
+                        <?php foreach ( $site_details as $name => $value ) : ?>
+                           <input type="hidden" name="sites[<?php echo $site_key ?>][<?php echo $name ?>]" value="<?php echo esc_attr( $value ) ?>">
+                        <?php endforeach ?>
+                    <?php endforeach ?>
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
@@ -521,13 +513,17 @@
             $primaryCta.text( text );
         }
 
+        var ajaxOptin = ( requireLicenseKey || isNetworkActive );
+
 		$form.on('submit', function () {
 			/**
 			 * @author Vova Feldman (@svovaf)
 			 * @since 1.1.9
 			 */
-			if (requireLicenseKey) {
+			if ( ajaxOptin ) {
 				if (!hasContextUser) {
+				    <?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
+
 					$('.fs-error').remove();
 
 					/**
@@ -541,8 +537,8 @@
 						url    : ajaxurl,
 						method : 'POST',
 						data   : {
-							action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
-							security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
+							action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
+							security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
 							license_key: $licenseKeyInput.val(),
 							module_id  : '<?php echo $fs->get_id() ?>'
 						},
