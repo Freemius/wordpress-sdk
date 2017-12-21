@@ -1712,6 +1712,16 @@
 			);
 		}
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3.1
+         *
+         * @return bool
+         */
+        private function is_network_activation_mode() {
+            return ( $this->_is_network_active && $this->is_activation_mode() );
+        }
+
 		/**
 		 * Check if current page is the opt-in/pending-activation page.
 		 *
@@ -4528,6 +4538,12 @@
 
 							return;
 						}
+
+						if ( ! is_network_admin() &&
+                            $this->is_network_activation_mode()
+                        ) {
+						    return;
+                        }
 
 						if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
 							// Show notice for new plugin installations.
@@ -9495,7 +9511,9 @@
 //				return;
 //			}
 
-			if ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) {
+			if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
+                ( ! is_network_admin() && $this->is_network_activation_mode() )
+            ) {
 				$this->_menu->remove_menu_item();
 			} else {
 				$this->do_action( 'before_admin_menu_init' );
