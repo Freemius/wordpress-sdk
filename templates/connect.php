@@ -544,7 +544,8 @@
 							action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
 							security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
 							license_key: $licenseKeyInput.val(),
-							module_id  : '<?php echo $fs->get_id() ?>'
+							module_id  : '<?php echo $fs->get_id() ?>',
+                            network    : isNetworkActive
 						},
 						success: function (result) {
 							var resultObj = $.parseJSON(result);

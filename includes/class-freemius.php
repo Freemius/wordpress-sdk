@@ -301,7 +301,7 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @since 1.2.3
+         * @since 1.2.3.1
          *
          * @var bool
          */
@@ -310,7 +310,7 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @since 1.2.3
+         * @since 1.2.3.1
          *
          * @var bool True if the current request is for a network admin screen and the plugin is network active.
          */
@@ -834,7 +834,7 @@
 			add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
 			add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
-			add_action( 'admin_init', array( &$this, '_add_network_activation' ) );
+            add_action( 'admin_init', array( &$this, '_add_network_activation' ) );
 			add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
 			$this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
 			$this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -2470,7 +2470,7 @@
 
 			return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
 		}
-		
+
 		/**
 		 * Generate API connectivity issue message.
 		 *
@@ -3984,7 +3984,7 @@
 			     ! $this->has_features_enabled_license() &&
 			     ! $this->_has_premium_license()
 			) {
-				if ( $this->is_registered() ) {				
+				if ( $this->is_registered() ) {
 					// IF wrapper is turned off because activation_timestamp is currently only stored for plugins (not addons).
 	//                if (empty($this->_storage->activation_timestamp) ||
 	//                    (WP_FS__SCRIPT_START_TIME - $this->_storage->activation_timestamp) > 30
@@ -7135,21 +7135,21 @@
 			$this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
 		}
 
-		/**
-		 * Includes all required UI and logic for the network activation dialog.
-		 *
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.3
-		 */
-		function _add_network_activation() {
-			if ( ! is_super_admin( get_current_user_id() ) || ! $this->is_user_admin() ) {
-				// Only super admins can network activate a plugin.
-				return;
-			}
+        /**
+         * Includes all required UI and logic for the network activation dialog.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.3.1
+         */
+        function _add_network_activation() {
+            if ( ! is_super_admin( get_current_user_id() ) || ! $this->is_user_admin() ) {
+                // Only super admins can network activate a plugin.
+                return;
+            }
 
-			// Add activation AJAX callback.
-			$this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
-		}
+            // Add activation AJAX callback.
+            $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
+        }
 
 		/**
 		 * @author Leo Fajardo (@leorw)
@@ -7192,7 +7192,16 @@
                     $fs->reconnect_locally();
 				}
 			} else {
-				$next_page = $fs->opt_in( false, false, false, $license_key );
+				$next_page = $fs->opt_in(
+                    false,
+                    false,
+                    false,
+                    $license_key,
+                    false,
+                    false,
+                    false,
+                    fs_request_get( 'network', false, 'post' )
+                );
 
 				if ( isset( $next_page->error ) ) {
 					$error = $next_page->error;
@@ -7214,21 +7223,21 @@
 			exit;
 		}
 
-		/**
-		 * @author Leo Fajardo (@leorw)
-		 * @since  1.2.3
-		 */
-		function _network_activate_ajax_action() {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.3.1
+         */
+        function _network_activate_ajax_action() {
             $this->_logger->entrance();
 
-			$this->check_ajax_referer( 'network_activate' );
+            $this->check_ajax_referer( 'network_activate' );
 
-			$plugin_id = fs_request_get( 'module_id', '', 'post' );
-			$fs        = ( $plugin_id == $this->_module_id ) ?
-				$this :
-				$this->get_addon_instance( $plugin_id );
+            $plugin_id = fs_request_get( 'module_id', '', 'post' );
+            $fs        = ( $plugin_id == $this->_module_id ) ?
+                $this :
+                $this->get_addon_instance( $plugin_id );
 
-			$error     = false;
+            $error     = false;
             $next_page = $fs->opt_in(
                 false,
                 false,
@@ -7245,20 +7254,20 @@
                 $error = $next_page->error;
             }
 
-			$result = array(
-				'success' => ( false === $error )
-			);
+            $result = array(
+                'success' => ( false === $error )
+            );
 
-			if ( false !== $error ) {
-				$result['error'] = $error;
-			} else {
-				$result['next_page'] = $next_page;
-			}
+            if ( false !== $error ) {
+                $result['error'] = $error;
+            } else {
+                $result['next_page'] = $next_page;
+            }
 
-			echo json_encode( $result );
+            echo json_encode( $result );
 
-			exit;
-		}
+            exit;
+        }
 
 		/**
 		 * Billing update AJAX callback.
@@ -8132,29 +8141,31 @@
 			) ), $this->admin_url( 'admin.php', 'admin' ) );
 		}
 
-		#region Multisite
+        #region Multisite
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since 1.2.3.1
          *
          * @return bool
          */
-		function is_network_active() {
-		    return $this->_is_network_active;
+        function is_network_active() {
+            return $this->_is_network_active;
         }
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since 1.2.3.1
          *
          * @return array Sites collection.
          */
         function get_sites() {
-		    if ( function_exists( 'get_sites' ) ) {
-		        // For WP 4.6 and above.
-		        return get_sites();
+            if ( function_exists( 'get_sites' ) ) {
+                // For WP 4.6 and above.
+                return get_sites();
             } else if ( function_exists( 'wp_get_sites' ) ) {
                 // For WP 3.7 to WP 4.5.
-		        return wp_get_sites();
+                return wp_get_sites();
             } else {
                 // For WP 3.6 and below.
                 return get_blog_list( 0, 'all' );
@@ -8672,10 +8683,10 @@
 				'is_uninstalled'               => false,
 			);
 
-			$params['sites'] = array();
+            $params['sites'] = array();
 
             if ( $is_network ) {
-			    $sites = $this->get_sites();
+                 $sites = $this->get_sites();
 
                 $previous_blog_id = get_current_blog_id();
 
@@ -8711,8 +8722,8 @@
                  * @author Leo Fajardo
                  */
                 switch_to_blog( $previous_blog_id );
-			}
-			else
+            }
+            else
             {
                 $params = array_merge( $params, array(
                     'site_uid'  => $this->get_anonymous_id(),
