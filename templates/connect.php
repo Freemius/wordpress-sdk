@@ -107,7 +107,7 @@
 		}
 	?>
 	<div id="fs_connect"
-	     class="wrap<?php if ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) {
+	     class="wrap<?php if ( ! $fs->is_network_active() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
 		     echo ' fs-anonymous-disabled';
 	     } ?>">
 		<div class="fs-visual">
@@ -207,7 +207,9 @@
                                 </td>
                                 <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                                 <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                <?php if ( $fs->is_enable_anonymous() ) : ?>
                                 <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                <?php endif ?>
                             </tr>
                         </tbody>
                     </table>
@@ -222,7 +224,9 @@
                                     <td width="600"><?php echo $site['url'] ?></td>
                                     <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                                     <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                    <?php if ( $fs->is_enable_anonymous() ) : ?>
                                     <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                    <?php endif ?>
                                 </tr>
                             <?php endforeach ?>
                             </tbody>
