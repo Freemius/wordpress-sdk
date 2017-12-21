@@ -99,11 +99,15 @@
                             <?php if ( $affiliate->is_active() ) : ?>
                                 <div class="updated">
                                     <p><strong><?php
-                                        echo esc_html( sprintf(
-                                            fs_text_inline( "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s.", 'affiliate-application-accepted', $slug ),
+                                        echo sprintf(
+                                            fs_esc_html_inline( "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s.", 'affiliate-application-accepted', $slug ),
                                             $plugin_title,
-                                            sprintf( '<a href="%s" target="_blank">%s</a>', $members_dashboard_login_url, $members_dashboard_login_url )
-                                        ) );
+                                            sprintf(
+                                                '<a href="%s" target="_blank">%s</a>',
+                                                $members_dashboard_login_url,
+                                                $members_dashboard_login_url
+                                            )
+                                        );
                                     ?></strong></p>
                                 </div>
                             <?php else : ?>
