@@ -254,7 +254,7 @@
 		private static $_static_logger;
 
 		/**
-		 * @var FS_Option_Manager
+		 * @var FS_Option
 		 * @since 1.0.2
 		 */
 		private static $_accounts;
@@ -1913,7 +1913,7 @@
 
 			self::$_static_logger->entrance();
 
-			self::$_accounts = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			self::$_accounts = FS_Option::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
 			self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
@@ -8172,6 +8172,20 @@
             }
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param int  $blog_id
+         * @param bool $flush_options
+         */
+        function switch_to_blog( $blog_id, $flush_options = false ) {
+            switch_to_blog( $blog_id );
+
+            if ( $flush_options ) {
+                self::$_accounts->load( true, false );
+            }
+        }
+
         #endregion Multisite
 
         /**
@@ -8688,14 +8702,14 @@
             if ( $is_network ) {
                  $sites = $this->get_sites();
 
-                $previous_blog_id = get_current_blog_id();
+                $current_blog_id = get_current_blog_id();
 
                 foreach ( $sites as $site ) {
                     $blog_id = ( $site instanceof WP_Site ) ?
                         $site->blog_id :
                         $site['blog_id'];
 
-                    switch_to_blog( $blog_id );
+                    $this->switch_to_blog( $blog_id, true );
 
                     if ( $site instanceof WP_Site ) {
                         $url  = $site->siteurl;
@@ -8721,7 +8735,7 @@
                  *
                  * @author Leo Fajardo
                  */
-                switch_to_blog( $previous_blog_id );
+                $this->switch_to_blog( $current_blog_id, true );
             }
             else
             {

@@ -258,11 +258,6 @@
 					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
-                    <?php foreach ( $sites as $site_key => $site_details ) : ?>
-                        <?php foreach ( $site_details as $name => $value ) : ?>
-                           <input type="hidden" name="sites[<?php echo $site_key ?>][<?php echo $name ?>]" value="<?php echo esc_attr( $value ) ?>">
-                        <?php endforeach ?>
-                    <?php endforeach ?>
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
