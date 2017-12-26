@@ -7237,21 +7237,27 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $error     = false;
-            $next_page = $fs->opt_in(
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                // Network level opt-in
-                true
-            );
+            $error = false;
 
-            if ( isset( $next_page->error ) ) {
-                $error = $next_page->error;
+            $sites = fs_request_get( 'sites', array(), 'post' );
+            if ( is_array( $sites ) && ! empty( $sites ) ) {
+                $next_page = $fs->opt_in(
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    // Network level opt-in
+                    true
+                );
+
+                if ( isset( $next_page->error ) ) {
+                    $error = $next_page->error;
+                }
+            } else {
+                $error = $this->get_text_inline( 'invalid_site_details_collection', 'Invalid site details collection.' );
             }
 
             $result = array(
@@ -8697,45 +8703,47 @@
 				'is_uninstalled'               => false,
 			);
 
-            $params['sites'] = array();
-
             if ( $is_network ) {
-                 $sites = $this->get_sites();
+                if ( ! isset( $override_with['sites'] ) ) {
+                    $params['sites'] = array();
 
-                $current_blog_id = get_current_blog_id();
+                    $sites = $this->get_sites();
 
-                foreach ( $sites as $site ) {
-                    $blog_id = ( $site instanceof WP_Site ) ?
-                        $site->blog_id :
-                        $site['blog_id'];
+                    $current_blog_id = get_current_blog_id();
 
-                    $this->switch_to_blog( $blog_id, true );
+                    foreach ( $sites as $site ) {
+                        $blog_id = ( $site instanceof WP_Site ) ?
+                            $site->blog_id :
+                            $site['blog_id'];
 
-                    if ( $site instanceof WP_Site ) {
-                        $url  = $site->siteurl;
-                        $name = $site->blogname;
-                    } else {
-                        $url  = get_site_url( $blog_id );
-                        $name = get_bloginfo( 'name' );
+                        $this->switch_to_blog( $blog_id, true );
+
+                        if ( $site instanceof WP_Site ) {
+                            $url  = $site->siteurl;
+                            $name = $site->blogname;
+                        } else {
+                            $url  = get_site_url( $blog_id );
+                            $name = get_bloginfo( 'name' );
+                        }
+
+                        $site_info = array(
+                            'uid'      => $this->get_anonymous_id(),
+                            'url'      => $url,
+                            'name'     => $name,
+                            'language' => get_bloginfo( 'language' ),
+                            'charset'  => get_bloginfo( 'charset' ),
+                        );
+
+                        $params['sites'][ 's_' . $site->blog_id ] = $site_info;
                     }
 
-                    $site_info = array(
-                        'uid'      => $this->get_anonymous_id(),
-                        'url'      => $url,
-                        'name'     => $name,
-                        'language' => get_bloginfo( 'language' ),
-                        'charset'  => get_bloginfo( 'charset' ),
-                    );
-
-                    $params['sites'][ 's_' . $site->blog_id ] = $site_info;
+                    /**
+                     * Restore previous blog
+                     *
+                     * @author Leo Fajardo
+                     */
+                    $this->switch_to_blog( $current_blog_id, true );
                 }
-
-                /**
-                 * Restore previous blog
-                 *
-                 * @author Leo Fajardo
-                 */
-                $this->switch_to_blog( $current_blog_id, true );
             }
             else
             {
@@ -8788,7 +8796,7 @@
 		 *                                        data will be saved to the WP installation's database.
 		 * @param number|bool $trial_plan_id
 		 * @param bool        $is_disconnected Whether or not to opt in without tracking.
-         * @param bool        $is_network      If true, this is a network level opt-in.
+         * @param bool        $sites              If network-level opt-in, an array of containing details of sites.
 		 *
 		 * @return string|object
 		 * @use    WP_Error
@@ -8801,7 +8809,7 @@
 			$is_uninstall = false,
 			$trial_plan_id = false,
             $is_disconnected = false,
-            $is_network = false
+            $sites = array()
 		) {
 			$this->_logger->entrance();
 
@@ -8836,6 +8844,14 @@
 			if ( ! empty( $last ) ) {
 				$user_info['user_lastname'] = $last;
 			}
+
+			if ( ! empty( $sites ) ) {
+			    $is_network = true;
+
+			    $user_info['sites'] = $sites;
+            } else {
+			    $is_network = false;
+            }
 
             $params = $this->get_opt_in_params( $user_info, $is_network );
 

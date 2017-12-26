@@ -525,6 +525,19 @@
 
 					$('.fs-error').remove();
 
+                    var data = {
+                        action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
+                        security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
+                        license_key: $licenseKeyInput.val(),
+                        module_id  : '<?php echo $fs->get_id() ?>'
+                    };
+
+                    if ( isNetworkActive ) {
+                        var sites = {};
+
+                        data.sites = sites;
+                    }
+
 					/**
 					 * Use the AJAX opt-in when license key is required to potentially
 					 * process the after install failure hook.
@@ -535,13 +548,7 @@
 					$.ajax({
 						url    : ajaxurl,
 						method : 'POST',
-						data   : {
-							action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
-							security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
-							license_key: $licenseKeyInput.val(),
-							module_id  : '<?php echo $fs->get_id() ?>',
-                            network    : isNetworkActive
-						},
+						data   : data,
 						success: function (result) {
 							var resultObj = $.parseJSON(result);
 							if (resultObj.success) {
