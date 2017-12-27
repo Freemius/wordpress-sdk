@@ -7249,8 +7249,7 @@
                     false,
                     false,
                     false,
-                    // Network level opt-in
-                    true
+                    $sites
                 );
 
                 if ( isset( $next_page->error ) ) {
