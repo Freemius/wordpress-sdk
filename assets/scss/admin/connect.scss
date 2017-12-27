@@ -95,6 +95,10 @@ $form_width: 480px;
         table td {
             border-top: 1px solid #ccc;
             padding: 4px 2px;
+
+            &.site-hidden-info {
+                display: none;
+            }
         }
     }
 
