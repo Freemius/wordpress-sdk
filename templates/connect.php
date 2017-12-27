@@ -202,13 +202,20 @@
                             <tr>
                                 <td width="600">
                                     <label>
-                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_many_sites ) ?>><?php fs_esc_html_echo_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug ) ?>
+                                        <?php
+                                            $apply_checkbox_label = $require_license_key ?
+                                                fs_text_inline( 'Activate license on all sites in the network.', 'activate-license-on-all-sites-in-the-network', $slug ) :
+                                                fs_text_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug );
+                                        ?>
+                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_many_sites ) ?>><?php echo esc_html( $apply_checkbox_label ) ?>
                                     </label>
                                 </td>
-                                <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
-                                <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
-                                <?php if ( $fs->is_enable_anonymous() ) : ?>
-                                <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                <?php if ( ! $require_license_key ) : ?>
+                                    <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+                                    <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                    <?php if ( $fs->is_enable_anonymous() ) : ?>
+                                        <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                    <?php endif ?>
                                 <?php endif ?>
                             </tr>
                         </tbody>
@@ -220,12 +227,17 @@
                             <?php foreach ( $sites as $site_key => $site ) : ?>
                                 <?php $blog_id = str_replace( 's_', '', $site_key ) ?>
                                 <tr>
+                                    <?php if ( $require_license_key ) : ?>
+                                        <td><input type="checkbox" value="true" /></td>
+                                    <?php endif ?>
                                     <td class="blog-id"><?php echo $blog_id ?></td>
                                     <td class="url" width="600"><?php echo $site['url'] ?></td>
-                                    <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
-                                    <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
-                                    <?php if ( $fs->is_enable_anonymous() ) : ?>
-                                    <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                    <?php if ( ! $require_license_key ) : ?>
+                                        <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+                                        <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                                        <?php if ( $fs->is_enable_anonymous() ) : ?>
+                                            <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+                                        <?php endif ?>
                                     <?php endif ?>
                                     <td class="site-hidden-info">
                                         <span class="uid"><?php echo $site['uid'] ?></span>
@@ -541,25 +553,21 @@
                     if ( isNetworkActive ) {
                         var sites = {};
 
-                        var applyOnAllSites = $( '#apply_on_all_sites' ).is( ':checked' );
-                        if (applyOnAllSites)
-                        {
-                            $sitesListContainer.find( 'tr' ).each(function() {
-                                var
-                                    $this  = $( this ),
-                                    siteID = $this.find( '.blog-id' ).text(),
-                                    site   = {
-                                        uid     : $this.find( '.uid' ).text(),
-                                        url     : $this.find( '.url' ).text(),
-                                        name    : $this.find( '.name' ).text(),
-                                        language: $this.find( '.language' ).text(),
-                                        charset : $this.find( '.charset' ).text(),
-                                        action  : $this.find( '.action.selected' ).data( 'action-type' )
-                                    };
+                        $sitesListContainer.find( 'tr' ).each(function() {
+                            var
+                                $this  = $( this ),
+                                siteID = $this.find( '.blog-id' ).text(),
+                                site   = {
+                                    uid     : $this.find( '.uid' ).text(),
+                                    url     : $this.find( '.url' ).text(),
+                                    name    : $this.find( '.name' ).text(),
+                                    language: $this.find( '.language' ).text(),
+                                    charset : $this.find( '.charset' ).text(),
+                                    action  : $this.find( '.action.selected' ).data( 'action-type' )
+                                };
 
-                                sites[ 's_' + siteID ] = site;
-                            });
-                        }
+                            sites[ 's_' + siteID ] = site;
+                        });
 
                         data.sites = sites;
                     }
