@@ -105,11 +105,24 @@
          * @param bool $flush
          * @param bool $network_level
          */
-        function load( $flush = false, $network_level ) {
-            if ( $network_level ) {
+        function load( $flush = false, $network_level = true ) {
+            if ( $this->_is_multisite && $network_level ) {
                 $this->_network_options->load( $flush );
             } else {
                 $this->_options->load( $flush );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param bool $network_level
+         */
+        function store( $network_level = true ) {
+            if ( $this->_is_multisite && $network_level ) {
+                $this->_network_options->store();
+            } else {
+                $this->_options->store();
             }
         }
     }

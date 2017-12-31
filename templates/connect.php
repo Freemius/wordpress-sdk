@@ -193,7 +193,7 @@
 				</div>
 			<?php endif ?>
             <?php $optin_params = $fs->get_opt_in_params( array(), $fs->is_network_active() ) ?>
-            <?php $sites        = $optin_params['sites'] ?>
+            <?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
             <?php if ( $fs->is_network_active() ) : ?>
                 <?php $has_many_sites = ( count( $sites ) > 1 ) ?>
                 <div id="multisite_options_container" class="apply-on-all-sites">

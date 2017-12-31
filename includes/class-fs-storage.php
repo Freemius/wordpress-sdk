@@ -201,7 +201,7 @@
          * @return bool
          */
         private function is_multisite_storage( $key ) {
-            if ( ! $this->_is_multisite ) {
+            if ( ! $this->_is_multisite || ! isset( self::$_BINARY_MAP[ $key ] ) ) {
                 return false;
             } else if ( is_bool( self::$_BINARY_MAP[ $key ] ) ) {
                 return self::$_BINARY_MAP[ $key ];
@@ -217,7 +217,7 @@
              */
             $binary_key = ( (int) $this->_is_theme . (int) $this->_is_network_active );
 
-            return ( true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
+            return ( isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) && true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
         }
 
 		# region Magic methods
