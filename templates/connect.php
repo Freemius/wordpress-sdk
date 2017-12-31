@@ -551,13 +551,12 @@
                     };
 
                     if ( isNetworkActive ) {
-                        var sites = {};
+                        var sites = [];
 
                         $sitesListContainer.find( 'tr' ).each(function() {
                             var
-                                $this  = $( this ),
-                                siteID = $this.find( '.blog-id' ).text(),
-                                site   = {
+                                $this = $( this ),
+                                site  = {
                                     uid     : $this.find( '.uid' ).text(),
                                     url     : $this.find( '.url' ).text(),
                                     name    : $this.find( '.name' ).text(),
@@ -566,7 +565,7 @@
                                     action  : $this.find( '.action.selected' ).data( 'action-type' )
                                 };
 
-                            sites[ 's_' + siteID ] = site;
+                            sites.push( site );
                         });
 
                         data.sites = sites;
