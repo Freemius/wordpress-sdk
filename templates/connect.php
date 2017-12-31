@@ -417,7 +417,7 @@
 
 		var $primaryCta          = $('.fs-actions .button.button-primary'),
 		    $form                = $('.fs-actions form'),
-            isNetworkActive      = <?php echo $fs->is_network_active() ?>,
+            isNetworkActive      = <?php echo $fs->is_network_active() ? 'true' : 'false' ?>,
 		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
