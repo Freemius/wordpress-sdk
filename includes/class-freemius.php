@@ -7200,7 +7200,7 @@
                     false,
                     false,
                     false,
-                    fs_request_get( 'network', false, 'post' )
+                    fs_request_get( 'sites', array(), 'post' )
                 );
 
 				if ( isset( $next_page->error ) ) {
