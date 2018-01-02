@@ -109,7 +109,7 @@
 	<div id="fs_connect"
 	     class="wrap<?php if ( ! $fs->is_network_active() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
 		     echo ' fs-anonymous-disabled';
-	     } ?>">
+	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
 		<div class="fs-visual">
 			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress"></i></b>
 			<i class="dashicons dashicons-plus fs-first"></i>
@@ -510,6 +510,12 @@
                     updatePrimaryCtaText( 'mixed' );
                 }
             });
+
+            if ( requireLicenseKey ) {
+                $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
+                    $( this ).parent().find( 'input' ).click();
+                });
+            }
         }
 
         /**
