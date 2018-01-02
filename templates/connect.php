@@ -225,12 +225,11 @@
                         <table cellspacing="0">
                             <tbody>
                             <?php foreach ( $sites as $site_key => $site ) : ?>
-                                <?php $blog_id = str_replace( 's_', '', $site_key ) ?>
                                 <tr>
                                     <?php if ( $require_license_key ) : ?>
                                         <td><input type="checkbox" value="true" /></td>
                                     <?php endif ?>
-                                    <td class="blog-id"><?php echo $blog_id ?></td>
+                                    <td class="blog-id"><?php echo $site['blog_id'] ?></td>
                                     <td class="url" width="600"><?php echo $site['url'] ?></td>
                                     <?php if ( ! $require_license_key ) : ?>
                                         <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
