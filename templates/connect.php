@@ -109,7 +109,7 @@
 	<div id="fs_connect"
 	     class="wrap<?php if ( ! $fs->is_network_active() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
 		     echo ' fs-anonymous-disabled';
-	     } ?>">
+	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
 		<div class="fs-visual">
 			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress"></i></b>
 			<i class="dashicons dashicons-plus fs-first"></i>
@@ -225,13 +225,15 @@
                         <table cellspacing="0">
                             <tbody>
                             <?php foreach ( $sites as $site_key => $site ) : ?>
-                                <?php $blog_id = str_replace( 's_', '', $site_key ) ?>
                                 <tr>
                                     <?php if ( $require_license_key ) : ?>
                                         <td><input type="checkbox" value="true" /></td>
                                     <?php endif ?>
-                                    <td class="blog-id"><?php echo $blog_id ?></td>
-                                    <td class="url" width="600"><?php echo $site['url'] ?></td>
+                                    <td class="blog-id"><?php echo $site['blog_id'] ?>.</td>
+                                    <td class="url" width="600"><?php
+                                        $url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
+                                        echo $url;
+                                        ?></td>
                                     <?php if ( ! $require_license_key ) : ?>
                                         <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                                         <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
@@ -439,13 +441,14 @@
 		    var
                 $multisiteOptionsContainer  = $( '#multisite_options_container' ),
                 $allSitesOptions            = $( '#all_sites_options' ),
+                $applyOnAllSites            = $( '#apply_on_all_sites' ),
                 $sitesListContainer         = $( '#sites_list_container' ),
                 totalSites                  = <?php echo count( $sites ) ?>,
                 maxSitesListHeight          = null,
                 $skipActivationButton       = $( '#skip_activation' ),
                 $delegateToSiteAdminsButton = $( '#delegate_to_site_admins' );
 
-            $( '#apply_on_all_sites' ).click(function() {
+            $applyOnAllSites.click(function() {
                 var isChecked = $( this ).is( ':checked' );
 
                 if ( ! isChecked ) {
@@ -507,6 +510,12 @@
                     updatePrimaryCtaText( 'mixed' );
                 }
             });
+
+            if ( requireLicenseKey ) {
+                $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
+                    $( this ).parent().find( 'input' ).click();
+                });
+            }
         }
 
         /**
@@ -551,19 +560,28 @@
                     };
 
                     if ( isNetworkActive ) {
-                        var sites = [];
+                        var
+                            sites           = [],
+                            applyOnAllSites = $applyOnAllSites.is( ':checked' );
 
                         $sitesListContainer.find( 'tr' ).each(function() {
                             var
-                                $this = $( this ),
-                                site  = {
-                                    uid     : $this.find( '.uid' ).text(),
-                                    url     : $this.find( '.url' ).text(),
-                                    name    : $this.find( '.name' ).text(),
-                                    language: $this.find( '.language' ).text(),
-                                    charset : $this.find( '.charset' ).text(),
-                                    action  : $this.find( '.action.selected' ).data( 'action-type' )
-                                };
+                                $this       = $( this ),
+                                includeSite = ( ! requireLicenseKey || applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
+
+                            if ( ! includeSite )
+                                return;
+
+                            var site = {
+                                uid     : $this.find( '.uid' ).text(),
+                                url     : $this.find( '.url' ).text(),
+                                name    : $this.find( '.name' ).text(),
+                                language: $this.find( '.language' ).text(),
+                                charset : $this.find( '.charset' ).text()
+                            };
+
+                            if ( ! requireLicenseKey)
+                                site.action = $this.find( '.action.selected' ).data( 'action-type' );
 
                             sites.push( site );
                         });

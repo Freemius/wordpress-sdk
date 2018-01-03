@@ -7230,7 +7230,7 @@
                     false,
                     false,
                     false,
-                    fs_request_get( 'network', false, 'post' )
+                    fs_request_get( 'sites', array(), 'post' )
                 );
 
 				if ( isset( $next_page->error ) ) {
@@ -8794,6 +8794,7 @@
                         }
 
                         $site_info = array(
+                            'blog_id'  => $blog_id,
                             'uid'      => $this->get_anonymous_id(),
                             'url'      => $url,
                             'name'     => $name,
@@ -8801,7 +8802,7 @@
                             'charset'  => get_bloginfo( 'charset' ),
                         );
 
-                        $params['sites'][ 's_' . $site->blog_id ] = $site_info;
+                        $params['sites'][] = $site_info;
                     }
 
                     /**

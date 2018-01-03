@@ -102,6 +102,14 @@ $form_width: 480px;
         }
     }
 
+    &.require-license-key {
+        #sites_list_container {
+            td {
+                cursor: pointer;
+            }
+        }
+    }
+
     #delegate_to_site_admins {
         margin-right: 15px;
         float: right;
