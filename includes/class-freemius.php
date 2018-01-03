@@ -4507,6 +4507,7 @@
 				               . "{$this->_slug}_activated" );
 
                 $this->_redirect_on_activation_hook();
+
                 return;
 			}
 
@@ -7631,9 +7632,7 @@
                         $result->error->message :
                         var_export( $result, true )
                 );
-            }
-            else
-            {
+            } else {
                 if ( $this->_admin_notices->has_sticky( 'affiliate_program' ) ) {
                     $this->_admin_notices->remove_sticky( 'affiliate_program' );
                 }
@@ -8100,7 +8099,8 @@
             if ( empty( $page ) &&
                 $this->is_theme() &&
                 // Show the opt-in as an overlay for free wp.org themes or themes without any settings page.
-                ( $this->is_free_wp_org_theme() || ! $this->has_settings_menu() ) ) {
+                 ( $this->is_free_wp_org_theme() || ! $this->has_settings_menu() )
+            ) {
                     $params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
                     return add_query_arg(
@@ -8173,7 +8173,9 @@
 			) ), $this->admin_url( 'admin.php', 'admin' ) );
 		}
 
+        #--------------------------------------------------------------------------------
         #region Multisite
+        #--------------------------------------------------------------------------------
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -8595,11 +8597,13 @@
 			self::$_static_logger->entrance();
 
 			$email = trim( strtolower( $email ) );
+
 			$users = self::get_all_users();
+
 			if ( is_array( $users ) ) {
-				foreach ( $users as $u ) {
-					if ( $email === trim( strtolower( $u->email ) ) ) {
-						return $u;
+                foreach ( $users as $user ) {
+                    if ( $email === trim( strtolower( $user->email ) ) ) {
+                        return $user;
 					}
 				}
 			}
@@ -8803,9 +8807,7 @@
                      */
                     $this->switch_to_blog( $current_blog_id, true );
                 }
-            }
-            else
-            {
+            } else {
                 $params = array_merge( $params, array(
                     'site_uid'  => $this->get_anonymous_id(),
                     'site_url'  => get_site_url(),
@@ -13465,7 +13467,8 @@
                 // User is already an affiliate.
                 is_object( $this->affiliate ) ||
                 // User has applied for an affiliate account.
-                ! empty( $this->_storage->affiliate_application_data ) ) {
+                ! empty( $this->_storage->affiliate_application_data )
+            ) {
                 return false;
             }
 
@@ -13493,7 +13496,8 @@
             }
 
 			if ( ! $this->is_paying() &&
-                FS_Plugin::AFFILIATE_MODERATION_CUSTOMERS == $this->_plugin->affiliate_moderation ) {
+                 FS_Plugin::AFFILIATE_MODERATION_CUSTOMERS == $this->_plugin->affiliate_moderation
+            ) {
 			    // If the user is not a customer and the affiliate program is only for customers, don't show the notice.
                 return false;
 			}
@@ -14361,8 +14365,7 @@
 		 *
 		 * @return bool
 		 */
-		private function should_page_include_tabs()
-		{
+        private function should_page_include_tabs() {
 			if ( ! $this->has_settings_menu() ) {
 				// Don't add tabs if no settings at all.
 				return false;
