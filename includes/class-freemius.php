@@ -6469,6 +6469,33 @@
 			return false;
 		}
 
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number $user_id
+         *
+         * @return FS_User
+         */
+        static function _get_user_by_id( $user_id ) {
+            self::$_static_logger->entrance( "user_id = {$user_id}" );
+
+            $users = self::get_all_users();
+
+            if ( is_array( $users ) ) {
+                foreach ( $users as $user ) {
+                    /**
+                     * @var FS_User $user
+                     */
+                    if ( $user_id == $user->id ) {
+                        return $user;
+                    }
+                }
+            }
+
+            return null;
+        }
+
 		#----------------------------------------------------------------------------------
 		#region Plans & Licensing
 		#----------------------------------------------------------------------------------
@@ -8189,6 +8216,39 @@
             if ( $flush_options ) {
                 self::$_accounts->load( true, false );
             }
+        }
+
+        /**
+         * Load the module's install based on the blog ID.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         *
+         * @return FS_Site
+         */
+        function get_install_by_blog_id($blog_id) {
+            $current_blog_id = get_current_blog_id();
+
+            $this->switch_to_blog( $blog_id );
+
+            $installs = self::get_all_sites( $this->_module_type );
+            $install  = isset( $installs[ $this->_slug ] ) ? $installs[ $this->_slug ] : null;
+
+            if ( is_object( $install ) &&
+                 is_numeric( $install->id ) &&
+                 is_numeric( $install->user_id ) &&
+                 is_object( $install->plan )
+            ) {
+                // Load site.
+                $install       = clone $install;
+                $install->plan = self::decrypt_entity( $install->plan );
+            }
+
+            $this->switch_to_blog( $current_blog_id );
+
+            return $install;
         }
 
         #endregion Multisite

@@ -446,6 +446,38 @@
 
 						</script>
 
+						<?php if ( $fs->is_network_active() ) : ?>
+						<div id="fs_sites" class="postbox">
+							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
+							<div class="fs-header-actions">
+								<input type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
+							</div>
+
+							<div class="inside">
+								<table>
+									<?php $sites = array(
+										array(
+											'blog_id' => 1,
+											'uid'      => $this->get_anonymous_id(),
+											'url'      => get_site_url(),
+											'name'     => get_bloginfo( 'name' ),
+											'language' => get_bloginfo( 'language' ),
+											'charset'  => get_bloginfo( 'charset' ),
+										),
+									)/*$fs->get_sites()*/; foreach ($sites as $s) {
+                                        $view_params = array(
+                                            'freemius'       => $fs,
+                                            'license'        => $license,
+                                            'has_paid_plans' => $has_paid_plan,
+                                            'site'           => $s,
+                                        );
+                                        fs_require_template( 'account/partials/site.php', $view_params );
+                                    } ?>
+								</table>
+							</div>
+						</div>
+						<?php endif ?>
+
 						<?php
 							$account_addons = $fs->get_account_addons();
 							if ( ! is_array( $account_addons ) ) {

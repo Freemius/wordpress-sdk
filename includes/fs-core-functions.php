@@ -416,6 +416,42 @@
         }
     }
 
+    if ( ! function_exists( 'fs_ends_with' ) ) {
+        /**
+         * Check if string ends with.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string $haystack
+         * @param string $needle
+         *
+         * @return bool
+         */
+        function fs_ends_with( $haystack, $needle ) {
+            $length = strlen($needle);
+            $start  = $length * -1; // negative
+
+            return (substr($haystack, $start) === $needle);
+        }
+    }
+
+    if ( ! function_exists( 'fs_strip_url_protocol' ) ) {
+        function fs_strip_url_protocol( $url ) {
+            if ( ! fs_starts_with( $url, 'http' ) ) {
+                return $url;
+            }
+
+            $protocol_pos = strpos( $url, '://' );
+
+            if ( $protocol_pos > 5 ) {
+                return $url;
+            }
+
+            return substr( $url, $protocol_pos + 3 );
+        }
+    }
+
     #region Url Canonization ------------------------------------------------------------------
 
     if ( ! function_exists( 'fs_canonize_url' ) ) {
