@@ -8262,6 +8262,8 @@
          *
          * @param string $path
          * @param string $scheme
+         *
+         * @return string
          */
 		private function admin_url( $path = '', $scheme = 'admin' ) {
             return ( $this->_is_network_active ) ?
