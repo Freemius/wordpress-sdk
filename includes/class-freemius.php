@@ -6131,7 +6131,7 @@
 		}
 
 		/**
-		 * @return FS_User[]
+         * @return array[number]FS_User
 		 */
 		static function get_all_users() {
 			$users = self::$_accounts->get_option( 'users', array() );
@@ -6146,7 +6146,7 @@
 		/**
 		 * @param string $module_type
 		 *
-		 * @return FS_Site[]
+         * @return array[string]FS_Site
 		 */
 		private static function get_all_sites( $module_type = WP_FS__MODULE_TYPE_PLUGIN ) {
 			$sites = self::get_account_option( 'sites', $module_type );
@@ -8589,7 +8589,7 @@
 		 *
 		 * @param string $email
 		 *
-		 * @return FS_User|bool
+         * @return FS_User|false
 		 */
 		static function _get_user_by_email( $email ) {
 			self::$_static_logger->entrance();
