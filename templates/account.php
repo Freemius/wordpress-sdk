@@ -803,6 +803,17 @@
 			</div>
 		</div>
 	</div>
+    <script type="text/javascript">
+        (function ($) {
+            $('.fs-deactivate-license').click(function () {
+                if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
+                    $(this)[0].parentNode.submit();
+                }
+
+                return false;
+            });
+        })(jQuery);
+    </script>
 <?php
 	if ( $has_tabs ) {
 		$fs->_add_tabs_after_content();
