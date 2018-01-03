@@ -6694,9 +6694,11 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.5
 		 *
+         * @param bool|null $is_localhost
+         *
 		 * @return FS_Plugin_License|false
 		 */
-		function _get_available_premium_license() {
+        function _get_available_premium_license( $is_localhost = null ) {
 			$this->_logger->entrance();
 
 			if ( ! $this->has_paid_plan() ) {
@@ -6705,7 +6707,7 @@
 
 			if ( is_array( $this->_licenses ) ) {
 				foreach ( $this->_licenses as $license ) {
-					if ( ! $license->is_utilized() && $license->is_features_enabled() ) {
+                    if ( $license->can_activate( $is_localhost ) ) {
 						return $license;
 					}
 				}
