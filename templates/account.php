@@ -32,9 +32,11 @@
 	$plan                   = $fs->get_plan();
 	$is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
 	$is_paid_trial          = $fs->is_paid_trial();
-	$show_upgrade           = ( $fs->has_paid_plan() && ! $is_paying && ! $is_paid_trial );
+    $has_paid_plan          = $fs->has_paid_plan();
+    $show_upgrade           = ( $has_paid_plan && ! $is_paying && ! $is_paid_trial );
+    $trial_plan             = $fs->get_trial_plan();
 
-	if ( $fs->has_paid_plan() ) {
+	if ( $has_paid_plan ) {
 		$fs->_add_license_activation_dialog_box();
 	}
 
@@ -229,10 +231,8 @@
 											'value' => $fs->get_plugin_version()
 										);
 
-										if ( $fs->has_paid_plan() ) {
+										if ( $has_paid_plan ) {
 											if ( $fs->is_trial() ) {
-												$trial_plan = $fs->get_trial_plan();
-
 												$profile[] = array(
 													'id'    => 'plan',
 													'title' => $plan_text,
@@ -265,7 +265,7 @@
 									<?php $odd = true;
 										foreach ( $profile as $p ) : ?>
 											<?php
-											if ( 'plan' === $p['id'] && ! $fs->has_paid_plan() ) {
+											if ( 'plan' === $p['id'] && ! $has_paid_plan ) {
 												// If plugin don't have any paid plans, there's no reason
 												// to show current plan.
 												continue;
@@ -301,8 +301,8 @@
 															<label class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ) ?></label>
 														<?php endif ?>
 														<div class="button-group">
-															<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license() : false ?>
-															<?php if ( false !== $available_license && ( $available_license->left() > 0 || ( $site->is_localhost() && $available_license->is_free_localhost ) ) ) : ?>
+															<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
+                                                            <?php if ( is_object( $available_license ) ) : ?>
 																<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
 																<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 																      method="POST">
@@ -345,7 +345,7 @@
 																</form>
 															<?php endif ?>
 														</div>
-													<?php elseif ( 'version' === $p['id'] && $fs->has_paid_plan() ) : ?>
+													<?php elseif ( 'version' === $p['id'] && $has_paid_plan ) : ?>
 														<?php if ( $fs->has_premium_version() ) : ?>
 															<?php if ( $fs->is_premium() ) : ?>
 																<label
