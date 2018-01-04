@@ -6615,7 +6615,38 @@
 				return false;
 			}
 
-			return $this->_storage->trial_plan;
+            // Try to load plan from local cache.
+            $trial_plan = $this->_get_plan_by_id( $this->_site->trial_plan_id );
+
+            if ( ! is_object( $trial_plan ) ) {
+                $trial_plan = $this->_fetch_site_plan( $this->_site->trial_plan_id );
+
+                /**
+                 * If managed to fetch the plan, add it to the plans collection.
+                 */
+                if ( $trial_plan instanceof FS_Plugin_Plan ) {
+                    if ( ! is_array( $this->_plans ) ) {
+                        $this->_plans = array();
+                    }
+
+                    $this->_plans[] = $trial_plan;
+                    $this->_store_plans();
+                }
+            }
+
+            if ( $trial_plan instanceof FS_Plugin_Plan ) {
+                return $trial_plan;
+            }
+
+            /**
+             * If for some reason failed to get the trial plan, fallback to a dummy name and title.
+             */
+            $trial_plan        = new FS_Plugin_Plan();
+            $trial_plan->id    = $this->_site->trial_plan_id;
+            $trial_plan->name  = 'pro';
+            $trial_plan->title = 'Pro';
+
+            return $trial_plan;
 		}
 
 		/**
@@ -7014,16 +7045,13 @@
 				return false;
 			}
 
-			if ( ! isset( $this->_storage->trial_plan ) ) {
-				// Store trial plan information.
-				$this->_enrich_site_trial_plan( true );
-			}
+            $trial_plan = $this->get_trial_plan();
 
-			if ( $this->_storage->trial_plan->name === $plan ) // Exact plan.
-			{
+            if ( $trial_plan->name === $plan ) {
+                // Exact plan.
 				return true;
-			} else if ( $exact ) // Required exact, but plans are different.
-			{
+            } else if ( $exact ) {
+                // Required exact, but plans are different.
 				return false;
 			}
 
@@ -7032,7 +7060,7 @@
 			for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
 				if ( $plan === $this->_plans[ $i ]->name ) {
 					$required_plan_order = $i;
-				} else if ( $this->_storage->trial_plan->name === $this->_plans[ $i ]->name ) {
+                } else if ( $trial_plan->name === $this->_plans[ $i ]->name ) {
 					$current_plan_order = $i;
 				}
 			}
@@ -9098,9 +9126,6 @@
 
 			$this->_set_account( $user, $site );
 
-			if ( $this->is_trial() ) {
-				// Store trial plan information.
-				$this->_enrich_site_trial_plan( true );
 			}
 
 			// If Freemius was OFF before, turn it on.
@@ -9142,11 +9167,13 @@
 							$this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
 						);
 					} else {
+                        $trial_plan = $this->get_trial_plan();
+
 						$this->_admin_notices->add_sticky(
 							sprintf(
 								$this->get_text_inline( 'Your trial has been successfully started.', 'trial-started-message' ),
 								'<i>' . $this->get_plugin_name() . '</i>'
-							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
+                            ) . $this->get_complete_upgrade_instructions( $trial_plan->title ),
 							'trial_started',
 							$this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
 						);
@@ -10916,30 +10943,6 @@
 		 * @since  1.0.9
 		 * @uses   FS_Api
 		 *
-		 * @param bool $store
-		 *
-		 * @return FS_Plugin_Plan|object|false
-		 */
-		private function _enrich_site_trial_plan( $store = true ) {
-			// Try to load plan from local cache.
-			$trial_plan = $this->_get_plan_by_id( $this->_site->trial_plan_id );
-
-			if ( false === $trial_plan ) {
-				$trial_plan = $this->_fetch_site_plan( $this->_site->trial_plan_id );
-			}
-
-			if ( $trial_plan instanceof FS_Plugin_Plan ) {
-				$this->_storage->store( 'trial_plan', $trial_plan, $store );
-			}
-
-			return $trial_plan;
-		}
-
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
-		 * @uses   FS_Api
-		 *
 		 * @param number|bool $license_id
 		 *
 		 * @return FS_Subscription|object|bool
@@ -11507,9 +11510,6 @@
 						$this->_site = $site;
 						$plan_change = 'trial_started';
 
-						// Store trial plan information.
-						$this->_enrich_site_trial_plan( true );
-
 						// For trial with subscription use-case.
 						$new_license = is_null( $site->license_id ) ? null : $this->_get_license_by_id( $site->license_id );
 
@@ -11526,10 +11526,6 @@
 						// New trial started.
 						$this->_site = $site;
 						$plan_change = 'trial_expired';
-
-						// Clear trial plan information.
-						$this->_storage->trial_plan = null;
-
 					} else {
 						$is_free = $this->is_free_plan();
 
@@ -11588,7 +11584,7 @@
 					case 'none':
 						if ( ! $background && is_admin() ) {
 							$plan = $this->is_trial() ?
-								$this->_storage->trial_plan :
+                                $this->get_trial_plan() :
 								$this->_site->plan;
 
 							if ( $plan->is_free() ) {
@@ -11678,7 +11674,7 @@
 							sprintf(
 								$this->get_text_inline( 'Your trial has been successfully started.', 'trial-started-message' ),
 								'<i>' . $this->get_plugin_name() . '</i>'
-							) . $this->get_complete_upgrade_instructions( $this->_storage->trial_plan->title ),
+                            ) . $this->get_complete_upgrade_instructions( $this->get_trial_plan()->title ),
 							'trial_started',
 							$this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
 						);
@@ -12042,6 +12038,8 @@
 				return;
 			}
 
+            $trial_plan = $this->get_trial_plan();
+
 			$api  = $this->get_api_site_scope();
 			$site = $api->call( 'trials.json', 'delete' );
 
@@ -12085,12 +12083,9 @@
 				     ! $this->deactivate_premium_only_addon_without_license( true )
 				) {
 					$this->_admin_notices->add(
-						sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $this->_storage->trial_plan->title )
+                        sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $trial_plan->title )
 					);
 				}
-
-				// Clear trial plan information.
-				unset( $this->_storage->trial_plan );
 			} else {
 				$this->_admin_notices->add(
 					$this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' ),
