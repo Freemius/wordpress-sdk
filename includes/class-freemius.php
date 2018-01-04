@@ -2386,13 +2386,15 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.0
 		 *
+         * @param int $blog_id Since 1.2.4
+         *
 		 * @return string
 		 */
-        function get_anonymous_id() {
-            $unique_id = self::$_accounts->get_option( 'unique_id' );
+        function get_anonymous_id( $blog_id = 0 ) {
+            $unique_id = self::$_accounts->get_option( 'unique_id', null, $blog_id );
 
             if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
-                $key = get_site_url();
+                $key = get_site_url( $blog_id );
 
                 // If localhost, assign microtime instead of domain.
                 if ( WP_FS__IS_LOCALHOST ||
@@ -2411,7 +2413,7 @@
                  */
                 $unique_id = md5( $key . SECURE_AUTH_KEY );
 
-                self::$_accounts->set_option( 'unique_id', $unique_id, true );
+                self::$_accounts->set_option( 'unique_id', $unique_id, true, $blog_id );
             }
 
             $this->_logger->departure( $unique_id );
