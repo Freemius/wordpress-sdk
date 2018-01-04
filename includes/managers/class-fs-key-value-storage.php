@@ -46,27 +46,36 @@
 		 * @var string
 		 */
 		protected $_id;
+
 		/**
 		 * @since 1.2.2
 		 *
 		 * @var string
 		 */
 		protected $_secondary_id;
-		/**
-		 * @since 1.2.3
-		 *
-		 * @var string
-		 */
-		protected $_is_multisite;
+
+        /**
+         * @since 1.2.4
+         * @var int The ID of the blog that is associated with the current site level options.
+         */
+        private $_blog_id = 0;
+
+        /**
+         * @since 1.2.4
+         * @var bool
+         */
+        private $_is_multisite_storage;
+
 		/**
 		 * @var array
 		 */
 		protected $_data;
 
 		/**
-		 * @var FS_Plugin_Manager[]
+		 * @var FS_Key_Value_Storage[]
 		 */
 		private static $_instances = array();
+
 		/**
 		 * @var FS_Logger
 		 */
@@ -75,31 +84,62 @@
 		/**
 		 * @param string $id
 		 * @param string $secondary_id
-		 * @param bool   $is_multisite
+		 * @param bool   $is_multisite_or_blog_id
 		 *
 		 * @return FS_Key_Value_Storage
 		 */
-		static function instance( $id, $secondary_id, $is_multisite = false ) {
-            $key = $id . ':' . $secondary_id . ( $is_multisite ? ':ms' : '' );
+		static function instance( $id, $secondary_id, $is_multisite_or_blog_id = false ) {
+            $key = $id . ':' . $secondary_id;
+
+            if ( is_multisite() ) {
+                if ( true === $is_multisite_or_blog_id ) {
+                    $key = $id . ':ms';
+                } else if ( is_numeric( $is_multisite_or_blog_id ) && $is_multisite_or_blog_id > 0 ) {
+                    $key = $id . ":{$is_multisite_or_blog_id}";
+                } else {
+                    $is_multisite_or_blog_id = get_current_blog_id();
+
+                    $key = $id . ":{$is_multisite_or_blog_id}";
+                }
+            }
+
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $is_multisite );
+				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $is_multisite_or_blog_id );
 			}
 
 			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $id, $secondary_id, $is_multisite ) {
+		protected function __construct( $id, $secondary_id, $is_multisite_or_blog_id = false ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $secondary_id . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_secondary_id = $secondary_id;
-			$this->_id   	     = $id;
-			$this->_is_multisite = $is_multisite;
+            $this->_id                   = $id;
+            $this->_secondary_id         = $secondary_id;
+
+            if ( is_multisite() ) {
+                $this->_is_multisite_storage = ( true === $is_multisite_or_blog_id );
+
+                if ( is_numeric( $is_multisite_or_blog_id ) ) {
+                    $this->_blog_id = $is_multisite_or_blog_id;
+                }
+            } else {
+                $this->_is_multisite_storage = false;
+            }
+
+            $this->_is_multisite_storage = $is_multisite_or_blog_id;
+
 			$this->load();
 		}
 
 		protected function get_option_manager() {
-			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true, $this->_is_multisite );
-		}
+            return FS_Option_Manager::get_manager(
+                WP_FS__ACCOUNTS_OPTION_NAME,
+                true,
+                $this->_is_multisite_storage ?
+                    true :
+                    ( $this->_blog_id > 0 ? $this->_blog_id : false )
+            );
+        }
 
 		protected function get_all_data() {
 			return $this->get_option_manager()->get_option( $this->_id, array() );
