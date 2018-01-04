@@ -37,6 +37,12 @@
 		private $_is_multisite;
 
 		/**
+         * @since 1.2.4
+         * @var string[] Lazy collection of params on the site level.
+         */
+        private static $_SITE_LEVEL_PARAMS;
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @param string $id
@@ -125,4 +131,35 @@
                 $this->_options->store();
             }
         }
+
+        #--------------------------------------------------------------------------------
+        #region Helper Methods
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string $option
+         *
+         * @return bool
+         */
+        private function is_site_option( $option ) {
+            if ( WP_FS__ACCOUNTS_OPTION_NAME != $this->_id ) {
+                return false;
+            }
+
+            if ( ! isset( self::$_SITE_LEVEL_PARAMS ) ) {
+                self::$_SITE_LEVEL_PARAMS = array(
+                    'sites',
+                    'theme_sites',
+                    'unique_id',
+                );
+            }
+
+            return isset( self::$_SITE_LEVEL_PARAMS[ $option ] );
+        }
+
+
+        #endregion
     }
