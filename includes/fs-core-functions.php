@@ -647,7 +647,38 @@
          * @global       $fs_text , $fs_text_overrides
          */
         function fs_text( $key, $slug = 'freemius' ) {
-            return __fs( $key, $slug );
+            global $fs_text,
+                   $fs_module_info_text,
+                   $fs_text_overrides;
+
+            if ( isset( $fs_text_overrides[ $slug ] ) ) {
+                if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $key ];
+                }
+
+                $lower_key = strtolower( $key );
+                if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $lower_key ];
+                }
+            }
+
+            if ( ! isset( $fs_text ) ) {
+                $dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+                    WP_FS__DIR_INCLUDES :
+                    dirname( __FILE__ );
+
+                require_once $dir . '/i18n.php';
+            }
+
+            if ( isset( $fs_text[ $key ] ) ) {
+                return $fs_text[ $key ];
+            }
+
+            if ( isset( $fs_module_info_text[ $key ] ) ) {
+                return $fs_module_info_text[ $key ];
+            }
+
+            return $key;
         }
 
         /**
@@ -1096,3 +1127,9 @@
     }
 
 #endregion
+
+    #--------------------------------------------------------------------------------
+    #region Multisite Network
+    #--------------------------------------------------------------------------------
+
+    #endregion

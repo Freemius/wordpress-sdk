@@ -171,6 +171,8 @@
 		 * @global       $fs_text, $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
+            _deprecated_function( __FUNCTION__, '1.2.4', 'fs_text()' );
+
 			global $fs_text,
 			       $fs_module_info_text,
 			       $fs_text_overrides;
