@@ -8270,21 +8270,36 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * @author Vova Feldman (@svovaf)
          * @since  1.2.4
          *
          * @param array|WP_Site $site
          *
-         * @return array
+         * @return string
          */
-        function get_site_info( $site ) {
-            $this->_logger->entrance();
-
-            $blog_id = ( $site instanceof WP_Site ) ?
+        private function get_site_blog_id( &$site ) {
+            return ( $site instanceof WP_Site ) ?
                 $site->blog_id :
                 $site['blog_id'];
+        }
 
-            $this->switch_to_blog( $blog_id, true );
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param array|WP_Site $site
+         * @param bool          $restore_current_blog
+         *
+         * @return array
+         */
+        function get_site_info( &$site, $restore_current_blog = false ) {
+            $this->_logger->entrance();
+
+            $blog_id = $this->get_site_blog_id( $site );
+
+            if ( get_current_blog_id() != $blog_id ) {
+                switch_to_blog( $blog_id );
+            }
 
             if ( $site instanceof WP_Site ) {
                 $url  = $site->siteurl;
@@ -8294,14 +8309,20 @@
                 $name = get_bloginfo( 'name' );
             }
 
-            return array(
+            $info = array(
                 'blog_id'  => $blog_id,
-                'uid'      => $this->get_anonymous_id(),
+                'uid'      => $this->get_anonymous_id( $blog_id ),
                 'url'      => $url,
                 'name'     => $name,
                 'language' => get_bloginfo( 'language' ),
                 'charset'  => get_bloginfo( 'charset' ),
             );
+
+            if ( $restore_current_blog ) {
+                restore_current_blog();
+            }
+
+            return $info;
         }
 
         /**
@@ -8860,18 +8881,11 @@
 
                     $sites = $this->get_sites();
 
-                    $current_blog_id = get_current_blog_id();
-
                     foreach ( $sites as $site ) {
                         $params['sites'][] = $this->get_site_info( $site );
                     }
 
-                    /**
-                     * Restore previous blog
-                     *
-                     * @author Leo Fajardo
-                     */
-                    $this->switch_to_blog( $current_blog_id, true );
+                    restore_current_blog();
                 }
             } else {
                 $params = array_merge( $params, array(
