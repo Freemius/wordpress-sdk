@@ -8223,6 +8223,41 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param array|WP_Site $site
+         *
+         * @return array
+         */
+        function get_site_info( $site ) {
+            $this->_logger->entrance();
+
+            $blog_id = ( $site instanceof WP_Site ) ?
+                $site->blog_id :
+                $site['blog_id'];
+
+            $this->switch_to_blog( $blog_id, true );
+
+            if ( $site instanceof WP_Site ) {
+                $url  = $site->siteurl;
+                $name = $site->blogname;
+            } else {
+                $url  = get_site_url( $blog_id );
+                $name = get_bloginfo( 'name' );
+            }
+
+            return array(
+                'blog_id'  => $blog_id,
+                'uid'      => $this->get_anonymous_id(),
+                'url'      => $url,
+                'name'     => $name,
+                'language' => get_bloginfo( 'language' ),
+                'charset'  => get_bloginfo( 'charset' ),
+            );
+        }
+
+        /**
          * Load the module's install based on the blog ID.
          *
          * @author Vova Feldman (@svovaf)
@@ -8769,30 +8804,7 @@
                     $current_blog_id = get_current_blog_id();
 
                     foreach ( $sites as $site ) {
-                        $blog_id = ( $site instanceof WP_Site ) ?
-                            $site->blog_id :
-                            $site['blog_id'];
-
-                        $this->switch_to_blog( $blog_id, true );
-
-                        if ( $site instanceof WP_Site ) {
-                            $url  = $site->siteurl;
-                            $name = $site->blogname;
-                        } else {
-                            $url  = get_site_url( $blog_id );
-                            $name = get_bloginfo( 'name' );
-                        }
-
-                        $site_info = array(
-                            'blog_id'  => $blog_id,
-                            'uid'      => $this->get_anonymous_id(),
-                            'url'      => $url,
-                            'name'     => $name,
-                            'language' => get_bloginfo( 'language' ),
-                            'charset'  => get_bloginfo( 'charset' ),
-                        );
-
-                        $params['sites'][] = $site_info;
+                        $params['sites'][] = $this->get_site_info( $site );
                     }
 
                     /**
