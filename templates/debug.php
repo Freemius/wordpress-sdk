@@ -12,7 +12,7 @@
 
 	global $fs_active_plugins;
 
-	$fs_options = FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+	$fs_options = FS_Option::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
