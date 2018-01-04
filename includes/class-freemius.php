@@ -8647,6 +8647,8 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.2
+         *
+         * @deprecated Not in use, outdated.
 		 */
 		function _activate_account() {
 			if ( $this->is_registered() ) {
@@ -8937,7 +8939,7 @@
 		 *                                        data will be saved to the WP installation's database.
 		 * @param number|bool $trial_plan_id
 		 * @param bool        $is_disconnected Whether or not to opt in without tracking.
-         * @param bool        $sites              If network-level opt-in, an array of containing details of sites.
+         * @param array       $sites              If network-level opt-in, an array of containing details of sites.
 		 *
 		 * @return string|object
 		 * @use    WP_Error
@@ -9018,7 +9020,7 @@
 					/**
 					 * If opting in with a context license and the context WP Admin user already opted in
 					 * before from the current site, add the user context security params to avoid the
-					 * unnecessry email activation when the context license is owned by the same context user.
+                     * unnecessary email activation when the context license is owned by the same context user.
 					 *
 					 * @author Leo Fajardo (@leorw)
 					 * @since 1.2.3
@@ -9232,7 +9234,7 @@
 
 			$plugin_id = fs_request_get( 'plugin_id', false );
 
-			// Store activation time ONLY for plugins (not add-ons).
+            // Store activation time ONLY for plugins & themes (not add-ons).
 			if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
 				$this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
 			}
@@ -11468,8 +11470,7 @@
 		 * @since  1.0.6
 		 * @uses   FS_Api
 		 *
-		 * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by
-		 *                         the admin.
+         * @param bool $background           Hints the method if it's a background sync. If false, it means that was initiated by the admin.
 		 */
 		private function _sync_plugin_license( $background = false ) {
 			$this->_logger->entrance();
@@ -11817,6 +11818,7 @@
 
 				return;
 			}
+
 			$premium_license = new FS_Plugin_License( $license );
 
 			// Updated site plan.
@@ -12110,8 +12112,7 @@
 
 				$trial_cancelled = ( $prev_trial_ends != $site->trial_ends );
 			} else {
-				// handle different error cases.
-
+                // @todo handle different error cases.
 			}
 
 			if ( $trial_cancelled ) {
