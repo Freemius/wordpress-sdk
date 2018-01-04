@@ -6151,11 +6151,15 @@
 
 		/**
 		 * @param string $module_type
+         * @param int    $blog_id Since 1.2.4
 		 *
          * @return array[string]FS_Site
 		 */
-		private static function get_all_sites( $module_type = WP_FS__MODULE_TYPE_PLUGIN ) {
-			$sites = self::get_account_option( 'sites', $module_type );
+        private static function get_all_sites(
+            $module_type = WP_FS__MODULE_TYPE_PLUGIN,
+            $blog_id = 0
+        ) {
+            $sites = self::get_account_option( 'sites', $module_type, $blog_id );
 
 			if ( ! is_array( $sites ) ) {
 				$sites = array();
@@ -6171,15 +6175,16 @@
 		 *
 		 * @param string $option_name
 		 * @param string $module_type
+         * @param int    $blog_id Since 1.2.4
 		 *
 		 * @return mixed
 		 */
-		private static function get_account_option( $option_name, $module_type ) {
+        private static function get_account_option( $option_name, $module_type, $blog_id = 0 ) {
 			if ( WP_FS__MODULE_TYPE_PLUGIN !== $module_type ) {
 				$option_name = $module_type . '_' . $option_name;
 			}
 
-			return self::$_accounts->get_option( $option_name, array() );
+            return self::$_accounts->get_option( $option_name, array(), $blog_id );
 		}
 
 		/**
@@ -6190,13 +6195,15 @@
 		 * @param string $option_name
 		 * @param mixed  $option_value
 		 * @param bool   $store
+         * @param int    $blog_id Since 1.2.4
 		 */
-		private function set_account_option( $option_name, $option_value, $store ) {
+        private function set_account_option( $option_name, $option_value, $store, $blog_id = 0 ) {
 			self::set_account_option_by_module(
 				$this->_module_type,
 				$option_name,
 				$option_value,
-				$store
+                $store,
+                $blog_id
 			);
 		}
 
@@ -6209,13 +6216,20 @@
 		 * @param string $option_name
 		 * @param mixed  $option_value
 		 * @param bool   $store
+         * @param int    $blog_id Since 1.2.4
 		 */
-		private static function set_account_option_by_module( $module_type, $option_name, $option_value, $store ) {
+        private static function set_account_option_by_module(
+            $module_type,
+            $option_name,
+            $option_value,
+            $store,
+            $blog_id = 0
+        ) {
 			if ( WP_FS__MODULE_TYPE_PLUGIN != $module_type ) {
 				$option_name = $module_type . '_' . $option_name;
 			}
 
-			self::$_accounts->set_option( $option_name, $option_value, $store );
+            self::$_accounts->set_option( $option_name, $option_value, $store, $blog_id );
 		}
 
 		/**
@@ -10662,8 +10676,9 @@
 		 * @since  1.0.1
 		 *
 		 * @param bool $store Flush to Database if true.
+         * @param int  $blog_id Since 1.2.4
 		 */
-		private function _store_site( $store = true ) {
+        private function _store_site( $store = true, $blog_id = 0 ) {
 			$this->_logger->entrance();
 
 			if ( empty( $this->_site->id ) ) {
@@ -10675,7 +10690,7 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
 
-			$sites = self::get_all_sites( $this->_module_type );
+            $sites = self::get_all_sites( $this->_module_type, $blog_id );
 
             if ( empty( $this->_storage->prev_user_id ) && $this->_user->id != $this->_site->user_id ) {
                 /**
@@ -10694,7 +10709,7 @@
 
 			$sites[ $this->_slug ] = $encrypted_site;
 
-			$this->set_account_option( 'sites', $sites, $store );
+            $this->set_account_option( 'sites', $sites, $store, $blog_id );
 		}
 
 		/**
