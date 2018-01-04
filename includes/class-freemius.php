@@ -8438,16 +8438,6 @@
 			return FS_Logger::get_logger( ( $prefix_slug ? $this->_slug : '' ) . ( ( ! $prefix_slug || empty( $id ) ) ? '' : '_' ) . $id );
 		}
 
-		/**
-		 * @param      $id
-		 * @param bool $load_options
-		 * @param bool $prefix_slug
-		 *
-		 * @return FS_Option_Manager
-		 */
-		function get_options_manager( $id, $load_options = false, $prefix_slug = true ) {
-			return FS_Option_Manager::get_manager( ( $prefix_slug ? $this->_slug : '' ) . ( ( ! $prefix_slug || empty( $id ) ) ? '' : '_' ) . $id, $load_options );
-		}
 
 		/* Security
 		------------------------------------------------------------------------------------------------------------------*/
