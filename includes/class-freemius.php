@@ -375,9 +375,13 @@
 			$this->_plugin_basename       = $this->get_plugin_basename();
 			$this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
-            $this->_is_network_active = is_plugin_active_for_network( $this->_plugin_basename );
+            $this->_is_network_active = (
+                // Themes are always network activated, but the ACTUAL activation is per site.
+                $this->is_plugin() &&
+                is_plugin_active_for_network( $this->_plugin_basename )
+            );
 
-            if ( $this->is_plugin() && $this->_is_network_active ) {
+            if ( $this->_is_network_active ) {
                 $this->_storage->set_network_active();
             }
 
