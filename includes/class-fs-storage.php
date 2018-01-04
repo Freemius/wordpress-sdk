@@ -37,6 +37,11 @@
 		private $_is_theme;
 
         /**
+         * @var int The ID of the blog that is associated with the current site level options.
+         */
+        private $_blog_id = 0;
+
+        /**
          * @var bool
          */
 		private $_is_multisite;
@@ -94,13 +99,12 @@
          * @param string $module_type
          * @param string $slug
          * @param bool   $is_theme
-         * @param bool   $is_multisite
 		 *
 		 * @return FS_Storage
 		 */
-		static function instance( $module_type, $slug, $is_theme, $is_multisite ) {
+		static function instance( $module_type, $slug, $is_theme ) {
             if ( ! isset( self::$_instance ) ) {
-                self::$_instance = new FS_Storage( $module_type, $slug, $is_theme, $is_multisite );
+                self::$_instance = new FS_Storage( $module_type, $slug, $is_theme );
             }
 
 			return self::$_instance;
@@ -112,18 +116,18 @@
          * @param string $module_type
 		 * @param string $slug
          * @param bool   $is_theme
-         * @param bool   $is_multisite
 		 */
-		private function __construct( $module_type, $slug, $is_theme, $is_multisite ) {
-            $this->_storage = FS_Key_Value_Storage::instance( $module_type . '_data', $slug );
-
+		private function __construct( $module_type, $slug, $is_theme ) {
             $this->_is_theme          = $is_theme;
-            $this->_is_multisite      = $is_multisite;
+            $this->_is_multisite      = is_multisite();
             $this->_is_network_active = false;
 
-            if ( $is_multisite ) {
+            if ( $this->_is_multisite ) {
+                $this->_blog_id         = get_current_blog_id();
                 $this->_network_storage = FS_Key_Value_Storage::instance( $module_type . '_data', $slug, true );
             }
+
+            $this->_storage = FS_Key_Value_Storage::instance( $module_type . '_data', $slug, $this->_blog_id );
 		}
 
         /**
@@ -160,7 +164,7 @@
         function clear_all( $store = true, $exceptions = array() ) {
             $this->_storage->clear_all( $store, $exceptions );
 
-            if ( $this->is_multisite ) {
+            if ( $this->_is_multisite ) {
                 $this->_network_storage->clear_all( $store, $exceptions );
             }
         }
