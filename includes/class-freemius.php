@@ -5602,6 +5602,25 @@
 		}
 
 		/**
+         * Update installs only if changed.
+         *
+         * @todo IMPLEMENT THIS
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string[] string $override
+         * @param bool     $flush
+         *
+         * @return false|object[]|string
+         */
+        private function send_installs_update( $override = array(), $flush = false ) {
+            $this->_logger->entrance();
+
+            throw new Exception('NOT IMPLEMENTED');
+        }
+
+        /**
 		 * Update install only if changed.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -9138,6 +9157,14 @@
 					$decoded->install_secret_key,
 					false
 				);
+            } else if ( is_array( $decoded->installs ) ) {
+                return $this->install_many_with_new_user(
+                    $decoded->user_id,
+                    $decoded->user_public_key,
+                    $decoded->user_secret_key,
+                    $decoded->installs,
+                    false
+                );
 			}
 
 			return $decoded;
@@ -9164,24 +9191,89 @@
 			$redirect = true,
 			$auto_install = false
 		) {
+            return $this->setup_network_account(
+                $user,
+                array($site),
+                $redirect,
+                $auto_install
+            );
+        }
+
+        /**
+         * Set user and site identities.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param FS_User   $user
+         * @param FS_Site[] $installs
+         * @param bool      $redirect
+         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+         *
+         * @return string If redirect is `false`, returns the next page the user should be redirected to.
+         */
+        function setup_network_account(
+            FS_User $user,
+            array $installs,
+            $redirect = true,
+            $auto_install = false
+        ) {
+            $first_install = $installs[0];
+
 			$this->_user = $user;
-			$this->_site = $site;
+            $this->_site = $first_install;
+
+            $this->_sync_plans();
 
 			$this->_sync_plans();
 
+            if (!$this->_is_network_active){
 			$this->_enrich_site_plan( false );
+                $this->_set_account( $user, $first_install );
+            } else {
+                $sites = $this->get_sites();
 
-			$this->_set_account( $user, $site );
+                // Map site addresses to their blog IDs.
+                $address_to_blog_map = array();
+                foreach ( $sites as $site ) {
+                    $blog_id                         = $this->get_site_blog_id( $site );
+                    $address                         = trailingslashit( fs_strip_url_protocol( get_site_url( $blog_id ) ) );
+                    $address_to_blog_map[ $address ] = $blog_id;
+                }
 
+                foreach ( $installs as $install ) {
+                    // Set install context.
+                    $this->_site = $install;
+                    $this->_enrich_site_plan( false );
+
+                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                    $blog_id = $address_to_blog_map[ $address ];
+
+                    $this->_store_site( true, $blog_id );
+                }
+
+                $this->_store_plans( false );
+                $this->_store_licenses( false );
+
+                self::$_accounts->store();
+
+                $this->send_installs_update();
+
+                // Switch install context back to the first install.
+                $this->_site = $first_install;
 			}
 
 			// If Freemius was OFF before, turn it on.
 			$this->turn_on();
 
-			$this->do_action( 'after_account_connection', $user, $site );
+            $this->do_action(
+                'after_account_connection',
+                $user,
+                ($this->_is_network_active ? $installs : $first_install)
+            );
 
-			if ( is_numeric( $site->license_id ) ) {
-				$this->_license = $this->_get_license_by_id( $site->license_id );
+            if ( is_numeric( $first_install->license_id ) ) {
+                $this->_license = $this->_get_license_by_id( $first_install->license_id );
 			}
 
 			$this->_admin_notices->remove_sticky( 'connect_account' );
@@ -9195,15 +9287,17 @@
 
 				if ( ! $this->is_paying_or_trial() ) {
 					$this->_admin_notices->add_sticky(
-						sprintf( $this->get_text_x_inline( '%s activation was successfully completed.',
-							'pluginX activation was successfully...', 'plugin-x-activation-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
+                        sprintf( $this->get_text_inline( '%s activation was successfully completed.', 'plugin-x-activation-message' ), '<b>' . $this->get_plugin_name() . '</b>' ),
 						'activation_complete'
 					);
 				}
 			}
 
 			if ( $this->is_paying_or_trial() ) {
-				if ( ! $this->is_premium() || ! $this->has_premium_version() || ! $this->has_settings_menu() ) {
+                if ( ! $this->is_premium() ||
+                     ! $this->has_premium_version() ||
+                     ! $this->has_settings_menu()
+                ) {
 					if ( $this->is_paying() ) {
 						$this->_admin_notices->add_sticky(
 							sprintf(
@@ -9263,7 +9357,11 @@
 				 * @since  1.1.9 If site installed with a valid license, sync license.
 				 */
 				if ( $this->is_paying() ) {
-					$this->_sync_plugin_license( true );
+                    $this->_sync_plugin_license(
+                        true,
+                        // Installs data is already synced in the beginning of this method directly or via _set_account().
+                        false
+                    );
 				}
 
 				// Reload the page with the keys.
@@ -9317,6 +9415,27 @@
 		}
 
 		/**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number $id
+         * @param string $public_key
+         * @param string $secret_key
+         */
+        private function setup_user( $id, $public_key, $secret_key ) {
+            $user             = new FS_User();
+            $user->id         = $id;
+            $user->public_key = $public_key;
+            $user->secret_key = $secret_key;
+
+            $this->_user = $user;
+            $user_result = $this->get_api_user_scope()->get();
+            $user        = new FS_User( $user_result );
+            $this->_user = $user;
+
+            $this->_store_user();
+        }
+
 		 * Install plugin with new user.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -9374,6 +9493,67 @@
 		}
 
 		/**
+         * Multi-site install with a new user.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number  $user_id
+         * @param string  $user_public_key
+         * @param string  $user_secret_key
+         * @param object[] $installs
+         * @param bool   $redirect
+         * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                             redirect (or return a URL) to the account page with a special parameter to
+         *                             trigger the auto installation processes.
+         *
+         * @return string If redirect is `false`, returns the next page the user should be redirected to.
+         */
+        private function install_many_with_new_user(
+            $user_id,
+            $user_public_key,
+            $user_secret_key,
+            array $installs,
+            $redirect = true,
+            $auto_install = false
+        ) {
+            $this->setup_user( $user_id, $user_public_key, $user_secret_key );
+
+            $install_ids = array();
+
+            foreach ( $installs as $install ) {
+                $install_ids[] = $install->id;
+            }
+
+            $left   = count( $install_ids );
+            $offset = 0;
+
+            $installs = array();
+            while ( $left > 0 ) {
+                $result = $this->get_api_user_scope()->get( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', array_slice( $install_ids, $offset, 25 ) ) );
+
+                if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                    // @todo Handle API error.
+                }
+
+                $installs = array_merge( $installs, $result->installs );
+
+                $left -= 25;
+            }
+
+            foreach ( $installs as &$install ) {
+                $install = new FS_Site( $install );
+            }
+
+            return $this->setup_network_account(
+                $this->_user,
+                $installs,
+                $redirect,
+                $auto_install
+            );
+        }
+
+        /**
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
 		 *
@@ -11471,20 +11651,26 @@
 		 * @uses   FS_Api
 		 *
          * @param bool $background           Hints the method if it's a background sync. If false, it means that was initiated by the admin.
+         * @param bool $send_installs_update Since 1.2.4
 		 */
-		private function _sync_plugin_license( $background = false ) {
+        private function _sync_plugin_license( $background = false, $send_installs_update = true ) {
 			$this->_logger->entrance();
 
+            $plan_change = 'none';
+
+            if (!$send_installs_update) {
+                $site = $this->_site;
+            } else {
 			/**
 			 * Sync site info.
 			 *
 			 * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
 			 */
-			$site = $this->send_install_update( array(), true );
+                $sites = $this->send_installs_update( array(), true );
 
-			$plan_change = 'none';
-
-			if ( ! $this->is_api_result_entity( $site ) ) {
+                if ( ! $this->is_api_result_entity( $sites ) &&
+                     ! $this->is_api_result_object( $sites, 'installs' )
+                ) {
 				// Show API messages only if not background sync or if paying customer.
 				if ( ! $background || $this->is_paying() ) {
 					// Try to ping API to see if not blocked.
@@ -11503,7 +11689,7 @@
 									$this->get_text_x_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s', '%1s - plugin title, %2s - API domain', 'server-blocking-access' ),
 									$this->get_plugin_name(),
 									'<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
-								) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $site->error, true ),
+                                    ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $sites->error, true ),
 								$this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
 								'error',
 								$background,
@@ -11525,13 +11711,14 @@
 				return;
 			}
 
-			// Remove sticky API connectivity message.
-			self::$_global_admin_notices->remove_sticky( 'api_blocked' );
-
-			$site = new FS_Site( $site );
+                $site = new FS_Site( $sites[0] );
 
 			// Sync plans.
 			$this->_sync_plans();
+            }
+
+            // Remove sticky API connectivity message.
+            self::$_global_admin_notices->remove_sticky( 'api_blocked' );
 
 			if ( ! $this->has_paid_plan() ) {
 				$this->_site = $site;
