@@ -10,7 +10,7 @@
 		exit;
 	}
 
-	$fs_options      = FS_Option::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
+	$fs_options      = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$scheduled_crons = array();
 
 	$module_types = array(

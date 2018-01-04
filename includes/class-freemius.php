@@ -164,7 +164,7 @@
 		private $_permissions;
 
 		/**
-		 * @var FS_Key_Value_Storage
+         * @var FS_Storage
 		 */
 		private $_storage;
 
@@ -254,7 +254,7 @@
 		private static $_static_logger;
 
 		/**
-		 * @var FS_Option
+         * @var FS_Options
 		 * @since 1.0.2
 		 */
 		private static $_accounts;
@@ -1913,7 +1913,7 @@
 
 			self::$_static_logger->entrance();
 
-			self::$_accounts = FS_Option::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
+            self::$_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
 			self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
