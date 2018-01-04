@@ -87,7 +87,7 @@
 				require_once WP_FS__DIR_SDK . '/FreemiusWordPress.php';
 			}
 
-			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true );
+			self::$_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true, true );
 			self::$_cache   = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 
 			self::$_clock_diff = self::$_options->get_option( 'api_clock_diff', 0 );
