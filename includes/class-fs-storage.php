@@ -88,7 +88,6 @@
             'subscription'               => true,
             'sync_timestamp'             => true,
             'sync_cron'                  => true,
-            'trial_plan'                 => true,
             'uninstall_reason'           => array( '11' => true, '01' => true ),
             'was_plugin_loaded'          => true,
         );
