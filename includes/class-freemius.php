@@ -3057,10 +3057,6 @@
 
 			$this->parse_settings( $plugin_info );
 
-            if ( $this->has_affiliate_program() ) {
-                $this->fetch_affiliate_and_terms();
-            }
-
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
                     add_action( ( is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
@@ -3145,6 +3141,10 @@
 						$this->run_manual_sync();
 					}
 				}
+
+                if ( $this->has_affiliate_program() ) {
+                    $this->fetch_affiliate_and_terms();
+                }
 			}
 
 			if ( $this->is_registered() ) {
