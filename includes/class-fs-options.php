@@ -210,7 +210,7 @@
                 return false;
             }
 
-            if ( is_numeric( $network_level_or_blog_id ) ) {
+            if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
                 // Explicitly asked to use a specified blog storage.
                 return false;
             }
