@@ -34,7 +34,7 @@
 		 */
 		private $_sticky_storage;
 		/**
-		 * @var FS_Plugin_Manager[]
+		 * @var FS_Admin_Notice_Manager[]
 		 */
 		private static $_instances = array();
 		/**
