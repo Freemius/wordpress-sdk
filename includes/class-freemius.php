@@ -9225,8 +9225,6 @@
 
             $this->_sync_plans();
 
-			$this->_sync_plans();
-
             if (!$this->_is_network_active){
 			$this->_enrich_site_plan( false );
                 $this->_set_account( $user, $first_install );
