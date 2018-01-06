@@ -9436,7 +9436,7 @@
             $this->_store_user();
         }
 
-		 * Install plugin with new user.
+		 /* Install plugin with new user.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.7.4
