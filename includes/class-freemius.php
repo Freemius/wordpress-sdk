@@ -1920,7 +1920,7 @@
 
 			self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
-			add_action( 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
+            add_action( ( is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
 
 			add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
