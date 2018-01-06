@@ -68,7 +68,7 @@
 		}
 
 		protected function get_option_manager() {
-			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true, true );
 		}
 
 		/**
