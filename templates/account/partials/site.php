@@ -15,13 +15,13 @@
      * @var Freemius          $fs
      * @var FS_Plugin_License $main_license
      */
-    $fs             = $VARS['freemius'];
-    $slug           = $fs->get_slug();
-    $site           = $VARS['site'];
-    $main_license   = $VARS['license'];
-    $has_paid_plans = $VARS['has_paid_plans'];
-    $is_premium     = $fs->is_premium();
-    $main_user      = $fs->get_user();
+    $fs            = $VARS['freemius'];
+    $slug          = $fs->get_slug();
+    $site          = $VARS['site'];
+    $main_license  = $VARS['license'];
+    $has_paid_plan = $fs->has_paid_plan();
+    $is_premium    = $fs->is_premium();
+    $main_user     = $fs->get_user();
 
     $install       = $fs->get_install_by_blog_id( $site['blog_id'] );
     $is_registered = ! empty( $install );
@@ -29,19 +29,65 @@
     $trial_plan    = $fs->get_trial_plan();
     $free_text     = fs_text_inline( 'Free', 'free', $slug );
 ?>
-    <tr>
+    <tr class="fs-site-details" data-blog-id="<?php echo $site['blog_id'] ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
         <!-- Install ID or Opt-in option -->
-        <td><?php if ( $is_registered ) : ?>
-                <?php echo $install->id ?>
-            <?php else : ?>
-                <button
-                    class="button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button>
-            <?php endif ?></td>
+        <td><?php if ( $is_registered ) : ?><?php echo $install->id ?><?php else : ?>
+                <button class="button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button><?php endif ?>
+        </td>
         <!--/ Install ID or Opt-in option -->
 
         <!-- Site URL -->
-        <td><?php echo fs_strip_url_protocol( $site['url'] ) ?></td>
+        <td class="fs-field-url fs-main-column"><?php echo fs_strip_url_protocol( $site['url'] ) ?></td>
         <!--/ Site URL -->
+
+        <!-- License Activation / Deactivation -->
+        <td><?php if ( $has_paid_plan && $is_premium ) {
+                $view_params = array(
+                    'freemius' => $fs,
+                    'slug'     => $slug,
+                    'blog_id'  => $site['blog_id'],
+                    'class'    => 'button-small',
+                );
+
+                $license = null;
+                if ( $is_registered ) {
+                    $view_params['install_id']   = $install->id;
+                    $view_params['is_localhost'] = $install->is_localhost();
+
+                    $has_license = FS_Plugin_License::is_valid_id( $install->license_id );
+                    $license     = $has_license ?
+                        $fs->_get_license_by_id( $install->license_id ) :
+                        null;
+                } else {
+                    $view_params['is_localhost'] = FS_Site::is_localhost_by_address( $site['url'] );
+                }
+
+                if ( is_object( $license ) ) {
+                    $view_params['license'] = $license;
+
+                    // Show license deactivation button.
+                    fs_require_template( 'account/partials/deactivate-license-button.php', $view_params );
+                } else {
+                    if ( is_object( $main_license ) && $main_license->can_activate( $view_params['is_localhost'] ) ) {
+                        // Main license is available for activation.
+                        $available_license = $main_license;
+                    } else {
+                        // Try to find any available license for activation.
+                        $available_license = $fs->_get_available_premium_license( $view_params['is_localhost'] );
+                    }
+
+                    if ( is_object( $available_license ) ) {
+                        $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id );
+
+                        $view_params['license'] = $available_license;
+                        $view_params['class'] .= ' button-primary';
+                        $view_params['plan'] = $premium_plan;
+
+                        fs_require_template( 'account/partials/activate-license-button.php', $view_params );
+                    }
+                }
+            } ?></td>
+        <!--/ License Activation / Deactivation -->
 
         <!-- Plan -->
         <td><?php if ( $is_registered ) : ?>
@@ -70,65 +116,18 @@
             <?php endif ?></td>
         <!--/ Plan -->
 
-        <!-- License Activation / Deactivation -->
-        <td><?php if ( $has_paid_plan && $is_premium ) {
-                $view_params = array(
-                    'slug'    => $slug,
-                    'license' => $available_license,
-                    'blog_id' => $site['blog_id'],
-                    'class'   => 'button-small',
-                );
-
-                $license = null;
-                if ( $is_registered ) {
-                    $view_params['install_id']   = $install->id;
-                    $view_params['is_localhost'] = $install->is_localhost();
-
-                    $has_license = FS_Plugin_License::is_valid_id( $install->license_id );
-                    $license     = $has_license ?
-                        $fs->_get_license_by_id( $install->license_id ) :
-                        null;
-                } else {
-                    $view_params['is_localhost'] = FS_Site::is_localhost_by_address( $site['url'] );
-                }
-
-                if ( is_object( $license ) ) {
-                    // Show license deactivation button.
-                    fs_require_template( 'account/partials/deactivate-license-button.php', $view_params );
-                } else {
-                    if ( is_object( $main_license ) && $main_license->can_activate( $install->is_localhost() ) ) {
-                        // Main license is available for activation.
-                        $available_license = $main_license;
-                    } else {
-                        // Try to find any available license for activation.
-                        $available_license = $fs->_get_available_premium_license( $install->is_localhost() );
-                    }
-
-                    if ( is_object( $available_license ) ) {
-                        $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id );
-
-                        $view_params['license'] = $available_license;
-                        $view_params['class'] .= ' button-primary';
-                        $view_params['plan'] = $premium_plan;
-
-                        fs_require_template( 'account/partials/activate-license-button.php', $view_params );
-                    }
-                }
-            } ?></td>
-        <!--/ License Activation / Deactivation -->
-
         <!-- More details button -->
         <td><?php if ( $is_registered ) : ?>
-                <button class="button button-small">More details <i class="dashicons dashicons-arrow-right-alt2"></i>
+                <button class="fs-show-install-details button button-small">More details <i
+                        class="dashicons dashicons-arrow-right-alt2"></i>
                 </button><?php endif ?></td>
         <!--/ More details button -->
     </tr>
 <?php if ( $is_registered ) : ?>
     <!-- More details -->
-    <tr>
-        <td></td>
-        <td colspan="4">
-            <table>
+    <tr class="fs-install-details" data-install-id="<?php echo $install->id ?>" style="display: none">
+        <td colspan="5">
+            <table class="widefat fs-key-value-table">
                 <tbody>
                 <?php $row_index = 0 ?>
                 <!-- Blog ID -->

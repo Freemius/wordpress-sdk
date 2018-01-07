@@ -450,30 +450,39 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
-								<input type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
+								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
 							</div>
 
 							<div class="inside">
-								<table>
-									<?php $sites = array(
-										array(
-											'blog_id' => 1,
-											'uid'      => $this->get_anonymous_id(),
-											'url'      => get_site_url(),
-											'name'     => get_bloginfo( 'name' ),
-											'language' => get_bloginfo( 'language' ),
-											'charset'  => get_bloginfo( 'charset' ),
-										),
-									)/*$fs->get_sites()*/; foreach ($sites as $s) {
+                                <div id="" class="fs-scrollable-table">
+                                    <div class="fs-table-head">
+                                        <table class="widefat">
+                                            <thead>
+                                            <tr>
+                                                <td><?php fs_esc_html_echo_inline('ID', 'id', $slug) ?></td>
+                                                <td><?php fs_esc_html_echo_inline('Address', 'address', $slug) ?></td>
+                                                <td><?php fs_esc_html_echo_inline('License', 'license', $slug) ?></td>
+                                                <td><?php fs_esc_html_echo_inline('Plan', 'plan', $slug) ?></td>
+                                                <td></td>
+                                            </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                    <div class="fs-table-body">
+                                        <table class="widefat">
+                                            <?php $sites = $fs->get_sites();
+//                                                for ($i = 0; $i < 5; $i++){
+                                                foreach ($sites as $s) {
                                         $view_params = array(
                                             'freemius'       => $fs,
                                             'license'        => $license,
-                                            'has_paid_plans' => $has_paid_plan,
-                                            'site'           => $s,
+                                                    'site'           => $fs->get_site_info($s),
                                         );
                                         fs_require_template( 'account/partials/site.php', $view_params );
-                                    } ?>
+                                            } //} ?>
 								</table>
+							</div>
+						</div>
 							</div>
 						</div>
 						<?php endif ?>
@@ -812,6 +821,31 @@
 
                 return false;
             });
+
+            var $sitesSection = $('#fs_sites'),
+                $sitesTable = $sitesSection.find('.fs-scrollable-table'),
+                $sitesTableRows = $sitesTable.find('.fs-site-details');
+
+            $('.fs-show-install-details').click(function(){
+                var installID = $(this).parents('.fs-site-details').attr('data-install-id');
+                $sitesSection.find('.fs-install-details[data-install-id=' + installID + ']').toggle();
+            });
+
+
+            var adjustColumnWidth = function($table) {
+                var $headerColumns = $table.find('.fs-table-head td'),
+                    $bodyColumns   = $table.find('.fs-table-body tr:first > td');
+
+                for (var i = 0, len = $headerColumns.length; i < len; i++) {
+                    $($headerColumns[i]).width($($bodyColumns[i]).width());
+                }
+                for (i = 0, len = $headerColumns.length; i < len; i++) {
+                    $($bodyColumns[i]).width($($headerColumns[i]).width());
+                }
+            };
+
+            adjustColumnWidth($sitesTable);
+
         })(jQuery);
     </script>
 <?php

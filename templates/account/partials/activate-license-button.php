@@ -11,24 +11,33 @@
     }
 
     /**
-     * @var array $VARS
+     * @var array             $VARS
+     * @var Freemius          $fs
+     * @var FS_Plugin_License $available_license
+     * @var string            $slug
      */
+    $fs                = $VARS['freemius'];
     $available_license = $VARS['license'];
     $premium_plan      = $VARS['plan'];
     $slug              = $VARS['slug'];
 
+    $blog_id    = ! empty( $VARS['blog_id'] ) && is_numeric( $VARS['blog_id'] ) ?
+        $VARS['blog_id'] :
+        '';
+    $install_id = ! empty( $VARS['install_id'] ) && FS_Site::is_valid_id( $VARS['install_id'] ) ?
+        $VARS['install_id'] :
+        '';
+
     $activate_plan_text = fs_text_inline( 'Activate %s Plan', 'activate-x-plan', $slug );
+
+    $action = 'activate_license';
 ?>
 <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-    <input type="hidden" name="fs_action" value="activate_license">
-    <?php wp_nonce_field( 'activate_license' ) ?>
-    <input type="hidden" name="license_id" value="<?php echo $available_license->id ?>">
-    <?php if ( ! empty( $VARS['install_id'] ) ) : ?>
-        <input type="hidden" name="install_id" value="<?php echo $VARS['install_id'] ?>">
-    <?php elseif ( ! empty( $VARS['blog_id'] ) ) : ?>
-        <input type="hidden" name="blog_id" value="<?php echo $VARS['blog_id'] ?>">
-    <?php endif ?>
-    <input type="submit" class="button<?php echo ! empty( $VARS['class'] ) ? ' ' . $VARS['class'] : '' ?>"
+    <input type="hidden" name="fs_action" value="<?php echo $action ?>">
+    <?php wp_nonce_field( trim("{$action}:{$blog_id}:{$install_id}", ':') ) ?>
+    <input type="hidden" name="install_id" value="<?php echo $install_id ?>">
+    <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
+    <input type="submit" class="fs-activate-license button<?php echo ! empty( $VARS['class'] ) ? ' ' . $VARS['class'] : '' ?>"
            value="<?php echo esc_attr( sprintf(
                $activate_plan_text . '%s',
                $premium_plan->title,
