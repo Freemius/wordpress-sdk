@@ -12268,7 +12268,9 @@
 
 			$license_id = fs_request_get( 'license_id' );
 
-			if ( FS_Plugin_License::is_valid_id( $license_id ) && $license_id == $this->_site->license_id ) {
+            if ( FS_Plugin_License::is_valid_id( $license_id ) &&
+                 $license_id == $this->_site->license_id
+            ) {
 				// License is already activated.
 				return;
 			}
@@ -13307,21 +13309,23 @@
 					return;
 
 				case 'activate_license':
-					check_admin_referer( $action );
+                    check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
-					if ( $plugin_id == $this->get_id() ) {
-						$this->_activate_license();
-					} else {
-						if ( $this->is_addon_activated( $plugin_id ) ) {
-							$fs_addon = self::get_instance_by_id( $plugin_id );
-							$fs_addon->_activate_license();
+                    $fs = $this;
+                    if ( $plugin_id != $this->get_id() ) {
+                        $fs = $this->is_addon_activated( $plugin_id ) ?
+                            self::get_instance_by_id( $plugin_id ) :
+                            null;
 						}
+
+                    if ( is_object( $fs ) ) {
+                        $fs->_activate_license();
 					}
 
 					return;
 
 				case 'deactivate_license':
-					check_admin_referer( $action );
+                    check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
 					if ( $plugin_id == $this->get_id() ) {
 						$this->_deactivate_license();
