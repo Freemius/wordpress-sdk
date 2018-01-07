@@ -202,6 +202,7 @@
 											);
 										}
 
+										if (!$fs->is_network_active()) {
 										$profile[] = array(
 											'id'    => 'site_id',
 											'title' => fs_text_inline( 'Site ID', 'site-id', $slug ),
@@ -224,6 +225,7 @@
 												fs_text_x_inline( 'No Secret', 'as secret encryption key missing', 'no-secret', $slug )
 											)
 										);
+                                        }
 
 										$profile[] = array(
 											'id'    => 'version',
