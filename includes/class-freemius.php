@@ -8559,7 +8559,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.3.1
+         * @since  1.2.4
          *
          * @return bool
          */
@@ -8568,8 +8568,37 @@
         }
 
         /**
+         * Check if the current module is active for the site.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         *
+         * @return bool
+         */
+        function is_active_for_site( $blog_id ) {
+            if ( ! is_multisite() ) {
+                // Not a multisite and this code is executed, means that the plugin is active.
+                return true;
+            }
+
+            if ( $this->is_theme() ) {
+                // All themes are site level activated.
+                return true;
+            }
+
+            if ( $this->_is_network_active ) {
+                // Plugin was network activated so it's active.
+                return true;
+            }
+
+            return in_array( $this->_plugin_basename, (array) get_blog_option( $blog_id, 'active_plugins', array() ) );
+        }
+        
+        /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.3.1
+         * @since  1.2.4
          *
          * @return array Sites collection.
          */
