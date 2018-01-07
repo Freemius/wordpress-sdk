@@ -32,9 +32,9 @@
 		private $_network_storage;
 
         /**
-         * @var bool
+         * @var string
          */
-		private $_is_theme;
+        private $_module_type;
 
         /**
          * @var int The ID of the blog that is associated with the current site level options.
@@ -97,13 +97,12 @@
          *
          * @param string $module_type
          * @param string $slug
-         * @param bool   $is_theme
 		 *
 		 * @return FS_Storage
 		 */
-		static function instance( $module_type, $slug, $is_theme ) {
+        static function instance( $module_type, $slug ) {
             if ( ! isset( self::$_instance ) ) {
-                self::$_instance = new FS_Storage( $module_type, $slug, $is_theme );
+                self::$_instance = new FS_Storage( $module_type, $slug );
             }
 
 			return self::$_instance;
@@ -114,10 +113,9 @@
          *
          * @param string $module_type
 		 * @param string $slug
-         * @param bool   $is_theme
 		 */
-		private function __construct( $module_type, $slug, $is_theme ) {
-            $this->_is_theme          = $is_theme;
+        private function __construct( $module_type, $slug ) {
+            $this->_module_type       = $module_type;
             $this->_is_multisite      = is_multisite();
             $this->_is_network_active = false;
 
@@ -210,6 +208,8 @@
                 return self::$_BINARY_MAP[ $key ];
             }
 
+            $is_theme = ( WP_FS__MODULE_TYPE_THEME === $this->_module_type );
+
             /**
              * Example:
              *
@@ -218,7 +218,7 @@
              * #1 digit - 1 if theme
              * #2 digit - 1 if module was network activated
              */
-            $binary_key = ( (int) $this->_is_theme . (int) $this->_is_network_active );
+            $binary_key = ( (int) $is_theme . (int) $this->_is_network_active );
 
             return ( isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) && true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
         }

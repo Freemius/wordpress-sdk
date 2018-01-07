@@ -360,11 +360,7 @@
 
 			$this->_is_multisite = is_multisite();
 
-            $this->_storage = FS_Storage::instance(
-                $this->_module_type,
-                $this->_slug,
-                ( WP_FS__MODULE_TYPE_THEME === $this->_module_type )
-            );
+            $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
 
 			$this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
