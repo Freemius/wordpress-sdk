@@ -47,13 +47,13 @@
         private $_is_multisite;
 
         /**
-         * @since 1.2.4
          * @var string[] Lazy collection of params on the site level.
          */
         private static $_SITE_LEVEL_PARAMS;
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
          *
          * @param string $id
          * @param bool   $load
@@ -70,6 +70,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
          *
          * @param string $id
          * @param bool   $load
@@ -87,11 +88,25 @@
         }
 
         /**
+         * Switch the context of the site level options manager.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param $blog_id
+         */
+        function set_site_blog_context($blog_id) {
+            $this->_blog_id = $blog_id;
+
+            $this->_options = FS_Option_Manager::get_manager( $this->_id, false, $this->_blog_id );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @param string        $option
          * @param mixed         $default
-         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context block storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
          *
          * @return mixed
          */
@@ -107,11 +122,12 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
          *
          * @param string        $option
          * @param mixed         $value
          * @param bool          $flush
-         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context block storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
          */
         function set_option( $option, $value, $flush = false, $network_level_or_blog_id = null ) {
             if ( $this->should_use_network_storage( $option, $network_level_or_blog_id ) ) {
@@ -124,6 +140,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
          *
          * @param bool $flush
          * @param bool $network_level
@@ -138,15 +155,30 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
          *
-         * @param bool $network_level
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, store both network storage and the current context blog storage.
          */
-        function store( $network_level = true ) {
-            if ( $this->_is_multisite && $network_level ) {
-                $this->_network_options->store();
-            } else {
-                $this->_options->store();
+        function store( $network_level_or_blog_id = null ) {
+            if ( ! $this->_is_multisite ||
+                 false === $network_level_or_blog_id ||
+                 0 == $network_level_or_blog_id ||
+                 is_null( $network_level_or_blog_id )
+            ) {
+                $site_options = $this->get_site_options( $network_level_or_blog_id );
+                $site_options->store();
             }
+
+            if ( $this->_is_multisite &&
+                 ( is_null( $network_level_or_blog_id ) || true === $network_level_or_blog_id )
+            ) {
+                $this->_network_options->store();
+
+                return;
+            }
+
+            $this->_network_options->store();
+            $this->_options->store();
         }
 
         #--------------------------------------------------------------------------------
@@ -200,7 +232,7 @@
          * @since  1.2.4
          *
          * @param string        $option
-         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context block storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
          *
          * @return bool
          */
@@ -210,7 +242,7 @@
                 return false;
             }
 
-            if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
+            if ( is_numeric( $network_level_or_blog_id ) ) {
                 // Explicitly asked to use a specified blog storage.
                 return false;
             }
