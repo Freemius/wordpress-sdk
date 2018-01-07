@@ -90,6 +90,7 @@
             'sync_cron'                  => true,
             'uninstall_reason'           => array( '11' => true, '01' => true ),
             'was_plugin_loaded'          => true,
+            'network_user_id'            => true,
         );
 
 		/**

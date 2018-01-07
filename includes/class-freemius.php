@@ -8431,6 +8431,38 @@
             return $install;
         }
 
+        /**
+         * Returns the main user associated with the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return FS_User
+         */
+        function get_network_user() {
+            if ( ! $this->_is_network_active ) {
+                return null;
+            }
+
+            return FS_User::is_valid_id( $this->_storage->network_user_id ) ?
+                self::_get_user_by_id( $this->_storage->network_user_id ) :
+                null;
+        }
+
+        /**
+         * Returns the current context user or the network's main user.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return FS_User
+         */
+        function get_current_or_network_user(){
+            return ($this->_user instanceof FS_User) ?
+                $this->_user :
+                $this->get_network_user();
+        }
+
         #endregion Multisite
 
         /**
@@ -9308,6 +9340,9 @@
                 $this->_store_licenses( false );
 
                 self::$_accounts->store();
+
+                // Store network user.
+                $this->_storage->network_user_id = $this->_user->id;
 
                 $this->send_installs_update();
 
