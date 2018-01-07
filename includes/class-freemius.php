@@ -272,8 +272,6 @@
 		private static $_instances = array();
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
          * @since 1.2.3
          *
          * @var FS_Affiliate
@@ -281,8 +279,6 @@
         private $affiliate = null;
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
          * @since 1.2.3
          *
          * @var FS_AffiliateTerms
@@ -290,8 +286,6 @@
         private $plugin_affiliate_terms = null;
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
          * @since 1.2.3
          *
          * @var FS_AffiliateTerms
@@ -299,18 +293,14 @@
         private $custom_affiliate_terms = null;
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
-         * @since 1.2.3.1
+         * @since  1.2.4
          *
          * @var bool
          */
         private $_is_multisite;
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
-         * @since 1.2.3.1
+         * @since  1.2.4
          *
          * @var bool True if the current request is for a network admin screen and the plugin is network active.
          */
