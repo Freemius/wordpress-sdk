@@ -13232,10 +13232,21 @@
 				$first_time_path = $this->_menu->get_first_time_path();
 			}
 
+            if ( $this->_is_network_active &&
+                 is_network_admin() &&
+                 ! $this->_menu->has_network_menu()
+            ) {
+
+                $target_url = $this->get_account_url();
+            } else {
+                // Default plugin's page.
+                $target_url = $this->_get_admin_page_url();
+            }
+
 			return add_query_arg( $params, $this->apply_filters(
 				$filter,
 				empty( $first_time_path ) ?
-					$this->_get_admin_page_url() :
+                    $target_url :
 					$first_time_path
 			) );
 		}
