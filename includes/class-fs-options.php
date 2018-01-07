@@ -200,9 +200,10 @@
 
             if ( ! isset( self::$_SITE_LEVEL_PARAMS ) ) {
                 self::$_SITE_LEVEL_PARAMS = array(
-                    'sites',
-                    'theme_sites',
-                    'unique_id',
+                    'sites'          => true,
+                    'theme_sites'    => true,
+                    'unique_id'      => true,
+                    'active_plugins' => true,
                 );
             }
 
