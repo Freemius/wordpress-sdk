@@ -2397,11 +2397,11 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.0
 		 *
-         * @param int $blog_id Since 1.2.4
+         * @param null|int $blog_id Since 1.2.4
          *
 		 * @return string
 		 */
-        function get_anonymous_id( $blog_id = 0 ) {
+        function get_anonymous_id( $blog_id = null ) {
             $unique_id = self::$_accounts->get_option( 'unique_id', null, $blog_id );
 
             if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
@@ -6181,13 +6181,13 @@
 
 		/**
 		 * @param string $module_type
-         * @param int    $blog_id Since 1.2.4
+         * @param null|int $blog_id Since 1.2.4
 		 *
          * @return array[string]FS_Site
 		 */
         private static function get_all_sites(
             $module_type = WP_FS__MODULE_TYPE_PLUGIN,
-            $blog_id = 0
+            $blog_id = null
         ) {
             $sites = self::get_account_option( 'sites', $module_type, $blog_id );
 
@@ -6205,16 +6205,16 @@
 		 *
 		 * @param string $option_name
 		 * @param string $module_type
-         * @param int    $blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 1.2.4
 		 *
 		 * @return mixed
 		 */
-        private static function get_account_option( $option_name, $module_type, $blog_id = 0 ) {
+        private static function get_account_option( $option_name, $module_type, $network_level_or_blog_id = null ) {
 			if ( WP_FS__MODULE_TYPE_PLUGIN !== $module_type ) {
 				$option_name = $module_type . '_' . $option_name;
 			}
 
-            return self::$_accounts->get_option( $option_name, array(), $blog_id );
+            return self::$_accounts->get_option( $option_name, array(), $network_level_or_blog_id );
 		}
 
 		/**
@@ -6225,15 +6225,15 @@
 		 * @param string $option_name
 		 * @param mixed  $option_value
 		 * @param bool   $store
-         * @param int    $blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 1.2.4
 		 */
-        private function set_account_option( $option_name, $option_value, $store, $blog_id = 0 ) {
+        private function set_account_option( $option_name, $option_value, $store, $network_level_or_blog_id = null ) {
 			self::set_account_option_by_module(
 				$this->_module_type,
 				$option_name,
 				$option_value,
                 $store,
-                $blog_id
+                $network_level_or_blog_id
 			);
 		}
 
@@ -6246,20 +6246,20 @@
 		 * @param string $option_name
 		 * @param mixed  $option_value
 		 * @param bool   $store
-         * @param int    $blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 1.2.4
 		 */
         private static function set_account_option_by_module(
             $module_type,
             $option_name,
             $option_value,
             $store,
-            $blog_id = 0
+            $network_level_or_blog_id = null
         ) {
 			if ( WP_FS__MODULE_TYPE_PLUGIN != $module_type ) {
 				$option_name = $module_type . '_' . $option_name;
 			}
 
-            self::$_accounts->set_option( $option_name, $option_value, $store, $blog_id );
+            self::$_accounts->set_option( $option_name, $option_value, $store, $network_level_or_blog_id );
 		}
 
 		/**
@@ -8943,11 +8943,11 @@
 		 * @since  1.1.7.4
 		 *
 		 * @param array $override_with
-         * @param bool  $is_network    If true, return params for network level opt-in.
+         * @param bool|int|null $network_level_or_blog_id If true, return params for network level opt-in. If integer, get params for specified blog in the network.
 		 *
 		 * @return array
 		 */
-        function get_opt_in_params( $override_with = array(), $is_network = false ) {
+        function get_opt_in_params( $override_with = array(), $network_level_or_blog_id = null ) {
 			$this->_logger->entrance();
 
 			$current_user = self::_get_current_wp_user();
@@ -8982,7 +8982,7 @@
 				'is_uninstalled'               => false,
 			);
 
-            if ( $is_network ) {
+            if ( true === $network_level_or_blog_id ) {
                 if ( ! isset( $override_with['sites'] ) ) {
                     $params['sites'] = array();
 
@@ -9523,6 +9523,7 @@
             $this->_store_user();
         }
 
+        /**
 		 * Install plugin with new user.
 		 *
 		 * @author Vova Feldman (@svovaf)
@@ -11006,9 +11007,9 @@
 		 * @since  1.0.1
 		 *
 		 * @param bool $store Flush to Database if true.
-         * @param int  $blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 1.2.4
 		 */
-        private function _store_site( $store = true, $blog_id = 0 ) {
+        private function _store_site( $store = true, $network_level_or_blog_id = null ) {
 			$this->_logger->entrance();
 
 			if ( empty( $this->_site->id ) ) {
@@ -11020,7 +11021,7 @@
 			$encrypted_site       = clone $this->_site;
 			$encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
 
-            $sites = self::get_all_sites( $this->_module_type, $blog_id );
+            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
             if ( empty( $this->_storage->prev_user_id ) && $this->_user->id != $this->_site->user_id ) {
                 /**
@@ -11039,7 +11040,7 @@
 
 			$sites[ $this->_slug ] = $encrypted_site;
 
-            $this->set_account_option( 'sites', $sites, $store, $blog_id );
+            $this->set_account_option( 'sites', $sites, $store, $network_level_or_blog_id );
 		}
 
 		/**
@@ -11206,16 +11207,18 @@
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.1
+         *
+         * @param null|int $blog_id Since 1.2.4
 		 */
-		private function _store_account() {
+        private function _store_account( $blog_id = null ) {
 			$this->_logger->entrance();
 
-			$this->_store_site( false );
+            $this->_store_site( false, $blog_id );
 			$this->_store_user( false );
 			$this->_store_plans( false );
 			$this->_store_licenses( false );
 
-			self::$_accounts->store();
+            self::$_accounts->store( $blog_id );
 		}
 
 		/**
@@ -11282,10 +11285,11 @@
 
 		/**
 		 * @param bool $store
+         * @param null|int $blog_id Since 1.2.4
 		 *
 		 * @return FS_Plugin_Plan|object|false
 		 */
-		private function _enrich_site_plan( $store = true ) {
+        private function _enrich_site_plan( $store = true, $blog_id = null ) {
 			// Try to load plan from local cache.
 			$plan = $this->_get_plan_by_id( $this->_site->plan->id );
 
@@ -11294,7 +11298,7 @@
 			}
 
 			if ( $plan instanceof FS_Plugin_Plan ) {
-				$this->_update_plan( $plan, $store );
+                $this->_update_plan( $plan, $store, $blog_id );
 			}
 
 			return $plan;
@@ -11521,12 +11525,13 @@
 		 *
 		 * @param FS_Plugin_Plan $plan
 		 * @param bool           $store
+         * @param null|int       $blog_id Since 1.2.4
 		 */
-		private function _update_plan( $plan, $store = false ) {
+        private function _update_plan( $plan, $store = false, $blog_id = null ) {
 			$this->_logger->entrance();
 
 			$this->_site->plan = $plan;
-			$this->_store_site( $store );
+            $this->_store_site( $store, $blog_id );
 		}
 
 		/**
