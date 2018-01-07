@@ -316,6 +316,20 @@
          */
         private $_is_network_active;
 
+        /**
+         * @since  1.2.4
+         *
+         * @var int|null The original blog ID the plugin was loaded with.
+         */
+        private $_blog_id = null;
+
+        /**
+         * @since  1.2.4
+         *
+         * @var int|null The current execution context. When true, run on network context. When int, run on the specified blog context.
+         */
+        private $_context_is_network_or_blog_id = null;
+
 		#region Uninstall Reasons IDs
 
 		const REASON_NO_LONGER_NEEDED = 1;
@@ -359,6 +373,7 @@
 			$this->_module_type = $this->get_module_type();
 
 			$this->_is_multisite = is_multisite();
+            $this->_blog_id                       = $this->_is_multisite ? get_current_blog_id() : null;
 
             $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
 
@@ -8271,17 +8286,60 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * Switches the Freemius site level context to a specified blog.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
          *
          * @param int  $blog_id
-         * @param bool $flush_options
+         * @param FS_Site $install
          */
-        function switch_to_blog( $blog_id, $flush_options = false ) {
-            switch_to_blog( $blog_id );
-
-            if ( $flush_options ) {
-                self::$_accounts->load( true, false );
+        function switch_to_blog( $blog_id, FS_Site $install = null ) {
+            if ( $blog_id == $this->_context_is_network_or_blog_id ) {
+                return;
             }
+
+            switch_to_blog( $blog_id );
+            $this->_context_is_network_or_blog_id = $blog_id;
+
+            self::$_accounts->set_site_blog_context( $blog_id );
+            $this->_storage->set_site_blog_context( $blog_id );
+
+            $this->_site = is_object( $install ) ?
+                $install :
+                $this->get_install_by_blog_id( $blog_id );
+
+            if ( is_object( $this->_site ) ) {
+                $this->_enrich_site_plan( false );
+
+                // Try to fetch user from install.
+                $this->_user = self::_get_user_by_id( $this->_site->user_id );
+
+                if ( ! is_object( $this->_user ) &&
+                     FS_User::is_valid_id( $this->_storage->prev_user_id )
+                ) {
+                    // Try to fetch previously saved user.
+                    $this->_user = self::_get_user_by_id( $this->_storage->prev_user_id );
+                }
+
+                if ( ! is_object( $this->_user ) ) {
+                    // Fallback to network's user.
+                    $this->_user = $this->get_network_user();
+            }
+        }
+
+            unset( $this->_site_api );
+            unset( $this->_user_api );
+        }
+
+        /**
+         * Restore the blog context to the blog that originally loaded the module.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         */
+        function restore_current_blog() {
+            $this->switch_to_blog( $this->_blog_id );
         }
 
         /**
