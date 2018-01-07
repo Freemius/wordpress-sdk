@@ -10148,7 +10148,10 @@
             ) {
 				$this->_menu->remove_menu_item();
 			} else {
-				$this->do_action( 'before_admin_menu_init' );
+                $this->do_action( is_network_admin() ?
+                    'before_network_admin_menu_init' :
+                    'before_admin_menu_init'
+                );
 
 				$this->add_menu_action();
                 $this->add_network_menu_when_missing();
