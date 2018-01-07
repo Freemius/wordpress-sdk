@@ -1803,19 +1803,49 @@
 		}
 
 		/**
-		 * Get collection of all active plugins.
+         * Get the basenames of all active plugins for specific blog. Including network activated plugins.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         *
+         * @return string[]
+         */
+        private static function get_active_plugins_basenames( $blog_id = 0 ) {
+            if ( is_multisite() && $blog_id > 0 ) {
+                $active_basenames = get_blog_option( $blog_id, 'active_plugins' );
+            } else {
+                $active_basenames = get_option( 'active_plugins' );
+            }
+
+            if ( is_multisite() ) {
+                $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
+
+                if ( is_array( $network_active_basenames ) && ! empty( $network_active_basenames ) ) {
+                    $active_basenames = array_merge( $active_basenames, $network_active_basenames );
+                }
+            }
+
+            return $active_basenames;
+        }
+
+        /**
+         * Get collection of all active plugins. Including network activated plugins.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
+         * @param int $blog_id Since 1.2.4
+         *
 		 * @return array[string]array
 		 */
-		private static function get_active_plugins() {
+        private static function get_active_plugins( $blog_id = 0 ) {
 			self::require_plugin_essentials();
 
 			$active_plugin            = array();
 			$all_plugins              = get_plugins();
-			$active_plugins_basenames = get_option( 'active_plugins' );
+            $active_plugins_basenames = self::get_active_plugins_basenames( $blog_id );
 
 			foreach ( $active_plugins_basenames as $plugin_basename ) {
 				$active_plugin[ $plugin_basename ] = $all_plugins[ $plugin_basename ];
@@ -1825,18 +1855,48 @@
 		}
 
 		/**
-		 * Get collection of all plugins.
+         * Get collection of all site active plugins for a specified blog.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         *
+         * @return array[string]array
+         */
+        private static function get_site_active_plugins( $blog_id = 0 ) {
+            $active_basenames = ( is_multisite() && $blog_id > 0 ) ?
+                get_blog_option( $blog_id, 'active_plugins' ) :
+                get_option( 'active_plugins' );
+
+            $active = array();
+            foreach ( $active_basenames as $basename ) {
+                $active[ $basename ] = array(
+                    'is_active' => true,
+                    'Version'   => '1.0', // Dummy version.
+                    'slug'      => self::get_plugin_slug( $basename ),
+                );
+            }
+
+            return $active;
+        }
+
+        /**
+         * Get collection of all plugins with their activation status for a specified blog.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.8
 		 *
+         * @param int $blog_id Since 1.2.4
+         *
 		 * @return array Key is the plugin file path and the value is an array of the plugin data.
 		 */
-		private static function get_all_plugins() {
+        private static function get_all_plugins( $blog_id = 0 ) {
 			self::require_plugin_essentials();
 
 			$all_plugins              = get_plugins();
-			$active_plugins_basenames = get_option( 'active_plugins' );
+
+            $active_plugins_basenames = self::get_active_plugins_basenames( $blog_id );
 
 			foreach ( $all_plugins as $basename => &$data ) {
 				// By default set to inactive (next foreach update the active plugins).
@@ -1855,6 +1915,39 @@
 			return $all_plugins;
 		}
 
+        /**
+         * Get collection of all plugins and if they are network level activated.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return array Key is the plugin basename and the value is an array of the plugin data.
+         */
+        private static function get_network_plugins() {
+            self::require_plugin_essentials();
+
+            $all_plugins = get_plugins();
+
+            $network_active_basenames = is_multisite() ?
+                get_site_option( 'active_sitewide_plugins' ) :
+                array();
+
+            foreach ( $all_plugins as $basename => &$data ) {
+                // By default set to inactive (next foreach update the active plugins).
+                $data['is_active'] = false;
+                // Enrich with plugin slug.
+                $data['slug'] = self::get_plugin_slug( $basename );
+            }
+
+            // Flag active plugins.
+            foreach ( $network_active_basenames as $basename ) {
+                if ( isset( $all_plugins[ $basename ] ) ) {
+                    $all_plugins[ $basename ]['is_active'] = true;
+                }
+            }
+
+            return $all_plugins;
+        }
 
 		/**
 		 * Cached result of get_site_transient( 'update_plugins' )
@@ -5244,6 +5337,30 @@
 		}
 
 		/**
+         * Generate an MD5 signature of a plugins collection.
+         * This helper methods used to identify changes in a plugins collection.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param array [string]array $plugins
+         *
+         * @return string
+         */
+        private function get_plugins_thumbprint( $plugins ) {
+            ksort( $plugins );
+
+            $thumbprint = '';
+            foreach ( $plugins as $basename => $data ) {
+                $thumbprint .= $data['slug'] . ',' .
+                               $data['Version'] . ',' .
+                               ( $data['is_active'] ? '1' : '0' ) . ';';
+            }
+
+            return md5( $thumbprint );
+        }
+
+        /**
 		 * Return a list of modified plugins since the last sync.
 		 *
 		 * Note:
@@ -5258,12 +5375,16 @@
 		 */
 		private function get_plugins_data_for_api() {
 			// Alias.
-			$option_name = 'all_plugins';
+            $site_active_plugins_option_name = 'active_plugins';
+            $network_plugins_option_name     = 'all_plugins';
 
-			$all_cached_plugins = self::$_accounts->get_option( $option_name );
+            /**
+             * Collection of all site level active plugins.
+             */
+            $site_active_plugins_cache = self::$_accounts->get_option( $site_active_plugins_option_name );
 
-			if ( ! is_object( $all_cached_plugins ) ) {
-				$all_cached_plugins = (object) array(
+            if ( ! is_object( $site_active_plugins_cache ) ) {
+                $site_active_plugins_cache = (object) array(
 					'timestamp' => '',
 					'md5'       => '',
 					'plugins'   => array(),
@@ -5272,72 +5393,122 @@
 
 			$time = time();
 
-			if ( ! empty( $all_cached_plugins->timestamp ) &&
-			     ( $time - $all_cached_plugins->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
+            if ( ! empty( $site_active_plugins_cache->timestamp ) &&
+                 ( $time - $site_active_plugins_cache->timestamp ) < WP_FS__TIME_5_MIN_IN_SEC
 			) {
 				// Don't send plugin updates if last update was in the past 5 min.
 				return false;
 			}
 
 			// Write timestamp to lock the logic.
-			$all_cached_plugins->timestamp = $time;
-			self::$_accounts->set_option( $option_name, $all_cached_plugins, true );
+            $site_active_plugins_cache->timestamp = $time;
+            self::$_accounts->set_option( $site_active_plugins_option_name, $site_active_plugins_cache, true );
 
 			// Reload options from DB.
 			self::$_accounts->load( true );
-			$all_cached_plugins = self::$_accounts->get_option( $option_name );
+            $site_active_plugins_cache = self::$_accounts->get_option( $site_active_plugins_option_name );
 
-			if ( $time != $all_cached_plugins->timestamp ) {
+            if ( $time != $site_active_plugins_cache->timestamp ) {
 				// If timestamp is different, then another thread captured the lock.
 				return false;
 			}
 
-			// Check if there's a change in plugins.
-			$all_plugins = self::get_all_plugins();
+            /**
+             * Collection of all plugins (network level).
+             */
+            $network_plugins_cache = self::$_accounts->get_option( $network_plugins_option_name );
 
-			// Check if plugins changed.
-			ksort( $all_plugins );
-
-			$plugins_signature = '';
-			foreach ( $all_plugins as $basename => $data ) {
-				$plugins_signature .= $data['slug'] . ',' .
-				                      $data['Version'] . ',' .
-				                      ( $data['is_active'] ? '1' : '0' ) . ';';
+            if ( ! is_object( $network_plugins_cache ) ) {
+                $network_plugins_cache = (object) array(
+                    'timestamp' => '',
+                    'md5'       => '',
+                    'plugins'   => array(),
+                );
 			}
 
+            // Check if there's a change in plugins.
+            $network_plugins     = self::get_network_plugins();
+            $site_active_plugins = self::get_site_active_plugins();
+
+            $network_plugins_thumbprint     = $this->get_plugins_thumbprint( $network_plugins );
+            $site_active_plugins_thumbprint = $this->get_plugins_thumbprint( $site_active_plugins );
+
 			// Check if plugins status changed (version or active/inactive).
-			$plugins_changed = ( $all_cached_plugins->md5 !== md5( $plugins_signature ) );
+            $network_plugins_changed     = ( $network_plugins_cache->md5 !== $network_plugins_thumbprint );
+            $site_active_plugins_changed = ( $site_active_plugins_cache->md5 !== $site_active_plugins_thumbprint );
 
-			$plugins_update_data = array();
+            if ( ! $network_plugins_changed &&
+                 ! $site_active_plugins_changed
+            ) {
+                // No changes.
+                return array();
+            }
 
-			if ( $plugins_changed ) {
-				// Change in plugins, report changes.
+            $plugins_update_data = array();
 
-				// Update existing plugins info.
-				foreach ( $all_cached_plugins->plugins as $basename => $data ) {
-					if ( ! isset( $all_plugins[ $basename ] ) ) {
+            foreach ( $network_plugins_cache->plugins as $basename => $data ) {
+                if ( ! isset( $network_plugins[ $basename ] ) ) {
 						// Plugin uninstalled.
 						$uninstalled_plugin_data                   = $data;
 						$uninstalled_plugin_data['is_active']      = false;
 						$uninstalled_plugin_data['is_uninstalled'] = true;
 						$plugins_update_data[]                     = $uninstalled_plugin_data;
 
-						unset( $all_plugins[ $basename ] );
-						unset( $all_cached_plugins->plugins[ $basename ] );
-					} else if ( $data['is_active'] !== $all_plugins[ $basename ]['is_active'] ||
-					            $data['version'] !== $all_plugins[ $basename ]['Version']
-					) {
-						// Plugin activated or deactivated, or version changed.
-						$all_cached_plugins->plugins[ $basename ]['is_active'] = $all_plugins[ $basename ]['is_active'];
-						$all_cached_plugins->plugins[ $basename ]['version']   = $all_plugins[ $basename ]['Version'];
+                    unset( $network_plugins[ $basename ] );
 
-						$plugins_update_data[] = $all_cached_plugins->plugins[ $basename ];
+                    unset( $network_plugins_cache->plugins[ $basename ] );
+                    unset( $site_active_plugins_cache->plugins[ $basename ] );
+
+                    continue;
+                }
+
+                $was_active = $data['is_active'] ||
+                              ( isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
+                                true === $site_active_plugins_cache->plugins[ $basename ]['is_active'] );
+                $is_active  = $network_plugins[ $basename ]['is_active'] ||
+                              ( isset( $site_active_plugins[ $basename ] ) &&
+                                $site_active_plugins[ $basename ]['is_active'] );
+
+                if ( ! isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
+                     isset( $site_active_plugins[ $basename ] )
+                ) {
+                    // Plugin was site level activated.
+                    $site_active_plugins_cache->plugins[ $basename ]              = $network_plugins[ $basename ];
+                    $site_active_plugins_cache->plugins[ $basename ]['is_active'] = true;
+                } else if ( isset( $site_active_plugins_cache->plugins[ $basename ] ) &&
+                            ! isset( $site_active_plugins[ $basename ] )
+					) {
+                    // Plugin was site level deactivated.
+                    unset( $site_active_plugins_cache->plugins[ $basename ] );
+                }
+
+                $prev_version    = $data['version'];
+                $current_version = $network_plugins[ $basename ]['Version'];
+
+                if ( $was_active !== $is_active || $prev_version !== $current_version ) {
+						// Plugin activated or deactivated, or version changed.
+
+                    if ( $was_active !== $is_active ) {
+                        if ( $data['is_active'] != $network_plugins[ $basename ]['is_active'] ) {
+                            $network_plugins_cache->plugins[ $basename ]['is_active'] = $data['is_active'];
+                        }
+                    }
+
+                    if ( $prev_version !== $current_version ) {
+                        $network_plugins_cache->plugins[ $basename ]['Version'] = $current_version;
+                    }
+
+                    $updated_plugin_data              = $data;
+                    $updated_plugin_data['is_active'] = $is_active;
+                    $updated_plugin_data['version']   = $current_version;
+                    $updated_plugin_data['title']     = $network_plugins[ $basename ]['Name'];
+                    $plugins_update_data[]            = $updated_plugin_data;
 					}
 				}
 
 				// Find new plugins that weren't yet seen before.
-				foreach ( $all_plugins as $basename => $data ) {
-					if ( ! isset( $all_cached_plugins->plugins[ $basename ] ) ) {
+            foreach ( $network_plugins as $basename => $data ) {
+                if ( ! isset( $network_plugins_cache->plugins[ $basename ] ) ) {
 						// New plugin.
 						$new_plugin = array(
 							'slug'           => $data['slug'],
@@ -5348,14 +5519,22 @@
 						);
 
 						$plugins_update_data[]                    = $new_plugin;
-						$all_cached_plugins->plugins[ $basename ] = $new_plugin;
+                    $network_plugins_cache->plugins[ $basename ] = $new_plugin;
+
+                    if ( isset( $site_active_plugins[ $basename ] ) ) {
+                        $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
+                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = true;
 					}
 				}
-
-				$all_cached_plugins->md5       = md5( $plugins_signature );
-				$all_cached_plugins->timestamp = $time;
-				self::$_accounts->set_option( $option_name, $all_cached_plugins, true );
 			}
+
+            $site_active_plugins_cache->md5       = $site_active_plugins_thumbprint;
+            $site_active_plugins_cache->timestamp = $time;
+            self::$_accounts->set_option( $site_active_plugins_option_name, $site_active_plugins_cache, true );
+
+            $network_plugins_cache->md5       = $network_plugins_thumbprint;
+            $network_plugins_cache->timestamp = $time;
+            self::$_accounts->set_option( $network_plugins_option_name, $network_plugins_cache, true );
 
 			return $plugins_update_data;
 		}
