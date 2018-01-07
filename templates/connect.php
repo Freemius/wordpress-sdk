@@ -230,7 +230,7 @@
                                         <td><input type="checkbox" value="true" /></td>
                                     <?php endif ?>
                                     <td class="blog-id"><?php echo $site['blog_id'] ?>.</td>
-                                    <td class="url" width="600"><?php
+                                    <td width="600"><?php
                                         $url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
                                         echo $url;
                                         ?></td>
@@ -241,12 +241,11 @@
                                             <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
                                         <?php endif ?>
                                     <?php endif ?>
-                                    <td class="site-hidden-info">
-                                        <span class="uid"><?php echo $site['uid'] ?></span>
-                                        <span class="name"><?php echo $site['name'] ?></span>
-                                        <span class="charset"><?php echo $site['charset'] ?></span>
-                                        <span class="language"><?php echo $site['language'] ?></span>
-                                    </td>
+	                                <input class="uid" type="hidden" value="<?php echo $site['uid'] ?>" />
+	                                <input class="url" type="hidden" value="<?php echo esc_attr($site['url']) ?>" />
+	                                <input class="title" type="hidden" value="<?php echo esc_attr($site['title']) ?>" />
+	                                <input class="charset" type="hidden" value="<?php echo $site['charset'] ?>" />
+	                                <input class="language" type="hidden" value="<?php echo $site['language'] ?>" />
                                 </tr>
                             <?php endforeach ?>
                             </tbody>
