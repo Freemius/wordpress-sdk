@@ -445,7 +445,9 @@
 		 * @return bool
 		 */
 		function has_settings_menu() {
-			return $this->_menu->has_menu();
+            return is_network_admin() ?
+                $this->_menu->has_network_menu() :
+                $this->_menu->has_menu();
 		}
 
 		/**
