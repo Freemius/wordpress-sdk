@@ -138,6 +138,24 @@
         }
 
         /**
+         * Switch the context of the site level storage manager.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         */
+        function set_site_blog_context( $blog_id ) {
+            $this->_blog_id = $blog_id;
+
+            $this->_storage = FS_Key_Value_Storage::instance(
+                $this->_module_type . '_data',
+                $this->_storage->get_secondary_id(),
+                $this->_blog_id
+            );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @param string $key
