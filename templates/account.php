@@ -305,25 +305,17 @@
 															<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
                                                             <?php if ( is_object( $available_license ) ) : ?>
 																<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
-																<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
-																      method="POST">
-																	<input type="hidden" name="fs_action" value="activate_license">
-																	<input type="hidden" name="license_id" value="<?php echo $available_license->id ?>">
-																	<?php wp_nonce_field( 'activate_license' ) ?>
-																	<input type="submit" class="button button-primary"
-																	       value="<?php echo esc_attr( sprintf(
-                                                                               $activate_plan_text . '%s',
-																		       $premium_plan->title,
-																		       ( $site->is_localhost() && $available_license->is_free_localhost ) ?
-																			       ' [' . fs_text_inline( 'Localhost', 'localhost', $slug ) . ']' :
-																			       ( $available_license->is_single_site() ?
-																				       '' :
-																				       ' [' . ( 1 < $available_license->left() ?
-																					       sprintf( fs_text_x_inline( '%s left', 'as 5 licenses left', 'x-left', $slug ), $available_license->left() ) :
-																					       strtolower( fs_text_inline( 'Last license', 'last-license', $slug ) ) ) . ']'
-																			       )
-																	       ) ) ?> ">
-																</form>
+                                                                <?php
+                                                                $view_params = array(
+                                                                    'freemius'     => $fs,
+                                                                    'slug'         => $slug,
+                                                                    'license'      => $available_license,
+                                                                    'plan'         => $premium_plan,
+                                                                    'is_localhost' => $site->is_localhost(),
+                                                                    'install_id'   => $site->id,
+                                                                    'class'        => 'button-primary',
+                                                                );
+                                                                fs_require_template( 'account/partials/activate-license-button.php', $view_params ); ?>
 															<?php else : ?>
 																<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 																      method="POST" class="button-group">
