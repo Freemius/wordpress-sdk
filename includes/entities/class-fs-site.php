@@ -94,6 +94,18 @@
          * @var bool
          */
         public $is_disconnected = false;
+        /**
+         * @since  1.2.4
+         *
+         * @var bool
+         */
+        public $is_active = true;
+        /**
+         * @since  1.2.4
+         *
+         * @var bool
+         */
+        public $is_uninstalled = false;
 
         /**
          * @param stdClass|bool $site
