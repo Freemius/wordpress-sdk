@@ -23,21 +23,21 @@
 	 */
 	$update = $fs->get_update( false, false, WP_FS__TIME_24_HOURS_IN_SEC / 24 );
 
-	$is_paying              = $fs->is_paying();
-	$user                   = $fs->get_user();
-	$site                   = $fs->get_site();
-	$name                   = $user->get_name();
-	$license                = $fs->_get_license();
-	$subscription           = $fs->_get_subscription();
-	$plan                   = $fs->get_plan();
-	$is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
-	$is_paid_trial          = $fs->is_paid_trial();
+    $is_paying              = $fs->is_paying();
+    $user                   = $fs->get_user();
+    $site                   = $fs->get_site();
+    $name                   = $user->get_name();
+    $license                = $fs->_get_license();
+    $subscription           = $fs->_get_subscription();
+    $plan                   = $fs->get_plan();
+    $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
+    $is_paid_trial          = $fs->is_paid_trial();
     $has_paid_plan          = $fs->has_paid_plan();
     $show_upgrade           = ( $has_paid_plan && ! $is_paying && ! $is_paid_trial );
     $trial_plan             = $fs->get_trial_plan();
 
 	if ( $has_paid_plan ) {
-		$fs->_add_license_activation_dialog_box();
+        $fs->_add_license_activation_dialog_box();
 	}
 
 	if ( fs_request_get_bool( 'auto_install' ) ) {
@@ -202,28 +202,28 @@
 										}
 
 										if (!$fs->is_network_active()) {
-										$profile[] = array(
-											'id'    => 'site_id',
-											'title' => fs_text_inline( 'Site ID', 'site-id', $slug ),
-											'value' => is_string( $site->id ) ?
-												$site->id :
-												fs_text_inline( 'No ID', 'no-id', $slug )
-										);
+                                            $profile[] = array(
+                                                'id'    => 'site_id',
+                                                'title' => fs_text_inline( 'Site ID', 'site-id', $slug ),
+                                                'value' => is_string( $site->id ) ?
+                                                    $site->id :
+                                                    fs_text_inline( 'No ID', 'no-id', $slug )
+                                            );
 
-										$profile[] = array(
-											'id'    => 'site_public_key',
-											'title' => fs_text_inline( 'Public Key', 'public-key', $slug ),
-											'value' => $site->public_key
-										);
+                                            $profile[] = array(
+                                                'id'    => 'site_public_key',
+                                                'title' => fs_text_inline( 'Public Key', 'public-key', $slug ),
+                                                'value' => $site->public_key
+                                            );
 
-										$profile[] = array(
-											'id'    => 'site_secret_key',
-											'title' => fs_text_inline( 'Secret Key', 'secret-key', $slug ),
-											'value' => ( ( is_string( $site->secret_key ) ) ?
-												$site->secret_key :
-												fs_text_x_inline( 'No Secret', 'as secret encryption key missing', 'no-secret', $slug )
-											)
-										);
+                                            $profile[] = array(
+                                                'id'    => 'site_secret_key',
+                                                'title' => fs_text_inline( 'Secret Key', 'secret-key', $slug ),
+                                                'value' => ( ( is_string( $site->secret_key ) ) ?
+                                                    $site->secret_key :
+                                                    fs_text_x_inline( 'No Secret', 'as secret encryption key missing', 'no-secret', $slug )
+                                                )
+                                            );
                                         }
 
 										$profile[] = array(
@@ -466,16 +466,16 @@
                                             <?php $sites = $fs->get_sites();
 //                                                for ($i = 0; $i < 5; $i++){
                                                 foreach ($sites as $s) {
-                                        $view_params = array(
-                                            'freemius'       => $fs,
-                                            'license'        => $license,
+                                                $view_params = array(
+                                                    'freemius'       => $fs,
+                                                    'license'        => $license,
                                                     'site'           => $fs->get_site_info($s),
-                                        );
-                                        fs_require_template( 'account/partials/site.php', $view_params );
+                                                );
+                                                fs_require_template( 'account/partials/site.php', $view_params );
                                             } //} ?>
-								</table>
-							</div>
-						</div>
+                                        </table>
+                                    </div>
+                                </div>
 							</div>
 						</div>
 						<?php endif ?>
@@ -807,9 +807,32 @@
 	</div>
     <script type="text/javascript">
         (function ($) {
+            var setLoading = function ($this, label) {
+                // Set loading mode.
+                $(document.body).css({'cursor': 'wait'});
+
+                $this.css({'cursor': 'wait'});
+
+                if ($this.is('input'))
+                    $this.val(label);
+                else
+                    $this.html(label);
+
+                setTimeout(function () {
+                    $this.attr('disabled', 'disabled');
+                }, 200);
+            };
+
+            $('.fs-activate-license').click(function () {
+                setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
+            });
+
             $('.fs-deactivate-license').click(function () {
                 if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
-                    $(this)[0].parentNode.submit();
+                    var $this = $(this);
+
+                    setLoading($this, '<?php fs_esc_js_echo_inline('Deactivating', 'deactivating' ) ?>...');
+                    $this[0].parentNode.submit();
                 }
 
                 return false;
