@@ -9934,6 +9934,7 @@
 				$this->do_action( 'before_admin_menu_init' );
 
 				$this->add_menu_action();
+                $this->add_network_menu_when_missing();
 				$this->add_submenu_items();
 			}
 		}
@@ -10075,6 +10076,52 @@
 		}
 
 		/**
+         * If a plugin was network activated and connected but don't have a network
+         * level settings, then add an artificial menu item for the Account and other
+         * Freemius settings.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         */
+        private function add_network_menu_when_missing() {
+            $this->_logger->entrance();
+
+            if ( ! $this->_is_network_active ) {
+                // Plugin wasn't activated on the network level.
+                return;
+            }
+
+            if ( ! is_network_admin() ) {
+                // The context is not the network admin.
+                return;
+            }
+
+            if ( $this->_menu->has_network_menu() ) {
+                // Plugin already has a network level menu.
+                return;
+            }
+
+            // @todo Verify that the user actually network level connected and not delegated to admins.
+
+            if ( ! $this->_menu->has_menu() || $this->_menu->is_top_level() ) {
+                $this->_menu->add_page_and_update(
+                    $this->get_plugin_name(),
+                    $this->get_plugin_name(),
+                    'manage_options',
+                    $this->_menu->has_menu() ? $this->_menu->get_slug() : $this->_slug
+                );
+            } else {
+                $this->_menu->add_subpage_and_update(
+                    $this->_menu->get_parent_slug(),
+                    $this->get_plugin_name(),
+                    $this->get_plugin_name(),
+                    'manage_options',
+                    $this->_menu->get_slug()
+                );
+            }
+        }
+
+        /**
 		 * @author Leo Fajardo (leorw)
 		 * @since  1.2.1
 		 *

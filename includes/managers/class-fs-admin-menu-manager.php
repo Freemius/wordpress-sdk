@@ -89,6 +89,12 @@
 		 * @var bool
 		 */
 		private $_menu_exists;
+		/**
+		 * @since 1.2.4
+		 *
+		 * @var bool
+		 */
+		private $_network_menu_exists;
 
 		#endregion Properties
 
@@ -149,6 +155,7 @@
 		 */
 		function init( $menu, $is_addon = false ) {
 			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
+			$this->_network_menu_exists = ( ! empty( $menu['network'] ) && true === $menu['network'] );
 
 			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_module_unique_affix );
 
@@ -258,6 +265,16 @@
 		 */
 		function has_menu() {
 			return $this->_menu_exists;
+		}
+
+		/**
+         * @author Vova Feldman (@svovaf)
+		 * @since  1.2.4
+		 *
+		 * @return bool
+		 */
+		function has_network_menu() {
+			return $this->_network_menu_exists;
 		}
 
 		/**
@@ -795,6 +812,47 @@
 			);
 		}
 
+        /**
+         * Add page and update menu instance settings.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string          $page_title
+         * @param string          $menu_title
+         * @param string          $capability
+         * @param string          $menu_slug
+         * @param callable|string $function
+         * @param string          $icon_url
+         * @param int|null        $position
+         *
+         * @return string
+         */
+		function add_page_and_update(
+            $page_title,
+            $menu_title,
+            $capability,
+            $menu_slug,
+            $function = '',
+            $icon_url = '',
+            $position = null
+        ) {
+            $this->_menu_slug           = $menu_slug;
+            $this->_is_top_level        = true;
+            $this->_menu_exists         = true;
+            $this->_network_menu_exists = true;
+
+            return self::add_page(
+                $page_title,
+                $menu_title,
+                $capability,
+                $menu_slug,
+                $function,
+                $icon_url,
+                $position
+            );
+        }
+
 		/**
 		 * Add a submenu page.
 		 *
@@ -847,4 +905,43 @@
 				$function
 			);
 		}
+
+        /**
+         * Add sub page and update menu instance settings.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string          $parent_slug
+         * @param string          $page_title
+         * @param string          $menu_title
+         * @param string          $capability
+         * @param string          $menu_slug
+         * @param callable|string $function
+         *
+         * @return string
+         */
+        function add_subpage_and_update(
+            $parent_slug,
+            $page_title,
+            $menu_title,
+            $capability,
+            $menu_slug,
+            $function = ''
+        ) {
+            $this->_menu_slug           = $menu_slug;
+            $this->_parent_slug         = $parent_slug;
+            $this->_is_top_level        = false;
+            $this->_menu_exists         = true;
+            $this->_network_menu_exists = true;
+
+            return self::add_subpage(
+                $parent_slug,
+                $page_title,
+                $menu_title,
+                $capability,
+                $menu_slug,
+                $function
+            );
+        }
 	}
