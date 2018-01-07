@@ -122,8 +122,7 @@
 											<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 												<input type="hidden" name="fs_action" value="deactivate_license">
 												<?php wp_nonce_field( 'deactivate_license' ) ?>
-												<a href="#"
-												   onclick="if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable you to activate the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) this.parentNode.submit(); return false;"><i
+												<a href="#" class="fs-deactivate-license"><i
 														class="dashicons dashicons-admin-network"></i> <?php fs_echo_inline( 'Deactivate License', 'deactivate-license', $slug ) ?>
 												</a>
 											</form>
