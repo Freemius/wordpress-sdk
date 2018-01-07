@@ -13080,11 +13080,26 @@
 				return;
 			}
 
-			$plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
 			$action    = fs_get_action();
+
+            if ( empty( $action ) ) {
+                return;
+            }
+
+            $plugin_id  = fs_request_get( 'plugin_id', $this->get_id() );
+            $blog_id    = fs_request_get( 'blog_id', '' );
+            $install_id = fs_request_get( 'install_id', '' );
 
 			// Alias.
 			$oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
+
+            if ( $this->_is_network_active &&
+                 is_network_admin() &&
+                 is_numeric( $blog_id ) &&
+                 $this->_is_multisite
+            ) {
+                $this->switch_to_blog( $blog_id );
+            }
 
 			switch ( $action ) {
 				case 'delete_account':
