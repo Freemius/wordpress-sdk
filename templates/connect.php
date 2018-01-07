@@ -572,11 +572,11 @@
                                 return;
 
                             var site = {
-                                uid     : $this.find( '.uid' ).text(),
-                                url     : $this.find( '.url' ).text(),
-                                name    : $this.find( '.name' ).text(),
-                                language: $this.find( '.language' ).text(),
-                                charset : $this.find( '.charset' ).text()
+                                uid     : $this.find( '.uid' ).val(),
+                                url     : $this.find( '.url' ).val(),
+                                title   : $this.find( '.title' ).val(),
+                                language: $this.find( '.language' ).val(),
+                                charset : $this.find( '.charset' ).val()
                             };
 
                             if ( ! requireLicenseKey)
