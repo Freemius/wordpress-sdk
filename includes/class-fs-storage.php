@@ -1,35 +1,35 @@
 <?php
-	/**
-	 * @package     Freemius
-	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since       1.2.3
-	 */
+    /**
+     * @package     Freemius
+     * @copyright   Copyright (c) 2015, Freemius, Inc.
+     * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
+     * @since       1.2.3
+     */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+    if ( ! defined( 'ABSPATH' ) ) {
+        exit;
+    }
 
-	/**
-	 * Class FS_Storage
-	 *
-	 * A wrapper class for handling network level and single site level storage.
-	 */
-	class FS_Storage {
-		/**
-		 * @var FS_Storage
-		 */
-		private static $_instance;
+    /**
+     * Class FS_Storage
+     *
+     * A wrapper class for handling network level and single site level storage.
+     */
+    class FS_Storage {
+        /**
+         * @var FS_Storage
+         */
+        private static $_instance;
 
         /**
          * @var FS_Key_Value_Storage Site level storage.
          */
-		private $_storage;
+        private $_storage;
 
         /**
          * @var FS_Key_Value_Storage Network level storage.
          */
-		private $_network_storage;
+        private $_network_storage;
 
         /**
          * @var string
@@ -44,12 +44,12 @@
         /**
          * @var bool
          */
-		private $_is_multisite;
+        private $_is_multisite;
 
         /**
          * @var bool
          */
-		private $_is_network_active;
+        private $_is_network_active;
 
         /**
          * Example:
@@ -61,7 +61,7 @@
          *
          * @var array
          */
-		private static $_BINARY_MAP = array(
+        private static $_BINARY_MAP = array(
             'activation_timestamp'       => array( '11' => true, '01' => true ),
             'affiliate_application_data' => true,
             'connectivity_test'          => true,
@@ -93,28 +93,28 @@
             'network_user_id'            => true,
         );
 
-		/**
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @param string $module_type
          * @param string $slug
-		 *
-		 * @return FS_Storage
-		 */
+         *
+         * @return FS_Storage
+         */
         static function instance( $module_type, $slug ) {
             if ( ! isset( self::$_instance ) ) {
                 self::$_instance = new FS_Storage( $module_type, $slug );
             }
 
-			return self::$_instance;
-		}
+            return self::$_instance;
+        }
 
-		/**
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @param string $module_type
-		 * @param string $slug
-		 */
+         * @param string $slug
+         */
         private function __construct( $module_type, $slug ) {
             $this->_module_type       = $module_type;
             $this->_is_multisite      = is_multisite();
@@ -126,7 +126,7 @@
             }
 
             $this->_storage = FS_Key_Value_Storage::instance( $module_type . '_data', $slug, $this->_blog_id );
-		}
+        }
 
         /**
          * Tells this storage wrapper class that the context plugin is network active. This flag will affect how values
@@ -134,7 +134,7 @@
          *
          * @author Leo Fajardo (@leorw)
          */
-		function set_network_active() {
+        function set_network_active() {
             $this->_is_network_active = true;
         }
 
@@ -213,6 +213,10 @@
                 $this->_storage->get( $key, $default );
         }
 
+        #--------------------------------------------------------------------------------
+        #region Helper Methods
+        #--------------------------------------------------------------------------------
+
         /**
          * @author Leo Fajardo
          *
@@ -242,35 +246,39 @@
             return ( isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) && true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
         }
 
-		# region Magic methods
+        #endregion
+
+        #--------------------------------------------------------------------------------
+        #region Magic methods
+        #--------------------------------------------------------------------------------
 
         function __set( $k, $v ) {
             if ( $this->is_multisite_storage( $k ) ) {
-                $this->_network_storage->{ $k } = $v;
+                $this->_network_storage->{$k} = $v;
             } else {
-                $this->_storage->{ $k } = $v;
+                $this->_storage->{$k} = $v;
             }
         }
 
         function __isset( $k ) {
             return $this->is_multisite_storage( $k ) ?
-                isset( $this->_network_storage->{ $k } ) :
-                isset( $this->_storage->{ $k } );
+                isset( $this->_network_storage->{$k} ) :
+                isset( $this->_storage->{$k} );
         }
 
         function __unset( $k ) {
             if ( $this->is_multisite_storage( $k ) ) {
-                unset( $this->_network_storage->{ $k } );
+                unset( $this->_network_storage->{$k} );
             } else {
-                unset( $this->_storage->{ $k } );
+                unset( $this->_storage->{$k} );
             }
         }
 
         function __get( $k ) {
             return $this->is_multisite_storage( $k ) ?
-                $this->_network_storage->{ $k } :
-                $this->_storage->{ $k };
+                $this->_network_storage->{$k} :
+                $this->_storage->{$k};
         }
 
-        # endregion Magic methods
+        #endregion
     }
