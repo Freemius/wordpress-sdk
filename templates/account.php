@@ -839,6 +839,28 @@
 
             adjustColumnWidth($sitesTable);
 
+            $sitesSection.find('.fs-search').keyup(function(){
+                var search = $(this).val().trim();
+
+                if ('' === search){
+                    // Show all.
+                    $sitesTableRows.show();
+                    return;
+                }
+
+                var url;
+
+                $sitesTableRows.each(function(index){
+                    url = $(this).find('.fs-field-url').html();
+
+                    if (-1 < url.indexOf(search)){
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
         })(jQuery);
     </script>
 <?php
