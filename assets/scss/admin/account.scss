@@ -157,6 +157,49 @@ label.fs-tag
     }
 }
 
+#fs_sites
+{
+    .fs-scrollable-table
+    {
+        .fs-table-body {
+            max-height: 200px;
+            overflow: auto;
+            border: 1px solid #e5e5e5;
+
+            & > table.widefat {
+                border: none !important;
+            }
+        }
+
+        .fs-main-column {
+            width: 100%;
+        }
+
+        .fs-site-details
+        {
+            td:first-of-type
+            {
+                text-align: right;
+                color:      grey;
+                width: 1px;
+            }
+
+            td:last-of-type
+            {
+                text-align: right;
+            }
+        }
+
+        .fs-install-details table
+        {
+            tr td:first-of-type
+            {
+                width: 1px;
+            }
+        }
+    }
+}
+
 #fs_addons
 {
     h3
