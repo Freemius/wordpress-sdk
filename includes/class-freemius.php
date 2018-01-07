@@ -9141,16 +9141,27 @@
             $params['is_disconnected'] = $is_disconnected;
 			$params['format']          = 'json';
 
+            $request = array(
+                'method'  => 'POST',
+                'body'    => $params,
+                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+            );
+
 			$url = WP_FS__ADDRESS . '/action/service/user/install/';
-			if ( isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+
+            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+                $url = add_query_arg( 'XDEBUG_SESSION_START', rand(0, 9999999), $url );
 				$url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+
+                $request['cookies'] = array(
+                    new WP_Http_Cookie( array(
+                        'name'  => 'XDEBUG_SESSION',
+                        'value' => 'PHPSTORM',
+                    ) )
+                );
 			}
 
-			$response = wp_remote_post( $url, array(
-				'method'  => 'POST',
-				'body'    => $params,
-				'timeout' => 15,
-			) );
+            $response = wp_remote_post( $url, $request );
 
 			if ( $response instanceof WP_Error ) {
 				if ( 'https://' === substr( $url, 0, 8 ) &&
