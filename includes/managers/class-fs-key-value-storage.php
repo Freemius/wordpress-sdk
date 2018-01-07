@@ -263,6 +263,16 @@
 				$default;
 		}
 
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return string
+         */
+		function get_secondary_id() {
+            return $this->_secondary_id;
+        }
+
 
 		/* ArrayAccess + Magic Access (better for refactoring)
         -----------------------------------------------------------------------------------*/
