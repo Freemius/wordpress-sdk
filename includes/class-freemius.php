@@ -297,7 +297,7 @@
          *
          * @var bool
          */
-        private $_is_multisite;
+        private $_is_multisite_integrated;
 
         /**
          * @since  1.2.4
@@ -362,10 +362,11 @@
             $this->_slug        = $this->get_slug();
             $this->_module_type = $this->get_module_type();
 
-            $this->_is_multisite                  = is_multisite();
-            $this->_blog_id                       = $this->_is_multisite ? get_current_blog_id() : null;
+            $this->_is_multisite_integrated = ( defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
+                ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) ) &&
+                is_multisite() );
 
-            $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
+            $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug, $this->_is_multisite_integrated );
 
             $this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
@@ -13452,7 +13453,7 @@
             if ( $this->_is_network_active &&
                  is_network_admin() &&
                  is_numeric( $blog_id ) &&
-                 $this->_is_multisite
+                 $this->_is_multisite_integrated
             ) {
                 $this->switch_to_blog( $blog_id );
             }

@@ -98,12 +98,13 @@
          *
          * @param string $module_type
          * @param string $slug
+         * @param bool   $is_multisite
          *
          * @return FS_Storage
          */
-        static function instance( $module_type, $slug ) {
+        static function instance( $module_type, $slug, $is_multisite = false ) {
             if ( ! isset( self::$_instance ) ) {
-                self::$_instance = new FS_Storage( $module_type, $slug );
+                self::$_instance = new FS_Storage( $module_type, $slug, $is_multisite );
             }
 
             return self::$_instance;
@@ -114,10 +115,11 @@
          *
          * @param string $module_type
          * @param string $slug
+         * @param bool   $is_multisite
          */
-        private function __construct( $module_type, $slug ) {
+        private function __construct( $module_type, $slug, $is_multisite = false ) {
             $this->_module_type       = $module_type;
-            $this->_is_multisite      = is_multisite();
+            $this->_is_multisite      = $is_multisite;
             $this->_is_network_active = false;
 
             if ( $this->_is_multisite ) {
