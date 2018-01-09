@@ -297,6 +297,13 @@
          *
          * @var bool
          */
+        private $_is_multisite;
+
+        /**
+         * @since  1.2.4
+         *
+         * @var bool
+         */
         private $_is_multisite_integrated;
 
         /**
@@ -362,11 +369,10 @@
             $this->_slug        = $this->get_slug();
             $this->_module_type = $this->get_module_type();
 
-            $this->_is_multisite_integrated = ( defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
-                ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) ) &&
-                is_multisite() );
+            $this->_is_multisite                  = is_multisite();
+            $this->_blog_id                       = $this->_is_multisite ? get_current_blog_id() : null;
 
-            $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug, $this->_is_multisite_integrated );
+            $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
 
             $this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
@@ -377,7 +383,12 @@
             $this->_plugin_basename       = $this->get_plugin_basename();
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
+            $this->_is_multisite_integrated = ( defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
+                ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) )
+            );
+
             $this->_is_network_active = (
+                $this->_is_multisite_integrated &&
                 // Themes are always network activated, but the ACTUAL activation is per site.
                 $this->is_plugin() &&
                 is_plugin_active_for_network( $this->_plugin_basename )
@@ -446,7 +457,7 @@
          * @return bool
          */
         function has_settings_menu() {
-            return is_network_admin() ?
+            return ( $this->_is_network_active && is_network_admin() ) ?
                 $this->_menu->has_network_menu() :
                 $this->_menu->has_menu();
         }
@@ -3155,7 +3166,7 @@
 
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
-                    add_action( ( is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
+                    add_action( ( $this->_is_network_active && is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
                 }
             }
 
@@ -13453,7 +13464,7 @@
             if ( $this->_is_network_active &&
                  is_network_admin() &&
                  is_numeric( $blog_id ) &&
-                 $this->_is_multisite_integrated
+                 $this->_is_multisite
             ) {
                 $this->switch_to_blog( $blog_id );
             }
