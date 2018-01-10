@@ -297,13 +297,6 @@
          *
          * @var bool
          */
-        private $_is_multisite;
-
-        /**
-         * @since  1.2.4
-         *
-         * @var bool
-         */
         private $_is_multisite_integrated;
 
         /**
@@ -369,8 +362,7 @@
             $this->_slug        = $this->get_slug();
             $this->_module_type = $this->get_module_type();
 
-            $this->_is_multisite                  = is_multisite();
-            $this->_blog_id                       = $this->_is_multisite ? get_current_blog_id() : null;
+            $this->_blog_id = is_multisite() ? get_current_blog_id() : null;
 
             $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
 
@@ -13463,8 +13455,7 @@
 
             if ( $this->_is_network_active &&
                  is_network_admin() &&
-                 is_numeric( $blog_id ) &&
-                 $this->_is_multisite
+                 is_numeric( $blog_id )
             ) {
                 $this->switch_to_blog( $blog_id );
             }
