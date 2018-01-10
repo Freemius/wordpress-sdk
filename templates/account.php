@@ -245,8 +245,8 @@
 												$profile[] = array(
 													'id'    => 'plan',
 													'title' => $plan_text,
-													'value' => strtoupper( is_string( $site->plan->name ) ?
-														$site->plan->title :
+													'value' => strtoupper( is_string( $plan->name ) ?
+														$plan->title :
 														strtoupper( $free_text )
 													)
 												);
@@ -558,7 +558,7 @@
 														</td>
 														<td>
 															<!-- Plan Title -->
-															<?php echo strtoupper( is_string( $addon_site->plan->name ) ? $addon_site->plan->title : $free_text ) ?>
+															<?php echo strtoupper( is_string( $plan->name ) ? $plan->title : $free_text ) ?>
 														</td>
 														<td>
 															<!-- Expiration -->

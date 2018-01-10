@@ -295,6 +295,9 @@
 	 * @var FS_Site[] $sites
 	 */
 	$sites = $VARS[ $module_type . '_sites' ];
+
+	$all_plans = false;
+	$plans     = false;
 	?>
 	<?php if ( is_array( $sites ) && count( $sites ) > 0 ) : ?>
 		<h2><?php echo esc_html( sprintf(
@@ -321,9 +324,32 @@
 					<td><?php echo $slug ?></td>
 					<td><?php echo $site->user_id ?></td>
 					<td><?php
-							echo is_object( $site->plan ) ?
-								Freemius::_decrypt( $site->plan->name ) :
-								''
+                        $plan_name = '';
+                        if ( FS_Plugin_Plan::is_valid_id( $site->plan_id ) ) {
+                            if ( false === $all_plans ) {
+                                $option_name = 'plans';
+                                if ( WP_FS__MODULE_TYPE_PLUGIN !== $module_type ) {
+                                    $option_name = $module_type . '_' . $option_name;
+                                }
+
+                                $all_plans = $fs_options->get_option( $option_name, array() );
+                            }
+
+                            if ( false === $plans ) {
+                                $plans = $all_plans[ $slug ];
+                            }
+
+                            foreach ( $plans as $plan ) {
+                                $plan_id = Freemius::_decrypt( $plan->id );
+
+                                if ( $site->plan_id == $plan_id ) {
+                                    $plan_name = Freemius::_decrypt( $plan->name );
+                                    break;
+                                }
+                            }
+                        }
+
+                        echo $plan_name;
 						?></td>
 					<td><?php echo $site->public_key ?></td>
 					<td><?php echo $site->secret_key ?></td>

@@ -3855,7 +3855,7 @@
                         sprintf(
                         /* translators: %s: License type (e.g. you have a professional license) */
                             $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
-                            $this->_site->plan->title
+                            $this->get_plan()->title
                         ) . $this->get_complete_upgrade_instructions(),
                         'plan_upgraded',
                         $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
@@ -3953,7 +3953,7 @@
             return ( is_object( $site ) &&
                      is_numeric( $site->id ) &&
                      is_numeric( $site->user_id ) &&
-                     is_object( $site->plan )
+                     FS_Plugin_Plan::is_valid_id( $site->plan_id )
             );
         }
 
@@ -5967,9 +5967,9 @@
                 return;
             }
 
-            $plan              = $this->get_plan();
-            $this->_site       = new FS_Site( $site );
-            $this->_site->plan = $plan;
+            $plan                 = $this->get_plan();
+            $this->_site          = new FS_Site( $site );
+            $this->_site->plan_id = $plan->id;
 
             $this->_store_site( true );
         }
@@ -6883,7 +6883,7 @@
          * @return number
          */
         function get_plan_id() {
-            return $this->_site->plan->id;
+            return $this->_site->plan_id;
         }
 
         /**
@@ -6895,7 +6895,7 @@
          * @return string
          */
         function get_plan_title() {
-            return $this->_site->plan->title;
+            return $this->get_plan()->title;
         }
 
         /**
@@ -6905,8 +6905,8 @@
          * @return FS_Plugin_Plan|false
          */
         function get_plan() {
-            return is_object( $this->_site->plan ) ?
-                $this->_site->plan :
+            return FS_Plugin_Plan::is_valid_id( $this->_site->plan_id ) ?
+                $this->_get_plan_by_id( $this->_site->plan_id ) :
                 false;
         }
 
@@ -7030,7 +7030,7 @@
 
             return (
                 ! $this->is_trial() &&
-                'free' !== $this->_site->plan->name &&
+                'free' !== $this->get_plan()->name &&
                 $this->has_active_valid_license()
             );
         }
@@ -7051,7 +7051,7 @@
             }
 
             return (
-                'free' === $this->_site->plan->name ||
+                'free' === $this->get_plan()->name ||
                 ! $this->has_features_enabled_license()
             );
         }
@@ -7343,7 +7343,7 @@
 
             $plan = strtolower( $plan );
 
-            if ( $this->_site->plan->name === $plan ) // Exact plan.
+            if ( $this->get_plan()->name === $plan ) // Exact plan.
             {
                 return true;
             } else if ( $exact ) // Required exact, but plans are different.
@@ -7356,7 +7356,7 @@
             for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
                 if ( $plan === $this->_plans[ $i ]->name ) {
                     $required_plan_order = $i;
-                } else if ( $this->_site->plan->name === $this->_plans[ $i ]->name ) {
+                } else if ( $this->get_plan()->name === $this->_plans[ $i ]->name ) {
                     $current_plan_order = $i;
                 }
             }
@@ -8651,8 +8651,6 @@
                 $this->get_install_by_blog_id( $blog_id );
 
             if ( is_object( $this->_site ) ) {
-                $this->_enrich_site_plan( false );
-
                 // Try to fetch user from install.
                 $this->_user = self::_get_user_by_id( $this->_site->user_id );
 
@@ -8767,7 +8765,7 @@
             if ( is_object( $install ) &&
                  is_numeric( $install->id ) &&
                  is_numeric( $install->user_id ) &&
-                 is_object( $install->plan )
+                 FS_Plugin_Plan::is_valid_id( $install->plan_id )
             ) {
                 // Load site.
                 $install       = clone $install;
@@ -9130,14 +9128,18 @@
                 $site->id          = fs_request_get( 'install_id' );
                 $site->public_key  = fs_request_get( 'install_public_key' );
                 $site->secret_key  = fs_request_get( 'install_secret_key' );
-                $site->plan->id    = fs_request_get( 'plan_id' );
-                $site->plan->title = fs_request_get( 'plan_title' );
-                $site->plan->name  = fs_request_get( 'plan_name' );
+                $site->plan_id     = fs_request_get( 'plan_id' );
 
                 $plans      = array();
                 $plans_data = json_decode( urldecode( fs_request_get( 'plans' ) ) );
                 foreach ( $plans_data as $p ) {
-                    $plans[] = new FS_Plugin_Plan( $p );
+                    $plan = new FS_Plugin_Plan( $p );
+                    if ( $site->plan_id == $plan->id ) {
+                        $plan->title = fs_request_get( 'plan_title' );
+                        $plan->name  = fs_request_get( 'plan_name' );
+                    }
+
+                    $plans[] = $plan;
                 }
 
                 $this->_set_account( $user, $site, $plans );
@@ -9205,11 +9207,10 @@
             if ( is_object( $site ) &&
                  is_numeric( $site->id ) &&
                  is_numeric( $site->user_id ) &&
-                 is_object( $site->plan )
+                 FS_Plugin_Plan::is_valid_id( $site->plan_id )
             ) {
                 // Load site.
-                $this->_site       = clone $site;
-                $this->_site->plan = self::decrypt_entity( $this->_site->plan );
+                $this->_site = clone $site;
 
                 /**
                  * If the install owner's details are not stored locally, use the previous user's details if available.
@@ -9675,7 +9676,6 @@
             $this->_sync_plans();
 
             if (!$this->_is_network_active){
-                $this->_enrich_site_plan( false );
                 $this->_set_account( $user, $first_install );
             } else {
                 $sites = $this->get_sites();
@@ -9691,7 +9691,6 @@
                 foreach ( $installs as $install ) {
                     // Set install context.
                     $this->_site = $install;
-                    $this->_enrich_site_plan( false );
 
                     $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
                     $blog_id = $address_to_blog_map[ $address ];
@@ -9751,7 +9750,7 @@
                         $this->_admin_notices->add_sticky(
                             sprintf(
                                 $this->get_text_inline( 'Your account was successfully activated with the %s plan.', 'activation-with-plan-x-message' ),
-                                $this->_site->plan->title
+                                $this->get_plan()->title
                             ) . $this->get_complete_upgrade_instructions(),
                             'plan_upgraded',
                             $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
@@ -10210,7 +10209,7 @@
             $this->_sync_plans();
 
             // Get site's current plan.
-            $this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
+            //$this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
 
             // Get user information based on parent's plugin.
             $user = $parent_fs->get_user();
@@ -10277,9 +10276,6 @@
 
             // Sync add-on plans.
             $parent_fs->_sync_plans();
-
-            // Get site's current plan.
-            $parent_fs->_site->plan = $parent_fs->_get_plan_by_id( $parent_fs->_site->plan->id );
 
             // Get user information based on parent's plugin.
             $user = $this->get_user();
@@ -11396,8 +11392,7 @@
                 return;
             }
 
-            $encrypted_site       = clone $this->_site;
-            $encrypted_site->plan = self::_encrypt_entity( $this->_site->plan );
+            $encrypted_site = clone $this->_site;
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
@@ -11662,27 +11657,6 @@
         }
 
         /**
-         * @param bool     $store
-         * @param null|int $blog_id Since 1.2.4
-         *
-         * @return FS_Plugin_Plan|object|false
-         */
-        private function _enrich_site_plan( $store = true, $blog_id = null ) {
-            // Try to load plan from local cache.
-            $plan = $this->_get_plan_by_id( $this->_site->plan->id );
-
-            if ( false === $plan ) {
-                $plan = $this->_fetch_site_plan();
-            }
-
-            if ( $plan instanceof FS_Plugin_Plan ) {
-                $this->_update_plan( $plan, $store, $blog_id );
-            }
-
-            return $plan;
-        }
-
-        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          * @uses   FS_Api
@@ -11723,7 +11697,7 @@
             $api = $this->get_api_site_scope();
 
             if ( ! is_numeric( $plan_id ) ) {
-                $plan_id = $this->_site->plan->id;
+                $plan_id = $this->_site->plan_id;
             }
 
             $plan = $api->get( "/plans/{$plan_id}.json", true );
@@ -11740,12 +11714,12 @@
          */
         private function _fetch_plugin_plans() {
             $this->_logger->entrance();
-            $api = $this->get_api_site_scope();
+            $api = $this->get_current_or_network_user_api_scope();
 
             /**
              * @since 1.2.3 When running in DEV mode, retrieve pending plans as well.
              */
-            $result = $api->get( '/plans.json?show_pending=' . ( $this->has_secret_key() ? 'true' : 'false' ), true );
+            $result = $api->get( "/plugins/{$this->_module_id}/plans.json?show_pending=" . ( $this->has_secret_key() ? 'true' : 'false' ), true );
 
             if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
                 for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
@@ -11895,21 +11869,6 @@
             }
 
             return $billing;
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.4
-         *
-         * @param FS_Plugin_Plan $plan
-         * @param bool           $store
-         * @param null|int       $blog_id Since 1.2.4
-         */
-        private function _update_plan( $plan, $store = false, $blog_id = null ) {
-            $this->_logger->entrance();
-
-            $this->_site->plan = $plan;
-            $this->_store_site( $store, $blog_id );
         }
 
         /**
@@ -12085,7 +12044,7 @@
                 $this->_sync_plugin_license( $background );
             }
 
-            $this->do_action( 'after_account_plan_sync', $this->_site->plan->name );
+            $this->do_action( 'after_account_plan_sync', $this->get_plan()->name );
         }
 
         /**
@@ -12239,7 +12198,6 @@
 
             if ( ! $this->has_paid_plan() ) {
                 $this->_site = $site;
-                $this->_enrich_site_plan( true );
                 $this->_store_site();
             } else {
                 /**
@@ -12249,7 +12207,7 @@
                 $this->_sync_licenses( $site->license_id );
 
                 // Check if plan / license changed.
-                if ( ! FS_Entity::equals( $site->plan, $this->_site->plan ) ||
+                if ( $site->plan_id != $this->_site->plan_id ||
                      // Check if trial started.
                      $site->trial_plan_id != $this->_site->trial_plan_id ||
                      $site->trial_ends != $this->_site->trial_ends ||
@@ -12268,7 +12226,6 @@
                             $this->_site = $site;
                             $this->_update_site_license( $new_license );
                             $this->_store_licenses();
-                            $this->_enrich_site_plan( true );
 
                             $this->_sync_site_subscription( $this->_license );
                         }
@@ -12290,7 +12247,6 @@
                             $this->_site = $site;
                             $this->_update_site_license( $new_license );
                             $this->_store_licenses();
-                            $this->_enrich_site_plan( true );
 
                             $plan_change = 'cancelled';
                         } else if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
@@ -12300,7 +12256,6 @@
                             $this->_site = $site;
                             $this->_update_site_license( $new_license );
                             $this->_store_licenses();
-                            $this->_enrich_site_plan( true );
 
                             $plan_change = $is_free ?
                                 'upgraded' :
@@ -12336,7 +12291,7 @@
                         if ( ! $background && is_admin() ) {
                             $plan = $this->is_trial() ?
                                 $this->get_trial_plan() :
-                                $this->_site->plan;
+                                $this->get_plan();
 
                             if ( $plan->is_free() ) {
                                 $this->_admin_notices->add(
@@ -12379,7 +12334,7 @@
                         $this->_admin_notices->add_sticky(
                             sprintf(
                                 $this->get_text_inline( 'Your plan was successfully changed to %s.', 'plan-changed-to-x-message' ),
-                                $this->_site->plan->title
+                                $this->get_plan()->title
                             ),
                             'plan_changed'
                         );
@@ -12414,7 +12369,7 @@
                         break;
                     case 'expired':
                         $this->_admin_notices->add_sticky(
-                            sprintf( $this->get_text_inline( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'license-expired-non-blocking-message' ), $this->_site->plan->title ),
+                            sprintf( $this->get_text_inline( 'Your license has expired. You can still continue using all the %s features, but you\'ll need to renew your license to continue getting updates and support.', 'license-expired-non-blocking-message' ), $this->get_plan()->title ),
                             'license_expired',
                             $hmm_text
                         );
@@ -12450,7 +12405,7 @@
             }
 
             if ( 'none' !== $plan_change ) {
-                $this->do_action( 'after_license_change', $plan_change, $this->_site->plan );
+                $this->do_action( 'after_license_change', $plan_change, $this->get_plan() );
             }
         }
 
@@ -12489,7 +12444,6 @@
             if ( $premium_license->id == $this->_site->license_id ) {
                 // License is already activated.
                 $this->_update_site_license( $premium_license );
-                $this->_enrich_site_plan( false );
                 $this->_store_account();
 
                 return;
@@ -12533,7 +12487,6 @@
                 $this->_site = new FS_Site( $site );
             }
             $this->_update_site_license( $premium_license );
-            $this->_enrich_site_plan( false );
 
             $this->_store_account();
 
@@ -12565,7 +12518,7 @@
 
             if ( ! is_object( $this->_license ) ) {
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'It looks like your site currently doesn\'t have an active license.', 'no-active-license-message' ), $this->_site->plan->title ),
+                    sprintf( $this->get_text_inline( 'It looks like your site currently doesn\'t have an active license.', 'no-active-license-message' ), $this->get_plan()->title ),
                     $hmm_text
                 );
 
@@ -12595,16 +12548,15 @@
 
             // Updated site plan to default.
             $this->_sync_plans();
-            $this->_site->plan->id = $this->_plans[0]->id;
+            $this->_site->plan_id = $this->_plans[0]->id;
             // Unlink license from site.
             $this->_update_site_license( null );
-            $this->_enrich_site_plan( false );
 
             $this->_store_account();
 
             if ( $show_notice ) {
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->_site->plan->title ),
+                    sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->get_plan()->title ),
                     $this->get_text_inline( 'O.K', 'ok' )
                 );
             }
@@ -12632,12 +12584,12 @@
             $plan_downgraded = false;
             $plan            = false;
             if ( $this->is_api_result_entity( $site ) ) {
-                $prev_plan_id = $this->_site->plan->id;
+                $prev_plan_id = $this->_site->plan_id;
 
                 // Update new site plan id.
-                $this->_site->plan->id = $site->plan_id;
+                $this->_site->plan_id = $site->plan_id;
 
-                $plan         = $this->_enrich_site_plan();
+                $plan         = $this->get_plan();
                 $subscription = $this->_sync_site_subscription( $this->_license );
 
                 // Plan downgraded if plan was changed or subscription was cancelled.
@@ -12814,7 +12766,6 @@
 
                 // Update site info.
                 $this->_site = new FS_Site( $site );
-                $this->_enrich_site_plan();
 
                 $trial_cancelled = ( $prev_trial_ends != $site->trial_ends );
             } else {
@@ -13088,7 +13039,7 @@
                                 sprintf(
                                 /* translators: %s: plan name (e.g. latest "Professional" version) */
                                     $this->get_text_inline( 'the latest %s version here', 'latest-x-version' ),
-                                    $this->_site->plan->title
+                                    $this->get_plan()->title
                                 )
                             )
                         ),
@@ -13968,6 +13919,34 @@
             return $this->_user_api;
         }
 
+        /**
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param bool $flush
+         *
+         * @return FS_Api
+         */
+        function get_current_or_network_user_api_scope( $flush = false ) {
+            if ( ! $this->_is_network_active || isset( $this->_user ) ) {
+                return $this->get_api_user_scope( $flush );
+            }
+
+            $user = $this->get_current_or_network_user();
+
+            $this->_user_api = FS_Api::instance(
+                $this->_module_id,
+                'user',
+                $user->id,
+                $user->public_key,
+                ! $this->is_live(),
+                $user->secret_key
+            );
+
+            return $this->_user_api;
+        }
+
         private $_site_api;
 
         /**
@@ -14697,7 +14676,7 @@
             }
 
             if ( empty( $plan_title ) ) {
-                $plan_title = $this->_site->plan->title;
+                $plan_title = $this->get_plan()->title;
             }
 
             // @since 1.2.1.5 The free version is auto deactivated.

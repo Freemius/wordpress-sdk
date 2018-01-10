@@ -104,7 +104,7 @@
                             $plan_title = fs_text_inline( 'Trial', 'trial', $slug );
                         }
                     } else {
-                        $plan       = $fs->_get_plan_by_id( $install->plan->id );
+                        $plan       = $fs->_get_plan_by_id( $install->plan_id );
                         $plan_title = strtoupper( is_string( $plan->title ) ?
                             $plan->title :
                             strtoupper( $free_text )

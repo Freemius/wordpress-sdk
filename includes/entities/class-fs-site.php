@@ -65,9 +65,9 @@
          */
         public $programming_language_version;
         /**
-         * @var FS_Plugin_Plan $plan
+         * @var number|null
          */
-        public $plan;
+        public $plan_id;
         /**
          * @var number|null
          */
@@ -111,12 +111,10 @@
          * @param stdClass|bool $site
          */
         function __construct( $site = false ) {
-            $this->plan = new FS_Plugin_Plan();
-
             parent::__construct( $site );
 
             if ( is_object( $site ) ) {
-                $this->plan->id = $site->plan_id;
+                $this->plan_id = $site->plan_id;
             }
 
             if ( ! is_bool( $this->is_disconnected ) ) {
