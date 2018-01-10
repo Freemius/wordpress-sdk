@@ -320,6 +320,13 @@
          */
         private $_context_is_network_or_blog_id = null;
 
+        /**
+         * @since  1.2.4
+         *
+         * @var string
+         */
+        private $_dynamically_added_top_level_page_hook_name = '';
+
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -10498,7 +10505,7 @@
             // @todo Verify that the user actually network level connected and not delegated to admins.
 
             if ( ! $this->_menu->has_menu() || $this->_menu->is_top_level() ) {
-                $this->_menu->add_page_and_update(
+                $this->_dynamically_added_top_level_page_hook_name = $this->_menu->add_page_and_update(
                     $this->get_plugin_name(),
                     $this->get_plugin_name(),
                     'manage_options',
@@ -10728,8 +10735,21 @@
 
             ksort( $this->_menu_items );
 
+            $is_first_submenu_item = true;
+
             foreach ( $this->_menu_items as $priority => $items ) {
                 foreach ( $items as $item ) {
+                    if ( $item['show_submenu'] && $is_first_submenu_item ) {
+                        if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) )
+                        {
+                            $item['menu_slug'] = '';
+
+                            $this->_menu->override_menu_item( $item['render_function'] );
+                        }
+
+                        $is_first_submenu_item = false;
+                    }
+
                     $capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
 
                     $menu_item = sprintf(
