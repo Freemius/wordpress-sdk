@@ -170,6 +170,10 @@
 		define( 'WP_FS__REMOTE_ADDR', fs_get_ip() );
 	}
 
+    if ( ! defined( 'WP_FS__SERVER_ADDR' ) ) {
+        define( 'WP_FS__SERVER_ADDR', ! empty( $_SERVER['SERVER_ADDR'] ) ? $_SERVER['SERVER_ADDR'] : WP_FS__REMOTE_ADDR );
+    }
+
 	if ( ! defined( 'WP_FS__IS_LOCALHOST' ) ) {
 		if ( defined( 'WP_FS__LOCALHOST_IP' ) ) {
 			define( 'WP_FS__IS_LOCALHOST', ( WP_FS__LOCALHOST_IP === WP_FS__REMOTE_ADDR ) );
