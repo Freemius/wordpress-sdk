@@ -1765,7 +1765,7 @@
          * @return bool
          */
         private function is_network_activation_mode() {
-            return ( $this->_is_network_active && $this->is_activation_mode() );
+            return ( $this->_is_network_active && ! $this->is_delegated_connection() && $this->is_activation_mode() );
         }
 
         /**
@@ -4659,6 +4659,14 @@
                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
             }
 
+            if ( $this->is_network_activation_mode() && fs_request_is_action( $this->get_unique_affix() . '_delegate_activation' ) ) {
+                check_admin_referer( $this->get_unique_affix() . '_delegate_activation' );
+
+                $this->delegate_connection();
+
+                fs_redirect( $this->get_after_activation_url( 'after_delegation_url' ) );
+            }
+
             if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
                 if ( ! $this->is_pending_activation() ) {
                     if ( ! $this->_menu->is_main_settings_page() ) {
@@ -5344,10 +5352,14 @@
         /**
          * Skip account connect, and set anonymous mode.
          *
+         * @todo If `sites` is an array, handle bulk skipping.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
+         *
+         * @param array|null $sites
          */
-        private function skip_connection() {
+        private function skip_connection( $sites = null ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
@@ -7770,19 +7782,52 @@
 
             $sites = fs_request_get( 'sites', array(), 'post' );
             if ( is_array( $sites ) && ! empty( $sites ) ) {
-                $next_page = $fs->opt_in(
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    $sites
+                $sites_by_action = array(
+                    'allow'    => array(),
+                    'delegate' => array(),
+                    'skip'     => array()
                 );
 
-                if ( isset( $next_page->error ) ) {
-                    $error = $next_page->error;
+                foreach ( $sites as $site ) {
+                    if ( 'allow' === $site['action'] ) {
+                        unset( $site['blog_id' ] );
+                    }
+
+                    $sites_by_action[ $site['action'] ][] = $site;
+                }
+                
+                $total_sites             = count( $sites );
+                $total_sites_to_delegate = count( $sites_by_action['delegate']);
+
+                if ( $total_sites === $total_sites_to_delegate ) {
+                    $this->delegate_connection();
+                } else {
+                    if ( ! empty( $sites_by_action['delegate'] ) ) {
+                        $this->delegate_connection( $sites_by_action['delegate'] );
+                    }
+
+                    if ( ! empty( $sites_by_action['skip'] ) ) {
+                        $this->skip_connection( $sites_by_action['skip'] );
+                    }
+
+                    if ( ! empty( $sites_by_action['allow'] ) ) {
+                        $next_page = $fs->opt_in(
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            $sites_by_action['allow']
+                        );
+
+                        if ( isset( $next_page->error ) ) {
+                            $error = $next_page->error;
+                        }
+                    } else {
+                        $next_page = $this->get_after_activation_url( 'after_delegation_url' );
+                    }
                 }
             } else {
                 $error = $this->get_text_inline( 'invalid_site_details_collection', 'Invalid site details collection.' );
@@ -8686,6 +8731,51 @@
          */
         function is_network_active() {
             return $this->_is_network_active;
+        }
+
+        /**
+         * Delegate activation for the given sites in the network (or all sites if `null`) to site admins.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param array|null $sites
+         */
+        private function delegate_connection( $sites = null ) {
+            $this->_logger->entrance();
+
+            if ( ! is_null( $sites ) ) {
+                foreach ( $sites as $site ) {
+                    self::$_accounts->set_option( 'is_delegated_connection', true, false, $site['blog_id'] );
+                    self::$_accounts->store( $site['blog_id'] );
+                }
+            } else {
+                $this->_admin_notices->remove_sticky( 'connect_account' );
+
+                self::$_accounts->set_option( 'is_delegated_connection', true );
+                self::$_accounts->store();
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param int|null $blog_id
+         *
+         * @return bool
+         */
+        function is_delegated_connection( $blog_id = null ) {
+            $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection', null, $blog_id );
+            if ( $this->_is_multisite_integrated && is_null( $is_delegated_connection ) && ! is_null( $blog_id ) ) {
+                /**
+                 * If multisite integrated and the option has not been set yet for the given blog ID, try to retrieve
+                 * the network level option.
+                 */
+                $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection' );
+            }
+
+            return ( true === $is_delegated_connection );
         }
 
         /**
@@ -10455,7 +10545,14 @@
          *
          */
         private function add_menu_action() {
-            if ( $this->is_activation_mode() ) {
+            $is_activation = false;
+            if ( is_network_admin() && $this->is_network_activation_mode() ) {
+                $is_activation = true;
+            } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                $is_activation = true;
+            }
+
+            if ( $is_activation ) {
                 if ( $this->is_plugin() || ( $this->has_settings_menu() && ! $this->is_free_wp_org_theme() ) ) {
                     $this->override_plugin_menu_with_activation();
                 } else {

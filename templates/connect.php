@@ -92,6 +92,8 @@
 		// If requires a license for activation, use the user associated with the license for the opt-in.
 		! $require_license_key
 	);
+
+	$is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -192,9 +194,9 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
 				</div>
 			<?php endif ?>
-            <?php $optin_params = $fs->get_opt_in_params( array(), $fs->is_network_active() ) ?>
+            <?php $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation ) ?>
             <?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
-            <?php if ( $fs->is_network_active() ) : ?>
+            <?php if ( $is_network_level_activation ) : ?>
                 <?php $has_many_sites = ( count( $sites ) > 1 ) ?>
                 <div id="multisite_options_container" class="apply-on-all-sites">
                     <table id="all_sites_options">
@@ -229,7 +231,7 @@
                                     <?php if ( $require_license_key ) : ?>
                                         <td><input type="checkbox" value="true" /></td>
                                     <?php endif ?>
-                                    <td class="blog-id"><?php echo $site['blog_id'] ?>.</td>
+                                    <td class="blog-id"><span><?php echo $site['blog_id'] ?></span>.</td>
                                     <td width="600"><?php
                                         $url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
                                         echo $url;
@@ -260,8 +262,8 @@
 				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
-            <?php if ( $fs->is_network_active() ) : ?>
-                <a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="#"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
+            <?php if ( $is_network_level_activation ) : ?>
+                <a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_delegate_activation' ) ), $fs->get_unique_affix() . '_delegate_activation' ) ?>"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
             <?php endif ?>
 			<?php if ( $activate_with_current_user ) : ?>
 				<form action="" method="POST">
@@ -418,7 +420,7 @@
 
 		var $primaryCta          = $('.fs-actions .button.button-primary'),
 		    $form                = $('.fs-actions form'),
-            isNetworkActive      = <?php echo $fs->is_network_active() ? 'true' : 'false' ?>,
+            isNetworkActive      = <?php echo $is_network_level_activation ? 'true' : 'false' ?>,
 		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
@@ -576,7 +578,8 @@
                                 url     : $this.find( '.url' ).val(),
                                 title   : $this.find( '.title' ).val(),
                                 language: $this.find( '.language' ).val(),
-                                charset : $this.find( '.charset' ).val()
+                                charset : $this.find( '.charset' ).val(),
+                                blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
                             };
 
                             if ( ! requireLicenseKey)
