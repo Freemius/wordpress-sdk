@@ -4894,8 +4894,18 @@
         private function _delete_plans( $store = true ) {
             $this->_logger->entrance();
 
-            $plans                         = self::get_all_plans( $this->_module_type );
-            $plans_with_associated_install = $this->get_plans_with_associated_install( $plans );
+            $plans         = self::get_all_plans( $this->_module_type );
+            $plans_by_slug = $plans[ $this->_slug ];
+            foreach ( $plans_by_slug as $key => $plan ) {
+                $plans_by_slug[ $key ] = self::decrypt_entity( $plan );
+            }
+
+            $plans_with_associated_install = $this->get_plans_with_associated_install( $plans_by_slug );
+            if ( ! empty( $plans_with_associated_install ) ) {
+                foreach ( $plans_with_associated_install as $key => $plan ) {
+                    $plans_with_associated_install[ $key ] = self::_encrypt_entity( $plan );
+                }
+            }
 
             $plans[ $this->_slug ] = array_values( $plans_with_associated_install );
 
