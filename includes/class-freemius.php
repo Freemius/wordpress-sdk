@@ -604,6 +604,18 @@
                 return;
             }
 
+            if ( version_compare( $sdk_prev_version, '1.2.4', '<' ) &&
+                version_compare( $sdk_version, '1.2.4', '>=' )
+            ) {
+                /**
+                 * Starting from version 1.2.4, `FS_Site` entities no longer have the `plan` property and have
+                 * `plan_id` instead.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $this->migrate_site_plan_to_plan_id();
+            }
+
             if ( version_compare( $sdk_prev_version, '1.2.3', '<' ) &&
                  version_compare( $sdk_version, '1.2.3', '>=' )
             ) {
@@ -637,6 +649,23 @@
 
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo
+         * @since  1.2.4
+         */
+        private function migrate_site_plan_to_plan_id() {
+            if ( ! is_object( $this->_site ) ) {
+                return;
+            }
+
+            if ( isset( $this->_site->plan ) && is_object( $this->_site->plan ) ) {
+                $this->_site->plan_id = $this->_site->plan->id;
+                unset( $this->_site->plan );
+            }
+
+            $this->_store_site();
         }
 
         /**
@@ -4865,9 +4894,10 @@
         private function _delete_plans( $store = true ) {
             $this->_logger->entrance();
 
-            $plans = self::get_all_plans( $this->_module_type );
+            $plans                         = self::get_all_plans( $this->_module_type );
+            $plans_with_associated_install = $this->get_plans_with_associated_install( $plans );
 
-            unset( $plans[ $this->_slug ] );
+            $plans[ $this->_slug ] = array_values( $plans_with_associated_install );
 
             $this->set_account_option( 'plans', $plans, $store );
         }
@@ -7120,6 +7150,17 @@
             $plans = $this->_fetch_plugin_plans();
 
             if ( $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
+                $plans_with_associated_install = $this->get_plans_with_associated_install( $this->_plans );
+                $updated_plans_by_id           = $this->rearrange_plans_by_id( $plans );
+
+                if ( ! empty( $plans_with_associated_install ) ) {
+                    foreach ( $plans_with_associated_install as $plan ) {
+                        if ( ! isset( $updated_plans_by_id[ 'p_' . $plan->id ] ) ) {
+                            $plans[] = $plan;
+                        }
+                    }
+                }
+
                 $this->_plans = $plans;
                 $this->_store_plans();
             }
@@ -7127,6 +7168,65 @@
             $this->do_action( 'after_plans_sync', $plans );
 
             return $this->_plans;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         *
+         * @return FS_Plugin_Plan[]
+         */
+        private function get_plans_with_associated_install( $plans ) {
+            if ( ! is_array( $plans ) || empty( $plans ) ) {
+                return array();
+            }
+
+            $plans_by_id                          = $this->rearrange_plans_by_id( $plans );
+            $plans_with_associated_installs_by_id = array();
+
+            if ($this->_is_network_active ) {
+                $sites = $this->get_sites();
+                foreach ( $sites as $site ) {
+                    $blog_id = $this->get_site_blog_id( $site );
+                    $install = $this->get_install_by_blog_id( $blog_id );
+
+                    if ( ! is_object( $install ) ||
+                        ! FS_Plugin_Plan::is_valid_id( $install->plan_id ) ||
+                        ! isset( $plans_by_id[ 'p_' . $install->plan_id ] ) ) {
+                        continue;
+                    }
+
+                    $plans_with_associated_installs_by_id[ 'p_' . $install->plan_id ] = $plans_by_id[ 'p_' . $install->plan_id ];
+                }
+            } else if ( is_object( $this->_site ) &&
+                FS_Plugin_Plan::is_valid_id( $this->_site->plan_id ) &&
+                isset( $plans_by_id[ 'p_' . $this->_site->plan_id ] )
+            ) {
+                $plans_with_associated_installs_by_id[ 'p_' . $this->_site->plan_id ] = $plans_by_id[ 'p_' . $this->_site->plan_id ];
+            }
+
+            return $plans_with_associated_installs_by_id;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         *
+         * @param array|null $plans
+         *
+         * @return FS_Plugin_Plan[]
+         */
+        private function rearrange_plans_by_id( $plans ) {
+            if ( ! is_array( $plans ) || empty( $plans ) ) {
+                return array();
+            }
+
+            $plans_by_id = array();
+            foreach ( $plans as $plan ) {
+                $plans_by_id[ 'p_' . $plan->id ] = $plan;
+            }
+
+            return $plans_by_id;
         }
 
         /**
@@ -8768,8 +8868,7 @@
                  FS_Plugin_Plan::is_valid_id( $install->plan_id )
             ) {
                 // Load site.
-                $install       = clone $install;
-                $install->plan = self::decrypt_entity( $install->plan );
+                $install = clone $install;
             }
 
             return $install;

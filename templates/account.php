@@ -368,7 +368,7 @@
 																			   href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf(
 																			       /* translators: %s: plan name (e.g. Download "Professional" Version) */
 																			       fs_text_inline( 'Download %s Version', 'download-x-version', $slug ),
-                                                                                                                                                                                                                                     ( $fs->is_trial() ? $trial_plan->title : $site->plan->title ) ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
+                                                                                                                                                                                                                                     ( $fs->is_trial() ? $trial_plan->title : $plan->title ) ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
 																		<?php elseif ( is_object( $update ) ) : ?>
 																			<?php
 																			$module_type = $fs->get_module_type();
