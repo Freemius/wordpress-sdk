@@ -583,7 +583,9 @@
                             };
 
                             if ( ! requireLicenseKey)
-                                site.action = $this.find( '.action.selected' ).data( 'action-type' );
+                                site.action = ( applyOnAllSites ?
+                                    'allow' :
+                                    $this.find( '.action.selected' ).data( 'action-type' ) );
 
                             sites.push( site );
                         });
