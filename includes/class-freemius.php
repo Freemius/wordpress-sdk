@@ -5838,8 +5838,8 @@
 
                     $uid = $install_data['uid'];
 
-                    unset($install_data['blog_id']);
-                    unset($install_data['uid']);
+                    unset( $install_data['blog_id'] );
+                    unset( $install_data['uid'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -5866,6 +5866,10 @@
 
             if ( 0 < count( $installs_data ) && ( $is_common_diff || ! $only_diff ) ) {
                 $installs_data[] = $common;
+            }
+
+            foreach ( $installs_data as &$data ) {
+                $data = (object) $data;
             }
 
             return $installs_data;
