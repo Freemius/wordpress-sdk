@@ -1765,7 +1765,7 @@
          * @return bool
          */
         private function is_network_activation_mode() {
-            return ( $this->_is_network_active && ! $this->is_delegated_connection() && $this->is_activation_mode() );
+            return ( $this->_is_network_active && ! $this->is_delegated_connection( get_current_blog_id() ) && $this->is_activation_mode() );
         }
 
         /**
@@ -8750,8 +8750,7 @@
 
             if ( ! is_null( $sites ) ) {
                 foreach ( $sites as $site ) {
-                    self::$_accounts->set_option( 'is_delegated_connection', true, false, $site['blog_id'] );
-                    self::$_accounts->store( $site['blog_id'] );
+                    self::$_accounts->set_option( 'is_delegated_connection', true, true, $site['blog_id'] );
                 }
             } else {
                 $this->_admin_notices->remove_sticky( 'connect_account' );
@@ -10812,10 +10811,22 @@
             $this->_logger->entrance();
 
             if ( ! $this->is_addon() ) {
+                $is_activation = false;
+                if ( is_network_admin() && $this->is_network_activation_mode() ) {
+                    $is_activation = true;
+                } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                    $is_activation = true;
+                }
+
                 /**
                  * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
                  */
-                if ( ! $this->is_activation_mode() || $this->is_free_wp_org_theme() ) {
+                if ( ( ! $is_activation &&
+                        ( $this->_is_network_active && is_network_admin() ) ||
+                        ( ! $this->_is_network_active && is_admin() )
+                    ) ||
+                    $this->is_free_wp_org_theme()
+                ) {
                     if ( $this->has_affiliate_program() ) {
                         // Add affiliation page.
                         $this->add_submenu_item(
@@ -11090,7 +11101,17 @@
                 return;
             }
 
-            if ( ! $this->is_activation_mode() ) {
+            $is_activation = false;
+            if ( is_network_admin() && $this->is_network_activation_mode() ) {
+                $is_activation = true;
+            } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                $is_activation = true;
+            }
+
+            if ( ! $is_activation &&
+                ( $this->_is_network_active && is_network_admin() ) ||
+                ( ! $this->_is_network_active && is_admin() )
+            ) {
                 $this->add_submenu_link_item(
                     $this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'Support Forum', 'support-forum' ) ),
                     $this->get_support_forum_url(),

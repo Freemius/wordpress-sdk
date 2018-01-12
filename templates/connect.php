@@ -93,7 +93,7 @@
 		! $require_license_key
 	);
 
-	$is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
+	$is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection( get_current_blog_id() ) );
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -583,7 +583,9 @@
                             };
 
                             if ( ! requireLicenseKey)
-                                site.action = $this.find( '.action.selected' ).data( 'action-type' );
+                                site.action = ( applyOnAllSites ?
+                                    'allow' :
+                                    $this.find( '.action.selected' ).data( 'action-type' ) );
 
                             sites.push( site );
                         });
