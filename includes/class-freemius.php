@@ -10533,7 +10533,17 @@
                 );
 
                 $this->add_menu_action();
-                $this->add_network_menu_when_missing();
+
+                if ( ! $this->is_network_activation_mode() ) {
+                    /**
+                     * Do not add during activation mode, otherwise, there will be duplicate menus while the opt-in
+                     * screen is being shown.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->add_network_menu_when_missing();
+                }
+
                 $this->add_submenu_items();
             }
         }
