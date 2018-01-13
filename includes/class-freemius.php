@@ -10857,20 +10857,6 @@
                     ) ||
                     $this->is_free_wp_org_theme()
                 ) {
-                    if ( $this->has_affiliate_program() ) {
-                        // Add affiliation page.
-                        $this->add_submenu_item(
-                            $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            array( &$this, '_affiliation_page_render' ),
-                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            'manage_options',
-                            'affiliation',
-                            'Freemius::_clean_admin_content_section',
-                            WP_FS__DEFAULT_PRIORITY,
-                            $this->is_submenu_item_visible( 'affiliation' )
-                        );
-                    }
-
                     if ( $this->is_registered() ) {
                         $show_account = (
                             $this->is_submenu_item_visible( 'account' ) &&
@@ -10890,6 +10876,20 @@
                             array( &$this, '_account_page_load' ),
                             WP_FS__DEFAULT_PRIORITY,
                             $show_account
+                        );
+                    }
+
+                    if ( $this->has_affiliate_program() ) {
+                        // Add affiliation page.
+                        $this->add_submenu_item(
+                            $this->get_text_inline( 'Affiliation', 'affiliation' ),
+                            array( &$this, '_affiliation_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
+                            'manage_options',
+                            'affiliation',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'affiliation' )
                         );
                     }
 
