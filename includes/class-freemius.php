@@ -9490,7 +9490,7 @@
 
             $site = isset( $sites[ $this->_slug ] ) ? $sites[ $this->_slug ] : false;
 
-            if ( ! is_object( $site ) ) {
+            if ( ! is_object( $site ) && is_network_admin() ) {
                 $first_install = $this->find_first_install();
                 if ( is_null( $first_install ) ) {
                     unset( $this->_storage->network_install_blog_id );
