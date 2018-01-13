@@ -7311,41 +7311,65 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * Check if specified plan exists locally. If not, fetch it and store it.
+         *
+         * @author Vova Feldman (@svovaf)
          * @since 1.2.4
          *
-         * @return FS_Plugin_Plan[]
+         * @param number $plan_id
+         *
+         * @return \FS_Plugin_Plan|object The plan entity or the API error object on failure.
          */
-        private function get_plans_with_associated_install( $plans ) {
-            if ( ! is_array( $plans ) || empty( $plans ) ) {
-                return array();
+        private function sync_plan_if_not_exist( $plan_id ) {
+            $plan = self::_get_plan_by_id( $plan_id );
+
+            if ( is_object( $plan ) ) {
+                // Plan already exists.
+                return $plan;
             }
 
-            $plans_by_id                          = $this->rearrange_plans_by_id( $plans );
-            $plans_with_associated_installs_by_id = array();
+            $plan = $this->fetch_plan_by_id( $plan_id );
 
-            if ($this->_is_network_active ) {
-                $sites = $this->get_sites();
-                foreach ( $sites as $site ) {
-                    $blog_id = $this->get_site_blog_id( $site );
-                    $install = $this->get_install_by_blog_id( $blog_id );
+            if ( $plan instanceof FS_Plugin_Plan ) {
+                $this->_plans[] = $plan;
+                $this->_store_plans();
 
-                    if ( ! is_object( $install ) ||
-                        ! FS_Plugin_Plan::is_valid_id( $install->plan_id ) ||
-                        ! isset( $plans_by_id[ 'p_' . $install->plan_id ] ) ) {
-                        continue;
+                return $plan;
                     }
 
-                    $plans_with_associated_installs_by_id[ 'p_' . $install->plan_id ] = $plans_by_id[ 'p_' . $install->plan_id ];
+            return $plan;
                 }
-            } else if ( is_object( $this->_site ) &&
-                FS_Plugin_Plan::is_valid_id( $this->_site->plan_id ) &&
-                isset( $plans_by_id[ 'p_' . $this->_site->plan_id ] )
-            ) {
-                $plans_with_associated_installs_by_id[ 'p_' . $this->_site->plan_id ] = $plans_by_id[ 'p_' . $this->_site->plan_id ];
+
+        /**
+         * Check if specified license exists locally. If not, fetch it and store it.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number $license_id
+         * @param string $license_key
+         *
+         * @return \FS_Plugin_Plan|object The plan entity or the API error object on failure.
+         */
+        private function sync_license_if_not_exist( $license_id, $license_key ) {
+            $license = $this->_get_license_by_id( $license_id );
+
+            if ( is_object( $license ) ) {
+                // License already exists.
+                return $license;
             }
 
-            return $plans_with_associated_installs_by_id;
+            $license = $this->fetch_license_by_key( $license_id, $license_key );
+
+            if ( $license instanceof FS_Plugin_License ) {
+                $this->_licenses[] = $license;
+                $this->_license    = $license;
+                $this->_store_licenses();
+
+                return $license;
+            }
+
+            return $license;
         }
 
         /**
@@ -10281,6 +10305,15 @@
             $redirect = true,
             $auto_install = false
         ) {
+            /**
+             * This method is also executed after opting in with a license key since the
+             * license can be potentially associated with a different owner.
+             *
+             * @since 1.2.4
+             */
+            $user = self::_get_user_by_id( $user_id );
+
+            if ( ! is_object( $user ) ) {
             $user             = new FS_User();
             $user->id         = $user_id;
             $user->public_key = $user_public_key;
@@ -10289,6 +10322,8 @@
             $this->_user = $user;
             $user_result = $this->get_api_user_scope()->get();
             $user        = new FS_User( $user_result );
+            }
+
             $this->_user = $user;
 
             $site             = new FS_Site();
@@ -10458,8 +10493,7 @@
          * @param number|bool $trial_plan_id
          * @param bool        $redirect
          *
-         * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the
-         *                       API error object if failed to install.
+         * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
          */
         private function install_with_current_user(
             $license_key = false,
@@ -10472,6 +10506,28 @@
             // Find the relevant FS user by the email.
             $user = self::_get_user_by_email( $current_user->user_email );
 
+            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param \FS_User    $user
+         * @param string|bool $license_key
+         * @param number|bool $trial_plan_id
+         * @param bool        $redirect
+         * @param bool        $setup_account Since 1.2.4. When set to FALSE, executes a light installation without setting up the account as if it's the first opt-in.
+         *
+         * @return \FS_Site|object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install. If $setup_account is set to `false`, return the newly created install.
+         */
+        private function install_with_user(
+            FS_User $user,
+            $license_key = false,
+            $trial_plan_id = false,
+            $redirect = true,
+            $setup_account = true
+        ) {
             // We have to set the user before getting user scope API handler.
             $this->_user = $user;
 
@@ -10531,6 +10587,16 @@
 
             $site        = new FS_Site( $install );
             $this->_site = $site;
+
+            if ( ! $setup_account ) {
+                $this->sync_plan_if_not_exist( $site->plan_id );
+
+                if ( ! empty( $license_key ) && FS_Plugin_License::is_valid_id( $site->license_id ) ) {
+                    $this->sync_license_if_not_exist( $site->license_id, $license_key );
+                }
+
+                return $site;
+            }
 
             return $this->setup_account( $this->_user, $this->_site, $redirect );
         }
@@ -12141,6 +12207,25 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number $plan_id
+         *
+         * @return \FS_Plugin_Plan|object
+         */
+        private function fetch_plan_by_id($plan_id) {
+            $this->_logger->entrance();
+            $api = $this->get_current_or_network_user_api_scope();
+
+            $result = $api->get( "/plugins/{$this->_module_id}/plans/{$plan_id}.json", true );
+
+            return $this->is_api_result_entity( $result ) ?
+                new FS_Plugin_Plan( $result ) :
+                $result;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          * @uses   FS_Api
          *
@@ -12224,6 +12309,27 @@
 
             // Fallback to empty licenses list.
             return $result;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param number $license_id
+         * @param string $license_key
+         *
+         * @return \FS_Plugin_License|object
+         */
+        private function fetch_license_by_key( $license_id, $license_key ) {
+            $this->_logger->entrance();
+
+            $api = $this->get_current_or_network_user_api_scope();
+
+            $result = $api->get( "/licenses/{$license_id}.json?license_key=" . urlencode( $license_key ) );
+
+            return $this->is_api_result_entity( $result ) ?
+                new FS_Plugin_License( $result ) :
+                $result;
         }
 
         /**
@@ -12855,6 +12961,26 @@
             if ( ! is_object( $premium_license ) ) {
                 return;
             }
+
+            if ( ! is_object( $this->_site ) ) {
+                // Not yet opted-in.
+                $user = $this->get_current_or_network_user();
+                if ( ! is_object( $user ) ) {
+                    $user = self::_get_user_by_id( $premium_license->user_id );
+                }
+
+                if ( is_object( $user ) ) {
+                    $this->install_with_user( $user, $premium_license->secret_key, false, false, false );
+                } else {
+                    return $this->opt_in(
+                        false,
+                        false,
+                        false,
+                        $premium_license->secret_key
+                    );
+                }
+            }
+
 
             /**
              * If the premium license is already associated with the install, just
