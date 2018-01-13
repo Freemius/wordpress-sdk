@@ -149,11 +149,7 @@
         function set_site_blog_context( $blog_id ) {
             $this->_blog_id = $blog_id;
 
-            $this->_storage = FS_Key_Value_Storage::instance(
-                $this->_module_type . '_data',
-                $this->_storage->get_secondary_id(),
-                $this->_blog_id
-            );
+            $this->_storage = $this->get_site_storage($this->_blog_id);
         }
 
         /**
@@ -176,11 +172,21 @@
          *
          * @param bool     $store
          * @param string[] $exceptions Set of keys to keep and not clear.
+         * @param int|null $blog_id Since 1.2.4
          */
-        function clear_all( $store = true, $exceptions = array() ) {
-            $this->_storage->clear_all( $store, $exceptions );
+        function clear_all( $store = true, $exceptions = array(), $blog_id = null ) {
+            if ( ! $this->_is_multisite ||
+                 is_null($blog_id) ||
+                 $blog_id == $this->_blog_id
+            ) {
+                $storage = $this->_storage;
+            } else {
+                $storage = $this->get_site_storage($blog_id);
+            }
 
-            if ( $this->_is_multisite ) {
+            $storage->clear_all( $store, $exceptions );
+
+            if ( is_null( $blog_id ) && $this->_is_multisite ) {
                 $this->_network_storage->clear_all( $store, $exceptions );
             }
         }
@@ -244,6 +250,22 @@
             $binary_key = ( (int) $is_theme . (int) $this->_is_network_active );
 
             return ( isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) && true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param int $blog_id
+         *
+         * @return \FS_Key_Value_Storage
+         */
+        private function get_site_storage( $blog_id ) {
+            return FS_Key_Value_Storage::instance(
+                $this->_module_type . '_data',
+                $this->_storage->get_secondary_id(),
+                $blog_id
+            );
         }
 
         #endregion
