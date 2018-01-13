@@ -4867,7 +4867,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
-         * @param bool $store
+         * @param bool     $store
          * @param int|null $blog_id Since 1.2.4
          *
          * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
@@ -4882,9 +4882,9 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.2.2.7
          *
-         * @param string $slug
-         * @param string $module_type
-         * @param bool   $store
+         * @param string   $slug
+         * @param string   $module_type
+         * @param bool     $store
          * @param int|null $blog_id Since 1.2.4
          *
          * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
@@ -4919,7 +4919,7 @@
         private function _delete_plans( $store = true, $keep_associated_plans = true ) {
             $this->_logger->entrance();
 
-            $plans         = self::get_all_plans( $this->_module_type );
+            $plans = self::get_all_plans( $this->_module_type );
 
             $plans_to_keep     = array();
 
@@ -7292,7 +7292,7 @@
                 foreach ( $plans_ids_to_keep as $plan_id ) {
                     if ( isset( $plans_map[ $plan_id ] ) ) {
                         continue;
-                        }
+                    }
 
                     $missing_plan = self::_get_plan_by_id( $plan_id );
 
@@ -7314,7 +7314,7 @@
          * Check if specified plan exists locally. If not, fetch it and store it.
          *
          * @author Vova Feldman (@svovaf)
-         * @since 1.2.4
+         * @since  1.2.4
          *
          * @param number $plan_id
          *
@@ -7335,10 +7335,10 @@
                 $this->_store_plans();
 
                 return $plan;
-                    }
+            }
 
             return $plan;
-                }
+        }
 
         /**
          * Check if specified license exists locally. If not, fetch it and store it.
@@ -7385,8 +7385,8 @@
                 if ( ! is_object( $this->_site ) ||
                      ! FS_Plugin_Plan::is_valid_id( $this->_site->plan_id )
                 ) {
-                return array();
-            }
+                    return array();
+                }
 
                 return array( $this->_site->plan_id );
             }
@@ -9019,11 +9019,11 @@
                     // Try to fetch previously saved user.
                     $this->_user = self::_get_user_by_id( $this->_storage->prev_user_id );
 
-                if ( ! is_object( $this->_user ) ) {
-                    // Fallback to network's user.
-                    $this->_user = $this->get_network_user();
+                    if ( ! is_object( $this->_user ) ) {
+                        // Fallback to network's user.
+                        $this->_user = $this->get_network_user();
+                    }
                 }
-            }
 
                 $all_licenses = self::get_all_licenses( $this->_module_type );
 
@@ -10130,12 +10130,12 @@
                 if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
                      ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
                 ) {
-                // Store network user.
-                $this->_storage->network_user_id = $this->_user->id;
+                    // Store network user.
+                    $this->_storage->network_user_id = $this->_user->id;
                 }
 
                 if ( $this->_is_network_active ) {
-                $this->send_installs_update();
+                    $this->send_installs_update();
                 } else {
                     $this->send_install_update();
                 }
@@ -10355,14 +10355,14 @@
             $user = self::_get_user_by_id( $user_id );
 
             if ( ! is_object( $user ) ) {
-            $user             = new FS_User();
-            $user->id         = $user_id;
-            $user->public_key = $user_public_key;
-            $user->secret_key = $user_secret_key;
+                $user             = new FS_User();
+                $user->id         = $user_id;
+                $user->public_key = $user_public_key;
+                $user->secret_key = $user_secret_key;
 
-            $this->_user = $user;
-            $user_result = $this->get_api_user_scope()->get();
-            $user        = new FS_User( $user_result );
+                $this->_user = $user;
+                $user_result = $this->get_api_user_scope()->get();
+                $user        = new FS_User( $user_result );
             }
 
             $this->_user = $user;
@@ -11110,6 +11110,20 @@
                     ) ||
                     $this->is_free_wp_org_theme()
                 ) {
+                    if ( $this->has_affiliate_program() ) {
+                        // Add affiliation page.
+                        $this->add_submenu_item(
+                            $this->get_text_inline( 'Affiliation', 'affiliation' ),
+                            array( &$this, '_affiliation_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
+                            'manage_options',
+                            'affiliation',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'affiliation' )
+                        );
+                    }
+
                     if ( $this->is_registered() ) {
                         $show_account = (
                             $this->is_submenu_item_visible( 'account' ) &&
@@ -11129,20 +11143,6 @@
                             array( &$this, '_account_page_load' ),
                             WP_FS__DEFAULT_PRIORITY,
                             $show_account
-                        );
-                    }
-
-                    if ( $this->has_affiliate_program() ) {
-                        // Add affiliation page.
-                        $this->add_submenu_item(
-                            $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            array( &$this, '_affiliation_page_render' ),
-                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            'manage_options',
-                            'affiliation',
-                            'Freemius::_clean_admin_content_section',
-                            WP_FS__DEFAULT_PRIORITY,
-                            $this->is_submenu_item_visible( 'affiliation' )
                         );
                     }
 
@@ -13133,11 +13133,11 @@
 
             // Update license cache.
             if (is_array($this->_licenses)) {
-            for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
-                if ( $license->id == $this->_licenses[ $i ]->id ) {
-                    $this->_licenses[ $i ] = new FS_Plugin_License( $license );
+                for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
+                    if ( $license->id == $this->_licenses[ $i ]->id ) {
+                        $this->_licenses[ $i ] = new FS_Plugin_License( $license );
+                    }
                 }
-            }
             }
 
             // Updated site plan to default.
@@ -14034,7 +14034,7 @@
                         if ( $is_network_action && empty( $blog_id ) ) {
                             $this->delete_network_account_event();
                         } else {
-                        $this->delete_account_event();
+                            $this->delete_account_event();
                         }
 
                         // Clear user and site.
