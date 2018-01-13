@@ -4720,7 +4720,7 @@
                                         $this->get_text_inline( 'We made a few tweaks to the %s, %s', 'few-plugin-tweaks' ),
                                         $this->_module_type,
                                         sprintf( '<b><a href="%s">%s</a></b>',
-                                            $this->get_activation_url(),
+                                            $this->get_activation_url( array(), ! $this->is_delegated_connection( get_current_blog_id() ) ),
                                             sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
                                         )
                                     ),
@@ -13630,10 +13630,11 @@
          * @since  1.1.2
          *
          * @param array $params
+         * @param bool  $network
          *
          * @return string
          */
-        function get_activation_url( $params = array() ) {
+        function get_activation_url( $params = array(), $network = true ) {
             if ( $this->is_addon() && $this->has_free_plan() ) {
                 /**
                  * @author Vova Feldman (@svovaf)
@@ -13642,7 +13643,7 @@
                 return $this->get_parent_instance()->get_activation_url( $params );
             }
 
-            return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+            return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params, $network ) );
         }
 
         /**
