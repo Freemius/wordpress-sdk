@@ -10134,7 +10134,11 @@
                 $this->_storage->network_user_id = $this->_user->id;
                 }
 
+                if ( $this->_is_network_active ) {
                 $this->send_installs_update();
+                } else {
+                    $this->send_install_update();
+                }
 
                 // Switch install context back to the first install.
                 $this->_site = $first_install;
