@@ -1345,7 +1345,9 @@
                 'id' => $this->_module_id
             );
 
-            if ( $this->is_registered() && false !== $this->get_plan() && $this->get_plan()->has_technical_support() ) {
+            $plan = $this->get_plan();
+
+            if ( $this->is_registered() && is_object($plan) && $plan->has_technical_support() ) {
                 $contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var );
             } else {
                 $contact_support_template = '';
@@ -3884,7 +3886,7 @@
                         sprintf(
                         /* translators: %s: License type (e.g. you have a professional license) */
                             $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
-                            $this->get_plan()->title
+                            $this->get_plan_title()
                         ) . $this->get_complete_upgrade_instructions(),
                         'plan_upgraded',
                         $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
@@ -6951,7 +6953,23 @@
          * @return string
          */
         function get_plan_title() {
-            return $this->get_plan()->title;
+            $plan = $this->get_plan();
+
+            return is_object($plan) ? $plan->title : 'PLAN_TITLE';
+        }
+
+        /**
+         * Get site's plan name.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return string
+         */
+        function get_plan_name() {
+            $plan = $this->get_plan();
+
+            return is_object($plan) ? $plan->name : 'PLAN_NAME';
         }
 
         /**
@@ -7086,7 +7104,7 @@
 
             return (
                 ! $this->is_trial() &&
-                'free' !== $this->get_plan()->name &&
+                'free' !== $this->get_plan_name() &&
                 $this->has_active_valid_license()
             );
         }
@@ -7107,7 +7125,7 @@
             }
 
             return (
-                'free' === $this->get_plan()->name ||
+                'free' === $this->get_plan_name() ||
                 ! $this->has_features_enabled_license()
             );
         }
@@ -7469,11 +7487,13 @@
 
             $plan = strtolower( $plan );
 
-            if ( $this->get_plan()->name === $plan ) // Exact plan.
-            {
+            $current_plan_name = $this->get_plan_name();
+
+            if ( $current_plan_name === $plan ) {
+                // Exact plan.
                 return true;
-            } else if ( $exact ) // Required exact, but plans are different.
-            {
+            } else if ( $exact ) {
+                // Required exact, but plans are different.
                 return false;
             }
 
@@ -7482,7 +7502,7 @@
             for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
                 if ( $plan === $this->_plans[ $i ]->name ) {
                     $required_plan_order = $i;
-                } else if ( $this->get_plan()->name === $this->_plans[ $i ]->name ) {
+                } else if ( $current_plan_name === $this->_plans[ $i ]->name ) {
                     $current_plan_order = $i;
                 }
             }
@@ -9952,7 +9972,7 @@
                         $this->_admin_notices->add_sticky(
                             sprintf(
                                 $this->get_text_inline( 'Your account was successfully activated with the %s plan.', 'activation-with-plan-x-message' ),
-                                $this->get_plan()->title
+                                $this->get_plan_title()
                             ) . $this->get_complete_upgrade_instructions(),
                             'plan_upgraded',
                             $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
@@ -12285,7 +12305,7 @@
                 $this->_sync_plugin_license( $background );
             }
 
-            $this->do_action( 'after_account_plan_sync', $this->get_plan()->name );
+            $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
         }
 
         /**
@@ -12575,7 +12595,7 @@
                         $this->_admin_notices->add_sticky(
                             sprintf(
                                 $this->get_text_inline( 'Your plan was successfully changed to %s.', 'plan-changed-to-x-message' ),
-                                $this->get_plan()->title
+                                $this->get_plan_title()
                             ),
                             'plan_changed'
                         );
@@ -12759,7 +12779,7 @@
 
             if ( ! is_object( $this->_license ) ) {
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'It looks like your site currently doesn\'t have an active license.', 'no-active-license-message' ), $this->get_plan()->title ),
+                    sprintf( $this->get_text_inline( 'It looks like your site currently doesn\'t have an active license.', 'no-active-license-message' ), $this->get_plan_title() ),
                     $hmm_text
                 );
 
@@ -12797,7 +12817,7 @@
 
             if ( $show_notice ) {
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->get_plan()->title ),
+                    sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->get_plan_title() ),
                     $this->get_text_inline( 'O.K', 'ok' )
                 );
             }
@@ -13280,7 +13300,7 @@
                                 sprintf(
                                 /* translators: %s: plan name (e.g. latest "Professional" version) */
                                     $this->get_text_inline( 'the latest %s version here', 'latest-x-version' ),
-                                    $this->get_plan()->title
+                                    $this->get_plan_title()
                                 )
                             )
                         ),
@@ -14917,7 +14937,7 @@
             }
 
             if ( empty( $plan_title ) ) {
-                $plan_title = $this->get_plan()->title;
+                $plan_title = $this->get_plan_title();
             }
 
             // @since 1.2.1.5 The free version is auto deactivated.
