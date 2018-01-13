@@ -8654,10 +8654,11 @@
          *
          * @param string $page
          * @param array  $params
+         * @param bool   $network
          *
          * @return string
          */
-        function _get_admin_page_url( $page = '', $params = array() ) {
+        function _get_admin_page_url( $page = '', $params = array(), $network = true ) {
             if ( 0 < count( $params ) ) {
                 foreach ( $params as $k => $v ) {
                     $params[ $k ] = urlencode( $v );
@@ -8675,7 +8676,7 @@
 
                 return add_query_arg(
                     $params,
-                    $this->admin_url( 'themes.php' )
+                    $this->admin_url( 'themes.php', 'admin', $network )
                 );
             }
 
@@ -8685,7 +8686,7 @@
                     // a specific Freemius page, use the admin.php path.
                     return add_query_arg( array_merge( $params, array(
                         'page' => $page_param,
-                    ) ), $this->admin_url( 'admin.php' ) );
+                    ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                 } else {
                     if ( $this->is_activation_mode() ) {
                         /**
@@ -8696,12 +8697,12 @@
                          */
                         return add_query_arg( array_merge( $params, array(
                             'page' => $this->_slug,
-                        ) ), $this->admin_url( 'admin.php', 'admin' ) );
+                        ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                     } else {
                         // Plugin without a settings page.
                         return add_query_arg(
                             $params,
-                            $this->admin_url( 'plugins.php' )
+                            $this->admin_url( 'plugins.php', 'admin', $network )
                         );
                     }
                 }
@@ -8716,7 +8717,7 @@
 
                 return add_query_arg( array_merge( $params, array(
                     'page' => $page_param,
-                ) ), $this->admin_url( $menu_file, 'admin' ) );
+                ) ), $this->admin_url( $menu_file, 'admin', $network ) );
             }
 
             // Module has a top level CPT settings page.
@@ -8724,7 +8725,7 @@
                 if ( empty( $page ) && $this->is_activation_mode() ) {
                     return add_query_arg( array_merge( $params, array(
                         'page' => $page_param
-                    ) ), $this->admin_url( 'admin.php', 'admin' ) );
+                    ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                 } else {
                     if ( ! empty( $page ) ) {
                         $params['page'] = $page_param;
@@ -8732,7 +8733,7 @@
 
                     return add_query_arg(
                         $params,
-                        $this->admin_url( $this->_menu->get_raw_slug(), 'admin' )
+                        $this->admin_url( $this->_menu->get_raw_slug(), 'admin', $network )
                     );
                 }
             }
@@ -8740,7 +8741,25 @@
             // Module has a custom top level settings page.
             return add_query_arg( array_merge( $params, array(
                 'page' => $page_param,
-            ) ), $this->admin_url( 'admin.php', 'admin' ) );
+            ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        function should_use_network_admin_page() {
+            if ( $this->_is_network_active ) {
+                $network = true;
+                if ( is_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                    $network = false;
+                }
+            } else {
+                $network = false;
+            }
+
+            return $network;
         }
 
         #--------------------------------------------------------------------------------
@@ -9036,11 +9055,12 @@
          *
          * @param string $path
          * @param string $scheme
+         * @param bool   $network
          *
          * @return string
          */
-        private function admin_url( $path = '', $scheme = 'admin' ) {
-            return ( $this->_is_network_active ) ?
+        private function admin_url( $path = '', $scheme = 'admin', $network = true ) {
+            return ( $this->_is_network_active && $network ) ?
                 network_admin_url( $path, $scheme ) :
                 admin_url( $path, $scheme );
         }
@@ -9897,7 +9917,9 @@
 
             $this->_sync_plans();
 
-            if (!$this->_is_network_active){
+            $is_delegated_connection = ( ! self::is_ajax_action_static( 'network_activate', $this->_module_id ) && $this->is_delegated_connection( get_current_blog_id() ) );
+
+            if ( ! $this->_is_network_active || $is_delegated_connection ) {
                 $this->_set_account( $user, $first_install );
             } else {
                 $sites = $this->get_sites();
@@ -10038,7 +10060,7 @@
                 $next_page = $this->is_anonymous() ?
                     // If user previously skipped, redirect to account page.
                     $this->get_account_url( false, $extra ) :
-                    $this->get_after_activation_url( 'after_connect_url' );
+                    $this->get_after_activation_url( 'after_connect_url', array(), ! $is_delegated_connection );
             }
 
             if ( ! empty( $next_page ) && $redirect ) {
@@ -10581,7 +10603,11 @@
             $is_activation = false;
             if ( is_network_admin() && $this->is_network_activation_mode() ) {
                 $is_activation = true;
-            } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+            } else if ( $this->_is_network_active &&
+                is_admin() &&
+                $this->is_delegated_connection( get_current_blog_id() ) &&
+                $this->is_activation_mode()
+            ) {
                 $is_activation = true;
             }
 
@@ -13641,12 +13667,13 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param string $filter Filter name.
-         * @param array  $params Since 1.2.2.7
+         * @param string    $filter Filter name.
+         * @param array     $params Since 1.2.2.7
+         * @param bool|null $network
          *
          * @return string
          */
-        function get_after_activation_url( $filter, $params = array() ) {
+        function get_after_activation_url( $filter, $params = array(), $network = null ) {
             if ( $this->is_free_wp_org_theme() &&
                  fs_request_has( 'pending_activation' )
             ) {
@@ -13662,8 +13689,13 @@
 
                 $target_url = $this->get_account_url();
             } else {
+                $network = ( ! is_null( $network ) ?
+                    $network :
+                    $this->should_use_network_admin_page()
+                );
+
                 // Default plugin's page.
-                $target_url = $this->_get_admin_page_url();
+                $target_url = $this->_get_admin_page_url( '', array(), $network );
             }
 
             return add_query_arg( $params, $this->apply_filters(
