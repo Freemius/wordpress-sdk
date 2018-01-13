@@ -414,31 +414,6 @@
 								</table>
 							</div>
 						</div>
-						<script type="text/javascript">
-							(function ($) {
-								$('.fs-toggle-visibility').click(function () {
-									var
-										$this = $(this),
-										$parent = $this.closest('tr'),
-										$input = $parent.find('input');
-
-									$parent.find('code').toggle();
-									$input.toggle();
-
-									if ($input.is(':visible')) {
-										$this.html('<?php fs_esc_js_echo_x_inline( 'Hide', 'verb', 'hide', $slug ) ?>');
-										setTimeout(function () {
-											$input.select().focus();
-										}, 100);
-									}
-									else {
-										$this.html( '<?php fs_esc_js_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?>' );
-									}
-								});
-							}(jQuery));
-
-						</script>
-
 						<?php if ( $fs->is_network_active() ) : ?>
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
@@ -822,6 +797,26 @@
                     $this.attr('disabled', 'disabled');
                 }, 200);
             };
+
+	        $('.fs-toggle-visibility').click(function () {
+		        var
+			        $this = $(this),
+			        $parent = $this.closest('tr'),
+			        $input = $parent.find('input');
+
+		        $parent.find('code').toggle();
+		        $input.toggle();
+
+		        if ($input.is(':visible')) {
+			        $this.html('<?php fs_esc_js_echo_x_inline( 'Hide', 'verb', 'hide', $slug ) ?>');
+			        setTimeout(function () {
+				        $input.select().focus();
+			        }, 100);
+		        }
+		        else {
+			        $this.html( '<?php fs_esc_js_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?>' );
+		        }
+	        });
 
             $('.fs-activate-license').click(function () {
                 setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
