@@ -12570,6 +12570,10 @@
          * @return bool
          */
         function is_user_admin() {
+            if ( $this->_is_network_active ) {
+                return is_super_admin();
+            }
+
             return ( $this->is_plugin() && current_user_can( 'activate_plugins' ) )
                    || ( $this->is_theme() && current_user_can( 'switch_themes' ) );
         }
