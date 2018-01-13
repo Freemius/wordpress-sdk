@@ -87,7 +87,7 @@
 
 	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
 	$activate_with_current_user = (
-		is_object( $fs_user ) && 
+		is_object( $fs_user ) &&
 		! $is_pending_activation &&
 		// If requires a license for activation, use the user associated with the license for the opt-in.
 		! $require_license_key
@@ -133,7 +133,7 @@
 						$button_label = fs_text_inline( 'Re-send activation email', 'resend-activation-email', $slug );
 
 						echo $fs->apply_filters( 'pending_activation_message', sprintf(
-							/* translators: %s: name (e.g. Thanks John!) */
+						/* translators: %s: name (e.g. Thanks John!) */
 							fs_text_inline( 'Thanks %s!', 'thanks-x', $slug ) . '<br>' .
 							fs_text_inline( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s.', 'pending-activation-message', $slug ),
 							$first_name,
@@ -194,77 +194,77 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key' ); ?></a>
 				</div>
 			<?php endif ?>
-            <?php $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation ) ?>
-            <?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
-            <?php if ( $is_network_level_activation ) : ?>
-                <?php $has_many_sites = ( count( $sites ) > 1 ) ?>
-                <div id="multisite_options_container" class="apply-on-all-sites">
-                    <table id="all_sites_options">
-                        <tbody>
-                            <tr>
-                                <td width="600">
-                                    <label>
-                                        <?php
-                                            $apply_checkbox_label = $require_license_key ?
-                                                fs_text_inline( 'Activate license on all sites in the network.', 'activate-license-on-all-sites-in-the-network', $slug ) :
-                                                fs_text_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug );
-                                        ?>
-                                        <input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_many_sites ) ?>><?php echo esc_html( $apply_checkbox_label ) ?>
-                                    </label>
-                                </td>
-                                <?php if ( ! $require_license_key ) : ?>
-                                    <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
-                                    <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
-                                    <?php if ( $fs->is_enable_anonymous() ) : ?>
-                                        <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
-                                    <?php endif ?>
-                                <?php endif ?>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <?php if ( $has_many_sites ) : ?>
-                    <div id="sites_list_container">
-                        <table cellspacing="0">
-                            <tbody>
-                            <?php foreach ( $sites as $site_key => $site ) : ?>
-                                <tr>
-                                    <?php if ( $require_license_key ) : ?>
-                                        <td><input type="checkbox" value="true" /></td>
-                                    <?php endif ?>
-                                    <td class="blog-id"><span><?php echo $site['blog_id'] ?></span>.</td>
-                                    <td width="600"><?php
-                                        $url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
-                                        echo $url;
-                                        ?></td>
-                                    <?php if ( ! $require_license_key ) : ?>
-                                        <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
-                                        <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
-                                        <?php if ( $fs->is_enable_anonymous() ) : ?>
-                                            <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
-                                        <?php endif ?>
-                                    <?php endif ?>
-	                                <input class="uid" type="hidden" value="<?php echo $site['uid'] ?>" />
-	                                <input class="url" type="hidden" value="<?php echo esc_attr($site['url']) ?>" />
-	                                <input class="title" type="hidden" value="<?php echo esc_attr($site['title']) ?>" />
-	                                <input class="charset" type="hidden" value="<?php echo $site['charset'] ?>" />
-	                                <input class="language" type="hidden" value="<?php echo $site['language'] ?>" />
-                                </tr>
-                            <?php endforeach ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <?php endif ?>
-                </div>
-            <?php endif ?>
+			<?php $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation ) ?>
+			<?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
+			<?php if ( $is_network_level_activation ) : ?>
+				<?php $has_many_sites = ( count( $sites ) > 1 ) ?>
+				<div id="multisite_options_container" class="apply-on-all-sites">
+					<table id="all_sites_options">
+						<tbody>
+						<tr>
+							<td width="600">
+								<label>
+									<?php
+										$apply_checkbox_label = $require_license_key ?
+											fs_text_inline( 'Activate license on all sites in the network.', 'activate-license-on-all-sites-in-the-network', $slug ) :
+											fs_text_inline( 'Apply on all sites in the network.', 'apply-on-all-sites-in-the-network', $slug );
+									?>
+									<input id="apply_on_all_sites" type="checkbox" value="true" checked <?php disabled( true, ! $has_many_sites ) ?>><?php echo esc_html( $apply_checkbox_label ) ?>
+								</label>
+							</td>
+							<?php if ( ! $require_license_key ) : ?>
+								<td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+								<td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+								<?php if ( $fs->is_enable_anonymous() ) : ?>
+									<td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+								<?php endif ?>
+							<?php endif ?>
+						</tr>
+						</tbody>
+					</table>
+					<?php if ( $has_many_sites ) : ?>
+						<div id="sites_list_container">
+							<table cellspacing="0">
+								<tbody>
+								<?php foreach ( $sites as $site_key => $site ) : ?>
+									<tr>
+										<?php if ( $require_license_key ) : ?>
+											<td><input type="checkbox" value="true" /></td>
+										<?php endif ?>
+										<td class="blog-id"><span><?php echo $site['blog_id'] ?></span>.</td>
+										<td width="600"><?php
+												$url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
+												echo $url;
+											?></td>
+										<?php if ( ! $require_license_key ) : ?>
+											<td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+											<td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+											<?php if ( $fs->is_enable_anonymous() ) : ?>
+												<td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
+											<?php endif ?>
+										<?php endif ?>
+										<input class="uid" type="hidden" value="<?php echo $site['uid'] ?>" />
+										<input class="url" type="hidden" value="<?php echo esc_attr($site['url']) ?>" />
+										<input class="title" type="hidden" value="<?php echo esc_attr($site['title']) ?>" />
+										<input class="charset" type="hidden" value="<?php echo $site['charset'] ?>" />
+										<input class="language" type="hidden" value="<?php echo $site['language'] ?>" />
+									</tr>
+								<?php endforeach ?>
+								</tbody>
+							</table>
+						</div>
+					<?php endif ?>
+				</div>
+			<?php endif ?>
 		</div>
-        <div class="fs-actions">
+		<div class="fs-actions">
 			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
-				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ) ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
+				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ), $fs->should_use_network_admin_page() ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
-            <?php if ( $is_network_level_activation ) : ?>
-                <a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_delegate_activation' ) ), $fs->get_unique_affix() . '_delegate_activation' ) ?>"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
-            <?php endif ?>
+			<?php if ( $is_network_level_activation ) : ?>
+				<a id="delegate_to_site_admins<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_delegate_activation' ) ), $fs->get_unique_affix() . '_delegate_activation' ) ?>"><?php fs_esc_html_echo_inline( 'Delegate to Site Admins', 'delegate-to-site-admins', $slug ) ?></a>
+			<?php endif ?>
 			<?php if ( $activate_with_current_user ) : ?>
 				<form action="" method="POST">
 					<input type="hidden" name="fs_action"
@@ -275,7 +275,7 @@
 				</form>
 			<?php else : ?>
 				<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
-                    <?php unset( $optin_params['sites']) ?>
+					<?php unset( $optin_params['sites']) ?>
 					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
@@ -420,7 +420,7 @@
 
 		var $primaryCta          = $('.fs-actions .button.button-primary'),
 		    $form                = $('.fs-actions form'),
-            isNetworkActive      = <?php echo $is_network_level_activation ? 'true' : 'false' ?>,
+		    isNetworkActive      = <?php echo $is_network_level_activation ? 'true' : 'false' ?>,
 		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
 		    $licenseSecret,
@@ -439,108 +439,108 @@
 		});
 
 		if ( isNetworkActive ) {
-		    var
-                $multisiteOptionsContainer  = $( '#multisite_options_container' ),
-                $allSitesOptions            = $( '#all_sites_options' ),
-                $applyOnAllSites            = $( '#apply_on_all_sites' ),
-                $sitesListContainer         = $( '#sites_list_container' ),
-                totalSites                  = <?php echo count( $sites ) ?>,
-                maxSitesListHeight          = null,
-                $skipActivationButton       = $( '#skip_activation' ),
-                $delegateToSiteAdminsButton = $( '#delegate_to_site_admins' );
+			var
+				$multisiteOptionsContainer  = $( '#multisite_options_container' ),
+				$allSitesOptions            = $( '#all_sites_options' ),
+				$applyOnAllSites            = $( '#apply_on_all_sites' ),
+				$sitesListContainer         = $( '#sites_list_container' ),
+				totalSites                  = <?php echo count( $sites ) ?>,
+				maxSitesListHeight          = null,
+				$skipActivationButton       = $( '#skip_activation' ),
+				$delegateToSiteAdminsButton = $( '#delegate_to_site_admins' );
 
-            $applyOnAllSites.click(function() {
-                var isChecked = $( this ).is( ':checked' );
+			$applyOnAllSites.click(function() {
+				var isChecked = $( this ).is( ':checked' );
 
-                if ( ! isChecked ) {
-                    $multisiteOptionsContainer.find( '.action-allow' ).addClass( 'selected' );
-                } else {
-                    $multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
-                    updatePrimaryCtaText( 'allow' );
-                }
+				if ( ! isChecked ) {
+					$multisiteOptionsContainer.find( '.action-allow' ).addClass( 'selected' );
+				} else {
+					$multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
+					updatePrimaryCtaText( 'allow' );
+				}
 
-                if ( 0 !== $skipActivationButton.length ) {
-                    $skipActivationButton.toggle();
-                }
+				if ( 0 !== $skipActivationButton.length ) {
+					$skipActivationButton.toggle();
+				}
 
-                $delegateToSiteAdminsButton.toggle();
+				$delegateToSiteAdminsButton.toggle();
 
-                $multisiteOptionsContainer.toggleClass( 'apply-on-all-sites', isChecked );
+				$multisiteOptionsContainer.toggleClass( 'apply-on-all-sites', isChecked );
 
-                $sitesListContainer.toggle( ! isChecked );
-                if ( ! isChecked && null === maxSitesListHeight ) {
-                    /**
-                     * Set the visible number of rows to 5 (5 * height of the first row).
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     */
-                    maxSitesListHeight = ( 5 * $sitesListContainer.find( 'tr:first' ).height() );
-                    $sitesListContainer.css( 'max-height', maxSitesListHeight );
-                }
-            });
+				$sitesListContainer.toggle( ! isChecked );
+				if ( ! isChecked && null === maxSitesListHeight ) {
+					/**
+					 * Set the visible number of rows to 5 (5 * height of the first row).
+					 *
+					 * @author Leo Fajardo (@leorw)
+					 */
+					maxSitesListHeight = ( 5 * $sitesListContainer.find( 'tr:first' ).height() );
+					$sitesListContainer.css( 'max-height', maxSitesListHeight );
+				}
+			});
 
-            $allSitesOptions.find( '.action' ).click(function( evt ) {
-                var actionType = $( evt.target ).data( 'action-type' );
+			$allSitesOptions.find( '.action' ).click(function( evt ) {
+				var actionType = $( evt.target ).data( 'action-type' );
 
-                $multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
-                $multisiteOptionsContainer.find( '.action-' + actionType ).toggleClass( 'selected' );
+				$multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
+				$multisiteOptionsContainer.find( '.action-' + actionType ).toggleClass( 'selected' );
 
-                updatePrimaryCtaText( actionType );
-            });
+				updatePrimaryCtaText( actionType );
+			});
 
-            $sitesListContainer.delegate( '.action', 'click', function( evt ) {
-                var $this = $( evt.target );
-                if ( $this.hasClass( 'selected' ) ) {
-                    return false;
-                }
+			$sitesListContainer.delegate( '.action', 'click', function( evt ) {
+				var $this = $( evt.target );
+				if ( $this.hasClass( 'selected' ) ) {
+					return false;
+				}
 
-                $this.parents( 'tr:first' ).find( '.action' ).removeClass( 'selected' );
-                $this.toggleClass( 'selected' );
+				$this.parents( 'tr:first' ).find( '.action' ).removeClass( 'selected' );
+				$this.toggleClass( 'selected' );
 
-                var
-                    singleSiteActionType = $this.data( 'action-type' ),
-                    totalSelected        = $sitesListContainer.find( '.action-' + singleSiteActionType + '.selected' ).length;
+				var
+					singleSiteActionType = $this.data( 'action-type' ),
+					totalSelected        = $sitesListContainer.find( '.action-' + singleSiteActionType + '.selected' ).length;
 
-                $allSitesOptions.find( '.action.selected' ).removeClass( 'selected' );
+				$allSitesOptions.find( '.action.selected' ).removeClass( 'selected' );
 
-                if ( totalSelected === totalSites ) {
-                    $allSitesOptions.find( '.action-' + singleSiteActionType ).addClass( 'selected' );
+				if ( totalSelected === totalSites ) {
+					$allSitesOptions.find( '.action-' + singleSiteActionType ).addClass( 'selected' );
 
-                    updatePrimaryCtaText( singleSiteActionType );
-                } else {
-                    updatePrimaryCtaText( 'mixed' );
-                }
-            });
+					updatePrimaryCtaText( singleSiteActionType );
+				} else {
+					updatePrimaryCtaText( 'mixed' );
+				}
+			});
 
-            if ( requireLicenseKey ) {
-                $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
-                    $( this ).parent().find( 'input' ).click();
-                });
-            }
-        }
+			if ( requireLicenseKey ) {
+				$sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
+					$( this ).parent().find( 'input' ).click();
+				});
+			}
+		}
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         */
-        function updatePrimaryCtaText( actionType ) {
-		    var text = '<?php fs_echo( 'Continue', 'continue', $slug ) ?>';
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 */
+		function updatePrimaryCtaText( actionType ) {
+			var text = '<?php fs_echo( 'Continue', 'continue', $slug ) ?>';
 
-		    switch ( actionType ) {
-                case 'allow':
-                    text = '<?php fs_echo( 'Allow & Continue', 'opt-in-connect', $slug ) ?>';
-                    break;
-                case 'delegate':
-                    text = '<?php fs_echo( 'Delegate to Site Admins & Continue', 'delegate-to-site-admins-and-continue', $slug ) ?>';
-                    break;
-                case 'skip':
-                    text = '<?php fs_echo( 'Skip', 'verb', 'skip', $slug ) ?>';
-                    break;
-            }
+			switch ( actionType ) {
+				case 'allow':
+					text = '<?php fs_echo( 'Allow & Continue', 'opt-in-connect', $slug ) ?>';
+					break;
+				case 'delegate':
+					text = '<?php fs_echo( 'Delegate to Site Admins & Continue', 'delegate-to-site-admins-and-continue', $slug ) ?>';
+					break;
+				case 'skip':
+					text = '<?php fs_echo( 'Skip', 'verb', 'skip', $slug ) ?>';
+					break;
+			}
 
-            $primaryCta.text( text );
-        }
+			$primaryCta.text( text );
+		}
 
-        var ajaxOptin = ( requireLicenseKey || isNetworkActive );
+		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
 			/**
@@ -549,49 +549,49 @@
 			 */
 			if ( ajaxOptin ) {
 				if (!hasContextUser) {
-				    <?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
+					<?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
 
 					$('.fs-error').remove();
 
-                    var data = {
-                        action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
-                        security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
-                        license_key: $licenseKeyInput.val(),
-                        module_id  : '<?php echo $fs->get_id() ?>'
-                    };
+					var data = {
+						action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
+						security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
+						license_key: $licenseKeyInput.val(),
+						module_id  : '<?php echo $fs->get_id() ?>'
+					};
 
-                    if ( isNetworkActive ) {
-                        var
-                            sites           = [],
-                            applyOnAllSites = $applyOnAllSites.is( ':checked' );
+					if ( isNetworkActive ) {
+						var
+							sites           = [],
+							applyOnAllSites = $applyOnAllSites.is( ':checked' );
 
-                        $sitesListContainer.find( 'tr' ).each(function() {
-                            var
-                                $this       = $( this ),
-                                includeSite = ( ! requireLicenseKey || applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
+						$sitesListContainer.find( 'tr' ).each(function() {
+							var
+								$this       = $( this ),
+								includeSite = ( ! requireLicenseKey || applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
 
-                            if ( ! includeSite )
-                                return;
+							if ( ! includeSite )
+								return;
 
-                            var site = {
-                                uid     : $this.find( '.uid' ).val(),
-                                url     : $this.find( '.url' ).val(),
-                                title   : $this.find( '.title' ).val(),
-                                language: $this.find( '.language' ).val(),
-                                charset : $this.find( '.charset' ).val(),
-                                blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
-                            };
+							var site = {
+								uid     : $this.find( '.uid' ).val(),
+								url     : $this.find( '.url' ).val(),
+								title   : $this.find( '.title' ).val(),
+								language: $this.find( '.language' ).val(),
+								charset : $this.find( '.charset' ).val(),
+								blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
+							};
 
-                            if ( ! requireLicenseKey)
-                                site.action = ( applyOnAllSites ?
-                                    'allow' :
-                                    $this.find( '.action.selected' ).data( 'action-type' ) );
+							if ( ! requireLicenseKey)
+								site.action = ( applyOnAllSites ?
+									'allow' :
+									$this.find( '.action.selected' ).data( 'action-type' ) );
 
-                            sites.push( site );
-                        });
+							sites.push( site );
+						});
 
-                        data.sites = sites;
-                    }
+						data.sites = sites;
+					}
 
 					/**
 					 * Use the AJAX opt-in when license key is required to potentially
@@ -643,7 +643,7 @@
 			$(this).html('<?php echo esc_js( $is_pending_activation ?
 				fs_text_x_inline( 'Sending email', 'as in the process of sending an email', 'sending-email', $slug ) :
 				fs_text_x_inline( 'Activating', 'as activating plugin', 'activating', $slug )
-				) ?>...');
+			) ?>...');
 		});
 
 		$('.fs-permissions .fs-trigger').on('click', function () {

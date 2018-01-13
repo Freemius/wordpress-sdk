@@ -261,7 +261,7 @@
 
         /**
          * @since 1.2.2
-		 *
+         *
          * @var number
          */
         private $_module_id;
@@ -383,7 +383,7 @@
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
             $this->_is_multisite_integrated = ( defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
-                ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) )
+                                                ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) )
             );
 
             $this->_is_network_active = (
@@ -605,7 +605,7 @@
             }
 
             if ( version_compare( $sdk_prev_version, '1.2.4', '<' ) &&
-                version_compare( $sdk_version, '1.2.4', '>=' )
+                 version_compare( $sdk_version, '1.2.4', '>=' )
             ) {
                 /**
                  * Starting from version 1.2.4, `FS_Site` entities no longer have the `plan` property and have
@@ -1347,7 +1347,7 @@
 
             $plan = $this->get_plan();
 
-            if ( $this->is_registered() && is_object($plan) && $plan->has_technical_support() ) {
+            if ( $this->is_registered() && is_object( $plan ) && $plan->has_technical_support() ) {
                 $contact_support_template = fs_get_template( 'forms/deactivation/contact.php', $internal_message_template_var );
             } else {
                 $contact_support_template = '';
@@ -4720,7 +4720,7 @@
                                         $this->get_text_inline( 'We made a few tweaks to the %s, %s', 'few-plugin-tweaks' ),
                                         $this->_module_type,
                                         sprintf( '<b><a href="%s">%s</a></b>',
-                                            $this->get_activation_url(),
+                                            $this->get_activation_url( array(), ! $this->is_delegated_connection( get_current_blog_id() ) ),
                                             sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
                                         )
                                     ),
@@ -4910,7 +4910,7 @@
         /**
          * Delete plugin's plans information.
          *
-         * @param bool $store Flush to Database if true.
+         * @param bool $store                 Flush to Database if true.
          * @param bool $keep_associated_plans If set to false, delete all plans, even if a plan is associated with an install.
          *
          * @author Vova Feldman (@svovaf)
@@ -4921,9 +4921,9 @@
 
             $plans = self::get_all_plans( $this->_module_type );
 
-            $plans_to_keep     = array();
+            $plans_to_keep = array();
 
-            if ($keep_associated_plans) {
+            if ( $keep_associated_plans ) {
                 $plans_ids_to_keep = $this->get_plans_ids_associated_with_installs();
                 foreach ( $plans_ids_to_keep as $plan_id ) {
                     $plan = self::_get_plan_by_id( $plan_id );
@@ -5295,7 +5295,7 @@
             $sites = $this->get_sites();
 
             $install_ids = array();
-            foreach ($sites as $site) {
+            foreach ( $sites as $site ) {
                 $blog_id = $this->get_site_blog_id( $site );
 
                 $install_id = $this->_delete_site( true, $blog_id );
@@ -5312,7 +5312,7 @@
             }
 
             // Send delete event.
-            if (!empty($install_ids)) {
+            if ( ! empty( $install_ids ) ) {
                 $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', $install_ids ), 'delete' );
             }
 
@@ -5440,7 +5440,7 @@
         /**
          * Skip account connect, and set anonymous mode.
          *
-         * @todo If `sites` is an array, handle bulk skipping.
+         * @todo   If `sites` is an array, handle bulk skipping.
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
@@ -5869,10 +5869,10 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.2.4
          *
-         * @param string[]string $override
-         * @param bool           $only_diff
-         * @param bool           $include_plugins Since 1.1.8 by default include plugin changes.
-         * @param bool           $include_themes  Since 1.1.8 by default include plugin changes.
+         * @param string[] string           $override
+         * @param bool     $only_diff
+         * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
+         * @param bool     $include_themes  Since 1.1.8 by default include plugin changes.
          *
          * @return array
          */
@@ -7041,7 +7041,7 @@
         function get_plan_title() {
             $plan = $this->get_plan();
 
-            return is_object($plan) ? $plan->title : 'PLAN_TITLE';
+            return is_object( $plan ) ? $plan->title : 'PLAN_TITLE';
         }
 
         /**
@@ -7055,7 +7055,7 @@
         function get_plan_name() {
             $plan = $this->get_plan();
 
-            return is_object($plan) ? $plan->name : 'PLAN_NAME';
+            return is_object( $plan ) ? $plan->name : 'PLAN_NAME';
         }
 
         /**
@@ -7376,7 +7376,7 @@
          * Get a collection of unique plan IDs that are associated with any installs in the network.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since  1.2.4
          *
          * @return number[]
          */
@@ -7399,14 +7399,14 @@
 
                 if ( ! is_object( $install ) ||
                      ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
-                    ) {
+                ) {
                     continue;
                 }
 
-                $plan_ids[$install->plan_id] = true;
+                $plan_ids[ $install->plan_id ] = true;
             }
 
-            return array_keys($plan_ids);
+            return array_keys( $plan_ids );
         }
 
         /**
@@ -7950,14 +7950,14 @@
 
                 foreach ( $sites as $site ) {
                     if ( 'allow' === $site['action'] ) {
-                        unset( $site['blog_id' ] );
+                        unset( $site['blog_id'] );
                     }
 
                     $sites_by_action[ $site['action'] ][] = $site;
                 }
-                
+
                 $total_sites             = count( $sites );
-                $total_sites_to_delegate = count( $sites_by_action['delegate']);
+                $total_sites_to_delegate = count( $sites_by_action['delegate'] );
 
                 if ( $total_sites === $total_sites_to_delegate ) {
                     $this->delegate_connection();
@@ -8790,10 +8790,11 @@
          *
          * @param string $page
          * @param array  $params
+         * @param bool   $network
          *
          * @return string
          */
-        function _get_admin_page_url( $page = '', $params = array() ) {
+        function _get_admin_page_url( $page = '', $params = array(), $network = true ) {
             if ( 0 < count( $params ) ) {
                 foreach ( $params as $k => $v ) {
                     $params[ $k ] = urlencode( $v );
@@ -8811,7 +8812,7 @@
 
                 return add_query_arg(
                     $params,
-                    $this->admin_url( 'themes.php' )
+                    $this->admin_url( 'themes.php', 'admin', $network )
                 );
             }
 
@@ -8821,7 +8822,7 @@
                     // a specific Freemius page, use the admin.php path.
                     return add_query_arg( array_merge( $params, array(
                         'page' => $page_param,
-                    ) ), $this->admin_url( 'admin.php' ) );
+                    ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                 } else {
                     if ( $this->is_activation_mode() ) {
                         /**
@@ -8832,12 +8833,12 @@
                          */
                         return add_query_arg( array_merge( $params, array(
                             'page' => $this->_slug,
-                        ) ), $this->admin_url( 'admin.php', 'admin' ) );
+                        ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                     } else {
                         // Plugin without a settings page.
                         return add_query_arg(
                             $params,
-                            $this->admin_url( 'plugins.php' )
+                            $this->admin_url( 'plugins.php', 'admin', $network )
                         );
                     }
                 }
@@ -8852,7 +8853,7 @@
 
                 return add_query_arg( array_merge( $params, array(
                     'page' => $page_param,
-                ) ), $this->admin_url( $menu_file, 'admin' ) );
+                ) ), $this->admin_url( $menu_file, 'admin', $network ) );
             }
 
             // Module has a top level CPT settings page.
@@ -8860,7 +8861,7 @@
                 if ( empty( $page ) && $this->is_activation_mode() ) {
                     return add_query_arg( array_merge( $params, array(
                         'page' => $page_param
-                    ) ), $this->admin_url( 'admin.php', 'admin' ) );
+                    ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
                 } else {
                     if ( ! empty( $page ) ) {
                         $params['page'] = $page_param;
@@ -8868,7 +8869,7 @@
 
                     return add_query_arg(
                         $params,
-                        $this->admin_url( $this->_menu->get_raw_slug(), 'admin' )
+                        $this->admin_url( $this->_menu->get_raw_slug(), 'admin', $network )
                     );
                 }
             }
@@ -8876,7 +8877,25 @@
             // Module has a custom top level settings page.
             return add_query_arg( array_merge( $params, array(
                 'page' => $page_param,
-            ) ), $this->admin_url( 'admin.php', 'admin' ) );
+            ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        function should_use_network_admin_page() {
+            if ( $this->_is_network_active ) {
+                $network = true;
+                if ( is_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                    $network = false;
+                }
+            } else {
+                $network = false;
+            }
+
+            return $network;
         }
 
         #--------------------------------------------------------------------------------
@@ -8965,7 +8984,7 @@
 
             return in_array( $this->_plugin_basename, (array) get_blog_option( $blog_id, 'active_plugins', array() ) );
         }
-        
+
         /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.4
@@ -8983,6 +9002,45 @@
                 // For WP 3.6 and below.
                 return get_blog_list( 0, 'all' );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return array|null
+         */
+        private function find_first_install() {
+            $sites = $this->get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+
+                $all_sites = self::get_all_sites(
+                    $this->_module_type,
+                    $blog_id
+                );
+
+                if ( isset( $all_sites[ $this->_slug ] ) ) {
+                    $this->_storage->network_install_blog_id = $blog_id;
+
+                    return array(
+                        'install' => $all_sites[ $this->_slug ],
+                        'blog_id' => $blog_id
+                    );
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return int
+         */
+        private function get_main_site_blog_id() {
+            global $current_site;
+
+            return $current_site->blog_id;
         }
 
         /**
@@ -9192,8 +9250,8 @@
          *
          * @return FS_User
          */
-        function get_current_or_network_user(){
-            return ($this->_user instanceof FS_User) ?
+        function get_current_or_network_user() {
+            return ( $this->_user instanceof FS_User ) ?
                 $this->_user :
                 $this->get_network_user();
         }
@@ -9239,11 +9297,12 @@
          *
          * @param string $path
          * @param string $scheme
+         * @param bool   $network
          *
          * @return string
          */
-        private function admin_url( $path = '', $scheme = 'admin' ) {
-            return ( $this->_is_network_active ) ?
+        private function admin_url( $path = '', $scheme = 'admin', $network = true ) {
+            return ( $this->_is_network_active && $network ) ?
                 network_admin_url( $path, $scheme ) :
                 admin_url( $path, $scheme );
         }
@@ -9519,8 +9578,8 @@
         /**
          * Tries to activate account based on POST params.
          *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.2
+         * @author     Vova Feldman (@svovaf)
+         * @since      1.0.2
          *
          * @deprecated Not in use, outdated.
          */
@@ -9549,11 +9608,11 @@
                 $user->last        = fs_request_get( 'user_last' );
                 $user->is_verified = fs_request_get_bool( 'user_is_verified' );
 
-                $site              = new FS_Site();
-                $site->id          = fs_request_get( 'install_id' );
-                $site->public_key  = fs_request_get( 'install_public_key' );
-                $site->secret_key  = fs_request_get( 'install_secret_key' );
-                $site->plan_id     = fs_request_get( 'plan_id' );
+                $site             = new FS_Site();
+                $site->id         = fs_request_get( 'install_id' );
+                $site->public_key = fs_request_get( 'install_public_key' );
+                $site->secret_key = fs_request_get( 'install_secret_key' );
+                $site->plan_id    = fs_request_get( 'plan_id' );
 
                 $plans      = array();
                 $plans_data = json_decode( urldecode( fs_request_get( 'plans' ) ) );
@@ -9615,7 +9674,13 @@
 
             $this->do_action( 'before_account_load' );
 
-            $sites    = self::get_all_sites( $this->_module_type );
+            $sites = self::get_all_sites(
+                $this->_module_type,
+                ( is_network_admin() && isset( $this->_storage->network_install_blog_id ) ?
+                    $this->_storage->network_install_blog_id :
+                    null )
+            );
+
             $users    = self::get_all_users();
             $plans    = self::get_all_plans( $this->_module_type );
             $licenses = self::get_all_licenses( $this->_module_type );
@@ -9628,6 +9693,16 @@
             }
 
             $site = isset( $sites[ $this->_slug ] ) ? $sites[ $this->_slug ] : false;
+
+            if ( ! is_object( $site ) && is_network_admin() ) {
+                $first_install = $this->find_first_install();
+                if ( is_null( $first_install ) ) {
+                    unset( $this->_storage->network_install_blog_id );
+                } else {
+                    $site                                    = $first_install['install'];
+                    $this->_storage->network_install_blog_id = $first_install['blog_id'];
+                }
+            }
 
             if ( is_object( $site ) &&
                  is_numeric( $site->id ) &&
@@ -9928,7 +10003,7 @@
             $url = WP_FS__ADDRESS . '/action/service/user/install/';
 
             if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
-                $url = add_query_arg( 'XDEBUG_SESSION_START', rand(0, 9999999), $url );
+                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
                 $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
 
                 $request['cookies'] = array(
@@ -10068,7 +10143,7 @@
         ) {
             return $this->setup_network_account(
                 $user,
-                array($site),
+                array( $site ),
                 $redirect,
                 $auto_install
             );
@@ -10100,8 +10175,22 @@
 
             $this->_sync_plans();
 
-            if (!$this->_is_network_active){
+            $current_blog_id         = get_current_blog_id();
+            $is_delegated_connection = ( ! self::is_ajax_action_static( 'network_activate', $this->_module_id ) && $this->is_delegated_connection( $current_blog_id ) );
+
+            if ( ! $this->_is_network_active || $is_delegated_connection ) {
                 $this->_set_account( $user, $first_install );
+
+                if ( isset( $this->_storage->network_install_blog_id ) && $this->get_main_site_blog_id() == $current_blog_id ) {
+                    /**
+                     * After opting in the main site, delete the stored network install blog ID so that the install
+                     * that is associated with the main site will be loaded when the network-level account page is
+                     * loaded and will be used in retrieving the network user.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    unset( $this->_storage->network_install_blog_id );
+                }
             } else {
                 $sites = $this->get_sites();
 
@@ -10121,6 +10210,10 @@
                     $blog_id = $address_to_blog_map[ $address ];
 
                     $this->_store_site( true, $blog_id );
+
+                    if ( $first_install->id == $install->id && $blog_id != $current_blog_id ) {
+                        $this->_storage->network_install_blog_id = $blog_id;
+                    }
                 }
 
                 $this->_store_licenses( false );
@@ -10150,7 +10243,7 @@
             $this->do_action(
                 'after_account_connection',
                 $user,
-                ($this->_is_network_active ? $installs : $first_install)
+                ( $this->_is_network_active ? $installs : $first_install )
             );
 
             if ( is_numeric( $first_install->license_id ) ) {
@@ -10249,7 +10342,7 @@
                 $next_page = $this->is_anonymous() ?
                     // If user previously skipped, redirect to account page.
                     $this->get_account_url( false, $extra ) :
-                    $this->get_after_activation_url( 'after_connect_url' );
+                    $this->get_after_activation_url( 'after_connect_url', array(), ! $is_delegated_connection );
             }
 
             if ( ! empty( $next_page ) && $redirect ) {
@@ -10391,14 +10484,14 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.2.4
          *
-         * @param number  $user_id
-         * @param string  $user_public_key
-         * @param string  $user_secret_key
+         * @param number   $user_id
+         * @param string   $user_public_key
+         * @param string   $user_secret_key
          * @param object[] $installs
-         * @param bool   $redirect
-         * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                             redirect (or return a URL) to the account page with a special parameter to
-         *                             trigger the auto installation processes.
+         * @param bool     $redirect
+         * @param bool     $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                               redirect (or return a URL) to the account page with a special parameter to
+         *                               trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -11105,10 +11198,10 @@
                  * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
                  */
                 if ( ( ! $is_activation &&
-                        ( $this->_is_network_active && is_network_admin() ) ||
-                        ( ! $this->_is_network_active && is_admin() )
-                    ) ||
-                    $this->is_free_wp_org_theme()
+                       ( $this->_is_network_active && is_network_admin() ) ||
+                       ( ! $this->_is_network_active && is_admin() )
+                     ) ||
+                     $this->is_free_wp_org_theme()
                 ) {
                     if ( $this->has_affiliate_program() ) {
                         // Add affiliation page.
@@ -11240,8 +11333,7 @@
             foreach ( $this->_menu_items as $priority => $items ) {
                 foreach ( $items as $item ) {
                     if ( $item['show_submenu'] && $is_first_submenu_item ) {
-                        if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) )
-                        {
+                        if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
                             $item['menu_slug'] = '';
 
                             $this->_menu->override_menu_item( $item['render_function'] );
@@ -11392,8 +11484,8 @@
             }
 
             if ( ! $is_activation &&
-                ( $this->_is_network_active && is_network_admin() ) ||
-                ( ! $this->_is_network_active && is_admin() )
+                 ( $this->_is_network_active && is_network_admin() ) ||
+                 ( ! $this->_is_network_active && is_admin() )
             ) {
                 $this->add_submenu_link_item(
                     $this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'Support Forum', 'support-forum' ) ),
@@ -12254,7 +12346,7 @@
          *
          * @return \FS_Plugin_Plan|object
          */
-        private function fetch_plan_by_id($plan_id) {
+        private function fetch_plan_by_id( $plan_id ) {
             $this->_logger->entrance();
             $api = $this->get_current_or_network_user_api_scope();
 
@@ -12985,7 +13077,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          *
-         * @param bool          $background
+         * @param bool $background
          */
         protected function _activate_license( $background = false ) {
             $this->_logger->entrance();
@@ -13132,7 +13224,7 @@
             }
 
             // Update license cache.
-            if (is_array($this->_licenses)) {
+            if ( is_array( $this->_licenses ) ) {
                 for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
                     if ( $license->id == $this->_licenses[ $i ]->id ) {
                         $this->_licenses[ $i ] = new FS_Plugin_License( $license );
@@ -13923,10 +14015,11 @@
          * @since  1.1.2
          *
          * @param array $params
+         * @param bool  $network
          *
          * @return string
          */
-        function get_activation_url( $params = array() ) {
+        function get_activation_url( $params = array(), $network = true ) {
             if ( $this->is_addon() && $this->has_free_plan() ) {
                 /**
                  * @author Vova Feldman (@svovaf)
@@ -13935,7 +14028,7 @@
                 return $this->get_parent_instance()->get_activation_url( $params );
             }
 
-            return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params ) );
+            return $this->apply_filters( 'connect_url', $this->_get_admin_page_url( '', $params, $network ) );
         }
 
         /**
@@ -13960,12 +14053,13 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param string $filter Filter name.
-         * @param array  $params Since 1.2.2.7
+         * @param string    $filter Filter name.
+         * @param array     $params Since 1.2.2.7
+         * @param bool|null $network
          *
          * @return string
          */
-        function get_after_activation_url( $filter, $params = array() ) {
+        function get_after_activation_url( $filter, $params = array(), $network = null ) {
             if ( $this->is_free_wp_org_theme() &&
                  fs_request_has( 'pending_activation' )
             ) {
@@ -13981,8 +14075,13 @@
 
                 $target_url = $this->get_account_url();
             } else {
+                $network = ( ! is_null( $network ) ?
+                    $network :
+                    $this->should_use_network_admin_page()
+                );
+
                 // Default plugin's page.
-                $target_url = $this->_get_admin_page_url();
+                $target_url = $this->_get_admin_page_url( '', array(), $network );
             }
 
             return add_query_arg( $params, $this->apply_filters(
