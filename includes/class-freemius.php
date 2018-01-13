@@ -13108,7 +13108,7 @@
 
             $hmm_text = $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...';
 
-            if ( ! is_object( $this->_license ) ) {
+            if ( ! FS_Plugin_License::is_valid_id( $this->_site->license_id ) ) {
                 $this->_admin_notices->add(
                     sprintf( $this->get_text_inline( 'It looks like your site currently doesn\'t have an active license.', 'no-active-license-message' ), $this->get_plan_title() ),
                     $hmm_text
@@ -13132,10 +13132,12 @@
             }
 
             // Update license cache.
+            if (is_array($this->_licenses)) {
             for ( $i = 0, $len = count( $this->_licenses ); $i < $len; $i ++ ) {
                 if ( $license->id == $this->_licenses[ $i ]->id ) {
                     $this->_licenses[ $i ] = new FS_Plugin_License( $license );
                 }
+            }
             }
 
             // Updated site plan to default.
