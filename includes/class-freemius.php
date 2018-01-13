@@ -8869,6 +8869,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return int
+         */
+        private function get_main_site_blog_id() {
+            global $current_site;
+            return $current_site->blog_id;
+        }
+
+        /**
          * Switches the Freemius site level context to a specified blog.
          *
          * @author Vova Feldman (@svovaf)
@@ -9928,6 +9938,17 @@
 
             if ( ! $this->_is_network_active || $is_delegated_connection ) {
                 $this->_set_account( $user, $first_install );
+
+                if ( isset( $this->_storage->network_install_blog_id ) && $this->get_main_site_blog_id() == $current_blog_id ) {
+                    /**
+                     * After opting in the main site, delete the stored network install blog ID so that the install
+                     * that is associated with the main site will be loaded when the network-level account page is
+                     * loaded and will be used in retrieving the network user.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    unset( $this->_storage->network_install_blog_id );
+                }
             } else {
                 $sites = $this->get_sites();
 
