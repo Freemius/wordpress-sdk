@@ -8871,6 +8871,34 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
+         * @return array|null
+         */
+        private function find_first_install() {
+            $sites = $this->get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+
+                $all_sites = self::get_all_sites(
+                    $this->_module_type,
+                    $blog_id
+                );
+
+                if ( isset( $all_sites[ $this->_slug ] ) ) {
+                    $this->_storage->network_install_blog_id = $blog_id;
+
+                    return array(
+                        'install' => $all_sites[ $this->_slug ],
+                        'blog_id' => $blog_id
+                    );
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
          * @return int
          */
         private function get_main_site_blog_id() {
@@ -9461,6 +9489,16 @@
             }
 
             $site = isset( $sites[ $this->_slug ] ) ? $sites[ $this->_slug ] : false;
+
+            if ( ! is_object( $site ) ) {
+                $first_install = $this->find_first_install();
+                if ( is_null( $first_install ) ) {
+                    unset( $this->_storage->network_install_blog_id );
+                } else {
+                    $site                                    = $first_install['install'];
+                    $this->_storage->network_install_blog_id = $first_install['blog_id'];
+                }
+            }
 
             if ( is_object( $site ) &&
                  is_numeric( $site->id ) &&
