@@ -257,6 +257,10 @@
         function get_option( $option, $default = null ) {
             $this->_logger->entrance( 'option = ' . $option );
 
+            if ( ! $this->is_loaded() ) {
+                $this->load();
+            }
+
             if ( is_array( $this->_options ) ) {
                 $value = isset( $this->_options[ $option ] ) ?
                     $this->_options[ $option ] :
