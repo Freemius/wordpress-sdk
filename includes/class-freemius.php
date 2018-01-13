@@ -9018,11 +9018,44 @@
                 ) {
                     // Try to fetch previously saved user.
                     $this->_user = self::_get_user_by_id( $this->_storage->prev_user_id );
-                }
 
                 if ( ! is_object( $this->_user ) ) {
                     // Fallback to network's user.
                     $this->_user = $this->get_network_user();
+                }
+            }
+
+                $all_licenses = self::get_all_licenses( $this->_module_type );
+
+                if ( is_array( $all_licenses ) &&
+                     isset( $all_licenses[ $this->_slug ] )
+                ) {
+                    if ( ! FS_Plugin_License::is_valid_id( $this->_site->license_id ) ) {
+                        $this->_license = null;
+                    } else {
+                        $all_plugin_licenses = $all_licenses[ $this->_slug ];
+                        $license_found       = false;
+                        foreach ( $all_plugin_licenses as $user_id => $user_licenses ) {
+                            foreach ( $user_licenses as $license ) {
+                                if ( $license->id == $this->_site->license_id ) {
+                                    // License found.
+                                    $this->_license = $license;
+                                    $license_found  = true;
+                                    break;
+                                }
+                            }
+
+                            if ( $license_found ) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if ( isset( $all_licenses[ $this->_slug ][ $this->_user->id ] ) ) {
+                        $this->_licenses = $all_licenses[ $this->_slug ][ $this->_user->id ];
+                    } else {
+                        $this->_licenses = false;
+                    }
                 }
             }
 
