@@ -10127,8 +10127,12 @@
 
                 self::$_accounts->store();
 
+                if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
+                     ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
+                ) {
                 // Store network user.
                 $this->_storage->network_user_id = $this->_user->id;
+                }
 
                 $this->send_installs_update();
 
