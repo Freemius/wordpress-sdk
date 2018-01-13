@@ -210,11 +210,12 @@
                         <code><?php echo htmlspecialchars( substr( $install->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $install->secret_key, - 3 ) ) ?></code>
                         <input type="text" value="<?php echo htmlspecialchars( $install->secret_key ) ?>"
                                style="display: none" readonly/></td>
+                    <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Secret Key -->
 
-                <?php if ( is_object( $license ) && ( $license->id != $main_license->id ) ) : ?>
+                <?php if ( is_object( $license ) && ( ! is_object($main_license) || $license->id != $main_license->id ) ) : ?>
                     <!-- License Key -->
                     <tr <?php if ( 1 == $row_index % 2 ) {
                         echo ' class="alternate"';
@@ -226,6 +227,7 @@
                             <code><?php echo htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $license->secret_key, - 3 ) ) ?></code>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
+                        <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
                     </tr>
                     <?php $row_index ++ ?>
                     <!--/ License Key -->
