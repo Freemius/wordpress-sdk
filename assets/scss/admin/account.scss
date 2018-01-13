@@ -192,9 +192,14 @@ label.fs-tag
 
         .fs-install-details table
         {
-            tr td:first-of-type
+            tr td
             {
                 width: 1px;
+
+                &:last-of-type
+                {
+                    width: auto;
+                }
             }
         }
     }
