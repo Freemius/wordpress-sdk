@@ -4868,9 +4868,12 @@
          * @since  1.0.1
          *
          * @param bool $store
+         * @param int|null $blog_id Since 1.2.4
+         *
+         * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
          */
-        function _delete_site( $store = true ) {
-            self::_delete_site_by_slug( $this->_slug, $this->_module_type, $store );
+        function _delete_site( $store = true, $blog_id = null ) {
+            return self::_delete_site_by_slug( $this->_slug, $this->_module_type, $store, $blog_id );
         }
 
         /**
@@ -4882,15 +4885,26 @@
          * @param string $slug
          * @param string $module_type
          * @param bool   $store
+         * @param int|null $blog_id Since 1.2.4
+         *
+         * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
          */
-        static function _delete_site_by_slug( $slug, $module_type, $store = true ) {
-            $sites = self::get_all_sites( $module_type );
+        static function _delete_site_by_slug( $slug, $module_type, $store = true, $blog_id = null ) {
+            $sites = self::get_all_sites( $module_type, $blog_id );
+
+            $install_id = false;
 
             if ( isset( $sites[ $slug ] ) ) {
+                if ( is_object( $sites[ $slug ] ) ) {
+                    $install_id = $sites[ $slug ]->id;
+                }
+
                 unset( $sites[ $slug ] );
+
+                self::set_account_option_by_module( $module_type, 'sites', $sites, $store, $blog_id );
             }
 
-            self::set_account_option_by_module( $module_type, 'sites', $sites, $store );
+            return $install_id;
         }
 
         /**
@@ -5231,6 +5245,72 @@
             $this->get_api_site_scope()->call( '/', 'delete' );
 
             $this->do_action( 'after_account_delete' );
+        }
+
+        /**
+         * Delete network level account.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param bool $check_user Enforce checking if user have plugins activation privileges.
+         */
+        function delete_network_account_event( $check_user = true ) {
+            $this->_logger->entrance( 'slug = ' . $this->_slug );
+
+            if ( $check_user && ! $this->is_user_admin() ) {
+                return;
+            }
+
+            $this->do_action( 'before_network_account_delete' );
+
+            // Clear all admin notices.
+            $this->_admin_notices->clear_all_sticky();
+
+            $this->_delete_plans( false, false );
+
+            $this->_delete_licenses( false );
+
+            // Delete add-ons related to plugin's account.
+            $this->_delete_account_addons( false );
+
+            // @todo Delete plans and licenses of add-ons.
+
+            self::$_accounts->store();
+
+            /**
+             * IMPORTANT:
+             *  Clear crons must be executed before clearing all storage.
+             *  Otherwise, the cron will not be cleared.
+             */
+            $this->clear_sync_cron();
+            $this->clear_install_sync_cron();
+
+            $sites = $this->get_sites();
+
+            $install_ids = array();
+            foreach ($sites as $site) {
+                $blog_id = $this->get_site_blog_id( $site );
+
+                $install_id = $this->_delete_site( true, $blog_id );
+
+                // Clear all storage data.
+                $this->_storage->clear_all( true, array(
+                    'connectivity_test',
+                    'is_on',
+                ), $blog_id );
+
+                if ( FS_Site::is_valid_id( $install_id ) ) {
+                    $install_ids[] = $install_id;
+                }
+            }
+
+            // Send delete event.
+            if (!empty($install_ids)) {
+                $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', $install_ids ), 'delete' );
+            }
+
+            $this->do_action( 'after_network_account_delete' );
         }
 
         /**
@@ -9027,6 +9107,40 @@
             return ($this->_user instanceof FS_User) ?
                 $this->_user :
                 $this->get_network_user();
+        }
+
+        /**
+         * Check if executing a site level action from the network level admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return false|int If yes, return the requested blog ID.
+         */
+        private function is_network_level_site_specific_action() {
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            if ( ! is_network_admin() ) {
+                return false;
+            }
+
+            $blog_id = fs_request_get( 'blog_id', '' );
+
+            return is_numeric( $blog_id ) ? $blog_id : false;
+        }
+
+        /**
+         * Check if executing an action from the network level admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return bool
+         */
+        private function is_network_level_action() {
+            return ( $this->_is_network_active && is_network_admin() );
         }
 
         #endregion Multisite
@@ -13693,25 +13807,30 @@
             }
 
             $plugin_id  = fs_request_get( 'plugin_id', $this->get_id() );
-            $blog_id    = fs_request_get( 'blog_id', '' );
             $install_id = fs_request_get( 'install_id', '' );
 
             // Alias.
             $oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
 
-            if ( $this->_is_network_active &&
-                 is_network_admin() &&
-                 is_numeric( $blog_id )
-            ) {
+            $is_network_action = $this->is_network_level_action();
+            $blog_id           = $this->is_network_level_site_specific_action();
+
+            if ( is_numeric( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
+            } else {
+                $blog_id = '';
             }
 
             switch ( $action ) {
                 case 'delete_account':
-                    check_admin_referer( $action );
+                    check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
                     if ( $plugin_id == $this->get_id() ) {
+                        if ( $is_network_action && empty( $blog_id ) ) {
+                            $this->delete_network_account_event();
+                        } else {
                         $this->delete_account_event();
+                        }
 
                         // Clear user and site.
                         $this->_site = null;
