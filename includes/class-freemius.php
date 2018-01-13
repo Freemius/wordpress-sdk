@@ -4911,27 +4911,33 @@
          * Delete plugin's plans information.
          *
          * @param bool $store Flush to Database if true.
+         * @param bool $keep_associated_plans If set to false, delete all plans, even if a plan is associated with an install.
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          */
-        private function _delete_plans( $store = true ) {
+        private function _delete_plans( $store = true, $keep_associated_plans = true ) {
             $this->_logger->entrance();
 
             $plans         = self::get_all_plans( $this->_module_type );
-            $plans_by_slug = $plans[ $this->_slug ];
-            foreach ( $plans_by_slug as $key => $plan ) {
-                $plans_by_slug[ $key ] = self::decrypt_entity( $plan );
-            }
 
-            $plans_with_associated_install = $this->get_plans_with_associated_install( $plans_by_slug );
-            if ( ! empty( $plans_with_associated_install ) ) {
-                foreach ( $plans_with_associated_install as $key => $plan ) {
-                    $plans_with_associated_install[ $key ] = self::_encrypt_entity( $plan );
+            $plans_to_keep     = array();
+
+            if ($keep_associated_plans) {
+                $plans_ids_to_keep = $this->get_plans_ids_associated_with_installs();
+                foreach ( $plans_ids_to_keep as $plan_id ) {
+                    $plan = self::_get_plan_by_id( $plan_id );
+                    if ( is_object( $plan ) ) {
+                        $plans_to_keep[] = $plan;
+                    }
                 }
             }
 
-            $plans[ $this->_slug ] = array_values( $plans_with_associated_install );
+            if ( ! empty( $plans_to_keep ) ) {
+                $plans[ $this->_slug ] = $plans_to_keep;
+            } else {
+                unset( $plans[ $this->_slug ] );
+            }
 
             $this->set_account_option( 'plans', $plans, $store );
         }
@@ -7265,6 +7271,8 @@
         /**
          * Sync local plugin plans with remote server.
          *
+         * IMPORTANT: If for some reason a site is associated with deleted plan, we'll preserve the plan's information and append it as the last plan. This means that if plan is deleted, the is_plan() method will ALWAYS return true for any given argument (it becomes the most inclusive plan).
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          *
@@ -7274,14 +7282,22 @@
             $plans = $this->_fetch_plugin_plans();
 
             if ( $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
-                $plans_with_associated_install = $this->get_plans_with_associated_install( $this->_plans );
-                $updated_plans_by_id           = $this->rearrange_plans_by_id( $plans );
+                $plans_map = array();
+                foreach ( $plans as $plan ) {
+                    $plans_map[ $plan->id ] = true;
+                }
 
-                if ( ! empty( $plans_with_associated_install ) ) {
-                    foreach ( $plans_with_associated_install as $plan ) {
-                        if ( ! isset( $updated_plans_by_id[ 'p_' . $plan->id ] ) ) {
-                            $plans[] = $plan;
+                $plans_ids_to_keep = $this->get_plans_ids_associated_with_installs();
+
+                foreach ( $plans_ids_to_keep as $plan_id ) {
+                    if ( isset( $plans_map[ $plan_id ] ) ) {
+                        continue;
                         }
+
+                    $missing_plan = self::_get_plan_by_id( $plan_id );
+
+                    if ( is_object( $missing_plan ) ) {
+                        $plans[] = $missing_plan;
                     }
                 }
 
@@ -7333,24 +7349,40 @@
         }
 
         /**
+         * Get a collection of unique plan IDs that are associated with any installs in the network.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 1.2.4
          *
-         * @param array|null $plans
-         *
-         * @return FS_Plugin_Plan[]
+         * @return number[]
          */
-        private function rearrange_plans_by_id( $plans ) {
-            if ( ! is_array( $plans ) || empty( $plans ) ) {
+        private function get_plans_ids_associated_with_installs() {
+            if ( ! $this->_is_network_active ) {
+                if ( ! is_object( $this->_site ) ||
+                     ! FS_Plugin_Plan::is_valid_id( $this->_site->plan_id )
+                ) {
                 return array();
             }
 
-            $plans_by_id = array();
-            foreach ( $plans as $plan ) {
-                $plans_by_id[ 'p_' . $plan->id ] = $plan;
+                return array( $this->_site->plan_id );
             }
 
-            return $plans_by_id;
+            $plan_ids = array();
+            $sites    = $this->get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( ! is_object( $install ) ||
+                     ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                    ) {
+                    continue;
+                }
+
+                $plan_ids[$install->plan_id] = true;
+            }
+
+            return array_keys($plan_ids);
         }
 
         /**
