@@ -5998,7 +5998,7 @@
                 $this->clear_install_sync_cron();
             }
 
-            return $result->installs;
+            return $result;
         }
 
         /**
@@ -12403,11 +12403,15 @@
                  *
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
-                $sites = $this->send_installs_update( array(), true );
+                if ( $this->_is_network_active ) {
+                    $result   = $this->send_installs_update( array(), true );
+                    $is_valid = $this->is_api_result_object( $result, 'installs' );
+                } else {
+                    $result   = $this->send_install_update( array(), true );
+                    $is_valid = $this->is_api_result_entity( $result );
+                }
 
-                if ( ! $this->is_api_result_entity( $sites ) &&
-                     ! $this->is_api_result_object( $sites, 'installs' )
-                ) {
+                if ( ! $is_valid ) {
                     // Show API messages only if not background sync or if paying customer.
                     if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
@@ -12426,7 +12430,7 @@
                                         $this->get_text_x_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s', '%1s - plugin title, %2s - API domain', 'server-blocking-access' ),
                                         $this->get_plugin_name(),
                                         '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
-                                    ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $sites->error, true ),
+                                    ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
                                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                                     'error',
                                     $background,
@@ -12448,7 +12452,17 @@
                     return;
                 }
 
-                $site = new FS_Site( $sites[0] );
+                if ( ! $this->_is_network_active ) {
+                    $site = new FS_Site( $result );
+                } else {
+                    // Find the current context install.
+                    foreach ( $result->installs as $install ) {
+                        if ( $install->id == $this->_site->id ) {
+                            $site = new FS_Site( $install );
+                            break;
+                        }
+                    }
+                }
 
                 // Sync plans.
                 $this->_sync_plans();
