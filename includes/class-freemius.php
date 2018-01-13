@@ -9432,7 +9432,13 @@
 
             $this->do_action( 'before_account_load' );
 
-            $sites    = self::get_all_sites( $this->_module_type );
+            $sites = self::get_all_sites(
+                $this->_module_type,
+                ( is_network_admin() && isset( $this->_storage->network_install_blog_id ) ?
+                    $this->_storage->network_install_blog_id :
+                    null )
+            );
+
             $users    = self::get_all_users();
             $plans    = self::get_all_plans( $this->_module_type );
             $licenses = self::get_all_licenses( $this->_module_type );
@@ -9917,7 +9923,8 @@
 
             $this->_sync_plans();
 
-            $is_delegated_connection = ( ! self::is_ajax_action_static( 'network_activate', $this->_module_id ) && $this->is_delegated_connection( get_current_blog_id() ) );
+            $current_blog_id         = get_current_blog_id();
+            $is_delegated_connection = ( ! self::is_ajax_action_static( 'network_activate', $this->_module_id ) && $this->is_delegated_connection( $current_blog_id ) );
 
             if ( ! $this->_is_network_active || $is_delegated_connection ) {
                 $this->_set_account( $user, $first_install );
@@ -9940,6 +9947,10 @@
                     $blog_id = $address_to_blog_map[ $address ];
 
                     $this->_store_site( true, $blog_id );
+
+                    if ( $first_install->id == $install->id && $blog_id != $current_blog_id ) {
+                        $this->_storage->network_install_blog_id = $blog_id;
+                    }
                 }
 
                 $this->_store_licenses( false );
