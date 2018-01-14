@@ -10094,6 +10094,20 @@
                     $decoded :
                     $this->apply_filters( 'after_install_failure', $decoded, $params );
             } else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
+                if ( $is_network ) {
+                    /**
+                     * Store the sites so that they can be installed once the user has clicked on the activation link
+                     * in the email.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_storage->pending_sites_info = array(
+                        'sites'         => $sites,
+                        'license_key'   => $license_key,
+                        'trial_plan_id' => $trial_plan_id
+                    );
+                }
+
                 // Pending activation, add message.
                 return $this->set_pending_confirmation(
                     ( isset( $decoded->email ) ?
@@ -10196,6 +10210,10 @@
                      * @author Leo Fajardo (@leorw)
                      */
                     unset( $this->_storage->network_install_blog_id );
+                }
+
+                if ( $is_delegated_connection ) {
+                    self::$_accounts->set_option( 'is_delegated_connection', false, true, $current_blog_id );
                 }
             } else {
                 $sites = $this->get_sites();
@@ -10378,16 +10396,29 @@
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
                 if ( fs_request_has( 'user_secret_key' ) ) {
-                    $this->install_with_new_user(
-                        fs_request_get( 'user_id' ),
-                        fs_request_get( 'user_public_key' ),
-                        fs_request_get( 'user_secret_key' ),
-                        fs_request_get( 'install_id' ),
-                        fs_request_get( 'install_public_key' ),
-                        fs_request_get( 'install_secret_key' ),
-                        true,
-                        fs_request_get_bool( 'auto_install' )
-                    );
+                    if ( is_network_admin() && isset( $this->_storage->pending_sites_info ) ) {
+                        $pending_sites_info = $this->_storage->pending_sites_info;
+
+                        $this->install_many_pending_with_user(
+                            fs_request_get( 'user_id' ),
+                            fs_request_get( 'user_public_key' ),
+                            fs_request_get( 'user_secret_key' ),
+                            $pending_sites_info['sites'],
+                            $pending_sites_info['license_key'],
+                            $pending_sites_info['trial_plan_id']
+                        );
+                    } else {
+                        $this->install_with_new_user(
+                            fs_request_get( 'user_id' ),
+                            fs_request_get( 'user_public_key' ),
+                            fs_request_get( 'user_secret_key' ),
+                            fs_request_get( 'install_id' ),
+                            fs_request_get( 'install_public_key' ),
+                            fs_request_get( 'install_secret_key' ),
+                            true,
+                            fs_request_get_bool( 'auto_install' )
+                        );
+                    }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
                     $this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
                 }
@@ -10482,6 +10513,47 @@
                 $redirect,
                 $auto_install
             );
+        }
+
+        /**
+         * Install plugin with user.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @param number $user_id
+         * @param string $user_public_key
+         * @param string $user_secret_key
+         * @param array  $sites
+         * @param bool   $license_key
+         * @param bool   $trial_plan_id
+         * @param bool   $redirect
+         *
+         * @return string If redirect is `false`, returns the next page the user should be redirected to.
+         */
+        private function install_many_pending_with_user(
+            $user_id,
+            $user_public_key,
+            $user_secret_key,
+            $sites,
+            $license_key = false,
+            $trial_plan_id = false,
+            $redirect = true
+        ) {
+            $user = self::_get_user_by_id( $user_id );
+
+            if ( ! is_object( $user ) ) {
+                $user             = new FS_User();
+                $user->id         = $user_id;
+                $user->public_key = $user_public_key;
+                $user->secret_key = $user_secret_key;
+
+                $this->_user = $user;
+                $user_result = $this->get_api_user_scope()->get();
+                $user        = new FS_User( $user_result );
+            }
+
+            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
         }
 
         /**
@@ -10658,6 +10730,7 @@
          * @param number|bool $trial_plan_id
          * @param bool        $redirect
          * @param bool        $setup_account Since 1.2.4. When set to FALSE, executes a light installation without setting up the account as if it's the first opt-in.
+         * @param array       $sites         Since 1.2.4. If not empty, should be a collection of site details for the bulk install API request.
          *
          * @return \FS_Site|object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install. If $setup_account is set to `false`, return the newly created install.
          */
@@ -10666,7 +10739,8 @@
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true,
-            $setup_account = true
+            $setup_account = true,
+            $sites = array()
         ) {
             // We have to set the user before getting user scope API handler.
             $this->_user = $user;
@@ -10683,26 +10757,30 @@
                 $extra_install_params['trial_plan_id'] = $trial_plan_id;
             }
 
+            if ( ! empty( $sites ) ) {
+                $extra_install_params['sites'] = $sites;
+            }
+
             $args = $this->get_install_data_for_api( $extra_install_params, false, false );
 
             // Install the plugin.
-            $install = $this->get_api_user_scope()->call(
+            $result = $this->get_api_user_scope()->call(
                 "/plugins/{$this->get_id()}/installs.json",
                 'post',
                 $args
             );
 
-            if ( ! $this->is_api_result_entity( $install ) ) {
+            if ( ! $this->is_api_result_entity( $result ) && ! $this->is_api_result_object( $result, 'installs' ) ) {
                 if ( ! empty( $args['license_key'] ) ) {
                     // Pass full the fully entered license key to the failure handler.
                     $args['license_key'] = $license_key;
                 }
 
-                $install = $this->apply_filters( 'after_install_failure', $install, $args );
+                $result = $this->apply_filters( 'after_install_failure', $result, $args );
 
                 $this->_admin_notices->add(
                     sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $install->error->message . '</b>',
+                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $result->error->message . '</b>',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                     'error'
                 );
@@ -10720,28 +10798,38 @@
                      */
                     $this->_user = null;
 
-                    fs_redirect( $this->get_activation_url( array( 'error' => $install->error->message ) ) );
+                    fs_redirect( $this->get_activation_url( array( 'error' => $result->error->message ) ) );
                 }
 
-                return $install;
+                return $result;
             }
 
-            $site        = new FS_Site( $install );
-            $this->_site = $site;
+            if ( empty( $sites ) ) {
+                $site        = new FS_Site( $result );
+                $this->_site = $site;
 
-            if ( ! $setup_account ) {
-                $this->_store_site();
+                if ( ! $setup_account ) {
+                    $this->_store_site();
 
-                $this->sync_plan_if_not_exist( $site->plan_id );
+                    $this->sync_plan_if_not_exist( $site->plan_id );
 
-                if ( ! empty( $license_key ) && FS_Plugin_License::is_valid_id( $site->license_id ) ) {
-                    $this->sync_license_if_not_exist( $site->license_id, $license_key );
+                    if ( ! empty( $license_key ) && FS_Plugin_License::is_valid_id( $site->license_id ) ) {
+                        $this->sync_license_if_not_exist( $site->license_id, $license_key );
+                    }
+
+                    return $site;
                 }
 
-                return $site;
+                return $this->setup_account( $this->_user, $this->_site, $redirect );
+            } else {
+                $this->install_many_with_new_user(
+                    $this->_user->id,
+                    $this->_user->public_key,
+                    $this->_user->secret_key,
+                    $result->installs,
+                    $redirect
+                );
             }
-
-            return $this->setup_account( $this->_user, $this->_site, $redirect );
         }
 
         /**
