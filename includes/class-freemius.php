@@ -7951,10 +7951,6 @@
                 );
 
                 foreach ( $sites as $site ) {
-                    if ( 'allow' === $site['action'] ) {
-                        unset( $site['blog_id'] );
-                    }
-
                     $sites_by_action[ $site['action'] ][] = $site;
                 }
 
@@ -10095,6 +10091,11 @@
                     $this->apply_filters( 'after_install_failure', $decoded, $params );
             } else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
                 if ( $is_network ) {
+                    $site_ids = array();
+                    foreach ( $sites as $site ) {
+                        $site_ids[] = $site['blog_id'];
+                    }
+
                     /**
                      * Store the sites so that they can be installed once the user has clicked on the activation link
                      * in the email.
@@ -10102,7 +10103,7 @@
                      * @author Leo Fajardo (@leorw)
                      */
                     $this->_storage->pending_sites_info = array(
-                        'sites'         => $sites,
+                        'blog_ids'      => $site_ids,
                         'license_key'   => $license_key,
                         'trial_plan_id' => $trial_plan_id
                     );
@@ -10403,7 +10404,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
-                            $pending_sites_info['sites'],
+                            $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
                             $pending_sites_info['trial_plan_id']
                         );
@@ -10524,7 +10525,7 @@
          * @param number $user_id
          * @param string $user_public_key
          * @param string $user_secret_key
-         * @param array  $sites
+         * @param array  $site_ids
          * @param bool   $license_key
          * @param bool   $trial_plan_id
          * @param bool   $redirect
@@ -10535,7 +10536,7 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
-            $sites,
+            $site_ids,
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true
@@ -10551,6 +10552,11 @@
                 $this->_user = $user;
                 $user_result = $this->get_api_user_scope()->get();
                 $user        = new FS_User( $user_result );
+            }
+
+            $sites = array();
+            foreach ( $site_ids as $site_id ) {
+                $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
             }
 
             $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
