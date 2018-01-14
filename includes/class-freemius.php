@@ -792,6 +792,8 @@
             $this->_logger->entrance();
 
             if ( is_admin() ) {
+                add_action( 'plugins_loaded', array( &$this, '_hook_plugin_action_links_and_register_account_hooks') );
+
                 if ( $this->is_plugin() ) {
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
@@ -970,6 +972,18 @@
             $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map' );
             unset( $id_slug_type_path_map[ $this->_module_id ]['path'] );
             self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         */
+        function _hook_plugin_action_links_and_register_account_hooks() {
+            if ( self::is_plugins_page() && $this->is_plugin() ) {
+                $this->hook_plugin_action_links();
+            }
+
+            $this->_register_account_hooks();
         }
 
         /**
@@ -3309,10 +3323,6 @@
             }
 
             if ( $this->is_user_in_admin() ) {
-                if ( self::is_plugins_page() && $this->is_plugin() ) {
-                    $this->hook_plugin_action_links();
-                }
-
                 if ( $this->is_addon() ) {
                     if ( ! $this->is_parent_plugin_installed() ) {
                         $parent_name = $this->get_option( $plugin_info, 'parent_name', null );
@@ -7260,6 +7270,10 @@
          * @return FS_Plugin_Plan|false
          */
         function get_plan() {
+            if ( ! is_object( $this->_site ) ) {
+                return false;
+            }
+            
             return FS_Plugin_Plan::is_valid_id( $this->_site->plan_id ) ?
                 $this->_get_plan_by_id( $this->_site->plan_id ) :
                 false;
@@ -10039,7 +10053,9 @@
                 }
             }
 
-            $this->_register_account_hooks();
+            if ( $this->is_theme() ) {
+                $this->_register_account_hooks();
+            }
         }
 
         /**
