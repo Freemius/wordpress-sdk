@@ -6949,7 +6949,7 @@
          * @return bool
          */
         function is_tracking_allowed() {
-            return ( is_object( $this->_site ) && true !== $this->_site->is_disconnected );
+            return ( is_object( $this->_site ) && $this->_site->is_tracking_allowed() );
         }
 
         /**
