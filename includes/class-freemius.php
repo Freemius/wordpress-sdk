@@ -4598,7 +4598,11 @@
             // Update last install sync timestamp.
             $this->_storage->install_sync_timestamp = time();
 
+            if ( $this->_is_network_active ) {
+                $this->sync_installs( array(), true );
+            } else {
             $this->sync_install( array(), true );
+        }
         }
 
         #endregion Async Install Sync ------------------------------------------------------------------
