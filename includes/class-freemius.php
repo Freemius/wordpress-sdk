@@ -9129,25 +9129,78 @@
         }
 
         /**
+         * Get a mapping between the site addresses to their blog IDs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return array {
+         * @key    string Site address without protocol with a trailing slash.
+         * @value  int Site's blog ID.
+         * }
+         */
+        private function get_address_to_blog_map()
+        {
+            $sites = $this->get_sites();
+
+            // Map site addresses to their blog IDs.
+            $address_to_blog_map = array();
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+                $address                         = trailingslashit( fs_strip_url_protocol( get_site_url( $blog_id ) ) );
+                $address_to_blog_map[ $address ] = $blog_id;
+            }
+
+            return $address_to_blog_map;
+        }
+
+        /**
+         * Get a mapping between the site addresses to their blog IDs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return array {
+         * @key    int     Site's blog ID.
+         * @value  FS_Site Associated install.
+         * }
+         */
+        private function get_blog_install_map() {
+            $sites = $this->get_sites();
+
+            // Map site blog ID to its install.
+            $install_map = array();
+
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( is_object( $install ) ) {
+                    $install_map[ $blog_id ] = $install;
+                }
+            }
+
+            return $install_map;
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
-         * @return array|null
+         * @return null|array {
+         *      'install' => FS_Site Module's install,
+         *      'blog_id' => string The associated blog ID.
+         * }
          */
         private function find_first_install() {
             $sites = $this->get_sites();
+
             foreach ( $sites as $site ) {
                 $blog_id = $this->get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id($blog_id);
 
-                $all_sites = self::get_all_sites(
-                    $this->_module_type,
-                    $blog_id
-                );
-
-                if ( isset( $all_sites[ $this->_slug ] ) ) {
-                    $this->_storage->network_install_blog_id = $blog_id;
-
+                if ( is_object($install) ) {
                     return array(
-                        'install' => $all_sites[ $this->_slug ],
+                        'install' => $install,
                         'blog_id' => $blog_id
                     );
                 }
@@ -9332,11 +9385,11 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.2.4
          *
-         * @param int $blog_id
+         * @param int|null $blog_id
          *
          * @return FS_Site
          */
-        function get_install_by_blog_id( $blog_id ) {
+        function get_install_by_blog_id( $blog_id = null ) {
             $installs = self::get_all_sites( $this->_module_type, $blog_id );
             $install  = isset( $installs[ $this->_slug ] ) ? $installs[ $this->_slug ] : null;
 
@@ -9382,6 +9435,38 @@
             return ( $this->_user instanceof FS_User ) ?
                 $this->_user :
                 $this->get_network_user();
+        }
+
+        /**
+         * Returns the main install associated with the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return FS_Site
+         */
+        function get_network_install() {
+            if ( ! $this->_is_network_active ) {
+                return null;
+            }
+
+            return FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ?
+                $this->get_install_by_blog_id( $this->_storage->network_install_blog_id ) :
+                null;
+        }
+
+        /**
+         * Returns the current context install or the network's main install.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return FS_Site
+         */
+        function get_current_or_network_install() {
+            return ( $this->_site instanceof FS_Site ) ?
+                $this->_site :
+                $this->get_network_install();
         }
 
         /**
@@ -9802,28 +9887,26 @@
 
             $this->do_action( 'before_account_load' );
 
-            $sites = self::get_all_sites(
-                $this->_module_type,
-                ( is_network_admin() && isset( $this->_storage->network_install_blog_id ) ?
-                    $this->_storage->network_install_blog_id :
-                    null )
-            );
-
             $users    = self::get_all_users();
             $plans    = self::get_all_plans( $this->_module_type );
             $licenses = self::get_all_licenses( $this->_module_type );
 
             if ( $this->_logger->is_on() && is_admin() ) {
-                $this->_logger->log( 'sites = ' . var_export( $sites, true ) );
                 $this->_logger->log( 'users = ' . var_export( $users, true ) );
                 $this->_logger->log( 'plans = ' . var_export( $plans, true ) );
                 $this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
             }
 
-            $site = isset( $sites[ $this->_slug ] ) ? $sites[ $this->_slug ] : false;
+            $site = is_network_admin() ?
+                $this->get_network_install() :
+                $this->get_install_by_blog_id();
 
-            if ( ! is_object( $site ) && is_network_admin() ) {
+            if ( is_network_admin() &&
+                 ! is_object( $site ) &&
+                 FS_Site::is_valid_id($this->_storage->network_install_blog_id)
+            ) {
                 $first_install = $this->find_first_install();
+
                 if ( is_null( $first_install ) ) {
                     unset( $this->_storage->network_install_blog_id );
                 } else {
@@ -10338,15 +10421,8 @@
                     self::$_accounts->set_option( 'is_delegated_connection', false, true, $current_blog_id );
                 }
             } else {
-                $sites = $this->get_sites();
-
                 // Map site addresses to their blog IDs.
-                $address_to_blog_map = array();
-                foreach ( $sites as $site ) {
-                    $blog_id                         = $this->get_site_blog_id( $site );
-                    $address                         = trailingslashit( fs_strip_url_protocol( get_site_url( $blog_id ) ) );
-                    $address_to_blog_map[ $address ] = $blog_id;
-                }
+                $address_to_blog_map = $this->get_address_to_blog_map();
 
                 foreach ( $installs as $install ) {
                     // Set install context.
