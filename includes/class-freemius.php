@@ -14126,6 +14126,23 @@
             }
 
             switch ( $action ) {
+                case 'opt_in':
+                    check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
+
+                    if ( $plugin_id == $this->get_id() ) {
+                        if ( $is_network_action && ! empty( $blog_id ) ) {
+                            $this->install_with_user(
+                                $this->get_network_user(),
+                                false,
+                                false,
+                                false,
+                                false
+                            );
+                        }
+                    }
+
+                    break;
+
                 case 'delete_account':
                     check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 

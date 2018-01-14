@@ -22,17 +22,27 @@
     $has_paid_plan = $fs->has_paid_plan();
     $is_premium    = $fs->is_premium();
     $main_user     = $fs->get_user();
+    $blog_id       = $site['blog_id'];
 
-    $install       = $fs->get_install_by_blog_id( $site['blog_id'] );
+    $install       = $fs->get_install_by_blog_id( $blog_id );
     $is_registered = ! empty( $install );
     $license       = null;
     $trial_plan    = $fs->get_trial_plan();
     $free_text     = fs_text_inline( 'Free', 'free', $slug );
 ?>
-    <tr class="fs-site-details" data-blog-id="<?php echo $site['blog_id'] ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
+    <tr class="fs-site-details" data-blog-id="<?php echo $blog_id ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
         <!-- Install ID or Opt-in option -->
-        <td><?php if ( $is_registered ) : ?><?php echo $install->id ?><?php else : ?>
-                <button class="button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button><?php endif ?>
+        <td><?php if ( $is_registered ) : ?>
+                <?php echo $install->id ?>
+            <?php else : ?>
+                <?php $action = 'opt_in' ?>
+                <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
+                    <input type="hidden" name="fs_action" value="<?php echo $action ?>">
+                    <?php wp_nonce_field( trim( "{$action}:{$blog_id}", ':' ) ) ?>
+                    <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
+                    <button class="button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button>
+                </form>
+            <?php endif ?>
         </td>
         <!--/ Install ID or Opt-in option -->
 
@@ -45,7 +55,7 @@
                 $view_params = array(
                     'freemius' => $fs,
                     'slug'     => $slug,
-                    'blog_id'  => $site['blog_id'],
+                    'blog_id'  => $blog_id,
                     'class'    => 'button-small',
                 );
 
@@ -137,7 +147,7 @@
                     <td>
                         <nobr><?php fs_esc_html_echo_inline( 'Blog ID', 'blog-id', $slug ) ?>:</nobr>
                     </td>
-                    <td><code><?php echo $site['blog_id'] ?></code></td>
+                    <td><code><?php echo $blog_id ?></code></td>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Blog ID -->
@@ -215,7 +225,7 @@
                 <?php $row_index ++ ?>
                 <!--/ Secret Key -->
 
-                <?php if ( is_object( $license ) && ( ! is_object($main_license) || $license->id != $main_license->id ) ) : ?>
+                <?php if ( is_object( $license ) && ( ! is_object( $main_license ) || $license->id != $main_license->id ) ) : ?>
                     <!-- License Key -->
                     <tr <?php if ( 1 == $row_index % 2 ) {
                         echo ' class="alternate"';
