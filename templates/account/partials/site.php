@@ -40,7 +40,7 @@
                     <input type="hidden" name="fs_action" value="<?php echo $action ?>">
                     <?php wp_nonce_field( trim( "{$action}:{$blog_id}", ':' ) ) ?>
                     <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
-                    <button class="button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button>
+                    <button class="fs-opt-in button button-small"><?php fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) ?></button>
                 </form>
             <?php endif ?>
         </td>
