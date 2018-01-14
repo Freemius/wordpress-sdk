@@ -6150,7 +6150,7 @@
          * @param string[] string $override
          * @param bool     $flush
          *
-         * @return false|object[]|string
+         * @return false|object|string
          */
         private function send_installs_update( $override = array(), $flush = false ) {
             $this->_logger->entrance();
@@ -6199,9 +6199,7 @@
                 return;
             }
 
-            $plan                 = $this->get_plan();
             $this->_site          = new FS_Site( $site );
-            $this->_site->plan_id = $plan->id;
 
             $this->_store_site( true );
         }
