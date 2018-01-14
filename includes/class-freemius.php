@@ -870,6 +870,13 @@
             }
 
             if ( $this->is_plugin() ) {
+                if ( $this->_is_network_active &&
+                    isset( $this->_storage->is_anonymous_ms ) &&
+                    $this->_storage->is_anonymous_ms['is']
+                ) {
+                    add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
+                }
+
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
             }
 
@@ -2379,9 +2386,11 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
+         * @param int|null $blog_id Since 1.2.4.
+         *
          * @return object|false
          */
-        private function ping() {
+        private function ping( $blog_id = null ) {
             if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
                 return false;
             }
@@ -2391,7 +2400,7 @@
             $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
             return $this->get_api_plugin_scope()->ping(
-                $this->get_anonymous_id(),
+                $this->get_anonymous_id( $blog_id ),
                 array(
                     'is_update' => json_encode( $is_update ),
                     'version'   => $version,
@@ -4256,18 +4265,25 @@
          */
         function is_anonymous() {
             if ( ! isset( $this->_is_anonymous ) ) {
-                if ( ! isset( $this->_storage->is_anonymous ) ) {
-                    // Not skipped.
-                    $this->_is_anonymous = false;
-                } else if ( is_bool( $this->_storage->is_anonymous ) ) {
-                    // For back compatibility, since the variable was boolean before.
-                    $this->_is_anonymous = $this->_storage->is_anonymous;
+                if ( ! isset( $this->_storage->is_anonymous_ms ) )
+                {
+                    if ( ! isset( $this->_storage->is_anonymous ) ) {
+                        // Not skipped.
+                        $this->_is_anonymous = false;
+                    } else if ( is_bool( $this->_storage->is_anonymous ) ) {
+                        // For back compatibility, since the variable was boolean before.
+                        $this->_is_anonymous = $this->_storage->is_anonymous;
 
-                    // Upgrade stored data format to 1.1.3 format.
-                    $this->set_anonymous_mode( $this->_storage->is_anonymous );
-                } else {
-                    // Version 1.1.3 and later.
-                    $this->_is_anonymous = $this->_storage->is_anonymous['is'];
+                        // Upgrade stored data format to 1.1.3 format.
+                        $this->set_anonymous_mode( $this->_storage->is_anonymous );
+                    } else {
+                        // Version 1.1.3 and later.
+                        $this->_is_anonymous = $this->_storage->is_anonymous['is'];
+                    }
+                }
+                else
+                {
+                    $this->_is_anonymous = $this->_storage->is_anonymous_ms['is'];
                 }
             }
 
@@ -4676,7 +4692,7 @@
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
                 check_admin_referer( $this->get_unique_affix() . '_skip_activation' );
 
-                $this->skip_connection();
+                $this->skip_connection( null, is_network_admin() );
 
                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
             }
@@ -5183,6 +5199,14 @@
                     );
                 }
             } else if ( $this->is_anonymous() ) {
+                if ( isset( $this->_storage->is_anonymous_ms ) && $this->_storage->is_anonymous_ms['is'] ) {
+                    $plugin_version = $this->_storage->is_anonymous_ms['version'];
+                    $network        = true;
+                } else {
+                    $plugin_version = $this->_storage->is_anonymous['version'];
+                    $network        = false;
+                }
+
                 /**
                  * Reset "skipped" click cache on the following:
                  *  1. Freemius DEV mode.
@@ -5196,10 +5220,10 @@
                 if ( WP_FS__DEV_MODE ||
                      (
                          ( $this->is_plugin() || ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) &&
-                         $this->get_plugin_version() == $this->_storage->is_anonymous['version']
+                         $this->get_plugin_version() == $plugin_version
                      )
                 ) {
-                    $this->reset_anonymous_mode();
+                    $this->reset_anonymous_mode( $network );
                 }
             }
 
@@ -5459,26 +5483,59 @@
          * @since  1.1.3
          *
          * @param bool $is_anonymous
+         * @param bool $network
          */
-        private function set_anonymous_mode( $is_anonymous = true ) {
+        private function set_anonymous_mode( $is_anonymous = true, $network = false ) {
             // Store information regarding skip to try and opt-in the user
             // again in the future.
-            $this->_storage->is_anonymous = array(
+            $skip_info = array(
                 'is'        => $is_anonymous,
                 'timestamp' => WP_FS__SCRIPT_START_TIME,
                 'version'   => $this->get_plugin_version(),
             );
 
+            if ( $network ) {
+                $this->_storage->is_anonymous_ms = $skip_info;
+            } else {
+                $this->_storage->is_anonymous = $skip_info;
+            }
+                    
             // Update anonymous mode cache.
             $this->_is_anonymous = $is_anonymous;
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         *
+         * @param int    $blog_id    Site ID.
+         * @param int    $user_id    User ID.
+         * @param string $domain     Site domain.
+         * @param string $path       Site path.
+         * @param int    $network_id Network ID. Only relevant on multi-network installations.
+         * @param array  $meta       Metadata. Used to set initial site options.
+         */
+        function set_anonymous_mode_for_new_blog( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+            $pong = $this->ping( $blog_id );
+            if ( $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
+                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
+                    'uids' => array( $this->get_anonymous_id( $blog_id ) ),
+                ) );
+            }
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
+         *
+         * @param bool $network Since 1.2.4.
          */
-        private function reset_anonymous_mode() {
-            unset( $this->_storage->is_anonymous );
+        private function reset_anonymous_mode( $network = false ) {
+            if ( $network ) {
+                unset( $this->_storage->is_anonymous_ms );
+            } else {
+                unset( $this->_storage->is_anonymous );
+            }
 
             /**
              * Ensure that this field is also "false", otherwise, if the current module's type is "theme" and the module
@@ -5515,19 +5572,35 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
-         * @param array|null $sites
+         * @param array|null $sites   Since 1.2.4. Specific sites.
+         * @param bool       $network Since 1.2.4. If true, skip connection for all sites.
          */
-        private function skip_connection( $sites = null ) {
+        private function skip_connection( $sites = null, $network = false ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
-            $this->set_anonymous_mode();
+            $this->set_anonymous_mode( true, $network );
+
+            $uids = array();
+
+            if ( $network ) {
+                $sites = $this->get_sites();
+                foreach ( $sites as $site ) {
+                    $uids[] = $this->get_anonymous_id( $this->get_site_blog_id( $site ) );
+                }
+            } else if ( ! empty( $sites ) ) {
+                foreach ( $sites as $site ) {
+                    $uids[] = $site['uid'];
+                }
+            } else {
+                $uids[] = $this->get_anonymous_id();
+            }
 
             // Send anonymous skip event.
             // No user identified info nor any tracking will be sent after the user skips the opt-in.
             $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                'uid' => $this->get_anonymous_id(),
+                'uids' => $uids,
             ) );
         }
 
@@ -8071,16 +8144,13 @@
                 );
 
                 foreach ( $sites as $site ) {
-                    if ( 'allow' === $site['action'] ) {
-                        unset( $site['blog_id'] );
-                    }
-
                     $sites_by_action[ $site['action'] ][] = $site;
                 }
 
                 $total_sites             = count( $sites );
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
 
+                $next_page = '';
                 if ( $total_sites === $total_sites_to_delegate ) {
                     $this->delegate_connection();
                 } else {
@@ -8107,9 +8177,11 @@
                         if ( isset( $next_page->error ) ) {
                             $error = $next_page->error;
                         }
-                    } else {
-                        $next_page = $this->get_after_activation_url( 'after_delegation_url' );
                     }
+                }
+
+                if ( empty( $next_page ) ) {
+                    $next_page = $this->get_after_activation_url( 'after_network_activation_url' );
                 }
             } else {
                 $error = $this->get_text_inline( 'invalid_site_details_collection', 'Invalid site details collection.' );
@@ -9010,7 +9082,7 @@
         function should_use_network_admin_page() {
             if ( $this->_is_network_active ) {
                 $network = true;
-                if ( is_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                if ( ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                     $network = false;
                 }
             } else {
@@ -10298,6 +10370,11 @@
                     $this->apply_filters( 'after_install_failure', $decoded, $params );
             } else if ( isset( $decoded->pending_activation ) && $decoded->pending_activation ) {
                 if ( $is_network ) {
+                    $site_ids = array();
+                    foreach ( $sites as $site ) {
+                        $site_ids[] = $site['blog_id'];
+                    }
+
                     /**
                      * Store the sites so that they can be installed once the user has clicked on the activation link
                      * in the email.
@@ -10305,7 +10382,7 @@
                      * @author Leo Fajardo (@leorw)
                      */
                     $this->_storage->pending_sites_info = array(
-                        'sites'         => $sites,
+                        'blog_ids'      => $site_ids,
                         'license_key'   => $license_key,
                         'trial_plan_id' => $trial_plan_id
                     );
@@ -10599,7 +10676,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
-                            $pending_sites_info['sites'],
+                            $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
                             $pending_sites_info['trial_plan_id']
                         );
@@ -10720,7 +10797,7 @@
          * @param number $user_id
          * @param string $user_public_key
          * @param string $user_secret_key
-         * @param array  $sites
+         * @param array  $site_ids
          * @param bool   $license_key
          * @param bool   $trial_plan_id
          * @param bool   $redirect
@@ -10731,7 +10808,7 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
-            $sites,
+            $site_ids,
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true
@@ -10747,6 +10824,11 @@
                 $this->_user = $user;
                 $user_result = $this->get_api_user_scope()->get();
                 $user        = new FS_User( $user_result );
+            }
+
+            $sites = array();
+            foreach ( $site_ids as $site_id ) {
+                $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
             }
 
             $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
