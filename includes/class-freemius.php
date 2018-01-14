@@ -9067,6 +9067,10 @@
                 $install :
                 $this->get_install_by_blog_id( $blog_id );
 
+            $this->_user     = false;
+            $this->_licenses = false;
+            $this->_license  = null;
+
             if ( is_object( $this->_site ) ) {
                 // Try to fetch user from install.
                 $this->_user = self::_get_user_by_id( $this->_site->user_id );
@@ -14135,13 +14139,13 @@
                     if ( $plugin_id == $this->get_id() ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
                             if (!$this->is_registered()) {
-                            $this->install_with_user(
-                                $this->get_network_user(),
-                                false,
-                                false,
-                                false,
-                                false
-                            );
+                                $this->install_with_user(
+                                    $this->get_network_user(),
+                                    false,
+                                    false,
+                                    false,
+                                    false
+                                );
 
                                 $this->_admin_notices->add(
                                     $this->get_text_inline( 'Site successfully opted in.', 'successful-opt-in' ),
