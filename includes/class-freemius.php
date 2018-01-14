@@ -382,7 +382,8 @@
             $this->_plugin_basename       = $this->get_plugin_basename();
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
-            $this->_is_multisite_integrated = ( defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
+            $this->_is_multisite_integrated = (
+                defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
                                                 ( true === constant( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) )
             );
 
