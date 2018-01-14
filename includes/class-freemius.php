@@ -10667,6 +10667,7 @@
 
             $extra_install_params = array(
                 'uid' => $this->get_anonymous_id(),
+                'is_disconnected' => false,
             );
 
             if ( ! empty( $license_key ) ) {
