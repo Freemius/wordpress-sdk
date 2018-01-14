@@ -5282,7 +5282,7 @@
 
             // @todo Delete plans and licenses of add-ons.
 
-            self::$_accounts->store();
+            self::$_accounts->store(true);
 
             /**
              * IMPORTANT:
@@ -5301,19 +5301,21 @@
                 $install_id = $this->_delete_site( true, $blog_id );
 
                 // Clear all storage data.
-                $this->_storage->clear_all( true, array(
-                    'connectivity_test',
-                    'is_on',
-                ), $blog_id );
+                $this->_storage->clear_all( true, array( 'connectivity_test' ), $blog_id );
 
                 if ( FS_Site::is_valid_id( $install_id ) ) {
                     $install_ids[] = $install_id;
                 }
             }
 
+            $this->_storage->clear_all( true, array(
+                'connectivity_test',
+                'is_on',
+            ));
+
             // Send delete event.
             if ( ! empty( $install_ids ) ) {
-                $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', $install_ids ), 'delete' );
+                $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', $install_ids ), 'delete' );
             }
 
             $this->do_action( 'after_network_account_delete' );
