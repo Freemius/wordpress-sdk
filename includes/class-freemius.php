@@ -10666,7 +10666,7 @@
             $this->_user = $user;
 
             $extra_install_params = array(
-                'uid' => $this->get_anonymous_id(),
+                'uid'             => $this->get_anonymous_id(),
                 'is_disconnected' => false,
             );
 
@@ -10724,6 +10724,8 @@
             $this->_site = $site;
 
             if ( ! $setup_account ) {
+                $this->_store_site();
+
                 $this->sync_plan_if_not_exist( $site->plan_id );
 
                 if ( ! empty( $license_key ) && FS_Plugin_License::is_valid_id( $site->license_id ) ) {
