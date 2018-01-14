@@ -12207,8 +12207,9 @@
          *
          * @param bool     $store                    Flush to Database if true.
          * @param null|int $network_level_or_blog_id Since 1.2.4
+         * @param \FS_Site $site                     Since 1.2.4
          */
-        private function _store_site( $store = true, $network_level_or_blog_id = null ) {
+        private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null ) {
             $this->_logger->entrance();
 
             if ( empty( $this->_site->id ) ) {
@@ -12217,11 +12218,15 @@
                 return;
             }
 
-            $encrypted_site = clone $this->_site;
+            $encrypted_site = clone ( is_object( $site ) ? $site : $this->_site );
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
-            if ( empty( $this->_storage->prev_user_id ) && $this->_user->id != $this->_site->user_id ) {
+            $prev_stored_user_id = $this->_storage->get('prev_user_id', false, $network_level_or_blog_id);
+
+            if ( empty( $prev_stored_user_id ) &&
+                 $this->_user->id != $this->_site->user_id
+            ) {
                 /**
                  * Store the current user ID as the previous user ID so that the previous user can be used
                  * as the install's owner while the new owner's details are not yet available.
@@ -12233,7 +12238,7 @@
                  *
                  * @author Leo Fajardo (@leorw)
                  */
-                $this->_storage->prev_user_id = $sites[ $this->_slug ]->user_id;
+                $this->_storage->store('prev_user_id', $sites[ $this->_slug ]->user_id, $network_level_or_blog_id);
             }
 
             $sites[ $this->_slug ] = $encrypted_site;
