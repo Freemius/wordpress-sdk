@@ -197,6 +197,7 @@
 			<?php $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation ) ?>
 			<?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
 			<?php if ( $is_network_level_activation ) : ?>
+				<?php $separator = '<td>|</td>' ?>
 				<?php $has_many_sites = ( count( $sites ) > 1 ) ?>
 				<div id="multisite_options_container" class="apply-on-all-sites">
 					<table id="all_sites_options">
@@ -214,8 +215,10 @@
 							</td>
 							<?php if ( ! $require_license_key ) : ?>
 								<td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+								<?php echo $separator ?>
 								<td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
 								<?php if ( $fs->is_enable_anonymous() ) : ?>
+									<?php echo $separator ?>
 									<td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
 								<?php endif ?>
 							<?php endif ?>
@@ -238,8 +241,10 @@
 											?></td>
 										<?php if ( ! $require_license_key ) : ?>
 											<td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+											<?php echo $separator ?>
 											<td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
 											<?php if ( $fs->is_enable_anonymous() ) : ?>
+												<?php echo $separator ?>
 												<td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
 											<?php endif ?>
 										<?php endif ?>
