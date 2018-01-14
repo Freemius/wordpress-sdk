@@ -818,6 +818,16 @@
 		        }
 	        });
 
+            $('.fs-toggle-tracking').click(function () {
+                setLoading(
+                	$(this),
+	                ($(this).data('is-disconnected') ?
+		                '<?php fs_esc_js_echo_inline('Opting in', 'opting-in' ) ?>' :
+		                '<?php fs_esc_js_echo_inline('Opting out', 'opting-out' ) ?>') +
+		                '...'
+                );
+            });
+
             $('.fs-activate-license').click(function () {
                 setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
             });

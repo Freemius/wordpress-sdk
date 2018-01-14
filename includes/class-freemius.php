@@ -14134,6 +14134,7 @@
 
                     if ( $plugin_id == $this->get_id() ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
+                            if (!$this->is_registered()) {
                             $this->install_with_user(
                                 $this->get_network_user(),
                                 false,
@@ -14141,6 +14142,46 @@
                                 false,
                                 false
                             );
+
+                                $this->_admin_notices->add(
+                                    $this->get_text_inline( 'Site successfully opted in.', 'successful-opt-in' ),
+                                    $this->get_text_inline( 'Awesome', 'awesome' )
+                                );
+                            }
+                        }
+                    }
+                    break;
+
+                case 'toggle_tracking':
+                    check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
+
+                    if ( $plugin_id == $this->get_id() ) {
+                        if ( $is_network_action && ! empty( $blog_id ) ) {
+                            if ( $this->is_registered() ) {
+                                if ( $this->is_tracking_prohibited() ) {
+                                    if ( $this->allow_tracking() ) {
+                                        $this->_admin_notices->add(
+                                            sprintf( $this->get_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-out-message-appreciation' ), $this->_module_type ),
+                                            $this->get_text_inline( 'Thank you!', 'thank-you' )
+                                        );
+                                    }
+                                } else {
+                                    if ( $this->stop_tracking() ) {
+                                        $this->_admin_notices->add(
+                                            sprintf(
+                                                $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
+                                                $this->get_plugin_title(),
+                                                fs_strip_url_protocol( get_site_url( $blog_id ) ),
+                                                sprintf(
+                                                    '<a href="%s" target="_blank">%s</a>',
+                                                    'https://freemius.com',
+                                                    'freemius.com'
+                                                )
+                                            )
+                                        );
+                                    }
+                                }
+                            }
                         }
                     }
 
