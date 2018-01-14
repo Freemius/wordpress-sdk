@@ -3580,11 +3580,26 @@
         private function reconnect_locally() {
             $this->_logger->entrance();
 
-            if ( $this->is_tracking_prohibited() &&
-                 $this->is_registered()
-            ) {
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
+            if ( ! $this->_is_network_active ) {
+                if ( $this->is_tracking_prohibited() ) {
                 $this->_site->is_disconnected = false;
                 $this->_store_site();
+            }
+            } else {
+                $installs_map = $this->get_blog_install_map();
+                foreach ( $installs_map as $blog_id => $install ) {
+                    /**
+                     * @var FS_Site $install
+                     */
+                    if ( $install->is_tracking_prohibited() ) {
+                        $install->is_disconnected = false;
+                        $this->_store_site( true, $blog_id, $install );
+                    }
+                }
             }
         }
 
