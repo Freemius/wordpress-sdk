@@ -5134,8 +5134,28 @@
                 $this->_free_plugin_basename :
                 $this->premium_plugin_basename();
 
+            if ( ! $this->_is_network_active ) {
+                /**
+                 * During the activation, the plugin isn't yet active, therefore,
+                 * _is_network_active will be set to false even if it's a network level
+                 * activation. So we need to fix that by looking at the is_network_admin() value.
+                 *
+                 * @author Vova Feldman
+                 */
+                $this->_is_network_active = (
+                    $this->_is_multisite_integrated &&
+                    // Themes are always network activated, but the ACTUAL activation is per site.
+                    $this->is_plugin() &&
+                    is_network_admin()
+                );
+            }
+
             /**
              * If the other module version is activate, deactivate it.
+             *
+             * is_plugin_active() checks if the plugin active on the site or the network level
+             * and deactivate_plugins() deactivates the plugin whether its activated on the site
+             * or network level.
              *
              * @author Leo Fajardo (@leorw)
              * @since  1.2.2
@@ -5350,11 +5370,16 @@
         function _deactivate_plugin_hook() {
             $this->_logger->entrance( 'slug = ' . $this->_slug );
 
-            if ( ! current_user_can( 'activate_plugins' ) ) {
+            if ( ! $this->is_user_admin() ) {
                 return;
             }
 
+            $is_network_deactivation = is_network_admin();
+            $storage_keys_for_removal = array();
+
             $this->_admin_notices->clear_all_sticky();
+
+            $storage_keys_for_removal[] = 'sticky_optin_added';
             if ( isset( $this->_storage->sticky_optin_added ) ) {
                 unset( $this->_storage->sticky_optin_added );
             }
@@ -5372,14 +5397,37 @@
             $this->clear_install_sync_cron();
 
             if ( $this->is_registered() ) {
+                if ( $is_network_deactivation ) {
+                    // Send deactivation event.
+                    $this->sync_installs( array(
+                        'is_active' => false,
+                    ) );
+                } else {
                 // Send deactivation event.
                 $this->sync_install( array(
                     'is_active' => false,
                 ) );
+                }
             } else {
                 if ( ! $this->has_api_connectivity() ) {
                     // Reset connectivity test cache.
                     unset( $this->_storage->connectivity_test );
+
+                    $storage_keys_for_removal[] = 'connectivity_test';
+                }
+            }
+
+            if ( $is_network_deactivation && !empty($storage_keys_for_removal) ) {
+                $sites = $this->get_sites();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = $this->get_site_blog_id( $site );
+
+                    foreach ($storage_keys_for_removal as $key) {
+                        $this->_storage->remove( $key, false, $blog_id );
+                    }
+
+                    $this->_storage->save($blog_id);
                 }
             }
 
@@ -5924,15 +5972,17 @@
 //            }
 
             // Common properties.
-            $common = array(
+            $common = array_merge( array(
                 'version'                      => $this->get_plugin_version(),
                 'is_premium'                   => $this->is_premium(),
                 'sdk_version'                  => $this->version,
                 'programming_language_version' => phpversion(),
                 'platform_version'             => get_bloginfo( 'version' ),
-            );
+            ), $override );
 
-            $is_common_diff = false;
+
+            $is_common_diff_for_any_site = false;
+            $common_diff_union        = array();
 
             $installs_data = array();
 
@@ -5956,10 +6006,22 @@
                     $install_data['is_uninstalled']  = $install->is_uninstalled;
 
                     $common_diff = null;
+                    $is_common_diff = false;
                     if ( $only_diff ) {
                         $install_data   = $this->get_install_diff_for_api( $install_data, $install, $override );
                         $common_diff    = $this->get_install_diff_for_api( $common, $install, $override );
+
                         $is_common_diff = ! empty( $common_diff );
+
+                        if ( $is_common_diff ) {
+                            foreach ( $common_diff as $k => $v ) {
+                                if ( ! isset( $common_diff_union[ $k ] ) ) {
+                                    $common_diff_union[ $k ] = $v;
+                                }
+                            }
+                        }
+
+                        $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
                     }
 
                     if ( ! empty( $install_data ) || $is_common_diff ) {
@@ -5967,15 +6029,19 @@
                         $install_data['id']  = $install->id;
                         $install_data['uid'] = $uid;
 
-                        $installs_data[] = array_merge( $install_data, $override );
+                        $installs_data[] = $install_data;
                     }
                 }
             }
 
             restore_current_blog();
 
-            if ( 0 < count( $installs_data ) && ( $is_common_diff || ! $only_diff ) ) {
+            if ( 0 < count( $installs_data ) && ( $is_common_diff_for_any_site || ! $only_diff ) ) {
+                if ( ! $only_diff ) {
                 $installs_data[] = $common;
+                } else if ( ! empty( $common_diff_union ) ) {
+                    $installs_data[] = $common_diff_union;
+                }
             }
 
             foreach ( $installs_data as &$data ) {
@@ -6138,6 +6204,42 @@
             $this->_site->plan_id = $plan->id;
 
             $this->_store_site( true );
+        }
+
+        /**
+         * Update install only if changed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.9
+         *
+         * @param string[] string $override
+         * @param bool     $flush
+         */
+        private function sync_installs( $override = array(), $flush = false ) {
+            $this->_logger->entrance();
+
+            $result = $this->send_installs_update( $override, $flush );
+
+            if ( false === $result ) {
+                // No sync required.
+                return;
+            }
+
+            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                // Failed to sync, don't update locally.
+                return;
+            }
+
+            $address_to_blog_map = $this->get_address_to_blog_map();
+
+            foreach ( $result->installs as $install ) {
+                $this->_site = new FS_Site( $install );
+
+                $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                $blog_id = $address_to_blog_map[ $address ];
+
+                $this->_store_site( true, $blog_id );
+            }
         }
 
         /**
