@@ -151,21 +151,23 @@
         function set_site_blog_context( $blog_id ) {
             $this->_blog_id = $blog_id;
 
-            $this->_storage = $this->get_site_storage($this->_blog_id);
+            $this->_storage = $this->get_site_storage( $this->_blog_id );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @param string $key
-         * @param mixed  $value
-         * @param bool   $flush
+         * @param string        $key
+         * @param mixed         $value
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_BINARY_MAP).
+         * @param bool          $flush
          */
-        function store( $key, $value, $flush = true ) {
-            if ( $this->is_multisite_storage( $key ) ) {
+        function store( $key, $value, $network_level_or_blog_id = null, $flush = true ) {
+            if ( $this->should_use_network_storage( $key, $network_level_or_blog_id ) ) {
                 $this->_network_storage->store( $key, $value, $flush );
             } else {
-                $this->_storage->store( $key, $value, $flush );
+                $storage = $this->get_site_storage( $network_level_or_blog_id );
+                $storage->store( $key, $value, $flush );
             }
         }
 
@@ -173,22 +175,22 @@
          * @author Leo Fajardo (@leorw)
          *
          * @param bool     $store
-         * @param string[] $exceptions Set of keys to keep and not clear.
-         * @param int|null $blog_id Since 1.2.4
+         * @param string[] $exceptions               Set of keys to keep and not clear.
+         * @param int|null $network_level_or_blog_id Since 1.2.4
          */
-        function clear_all( $store = true, $exceptions = array(), $blog_id = null ) {
+        function clear_all( $store = true, $exceptions = array(), $network_level_or_blog_id = null ) {
             if ( ! $this->_is_multisite ||
-                 is_null($blog_id) ||
-                 $blog_id == $this->_blog_id
+                 false === $network_level_or_blog_id ||
+                 0 == $network_level_or_blog_id ||
+                 is_null( $network_level_or_blog_id )
             ) {
-                $storage = $this->_storage;
-            } else {
-                $storage = $this->get_site_storage($blog_id);
+                $storage = $this->get_site_storage( $network_level_or_blog_id );
+                $storage->clear_all( $store, $exceptions );
             }
 
-            $storage->clear_all( $store, $exceptions );
-
-            if ( is_null( $blog_id ) && $this->_is_multisite ) {
+            if ( $this->_is_multisite &&
+                 ( true === $network_level_or_blog_id || is_null( $network_level_or_blog_id ) )
+            ) {
                 $this->_network_storage->clear_all( $store, $exceptions );
             }
         }
@@ -196,29 +198,62 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @param string $key
-         * @param bool   $store
+         * @param string        $key
+         * @param bool          $store
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_BINARY_MAP).
          */
-        function remove( $key, $store = true ) {
-            if ( $this->is_multisite_storage( $key ) ) {
+        function remove( $key, $store = true, $network_level_or_blog_id = null ) {
+            if ( $this->should_use_network_storage( $key, $network_level_or_blog_id ) ) {
                 $this->_network_storage->remove( $key, $store );
             } else {
-                $this->_storage->remove( $key, $store );
+                $storage = $this->get_site_storage( $network_level_or_blog_id );
+                $storage->remove( $key, $store );
             }
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @param string $key
-         * @param mixed  $default
+         * @param string        $key
+         * @param mixed         $default
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_BINARY_MAP).
          *
          * @return mixed
          */
-        function get( $key, $default = false ) {
-            return $this->is_multisite_storage( $key ) ?
-                $this->_network_storage->get( $key, $default ) :
-                $this->_storage->get( $key, $default );
+        function get( $key, $default = false, $network_level_or_blog_id = null ) {
+            if ( $this->should_use_network_storage( $key, $network_level_or_blog_id ) ) {
+                $this->_network_storage->get( $key, $default );
+            } else {
+                $storage = $this->get_site_storage( $network_level_or_blog_id );
+                $storage->get( $key, $default );
+            }
+        }
+
+        /**
+         * Multisite activated:
+         *      true:    Save network storage.
+         *      int:     Save site specific storage.
+         *      false|0: Save current site storage.
+         *      null:    Save network and current site storage.
+         * Site level activated:
+         *               Save site storage.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param bool|int|null $network_level_or_blog_id
+         */
+        function save( $network_level_or_blog_id = null ) {
+            if ( $this->_is_network_active &&
+                 ( true === $network_level_or_blog_id || is_null( $network_level_or_blog_id ) )
+            ) {
+                $this->_network_storage->save();
+            }
+
+            if ( ! $this->_is_network_active || true !== $network_level_or_blog_id ) {
+                $storage = $this->get_site_storage( $network_level_or_blog_id );
+                $storage->save();
+            }
         }
 
         #--------------------------------------------------------------------------------
@@ -226,16 +261,19 @@
         #--------------------------------------------------------------------------------
 
         /**
-         * @author Leo Fajardo
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
          *
          * @param string $key
          *
-         * @return bool
+         * @return bool|mixed
          */
-        private function is_multisite_storage( $key ) {
-            if ( ! $this->_is_multisite || ! isset( self::$_BINARY_MAP[ $key ] ) ) {
+        private function is_multisite_option( $key ) {
+            if ( ! isset( self::$_BINARY_MAP[ $key ] ) ) {
                 return false;
-            } else if ( is_bool( self::$_BINARY_MAP[ $key ] ) ) {
+            }
+
+            if ( is_bool( self::$_BINARY_MAP[ $key ] ) ) {
                 return self::$_BINARY_MAP[ $key ];
             }
 
@@ -251,7 +289,38 @@
              */
             $binary_key = ( (int) $is_theme . (int) $this->_is_network_active );
 
-            return ( isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) && true === self::$_BINARY_MAP[ $key ][ $binary_key ] );
+            return (
+                isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) &&
+                true === self::$_BINARY_MAP[ $key ][ $binary_key ]
+            );
+        }
+
+        /**
+         * @author Leo Fajardo
+         *
+         * @param string        $key
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_BINARY_MAP).
+         *
+         * @return bool
+         */
+        private function should_use_network_storage( $key, $network_level_or_blog_id = null ) {
+            if ( ! $this->_is_multisite ) {
+                // Not a multisite environment.
+                return false;
+            }
+
+            if ( is_numeric( $network_level_or_blog_id ) ) {
+                // Explicitly asked to use a specified blog storage.
+                return false;
+            }
+
+            if ( is_bool( $network_level_or_blog_id ) ) {
+                // Explicitly specified whether should use the network or blog level storage.
+                return $network_level_or_blog_id;
+            }
+
+            // Determine which storage to use based on the option.
+            return $this->is_multisite_option( $key );
         }
 
         /**
@@ -262,7 +331,11 @@
          *
          * @return \FS_Key_Value_Storage
          */
-        private function get_site_storage( $blog_id ) {
+        private function get_site_storage( $blog_id = 0 ) {
+            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_blog_id ) {
+                return $this->_storage;
+            }
+
             return FS_Key_Value_Storage::instance(
                 $this->_module_type . '_data',
                 $this->_storage->get_secondary_id(),
@@ -277,7 +350,7 @@
         #--------------------------------------------------------------------------------
 
         function __set( $k, $v ) {
-            if ( $this->is_multisite_storage( $k ) ) {
+            if ( $this->should_use_network_storage( $k ) ) {
                 $this->_network_storage->{$k} = $v;
             } else {
                 $this->_storage->{$k} = $v;
@@ -285,13 +358,13 @@
         }
 
         function __isset( $k ) {
-            return $this->is_multisite_storage( $k ) ?
+            return $this->should_use_network_storage( $k ) ?
                 isset( $this->_network_storage->{$k} ) :
                 isset( $this->_storage->{$k} );
         }
 
         function __unset( $k ) {
-            if ( $this->is_multisite_storage( $k ) ) {
+            if ( $this->should_use_network_storage( $k ) ) {
                 unset( $this->_network_storage->{$k} );
             } else {
                 unset( $this->_storage->{$k} );
@@ -299,7 +372,7 @@
         }
 
         function __get( $k ) {
-            return $this->is_multisite_storage( $k ) ?
+            return $this->should_use_network_storage( $k ) ?
                 $this->_network_storage->{$k} :
                 $this->_storage->{$k};
         }

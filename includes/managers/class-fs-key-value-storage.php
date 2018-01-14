@@ -186,6 +186,14 @@
 			$options_manager->set_option( $this->_id, $all_data, $flush );
 		}
 
+        /**
+         * @author   Vova Feldman (@svovaf)
+         * @since    1.2.4
+         */
+        function save() {
+            $this->get_option_manager()->store();
+        }
+
 		/**
 		 * @author   Vova Feldman (@svovaf)
 		 * @since    1.0.7
