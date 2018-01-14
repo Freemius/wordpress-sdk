@@ -76,6 +76,7 @@
             'is_plugin_new_install'      => true,
             'network_install_blog_id'    => true,
             'pending_license_key'        => array( '11' => true, '01' => true ),
+            'pending_sites_info'         => true,
             'plugin_last_version'        => true,
             'plugin_main_file'           => true,
             'plugin_version'             => true,
