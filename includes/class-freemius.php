@@ -5569,7 +5569,7 @@
                 return;
             }
 
-            $this->reset_anonymous_mode();
+            $this->reset_anonymous_mode( is_network_admin() );
 
             fs_redirect( $this->get_activation_url() );
         }
