@@ -10499,46 +10499,31 @@
             $this->_sync_plans();
 
             $current_blog_id         = get_current_blog_id();
-            $is_delegated_connection = ( ! self::is_ajax_action_static( 'network_activate', $this->_module_id ) && $this->is_delegated_connection( $current_blog_id ) );
+            $is_delegated_connection = $this->is_delegated_connection( $current_blog_id );
 
-            if ( ! $this->_is_network_active || $is_delegated_connection ) {
+            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
+            if ( ! $this->_is_network_active || ! $is_network_level_opt_in ) {
                 $this->_set_account( $user, $first_install );
 
-                if ( isset( $this->_storage->network_install_blog_id ) && $this->get_main_site_blog_id() == $current_blog_id ) {
-                    /**
-                     * After opting in the main site, delete the stored network install blog ID so that the install
-                     * that is associated with the main site will be loaded when the network-level account page is
-                     * loaded and will be used in retrieving the network user.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     */
-                    unset( $this->_storage->network_install_blog_id );
-                }
-
                 if ( $is_delegated_connection ) {
-                    self::$_accounts->set_option( 'is_delegated_connection', false, true, $current_blog_id );
+                    self::$_accounts->unset_option( 'is_delegated_connection', true, $current_blog_id );
                 }
             } else {
                 // Map site addresses to their blog IDs.
                 $address_to_blog_map = $this->get_address_to_blog_map();
 
-                foreach ( $installs as $install ) {
-                    // Set install context.
-                    $this->_site = $install;
+                $first_blog_id = null;
 
+                foreach ( $installs as $install ) {
                     $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
                     $blog_id = $address_to_blog_map[ $address ];
 
-                    $this->_store_site( true, $blog_id );
+                    $this->_store_site( true, $blog_id, $install );
 
-                    if ( $first_install->id == $install->id && $blog_id != $current_blog_id ) {
-                        $this->_storage->network_install_blog_id = $blog_id;
+                    if ( is_null( $first_blog_id ) ) {
+                        $first_blog_id = $blog_id;
                     }
                 }
-
-                $this->_store_licenses( false );
-
-                self::$_accounts->store();
 
                 if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
                      ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
@@ -10546,6 +10531,14 @@
                     // Store network user.
                     $this->_storage->network_user_id = $this->_user->id;
                 }
+
+                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
+                    $this->_storage->network_install_blog_id = $first_blog_id;
+                }
+
+                $this->_store_licenses( false );
+
+                self::$_accounts->store();
 
                 if ( $this->_is_network_active ) {
                     $this->send_installs_update();
@@ -10662,7 +10655,7 @@
                 $next_page = $this->is_anonymous() ?
                     // If user previously skipped, redirect to account page.
                     $this->get_account_url( false, $extra ) :
-                    $this->get_after_activation_url( 'after_connect_url', array(), ! $is_delegated_connection );
+                    $this->get_after_activation_url( 'after_connect_url', array(), $is_network_level_opt_in );
             }
 
             if ( ! empty( $next_page ) && $redirect ) {
@@ -14482,7 +14475,6 @@
                  is_network_admin() &&
                  ! $this->_menu->has_network_menu()
             ) {
-
                 $target_url = $this->get_account_url();
             } else {
                 $network = ( ! is_null( $network ) ?
