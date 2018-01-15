@@ -222,10 +222,10 @@
          */
         function get( $key, $default = false, $network_level_or_blog_id = null ) {
             if ( $this->should_use_network_storage( $key, $network_level_or_blog_id ) ) {
-                $this->_network_storage->get( $key, $default );
+                return $this->_network_storage->get( $key, $default );
             } else {
                 $storage = $this->get_site_storage( $network_level_or_blog_id );
-                $storage->get( $key, $default );
+                return $storage->get( $key, $default );
             }
         }
 
