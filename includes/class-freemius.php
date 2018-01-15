@@ -792,7 +792,7 @@
             $this->_logger->entrance();
 
             if ( is_admin() ) {
-                add_action( 'plugins_loaded', array( &$this, '_hook_plugin_action_links_and_register_account_hooks') );
+                add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks') );
 
                 if ( $this->is_plugin() ) {
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
@@ -889,7 +889,10 @@
 
             add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
-            add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+            if ( $this->is_theme() ) {
+                add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+            }
+
             add_action( 'admin_init', array( &$this, '_add_network_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
@@ -978,7 +981,9 @@
          * @author Leo Fajardo (@leorw)
          * @since  1.2.4
          */
-        function _hook_plugin_action_links_and_register_account_hooks() {
+        function _hook_action_links_and_register_account_hooks() {
+            add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
             }
