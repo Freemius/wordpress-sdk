@@ -3515,27 +3515,60 @@
                 return false;
             }
 
-            if ( $this->is_tracking_prohibited() ) {
+            if ( ! $this->_is_network_active && $this->is_tracking_prohibited() ) {
                 // Already disconnected.
                 return true;
             }
 
-            // Send update to FS.
-            $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
-                'is_disconnected' => true
-            ) );
+            $blog_ids_by_disconnected_install_id = array();
+            if ( $this->_is_network_active ) {
+                $installs_map = $this->get_blog_install_map();
+                $params       = array();
+                foreach ( $installs_map as $blog_id => $install ) {
+                    if ( $install->is_tracking_prohibited() ) {
+                        continue;
+                    }
 
-            if ( ! $this->is_api_result_entity( $result ) ||
-                 ! isset( $result->is_disconnected ) ||
-                 ! $result->is_disconnected
+                    $params[]                                            = array( 'id' => $install->id );
+                    $blog_ids_by_disconnected_install_id[ $install->id ] = $blog_id;
+                }
+
+                if ( empty( $blog_ids_by_disconnected_install_id ) ) {
+                    return true;
+                }
+
+                $params[] = array( 'is_disconnected' => true );
+
+                // Send update to FS.
+                $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
+            } else {
+                // Send update to FS.
+                $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+                    'is_disconnected' => true
+                ) );
+            }
+
+            if ( ( ! $this->is_api_result_entity( $result ) &&
+                    ! $this->is_api_result_object( $result, 'installs' ) ) ||
+                ( ! isset( $result->installs ) && ( ! isset( $result->is_disconnected ) ||
+                        ! $result->is_disconnected ) )
             ) {
                 $this->_logger->api_error( $result );
 
                 return $result;
             }
 
-            $this->_site->is_disconnected = $result->is_disconnected;
-            $this->_store_site();
+            if ( ! empty( $blog_ids_by_disconnected_install_id ) ) {
+                foreach ( $result->installs as $result_install ) {
+                    $blog_id               = $blog_ids_by_disconnected_install_id[ $result_install->id ];
+                    $site                  = $installs_map[ $blog_id ];
+                    $site->is_disconnected = $result_install->is_disconnected;
+                    $this->_store_site( true, $blog_id, $site );
+                }
+            } else {
+                $this->_site->is_disconnected = $result->is_disconnected;
+                $this->_store_site();
+            }
 
             $this->clear_sync_cron();
 
@@ -3566,26 +3599,60 @@
                 return false;
             }
 
-            if ( $this->is_tracking_allowed() ) {
+            if ( ! $this->_is_network_active && $this->is_tracking_allowed() ) {
                 // Tracking already allowed.
                 return true;
             }
 
-            $result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
-                'is_disconnected' => false
-            ) );
+            $blog_ids_by_connected_install_id = array();
+            if ( $this->_is_network_active ) {
+                $installs_map = $this->get_blog_install_map();
+                $params       = array();
+                foreach ( $installs_map as $blog_id => $install ) {
+                    if ( $install->is_tracking_allowed() ) {
+                        continue;
+                    }
 
-            if ( ! $this->is_api_result_entity( $result ) ||
-                 ! isset( $result->is_disconnected ) ||
-                 $result->is_disconnected
+                    $params[]                                            = array( 'id' => $install->id );
+                    $blog_ids_by_connected_install_id[ $install->id ] = $blog_id;
+                }
+
+                if ( empty( $blog_ids_by_connected_install_id ) ) {
+                    return true;
+                }
+
+                $params[] = array( 'is_disconnected' => false );
+
+                // Send update to FS.
+                $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
+            } else {
+                // Send update to FS.
+                $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+                    'is_disconnected' => false
+                ) );
+            }
+
+            if ( ( ! $this->is_api_result_entity( $result ) &&
+                    ! $this->is_api_result_object( $result, 'installs' ) ) ||
+                ( ! isset( $result->installs ) && ( ! isset( $result->is_disconnected ) ||
+                        $result->is_disconnected ) )
             ) {
                 $this->_logger->api_error( $result );
 
                 return $result;
             }
 
-            $this->_site->is_disconnected = $result->is_disconnected;
-            $this->_store_site();
+            if ( ! empty( $blog_ids_by_connected_install_id ) ) {
+                foreach ( $result->installs as $result_install ) {
+                    $blog_id               = $blog_ids_by_connected_install_id[ $result_install->id ];
+                    $site                  = $installs_map[ $blog_id ];
+                    $site->is_disconnected = $result_install->is_disconnected;
+                    $this->_store_site( true, $blog_id, $site );
+                }
+            } else {
+                $this->_site->is_disconnected = $result->is_disconnected;
+                $this->_store_site();
+            }
 
             $this->schedule_sync_cron();
 
