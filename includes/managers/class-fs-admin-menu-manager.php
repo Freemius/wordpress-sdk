@@ -605,26 +605,33 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
+         * @param bool $remove_top_level_menu
+         * 
 		 * @return false|array[string]mixed
 		 */
-		function remove_menu_item() {
-			$this->_logger->entrance();
+        function remove_menu_item( $remove_top_level_menu = false ) {
+            $this->_logger->entrance();
 
-			// Find main menu item.
-			$menu = $this->find_top_level_menu();
+            // Find main menu item.
+            $top_level_menu = $this->find_top_level_menu();
 
-			if ( false === $menu ) {
-				return false;
-			}
+            if ( false === $top_level_menu ) {
+                return false;
+            }
 
-			// Remove it with its actions.
-			remove_all_actions( $menu['hook_name'] );
+            // Remove it with its actions.
+            remove_all_actions( $top_level_menu['hook_name'] );
 
-			// Remove all submenu items.
-			$this->remove_all_submenu_items();
+            // Remove all submenu items.
+            $this->remove_all_submenu_items();
 
-			return $menu;
-		}
+            if ( $remove_top_level_menu ) {
+                global $menu;
+                unset( $menu[ $top_level_menu['position'] ] );
+            }
+
+            return $top_level_menu;
+        }
 
 		/**
 		 * Get module's main admin setting page URL.

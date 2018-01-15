@@ -11281,10 +11281,11 @@
 //				return;
 //			}
 
+            $is_admin_and_network_activation_mode = ( ! is_network_admin() && $this->is_network_activation_mode() );
             if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
-                 ( ! is_network_admin() && $this->is_network_activation_mode() )
+                $is_admin_and_network_activation_mode
             ) {
-                $this->_menu->remove_menu_item();
+                $this->_menu->remove_menu_item( $is_admin_and_network_activation_mode );
             } else {
                 $this->do_action( is_network_admin() ?
                     'before_network_admin_menu_init' :
@@ -11322,6 +11323,8 @@
                 $is_activation = true;
             } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                 $is_activation = true;
+            } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+                $is_activation = $this->is_activation_mode();
             }
 
             if ( $is_activation ) {
@@ -11585,14 +11588,16 @@
                     $is_activation = true;
                 } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                     $is_activation = true;
+                } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+                    $is_activation = $this->is_activation_mode();
                 }
 
                 /**
                  * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
                  */
                 if ( ( ! $is_activation &&
-                       ( $this->_is_network_active && is_network_admin() ) ||
-                       ( ! $this->_is_network_active && is_admin() )
+                        ( ( $this->_is_network_active && is_network_admin() ) ||
+                        ( ! $this->_is_network_active && is_admin() ) )
                      ) ||
                      $this->is_free_wp_org_theme()
                 ) {
@@ -11874,11 +11879,13 @@
                 $is_activation = true;
             } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                 $is_activation = true;
+            } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+                $is_activation = $this->is_activation_mode();
             }
 
             if ( ! $is_activation &&
-                 ( $this->_is_network_active && is_network_admin() ) ||
-                 ( ! $this->_is_network_active && is_admin() )
+                 ( ( $this->_is_network_active && is_network_admin() ) ||
+                 ( ! $this->_is_network_active && is_admin() ) )
             ) {
                 $this->add_submenu_link_item(
                     $this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'Support Forum', 'support-forum' ) ),
