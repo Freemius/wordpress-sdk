@@ -1132,4 +1132,13 @@
     #region Multisite Network
     #--------------------------------------------------------------------------------
 
+    /**
+     * @author Vova Feldman (@svovaf)
+     * @since  1.2.4
+     */
+    function fs_is_network() {
+        return ( is_network_admin() ||
+            ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['_fs_network'] ) ) );
+    }
+
     #endregion

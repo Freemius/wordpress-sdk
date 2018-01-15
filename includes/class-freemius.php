@@ -785,6 +785,29 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+        function enrich_ajax_url() {
+            if ( ! is_network_admin() ) {
+                return;
+            }
+            ?>
+            <script>
+                if ( ajaxurl && ! ( ajaxurl.indexOf( '_fs_network' ) > 0 ) ) {
+                    if ( ajaxurl.indexOf( '?' ) > 0 ) {
+                        ajaxurl += '&';
+                    } else {
+                        ajaxurl += '?';
+                    }
+
+                    ajaxurl += '_fs_network=true';
+                }
+            </script>
+            <?php
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          */
@@ -872,11 +895,12 @@
             }
 
             if ( $this->is_plugin() ) {
-                if ( $this->_is_network_active &&
-                    isset( $this->_storage->is_anonymous_ms ) &&
-                    $this->_storage->is_anonymous_ms['is']
-                ) {
-                    add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
+                if ( $this->_is_network_active ) {
+                    if ( isset( $this->_storage->is_anonymous_ms ) && $this->_storage->is_anonymous_ms['is'] ) {
+                        add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
+                    }
+
+                    add_action( 'admin_enqueue_scripts', array( &$this, 'enrich_ajax_url' ) );
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
