@@ -173,12 +173,7 @@
                  ( is_null( $network_level_or_blog_id ) || true === $network_level_or_blog_id )
             ) {
                 $this->_network_options->store();
-
-                return;
             }
-
-            $this->_network_options->store();
-            $this->_options->store();
         }
 
         #--------------------------------------------------------------------------------
