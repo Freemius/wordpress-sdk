@@ -15679,6 +15679,15 @@
 
             $this->_logger->entrance();
 
+            /**
+             * If the activation has been delegated to site admins, no tracking-related actions for now.
+             *
+             * @author Leo Fajardo (@leorw)
+             */
+            if ( $this->_is_network_active && $this->is_delegated_connection() ) {
+                return;
+            }
+
             if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
                 if ( ! $this->is_registered() && $this->is_anonymous() ) {
                     $this->connect_again();
