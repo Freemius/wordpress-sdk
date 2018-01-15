@@ -139,6 +139,23 @@
         }
 
         /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @param string        $option
+         * @param bool          $flush
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
+         */
+        function unset_option( $option, $flush = false, $network_level_or_blog_id = null ) {
+            if ( $this->should_use_network_storage( $option, $network_level_or_blog_id ) ) {
+                $this->_network_options->unset_option( $option, $flush );
+            } else {
+                $site_options = $this->get_site_options( $network_level_or_blog_id );
+                $site_options->unset_option( $option, $flush );
+            }
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.4
          *
