@@ -238,7 +238,7 @@
          * @uses   add_action()
          */
         function add( $message, $title = '', $type = 'success', $is_sticky = false, $all_admin = false, $id = '', $store_if_sticky = true ) {
-            if ( is_multisite() && is_network_admin() ) {
+            if ( is_multisite() && fs_is_network() ) {
                 $key = 'network_admin_notices';
             } else {
                 $key = ( $all_admin ? 'all_admin_notices' : 'admin_notices' );

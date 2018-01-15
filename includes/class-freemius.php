@@ -457,7 +457,7 @@
          * @return bool
          */
         function has_settings_menu() {
-            return ( $this->_is_network_active && is_network_admin() ) ?
+            return ( $this->_is_network_active && fs_is_network() ) ?
                 $this->_menu->has_network_menu() :
                 $this->_menu->has_menu();
         }
@@ -2109,7 +2109,7 @@
 
             self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
 
-            add_action( ( is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
+            add_action( ( fs_is_network() ? 'network_' : '' ) . 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
 
             add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
@@ -3249,7 +3249,7 @@
 
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
-                    add_action( ( $this->_is_network_active && is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
+                    add_action( ( $this->_is_network_active && fs_is_network() ? 'network_' : '' ) . 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
                 }
             }
 
@@ -4798,7 +4798,7 @@
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
                 check_admin_referer( $this->get_unique_affix() . '_skip_activation' );
 
-                $this->skip_connection( null, is_network_admin() );
+                $this->skip_connection( null, fs_is_network() );
 
                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
             }
@@ -4832,7 +4832,7 @@
                             return;
                         }
 
-                        if ( ! is_network_admin() &&
+                        if ( ! fs_is_network() &&
                              $this->is_network_activation_mode()
                         ) {
                             return;
@@ -5268,7 +5268,7 @@
                     $this->_is_multisite_integrated &&
                     // Themes are always network activated, but the ACTUAL activation is per site.
                     $this->is_plugin() &&
-                    is_network_admin()
+                    fs_is_network()
                 );
             }
 
@@ -5504,7 +5504,7 @@
                 return;
             }
 
-            $is_network_deactivation = is_network_admin();
+            $is_network_deactivation = fs_is_network();
             $storage_keys_for_removal = array();
 
             $this->_admin_notices->clear_all_sticky();
@@ -5665,7 +5665,7 @@
                 return;
             }
 
-            $this->reset_anonymous_mode( is_network_admin() );
+            $this->reset_anonymous_mode( fs_is_network() );
 
             fs_redirect( $this->get_activation_url() );
         }
@@ -9192,7 +9192,7 @@
         function should_use_network_admin_page() {
             if ( $this->_is_network_active ) {
                 $network = true;
-                if ( ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                if ( ! fs_is_network() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                     $network = false;
                 }
             } else {
@@ -9662,7 +9662,7 @@
                 return false;
             }
 
-            if ( ! is_network_admin() ) {
+            if ( ! fs_is_network() ) {
                 return false;
             }
 
@@ -9680,7 +9680,7 @@
          * @return bool
          */
         private function is_network_level_action() {
-            return ( $this->_is_network_active && is_network_admin() );
+            return ( $this->_is_network_active && fs_is_network() );
         }
 
         #endregion Multisite
@@ -10077,11 +10077,11 @@
                 $this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
             }
 
-            $site = is_network_admin() ?
+            $site = fs_is_network() ?
                 $this->get_network_install() :
                 $this->get_install_by_blog_id();
 
-            if ( is_network_admin() &&
+            if ( fs_is_network() &&
                  ! is_object( $site ) &&
                  FS_Site::is_valid_id($this->_storage->network_install_blog_id)
             ) {
@@ -10776,7 +10776,7 @@
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
                 if ( fs_request_has( 'user_secret_key' ) ) {
-                    if ( is_network_admin() && isset( $this->_storage->pending_sites_info ) ) {
+                    if ( fs_is_network() && isset( $this->_storage->pending_sites_info ) ) {
                         $pending_sites_info = $this->_storage->pending_sites_info;
 
                         $this->install_many_pending_with_user(
@@ -11370,13 +11370,13 @@
 //				return;
 //			}
 
-            $is_admin_and_network_activation_mode = ( ! is_network_admin() && $this->is_network_activation_mode() );
+            $is_admin_and_network_activation_mode = ( ! fs_is_network() && $this->is_network_activation_mode() );
             if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
                 $is_admin_and_network_activation_mode
             ) {
                 $this->_menu->remove_menu_item( $is_admin_and_network_activation_mode );
             } else {
-                $this->do_action( is_network_admin() ?
+                $this->do_action( fs_is_network() ?
                     'before_network_admin_menu_init' :
                     'before_admin_menu_init'
                 );
@@ -11408,11 +11408,11 @@
          */
         private function add_menu_action() {
             $is_activation = false;
-            if ( is_network_admin() && $this->is_network_activation_mode() ) {
+            if ( fs_is_network() && $this->is_network_activation_mode() ) {
                 $is_activation = true;
-            } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+            } else if ( $this->_is_network_active && ! fs_is_network() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                 $is_activation = true;
-            } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+            } else if ( ! $this->_is_network_active && ! fs_is_network() ) {
                 $is_activation = $this->is_activation_mode();
             }
 
@@ -11558,7 +11558,7 @@
                 return;
             }
 
-            if ( ! is_network_admin() ) {
+            if ( ! fs_is_network() ) {
                 // The context is not the network admin.
                 return;
             }
@@ -11673,11 +11673,11 @@
 
             if ( ! $this->is_addon() ) {
                 $is_activation = false;
-                if ( is_network_admin() && $this->is_network_activation_mode() ) {
+                if ( fs_is_network() && $this->is_network_activation_mode() ) {
                     $is_activation = true;
-                } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                } else if ( $this->_is_network_active && ! fs_is_network() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                     $is_activation = true;
-                } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+                } else if ( ! $this->_is_network_active && ! fs_is_network() ) {
                     $is_activation = $this->is_activation_mode();
                 }
 
@@ -11685,7 +11685,7 @@
                  * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
                  */
                 if ( ( ! $is_activation &&
-                        ( ( $this->_is_network_active && is_network_admin() ) ||
+                        ( ( $this->_is_network_active && fs_is_network() ) ||
                         ( ! $this->_is_network_active && is_admin() ) )
                      ) ||
                      $this->is_free_wp_org_theme()
@@ -11964,16 +11964,16 @@
             }
 
             $is_activation = false;
-            if ( is_network_admin() && $this->is_network_activation_mode() ) {
+            if ( fs_is_network() && $this->is_network_activation_mode() ) {
                 $is_activation = true;
-            } else if ( $this->_is_network_active && ! is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+            } else if ( $this->_is_network_active && ! fs_is_network() && $this->is_delegated_connection( get_current_blog_id() ) ) {
                 $is_activation = true;
-            } else if ( ! $this->_is_network_active && ! is_network_admin() ) {
+            } else if ( ! $this->_is_network_active && ! fs_is_network() ) {
                 $is_activation = $this->is_activation_mode();
             }
 
             if ( ! $is_activation &&
-                 ( ( $this->_is_network_active && is_network_admin() ) ||
+                 ( ( $this->_is_network_active && fs_is_network() ) ||
                  ( ! $this->_is_network_active && is_admin() ) )
             ) {
                 $this->add_submenu_link_item(
@@ -14563,7 +14563,7 @@
             }
 
             if ( $this->_is_network_active &&
-                 is_network_admin() &&
+                 fs_is_network() &&
                  ! $this->_menu->has_network_menu()
             ) {
                 $target_url = $this->get_account_url();
