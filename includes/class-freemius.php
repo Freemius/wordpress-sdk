@@ -388,10 +388,13 @@
             );
 
             $this->_is_network_active = (
+                is_multisite() &&
                 $this->_is_multisite_integrated &&
                 // Themes are always network activated, but the ACTUAL activation is per site.
                 $this->is_plugin() &&
-                is_plugin_active_for_network( $this->_plugin_basename )
+                ( is_plugin_active_for_network( $this->_plugin_basename ) ||
+                  // Plugin network level uninstall.
+                  ( is_plugin_inactive( $this->_plugin_basename ) && fs_is_plugin_uninstall() ) )
             );
 
             if ( $this->_is_network_active ) {
