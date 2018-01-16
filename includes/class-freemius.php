@@ -7908,7 +7908,11 @@
          * @return bool|\FS_Plugin_License
          */
         function _get_license() {
+            if ( ! fs_is_network_admin() || is_object( $this->_license ) ) {
             return $this->_license;
+        }
+
+            return $this->_get_available_premium_license();
         }
 
         /**
