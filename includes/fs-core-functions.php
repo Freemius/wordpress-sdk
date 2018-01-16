@@ -429,10 +429,10 @@
          * @return bool
          */
         function fs_ends_with( $haystack, $needle ) {
-            $length = strlen($needle);
-            $start  = $length * -1; // negative
+            $length = strlen( $needle );
+            $start  = $length * - 1; // negative
 
-            return (substr($haystack, $start) === $needle);
+            return ( substr( $haystack, $start ) === $needle );
         }
     }
 
@@ -1136,9 +1136,22 @@
      * @author Vova Feldman (@svovaf)
      * @since  1.2.4
      */
-    function fs_is_network() {
-        return ( is_network_admin() ||
-            ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['_fs_network'] ) ) );
+    function fs_is_plugin_uninstall() {
+        return (
+            defined( 'WP_UNINSTALL_PLUGIN' ) ||
+            ( 0 < did_action( 'update_option_uninstall_plugins' ) )
+        );
     }
 
-    #endregion
+    /**
+     * @author Vova Feldman (@svovaf)
+     * @since  1.2.4
+     */
+    function fs_is_network_admin() {
+        return (
+            WP_FS__IS_NETWORK_ADMIN ||
+            ( is_multisite() && fs_is_plugin_uninstall() )
+        );
+    }
+
+#endregion
