@@ -6544,11 +6544,18 @@
                     }
                 }
             } else {
-                // Send uninstall event.
-                $this->send_install_update( array_merge( $params, array(
+                $params = array_merge( $params, array(
                     'is_active'      => false,
                     'is_uninstalled' => true,
-                ) ) );
+                ) );
+
+                if ( $this->_is_network_active ) {
+                    // Send uninstall event.
+                    $this->send_installs_update( $params );
+                } else {
+                    // Send uninstall event.
+                    $this->send_install_update( $params );
+                }
             }
 
             // @todo Decide if we want to delete plugin information from db.
