@@ -4847,7 +4847,7 @@
                                 sprintf(
                                     $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
                                     sprintf( '<b><a href="%s">%s</a></b>',
-                                        $this->get_activation_url(),
+                                        $this->get_activation_url( array(), ! $this->is_delegated_connection( get_current_blog_id() ) ),
                                         sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
                                             '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
                                     )
@@ -4856,23 +4856,8 @@
                                 'update-nag'
                             );
                         } else {
-                            if ( ! isset( $this->_storage->sticky_optin_added ) ) {
-                                $this->_storage->sticky_optin_added = true;
-
-                                // Show notice for new plugin installations.
-                                $this->_admin_notices->add_sticky(
-                                    sprintf(
-                                        $this->get_text_inline( 'We made a few tweaks to the %s, %s', 'few-plugin-tweaks' ),
-                                        $this->_module_type,
-                                        sprintf( '<b><a href="%s">%s</a></b>',
-                                            $this->get_activation_url( array(), ! $this->is_delegated_connection( get_current_blog_id() ) ),
-                                            sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
-                                        )
-                                    ),
-                                    'connect_account',
-                                    '',
-                                    'update-nag'
-                                );
+                            if ( ! $this->sticky_optin_admin_notice_added() ) {
+                                $this->add_sticky_optin_admin_notice();
                             }
 
                             if ( $this->has_filter( 'optin_pointer_element' ) ) {
@@ -4899,6 +4884,49 @@
             }
 
             $this->_add_upgrade_action_link();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         *
+         * @return bool
+         */
+        private function sticky_optin_admin_notice_added() {
+            if ( ! $this->_is_network_active || $this->is_delegated_connection( get_current_blog_id() ) ) {
+                return isset( $this->_storage->sticky_optin_added );
+            }
+
+            return isset( $this->_storage->sticky_optin_added_ms );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+        private function add_sticky_optin_admin_notice() {
+            $is_delegated = $this->is_delegated_connection( get_current_blog_id() );
+
+            if ( ! $this->_is_network_active || $is_delegated ) {
+                $this->_storage->sticky_optin_added = true;
+            } else {
+                $this->_storage->sticky_optin_added_ms = true;
+            }
+
+            // Show notice for new plugin installations.
+            $this->_admin_notices->add_sticky(
+                sprintf(
+                    $this->get_text_inline( 'We made a few tweaks to the %s, %s', 'few-plugin-tweaks' ),
+                    $this->_module_type,
+                    sprintf( '<b><a href="%s">%s</a></b>',
+                        $this->get_activation_url( array(), ! $is_delegated ),
+                        sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
+                    )
+                ),
+                'connect_account',
+                '',
+                'update-nag'
+            );
         }
 
         /**
@@ -5550,17 +5578,23 @@
                 }
             }
 
-            if ( $is_network_deactivation && !empty($storage_keys_for_removal) ) {
-                $sites = $this->get_sites();
+            if ( $is_network_deactivation ) {
+                if ( isset( $this->_storage->sticky_optin_added_ms ) ) {
+                    unset( $this->_storage->sticky_optin_added_ms );
+                }
 
-                foreach ( $sites as $site ) {
-                    $blog_id = $this->get_site_blog_id( $site );
+                if ( ! empty( $storage_keys_for_removal ) ) {
+                    $sites = $this->get_sites();
 
-                    foreach ($storage_keys_for_removal as $key) {
-                        $this->_storage->remove( $key, false, $blog_id );
+                    foreach ( $sites as $site ) {
+                        $blog_id = $this->get_site_blog_id( $site );
+
+                        foreach ($storage_keys_for_removal as $key) {
+                            $this->_storage->remove( $key, false, $blog_id );
+                        }
+
+                        $this->_storage->save($blog_id);
                     }
-
-                    $this->_storage->save($blog_id);
                 }
             }
 
