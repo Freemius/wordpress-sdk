@@ -93,13 +93,13 @@
 
             if ( is_multisite() ) {
                 if ( true === $is_multisite_or_blog_id ) {
-                    $key = $id . ':ms';
+                    $key = $key . ':ms';
                 } else if ( is_numeric( $is_multisite_or_blog_id ) && $is_multisite_or_blog_id > 0 ) {
-                    $key = $id . ":{$is_multisite_or_blog_id}";
+                    $key = $key . ":{$is_multisite_or_blog_id}";
                 } else {
                     $is_multisite_or_blog_id = get_current_blog_id();
 
-                    $key = $id . ":{$is_multisite_or_blog_id}";
+                    $key = $key . ":{$is_multisite_or_blog_id}";
                 }
             }
 
@@ -125,8 +125,6 @@
             } else {
                 $this->_is_multisite_storage = false;
             }
-
-            $this->_is_multisite_storage = $is_multisite_or_blog_id;
 
 			$this->load();
 		}
