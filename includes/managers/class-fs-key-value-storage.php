@@ -126,8 +126,6 @@
                 $this->_is_multisite_storage = false;
             }
 
-            $this->_is_multisite_storage = $is_multisite_or_blog_id;
-
 			$this->load();
 		}
 
