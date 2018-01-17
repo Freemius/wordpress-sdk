@@ -3009,10 +3009,6 @@
 
 			$this->parse_settings( $plugin_info );
 
-            if ( $this->has_affiliate_program() ) {
-                $this->fetch_affiliate_and_terms();
-            }
-
             if ( ! self::is_ajax() ) {
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
                     add_action( 'admin_menu', array( &$this, '_prepare_admin_menu' ), WP_FS__LOWEST_PRIORITY );
@@ -7357,14 +7353,12 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.3
+         * @since 1.2.4
          */
-        private function fetch_affiliate_and_terms() {
-            $this->_logger->entrance();
-
+        private function fetch_affiliate_terms() {
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
                 $plugins_api     = $this->get_api_plugin_scope();
-                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', true );
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false, WP_FS__TIME_WEEK_IN_SEC );
 
                 if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
                     return;
@@ -7372,20 +7366,22 @@
 
                 $this->plugin_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
             }
+        }
 
-            if ( $this->is_registered() ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+        private function fetch_affiliate_and_custom_terms() {
+            if ( ! empty( $this->_storage->affiliate_application_data ) ) {
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", true );
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", false, WP_FS__TIME_WEEK_IN_SEC );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate( $result->affiliates[0] );
 
-                        if ( ! $affiliate->is_pending() && ! empty( $this->_storage->affiliate_application_data ) ) {
-                            unset( $this->_storage->affiliate_application_data );
-                        }
-
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", false, WP_FS__TIME_WEEK_IN_SEC );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
                                 $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
@@ -7395,6 +7391,17 @@
                     }
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         */
+        private function fetch_affiliate_and_terms() {
+            $this->_logger->entrance();
+
+            $this->fetch_affiliate_terms();
+            $this->fetch_affiliate_and_custom_terms();
         }
 
         /**
@@ -7468,6 +7475,8 @@
                     self::shoot_ajax_failure( $this->get_text_inline( 'Account is pending activation.', 'account-is-pending-activation' ) );
                 }
             }
+
+            $this->fetch_affiliate_terms();
 
             $api    = $this->get_api_user_scope();
             $result = $api->call(
@@ -12671,6 +12680,8 @@
 		function _affiliation_page_render() {
 			$this->_logger->entrance();
 
+            $this->fetch_affiliate_and_terms();
+
             fs_enqueue_local_style( 'fs_affiliation', '/admin/affiliation.css' );
 
             $vars = array( 'id' => $this->_module_id );
@@ -13160,8 +13171,6 @@
             if (
                 // Product has no affiliate program.
                 ! $this->has_affiliate_program() ||
-                // User is already an affiliate.
-                is_object( $this->affiliate ) ||
                 // User has applied for an affiliate account.
                 ! empty( $this->_storage->affiliate_application_data ) ) {
                 return false;
@@ -13195,6 +13204,13 @@
 			    // If the user is not a customer and the affiliate program is only for customers, don't show the notice.
                 return false;
 			}
+
+            $this->fetch_affiliate_and_custom_terms();
+
+            if ( is_object( $this->affiliate ) ) {
+                // User is already an affiliate.
+                return false;
+            }
 
 			$message = sprintf(
 				$this->get_text_inline( 'Hey there, did you know that %s has an affiliate program? If you like the %s you can become our ambassador and earn some cash!', 'become-an-ambassador-admin-notice' ),

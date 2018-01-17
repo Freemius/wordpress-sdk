@@ -285,6 +285,9 @@
 	if ( ! defined( 'WP_FS__TIME_24_HOURS_IN_SEC' ) ) {
 		define( 'WP_FS__TIME_24_HOURS_IN_SEC', 86400 );
 	}
+	if ( ! defined( 'WP_FS__TIME_WEEK_IN_SEC' ) ) {
+		define( 'WP_FS__TIME_WEEK_IN_SEC', 7 * WP_FS__TIME_24_HOURS_IN_SEC );
+	}
 
 	#--------------------------------------------------------------------------------
 	#region Debugging
