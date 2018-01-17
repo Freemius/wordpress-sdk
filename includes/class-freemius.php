@@ -13205,13 +13205,6 @@
                 return false;
 			}
 
-            $this->fetch_affiliate_and_custom_terms();
-
-            if ( is_object( $this->affiliate ) ) {
-                // User is already an affiliate.
-                return false;
-            }
-
 			$message = sprintf(
 				$this->get_text_inline( 'Hey there, did you know that %s has an affiliate program? If you like the %s you can become our ambassador and earn some cash!', 'become-an-ambassador-admin-notice' ),
 				sprintf( '<strong>%s</strong>', $this->get_plugin_name() ),
