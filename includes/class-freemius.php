@@ -7602,19 +7602,41 @@
         function _get_available_premium_license( $is_localhost = null ) {
             $this->_logger->entrance();
 
+            $licenses = $this->get_available_premium_licenses( $is_localhost );
+            if ( ! empty( $licenses ) ) {
+                return $licenses[0];
+            }
+
+            return false;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.5
+         *
+         * @param bool|null $is_localhost
+         *
+         * @return FS_Plugin_License[]
+         */
+        function get_available_premium_licenses($is_localhost = null ) {
+            $this->_logger->entrance();
+
+            $licenses = array();
             if ( ! $this->has_paid_plan() ) {
-                return false;
+                return $licenses;
             }
 
             if ( is_array( $this->_licenses ) ) {
                 foreach ( $this->_licenses as $license ) {
-                    if ( $license->can_activate( $is_localhost ) ) {
-                        return $license;
+                    if ( ! $license->can_activate( $is_localhost ) ) {
+                        continue;
                     }
+
+                    $licenses[] = $license;
                 }
             }
 
-            return false;
+            return $licenses;
         }
 
         /**
@@ -7943,8 +7965,8 @@
          */
         function _get_license() {
             if ( ! fs_is_network_admin() || is_object( $this->_license ) ) {
-            return $this->_license;
-        }
+                return $this->_license;
+            }
 
             return $this->_get_available_premium_license();
         }
@@ -8572,7 +8594,7 @@
 
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
                 $plugins_api     = $this->get_api_plugin_scope();
-                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', true );
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false, WP_FS__TIME_WEEK_IN_SEC );
 
                 if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
                     return;
@@ -8583,7 +8605,7 @@
 
             if ( $this->is_registered() ) {
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", true );
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", false, WP_FS__TIME_WEEK_IN_SEC );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate( $result->affiliates[0] );
@@ -8593,7 +8615,7 @@
                         }
 
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", true );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", false, WP_FS__TIME_WEEK_IN_SEC );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
                                 $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
@@ -15004,6 +15026,8 @@
          */
         function _affiliation_page_render() {
             $this->_logger->entrance();
+
+            $this->fetch_affiliate_and_terms();
 
             fs_enqueue_local_style( 'fs_affiliation', '/admin/affiliation.css' );
 

@@ -45,6 +45,103 @@
 
 	$license_key_text = fs_text_inline( 'License key', 'license-key' , $slug );
 
+    $is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection( get_current_blog_id() ) );
+    $network_activation_html     = '';
+
+    if ( $is_network_level_activation ) {
+        $all_sites     = $fs->get_sites();
+        $sites_details = array();
+
+        foreach ( $all_sites as $site ) {
+            $sites_details[] = $fs->get_site_info( $site );
+        }
+
+        if ( $is_network_level_activation ) {
+            $vars = array(
+                'id'                  => $fs->get_id(),
+                'sites'               => $sites_details,
+                'require_license_key' => true
+            );
+
+            $network_activation_html = fs_get_template( 'partials/network-activation.php', $vars );
+        }
+    }
+
+    $premium_licenses   = $fs->get_available_premium_licenses();
+    $available_licenses = array();
+    foreach ( $premium_licenses as $premium_license ) {
+        $activations_left = $premium_license->left();
+        if ( ! ( $activations_left > 0 ) ) {
+            continue;
+        }
+
+        $available_licenses[ $activations_left . '_' . $premium_license->id ] = $premium_license;
+
+        if (1 === count($available_licenses)) {
+            break;
+        }
+
+    }
+
+    $total_available_licenses = count( $available_licenses );
+    if ( $total_available_licenses > 0 ) {
+        $license_input_html = <<< HTML
+        <div>
+            <table style="width: 100%">
+                <tbody>
+                    <tr>
+                        <td><input type="radio" name="license_type" value="available" checked></td>
+                        <td>
+HTML;
+
+        if ( $total_available_licenses > 1 ) {
+            // Sort the licenses by number of activations left in descending order.
+            krsort( $available_licenses );
+
+            $license_input_html .= '<select id="licenses" style="width: 100%">';
+
+            /**
+             * @var FS_Plugin_License $license
+             */
+            foreach ( $available_licenses as $license ) {
+                $label = sprintf(
+                    "%s-Site License - %s",
+                     ( 1 == $license->quota ?
+                         'Single' :
+                         $license->quota
+                     ),
+                     $license->secret_key
+                );
+
+                $license_input_html .= "<option value='{$license->secret_key}' data-left='{$license->left()}'>{$label}</option>";
+            }
+
+            $license_input_html .= '</select>';
+        } else {
+            $available_licenses = array_values( $available_licenses );
+            $license_input_html .= "<input id='only_available_license_key' type='text' value='{$available_licenses[0]->secret_key}' style='width: 100%' readonly/>";
+        }
+
+        $license_input_html .= <<< HTML
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="radio" name="license_type" value="other"></td>
+                        <td id="other-license-key-container">
+                            <label for="other_license_key" style="position: relative;top: 6px;float: left;margin-right: 5px;">Other: </label>
+                            <div style="overflow: hidden;width: auto;height: 30px;display: block; top: 2px; position: relative;">
+                                <input id="other_license_key" class="license_key" type="text" placeholder="Enter license key" tabindex="1" style="margin: 0">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+HTML;
+    } else {
+        $license_input_html = "<input class='license_key' type='text' placeholder='{$license_key_text}' tabindex='1' />";
+    }
+
 	/**
 	 * IMPORTANT:
 	 *  DO NOT ADD MAXLENGTH OR LIMIT THE LICENSE KEY LENGTH SINCE
@@ -54,8 +151,9 @@
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-activation-message"><p></p></div>
 	<p>{$message_above_input_field}</p>
-	<input class="license_key" type="text" placeholder="{$license_key_text}" tabindex="1" />
+	{$license_input_html}
 	<a class="show-license-resend-modal show-license-resend-modal-{$fs->get_unique_affix()}" href="!#" tabindex="2">{$cant_find_license_key_text}</a>
+	{$network_activation_html}
 	<p>{$message_below_input_field}</p>
 HTML;
 
@@ -85,12 +183,98 @@ HTML;
 			$activateLicenseLink      = $('span.activate-license.<?php echo $fs->get_unique_affix() ?> a, .activate-license-trigger.<?php echo $fs->get_unique_affix() ?>'),
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
-			$licenseActivationMessage = $modal.find( '.license-activation-message' );
+			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
+            isNetworkActive           = <?php echo $is_network_level_activation ? 'true' : 'false' ?>;
 
 		$modal.appendTo($('body'));
 
+        var
+            $licensesDropdown   = $( '#licenses' ),
+            hasLicensesDropdown = ( $licensesDropdown.length > 0 ),
+            $licenseTypes       = $( 'input[type="radio"][name="license_type"]' ),
+            hasLicensesTypes    = ( $licenseTypes.length > 0 ),
+            $applyOnAllSites    = $( '#apply_on_all_sites' ),
+            $sitesListContainer = $( '#sites_list_container' ),
+            maxSitesListHeight  = null;
+
+        if ( hasLicensesTypes ) {
+            enableActivateLicenseButton();
+        }
+
 		function registerEventHandlers() {
-			$activateLicenseLink.click(function (evt) {
+            var
+                $multisiteOptionsContainer = $( '#multisite_options_container' ),
+                totalSites                 = <?php echo count( $sites_details ) ?>,
+                $otherLicenseKeyContainer  = $( '#other-license-key-container' );
+
+            if ( isNetworkActive ) {
+                $applyOnAllSites.click(function() {
+                    var isChecked = $( this ).is( ':checked' );
+
+                    $multisiteOptionsContainer.toggleClass( 'apply-on-all-sites', isChecked );
+
+                    showSites( ! isChecked );
+                });
+
+                $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
+                    $( this ).parent().find( 'input' ).click();
+                });
+            }
+
+            if ( hasLicensesDropdown ) {
+                $licensesDropdown.change(function() {
+                    if ( ! isNetworkActive ) {
+                        return true;
+                    }
+
+                    $licenseTypes.filter( '[value="available"]' ).attr( 'checked', true );
+
+                    var activationsLeft = $licensesDropdown.find( ':selected' ).data( 'left' );
+                    if ( activationsLeft > totalSites ) {
+                        $applyOnAllSites.attr( 'checked', true );
+                        showSites( false );
+
+                        allowLicenseActivationOnAllSites();
+
+                        return true;
+                    }
+
+                    $applyOnAllSites.attr( 'checked', false );
+                    $applyOnAllSites.attr( 'disabled', true );
+
+                    showSites( true );
+
+                    var activateLicenseCheckboxLabel = '<?php fs_esc_js_echo_inline( 'Choose up to _n_ sites to activate the license on.', 'activate-license-n', $slug ) ?>';
+                    activateLicenseCheckboxLabel = activateLicenseCheckboxLabel.replace( '_n_', activationsLeft );
+
+                    $applyOnAllSites.parent().find( 'span' ).text( activateLicenseCheckboxLabel );
+                })
+            }
+
+            if ( hasLicensesTypes ) {
+                $licenseTypes.change(function() {
+                    var
+                        licenseKey = $( 'input.license_key' ).val().trim();
+
+                    if ( ( licenseKey.length > 0 ) || 'available' === $licenseTypes.filter( ':checked' ).val() ) {
+                        enableActivateLicenseButton();
+                    } else {
+                        disableActivateLicenseButton();
+                    }
+                });
+
+                if ( ! hasLicensesDropdown ) {
+                    $( '#only_available_license_key' ).click(function() {
+                        $licenseTypes.filter( '[value="available"]' ).attr( 'checked', true );
+                    });
+                }
+
+                $otherLicenseKeyContainer.click(function() {
+                    $licenseTypes.filter( '[value="other"]' ).attr( 'checked', true );
+                });
+            }
+
+            $activateLicenseLink.click(function (evt) {
 				evt.preventDefault();
 
 				showModal();
@@ -109,13 +293,15 @@ HTML;
 			});
 
 			$modal.on('blur', 'input.license_key', function () {
-				var licenseKey = $(this).val().trim();
+				var
+                    licenseKey          = $(this).val().trim(),
+                    hasLicenseSelection = ( 'available' === $licenseTypes.find( ':checked' ).val() );
 
 				/**
 				 * If license key is empty, disable the license activation button.
 				 */
-				if (0 === licenseKey.length) {
-					disableActivateLicenseButton();
+				if ( 0 === licenseKey.length && ! hasLicenseSelection ) {
+                    disableActivateLicenseButton();
 				}
 			});
 
@@ -126,9 +312,26 @@ HTML;
 					return;
 				}
 
-				var licenseKey = $licenseKeyInput.val().trim();
+				var licenseKey;
+				if ( hasLicensesTypes ) {
+				    var selectedLicenseType = $licenseTypes.filter( ':checked ' ).val();
+				    if ( 'other' === selectedLicenseType ) {
+				        licenseKey = $( '#other_license_key' ).val();
+                    } else {
+				        if ( ! hasLicensesDropdown ) {
+                            licenseKey = $( '#only_available_license_key' ).val();
+                        } else {
+                            licenseKey = $licensesDropdown.val();
+                        }
+                    }
+                } else {
+                    licenseKey = $licenseKeyInput.val().trim();
+                }
 
 				disableActivateLicenseButton();
+
+				alert ( licenseKey );
+				return;
 
 				if (0 === licenseKey.length) {
 					return;
@@ -170,6 +373,34 @@ HTML;
 
 		registerEventHandlers();
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+		function showSites( show ) {
+            $sitesListContainer.toggle( show );
+            if ( show && null === maxSitesListHeight ) {
+                /**
+                 * Set the visible number of rows to 5 (5 * height of the first row).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                maxSitesListHeight = ( 5 * $sitesListContainer.find( 'tr:first' ).height() );
+                $sitesListContainer.css( 'max-height', maxSitesListHeight );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+		function allowLicenseActivationOnAllSites() {
+            $applyOnAllSites.attr( 'disabled', false );
+
+            var activateLicenseCheckboxLabel = '<?php fs_esc_js_echo_inline( 'Activate license on all sites in the network.', 'activate-license-on-all-sites-in-the-network', $slug ) ?>';
+            $applyOnAllSites.parent().find( 'span' ).text( activateLicenseCheckboxLabel );
+        }
+
 		function showModal() {
 			resetModal();
 
@@ -177,7 +408,9 @@ HTML;
 			$modal.addClass('active');
 			$('body').addClass('has-fs-modal');
 
-			$licenseKeyInput.focus();
+			if ( ! hasLicensesTypes ) {
+                $licenseKeyInput.focus();
+            }
 		}
 
 		function closeModal() {
