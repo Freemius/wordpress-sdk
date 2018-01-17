@@ -365,7 +365,7 @@
                     beforeSend: function() {
                         $cancelButton.addClass( 'disabled' );
                         $submitButton.addClass( 'disabled' );
-                        $submitButton.text( '<?php fs_esc_js_inline( 'Processing', 'processing' ) ?>...' );
+                        $submitButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing' ) ?>...' );
                     },
                     success   : function( result ) {
                         if ( result.success ) {
