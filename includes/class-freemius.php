@@ -11820,29 +11820,35 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.0
+         * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
          */
         private function add_submenu_items() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_addon() ) {
-                $is_activation = false;
-                if ( fs_is_network_admin() && $this->is_network_activation_mode() ) {
-                    $is_activation = true;
-                } else if ( $this->_is_network_active && ! fs_is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
-                    $is_activation = true;
-                } else if ( ! $this->_is_network_active && ! fs_is_network_admin() ) {
-                    $is_activation = $this->is_activation_mode();
+            if ( $this->is_addon() ) {
+                // No submenu items for add-ons.
+                $add_submenu_items = false;
+            } else if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
+                // Also add submenu items when running in a free .org theme so the tabs will be visible.
+                $add_submenu_items = true;
+            } else if ( $this->is_activation_mode() && ! $this->is_free_wp_org_theme() ) {
+                $add_submenu_items = false;
+            } else if ( fs_is_network_admin() ) {
+                /**
+                 * Add submenu items to network level when plugin was network
+                 * activated and the super-admin did NOT delegated the connection
+                 * of all sites to site admins.
+                 */
+                $add_submenu_items = (
+                    $this->_is_network_active &&
+                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
+                      ! $this->is_network_delegated_connection() )
+                );
+            } else {
+                $add_submenu_items = ( ! $this->_is_network_active || $this->is_delegated_connection() );
                 }
 
-                /**
-                 * @since 1.2.2.7 Also add submenu items when running in a free .org theme so the tabs will be visible.
-                 */
-                if ( ( ! $is_activation &&
-                        ( ( $this->_is_network_active && fs_is_network_admin() ) ||
-                        ( ! $this->_is_network_active && is_admin() ) )
-                     ) ||
-                     $this->is_free_wp_org_theme()
-                ) {
+            if ( $add_submenu_items ) {
                     if ( $this->has_affiliate_program() ) {
                         // Add affiliation page.
                         $this->add_submenu_item(
@@ -11935,8 +11941,6 @@
                         $pricing_class
                     );
                 }
-            }
-
 
             if ( 0 < count( $this->_menu_items ) ) {
                 if ( ! $this->_menu->is_top_level() ) {
