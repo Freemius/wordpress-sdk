@@ -211,12 +211,13 @@ HTML;
             $applyOnAllSites     = $( '#apply_on_all_sites' ),
             $sitesListContainer  = $( '#sites_list_container' ),
             $availableLicenseKey = $( '#available_license_key' ),
+            $otherLicenseKey     = $( '#other_license_key' ),
             hasLicensesDropdown  = ( $licensesDropdown.length > 0 ),
-            hasLicensesTypes     = ( $licenseTypes.length > 0 ),
+            hasLicenseTypes      = ( $licenseTypes.length > 0 ),
             maxSitesListHeight   = null,
             totalSites           = <?php echo count( $sites_details ) ?>;
 
-        if ( hasLicensesTypes ) {
+        if ( hasLicenseTypes ) {
             enableActivateLicenseButton();
         }
 
@@ -233,7 +234,7 @@ HTML;
 
                     showSites( ! applyOnAllSites );
 
-                    if ( hasSelectedSite() ) {
+                    if ( hasValidLicenseKey() && ( applyOnAllSites || hasSelectedSite() ) ) {
                         enableActivateLicenseButton();
                     } else {
                         disableActivateLicenseButton();
@@ -246,7 +247,7 @@ HTML;
                 });
 
                 $sitesListContainer.delegate( 'input[type="checkbox"]', 'click', function() {
-                    if ( hasSelectedSite() ) {
+                    if ( hasValidLicenseKey() && hasSelectedSite() ) {
                         enableActivateLicenseButton();
                     } else {
                         disableActivateLicenseButton();
@@ -256,24 +257,25 @@ HTML;
 
             if ( hasLicensesDropdown ) {
                 $licensesDropdown.change(function() {
-                    if ( ! isNetworkActive ) {
-                        return true;
-                    }
-
                     // When a license is selected, select the associated radio button.
                     $licenseTypes.filter( '[value="available"]' ).attr( 'checked', true );
+
+                    if ( ! isNetworkActive ) {
+                        enableActivateLicenseButton();
+                        return true;
+                    }
 
                     toggleActivationOnAllSites();
                 })
             }
 
-            if ( hasLicensesTypes ) {
+            if ( hasLicenseTypes ) {
                 $licenseTypes.change(function() {
                     var
                         licenseKey          = $( 'input.license_key' ).val().trim(),
                         selectedLicenseType = $licenseTypes.filter( ':checked' ).val();
 
-                    if ( ( licenseKey.length > 0 || ( hasLicensesTypes && 'available' === selectedLicenseType ) ) &&
+                    if ( ( licenseKey.length > 0 || ( hasLicenseTypes && 'available' === selectedLicenseType ) ) &&
                         ( ! isNetworkActive || hasSelectedSite() )
                     ) {
                         /**
@@ -322,12 +324,12 @@ HTML;
 				var
                     licenseKey                  = $(this).val().trim(),
                     $focusedElement             = $( evt.relatedTarget ),
-                    hasSelectedAvailableLicense = ( hasLicensesTypes && $focusedElement.parents( '#available_license_key_container' ).length > 0 );
+                    hasSelectedAvailableLicense = ( hasLicenseTypes && $focusedElement.parents( '#available_license_key_container' ).length > 0 );
 
                 /**
                  * If license key is empty, disable the license activation button.
                  */
-                if ( ( 0 === licenseKey.length && ( ! hasLicensesTypes || ! hasSelectedAvailableLicense ) ) ||
+                if ( ( 0 === licenseKey.length && ( ! hasLicenseTypes || ! hasSelectedAvailableLicense ) ) ||
                    ( isNetworkActive && ! hasSelectedSite() )
                 ) {
                    disableActivateLicenseButton();
@@ -344,10 +346,10 @@ HTML;
 				var
                     licenseKey = '';
 
-				if ( hasLicensesTypes ) {
-				    var selectedLicenseType = $licenseTypes.filter( ':checked ' ).val();
+				if ( hasLicenseTypes ) {
+				    var selectedLicenseType = $licenseTypes.filter( ':checked' ).val();
 				    if ( 'other' === selectedLicenseType ) {
-				        licenseKey = $( '#other_license_key' ).val();
+				        licenseKey = $otherLicenseKey.val();
                     } else {
 				        if ( ! hasLicensesDropdown ) {
                             licenseKey = $availableLicenseKey.data( 'license-key' );
@@ -435,6 +437,25 @@ HTML;
          * @author Leo Fajardo (@leorw)
          * @since 1.2.4
          */
+        function hasValidLicenseKey() {
+            var licenseKey = '';
+            if ( hasLicenseTypes ) {
+                if ( 'available' === $licenseTypes.filter( ':checked' ).val() ) {
+                    return true;
+                } else {
+                    licenseKey = $otherLicenseKey.val();
+                }
+            } else {
+                licenseKey = $( 'input.license_key' ).val();
+            }
+
+            return ( licenseKey.trim().length > 0 );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
         function hasSelectedSite() {
             return ( $applyOnAllSites.is( ':checked' ) ||
                 $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length > 0 );
@@ -505,7 +526,7 @@ HTML;
 			$modal.addClass('active');
 			$('body').addClass('has-fs-modal');
 
-			if ( ! hasLicensesTypes ) {
+			if ( ! hasLicenseTypes ) {
                 $licenseKeyInput.focus();
             }
 		}
