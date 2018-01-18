@@ -212,6 +212,7 @@ HTML;
             $sitesListContainer  = $( '#sites_list_container' ),
             $availableLicenseKey = $( '#available_license_key' ),
             $otherLicenseKey     = $( '#other_license_key' ),
+            $multisiteOptionsContainer = $( '#multisite_options_container' ),
             hasLicensesDropdown  = ( $licensesDropdown.length > 0 ),
             hasLicenseTypes      = ( $licenseTypes.length > 0 ),
             maxSitesListHeight   = null,
@@ -219,8 +220,7 @@ HTML;
 
 		function registerEventHandlers() {
             var
-                $multisiteOptionsContainer = $( '#multisite_options_container' ),
-                $otherLicenseKeyContainer  = $( '#other_license_key_container' );
+                $otherLicenseKeyContainer = $( '#other_license_key_container' );
 
             if ( isNetworkActive ) {
                 $applyOnAllSites.click(function() {
@@ -311,7 +311,7 @@ HTML;
             $activateLicenseLink.click(function (evt) {
 				evt.preventDefault();
 
-				showModal();
+				showModal( evt );
 			});
 
 			$modal.on('input propertychange', 'input.license_key', function () {
@@ -545,12 +545,16 @@ HTML;
             }
         }
 
-		function showModal() {
+		function showModal( evt ) {
 			resetModal();
 
 			// Display the dialog box.
 			$modal.addClass('active');
 			$('body').addClass('has-fs-modal');
+
+			if ( isNetworkActive && $multisiteOptionsContainer.length > 0 ) {
+                $multisiteOptionsContainer.toggle( ! $( evt.target ).parents( '.fs-install-details' ).length > 0 );
+            }
 
             if ( hasLicenseTypes ) {
                 if ( hasLicensesDropdown ) {

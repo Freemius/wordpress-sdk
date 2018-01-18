@@ -255,7 +255,10 @@
                             <code><?php echo htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $license->secret_key, - 3 ) ) ?></code>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
-                        <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
+                        <td>
+                            <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
+                            <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
+                        </td>
                     </tr>
                     <?php $row_index ++ ?>
                     <!--/ License Key -->

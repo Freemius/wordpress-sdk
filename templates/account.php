@@ -458,7 +458,8 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
-                                <?php if ( ! $show_plan_row && ! $show_license_row ) : ?>
+                                <?php $show_activate_license_button = ( $show_plan_row && $show_upgrade && $fs->is_premium() ) ?>
+                                <?php if ( ! $show_activate_license_button && ! $show_license_row ) : ?>
                                     <?php if ( is_object( $license ) || ( $show_upgrade && $fs->is_premium() ) ) : ?>
                                         <?php
                                             $activate_license_button_text = is_object( $license ) ?
