@@ -10256,7 +10256,7 @@
                  FS_Plugin_Plan::is_valid_id( $site->plan_id )
             ) {
                 // Load site.
-                $this->_site = clone $site;
+                $this->_site = $site;
 
                 /**
                  * If the install owner's details are not stored locally, use the previous user's details if available.
