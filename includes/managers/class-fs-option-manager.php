@@ -46,10 +46,13 @@
          * @since 1.2.4
          * @var bool
          */
-        private $_is_multisite_storage;
+        private $_is_network_storage;
 
         /**
-         * @var FS_Option_Manager[]
+         * @var array[string]FS_Option_Manager {
+         * @key   string
+         * @value FS_Option_Manager
+         * }
          */
         private static $_MANAGERS = array();
 
@@ -72,13 +75,13 @@
             $this->_id = $id;
 
             if ( is_multisite() ) {
-                $this->_is_multisite_storage = ( true === $is_multisite_or_blog_id );
+                $this->_is_network_storage = ( true === $is_multisite_or_blog_id );
 
                 if ( is_numeric( $is_multisite_or_blog_id ) ) {
                     $this->_blog_id = $is_multisite_or_blog_id;
                 }
             } else {
-                $this->_is_multisite_storage = false;
+                $this->_is_network_storage = false;
             }
 
             if ( $load ) {
@@ -151,7 +154,7 @@
                 $cached = true;
 
                 if ( empty( $this->_options ) ) {
-                    if ( $this->_is_multisite_storage ) {
+                    if ( $this->_is_network_storage ) {
                         $this->_options = get_site_option( $option_name );
                     } else if ( $this->_blog_id > 0 ) {
                         $this->_options = get_blog_option( $this->_blog_id, $option_name );
@@ -224,7 +227,7 @@
         function delete() {
             $option_name = $this->get_option_manager_name();
 
-            if ( $this->_is_multisite_storage ) {
+            if ( $this->_is_network_storage ) {
                 delete_site_option( $option_name );
             } else if ( $this->_blog_id > 0 ) {
                 delete_blog_option( $this->_blog_id, $option_name );
@@ -395,7 +398,7 @@
             }
 
             // Update DB.
-            if ( $this->_is_multisite_storage ) {
+            if ( $this->_is_network_storage ) {
                 update_site_option( $option_name, $this->_options );
             } else if ( $this->_blog_id > 0 ) {
                 update_blog_option( $this->_blog_id, $option_name, $this->_options );
@@ -428,7 +431,7 @@
         private function get_cache_group() {
             $group = WP_FS__SLUG;
 
-            if ( $this->_is_multisite_storage ) {
+            if ( $this->_is_network_storage ) {
                 $group .= '_ms';
             } else if ( $this->_blog_id > 0 ) {
                 $group .= "_s{$this->_blog_id}";
