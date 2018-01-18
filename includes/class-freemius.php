@@ -788,23 +788,26 @@
         }
 
         /**
+         * Add special parameter to WP admin AJAX calls so when we
+         * process AJAX calls we can identify its source properly.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 1.2.4
          */
-        function enrich_ajax_url() {
-            if ( ! is_network_admin() ) {
-                return;
-            }
+        function _enrich_ajax_url() {
+            $admin_param = is_network_admin() ?
+                '_fs_network_admin' :
+                '_fs_blog_admin';
             ?>
             <script>
-                if ( ajaxurl && ! ( ajaxurl.indexOf( '_fs_network' ) > 0 ) ) {
+                if ( ajaxurl && ! ( ajaxurl.indexOf( '<?php echo $admin_param ?>' ) > 0 ) ) {
                     if ( ajaxurl.indexOf( '?' ) > 0 ) {
                         ajaxurl += '&';
                     } else {
                         ajaxurl += '?';
                     }
 
-                    ajaxurl += '_fs_network=true';
+                    ajaxurl += '<?php echo $admin_param ?>=true';
                 }
             </script>
             <?php
