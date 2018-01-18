@@ -4984,7 +4984,7 @@
                     $this->get_text_inline( 'We made a few tweaks to the %s, %s', 'few-plugin-tweaks' ),
                     $this->_module_type,
                     sprintf( '<b><a href="%s">%s</a></b>',
-                        $this->get_activation_url( array(), ! $is_delegated ),
+                        $this->get_activation_url(),
                         sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
                     )
                 ),
@@ -9235,7 +9235,10 @@
          */
         function _get_admin_page_url( $page = '', $params = array(), $network = null ) {
             if ( is_null( $network ) ) {
-                $network = fs_is_network_admin();
+                $network = (
+                    $this->_is_network_active &&
+                    ( fs_is_network_admin() || ! $this->is_delegated_connection() )
+                );
             }
 
             if ( 0 < count( $params ) ) {
@@ -9321,24 +9324,6 @@
             return add_query_arg( array_merge( $params, array(
                 'page' => $page_param,
             ) ), $this->admin_url( 'admin.php', 'admin', $network ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         *
-         * @return bool
-         */
-        function should_use_network_admin_page() {
-            if ( $this->_is_network_active ) {
-                $network = true;
-                if ( ! fs_is_network_admin() && $this->is_delegated_connection() ) {
-                    $network = false;
-                }
-            } else {
-                $network = false;
-            }
-
-            return $network;
         }
 
         #--------------------------------------------------------------------------------
@@ -14676,11 +14661,11 @@
          * @since  1.1.2
          *
          * @param array $params
-         * @param bool  $network
+         * @param bool|null $network
          *
          * @return string
          */
-        function get_activation_url( $params = array(), $network = true ) {
+        function get_activation_url( $params = array(), $network = null ) {
             if ( $this->is_addon() && $this->has_free_plan() ) {
                 /**
                  * @author Vova Feldman (@svovaf)
@@ -14735,11 +14720,6 @@
             ) {
                 $target_url = $this->get_account_url();
             } else {
-                $network = ( ! is_null( $network ) ?
-                    $network :
-                    $this->should_use_network_admin_page()
-                );
-
                 // Default plugin's page.
                 $target_url = $this->_get_admin_page_url( '', array(), $network );
             }
