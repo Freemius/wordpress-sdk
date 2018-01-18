@@ -243,7 +243,7 @@
                 <?php $row_index ++ ?>
                 <!--/ Secret Key -->
 
-                <?php if ( is_object( $license ) && ( ! is_object( $main_license ) || $license->id != $main_license->id ) ) : ?>
+                <?php if ( is_object( $license ) ) : ?>
                     <!-- License Key -->
                     <tr <?php if ( 1 == $row_index % 2 ) {
                         echo ' class="alternate"';
