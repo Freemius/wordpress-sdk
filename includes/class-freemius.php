@@ -9229,11 +9229,15 @@
          *
          * @param string $page
          * @param array  $params
-         * @param bool   $network
+         * @param bool|null $network
          *
          * @return string
          */
-        function _get_admin_page_url( $page = '', $params = array(), $network = true ) {
+        function _get_admin_page_url( $page = '', $params = array(), $network = null ) {
+            if ( is_null( $network ) ) {
+                $network = fs_is_network_admin();
+            }
+
             if ( 0 < count( $params ) ) {
                 foreach ( $params as $k => $v ) {
                     $params[ $k ] = urlencode( $v );
