@@ -8322,11 +8322,41 @@
             $error     = false;
             $next_page = false;
 
+            $is_network = fs_is_network_admin();
             if ( $fs->is_registered() ) {
-                $api     = $fs->get_api_site_scope();
-                $install = $api->call( '/', 'put', array(
-                    'license_key' => $fs->apply_filters( 'license_key', $license_key )
-                ) );
+                $api = $is_network ?
+                    $fs->get_current_or_network_user_api_scope() :
+                    $fs->get_api_site_scope();
+
+                $endpoint = '/';
+                if ( $is_network ) {
+                    $endpoint .= "plugins/{$this->_plugin->id}/installs.json";
+
+                    $params = array(
+                        array( 'license_key' => $fs->apply_filters( 'license_key', $license_key ) )
+                    );
+
+                    $sites = fs_request_get( 'sites', array(), 'post' );
+
+                    foreach ( $sites as $site ) {
+                        if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                            continue;
+                        }
+
+                        $install = $this->get_install_by_blog_id( $site['blog_id'] );
+                        if ( ! is_object( $install ) ) {
+                            continue;
+                        }
+
+                        $params[] = array( 'id' => $install->id );
+                    }
+                } else {
+                    $params = array(
+                        'license_key' => $fs->apply_filters( 'license_key', $license_key )
+                    );
+                }
+
+                $install = $api->call( $endpoint, 'put', $params );
 
                 if ( isset( $install->error ) ) {
                     $error = $install->error->message;
@@ -9823,6 +9853,24 @@
 
             return FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ?
                 $this->get_install_by_blog_id( $this->_storage->network_install_blog_id ) :
+                null;
+        }
+
+        /**
+         * Returns the blog ID that is associated with the main install.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.4
+         *
+         * @return int|null
+         */
+        function get_network_install_blog_id() {
+            if ( ! $this->_is_network_active ) {
+                return null;
+            }
+
+            return FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ?
+                $this->_storage->network_install_blog_id :
                 null;
         }
 
@@ -13522,11 +13570,18 @@
                 if ( $is_site_level_sync ) {
                     $site = new FS_Site( $result );
                 } else {
+                    // Map site addresses to their blog IDs.
+                    $address_to_blog_map = $this->get_address_to_blog_map();
+
                     // Find the current context install.
                     foreach ( $result->installs as $install ) {
                         if ( $install->id == $this->_site->id ) {
                             $site = new FS_Site( $install );
-                            break;
+                        } else {
+                            $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                            $blog_id = $address_to_blog_map[ $address ];
+
+                            $this->_store_site( true, $blog_id, new FS_Site( $install ) );
                         }
                     }
                 }
@@ -13540,7 +13595,12 @@
 
             if ( ! $this->has_paid_plan() ) {
                 $this->_site = $site;
-                $this->_store_site();
+                $this->_store_site(
+                    true,
+                    $is_site_level_sync ?
+                        null :
+                        $this->get_network_install_blog_id()
+                );
             } else {
                 /**
                  * Sync licenses. Pass the site's license ID so that the foreign licenses will be fetched if the license
@@ -13608,7 +13668,12 @@
                     }
 
                     // Store updated site info.
-                    $this->_store_site();
+                    $this->_store_site(
+                        true,
+                        $is_site_level_sync ?
+                            null :
+                            $this->get_network_install_blog_id()
+                    );
                 } else {
                     if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
                         if ( ! $this->has_features_enabled_license() ) {
