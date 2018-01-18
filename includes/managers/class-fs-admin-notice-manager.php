@@ -26,49 +26,98 @@
          */
         protected $_title;
         /**
-         * @var bool Since 1.2.4
+         * @var array[string]array
          */
-        protected $_is_network_activated;
-        /**
-         * @var array[]
-         */
-        private $_admin_messages = array();
+        private $_notices = array();
         /**
          * @var FS_Key_Value_Storage
          */
         private $_sticky_storage;
         /**
-         * @var FS_Admin_Notice_Manager[]
-         */
-        private static $_instances = array();
-        /**
          * @var FS_Logger
          */
         protected $_logger;
+        /**
+         * @since 1.2.4
+         * @var int The ID of the blog that is associated with the current site level admin notices.
+         */
+        private $_blog_id = 0;
+        /**
+         * @since 1.2.4
+         * @var bool
+         */
+        private $_is_network_notices;
+
+        /**
+         * @var FS_Admin_Notice_Manager[]
+         */
+        private static $_instances = array();
 
         /**
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
+         * @param bool   $network_level_or_blog_id Since 1.2.4
          *
-         * @return FS_Admin_Notice_Manager
+         * @return \FS_Admin_Notice_Manager
          */
-        static function instance( $id, $title = '', $module_unique_affix = '' ) {
-            if ( ! isset( self::$_instances[ $id ] ) ) {
-                self::$_instances[ $id ] = new FS_Admin_Notice_Manager( $id, $title, $module_unique_affix );
+        static function instance(
+            $id,
+            $title = '',
+            $module_unique_affix = '',
+            $network_level_or_blog_id = false
+        ) {
+            $key = strtolower( $id );
+
+            if ( is_multisite() ) {
+                if ( true === $network_level_or_blog_id ) {
+                    $key .= ':ms';
+                } else if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
+                    $key .= ":{$network_level_or_blog_id}";
+                } else {
+                    $network_level_or_blog_id = get_current_blog_id();
+
+                    $key .= ":{$network_level_or_blog_id}";
+                }
             }
 
-            return self::$_instances[ $id ];
+            if ( ! isset( self::$_instances[ $key ] ) ) {
+                self::$_instances[ $key ] = new FS_Admin_Notice_Manager(
+                    $id,
+                    $title,
+                    $module_unique_affix,
+                    $network_level_or_blog_id
+                );
+            }
+
+            return self::$_instances[ $key ];
         }
 
-        protected function __construct( $id, $title = '', $module_unique_affix = '' ) {
+        protected function __construct(
+            $id,
+            $title = '',
+            $module_unique_affix = '',
+            $network_level_or_blog_id = false
+        ) {
             $this->_id                  = $id;
             $this->_logger              = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->_id . '_data', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
             $this->_title               = ! empty( $title ) ? $title : '';
             $this->_module_unique_affix = $module_unique_affix;
-            $this->_sticky_storage      = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id );
+            $this->_sticky_storage      = FS_Key_Value_Storage::instance( 'admin_notices', $this->_id, $network_level_or_blog_id );
 
-            if ( is_admin() ) {
+            if ( is_multisite() ) {
+                $this->_is_network_notices = ( true === $network_level_or_blog_id );
+
+                if ( is_numeric( $network_level_or_blog_id ) ) {
+                    $this->_blog_id = $network_level_or_blog_id;
+                }
+            } else {
+                $this->_is_network_notices = false;
+            }
+
+            if ( ( $this->_is_network_notices && fs_is_network_admin() ) ||
+                 ( ! $this->_is_network_notices && is_blog_admin() )
+            ) {
                 if ( 0 < count( $this->_sticky_storage ) ) {
                     $ajax_action_suffix = str_replace( ':', '-', $this->_id );
 
@@ -139,8 +188,6 @@
          *
          */
         function _admin_notices_hook() {
-            $notice_type = 'admin_notices';
-
             if ( function_exists( 'current_user_can' ) &&
                  ! current_user_can( 'manage_options' )
             ) {
@@ -148,41 +195,7 @@
                 return;
             }
 
-            if ( ! isset( $this->_admin_messages[ $notice_type ] ) || ! is_array( $this->_admin_messages[ $notice_type ] ) ) {
-                return;
-            }
-
-            foreach ( $this->_admin_messages[ $notice_type ] as $id => $msg ) {
-                fs_require_template( 'admin-notice.php', $msg );
-
-                if ( $msg['sticky'] ) {
-                    self::has_sticky_messages();
-                }
-            }
-        }
-
-        /**
-         * Handle network_admin_notices by printing the admin messages stacked in the queue.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
-         *
-         */
-        function _network_admin_notices_hook() {
-            $notice_type = 'network_admin_notices';
-
-            if ( function_exists( 'current_user_can' ) &&
-                 ! current_user_can( 'manage_options' )
-            ) {
-                // Only show messages to admins.
-                return;
-            }
-
-            if ( ! isset( $this->_admin_messages[ $notice_type ] ) || ! is_array( $this->_admin_messages[ $notice_type ] ) ) {
-                return;
-            }
-
-            foreach ( $this->_admin_messages[ $notice_type ] as $id => $msg ) {
+            foreach ( $this->_notices as $id => $msg ) {
                 fs_require_template( 'admin-notice.php', $msg );
 
                 if ( $msg['sticky'] ) {
@@ -217,16 +230,10 @@
          * @uses   add_action()
          */
         function add( $message, $title = '', $type = 'success', $is_sticky = false, $id = '', $store_if_sticky = true ) {
-            if ( fs_is_network_admin() ) {
-                $key = 'network_admin_notices';
-            } else {
-                $key = 'admin_notices';
-            }
+            $notices_type = $this->get_notices_type();
 
-            if ( ! isset( $this->_admin_messages[ $key ] ) ) {
-                $this->_admin_messages[ $key ] = array();
-
-                add_action( $key, array( &$this, "_{$key}_hook" ) );
+            if ( empty( $this->_notices ) ) {
+                add_action( $notices_type, array( &$this, "_admin_notices_hook" ) );
                 add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_styles' ) );
             }
 
@@ -248,7 +255,7 @@
                 $this->_sticky_storage->{$id} = $message_object;
             }
 
-            $this->_admin_messages[ $key ][ $id ] = $message_object;
+            $this->_notices[ $id ] = $message_object;
         }
 
         /**
@@ -266,8 +273,8 @@
                 // Remove from sticky storage.
                 $this->_sticky_storage->remove( $id );
 
-                if ( isset( $this->_admin_messages['admin_notices'] ) && isset( $this->_admin_messages['admin_notices'][ $id ] ) ) {
-                    unset( $this->_admin_messages['admin_notices'][ $id ] );
+                if ( isset( $this->_notices[ $id ] ) ) {
+                    unset( $this->_notices[ $id ] );
                 }
             }
         }
@@ -315,4 +322,22 @@
         function clear_all_sticky() {
             $this->_sticky_storage->clear_all();
         }
+
+        #--------------------------------------------------------------------------------
+        #region Helper Method
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return string
+         */
+        private function get_notices_type() {
+            return $this->_is_network_notices ?
+                'network_admin_notices' :
+                'admin_notices';
+        }
+
+        #endregion
     }

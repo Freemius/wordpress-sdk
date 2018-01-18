@@ -236,14 +236,14 @@
         private $_menu;
 
         /**
-         * @var FS_Admin_Notice_Manager
+         * @var FS_Admin_Notices
          */
         private $_admin_notices;
 
         /**
          * @since 1.1.6
          *
-         * @var FS_Admin_Notice_Manager
+         * @var FS_Admin_Notices
          */
         private static $_global_admin_notices;
 
@@ -424,7 +424,7 @@
                 $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
             }
 
-            $this->_admin_notices = FS_Admin_Notice_Manager::instance(
+            $this->_admin_notices = FS_Admin_Notices::instance(
                 $this->_slug . ( $this->is_theme() ? ':theme' : '' ),
                 /**
                  * Ensure that the admin notice will always have a title by using the stored plugin title if available and

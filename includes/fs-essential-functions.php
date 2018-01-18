@@ -58,8 +58,8 @@
 			$file = '';
 			$line = '';
 			if ( headers_sent($file, $line) ) {
-				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notice_Manager' ) ) {
-					$notices = FS_Admin_Notice_Manager::instance( 'global' );
+				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notices' ) ) {
+					$notices = FS_Admin_Notices::instance( 'global' );
 
 					$notices->add( "Freemius failed to redirect the page because the headers have been already sent from line <b><code>{$line}</code></b> in file <b><code>{$file}</code></b>. If it's unexpected, it usually happens due to invalid space and/or EOL character(s).", 'Oops...', 'error' );
 				}
