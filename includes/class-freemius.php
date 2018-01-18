@@ -8594,7 +8594,7 @@
 
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
                 $plugins_api     = $this->get_api_plugin_scope();
-                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false, WP_FS__TIME_WEEK_IN_SEC );
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false );
 
                 if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
                     return;
@@ -8605,7 +8605,7 @@
 
             if ( $this->is_registered() ) {
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", false, WP_FS__TIME_WEEK_IN_SEC );
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", false );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate( $result->affiliates[0] );
@@ -8615,7 +8615,7 @@
                         }
 
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", false, WP_FS__TIME_WEEK_IN_SEC );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", false );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
                                 $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
