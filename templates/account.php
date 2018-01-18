@@ -458,6 +458,16 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
+                                <?php if ( ! $show_plan_row && ! $show_license_row ) : ?>
+                                    <?php if ( is_object( $license ) || ( $show_upgrade && $fs->is_premium() ) ) : ?>
+                                        <?php
+                                            $activate_license_button_text = is_object( $license ) ?
+                                                fs_esc_html_inline( 'Change License', 'change-license', $slug ) :
+                                                fs_esc_html_inline( 'Activate License', 'activate-license', $slug );
+                                        ?>
+                                        <a class="button activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
+                                    <?php endif ?>
+                                <?php endif ?>
 								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
 							</div>
 
