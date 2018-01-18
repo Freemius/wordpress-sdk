@@ -13421,12 +13421,14 @@
                  *
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
-                if ( $this->_is_network_active ) {
-                    $result   = $this->send_installs_update( array(), true );
-                    $is_valid = $this->is_api_result_object( $result, 'installs' );
-                } else {
+                $is_site_level_sync = ( is_blog_admin() || ! $this->_is_network_active );
+
+                if ( $is_site_level_sync ) {
                     $result   = $this->send_install_update( array(), true );
                     $is_valid = $this->is_api_result_entity( $result );
+                } else {
+                    $result   = $this->send_installs_update( array(), true );
+                    $is_valid = $this->is_api_result_object( $result, 'installs' );
                 }
 
                 if ( ! $is_valid ) {
@@ -13469,7 +13471,7 @@
                     return;
                 }
 
-                if ( ! $this->_is_network_active ) {
+                if ( $is_site_level_sync ) {
                     $site = new FS_Site( $result );
                 } else {
                     // Find the current context install.
