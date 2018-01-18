@@ -1846,7 +1846,7 @@
                 return false;
             }
 
-            if ( ! $this->is_activation_mode( $and_on ) ) {
+            if ( ! $this->is_site_activation_mode( $and_on ) ) {
                 // Whether the context is single site or the network, if the plugin is no longer in activation mode then it is not in network activation mode as well.
                 return false;
             }
