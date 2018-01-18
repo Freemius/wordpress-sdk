@@ -73,6 +73,42 @@
 	$free_text          = fs_text_inline( 'Free', 'free', $slug );
 	$activate_text      = fs_text_inline( 'Activate', 'activate', $slug );
 	$plan_text          = fs_text_x_inline( 'Plan', 'as product pricing plan', 'plan', $slug );
+
+    $show_plan_row    = true;
+    $show_license_row = is_object( $license );
+
+    $sites                   = $fs->get_sites();
+    $site_view_params        = array();
+    $all_installs_plan_id    = null;
+    $all_installs_license_id = ( $show_license_row ? $license->id : null );
+    foreach ( $sites as $s ) {
+        $site_info   = $fs->get_site_info( $s );
+        $install     = $fs->get_install_by_blog_id( $site_info['blog_id'] );
+        $view_params = array(
+            'freemius' => $fs,
+            'license'  => $license,
+            'site'     => $site_info,
+            'install'  => $install,
+        );
+
+        $site_view_params[] = $view_params;
+
+        if ( empty( $install ) ) {
+            continue;
+        }
+
+        if ( $show_plan_row ) {
+            if ( is_null( $all_installs_plan_id ) ) {
+                $all_installs_plan_id = $install->plan_id;
+            } else if ( $all_installs_plan_id != $install->plan_id ) {
+                $show_plan_row = false;
+            }
+        }
+
+        if ( $show_license_row && $all_installs_license_id != $install->license_id ) {
+            $show_license_row = false;
+        }
+    }
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -178,7 +214,7 @@
 							<div class="inside">
 								<table id="fs_account_details" cellspacing="0" class="fs-key-value-table">
 									<?php
-										$hide_license_key = $fs->apply_filters( 'hide_license_key', false );
+										$hide_license_key = ( ! $show_license_row || $fs->apply_filters( 'hide_license_key', false ) );
 
 										$profile   = array();
 										$profile[] = array(
@@ -234,22 +270,26 @@
 
 										if ( $has_paid_plan ) {
 											if ( $fs->is_trial() ) {
-												$profile[] = array(
-													'id'    => 'plan',
-													'title' => $plan_text,
-													'value' => ( is_string( $trial_plan->name ) ?
-														strtoupper( $trial_plan->title ) :
-														fs_text_inline( 'Trial', 'trial', $slug ) )
-												);
+											    if ( $show_plan_row ) {
+                                                    $profile[] = array(
+                                                        'id'    => 'plan',
+                                                        'title' => $plan_text,
+                                                        'value' => ( is_string( $trial_plan->name ) ?
+                                                            strtoupper( $trial_plan->title ) :
+                                                            fs_text_inline( 'Trial', 'trial', $slug ) )
+                                                    );
+                                                }
 											} else {
-												$profile[] = array(
-													'id'    => 'plan',
-													'title' => $plan_text,
-													'value' => strtoupper( is_string( $plan->name ) ?
-														$plan->title :
-														strtoupper( $free_text )
-													)
-												);
+                                                if ( $show_plan_row ) {
+                                                    $profile[] = array(
+                                                        'id'    => 'plan',
+                                                        'title' => $plan_text,
+                                                        'value' => strtoupper( is_string( $plan->name ) ?
+                                                            $plan->title :
+                                                            strtoupper( $free_text )
+                                                        )
+                                                    );
+                                                }
 
 												if ( is_object( $license ) ) {
 													if ( ! $hide_license_key ) {
@@ -302,7 +342,7 @@
 															<label class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ) ?></label>
 														<?php endif ?>
 														<div class="button-group">
-															<?php $available_license = $fs->is_free_plan() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
+															<?php $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
                                                             <?php if ( is_object( $available_license ) ) : ?>
 																<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
                                                                 <?php
@@ -438,15 +478,10 @@
                                     </div>
                                     <div class="fs-table-body">
                                         <table class="widefat">
-                                            <?php $sites = $fs->get_sites();
+                                            <?php
 //                                                for ($i = 0; $i < 5; $i++){
-                                                foreach ($sites as $s) {
-                                                $view_params = array(
-                                                    'freemius'       => $fs,
-                                                    'license'        => $license,
-                                                    'site'           => $fs->get_site_info($s),
-                                                );
-                                                fs_require_template( 'account/partials/site.php', $view_params );
+                                                foreach ( $site_view_params as $view_params ) {
+                                                    fs_require_template( 'account/partials/site.php', $view_params );
                                             } //} ?>
                                         </table>
                                     </div>

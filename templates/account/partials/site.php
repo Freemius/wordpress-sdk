@@ -24,7 +24,7 @@
     $main_user     = $fs->get_user();
     $blog_id       = $site['blog_id'];
 
-    $install       = $fs->get_install_by_blog_id( $blog_id );
+    $install       = $VARS['install'];
     $is_registered = ! empty( $install );
     $license       = null;
     $trial_plan    = $fs->get_trial_plan();
