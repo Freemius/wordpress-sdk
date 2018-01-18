@@ -2158,7 +2158,7 @@
 
             self::$_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
-            self::$_global_admin_notices = FS_Admin_Notice_Manager::instance( 'global' );
+            self::$_global_admin_notices = FS_Admin_Notices::instance( 'global' );
 
             add_action( ( fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
 
