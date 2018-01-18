@@ -11538,15 +11538,7 @@
 
                 $this->add_menu_action();
 
-                if ( ! $this->is_network_activation_mode() ) {
-                    /**
-                     * Do not add during activation mode, otherwise, there will be duplicate menus while the opt-in
-                     * screen is being shown.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     */
                     $this->add_network_menu_when_missing();
-                }
 
                 $this->add_submenu_items();
             }
@@ -11714,7 +11706,22 @@
                 return;
             }
 
-            // @todo Verify that the user actually network level connected and not delegated to admins.
+            if ( $this->is_network_activation_mode() ) {
+                /**
+                 * Do not add during activation mode, otherwise, there will be duplicate menus while the opt-in
+                 * screen is being shown.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                return;
+            }
+
+            if (! WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED) {
+                if ( $this->is_network_delegated_connection() ) {
+                    // Super-admin delegated the connection to the site admins.
+                    return;
+                }
+            }
 
             if ( ! $this->_menu->has_menu() || $this->_menu->is_top_level() ) {
                 $this->_dynamically_added_top_level_page_hook_name = $this->_menu->add_page_and_update(

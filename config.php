@@ -327,6 +327,10 @@
         define( 'WP_FS__LOWEST_PRIORITY', 999999999 );
     }
 
+    #--------------------------------------------------------------------------------
+    #region Multisite Network
+    #--------------------------------------------------------------------------------
+
     if ( ! defined( 'WP_FS__IS_NETWORK_ADMIN' ) ) {
         /**
          * Do not use this define directly, it will have the wrong value
@@ -349,3 +353,10 @@
             )
         );
     }
+
+    if ( ! defined( 'WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED' ) ) {
+        // Set to true to show network level settings even if delegated to site admins.
+        define( 'WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED', false );
+    }
+
+    #endregion
