@@ -1806,6 +1806,22 @@
          * @return bool
          */
         function is_activation_mode( $and_on = true ) {
+            return fs_is_network_admin() ?
+                $this->is_network_activation_mode() :
+                $this->is_site_activation_mode( $and_on );
+        }
+
+        /**
+         * Is plugin in activation mode.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.7
+         *
+         * @param bool $and_on
+         *
+         * @return bool
+         */
+        function is_site_activation_mode( $and_on = true ) {
             return (
                 ( $this->is_on() || ! $and_on ) &&
                 ( ! $this->is_registered() || ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
@@ -1815,13 +1831,42 @@
         }
 
         /**
+         * Checks if the SDK in network activation mode.
+         *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.3.1
+         * @since  1.2.4
+         *
+         * @param bool $and_on
          *
          * @return bool
          */
-        private function is_network_activation_mode() {
-            return ( $this->_is_network_active && ! $this->is_delegated_connection( get_current_blog_id() ) && $this->is_activation_mode() );
+        private function is_network_activation_mode( $and_on = true ) {
+            if ( ! $this->_is_network_active ) {
+                // Not network activated.
+                return false;
+            }
+
+            if ( ! $this->is_activation_mode( $and_on ) ) {
+                // Whether the context is single site or the network, if the plugin is no longer in activation mode then it is not in network activation mode as well.
+                return false;
+            }
+
+            if ( $this->is_network_delegated_connection() ) {
+                // Super-admin delegated the connection to the site admins -> not activation mode.
+                return false;
+            }
+
+            if ( $this->is_network_anonymous() ) {
+                // Super-admin skipped the connection network wide -> not activation mode.
+                return false;
+            }
+
+            if ( $this->is_network_registered() ) {
+                // Super-admin connected at least one site -> not activation mode.
+                return false;
+            }
+
+            return true;
         }
 
         /**
@@ -11477,16 +11522,7 @@
          *
          */
         private function add_menu_action() {
-            $is_activation = false;
-            if ( fs_is_network_admin() && $this->is_network_activation_mode() ) {
-                $is_activation = true;
-            } else if ( $this->_is_network_active && ! fs_is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
-                $is_activation = true;
-            } else if ( ! $this->_is_network_active && ! fs_is_network_admin() ) {
-                $is_activation = $this->is_activation_mode();
-            }
-
-            if ( $is_activation ) {
+            if ( $this->is_activation_mode() ) {
                 if ( $this->is_plugin() || ( $this->has_settings_menu() && ! $this->is_free_wp_org_theme() ) ) {
                     $this->override_plugin_menu_with_activation();
                 } else {
@@ -12033,16 +12069,7 @@
                 return;
             }
 
-            $is_activation = false;
-            if ( fs_is_network_admin() && $this->is_network_activation_mode() ) {
-                $is_activation = true;
-            } else if ( $this->_is_network_active && ! fs_is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
-                $is_activation = true;
-            } else if ( ! $this->_is_network_active && ! fs_is_network_admin() ) {
-                $is_activation = $this->is_activation_mode();
-            }
-
-            if ( ! $is_activation &&
+            if ( ! $this->is_activation_mode() &&
                  ( ( $this->_is_network_active && fs_is_network_admin() ) ||
                  ( ! $this->_is_network_active && is_admin() ) )
             ) {
