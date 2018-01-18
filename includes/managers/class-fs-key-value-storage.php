@@ -84,43 +84,43 @@
 		/**
 		 * @param string $id
 		 * @param string $secondary_id
-		 * @param bool   $is_multisite_or_blog_id
+		 * @param bool   $network_level_or_blog_id
 		 *
 		 * @return FS_Key_Value_Storage
 		 */
-		static function instance( $id, $secondary_id, $is_multisite_or_blog_id = false ) {
+		static function instance( $id, $secondary_id, $network_level_or_blog_id = false ) {
             $key = $id . ':' . $secondary_id;
 
             if ( is_multisite() ) {
-                if ( true === $is_multisite_or_blog_id ) {
-                    $key = $key . ':ms';
-                } else if ( is_numeric( $is_multisite_or_blog_id ) && $is_multisite_or_blog_id > 0 ) {
-                    $key = $key . ":{$is_multisite_or_blog_id}";
+                if ( true === $network_level_or_blog_id ) {
+                    $key .= ':ms';
+                } else if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
+                    $key .= ":{$network_level_or_blog_id}";
                 } else {
-                    $is_multisite_or_blog_id = get_current_blog_id();
+                    $network_level_or_blog_id = get_current_blog_id();
 
-                    $key = $key . ":{$is_multisite_or_blog_id}";
+                    $key .= ":{$network_level_or_blog_id}";
                 }
             }
 
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $is_multisite_or_blog_id );
+				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $network_level_or_blog_id );
 			}
 
 			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $id, $secondary_id, $is_multisite_or_blog_id = false ) {
+		protected function __construct( $id, $secondary_id, $network_level_or_blog_id = false ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $secondary_id . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
             $this->_id                   = $id;
             $this->_secondary_id         = $secondary_id;
 
             if ( is_multisite() ) {
-                $this->_is_multisite_storage = ( true === $is_multisite_or_blog_id );
+                $this->_is_multisite_storage = ( true === $network_level_or_blog_id );
 
-                if ( is_numeric( $is_multisite_or_blog_id ) ) {
-                    $this->_blog_id = $is_multisite_or_blog_id;
+                if ( is_numeric( $network_level_or_blog_id ) ) {
+                    $this->_blog_id = $network_level_or_blog_id;
                 }
             } else {
                 $this->_is_multisite_storage = false;
