@@ -201,7 +201,7 @@
 											);
 										}
 
-										if (!$fs->is_network_active()) {
+										if ( ! fs_is_network_admin()) {
                                             $profile[] = array(
                                                 'id'    => 'site_id',
                                                 'title' => fs_text_inline( 'Site ID', 'site-id', $slug ),
@@ -414,7 +414,7 @@
 								</table>
 							</div>
 						</div>
-						<?php if ( $fs->is_network_active() ) : ?>
+						<?php if ( fs_is_network_admin() ) : ?>
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
