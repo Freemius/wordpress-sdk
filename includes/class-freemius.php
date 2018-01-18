@@ -9353,12 +9353,14 @@
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
-            if ( ! is_null( $sites ) ) {
+            if ( is_null( $sites ) ) {
+                // All sites delegation.
+                self::$_accounts->set_option( 'is_delegated_connection', true, true, true );
+            } else {
+                // Specified sites delegation.
                 foreach ( $sites as $site ) {
                     self::$_accounts->set_option( 'is_delegated_connection', true, true, $site['blog_id'] );
                 }
-            } else {
-                self::$_accounts->set_option( 'is_delegated_connection', true, true, true );
             }
         }
 
