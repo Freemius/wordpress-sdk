@@ -4921,7 +4921,7 @@
                                 'update-nag'
                             );
                         } else {
-                            if ( ! $this->sticky_optin_admin_notice_added() ) {
+                            if ( $this->should_add_sticky_optin_notice() ) {
                                 $this->add_sticky_optin_admin_notice();
                             }
 
@@ -4957,12 +4957,21 @@
          *
          * @return bool
          */
-        private function sticky_optin_admin_notice_added() {
-            if ( ! $this->_is_network_active || $this->is_delegated_connection() ) {
-                return isset( $this->_storage->sticky_optin_added );
+        private function should_add_sticky_optin_notice() {
+            if ( ! $this->_is_network_active ) {
+                return ! isset( $this->_storage->sticky_optin_added );
             }
 
-            return isset( $this->_storage->sticky_optin_added_ms );
+            if ( fs_is_network_admin() ) {
+                return ! isset( $this->_storage->sticky_optin_added_ms );
+            }
+
+            if ( $this->is_delegated_connection() ) {
+                // If running from a blog admin and delegated the connection.
+                return ! isset( $this->_storage->sticky_optin_added );
+            }
+
+            return false;
         }
 
         /**
@@ -4970,9 +4979,7 @@
          * @since 1.2.4
          */
         private function add_sticky_optin_admin_notice() {
-            $is_delegated = $this->is_delegated_connection();
-
-            if ( ! $this->_is_network_active || $is_delegated ) {
+            if ( ! $this->_is_network_active || ! fs_is_network_admin() ) {
                 $this->_storage->sticky_optin_added = true;
             } else {
                 $this->_storage->sticky_optin_added_ms = true;
