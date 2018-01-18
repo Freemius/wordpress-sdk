@@ -4439,8 +4439,9 @@
          */
         function is_anonymous() {
             if ( ! isset( $this->_is_anonymous ) ) {
-                if ( ! isset( $this->_storage->is_anonymous_ms ) )
-                {
+                if ( $this->is_network_anonymous() ) {
+                    $this->_is_anonymous = true;
+                } else {
                     if ( ! isset( $this->_storage->is_anonymous ) ) {
                         // Not skipped.
                         $this->_is_anonymous = false;
@@ -4454,10 +4455,6 @@
                         // Version 1.1.3 and later.
                         $this->_is_anonymous = $this->_storage->is_anonymous['is'];
                     }
-                }
-                else
-                {
-                    $this->_is_anonymous = $this->_storage->is_anonymous_ms['is'];
                 }
             }
 
