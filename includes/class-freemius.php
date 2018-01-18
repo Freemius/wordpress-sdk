@@ -4410,6 +4410,26 @@
         }
 
         /**
+         * Check if super-admin skipped connection for all sites in the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         */
+        function is_network_anonymous() {
+            if ( $this->_is_network_active ) {
+                return false;
+            }
+
+            $is_anonymous_ms = $this->_storage->get( 'is_anonymous_ms' );
+
+            if ( empty( $is_anonymous_ms ) ) {
+                return false;
+            }
+
+            return $is_anonymous_ms['is'];
+        }
+
+        /**
          * Check if the user skipped connecting the account with Freemius.
          *
          * @author Vova Feldman (@svovaf)
