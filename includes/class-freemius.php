@@ -841,6 +841,8 @@
                         $plugin_dir . $this->premium_plugin_basename(),
                         array( &$this, '_activate_plugin_event_hook' )
                     );
+
+                    add_action( 'admin_enqueue_scripts', array( &$this, '_enrich_ajax_url' ) );
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
@@ -905,8 +907,6 @@
                     if ( isset( $this->_storage->is_anonymous_ms ) && $this->_storage->is_anonymous_ms['is'] ) {
                         add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
                     }
-
-                    add_action( 'admin_enqueue_scripts', array( &$this, 'enrich_ajax_url' ) );
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
