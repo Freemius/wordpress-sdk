@@ -45,7 +45,7 @@
 
 	$license_key_text = fs_text_inline( 'License key', 'license-key' , $slug );
 
-    $is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection( get_current_blog_id() ) );
+    $is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
     $network_activation_html     = '';
 
     $sites_details = array();
