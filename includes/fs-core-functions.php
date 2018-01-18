@@ -1144,6 +1144,10 @@
     }
 
     /**
+     * Unlike is_network_admin(), this one will also work properly when
+     * the context execution is WP AJAX handler, and during plugin
+     * uninstall.
+     *
      * @author Vova Feldman (@svovaf)
      * @since  1.2.4
      */
@@ -1151,6 +1155,21 @@
         return (
             WP_FS__IS_NETWORK_ADMIN ||
             ( is_multisite() && fs_is_plugin_uninstall() )
+        );
+    }
+
+    /**
+     * Unlike is_blog_admin(), this one will also work properly when
+     * the context execution is WP AJAX handler, and during plugin
+     * uninstall.
+     *
+     * @author Vova Feldman (@svovaf)
+     * @since  1.2.4
+     */
+    function fs_is_blog_admin() {
+        return (
+            WP_FS__IS_BLOG_ADMIN ||
+            ( !is_multisite() && fs_is_plugin_uninstall() )
         );
     }
 

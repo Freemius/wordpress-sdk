@@ -331,27 +331,40 @@
     #region Multisite Network
     #--------------------------------------------------------------------------------
 
+    /**
+     * Do not use this define directly, it will have the wrong value
+     * during plugin uninstall/deletion when the inclusion of the plugin
+     * is triggered due to registration with register_uninstall_hook().
+     *
+     * Instead, use fs_is_network_admin().
+     *
+     * @author Vova Feldman (@svovaf)
+     */
     if ( ! defined( 'WP_FS__IS_NETWORK_ADMIN' ) ) {
-        /**
-         * Do not use this define directly, it will have the wrong value
-         * during plugin uninstall/deletion when the inclusion of the plugin
-         * is triggered due to registration with register_uninstall_hook().
-         *
-         * Instead, use fs_is_network_admin().
-         *
-         * @author Vova Feldman (@svovaf)
-         */
         define( 'WP_FS__IS_NETWORK_ADMIN',
             is_network_admin() ||
             ( is_multisite() &&
               ( ( defined( 'DOING_AJAX' ) && DOING_AJAX &&
-                  ( isset( $_REQUEST['_fs_network'] ) /*||
+                  ( isset( $_REQUEST['_fs_network_admin'] ) /*||
                     ( ! empty( $_REQUEST['action'] ) && 'delete-plugin' === $_REQUEST['action'] )*/ )
                 ) ||
                 // Plugin uninstall.
                 defined( 'WP_UNINSTALL_PLUGIN' ) )
             )
         );
+    }
+
+    /**
+     * Do not use this define directly, it will have the wrong value
+     * during plugin uninstall/deletion when the inclusion of the plugin
+     * is triggered due to registration with register_uninstall_hook().
+     *
+     * Instead, use fs_is_blog_admin().
+     *
+     * @author Vova Feldman (@svovaf)
+     */
+    if ( ! defined( 'WP_FS__IS_BLOG_ADMIN' ) ) {
+        define( 'WP_FS__IS_BLOG_ADMIN', is_blog_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['_fs_blog_admin'] ) ) );
     }
 
     if ( ! defined( 'WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED' ) ) {
