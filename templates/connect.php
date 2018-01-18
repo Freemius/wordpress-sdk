@@ -93,7 +93,11 @@
 		! $require_license_key
 	);
 
-	$is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection( get_current_blog_id() ) );
+	$is_network_level_activation = (
+		fs_is_network_admin() &&
+		$fs->is_network_active() &&
+		! $fs->is_network_delegated_connection()
+	);
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -109,7 +113,7 @@
 		}
 	?>
 	<div id="fs_connect"
-	     class="wrap<?php if ( ! $fs->is_network_active() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
+	     class="wrap<?php if ( ! fs_is_network_admin() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
 		     echo ' fs-anonymous-disabled';
 	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
 		<div class="fs-visual">
