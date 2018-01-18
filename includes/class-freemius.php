@@ -9741,6 +9741,22 @@
         }
 
         /**
+         * Check if super-admin connected at least one site via the network opt-in.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return bool
+         */
+        function is_network_registered() {
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            return FS_User::is_valid_id( $this->_storage->network_user_id );
+        }
+
+        /**
          * Returns the main user associated with the network.
          *
          * @author Vova Feldman (@svovaf)
