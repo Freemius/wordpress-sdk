@@ -22,9 +22,12 @@
         private $_id;
 
         /**
-         * @var FS_Options
+         * @var array[string]FS_Options {
+         * @key   string
+         * @value FS_Options
+         * }
          */
-        private static $_instance;
+        private static $_instances;
 
         /**
          * @var FS_Option_Manager Site level options.
@@ -61,11 +64,11 @@
          * @return FS_Options
          */
         static function instance( $id, $load = false ) {
-            if ( ! isset( self::$_instance ) ) {
-                self::$_instance = new FS_Options( $id, $load );
+            if ( ! isset( self::$_instances[ $id ] ) ) {
+                self::$_instances[ $id ] = new FS_Options( $id, $load );
             }
 
-            return self::$_instance;
+            return self::$_instances[ $id ];
         }
 
         /**
@@ -95,7 +98,7 @@
          *
          * @param $blog_id
          */
-        function set_site_blog_context($blog_id) {
+        function set_site_blog_context( $blog_id ) {
             $this->_blog_id = $blog_id;
 
             $this->_options = FS_Option_Manager::get_manager( $this->_id, false, $this->_blog_id );
