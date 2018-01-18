@@ -9388,20 +9388,43 @@
          *
          * @return bool
          */
-        function is_delegated_connection( $blog_id = 0 ) {
+        function is_site_delegated_connection( $blog_id = 0 ) {
             if ( ! $this->_is_network_active ) {
                 return false;
             }
 
-            if ( is_null( $blog_id ) ) {
+            if ( 0 == $blog_id ) {
                 $blog_id = get_current_blog_id();
             }
 
-            $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection', false, $blog_id );
+            return self::$_accounts->get_option( 'is_delegated_connection', false, $blog_id );
+        }
+
+        /**
+         * Check if delegated the connection. When running within the the network admin,
+         * checks if network level delegated. If running within a site admin, check if
+         * delegated the connection for the current context site.
+         *
+         * If executed outside the the admin, check if delegated the connection
+         * for the current context site OR the whole network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return bool
+         */
+        function is_delegated_connection() {
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            if ( fs_is_network_admin() ) {
+                return $this->is_network_delegated_connection();
+            }
 
             return (
-                $is_delegated_connection ||
-                $this->is_network_delegated_connection()
+                $this->is_network_delegated_connection() ||
+                $this->is_site_delegated_connection()
             );
         }
 
