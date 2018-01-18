@@ -4912,7 +4912,7 @@
                                 sprintf(
                                     $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
                                     sprintf( '<b><a href="%s">%s</a></b>',
-                                        $this->get_activation_url( array(), ! $this->is_delegated_connection( get_current_blog_id() ) ),
+                                        $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
                                         sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
                                             '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
                                     )
@@ -4958,7 +4958,7 @@
          * @return bool
          */
         private function sticky_optin_admin_notice_added() {
-            if ( ! $this->_is_network_active || $this->is_delegated_connection( get_current_blog_id() ) ) {
+            if ( ! $this->_is_network_active || $this->is_delegated_connection() ) {
                 return isset( $this->_storage->sticky_optin_added );
             }
 
@@ -4970,7 +4970,7 @@
          * @since 1.2.4
          */
         private function add_sticky_optin_admin_notice() {
-            $is_delegated = $this->is_delegated_connection( get_current_blog_id() );
+            $is_delegated = $this->is_delegated_connection();
 
             if ( ! $this->_is_network_active || $is_delegated ) {
                 $this->_storage->sticky_optin_added = true;
@@ -9327,7 +9327,7 @@
         function should_use_network_admin_page() {
             if ( $this->_is_network_active ) {
                 $network = true;
-                if ( ! fs_is_network_admin() && $this->is_delegated_connection( get_current_blog_id() ) ) {
+                if ( ! fs_is_network_admin() && $this->is_delegated_connection() ) {
                     $network = false;
                 }
             } else {
@@ -9362,37 +9362,56 @@
         private function delegate_connection( $sites = null ) {
             $this->_logger->entrance();
 
+            $this->_admin_notices->remove_sticky( 'connect_account' );
+
             if ( ! is_null( $sites ) ) {
                 foreach ( $sites as $site ) {
                     self::$_accounts->set_option( 'is_delegated_connection', true, true, $site['blog_id'] );
                 }
             } else {
-                $this->_admin_notices->remove_sticky( 'connect_account' );
-
-                self::$_accounts->set_option( 'is_delegated_connection', true );
-                self::$_accounts->store();
+                self::$_accounts->set_option( 'is_delegated_connection', true, true, true );
             }
+        }
+
+        /**
+         * Check if super-admin delegated the connection of ALL sites to the site admins.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.4
+         *
+         * @return bool
+         */
+        function is_network_delegated_connection() {
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            return ( true === self::$_accounts->get_option( 'is_delegated_connection', false ) );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.4
          *
-         * @param int|null $blog_id
+         * @param int $blog_id
          *
          * @return bool
          */
-        function is_delegated_connection( $blog_id = null ) {
-            $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection', null, $blog_id );
-            if ( $this->_is_multisite_integrated && is_null( $is_delegated_connection ) && ! is_null( $blog_id ) ) {
-                /**
-                 * If multisite integrated and the option has not been set yet for the given blog ID, try to retrieve
-                 * the network level option.
-                 */
-                $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection' );
+        function is_delegated_connection( $blog_id = 0 ) {
+            if ( ! $this->_is_network_active ) {
+                return false;
             }
 
-            return ( true === $is_delegated_connection );
+            if ( is_null( $blog_id ) ) {
+                $blog_id = get_current_blog_id();
+            }
+
+            $is_delegated_connection = self::$_accounts->get_option( 'is_delegated_connection', false, $blog_id );
+
+            return (
+                $is_delegated_connection ||
+                $this->is_network_delegated_connection()
+            );
         }
 
         /**
@@ -15825,7 +15844,7 @@
              *
              * @author Leo Fajardo (@leorw)
              */
-            if ( $this->_is_network_active && $this->is_delegated_connection() ) {
+            if ( $this->_is_network_active && $this->is_network_delegated_connection() ) {
                 return;
             }
 
