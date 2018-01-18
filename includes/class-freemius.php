@@ -12802,7 +12802,6 @@
                         // main settings page, and the non-sticky message
                         // will disappear.
                         ! $is_menu_item_account_visible,
-                        false,
                         'email_verified'
                     );
                 }
@@ -13387,7 +13386,6 @@
                                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                                     'error',
                                     $background,
-                                    false,
                                     'api_blocked'
                                 );
                             }

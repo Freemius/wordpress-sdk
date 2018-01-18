@@ -86,7 +86,6 @@
                             $msg['title'],
                             $msg['type'],
                             true,
-                            $msg['all'],
                             $msg['id'],
                             false
                         );
@@ -193,25 +192,6 @@
         }
 
         /**
-         * Handle all_admin_notices by printing the admin messages stacked in the queue.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.4
-         *
-         */
-        function _all_admin_notices_hook() {
-            $notice_type = 'all_admin_notices';
-
-            if ( ! isset( $this->_admin_messages[ $notice_type ] ) || ! is_array( $this->_admin_messages[ $notice_type ] ) ) {
-                return;
-            }
-
-            foreach ( $this->_admin_messages[ $notice_type ] as $id => $msg ) {
-                fs_require_template( 'all-admin-notice.php', $msg );
-            }
-        }
-
-        /**
          * Enqueue common stylesheet to style admin notice.
          *
          * @author Vova Feldman (@svovaf)
@@ -231,17 +211,16 @@
          * @param string $title
          * @param string $type
          * @param bool   $is_sticky
-         * @param bool   $all_admin
          * @param string $id Message ID
          * @param bool   $store_if_sticky
          *
          * @uses   add_action()
          */
-        function add( $message, $title = '', $type = 'success', $is_sticky = false, $all_admin = false, $id = '', $store_if_sticky = true ) {
-            if ( is_multisite() && fs_is_network_admin() ) {
+        function add( $message, $title = '', $type = 'success', $is_sticky = false, $id = '', $store_if_sticky = true ) {
+            if ( fs_is_network_admin() ) {
                 $key = 'network_admin_notices';
             } else {
-                $key = ( $all_admin ? 'all_admin_notices' : 'admin_notices' );
+                $key = 'admin_notices';
             }
 
             if ( ! isset( $this->_admin_messages[ $key ] ) ) {
@@ -261,7 +240,6 @@
                 'type'       => $type,
                 'sticky'     => $is_sticky,
                 'id'         => $id,
-                'all'        => $all_admin,
                 'manager_id' => $this->_id,
                 'plugin'     => $this->_title,
             );
@@ -288,10 +266,6 @@
                 // Remove from sticky storage.
                 $this->_sticky_storage->remove( $id );
 
-                // Remove from current admin messages.
-                if ( isset( $this->_admin_messages['all_admin_notices'] ) && isset( $this->_admin_messages['all_admin_notices'][ $id ] ) ) {
-                    unset( $this->_admin_messages['all_admin_notices'][ $id ] );
-                }
                 if ( isset( $this->_admin_messages['admin_notices'] ) && isset( $this->_admin_messages['admin_notices'][ $id ] ) ) {
                     unset( $this->_admin_messages['admin_notices'][ $id ] );
                 }
@@ -322,15 +296,14 @@
          * @param string $id Message ID
          * @param string $title
          * @param string $type
-         * @param bool   $all_admin
          */
-        function add_sticky( $message, $id, $title = '', $type = 'success', $all_admin = false ) {
+        function add_sticky( $message, $id, $title = '', $type = 'success' ) {
             if ( ! empty( $this->_module_unique_affix ) ) {
                 $message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
                 $title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
             }
 
-            $this->add( $message, $title, $type, true, $all_admin, $id );
+            $this->add( $message, $title, $type, true, $id );
         }
 
         /**
@@ -341,21 +314,5 @@
          */
         function clear_all_sticky() {
             $this->_sticky_storage->clear_all();
-        }
-
-        /**
-         * Add admin message to all admin messages queue, and hook to all_admin_notices if not yet hooked.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.4
-         *
-         * @param string $message
-         * @param string $title
-         * @param string $type
-         * @param bool   $is_sticky
-         * @param string $id Message ID
-         */
-        function add_all( $message, $title = '', $type = 'success', $is_sticky = false, $id = '' ) {
-            $this->add( $message, $title, $type, $is_sticky, true, $id );
         }
     }
