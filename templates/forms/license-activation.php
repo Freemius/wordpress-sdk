@@ -341,7 +341,9 @@ HTML;
 					return;
 				}
 
-				var licenseKey;
+				var
+                    licenseKey = '';
+
 				if ( hasLicensesTypes ) {
 				    var selectedLicenseType = $licenseTypes.filter( ':checked ' ).val();
 				    if ( 'other' === selectedLicenseType ) {
@@ -363,15 +365,45 @@ HTML;
 					return;
 				}
 
+                var data = {
+                    action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
+                    security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
+                    license_key: licenseKey,
+                    module_id  : '<?php echo $fs->get_id() ?>'
+                };
+
+                if ( isNetworkActive ) {
+                    var
+                        sites           = [],
+                        applyOnAllSites = $applyOnAllSites.is( ':checked' );
+
+                    $sitesListContainer.find( 'tr' ).each(function() {
+                        var
+                            $this       = $( this ),
+                            includeSite = ( applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
+
+                        if ( ! includeSite )
+                            return;
+
+                        var site = {
+                            uid     : $this.find( '.uid' ).val(),
+                            url     : $this.find( '.url' ).val(),
+                            title   : $this.find( '.title' ).val(),
+                            language: $this.find( '.language' ).val(),
+                            charset : $this.find( '.charset' ).val(),
+                            blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
+                        };
+
+                        sites.push( site );
+                    });
+
+                    data.sites = sites;
+                }
+
 				$.ajax({
 					url: ajaxurl,
 					method: 'POST',
-					data: {
-						action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
-						security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
-						license_key: licenseKey,
-						module_id  : '<?php echo $fs->get_id() ?>'
-					},
+                    data: data,
 					beforeSend: function () {
 						$activateLicenseButton.text( '<?php fs_esc_js_echo_inline( 'Activating license', 'activating-license', $slug ) ?>...' );
 					},
