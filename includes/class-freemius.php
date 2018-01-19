@@ -1834,7 +1834,8 @@
         function is_site_activation_mode( $and_on = true ) {
             return (
                 ( $this->is_on() || ! $and_on ) &&
-                ( ! $this->is_registered() || ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
+                ( ! $this->is_registered() ||
+                  ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
                 ( ! $this->is_enable_anonymous() ||
                   ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
             );
