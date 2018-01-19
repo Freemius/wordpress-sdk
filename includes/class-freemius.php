@@ -9017,7 +9017,7 @@
          *
          * @return bool
          *
-         * @deprecated Please use is_enable_anonymous() instead
+         * @deprecated Please use is_enable_anonymous() instead.
          */
         function enable_anonymous() {
             return $this->_enable_anonymous;
