@@ -98,9 +98,10 @@
 
         /**
          * @since 1.0.9
+         * @since 1.2.4 Default to true since we need the property during the instance construction, prior to the dynamic_init() execution.
          * @var bool Hints the SDK if plugin can support anonymous mode (if skip connect is visible).
          */
-        private $_enable_anonymous;
+        private $_enable_anonymous = true;
 
         /**
          * @since 1.1.7.5
@@ -1816,7 +1817,7 @@
          */
         function is_activation_mode( $and_on = true ) {
             return fs_is_network_admin() ?
-                $this->is_network_activation_mode() :
+                $this->is_network_activation_mode( $and_on ) :
                 $this->is_site_activation_mode( $and_on );
         }
 
