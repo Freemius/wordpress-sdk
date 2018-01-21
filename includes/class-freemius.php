@@ -10858,7 +10858,8 @@
                 $user,
                 array( $site ),
                 $redirect,
-                $auto_install
+                $auto_install,
+                false
             );
         }
 
@@ -10872,6 +10873,7 @@
          * @param FS_Site[] $installs
          * @param bool      $redirect
          * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+         * @param bool      $is_network_level_opt_in
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -10879,7 +10881,8 @@
             FS_User $user,
             array $installs,
             $redirect = true,
-            $auto_install = false
+            $auto_install = false,
+            $is_network_level_opt_in = true
         ) {
             $first_install = $installs[0];
 
@@ -10891,7 +10894,11 @@
             $current_blog_id         = get_current_blog_id();
             $is_delegated_connection = $this->is_delegated_connection( $current_blog_id );
 
-            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
+            if (1 < count($installs)) {
+                // Only network level opt-in can have more than one install.
+                $is_network_level_opt_in = true;
+            }
+//            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
             if ( ! $this->_is_network_active || ! $is_network_level_opt_in ) {
                 $this->_set_account( $user, $first_install );
 
