@@ -8373,14 +8373,13 @@
             $error     = false;
             $next_page = false;
 
-            $is_network = fs_is_network_admin();
             if ( $fs->is_registered() ) {
-                $api = $is_network ?
-                    $fs->get_current_or_network_user_api_scope() :
-                    $fs->get_api_site_scope();
+                $blog_id    = fs_request_get( 'blog_id' );
+                $is_network = fs_is_network_admin();
 
                 $endpoint = '/';
-                if ( $is_network ) {
+                if ( $is_network && ! is_numeric( $blog_id ) ) {
+                    $api       = $fs->get_current_or_network_user_api_scope();
                     $endpoint .= "plugins/{$this->_plugin->id}/installs.json";
 
                     $params = array(
@@ -8402,23 +8401,39 @@
                         $params[] = array( 'id' => $install->id );
                     }
                 } else {
+                    $current_site = $this->_site;
+                    if ( is_numeric( $blog_id ) ) {
+                        $install = $this->get_install_by_blog_id( $blog_id );
+                        if ( ! is_object( $install ) ) {
+                            $error = 'Invalid blog ID';
+                        } else {
+                            $this->_site = $install;
+                        }
+                    }
+
+                    $api = $fs->get_api_site_scope();
+
+                    $this->_site = $current_site;
+
                     $params = array(
                         'license_key' => $fs->apply_filters( 'license_key', $license_key )
                     );
                 }
 
-                $install = $api->call( $endpoint, 'put', $params );
+                if ( empty( $error ) ) {
+                    $install = $api->call( $endpoint, 'put', $params );
 
-                if ( isset( $install->error ) ) {
-                    $error = $install->error->message;
-                } else {
-                    $fs->_sync_license( true );
+                    if ( isset( $install->error ) ) {
+                        $error = $install->error->message;
+                    } else {
+                        $fs->_sync_license( true );
 
-                    $next_page = $fs->is_addon() ?
-                        $fs->get_parent_instance()->get_account_url() :
-                        $fs->get_account_url();
+                        $next_page = $fs->is_addon() ?
+                            $fs->get_parent_instance()->get_account_url() :
+                            $fs->get_account_url();
 
-                    $fs->reconnect_locally();
+                        $fs->reconnect_locally();
+                    }
                 }
             } else {
                 $next_page = $fs->opt_in(
