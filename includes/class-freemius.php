@@ -11111,8 +11111,13 @@
          * @param number $id
          * @param string $public_key
          * @param string $secret_key
+         *
+         * @return \FS_User
          */
         private function setup_user( $id, $public_key, $secret_key ) {
+            $user = self::_get_user_by_id( $id );
+
+            if ( ! is_object( $user ) ) {
             $user             = new FS_User();
             $user->id         = $id;
             $user->public_key = $public_key;
@@ -11121,9 +11126,12 @@
             $this->_user = $user;
             $user_result = $this->get_api_user_scope()->get();
             $user        = new FS_User( $user_result );
-            $this->_user = $user;
 
+                $this->_user = $user;
             $this->_store_user();
+        }
+
+            return $user;
         }
 
         /**
@@ -11219,18 +11227,7 @@
             $trial_plan_id = false,
             $redirect = true
         ) {
-            $user = self::_get_user_by_id( $user_id );
-
-            if ( ! is_object( $user ) ) {
-                $user             = new FS_User();
-                $user->id         = $user_id;
-                $user->public_key = $user_public_key;
-                $user->secret_key = $user_secret_key;
-
-                $this->_user = $user;
-                $user_result = $this->get_api_user_scope()->get();
-                $user        = new FS_User( $user_result );
-            }
+            $user = $this->setup_user($user_id, $user_public_key, $user_secret_key);
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
