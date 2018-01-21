@@ -14862,7 +14862,8 @@
 
             if ( $this->_is_network_active &&
                  fs_is_network_admin() &&
-                 ! $this->_menu->has_network_menu()
+                 ! $this->_menu->has_network_menu() &&
+                 ! $this->is_pending_activation()
             ) {
                 $target_url = $this->get_account_url();
             } else {
