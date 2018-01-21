@@ -13876,7 +13876,8 @@
 
             $license_id = fs_request_get( 'license_id' );
 
-            if ( FS_Plugin_License::is_valid_id( $license_id ) &&
+            if ( is_object($this->_site) &&
+                 FS_Plugin_License::is_valid_id( $license_id ) &&
                  $license_id == $this->_site->license_id
             ) {
                 // License is already activated.
