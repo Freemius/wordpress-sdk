@@ -4427,7 +4427,7 @@
          * @since  2.0.0
          */
         function is_network_anonymous() {
-            if ( $this->_is_network_active ) {
+            if ( ! $this->_is_network_active ) {
                 return false;
             }
 
