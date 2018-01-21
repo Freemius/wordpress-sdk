@@ -7983,6 +7983,29 @@
         }
 
         /**
+         * Get all user's available licenses for the current module.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $user_id
+         *
+         * @return FS_Plugin_License[]
+         */
+        private function get_user_licenses( $user_id ) {
+            $licenses = self::get_all_licenses( $this->_module_type );
+
+            if ( is_array( $licenses ) &&
+                 isset( $licenses[ $this->_slug ] ) &&
+                 isset( $licenses[ $this->_slug ][ $user_id ] )
+            ) {
+                return $licenses[ $this->_slug ][ $user_id ];
+            }
+
+            return array();
+        }
+
+        /**
          * Sync site's license with user licenses.
          *
          * @author Vova Feldman (@svovaf)
@@ -10336,12 +10359,10 @@
 
             $users    = self::get_all_users();
             $plans    = self::get_all_plans( $this->_module_type );
-            $licenses = self::get_all_licenses( $this->_module_type );
 
             if ( $this->_logger->is_on() && is_admin() ) {
                 $this->_logger->log( 'users = ' . var_export( $users, true ) );
                 $this->_logger->log( 'plans = ' . var_export( $plans, true ) );
-                $this->_logger->log( 'licenses = ' . var_export( $licenses, true ) );
             }
 
             $site = fs_is_network_admin() ?
