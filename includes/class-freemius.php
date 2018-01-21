@@ -7949,6 +7949,26 @@
                 return false;
             }
 
+            /**
+             * When running from the network level admin and opted-in from the network,
+             * check if the license exists in the network user licenses collection.
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.0.0
+             */
+            if ( fs_is_network_admin() &&
+                 $this->is_network_registered() &&
+                 ( ! is_object( $this->_user ) || $this->_storage->network_user_id != $this->_user->id )
+            ) {
+                $licenses = $this->get_user_licenses( $this->_storage->network_user_id );
+
+                foreach ( $licenses as $license ) {
+                    if ( $id == $license->id ) {
+                        return $license;
+                    }
+                }
+            }
+
             if ( ! $this->has_any_license() ) {
                 $this->_sync_licenses();
             }
