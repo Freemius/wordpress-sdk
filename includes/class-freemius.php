@@ -10428,7 +10428,7 @@
 
             if ( is_object( $user ) ) {
                 $this->_user = clone $user;
-            } else {
+            } else if ($this->_site) {
                 /**
                  * If the install owner's details are not stored locally, use the previous user's details if available.
                  *
