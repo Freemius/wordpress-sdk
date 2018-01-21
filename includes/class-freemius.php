@@ -4960,26 +4960,30 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * @author Vova Feldman (@svovaf)
          * @since 2.0.0
          *
          * @return bool
          */
         private function should_add_sticky_optin_notice() {
+            if ( fs_is_network_admin() ) {
             if ( ! $this->_is_network_active ) {
-                return ! isset( $this->_storage->sticky_optin_added );
+                    return false;
             }
 
-            if ( fs_is_network_admin() ) {
+                if ( ! $this->is_network_activation_mode() ) {
+                    return false;
+            }
+
                 return ! isset( $this->_storage->sticky_optin_added_ms );
             }
 
-            if ( $this->is_delegated_connection() ) {
-                // If running from a blog admin and delegated the connection.
-                return ! isset( $this->_storage->sticky_optin_added );
-            }
-
+            if ( ! $this->is_activation_mode() ) {
             return false;
+        }
+
+            // If running from a blog admin and delegated the connection.
+            return ! isset( $this->_storage->sticky_optin_added );
         }
 
         /**
