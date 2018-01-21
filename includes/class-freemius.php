@@ -10391,20 +10391,6 @@
                 // Load site.
                 $this->_site = $site;
 
-                /**
-                 * If the install owner's details are not stored locally, use the previous user's details if available.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 */
-                if ( ! isset( $users[ $this->_site->user_id ] ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
-                    $user_id = $this->_storage->prev_user_id;
-                } else {
-                    $user_id = $this->_site->user_id;
-                }
-
-                    // Load relevant user.
-                    $this->_user = clone $users[ $user_id ];
-
                 // Load plans.
                 $this->_plans = $plans[ $this->_slug ];
                 if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
@@ -10418,16 +10404,41 @@
                         }
                     }
                 }
+            }
 
-                // Load licenses.
-                $this->_licenses = array();
-                if ( is_array( $licenses ) &&
-                     isset( $licenses[ $this->_slug ] ) &&
-                     isset( $licenses[ $this->_slug ][ $this->_user->id ] )
-                ) {
-                    $this->_licenses = $licenses[ $this->_slug ][ $this->_user->id ];
+            $user = null;
+            if ( fs_is_network_admin() && $this->_is_network_active ) {
+                $user = $this->get_network_user();
+            }
+
+            if ( is_object( $user ) ) {
+                $this->_user = clone $user;
+            } else {
+                /**
+                 * If the install owner's details are not stored locally, use the previous user's details if available.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                if ( ! isset( $users[ $this->_site->user_id ] ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
+                    $user_id = $this->_storage->prev_user_id;
+                } else {
+                    $user_id = $this->_site->user_id;
                 }
 
+                if ( isset( $users[ $user_id ] ) && $users[ $user_id ] instanceof FS_User ) {
+                    // Load relevant user.
+                    $this->_user = clone $users[ $user_id ];
+                        } else {
+                    // Recovery????
+                    }
+                }
+
+            if ( is_object( $this->_user ) ) {
+                // Load licenses.
+                $this->_licenses = $this->get_user_licenses($this->_user->id);
+                }
+
+            if ( is_object( $this->_site ) ) {
                 $this->_license = $this->_get_license_by_id( $this->_site->license_id );
 
                 if ( $this->_site->version != $this->get_plugin_version() ) {
