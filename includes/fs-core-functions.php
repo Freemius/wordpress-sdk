@@ -421,7 +421,7 @@
          * Check if string ends with.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $haystack
          * @param string $needle
@@ -1134,7 +1134,7 @@
 
     /**
      * @author Vova Feldman (@svovaf)
-     * @since  1.2.4
+     * @since  2.0.0
      */
     function fs_is_plugin_uninstall() {
         return (
@@ -1149,7 +1149,7 @@
      * uninstall.
      *
      * @author Vova Feldman (@svovaf)
-     * @since  1.2.4
+     * @since  2.0.0
      */
     function fs_is_network_admin() {
         return (
@@ -1164,7 +1164,7 @@
      * uninstall.
      *
      * @author Vova Feldman (@svovaf)
-     * @since  1.2.4
+     * @since  2.0.0
      */
     function fs_is_blog_admin() {
         return (

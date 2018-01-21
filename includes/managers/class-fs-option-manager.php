@@ -37,13 +37,13 @@
         private $_logger;
 
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var int The ID of the blog that is associated with the current site level options.
          */
         private $_blog_id = 0;
 
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var bool
          */
         private $_is_network_storage;
@@ -62,7 +62,7 @@
          *
          * @param string   $id
          * @param bool     $load
-         * @param bool|int $network_level_or_blog_id Since 1.2.4
+         * @param bool|int $network_level_or_blog_id Since 2.0.0
          */
         private function __construct( $id, $load = false, $network_level_or_blog_id = false ) {
             $id = strtolower( $id );
@@ -95,7 +95,7 @@
          *
          * @param string   $id
          * @param bool     $load
-         * @param bool|int $network_level_or_blog_id Since 1.2.4
+         * @param bool|int $network_level_or_blog_id Since 2.0.0
          *
          * @return FS_Option_Manager
          */
@@ -424,7 +424,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return string
          */

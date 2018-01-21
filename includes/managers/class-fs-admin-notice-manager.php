@@ -38,12 +38,12 @@
          */
         protected $_logger;
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var int The ID of the blog that is associated with the current site level admin notices.
          */
         private $_blog_id = 0;
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var bool
          */
         private $_is_network_notices;
@@ -57,7 +57,7 @@
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
-         * @param bool   $network_level_or_blog_id Since 1.2.4
+         * @param bool   $network_level_or_blog_id Since 2.0.0
          *
          * @return \FS_Admin_Notice_Manager
          */
@@ -329,7 +329,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return string
          */

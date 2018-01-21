@@ -56,7 +56,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $id
          * @param bool   $load
@@ -73,7 +73,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $id
          * @param bool   $load
@@ -94,7 +94,7 @@
          * Switch the context of the site level options manager.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param $blog_id
          */
@@ -125,7 +125,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string        $option
          * @param mixed         $value
@@ -143,7 +143,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string        $option
          * @param bool          $flush
@@ -160,7 +160,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool $flush
          * @param bool $network_level
@@ -175,7 +175,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, store both network storage and the current context blog storage.
          */
@@ -202,7 +202,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $option
          *
@@ -227,7 +227,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -245,7 +245,7 @@
          * Check if an option should be stored on the MS network storage.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string        $option
          * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).

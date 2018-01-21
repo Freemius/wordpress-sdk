@@ -90,7 +90,7 @@
 		 */
 		private $_menu_exists;
 		/**
-		 * @since 1.2.4
+		 * @since 2.0.0
 		 *
 		 * @var bool
 		 */
@@ -269,7 +269,7 @@
 
 		/**
          * @author Vova Feldman (@svovaf)
-		 * @since  1.2.4
+		 * @since  2.0.0
 		 *
 		 * @return bool
 		 */
@@ -823,7 +823,7 @@
          * Add page and update menu instance settings.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string          $page_title
          * @param string          $menu_title
@@ -917,7 +917,7 @@
          * Add sub page and update menu instance settings.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string          $parent_slug
          * @param string          $page_title

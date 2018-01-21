@@ -187,7 +187,7 @@
          * Check if license can be activated.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool|null $is_localhost
          *

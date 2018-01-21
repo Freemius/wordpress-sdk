@@ -3,7 +3,7 @@
      * @package     Freemius
      * @copyright   Copyright (c) 2015, Freemius, Inc.
      * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-     * @since       1.2.4
+     * @since       2.0.0
      */
 
     if ( ! defined( 'ABSPATH' ) ) {
@@ -206,7 +206,7 @@
          * Clear all sticky messages.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int|null $network_level_or_blog_id
          */
@@ -249,7 +249,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -272,7 +272,7 @@
          * Check if the network notices should be used.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string        $id
          * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite notices (if there's a network). When `false`, use the current context blog notices. When `null`, the decision which notices manager to use (MS vs. Current S) will be handled internally and determined based on the $id and the context admin (blog admin vs. network level admin).

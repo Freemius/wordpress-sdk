@@ -98,7 +98,7 @@
 
         /**
          * @since 1.0.9
-         * @since 1.2.4 Default to true since we need the property during the instance construction, prior to the dynamic_init() execution.
+         * @since 2.0.0 Default to true since we need the property during the instance construction, prior to the dynamic_init() execution.
          * @var bool Hints the SDK if plugin can support anonymous mode (if skip connect is visible).
          */
         private $_enable_anonymous = true;
@@ -294,35 +294,35 @@
         private $custom_affiliate_terms = null;
 
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var bool
          */
         private $_is_multisite_integrated;
 
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var bool True if the current request is for a network admin screen and the plugin is network active.
          */
         private $_is_network_active;
 
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var int|null The original blog ID the plugin was loaded with.
          */
         private $_blog_id = null;
 
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var int|null The current execution context. When true, run on network context. When int, run on the specified blog context.
          */
         private $_context_is_network_or_blog_id = null;
 
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var string
          */
@@ -609,11 +609,11 @@
                 return;
             }
 
-            if ( version_compare( $sdk_prev_version, '1.2.4', '<' ) &&
-                 version_compare( $sdk_version, '1.2.4', '>=' )
+            if ( version_compare( $sdk_prev_version, '2.0.0', '<' ) &&
+                 version_compare( $sdk_version, '2.0.0', '>=' )
             ) {
                 /**
-                 * Starting from version 1.2.4, `FS_Site` entities no longer have the `plan` property and have
+                 * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have
                  * `plan_id` instead.
                  *
                  * @author Leo Fajardo (@leorw)
@@ -658,7 +658,7 @@
 
         /**
          * @author Leo Fajardo
-         * @since  1.2.4
+         * @since  2.0.0
          */
         private function migrate_site_plan_to_plan_id() {
             if ( ! is_object( $this->_site ) ) {
@@ -793,7 +793,7 @@
          * process AJAX calls we can identify its source properly.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          */
         function _enrich_ajax_url() {
             $admin_param = is_network_admin() ?
@@ -1016,7 +1016,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
             add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
@@ -1845,7 +1845,7 @@
          * Checks if the SDK in network activation mode.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool $and_on
          *
@@ -1950,7 +1950,7 @@
          * Get the basenames of all active plugins for specific blog. Including network activated plugins.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -1980,7 +1980,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param int $blog_id Since 1.2.4
+         * @param int $blog_id Since 2.0.0
          *
          * @return array[string]array
          */
@@ -2002,7 +2002,7 @@
          * Get collection of all site active plugins for a specified blog.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -2031,7 +2031,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.8
          *
-         * @param int $blog_id Since 1.2.4
+         * @param int $blog_id Since 2.0.0
          *
          * @return array Key is the plugin file path and the value is an array of the plugin data.
          */
@@ -2063,7 +2063,7 @@
          * Get collection of all plugins and if they are network level activated.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return array Key is the plugin basename and the value is an array of the plugin data.
          */
@@ -2488,7 +2488,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
-         * @param int|null $blog_id Since 1.2.4.
+         * @param int|null $blog_id Since 2.0.0.
          *
          * @return object|false
          */
@@ -2636,7 +2636,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.0
          *
-         * @param null|int $blog_id Since 1.2.4
+         * @param null|int $blog_id Since 2.0.0
          *
          * @return string
          */
@@ -4424,7 +4424,7 @@
          * Check if super-admin skipped connection for all sites in the network.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          */
         function is_network_anonymous() {
             if ( $this->_is_network_active ) {
@@ -4961,7 +4961,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @return bool
          */
@@ -4984,7 +4984,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          */
         private function add_sticky_optin_admin_notice() {
             if ( ! $this->_is_network_active || ! fs_is_network_admin() ) {
@@ -5121,7 +5121,7 @@
          * @since  1.0.1
          *
          * @param bool     $store
-         * @param int|null $blog_id Since 1.2.4
+         * @param int|null $blog_id Since 2.0.0
          *
          * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
          */
@@ -5138,7 +5138,7 @@
          * @param string   $slug
          * @param string   $module_type
          * @param bool     $store
-         * @param int|null $blog_id Since 1.2.4
+         * @param int|null $blog_id Since 2.0.0
          *
          * @return false|int The install ID if deleted. Otherwise, FALSE (when install not exist).
          */
@@ -5538,7 +5538,7 @@
          * Delete network level account.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool $check_user Enforce checking if user have plugins activation privileges.
          */
@@ -5729,7 +5729,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @param int    $blog_id    Site ID.
          * @param int    $user_id    User ID.
@@ -5751,7 +5751,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param bool $network Since 1.2.4.
+         * @param bool $network Since 2.0.0.
          */
         private function reset_anonymous_mode( $network = false ) {
             if ( $network ) {
@@ -5795,8 +5795,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
-         * @param array|null $sites   Since 1.2.4. Specific sites.
-         * @param bool       $network Since 1.2.4. If true, skip connection for all sites.
+         * @param array|null $sites   Since 2.0.0. Specific sites.
+         * @param bool       $network Since 2.0.0. If true, skip connection for all sites.
          */
         private function skip_connection( $sites = null, $network = false ) {
             $this->_logger->entrance();
@@ -5849,7 +5849,7 @@
          * This helper methods used to identify changes in a plugins collection.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param array [string]array $plugins
          *
@@ -6233,7 +6233,7 @@
          * @todo   V1 of multiste network support doesn't support plugin and theme data sending.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string[] string           $override
          * @param bool     $only_diff
@@ -6351,7 +6351,7 @@
          * Compare site actual data to the stored install data and return the differences for an API data sync.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param array    $site
          * @param FS_Site  $install
@@ -6441,7 +6441,7 @@
          * Update installs only if changed.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string[] string $override
          * @param bool     $flush
@@ -7062,7 +7062,7 @@
 
         /**
          * @param string   $module_type
-         * @param null|int $blog_id Since 1.2.4
+         * @param null|int $blog_id Since 2.0.0
          *
          * @return array[string]FS_Site
          */
@@ -7086,7 +7086,7 @@
          *
          * @param string   $option_name
          * @param string   $module_type
-         * @param null|int $network_level_or_blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 2.0.0
          *
          * @return mixed
          */
@@ -7106,7 +7106,7 @@
          * @param string   $option_name
          * @param mixed    $option_value
          * @param bool     $store
-         * @param null|int $network_level_or_blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 2.0.0
          */
         private function set_account_option( $option_name, $option_value, $store, $network_level_or_blog_id = null ) {
             self::set_account_option_by_module(
@@ -7127,7 +7127,7 @@
          * @param string   $option_name
          * @param mixed    $option_value
          * @param bool     $store
-         * @param null|int $network_level_or_blog_id Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 2.0.0
          */
         private static function set_account_option_by_module(
             $module_type,
@@ -7402,7 +7402,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $user_id
          *
@@ -7473,7 +7473,7 @@
          * Get site's plan name.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return string
          */
@@ -7765,7 +7765,7 @@
          * Check if specified plan exists locally. If not, fetch it and store it.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $plan_id
          *
@@ -7795,7 +7795,7 @@
          * Check if specified license exists locally. If not, fetch it and store it.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $license_id
          * @param string $license_key
@@ -7827,7 +7827,7 @@
          * Get a collection of unique plan IDs that are associated with any installs in the network.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return number[]
          */
@@ -9272,8 +9272,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.4
          *
-         * @param string $page
-         * @param array  $params
+         * @param string    $page
+         * @param array     $params
          * @param bool|null $network
          *
          * @return string
@@ -9377,7 +9377,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -9389,7 +9389,7 @@
          * Delegate activation for the given sites in the network (or all sites if `null`) to site admins.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param array|null $sites
          */
@@ -9413,7 +9413,7 @@
          * Check if super-admin delegated the connection of ALL sites to the site admins.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -9427,7 +9427,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -9454,7 +9454,7 @@
          * for the current context site OR the whole network.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -9477,7 +9477,7 @@
          * Check if the current module is active for the site.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *
@@ -9504,7 +9504,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return array Sites collection.
          */
@@ -9525,7 +9525,7 @@
          * Get a mapping between the site addresses to their blog IDs.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return array {
          * @key    string Site address without protocol with a trailing slash.
@@ -9551,7 +9551,7 @@
          * Get a mapping between the site addresses to their blog IDs.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return array {
          * @key    int     Site's blog ID.
@@ -9617,7 +9617,7 @@
          * Switches the Freemius site level context to a specified blog.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int     $blog_id
          * @param FS_Site $install
@@ -9699,7 +9699,7 @@
          * Restore the blog context to the blog that originally loaded the module.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          */
         function restore_current_blog() {
             $this->switch_to_blog( $this->_blog_id );
@@ -9707,7 +9707,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param array|WP_Site $site
          *
@@ -9721,7 +9721,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param array|WP_Site|null $site
          *
@@ -9776,7 +9776,7 @@
          * Load the module's install based on the blog ID.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int|null $blog_id
          *
@@ -9802,7 +9802,7 @@
          * Check if super-admin connected at least one site via the network opt-in.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -9818,7 +9818,7 @@
          * Returns the main user associated with the network.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return FS_User
          */
@@ -9836,7 +9836,7 @@
          * Returns the current context user or the network's main user.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return FS_User
          */
@@ -9850,7 +9850,7 @@
          * Returns the main install associated with the network.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return FS_Site
          */
@@ -9868,7 +9868,7 @@
          * Returns the blog ID that is associated with the main install.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return int|null
          */
@@ -9886,7 +9886,7 @@
          * Returns the current context install or the network's main install.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return FS_Site
          */
@@ -9900,7 +9900,7 @@
          * Check if executing a site level action from the network level admin.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return false|int If yes, return the requested blog ID.
          */
@@ -9922,7 +9922,7 @@
          * Check if executing an action from the network level admin.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -10361,8 +10361,8 @@
                     $user_id = $this->_site->user_id;
                 }
 
-                // Load relevant user.
-                $this->_user = clone $users[ $user_id ];
+                    // Load relevant user.
+                    $this->_user = clone $users[ $user_id ];
 
                 // Load plans.
                 $this->_plans = $plans[ $this->_slug ];
@@ -10814,7 +10814,7 @@
          * Set user and site identities.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param FS_User   $user
          * @param FS_Site[] $installs
@@ -11054,7 +11054,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $id
          * @param string $public_key
@@ -11107,7 +11107,7 @@
              * This method is also executed after opting in with a license key since the
              * license can be potentially associated with a different owner.
              *
-             * @since 1.2.4
+             * @since 2.0.0
              */
             $user = self::_get_user_by_id( $user_id );
 
@@ -11146,7 +11146,7 @@
          * Install plugin with user.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $user_id
          * @param string $user_public_key
@@ -11192,7 +11192,7 @@
          * Multi-site install with a new user.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number   $user_id
          * @param string   $user_public_key
@@ -11355,14 +11355,14 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param \FS_User    $user
          * @param string|bool $license_key
          * @param number|bool $trial_plan_id
          * @param bool        $redirect
-         * @param bool        $setup_account Since 1.2.4. When set to FALSE, executes a light installation without setting up the account as if it's the first opt-in.
-         * @param array       $sites         Since 1.2.4. If not empty, should be a collection of site details for the bulk install API request.
+         * @param bool        $setup_account Since 2.0.0. When set to FALSE, executes a light installation without setting up the account as if it's the first opt-in.
+         * @param array       $sites         Since 2.0.0. If not empty, should be a collection of site details for the bulk install API request.
          *
          * @return \FS_Site|object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install. If $setup_account is set to `false`, return the newly created install.
          */
@@ -11630,7 +11630,7 @@
 
                 $this->add_menu_action();
 
-                    $this->add_network_menu_when_missing();
+                $this->add_network_menu_when_missing();
 
                 $this->add_submenu_items();
             }
@@ -11778,7 +11778,7 @@
          * Freemius settings.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          */
         private function add_network_menu_when_missing() {
             $this->_logger->entrance();
@@ -11938,101 +11938,101 @@
                 );
             } else {
                 $add_submenu_items = ( ! $this->_is_network_active || $this->is_delegated_connection() );
-                }
+            }
 
             if ( $add_submenu_items ) {
-                    if ( $this->has_affiliate_program() ) {
-                        // Add affiliation page.
-                        $this->add_submenu_item(
-                            $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            array( &$this, '_affiliation_page_render' ),
-                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                            'manage_options',
-                            'affiliation',
-                            'Freemius::_clean_admin_content_section',
-                            WP_FS__DEFAULT_PRIORITY,
-                            $this->is_submenu_item_visible( 'affiliation' )
-                        );
-                    }
-
-                    if ( $this->is_registered() ) {
-                        $show_account = (
-                            $this->is_submenu_item_visible( 'account' ) &&
-                            /**
-                             * @since 1.2.2.7 Don't show the Account for free WP.org themes without any paid plans.
-                             */
-                            ( ! $this->is_free_wp_org_theme() || $this->has_paid_plan() )
-                        );
-
-                        // Add user account page.
-                        $this->add_submenu_item(
-                            $this->get_text_inline( 'Account', 'account' ),
-                            array( &$this, '_account_page_render' ),
-                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Account', 'account' ),
-                            'manage_options',
-                            'account',
-                            array( &$this, '_account_page_load' ),
-                            WP_FS__DEFAULT_PRIORITY,
-                            $show_account
-                        );
-                    }
-
-                    // Add contact page.
+                if ( $this->has_affiliate_program() ) {
+                    // Add affiliation page.
                     $this->add_submenu_item(
-                        $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                        array( &$this, '_contact_page_render' ),
-                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                        $this->get_text_inline( 'Affiliation', 'affiliation' ),
+                        array( &$this, '_affiliation_page_render' ),
+                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
                         'manage_options',
-                        'contact',
+                        'affiliation',
                         'Freemius::_clean_admin_content_section',
                         WP_FS__DEFAULT_PRIORITY,
-                        $this->is_submenu_item_visible( 'contact' )
-                    );
-
-                    if ( $this->has_addons() ) {
-                        $this->add_submenu_item(
-                            $this->get_text_inline( 'Add-Ons', 'add-ons' ),
-                            array( &$this, '_addons_page_render' ),
-                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Add-Ons', 'add-ons' ),
-                            'manage_options',
-                            'addons',
-                            array( &$this, '_addons_page_load' ),
-                            WP_FS__LOWEST_PRIORITY - 1,
-                            $this->is_submenu_item_visible( 'addons' )
-                        );
-                    }
-
-                    $show_pricing = (
-                        $this->is_submenu_item_visible( 'pricing' ) &&
-                        $this->is_pricing_page_visible()
-                    );
-
-                    $pricing_cta_text = $this->get_pricing_cta_label();
-                    $pricing_class    = 'upgrade-mode';
-                    if ( $show_pricing ) {
-                        if ( $this->is_in_trial_promotion() &&
-                             ! $this->is_paying_or_trial()
-                        ) {
-                            // If running a trial promotion, modify the pricing to load the trial.
-                            $pricing_class = 'trial-mode';
-                        } else if ( $this->is_paying() ) {
-                            $pricing_class = '';
-                        }
-                    }
-
-                    // Add upgrade/pricing page.
-                    $this->add_submenu_item(
-                        $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
-                        array( &$this, '_pricing_page_render' ),
-                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
-                        'manage_options',
-                        'pricing',
-                        'Freemius::_clean_admin_content_section',
-                        WP_FS__LOWEST_PRIORITY,
-                        $show_pricing,
-                        $pricing_class
+                        $this->is_submenu_item_visible( 'affiliation' )
                     );
                 }
+
+                if ( $this->is_registered() ) {
+                    $show_account = (
+                        $this->is_submenu_item_visible( 'account' ) &&
+                        /**
+                         * @since 1.2.2.7 Don't show the Account for free WP.org themes without any paid plans.
+                         */
+                        ( ! $this->is_free_wp_org_theme() || $this->has_paid_plan() )
+                    );
+
+                    // Add user account page.
+                    $this->add_submenu_item(
+                        $this->get_text_inline( 'Account', 'account' ),
+                        array( &$this, '_account_page_render' ),
+                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Account', 'account' ),
+                        'manage_options',
+                        'account',
+                        array( &$this, '_account_page_load' ),
+                        WP_FS__DEFAULT_PRIORITY,
+                        $show_account
+                    );
+                }
+
+                // Add contact page.
+                $this->add_submenu_item(
+                    $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                    array( &$this, '_contact_page_render' ),
+                    $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                    'manage_options',
+                    'contact',
+                    'Freemius::_clean_admin_content_section',
+                    WP_FS__DEFAULT_PRIORITY,
+                    $this->is_submenu_item_visible( 'contact' )
+                );
+
+                if ( $this->has_addons() ) {
+                    $this->add_submenu_item(
+                        $this->get_text_inline( 'Add-Ons', 'add-ons' ),
+                        array( &$this, '_addons_page_render' ),
+                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Add-Ons', 'add-ons' ),
+                        'manage_options',
+                        'addons',
+                        array( &$this, '_addons_page_load' ),
+                        WP_FS__LOWEST_PRIORITY - 1,
+                        $this->is_submenu_item_visible( 'addons' )
+                    );
+                }
+
+                $show_pricing = (
+                    $this->is_submenu_item_visible( 'pricing' ) &&
+                    $this->is_pricing_page_visible()
+                );
+
+                $pricing_cta_text = $this->get_pricing_cta_label();
+                $pricing_class    = 'upgrade-mode';
+                if ( $show_pricing ) {
+                    if ( $this->is_in_trial_promotion() &&
+                         ! $this->is_paying_or_trial()
+                    ) {
+                        // If running a trial promotion, modify the pricing to load the trial.
+                        $pricing_class = 'trial-mode';
+                    } else if ( $this->is_paying() ) {
+                        $pricing_class = '';
+                    }
+                }
+
+                // Add upgrade/pricing page.
+                $this->add_submenu_item(
+                    $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? '&#x2190;' : '&#x27a4;' ),
+                    array( &$this, '_pricing_page_render' ),
+                    $this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
+                    'manage_options',
+                    'pricing',
+                    'Freemius::_clean_admin_content_section',
+                    WP_FS__LOWEST_PRIORITY,
+                    $show_pricing,
+                    $pricing_class
+                );
+            }
 
             if ( 0 < count( $this->_menu_items ) ) {
                 if ( ! $this->_menu->is_top_level() ) {
@@ -12214,7 +12214,7 @@
 
             if ( ! $this->is_activation_mode() &&
                  ( ( $this->_is_network_active && fs_is_network_admin() ) ||
-                 ( ! $this->_is_network_active && is_admin() ) )
+                   ( ! $this->_is_network_active && is_admin() ) )
             ) {
                 $this->add_submenu_link_item(
                     $this->apply_filters( 'support_forum_submenu', $this->get_text_inline( 'Support Forum', 'support-forum' ) ),
@@ -12716,8 +12716,8 @@
          * @since  1.0.1
          *
          * @param bool     $store                    Flush to Database if true.
-         * @param null|int $network_level_or_blog_id Since 1.2.4
-         * @param \FS_Site $site                     Since 1.2.4
+         * @param null|int $network_level_or_blog_id Since 2.0.0
+         * @param \FS_Site $site                     Since 2.0.0
          */
         private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null ) {
             $this->_logger->entrance();
@@ -12921,7 +12921,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
-         * @param null|int $blog_id Since 1.2.4
+         * @param null|int $blog_id Since 2.0.0
          */
         private function _store_account( $blog_id = null ) {
             $this->_logger->entrance();
@@ -13073,7 +13073,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $plan_id
          *
@@ -13179,7 +13179,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param number $license_id
          * @param string $license_key
@@ -13510,7 +13510,7 @@
          * @uses   FS_Api
          *
          * @param bool $background           Hints the method if it's a background sync. If false, it means that was initiated by the admin.
-         * @param bool $send_installs_update Since 1.2.4
+         * @param bool $send_installs_update Since 2.0.0
          */
         private function _sync_plugin_license( $background = false, $send_installs_update = true ) {
             $this->_logger->entrance();
@@ -14765,7 +14765,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.2
          *
-         * @param array $params
+         * @param array     $params
          * @param bool|null $network
          *
          * @return string
@@ -15425,7 +15425,7 @@
         /**
          *
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool $flush
          *

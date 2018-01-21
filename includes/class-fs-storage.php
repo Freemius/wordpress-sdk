@@ -145,7 +145,7 @@
          * Switch the context of the site level storage manager.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          */
@@ -177,7 +177,7 @@
          *
          * @param bool     $store
          * @param string[] $exceptions               Set of keys to keep and not clear.
-         * @param int|null $network_level_or_blog_id Since 1.2.4
+         * @param int|null $network_level_or_blog_id Since 2.0.0
          */
         function clear_all( $store = true, $exceptions = array(), $network_level_or_blog_id = null ) {
             if ( ! $this->_is_multisite ||
@@ -240,7 +240,7 @@
          *               Save site storage.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param bool|int|null $network_level_or_blog_id
          */
@@ -263,7 +263,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $key
          *
@@ -326,7 +326,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param int $blog_id
          *

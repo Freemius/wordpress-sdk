@@ -55,13 +55,13 @@
 		protected $_secondary_id;
 
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var int The ID of the blog that is associated with the current site level options.
          */
         private $_blog_id = 0;
 
         /**
-         * @since 1.2.4
+         * @since 2.0.0
          * @var bool
          */
         private $_is_multisite_storage;
@@ -186,7 +186,7 @@
 
         /**
          * @author   Vova Feldman (@svovaf)
-         * @since    1.2.4
+         * @since    2.0.0
          */
         function save() {
             $this->get_option_manager()->store();
@@ -271,7 +271,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return string
          */

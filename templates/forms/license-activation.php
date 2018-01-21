@@ -440,7 +440,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @returns {Boolean}
          */
@@ -450,7 +450,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @returns {Boolean}
          */
@@ -471,7 +471,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @returns {Boolean}
          */
@@ -482,7 +482,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          */
         function toggleActivationOnAllSites() {
             var
@@ -519,7 +519,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          */
         function resetActivateLicenseCheckboxLabel() {
             var activateLicenseCheckboxLabel = '<?php fs_esc_js_echo_inline( 'Activate license on all sites in the network.', 'activate-license-on-all-sites-in-the-network', $slug ) ?>';
@@ -528,7 +528,7 @@ HTML;
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 1.2.4
+         * @since 2.0.0
          *
          * @param {Boolean} show
          */

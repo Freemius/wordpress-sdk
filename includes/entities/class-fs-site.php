@@ -95,13 +95,13 @@
          */
         public $is_disconnected = false;
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var bool
          */
         public $is_active = true;
         /**
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @var bool
          */
@@ -128,7 +128,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @param string $url
          *
@@ -203,7 +203,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
@@ -213,7 +213,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  1.2.4
+         * @since  2.0.0
          *
          * @return bool
          */
