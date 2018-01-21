@@ -105,7 +105,9 @@ HTML;
                          'Single' :
                          $license->quota
                      ),
-                     $license->secret_key
+                     ( htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) .
+                        str_pad( '', 23 * 6, '&bull;' ) .
+                        htmlspecialchars( substr( $license->secret_key, - 3 ) ) )
                 );
 
                 $license_input_html .= "<option value='{$license->secret_key}' data-left='{$license->left()}'>{$label}</option>";
@@ -125,7 +127,9 @@ HTML;
                     'Single' :
                     $available_license->quota
                 ),
-                $available_license->secret_key
+                ( htmlspecialchars( substr( $available_license->secret_key, 0, 6 ) ) .
+                    str_pad( '', 23 * 6, '&bull;' ) .
+                    htmlspecialchars( substr( $available_license->secret_key, - 3 ) ) )
             );
 
             $license_input_html .= <<< HTML
