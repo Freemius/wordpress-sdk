@@ -7960,7 +7960,32 @@
          * @return FS_Plugin_License[]|object
          */
         function _sync_licenses( $site_license_id = false ) {
-            $licenses = $this->_fetch_licenses( false, $site_license_id );
+            $foreign_licenses = array();
+            if ( fs_is_network_admin() ) {
+                $foreign_licenses['ids']          = array();
+                $foreign_licenses['license_keys'] = array();
+
+                $user_licenses = $this->get_user_licenses( $this->_user->id );
+                foreach ( $user_licenses as $user_license ) {
+                    if ( $user_license->user_id == $this->_user->id ) {
+                        continue;
+                    }
+
+                    $foreign_licenses['ids'][]          = $user_license->id;
+                    $foreign_licenses['license_keys'][] = urlencode( $user_license->secret_key );
+                }
+
+                if ( ! empty( $foreign_licenses['ids'] ) ) {
+                    $foreign_licenses = array(
+                        'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                        'license_keys' => implode( ',', $foreign_licenses['license_keys'] )
+                    );
+                } else {
+                    $foreign_licenses = array();
+                }
+            }
+
+            $licenses = $this->_fetch_licenses( false, $site_license_id, $foreign_licenses );
 
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
                 $licenses_map = array();
@@ -13225,10 +13250,12 @@
          *
          * @return FS_Plugin_License[]|object
          */
-        private function _fetch_licenses( $plugin_id = false, $site_license_id = false ) {
+        private function _fetch_licenses( $plugin_id = false, $site_license_id = false, $foreign_licenses = array() ) {
             $this->_logger->entrance();
 
-            $api = fs_is_network_admin() ?
+            $is_network_admin = fs_is_network_admin();
+
+            $api = $is_network_admin ?
                 $this->get_api_network_user_scope() :
                 $this->get_api_user_scope();
 
@@ -13236,7 +13263,12 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $result = $api->get( "/plugins/{$plugin_id}/licenses.json", true );
+            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json";
+            if ( $is_network_admin && ! empty ( $foreign_licenses ) ) {
+                $user_licenses_endpoint = add_query_arg( $foreign_licenses, $user_licenses_endpoint );
+            }
+
+            $result = $api->get( $user_licenses_endpoint, true );
 
             $is_site_license_synced = false;
 
