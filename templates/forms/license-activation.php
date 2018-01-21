@@ -45,18 +45,18 @@
 
 	$license_key_text = fs_text_inline( 'License key', 'license-key' , $slug );
 
-    $is_network_level_activation = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
-    $network_activation_html     = '';
+    $is_network_active       = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
+    $network_activation_html = '';
 
     $sites_details = array();
-    if ( $is_network_level_activation ) {
+    if ( $is_network_active ) {
         $all_sites = $fs->get_sites();
 
         foreach ( $all_sites as $site ) {
             $sites_details[] = $fs->get_site_info( $site );
         }
 
-        if ( $is_network_level_activation ) {
+        if ( $is_network_active ) {
             $vars = array(
                 'id'                  => $fs->get_id(),
                 'sites'               => $sites_details,
@@ -201,7 +201,7 @@ HTML;
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
-            isNetworkActive           = <?php echo $is_network_level_activation ? 'true' : 'false' ?>;
+            isNetworkActive           = <?php echo $is_network_active ? 'true' : 'false' ?>;
 
 		$modal.appendTo($('body'));
 
@@ -216,7 +216,8 @@ HTML;
             hasLicensesDropdown  = ( $licensesDropdown.length > 0 ),
             hasLicenseTypes      = ( $licenseTypes.length > 0 ),
             maxSitesListHeight   = null,
-            totalSites           = <?php echo count( $sites_details ) ?>;
+            totalSites           = <?php echo count( $sites_details ) ?>,
+            singleBlogID         = null;
 
 		function registerEventHandlers() {
             var
@@ -292,7 +293,7 @@ HTML;
                     if ( otherLicenseKeySelected ) {
                         $applyOnAllSites.attr( 'disabled', false );
                         resetActivateLicenseCheckboxLabel();
-                    } else {
+                    } else if ( ! $modal.hasClass( 'is-single-site-activation' ) ) {
                         toggleActivationOnAllSites();
                     }
                 });
@@ -381,28 +382,34 @@ HTML;
 
                 if ( isNetworkActive ) {
                     var
-                        sites           = [],
-                        applyOnAllSites = $applyOnAllSites.is( ':checked' );
+                        sites = [];
 
-                    $sitesListContainer.find( 'tr' ).each(function() {
+                    if ( null === singleBlogID ) {
                         var
-                            $this       = $( this ),
-                            includeSite = ( applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
+                            applyOnAllSites = $applyOnAllSites.is( ':checked' );
 
-                        if ( ! includeSite )
-                            return;
+                        $sitesListContainer.find( 'tr' ).each(function() {
+                            var
+                                $this       = $( this ),
+                                includeSite = ( applyOnAllSites || $this.find( 'input' ).is( ':checked' ) );
 
-                        var site = {
-                            uid     : $this.find( '.uid' ).val(),
-                            url     : $this.find( '.url' ).val(),
-                            title   : $this.find( '.title' ).val(),
-                            language: $this.find( '.language' ).val(),
-                            charset : $this.find( '.charset' ).val(),
-                            blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
-                        };
+                            if ( ! includeSite )
+                                return;
 
-                        sites.push( site );
-                    });
+                            var site = {
+                                uid     : $this.find( '.uid' ).val(),
+                                url     : $this.find( '.url' ).val(),
+                                title   : $this.find( '.title' ).val(),
+                                language: $this.find( '.language' ).val(),
+                                charset : $this.find( '.charset' ).val(),
+                                blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
+                            };
+
+                            sites.push( site );
+                        });
+                    } else {
+                        data.blog_id = singleBlogID;
+                    }
 
                     data.sites = sites;
                 }
@@ -552,11 +559,21 @@ HTML;
 			$modal.addClass('active');
 			$('body').addClass('has-fs-modal');
 
-			if ( isNetworkActive && $multisiteOptionsContainer.length > 0 ) {
-                $multisiteOptionsContainer.toggle( ! $( evt.target ).parents( '.fs-install-details' ).length > 0 );
-            }
+            var
+                $singleInstallDetails  = $( evt.target ).parents( 'tr.fs-install-details' ),
+                isSingleSiteActivation = ( $singleInstallDetails.length > 0 );
+
+            $modal.toggleClass( 'is-single-site-activation', isSingleSiteActivation );
+
+            singleBlogID = isSingleSiteActivation ?
+                $singleInstallDetails.prev().data( 'blog-id' ) :
+                null;
+
+            $multisiteOptionsContainer.toggle( isNetworkActive && ! isSingleSiteActivation );
 
             if ( hasLicenseTypes ) {
+                $licenseTypes.attr( 'checked', false );
+
                 if ( hasLicensesDropdown ) {
                     $licensesDropdown.find( 'option:first' ).attr( 'selected', true ).trigger( 'change' );
                 } else {
