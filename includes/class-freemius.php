@@ -10915,9 +10915,6 @@
 
             $this->_sync_plans();
 
-            $current_blog_id         = get_current_blog_id();
-            $is_delegated_connection = $this->is_delegated_connection( $current_blog_id );
-
             if (1 < count($installs)) {
                 // Only network level opt-in can have more than one install.
                 $is_network_level_opt_in = true;
@@ -10925,10 +10922,6 @@
 //            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
             if ( ! $this->_is_network_active || ! $is_network_level_opt_in ) {
                 $this->_set_account( $user, $first_install );
-
-                if ( $is_delegated_connection ) {
-                    self::$_accounts->unset_option( 'is_delegated_connection', true, $current_blog_id );
-                }
             } else {
                 // Map site addresses to their blog IDs.
                 $address_to_blog_map = $this->get_address_to_blog_map();
