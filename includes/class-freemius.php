@@ -4553,7 +4553,11 @@
                     }
                 } else {
                     // Sync install (only if something changed locally).
-                    $this->sync_install();
+                    if ( $this->_is_network_active ) {
+                        $this->sync_installs( array(), true );
+                    } else {
+                        $this->sync_install( array(), true );
+                    }
                 }
             }
 
