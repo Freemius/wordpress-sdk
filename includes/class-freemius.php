@@ -7886,6 +7886,43 @@
         }
 
         /**
+         * Get a collection of unique license IDs that are associated with any installs in the network.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.0
+         *
+         * @return number[]
+         */
+        private function get_license_ids_associated_with_installs() {
+            if ( ! $this->_is_network_active ) {
+                if ( ! is_object( $this->_site ) ||
+                     ! FS_Plugin_License::is_valid_id( $this->_site->license_id )
+                ) {
+                    return array();
+                }
+
+                return array( $this->_site->license_id );
+            }
+
+            $license_ids = array();
+            $sites       = $this->get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = $this->get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( ! is_object( $install ) ||
+                     ! FS_Plugin_License::is_valid_id( $install->license_id )
+                ) {
+                    continue;
+                }
+
+                $license_ids[ $install->license_id ] = true;
+            }
+
+            return array_keys( $license_ids );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          *
@@ -7944,11 +7981,55 @@
          * @return FS_Plugin_License[]|object
          */
         function _sync_licenses( $site_license_id = false ) {
-            $licenses = $this->_fetch_licenses( false, $site_license_id );
+            $foreign_licenses = array();
+            if ( fs_is_network_admin() ) {
+                $foreign_licenses['ids']          = array();
+                $foreign_licenses['license_keys'] = array();
+
+                $user_licenses = $this->get_user_licenses( $this->_user->id );
+                foreach ( $user_licenses as $user_license ) {
+                    if ( $user_license->user_id == $this->_user->id ) {
+                        continue;
+                    }
+
+                    $foreign_licenses['ids'][]          = $user_license->id;
+                    $foreign_licenses['license_keys'][] = urlencode( $user_license->secret_key );
+                }
+
+                if ( ! empty( $foreign_licenses['ids'] ) ) {
+                    $foreign_licenses = array(
+                        'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                        'license_keys' => implode( ',', $foreign_licenses['license_keys'] )
+                    );
+                } else {
+                    $foreign_licenses = array();
+                }
+            }
+
+            $licenses = $this->_fetch_licenses( false, $site_license_id, $foreign_licenses );
 
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
+                $licenses_map = array();
+                foreach ( $licenses as $license ) {
+                    $licenses_map[ $license->id ] = true;
+                }
+
+                $license_ids_to_keep = $this->get_license_ids_associated_with_installs();
+
+                foreach ( $license_ids_to_keep as $license_id ) {
+                    if ( isset( $licenses_map[ $license_id ] ) ) {
+                        continue;
+                    }
+
+                    $missing_license = self::_get_license_by_id( $license_id );
+
+                    if ( is_object( $missing_license ) ) {
+                        $licenses[] = $missing_license;
+                    }
+                }
+
                 $this->_licenses = $licenses;
-                $this->_store_licenses();
+                $this->_store_licenses( true, false, $licenses );
             }
 
             // Update current license.
@@ -8410,39 +8491,29 @@
                         $params[] = array( 'id' => $install->id );
                     }
                 } else {
-                    $current_site = $this->_site;
                     if ( is_numeric( $blog_id ) ) {
-                        $install = $this->get_install_by_blog_id( $blog_id );
-                        if ( ! is_object( $install ) ) {
-                            $error = 'Invalid blog ID';
-                        } else {
-                            $this->_site = $install;
-                        }
+                        $this->switch_to_blog( $blog_id );
                     }
 
                     $api = $fs->get_api_site_scope();
-
-                    $this->_site = $current_site;
 
                     $params = array(
                         'license_key' => $fs->apply_filters( 'license_key', $license_key )
                     );
                 }
 
-                if ( empty( $error ) ) {
-                    $install = $api->call( $endpoint, 'put', $params );
+                $install = $api->call( $endpoint, 'put', $params );
 
-                    if ( isset( $install->error ) ) {
-                        $error = $install->error->message;
-                    } else {
-                        $fs->_sync_license( true );
+                if ( isset( $install->error ) ) {
+                    $error = $install->error->message;
+                } else {
+                    $fs->_sync_license( true, is_numeric( $blog_id ) );
 
-                        $next_page = $fs->is_addon() ?
-                            $fs->get_parent_instance()->get_account_url() :
-                            $fs->get_account_url();
+                    $next_page = $fs->is_addon() ?
+                        $fs->get_parent_instance()->get_account_url() :
+                        $fs->get_account_url();
 
-                        $fs->reconnect_locally();
-                    }
+                    $fs->reconnect_locally();
                 }
             } else {
                 $next_page = $fs->opt_in(
@@ -12877,7 +12948,11 @@
                 $all_licenses[ $plugin_slug ] = array();
             }
 
-            $all_licenses[ $plugin_slug ][ $this->_user->id ] = $licenses;
+            $user = fs_is_network_admin() ?
+                $this->get_network_user() :
+                $this->_user->id;
+
+            $all_licenses[ $plugin_slug ][ $user->id ] = $licenses;
 
             $this->set_account_option( 'licenses', $all_licenses, $store );
         }
@@ -13173,16 +13248,25 @@
          *
          * @return FS_Plugin_License[]|object
          */
-        private function _fetch_licenses( $plugin_id = false, $site_license_id = false ) {
+        private function _fetch_licenses( $plugin_id = false, $site_license_id = false, $foreign_licenses = array() ) {
             $this->_logger->entrance();
 
-            $api = $this->get_api_user_scope();
+            $is_network_admin = fs_is_network_admin();
+
+            $api = $is_network_admin ?
+                $this->get_api_network_user_scope() :
+                $this->get_api_user_scope();
 
             if ( ! is_numeric( $plugin_id ) ) {
                 $plugin_id = $this->_plugin->id;
             }
 
-            $result = $api->get( "/plugins/{$plugin_id}/licenses.json", true );
+            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json";
+            if ( $is_network_admin && ! empty ( $foreign_licenses ) ) {
+                $user_licenses_endpoint = add_query_arg( $foreign_licenses, $user_licenses_endpoint );
+            }
+
+            $result = $api->get( $user_licenses_endpoint, true );
 
             $is_site_license_synced = false;
 
@@ -13493,10 +13577,11 @@
          *
          * @uses   FS_Api
          *
-         * @param bool $background Hints the method if it's a background sync. If false, it means that was initiated by
-         *                         the admin.
+         * @param bool $background         Hints the method if it's a background sync. If false, it means that was initiated by
+         *                                 the admin.
+         * @param bool $is_site_level_sync @since 2.0.0.
          */
-        private function _sync_license( $background = false ) {
+        private function _sync_license( $background = false, $is_site_level_sync = false ) {
             $this->_logger->entrance();
 
             $plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
@@ -13506,7 +13591,7 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license( $background );
+                $this->_sync_plugin_license( $background, true, $is_site_level_sync );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
@@ -13593,8 +13678,9 @@
          *
          * @param bool $background           Hints the method if it's a background sync. If false, it means that was initiated by the admin.
          * @param bool $send_installs_update Since 2.0.0
+         * @param bool $is_site_level_sync   Since 2.0.0
          */
-        private function _sync_plugin_license( $background = false, $send_installs_update = true ) {
+        private function _sync_plugin_license( $background = false, $send_installs_update = true, $is_site_level_sync = false ) {
             $this->_logger->entrance();
 
             $plan_change = 'none';
@@ -13607,7 +13693,7 @@
                  *
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
-                $is_site_level_sync = ( is_blog_admin() || ! $this->_is_network_active );
+                $is_site_level_sync = ( $is_site_level_sync || is_blog_admin() || ! $this->_is_network_active );
 
                 if ( $is_site_level_sync ) {
                     $result   = $this->send_install_update( array(), true );
@@ -15502,6 +15588,32 @@
                     $this->_user->secret_key
                 );
             }
+
+            return $this->_user_api;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.0
+         *
+         * @param bool $flush
+         *
+         * @return FS_Api
+         */
+        function get_api_network_user_scope( $flush = false ) {
+            $user = $this->get_network_user();
+            if ( isset( $this->_user ) && $this->_user->id == $user->id ) {
+                return $this->get_api_user_scope( $flush );
+            }
+
+            $this->_user_api = FS_Api::instance(
+                $this->_module_id,
+                'user',
+                $user->id,
+                $user->public_key,
+                ! $this->is_live(),
+                $user->secret_key
+            );
 
             return $this->_user_api;
         }
