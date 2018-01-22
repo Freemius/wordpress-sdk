@@ -2224,9 +2224,8 @@
          * @since  1.0.8
          */
         static function _add_debug_section() {
-            if ( ! current_user_can( 'manage_options' )
-                 && ! current_user_can( 'switch_themes' )
-            ) {
+            if ( ! is_super_admin() ) {
+                // Add debug page only for super-admins.
                 return;
             }
 
