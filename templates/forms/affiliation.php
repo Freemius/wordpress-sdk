@@ -216,7 +216,7 @@
                                 </form>
                             </div>
                             <?php if ( ! $is_affiliate ) : ?>
-                                <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>
+                                <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_esc_html_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>
                                 <a id="submit_button" class="button button-primary" href="#" style="display: none"><?php echo esc_html( $apply_to_become_affiliate_text ) ?></a>
                                 <a id="apply_button" class="button button-primary" href="#"><?php fs_esc_html_echo_inline( 'Become an affiliate', 'become-an-affiliate', $slug ) ?></a>
                             <?php endif ?>
@@ -273,13 +273,13 @@
                         emailAddress = $emailAddress.val().trim();
 
                         if (0 === emailAddress.length) {
-                            showErrorMessage('<?php fs_echo_inline( 'Email address is required.', 'email-address-is-required', $slug ) ?>');
+                            showErrorMessage('<?php fs_esc_js_echo_inline( 'Email address is required.', 'email-address-is-required', $slug ) ?>');
                             return;
                         }
                     }
 
                     if (0 === paypalEmailAddress.length) {
-                        showErrorMessage('<?php fs_echo_inline( 'PayPal email address is required.', 'paypal-email-address-is-required', $slug ) ?>');
+                        showErrorMessage('<?php fs_esc_js_echo_inline( 'PayPal email address is required.', 'paypal-email-address-is-required', $slug ) ?>');
                         return;
                     }
 
@@ -289,10 +289,10 @@
                         extraDomains  = [];
 
                     if (0 === domain.length) {
-                        showErrorMessage('<?php fs_echo_inline( 'Domain is required.', 'domain-is-required', $slug ) ?>');
+                        showErrorMessage('<?php fs_esc_js_echo_inline( 'Domain is required.', 'domain-is-required', $slug ) ?>');
                         return;
                     } else if ('freemius.com' === domain) {
-                        showErrorMessage('<?php fs_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + domain + '].');
+                        showErrorMessage('<?php fs_esc_js_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + domain + '].');
                         return;
                     }
 
@@ -306,7 +306,7 @@
                             if (0 === extraDomain.length || extraDomain === domain) {
                                 return true;
                             } else if ('freemius.com' === extraDomain) {
-                                showErrorMessage('<?php fs_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + extraDomain + '].');
+                                showErrorMessage('<?php fs_esc_js_echo_inline( 'Invalid domain', 'invalid-domain', $slug ) ?>' + ' [' + extraDomain + '].');
                                 hasError = true;
                                 return false;
                             }
@@ -362,7 +362,7 @@
                         beforeSend: function () {
                             $cancelButton.addClass('disabled');
                             $submitButton.addClass('disabled');
-                            $submitButton.text('<?php fs_esc_js_inline( 'Processing', 'processing' ) ?>...');
+                            $submitButton.text('<?php fs_esc_js_echo_inline( 'Submitting', 'submitting' ) ?>...');
                         },
                         success   : function (result) {
                             if (result.success) {
