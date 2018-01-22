@@ -5510,9 +5510,20 @@
 
             $this->_delete_site( false );
 
+            $delete_network_common_data = true;
+
+            if ( $this->_is_network_active ) {
+                $installs = $this->get_blog_install_map();
+
+                // Don't delete common network data unless no other installs left.
+                $delete_network_common_data = empty( $installs );
+            }
+
+            if ( $delete_network_common_data ) {
             $this->_delete_plans( false );
 
             $this->_delete_licenses( false );
+            }
 
             // Delete add-ons related to plugin's account.
             $this->_delete_account_addons( false );
@@ -5526,14 +5537,17 @@
              *  Clear crons must be executed before clearing all storage.
              *  Otherwise, the cron will not be cleared.
              */
+            if ( $delete_network_common_data ) {
             $this->clear_sync_cron();
+            }
+
             $this->clear_install_sync_cron();
 
             // Clear all storage data.
             $this->_storage->clear_all( true, array(
                 'connectivity_test',
                 'is_on',
-            ) );
+            ), false );
 
             // Send delete event.
             $this->get_api_site_scope()->call( '/', 'delete' );
