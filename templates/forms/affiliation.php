@@ -367,8 +367,10 @@
                         success   : function (result) {
                             if (result.success) {
                                 location.reload();
-                            } else if (result.error && result.error.length > 0) {
+                            } else {
+                                if (result.error && result.error.length > 0) {
                                 showErrorMessage(result.error);
+                                }
 
                                 $cancelButton.removeClass('disabled');
                                 $submitButton.removeClass('disabled');
