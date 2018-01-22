@@ -261,7 +261,7 @@ HTML;
                     // When a license is selected, select the associated radio button.
                     $licenseTypes.filter( '[value="available"]' ).attr( 'checked', true );
 
-                    if ( ! isNetworkActive ) {
+                    if ( ! isNetworkActive || $modal.hasClass( 'is-single-site-activation' ) ) {
                         enableActivateLicenseButton();
                         return true;
                     }
@@ -277,7 +277,7 @@ HTML;
                         otherLicenseKeySelected = isOtherLicenseKeySelected();
 
                     if ( ( licenseKey.length > 0 || ( hasLicenseTypes && ! otherLicenseKeySelected ) ) &&
-                        ( ! isNetworkActive || hasSelectedSite() )
+                        ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActive || hasSelectedSite() )
                     ) {
                         /**
                          * If the "other" license is not empty or an available license is selected, enable the activate
