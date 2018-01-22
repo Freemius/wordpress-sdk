@@ -10711,7 +10711,6 @@
          * @param bool|array $plans
          */
         private function _set_account( FS_User $user, FS_Site $site, $plans = false ) {
-            $site->slug    = $this->_slug;
             $site->user_id = $user->id;
 
             $this->_site = $site;

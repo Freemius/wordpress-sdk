@@ -12,10 +12,6 @@
 
     class FS_Site extends FS_Scope_Entity {
         /**
-         * @var string
-         */
-        public $slug;
-        /**
          * @var number
          */
         public $site_id;
