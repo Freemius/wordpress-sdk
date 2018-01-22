@@ -105,83 +105,99 @@
         return ( fs_asset_url( $img_dir . '/' . trim( $path, '/' ) ) );
     }
 
-    /* Request handlers.
-    --------------------------------------------------------------------------------------------*/
-    /**
-     * @param string      $key
-     * @param mixed       $def
-     * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
-     *                          set to 'post' will look for the value passed via the POST request's body, otherwise,
-     *                          will check if the parameter was passed in any of the two.
-     *
-     * @return mixed
-     */
-    function fs_request_get( $key, $def = false, $type = false ) {
-        if ( is_string( $type ) ) {
-            $type = strtolower( $type );
-        }
+    #--------------------------------------------------------------------------------
+    #region Request handlers.
+    #--------------------------------------------------------------------------------
 
-        switch ( $type ) {
-            case 'post':
-                $value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
-                break;
-            case 'get':
-                $value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
-                break;
-            default:
-                $value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
-                break;
-        }
+    if ( ! function_exists( 'fs_request_get' ) ) {
+        /**
+         * @param string      $key
+         * @param mixed       $def
+         * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
+         *                          set to 'post' will look for the value passed via the POST request's body, otherwise,
+         *                          will check if the parameter was passed in any of the two.
+         *
+         * @return mixed
+         */
+        function fs_request_get( $key, $def = false, $type = false ) {
+            if ( is_string( $type ) ) {
+                $type = strtolower( $type );
+            }
 
-        return $value;
+            switch ( $type ) {
+                case 'post':
+                    $value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
+                    break;
+                case 'get':
+                    $value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
+                    break;
+                default:
+                    $value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+                    break;
+            }
+
+            return $value;
+        }
     }
 
-    function fs_request_has( $key ) {
-        return isset( $_REQUEST[ $key ] );
+    if ( ! function_exists( 'fs_request_has' ) ) {
+        function fs_request_has( $key ) {
+            return isset( $_REQUEST[ $key ] );
+        }
     }
 
-    function fs_request_get_bool( $key, $def = false ) {
-        if ( ! isset( $_REQUEST[ $key ] ) ) {
+    if ( ! function_exists( 'fs_request_get_bool' ) ) {
+        function fs_request_get_bool( $key, $def = false ) {
+            if ( ! isset( $_REQUEST[ $key ] ) ) {
+                return $def;
+            }
+
+            if ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) {
+                return true;
+            }
+
+            if ( 0 == $_REQUEST[ $key ] || 'false' === strtolower( $_REQUEST[ $key ] ) ) {
+                return false;
+            }
+
             return $def;
         }
-
-        if ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) {
-            return true;
-        }
-
-        if ( 0 == $_REQUEST[ $key ] || 'false' === strtolower( $_REQUEST[ $key ] ) ) {
-            return false;
-        }
-
-        return $def;
     }
 
-    function fs_request_is_post() {
-        return ( 'post' === strtolower( $_SERVER['REQUEST_METHOD'] ) );
-    }
-
-    function fs_request_is_get() {
-        return ( 'get' === strtolower( $_SERVER['REQUEST_METHOD'] ) );
-    }
-
-    function fs_get_action( $action_key = 'action' ) {
-        if ( ! empty( $_REQUEST[ $action_key ] ) ) {
-            return strtolower( $_REQUEST[ $action_key ] );
+    if ( ! function_exists( 'fs_request_is_post' ) ) {
+        function fs_request_is_post() {
+            return ( 'post' === strtolower( $_SERVER['REQUEST_METHOD'] ) );
         }
+    }
 
-        if ( 'action' == $action_key ) {
-            $action_key = 'fs_action';
+    if ( ! function_exists( 'fs_request_is_get' ) ) {
+        function fs_request_is_get() {
+            return ( 'get' === strtolower( $_SERVER['REQUEST_METHOD'] ) );
+        }
+    }
 
-            if ( ! empty( $_REQUEST[ $action_key ] ) ) {
+    if ( ! function_exists( 'fs_get_action' ) ) {
+        function fs_get_action( $action_key = 'action' ) {
+            if ( ! empty( $_REQUEST[ $action_key ] ) && is_string( $_REQUEST[ $action_key ] ) ) {
                 return strtolower( $_REQUEST[ $action_key ] );
             }
-        }
 
-        return false;
+            if ( 'action' == $action_key ) {
+                $action_key = 'fs_action';
+
+                if ( ! empty( $_REQUEST[ $action_key ] ) && is_string( $_REQUEST[ $action_key ] ) ) {
+                    return strtolower( $_REQUEST[ $action_key ] );
+                }
+            }
+
+            return false;
+        }
     }
 
-    function fs_request_is_action( $action, $action_key = 'action' ) {
-        return ( strtolower( $action ) === fs_get_action( $action_key ) );
+    if ( ! function_exists( 'fs_request_is_action' ) ) {
+        function fs_request_is_action( $action, $action_key = 'action' ) {
+            return ( strtolower( $action ) === fs_get_action( $action_key ) );
+        }
     }
 
     if ( ! function_exists( 'fs_request_is_action_secure' ) ) {
@@ -219,6 +235,8 @@
             return true;
         }
     }
+
+    #endregion
 
     if ( ! function_exists( 'fs_is_plugin_page' ) ) {
         function fs_is_plugin_page( $page_slug ) {
@@ -880,250 +898,288 @@
         }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     *
-     * @return string
-     */
-    function fs_esc_attr( $key, $slug ) {
-        return esc_attr( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_attr' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         *
+         * @return string
+         */
+        function fs_esc_attr( $key, $slug ) {
+            return esc_attr( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_attr_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_attr( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_attr_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_attr_inline( $text, $key = '', $slug = 'freemius' ) {
+            return esc_attr( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text    Translatable string.
-     * @param string $context Context information for the translators.
-     * @param string $key     String key for overrides.
-     * @param string $slug    Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_attr_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_attr( _fs_text_x_inline( $text, $context, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_attr_x_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_attr_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            return esc_attr( _fs_text_x_inline( $text, $context, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     */
-    function fs_esc_attr_echo( $key, $slug ) {
-        echo esc_attr( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_attr_echo' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_esc_attr_echo( $key, $slug ) {
+            echo esc_attr( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     */
-    function fs_esc_attr_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_attr( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_attr_echo_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         */
+        function fs_esc_attr_echo_inline( $text, $key = '', $slug = 'freemius' ) {
+            echo esc_attr( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     *
-     * @return string
-     */
-    function fs_esc_js( $key, $slug ) {
-        return esc_js( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         *
+         * @return string
+         */
+        function fs_esc_js( $key, $slug ) {
+            return esc_js( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_js_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_js( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_js_inline( $text, $key = '', $slug = 'freemius' ) {
+            return esc_js( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text    Translatable string.
-     * @param string $context Context information for the translators.
-     * @param string $key     String key for overrides.
-     * @param string $slug    Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_js_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js_x_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_js_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            return esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text    Translatable string.
-     * @param string $context Context information for the translators.
-     * @param string $key     String key for overrides.
-     * @param string $slug    Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_js_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        echo esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js_echo_x_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_js_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            echo esc_js( _fs_text_x_inline( $text, $context, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     */
-    function fs_esc_js_echo( $key, $slug ) {
-        echo esc_js( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js_echo' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_esc_js_echo( $key, $slug ) {
+            echo esc_js( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     */
-    function fs_esc_js_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_js( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_js_echo_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         */
+        function fs_esc_js_echo_inline( $text, $key = '', $slug = 'freemius' ) {
+            echo esc_js( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     */
-    function fs_json_encode_echo( $key, $slug ) {
-        echo json_encode( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_json_encode_echo' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_json_encode_echo( $key, $slug ) {
+            echo json_encode( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     */
-    function fs_json_encode_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo json_encode( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_json_encode_echo_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         */
+        function fs_json_encode_echo_inline( $text, $key = '', $slug = 'freemius' ) {
+            echo json_encode( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     *
-     * @return string
-     */
-    function fs_esc_html( $key, $slug ) {
-        return esc_html( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         *
+         * @return string
+         */
+        function fs_esc_html( $key, $slug ) {
+            return esc_html( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_html_inline( $text, $key = '', $slug = 'freemius' ) {
-        return esc_html( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_html_inline( $text, $key = '', $slug = 'freemius' ) {
+            return esc_html( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text    Translatable string.
-     * @param string $context Context information for the translators.
-     * @param string $key     String key for overrides.
-     * @param string $slug    Module slug for overrides.
-     *
-     * @return string
-     */
-    function fs_esc_html_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        return esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html_x_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         *
+         * @return string
+         */
+        function fs_esc_html_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            return esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text    Translatable string.
-     * @param string $context Context information for the translators.
-     * @param string $key     String key for overrides.
-     * @param string $slug    Module slug for overrides.
-     */
-    function fs_esc_html_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-        echo esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html_echo_x_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text    Translatable string.
+         * @param string $context Context information for the translators.
+         * @param string $key     String key for overrides.
+         * @param string $slug    Module slug for overrides.
+         */
+        function fs_esc_html_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
+            echo esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman
-     * @since  1.2.1.6
-     *
-     * @param string $key
-     * @param string $slug
-     */
-    function fs_esc_html_echo( $key, $slug ) {
-        echo esc_html( fs_text( $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html_echo' ) ) {
+        /**
+         * @author Vova Feldman
+         * @since  1.2.1.6
+         *
+         * @param string $key
+         * @param string $slug
+         */
+        function fs_esc_html_echo( $key, $slug ) {
+            echo esc_html( fs_text( $key, $slug ) );
+        }
     }
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  1.2.3
-     *
-     * @param string $text Translatable string.
-     * @param string $key  String key for overrides.
-     * @param string $slug Module slug for overrides.
-     */
-    function fs_esc_html_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-        echo esc_html( _fs_text_inline( $text, $key, $slug ) );
+    if ( ! function_exists( 'fs_esc_html_echo_inline' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         */
+        function fs_esc_html_echo_inline( $text, $key = '', $slug = 'freemius' ) {
+            echo esc_html( _fs_text_inline( $text, $key, $slug ) );
+        }
     }
 
 #endregion

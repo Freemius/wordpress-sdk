@@ -8835,14 +8835,12 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.2.3
+         * @since 1.2.4
          */
-        private function fetch_affiliate_and_terms() {
-            $this->_logger->entrance();
-
+        private function fetch_affiliate_terms() {
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
                 $plugins_api     = $this->get_api_plugin_scope();
-                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false );
+                $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false, WP_FS__TIME_WEEK_IN_SEC );
 
                 if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
                     return;
@@ -8850,20 +8848,30 @@
 
                 $this->plugin_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
             }
+        }
 
-            if ( $this->is_registered() ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.4
+         */
+        private function fetch_affiliate_and_custom_terms() {
+            if ( ! empty( $this->_storage->affiliate_application_data ) ) {
+                $application_data = $this->_storage->affiliate_application_data;
+                $flush            = ( ! isset( $application_data['status'] ) || 'pending' === $application_data['status'] );
+
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", false );
+                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", $flush, WP_FS__TIME_WEEK_IN_SEC );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate( $result->affiliates[0] );
 
-                        if ( ! $affiliate->is_pending() && ! empty( $this->_storage->affiliate_application_data ) ) {
-                            unset( $this->_storage->affiliate_application_data );
+                        if ( ! isset( $application_data['status'] ) || $application_data['status'] !== $affiliate->status ) {
+                            $application_data['status']                 = $affiliate->status;
+                            $this->_storage->affiliate_application_data = $application_data;
                         }
 
                         if ( $affiliate->is_using_custom_terms ) {
-                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", false );
+                            $affiliate_terms = $users_api->get( "/plugins/{$this->_plugin->id}/affiliates/{$affiliate->id}/aff/{$affiliate->custom_affiliate_terms_id}.json", $flush, WP_FS__TIME_WEEK_IN_SEC );
                             if ( $this->is_api_result_entity( $affiliate_terms ) ) {
                                 $this->custom_affiliate_terms = new FS_AffiliateTerms( $affiliate_terms );
                             }
@@ -8873,6 +8881,17 @@
                     }
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 1.2.3
+         */
+        private function fetch_affiliate_and_terms() {
+            $this->_logger->entrance();
+
+            $this->fetch_affiliate_terms();
+            $this->fetch_affiliate_and_custom_terms();
         }
 
         /**
@@ -8947,6 +8966,8 @@
                 }
             }
 
+            $this->fetch_affiliate_terms();
+
             $api    = $this->get_api_user_scope();
             $result = $api->call(
                 ( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json" ),
@@ -8966,6 +8987,7 @@
                 }
 
                 $affiliate_application_data = array(
+                    'status'                       => 'pending',
                     'stats_description'            => $affiliate['stats_description'],
                     'promotion_method_description' => $affiliate['promotion_method_description'],
                 );
@@ -15924,8 +15946,6 @@
             if (
                 // Product has no affiliate program.
                 ! $this->has_affiliate_program() ||
-                // User is already an affiliate.
-                is_object( $this->affiliate ) ||
                 // User has applied for an affiliate account.
                 ! empty( $this->_storage->affiliate_application_data )
             ) {

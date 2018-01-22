@@ -84,30 +84,34 @@
 
     $apply_to_become_affiliate_text = fs_text_inline( 'Apply to become an affiliate', 'apply-to-become-an-affiliate', $slug );
 ?>
-    <div id="fs_affiliation_content_wrapper" class="wrap">
-        <form method="post" action="">
-            <div id="poststuff">
-                <div class="postbox">
-                    <div class="inside">
-                        <div id="messages">
-                            <div id="error_message" class="error" style="display: none">
-                                <p><strong></strong></p>
-                            </div>
-                            <div id="message" class="updated" style="display: none">
-                                <p><strong></strong></p>
-                            </div>
-                            <?php if ( $is_affiliate ) : ?>
-                                <?php if ( $affiliate->is_active() ) : ?>
-                                    <div class="updated">
-                                        <p><strong><?php
-                                                    echo esc_html( sprintf(
-                                                        fs_text_inline( "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s.", 'affiliate-application-accepted', $slug ),
-                                                        $plugin_title,
-                                                        sprintf( '<a href="%s" target="_blank">%s</a>', $members_dashboard_login_url, $members_dashboard_login_url )
-                                                    ) );
-                                                ?></strong></p>
-                                    </div>
-                                <?php else : ?>
+<div id="fs_affiliation_content_wrapper" class="wrap">
+    <form method="post" action="">
+        <div id="poststuff">
+            <div class="postbox">
+                <div class="inside">
+                    <div id="messages">
+                        <div id="error_message" class="error" style="display: none">
+                            <p><strong></strong></p>
+                        </div>
+                        <div id="message" class="updated" style="display: none">
+                            <p><strong></strong></p>
+                        </div>
+                        <?php if ( $is_affiliate ) : ?>
+                            <?php if ( $affiliate->is_active() ) : ?>
+                                <div class="updated">
+                                    <p><strong><?php
+                                        echo sprintf(
+                                            fs_esc_html_inline( "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s.", 'affiliate-application-accepted', $slug ),
+                                            $plugin_title,
+                                            sprintf(
+                                                '<a href="%s" target="_blank">%s</a>',
+                                                $members_dashboard_login_url,
+                                                $members_dashboard_login_url
+                                            )
+                                        );
+                                    ?></strong></p>
+                                </div>
+                            <?php else : ?>
                                     <?php
                                     $message_text = '';
 
