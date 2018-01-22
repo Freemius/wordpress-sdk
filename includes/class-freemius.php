@@ -3537,7 +3537,7 @@
 
             $this->check_ajax_referer( 'stop_tracking' );
 
-            $result = $this->stop_tracking();
+            $result = $this->stop_tracking( fs_is_network_admin() );
 
             if ( true === $result ) {
                 self::shoot_ajax_success();
@@ -3562,7 +3562,7 @@
 
             $this->check_ajax_referer( 'allow_tracking' );
 
-            $result = $this->allow_tracking();
+            $result = $this->allow_tracking( fs_is_network_admin() );
 
             if ( true === $result ) {
                 self::shoot_ajax_success();
@@ -3593,7 +3593,7 @@
          *
          * @return bool|object
          */
-        function stop_tracking() {
+        function stop_site_tracking() {
             $this->_logger->entrance();
 
             if ( ! $this->is_registered() ) {
@@ -3601,65 +3601,122 @@
                 return false;
             }
 
-            if ( ! $this->_is_network_active && $this->is_tracking_prohibited() ) {
+            if ( $this->is_tracking_prohibited() ) {
                 // Already disconnected.
                 return true;
             }
 
-            $blog_ids_by_disconnected_install_id = array();
-            if ( $this->_is_network_active ) {
-                $installs_map = $this->get_blog_install_map();
-                $params       = array();
-                foreach ( $installs_map as $blog_id => $install ) {
-                    if ( $install->is_tracking_prohibited() ) {
-                        continue;
-                    }
+            // Send update to FS.
+            $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+                'is_disconnected' => true
+            ) );
 
-                    $params[]                                            = array( 'id' => $install->id );
-                    $blog_ids_by_disconnected_install_id[ $install->id ] = $blog_id;
-                }
-
-                if ( empty( $blog_ids_by_disconnected_install_id ) ) {
-                    return true;
-                }
-
-                $params[] = array( 'is_disconnected' => true );
-
-                // Send update to FS.
-                $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
-            } else {
-                // Send update to FS.
-                $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
-                    'is_disconnected' => true
-                ) );
-            }
-
-            if ( ( ! $this->is_api_result_entity( $result ) &&
-                    ! $this->is_api_result_object( $result, 'installs' ) ) ||
-                ( ! isset( $result->installs ) && ( ! isset( $result->is_disconnected ) ||
-                        ! $result->is_disconnected ) )
+            if ( ! $this->is_api_result_entity( $result ) ||
+                 ! isset( $result->is_disconnected ) ||
+                 ! $result->is_disconnected
             ) {
                 $this->_logger->api_error( $result );
 
                 return $result;
             }
 
-            if ( ! empty( $blog_ids_by_disconnected_install_id ) ) {
-                foreach ( $result->installs as $result_install ) {
-                    $blog_id               = $blog_ids_by_disconnected_install_id[ $result_install->id ];
-                    $site                  = $installs_map[ $blog_id ];
-                    $site->is_disconnected = $result_install->is_disconnected;
-                    $this->_store_site( true, $blog_id, $site );
-                }
-            } else {
-                $this->_site->is_disconnected = $result->is_disconnected;
-                $this->_store_site();
-            }
+            $this->_site->is_disconnected = $result->is_disconnected;
+            $this->_store_site();
 
             $this->clear_sync_cron();
 
             // Successfully disconnected.
             return true;
+        }
+
+        /**
+         * Opt-out network from usage tracking.
+         *
+         * Note: This will not delete the account information but will stop all tracking.
+         *
+         * Returns:
+         *  1. FALSE  - If the user never opted-in.
+         *  2. TRUE   - If successfully opted-out.
+         *  3. object - API result on failure.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.5
+         *
+         * @return bool|object
+         */
+        function stop_network_tracking() {
+            $this->_logger->entrance();
+
+            if ( ! $this->is_registered() ) {
+                // User never opted-in.
+                return false;
+            }
+
+            $install_id_2_blog_id = array();
+            $installs_map         = $this->get_blog_install_map();
+
+            $params = array();
+            foreach ( $installs_map as $blog_id => $install ) {
+                if ( $install->is_tracking_prohibited() ) {
+                    continue;
+                }
+
+                $params[] = array( 'id' => $install->id );
+
+                $install_id_2_blog_id[ $install->id ] = $blog_id;
+            }
+
+            if ( empty( $install_id_2_blog_id ) ) {
+                return true;
+            }
+
+            $params[] = array( 'is_disconnected' => true );
+
+            // Send update to FS.
+            $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
+
+            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                $this->_logger->api_error( $result );
+
+                return $result;
+            }
+
+            foreach ( $result->installs as $r_install ) {
+                $blog_id                  = $install_id_2_blog_id[ $r_install->id ];
+                $install                  = $installs_map[ $blog_id ];
+                $install->is_disconnected = $r_install->is_disconnected;
+                $this->_store_site( true, $blog_id, $install );
+            }
+
+            $this->clear_sync_cron(true);
+
+            // Successfully disconnected.
+            return true;
+        }
+
+        /**
+         * Opt-out from usage tracking.
+         *
+         * Note: This will not delete the account information but will stop all tracking.
+         *
+         * Returns:
+         *  1. FALSE  - If the user never opted-in.
+         *  2. TRUE   - If successfully opted-out.
+         *  3. object - API result on failure.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.5
+         *
+         * @param bool $is_network_action
+         *
+         * @return bool|object
+         */
+        function stop_tracking( $is_network_action = false ) {
+            $this->_logger->entrance();
+
+            return $is_network_action ?
+                $this->stop_network_tracking() :
+                $this->stop_site_tracking();
         }
 
         /**
@@ -3677,7 +3734,7 @@
          *
          * @return bool|object
          */
-        function allow_tracking() {
+        function allow_site_tracking() {
             $this->_logger->entrance();
 
             if ( ! $this->is_registered() ) {
@@ -3685,65 +3742,122 @@
                 return false;
             }
 
-            if ( ! $this->_is_network_active && $this->is_tracking_allowed() ) {
+            if ( $this->is_tracking_allowed() ) {
                 // Tracking already allowed.
                 return true;
             }
 
-            $blog_ids_by_connected_install_id = array();
-            if ( $this->_is_network_active ) {
-                $installs_map = $this->get_blog_install_map();
-                $params       = array();
-                foreach ( $installs_map as $blog_id => $install ) {
-                    if ( $install->is_tracking_allowed() ) {
-                        continue;
-                    }
+            $result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
+                'is_disconnected' => false
+            ) );
 
-                    $params[]                                            = array( 'id' => $install->id );
-                    $blog_ids_by_connected_install_id[ $install->id ] = $blog_id;
-                }
-
-                if ( empty( $blog_ids_by_connected_install_id ) ) {
-                    return true;
-                }
-
-                $params[] = array( 'is_disconnected' => false );
-
-                // Send update to FS.
-                $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
-            } else {
-                // Send update to FS.
-                $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
-                    'is_disconnected' => false
-                ) );
-            }
-
-            if ( ( ! $this->is_api_result_entity( $result ) &&
-                    ! $this->is_api_result_object( $result, 'installs' ) ) ||
-                ( ! isset( $result->installs ) && ( ! isset( $result->is_disconnected ) ||
-                        $result->is_disconnected ) )
+            if ( ! $this->is_api_result_entity( $result ) ||
+                 ! isset( $result->is_disconnected ) ||
+                 $result->is_disconnected
             ) {
                 $this->_logger->api_error( $result );
 
                 return $result;
             }
 
-            if ( ! empty( $blog_ids_by_connected_install_id ) ) {
-                foreach ( $result->installs as $result_install ) {
-                    $blog_id               = $blog_ids_by_connected_install_id[ $result_install->id ];
-                    $site                  = $installs_map[ $blog_id ];
-                    $site->is_disconnected = $result_install->is_disconnected;
-                    $this->_store_site( true, $blog_id, $site );
+            $this->_site->is_disconnected = $result->is_disconnected;
+            $this->_store_site();
+
+            $this->schedule_sync_cron();
+
+            // Successfully reconnected.
+            return true;
+        }
+
+        /**
+         * Opt-in network back into usage tracking.
+         *
+         * Note: This will only work if the user opted-in previously.
+         *
+         * Returns:
+         *  1. FALSE  - If the user never opted-in.
+         *  2. TRUE   - If successfully opted-in back to usage tracking.
+         *  3. object - API result on failure.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.5
+         *
+         * @return bool|object
+         */
+        function allow_network_tracking() {
+            $this->_logger->entrance();
+
+            if ( ! $this->is_registered() ) {
+                // User never opted-in.
+                return false;
+            }
+
+            $install_id_2_blog_id = array();
+            $installs_map         = $this->get_blog_install_map();
+
+            $params = array();
+            foreach ( $installs_map as $blog_id => $install ) {
+                if ( $install->is_tracking_allowed() ) {
+                    continue;
                 }
-            } else {
-                $this->_site->is_disconnected = $result->is_disconnected;
-                $this->_store_site();
+
+                $params[] = array( 'id' => $install->id );
+
+                $install_id_2_blog_id[ $install->id ] = $blog_id;
+            }
+
+            if ( empty( $install_id_2_blog_id ) ) {
+                return true;
+            }
+
+            $params[] = array( 'is_disconnected' => false );
+
+            // Send update to FS.
+            $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
+
+
+            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                $this->_logger->api_error( $result );
+
+                return $result;
+            }
+
+            foreach ( $result->installs as $r_install ) {
+                $blog_id                  = $install_id_2_blog_id[ $r_install->id ];
+                $install                  = $installs_map[ $blog_id ];
+                $install->is_disconnected = $r_install->is_disconnected;
+                $this->_store_site( true, $blog_id, $install );
             }
 
             $this->schedule_sync_cron();
 
             // Successfully reconnected.
             return true;
+        }
+
+        /**
+         * Opt-in back into usage tracking.
+         *
+         * Note: This will only work if the user opted-in previously.
+         *
+         * Returns:
+         *  1. FALSE  - If the user never opted-in.
+         *  2. TRUE   - If successfully opted-in back to usage tracking.
+         *  3. object - API result on failure.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  1.2.1.5
+         *
+         * @param bool $is_network_action
+         *
+         * @return bool|object
+         */
+        function allow_tracking( $is_network_action = false ) {
+            $this->_logger->entrance();
+
+            return $is_network_action ?
+                $this->allow_network_tracking() :
+                $this->allow_site_tracking();
         }
 
         /**
@@ -4641,11 +4755,32 @@
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
+         *
+         * @param bool $is_network_clear Since 2.0.0 If set to TRUE, clear sync cron even if there are installs that are still connected.
          */
-        private function clear_sync_cron() {
+        private function clear_sync_cron( $is_network_clear = false ) {
             $this->_logger->entrance();
 
             if ( ! $this->is_sync_cron_on() ) {
+                return;
+            }
+
+            $clear_cron = true;
+            if ( ! $is_network_clear && $this->_is_network_active ) {
+                $installs = $this->get_blog_install_map();
+
+                foreach ( $installs as $blog_id => $install ) {
+                    /**
+                     * @var FS_Site $install
+                     */
+                    if ( $install->is_tracking_allowed() ) {
+                        $clear_cron = false;
+                        break;
+                    }
+                }
+            }
+
+            if ( ! $clear_cron ) {
                 return;
             }
 
@@ -5524,9 +5659,9 @@
             }
 
             if ( $delete_network_common_data ) {
-            $this->_delete_plans( false );
+                $this->_delete_plans( false );
 
-            $this->_delete_licenses( false );
+                $this->_delete_licenses( false );
             }
 
             // Delete add-ons related to plugin's account.
@@ -5542,7 +5677,7 @@
              *  Otherwise, the cron will not be cleared.
              */
             if ( $delete_network_common_data ) {
-            $this->clear_sync_cron();
+                $this->clear_sync_cron();
             }
 
             $this->clear_install_sync_cron();
@@ -5595,7 +5730,7 @@
              *  Clear crons must be executed before clearing all storage.
              *  Otherwise, the cron will not be cleared.
              */
-            $this->clear_sync_cron();
+            $this->clear_sync_cron( true );
             $this->clear_install_sync_cron();
 
             $sites = $this->get_sites();
@@ -5659,7 +5794,7 @@
             register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
 
             $this->clear_module_main_file_cache();
-            $this->clear_sync_cron();
+            $this->clear_sync_cron( true );
             $this->clear_install_sync_cron();
 
             if ( $this->is_registered() ) {
@@ -15091,14 +15226,14 @@
                         if ( $is_network_action && ! empty( $blog_id ) ) {
                             if ( $this->is_registered() ) {
                                 if ( $this->is_tracking_prohibited() ) {
-                                    if ( $this->allow_tracking() ) {
+                                    if ( $this->allow_site_tracking() ) {
                                         $this->_admin_notices->add(
                                             sprintf( $this->get_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-out-message-appreciation' ), $this->_module_type ),
                                             $this->get_text_inline( 'Thank you!', 'thank-you' )
                                         );
                                     }
                                 } else {
-                                    if ( $this->stop_tracking() ) {
+                                    if ( $this->stop_site_tracking() ) {
                                         $this->_admin_notices->add(
                                             sprintf(
                                                 $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
