@@ -930,10 +930,13 @@
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
-            add_action( 'admin_init', array( &$this, '_add_network_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
+
+            if ( $this->_is_network_active && fs_is_network_admin() ) {
+                $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
+            }
 
             $this->add_ajax_action( 'install_premium_version', array(
                 &$this,
@@ -8336,22 +8339,6 @@
 
             // Add resend license AJAX callback.
             $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
-        }
-
-        /**
-         * Includes all required UI and logic for the network activation dialog.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.3.1
-         */
-        function _add_network_activation() {
-            if ( ! is_super_admin( get_current_user_id() ) || ! $this->is_user_admin() ) {
-                // Only super admins can network activate a plugin.
-                return;
-            }
-
-            // Add activation AJAX callback.
-            $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
         }
 
         /**
