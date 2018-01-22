@@ -8920,8 +8920,6 @@
         /**
          * @author Leo Fajardo
          * @since  1.2.3
-         *
-         * @return FS_Affiliate|null
          */
         function _submit_affiliate_application() {
             $this->_logger->entrance();
