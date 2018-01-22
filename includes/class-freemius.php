@@ -2221,7 +2221,7 @@
          * @since  1.0.8
          */
         static function _add_debug_section() {
-            if ( ! current_user_can( 'activate_plugins' )
+            if ( ! current_user_can( 'manage_options' )
                  && ! current_user_can( 'switch_themes' )
             ) {
                 return;
@@ -13470,11 +13470,20 @@
          * @return bool
          */
         function is_user_admin() {
-            if ( $this->_is_network_active ) {
+            /**
+             * Require a super-admin when network activated, running from the network level OR if
+             * running from the site level but not delegated the opt-in.
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.0.0
+             */
+            if ( $this->_is_network_active &&
+                 ( fs_is_network_admin() || ! $this->is_delegated_connection() )
+            ) {
                 return is_super_admin();
             }
 
-            return ( $this->is_plugin() && current_user_can( 'activate_plugins' ) )
+            return ( $this->is_plugin() && current_user_can( is_multisite() ? 'manage_options' : 'activate_plugins' ) )
                    || ( $this->is_theme() && current_user_can( 'switch_themes' ) );
         }
 
@@ -16028,7 +16037,7 @@
          * @since  1.2.1.5
          */
         function _add_tracking_links() {
-            if ( ! current_user_can( 'activate_plugins' ) ) {
+            if ( ! current_user_can( 'manage_options' ) ) {
                 return;
             }
 
