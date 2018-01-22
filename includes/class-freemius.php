@@ -15921,6 +15921,18 @@
                 return false;
             }
 
+            if ( $this->_is_network_active ) {
+                if ( fs_is_network_admin() ) {
+                    // Network level trial is disabled at the moment.
+                    return false;
+                }
+
+                if ( ! $this->is_delegated_connection() ) {
+                    // Only delegated sites should support trials.
+                    return false;
+                }
+            }
+
             // Check if trial message is already shown.
             if ( $this->is_in_trial_promotion() ) {
                 add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
