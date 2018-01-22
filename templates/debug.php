@@ -291,15 +291,16 @@
 <?php foreach ( $module_types as $module_type ) : ?>
 	<?php
 	/**
-	 * @var array     $VARS
-	 * @var FS_Site[] $sites
+	 * @var array $VARS
+	 * @var array[string]FS_Site|array[string]FS_Site[] $sites_map
 	 */
-	$sites = $VARS[ $module_type . '_sites' ];
+	$sites_map = $VARS[ $module_type . '_sites' ];
 
+	$is_multisite = is_multisite();
 	$all_plans = false;
 	$plans     = false;
 	?>
-	<?php if ( is_array( $sites ) && count( $sites ) > 0 ) : ?>
+	<?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
 		<h2><?php echo esc_html( sprintf(
 				/* translators: %s: 'plugin' or 'theme' */
 				fs_text_inline( '%s Installs', 'module-installs' ),
@@ -309,6 +310,9 @@
 			<thead>
 			<tr>
 				<th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
+				<?php if ( $is_multisite ) : ?>
+					<th><?php fs_esc_html_echo_inline( 'Blog ID' ) ?></th>
+				<?php endif ?>
 				<th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
 				<th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
 				<th><?php fs_esc_html_echo_x_inline( 'Plan', 'as product pricing plan', 'plan' ) ?></th>
@@ -318,9 +322,16 @@
 			</tr>
 			</thead>
 			<tbody>
-			<?php foreach ( $sites as $slug => $site ) : ?>
+			<?php foreach ( $sites_map as $slug => $sites ) : ?>
+				<?php if (!is_array($sites)){
+					$sites = array($sites);
+				} ?>
+				<?php foreach ($sites as $site) : ?>
 				<tr>
 					<td><?php echo $site->id ?></td>
+					<?php if ( $is_multisite ) : ?>
+						<td><?php echo $site->blog_id ?></td>
+					<?php endif ?>
 					<td><?php echo $slug ?></td>
 					<td><?php echo $site->user_id ?></td>
 					<td><?php
@@ -361,6 +372,7 @@
 							<input type="hidden" name="slug" value="<?php echo $slug ?>">
 							<button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button></td>
 				</tr>
+			<?php endforeach ?>
 			<?php endforeach ?>
 			</tbody>
 		</table>

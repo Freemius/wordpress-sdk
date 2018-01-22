@@ -77,7 +77,7 @@
     $show_plan_row    = true;
     $show_license_row = is_object( $license );
 
-    $sites                   = $fs->get_sites();
+    $sites                   = Freemius::get_sites();
     $site_view_params        = array();
     $all_installs_plan_id    = null;
     $all_installs_license_id = ( $show_license_row ? $license->id : null );

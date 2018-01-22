@@ -50,7 +50,7 @@
 
     $sites_details = array();
     if ( $is_network_active ) {
-        $all_sites = $fs->get_sites();
+        $all_sites = Freemius::get_sites();
 
         foreach ( $all_sites as $site ) {
             $sites_details[] = $fs->get_site_info( $site );

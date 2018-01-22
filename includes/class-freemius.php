@@ -2382,13 +2382,51 @@
         static function _debug_page_render() {
             self::$_static_logger->entrance();
 
+            if ( ! is_multisite() ) {
+                $all_plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN );
+                $all_themes_installs  = self::get_all_sites( WP_FS__MODULE_TYPE_THEME );
+            } else {
+                $sites = self::get_sites();
+
+                $all_plugins_installs = array();
+                $all_themes_installs  = array();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    $plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id );
+
+                    foreach ( $plugins_installs as $slug => $install ) {
+                        if ( ! isset( $all_plugins_installs[ $slug ] ) ) {
+                            $all_plugins_installs[ $slug ] = array();
+                        }
+
+                        $install->blog_id = $blog_id;
+
+                        $all_plugins_installs[ $slug ][] = $install;
+                    }
+
+                    $themes_installs = self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id );
+
+                    foreach ( $themes_installs as $slug => $install ) {
+                        if ( ! isset( $all_themes_installs[ $slug ] ) ) {
+                            $all_themes_installs[ $slug ] = array();
+                        }
+
+                        $install->blog_id = $blog_id;
+
+                        $all_themes_installs[ $slug ][] = $install;
+                    }
+                }
+            }
+
             $vars = array(
-                'plugin_sites'    => self::get_all_sites(),
-                'theme_sites'     => self::get_all_sites( WP_FS__MODULE_TYPE_THEME ),
+                'plugin_sites'    => $all_plugins_installs,
+                'theme_sites'     => $all_themes_installs,
                 'users'           => self::get_all_users(),
                 'addons'          => self::get_all_addons(),
                 'account_addons'  => self::get_all_account_addons(),
-                'plugin_licenses' => self::get_all_licenses(),
+                'plugin_licenses' => self::get_all_licenses( WP_FS__MODULE_TYPE_PLUGIN ),
                 'theme_licenses'  => self::get_all_licenses( WP_FS__MODULE_TYPE_THEME )
             );
 
@@ -5732,11 +5770,11 @@
             $this->clear_sync_cron( true );
             $this->clear_install_sync_cron();
 
-            $sites = $this->get_sites();
+            $sites = self::get_sites();
 
             $install_ids = array();
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
 
                 $install_id = $this->_delete_site( true, $blog_id );
 
@@ -5823,10 +5861,10 @@
                 }
 
                 if ( ! empty( $storage_keys_for_removal ) ) {
-                    $sites = $this->get_sites();
+                    $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
-                        $blog_id = $this->get_site_blog_id( $site );
+                        $blog_id = self::get_site_blog_id( $site );
 
                         foreach ($storage_keys_for_removal as $key) {
                             $this->_storage->remove( $key, false, $blog_id );
@@ -5967,9 +6005,9 @@
             $uids = array();
 
             if ( $network ) {
-                $sites = $this->get_sites();
+                $sites = self::get_sites();
                 foreach ( $sites as $site ) {
-                    $uids[] = $this->get_anonymous_id( $this->get_site_blog_id( $site ) );
+                    $uids[] = $this->get_anonymous_id( self::get_site_blog_id( $site ) );
                 }
             } else if ( ! empty( $sites ) ) {
                 foreach ( $sites as $site ) {
@@ -6441,10 +6479,10 @@
 
             $installs_data = array();
 
-            $sites = $this->get_sites();
+            $sites = self::get_sites();
 
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
 
                 $install = $this->get_install_by_blog_id( $blog_id );
 
@@ -8002,9 +8040,9 @@
             }
 
             $plan_ids = array();
-            $sites    = $this->get_sites();
+            $sites    = self::get_sites();
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
                 $install = $this->get_install_by_blog_id( $blog_id );
 
                 if ( ! is_object( $install ) ||
@@ -8039,9 +8077,9 @@
             }
 
             $license_ids = array();
-            $sites       = $this->get_sites();
+            $sites       = self::get_sites();
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
                 $install = $this->get_install_by_blog_id( $blog_id );
 
                 if ( ! is_object( $install ) ||
@@ -9800,7 +9838,7 @@
          *
          * @return array Sites collection.
          */
-        function get_sites() {
+        static function get_sites() {
             if ( function_exists( 'get_sites' ) ) {
                 // For WP 4.6 and above.
                 return get_sites();
@@ -9826,12 +9864,12 @@
          */
         private function get_address_to_blog_map()
         {
-            $sites = $this->get_sites();
+            $sites = self::get_sites();
 
             // Map site addresses to their blog IDs.
             $address_to_blog_map = array();
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
                 $address                         = trailingslashit( fs_strip_url_protocol( get_site_url( $blog_id ) ) );
                 $address_to_blog_map[ $address ] = $blog_id;
             }
@@ -9851,13 +9889,13 @@
          * }
          */
         private function get_blog_install_map() {
-            $sites = $this->get_sites();
+            $sites = self::get_sites();
 
             // Map site blog ID to its install.
             $install_map = array();
 
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
                 $install = $this->get_install_by_blog_id( $blog_id );
 
                 if ( is_object( $install ) ) {
@@ -9877,10 +9915,10 @@
          * }
          */
         private function find_first_install() {
-            $sites = $this->get_sites();
+            $sites = self::get_sites();
 
             foreach ( $sites as $site ) {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
                 $install = $this->get_install_by_blog_id($blog_id);
 
                 if ( is_object($install) ) {
@@ -10005,7 +10043,7 @@
          *
          * @return string
          */
-        private function get_site_blog_id( &$site ) {
+        private static function get_site_blog_id( &$site ) {
             return ( $site instanceof WP_Site ) ?
                 $site->blog_id :
                 $site['blog_id'];
@@ -10029,7 +10067,7 @@
                 $name    = get_bloginfo( 'name' );
                 $blog_id = null;
             } else {
-                $blog_id = $this->get_site_blog_id( $site );
+                $blog_id = self::get_site_blog_id( $site );
 
                 if ( get_current_blog_id() != $blog_id ) {
                     switch_to_blog( $blog_id );
@@ -10606,8 +10644,8 @@
 
             $this->do_action( 'before_account_load' );
 
-            $users    = self::get_all_users();
-            $plans    = self::get_all_plans( $this->_module_type );
+            $users = self::get_all_users();
+            $plans = self::get_all_plans( $this->_module_type );
 
             if ( $this->_logger->is_on() && is_admin() ) {
                 $this->_logger->log( 'users = ' . var_export( $users, true ) );
@@ -10620,7 +10658,7 @@
 
             if ( fs_is_network_admin() &&
                  ! is_object( $site ) &&
-                 FS_Site::is_valid_id($this->_storage->network_install_blog_id)
+                 FS_Site::is_valid_id( $this->_storage->network_install_blog_id )
             ) {
                 $first_install = $this->find_first_install();
 
@@ -10662,7 +10700,7 @@
 
             if ( is_object( $user ) ) {
                 $this->_user = clone $user;
-            } else if ($this->_site) {
+            } else if ( $this->_site ) {
                 /**
                  * If the install owner's details are not stored locally, use the previous user's details if available.
                  *
@@ -10677,15 +10715,15 @@
                 if ( isset( $users[ $user_id ] ) && $users[ $user_id ] instanceof FS_User ) {
                     // Load relevant user.
                     $this->_user = clone $users[ $user_id ];
-                        } else {
+                } else {
                     // Recovery????
-                    }
                 }
+            }
 
             if ( is_object( $this->_user ) ) {
                 // Load licenses.
-                $this->_licenses = $this->get_user_licenses($this->_user->id);
-                }
+                $this->_licenses = $this->get_user_licenses( $this->_user->id );
+            }
 
             if ( is_object( $this->_site ) ) {
                 $this->_license = $this->_get_license_by_id( $this->_site->license_id );
@@ -10773,7 +10811,7 @@
                 if ( ! isset( $override_with['sites'] ) ) {
                     $params['sites'] = array();
 
-                    $sites = $this->get_sites();
+                    $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
                         $params['sites'][] = $this->get_site_info( $site );
