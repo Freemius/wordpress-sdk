@@ -3902,21 +3902,22 @@
          * re-allow tracking for licensing and updates.
          *
          * @author Leo Fajardo (@leorw)
-         *
          * @since  1.2.1.5
+         *
+         * @param bool $is_context_single_site
          */
-        private function reconnect_locally() {
+        private function reconnect_locally( $is_context_single_site = false ) {
             $this->_logger->entrance();
 
             if ( ! $this->is_registered() ) {
                 return;
             }
 
-            if ( ! $this->_is_network_active ) {
+            if ( ! fs_is_network_admin() || $is_context_single_site ) {
                 if ( $this->is_tracking_prohibited() ) {
-                $this->_site->is_disconnected = false;
-                $this->_store_site();
-            }
+                    $this->_site->is_disconnected = false;
+                    $this->_store_site();
+                }
             } else {
                 $installs_map = $this->get_blog_install_map();
                 foreach ( $installs_map as $blog_id => $install ) {
@@ -8154,26 +8155,43 @@
          */
         function _sync_licenses( $site_license_id = false ) {
             $foreign_licenses = array();
-            if ( fs_is_network_admin() ) {
+            $license_user_map = array();
+            $is_network_admin = fs_is_network_admin();
+            if ( $is_network_admin ) {
+                $all_licenses = self::get_all_licenses();
+            }
+            if ( $is_network_admin && false === $site_license_id ) {
                 $foreign_licenses['ids']          = array();
                 $foreign_licenses['license_keys'] = array();
 
-                $user_licenses = $this->get_user_licenses( $this->_user->id );
-                foreach ( $user_licenses as $user_license ) {
-                    if ( $user_license->user_id == $this->_user->id ) {
-                        continue;
-                    }
+                if ( ! empty( $all_licenses ) &&
+                    isset( $all_licenses[ $this->_slug ] ) &&
+                    ! empty( $all_licenses[ $this->_slug ] )
+                ) {
+                    $plugin_licenses = $all_licenses[ $this->_slug ];
+                    foreach ( $plugin_licenses as $user_id => $user_licenses ) {
+                        if ( empty( $user_licenses ) ) {
+                            continue;
+                        }
 
-                    $foreign_licenses['ids'][]          = $user_license->id;
-                    $foreign_licenses['license_keys'][] = urlencode( $user_license->secret_key );
+                        foreach ( $user_licenses as $user_license ) {
+                            if ( ! isset( $license_user_map[ $user_license->id ] ) ) {
+                                $license_user_map[ $user_license->id ] = array();
+                            }
+
+                            $license_user_map[ $user_license->id ][] = $user_id;
+
+                            if ( $user_license->user_id == $this->_user->id ) {
+                                continue;
+                            }
+
+                            $foreign_licenses['ids'][]          = $user_license->id;
+                            $foreign_licenses['license_keys'][] = $user_license->secret_key;
+                        }
+                    }
                 }
 
-                if ( ! empty( $foreign_licenses['ids'] ) ) {
-                    $foreign_licenses = array(
-                        'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
-                        'license_keys' => implode( ',', $foreign_licenses['license_keys'] )
-                    );
-                } else {
+                if ( empty( $foreign_licenses['ids'] ) ) {
                     $foreign_licenses = array();
                 }
             }
@@ -8182,26 +8200,62 @@
 
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
                 $licenses_map = array();
+                $updated_plugin_licenses = array();
                 foreach ( $licenses as $license ) {
                     $licenses_map[ $license->id ] = true;
-                }
 
-                $license_ids_to_keep = $this->get_license_ids_associated_with_installs();
-
-                foreach ( $license_ids_to_keep as $license_id ) {
-                    if ( isset( $licenses_map[ $license_id ] ) ) {
+                    if ( false !== $site_license_id ) {
                         continue;
                     }
 
-                    $missing_license = self::_get_license_by_id( $license_id );
+                    if ( isset( $license_user_map[ $license->id ] ) ) {
+                        $license_users = $license_user_map[ $license->id ];
+                    } else {
+                        $license_users = array( $this->_user->id );
+                    }
 
-                    if ( is_object( $missing_license ) ) {
-                        $licenses[] = $missing_license;
+                    foreach ( $license_users as $license_user ) {
+                        if ( ! isset( $updated_plugin_licenses[ $license_user ] ) ) {
+                            $updated_plugin_licenses[ $license_user ] = array();
+                        }
+
+                        $updated_plugin_licenses[ $license_user ][] = $license;
                     }
                 }
 
-                $this->_licenses = $licenses;
-                $this->_store_licenses( true, false, $licenses );
+                if ( empty( $updated_plugin_licenses ) && $is_network_admin ) {
+                    $updated_plugin_licenses = isset( $all_licenses[ $this->_slug ] ) ?
+                        $all_licenses[ $this->_slug ] :
+                        array();
+
+                    $updated_plugin_licenses[ $this->_user->id ] = $licenses;
+                }
+
+                /*if ( false !== $site_license_id || ! $is_network_admin ) {
+                    $license_ids_to_keep = $this->get_license_ids_associated_with_installs();
+
+                    foreach ( $license_ids_to_keep as $license_id ) {
+                        if ( isset( $licenses_map[ $license_id ] ) ) {
+                            continue;
+                        }
+
+                        $missing_license = self::_get_license_by_id( $license_id );
+
+                        if ( is_object( $missing_license ) ) {
+                            $updated_plugin_licenses[ $this->_user->id ][] = $missing_license;
+                        }
+                    }
+                }*/
+
+                if ( $is_network_admin ) {
+                    $licenses = $updated_plugin_licenses;
+                }
+
+                $this->_licenses = ( $is_network_admin ) ?
+                    $licenses[ $this->_user->id ] :
+                    $licenses;
+
+                $this->_store_licenses( true, $this->_slug, $licenses );
             }
 
             // Update current license.
@@ -8636,11 +8690,12 @@
             $next_page = false;
 
             if ( $fs->is_registered() ) {
-                $blog_id    = fs_request_get( 'blog_id' );
-                $is_network = fs_is_network_admin();
+                $blog_id           = fs_request_get( 'blog_id' );
+                $has_valid_blog_id = is_numeric( $blog_id );
 
                 $endpoint = '/';
-                if ( $is_network && ! is_numeric( $blog_id ) ) {
+                if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                    // If no specific blog ID was provided, activate the license for all sites in the network.
                     $api       = $fs->get_current_or_network_user_api_scope();
                     $endpoint .= "plugins/{$this->_plugin->id}/installs.json";
 
@@ -8663,7 +8718,13 @@
                         $params[] = array( 'id' => $install->id );
                     }
                 } else {
-                    if ( is_numeric( $blog_id ) ) {
+                    if ( $has_valid_blog_id ) {
+                        /**
+                         * If a specific blog ID was provided, activate the license only for the install that is
+                         * associated with the given blog ID.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         */
                         $this->switch_to_blog( $blog_id );
                     }
 
@@ -8679,13 +8740,13 @@
                 if ( isset( $install->error ) ) {
                     $error = $install->error->message;
                 } else {
-                    $fs->_sync_license( true, is_numeric( $blog_id ) );
+                    $fs->_sync_license( true, $has_valid_blog_id );
 
                     $next_page = $fs->is_addon() ?
                         $fs->get_parent_instance()->get_account_url() :
                         $fs->get_account_url();
 
-                    $fs->reconnect_locally();
+                    $fs->reconnect_locally( $has_valid_blog_id );
                 }
             } else {
                 $next_page = $fs->opt_in(
@@ -13132,18 +13193,21 @@
 
             if ( ! is_string( $plugin_slug ) ) {
                 $plugin_slug = $this->_slug;
-                $licenses    = $this->_licenses;
+
+                $licenses = fs_is_network_admin() ?
+                    array( $this->_user->id => $this->_licenses ) :
+                    $this->_licenses;
             }
 
             if ( ! isset( $all_licenses[ $plugin_slug ] ) ) {
                 $all_licenses[ $plugin_slug ] = array();
             }
 
-            $user = fs_is_network_admin() ?
-                $this->get_network_user() :
-                $this->_user->id;
-
-            $all_licenses[ $plugin_slug ][ $user->id ] = $licenses;
+            if ( fs_is_network_admin() ) {
+                $all_licenses[ $plugin_slug ] = $licenses;
+            } else {
+                $all_licenses[ $plugin_slug ][ $this->_user->id ] = $licenses;
+            }
 
             $this->set_account_option( 'licenses', $all_licenses, $store );
         }
@@ -13392,7 +13456,9 @@
          */
         private function _fetch_plugin_plans() {
             $this->_logger->entrance();
-            $api = $this->get_current_or_network_user_api_scope();
+            $api = fs_is_network_admin() ?
+                $this->get_api_network_user_scope() :
+                $this->get_current_or_network_user_api_scope();
 
             /**
              * @since 1.2.3 When running in DEV mode, retrieve pending plans as well.
@@ -13436,6 +13502,7 @@
          *
          * @param number|bool $plugin_id
          * @param number|bool $site_license_id
+         * @param array       $foreign_licenses @since 2.0.0. This is used by network-activated plugins.
          *
          * @return FS_Plugin_License[]|object
          */
@@ -13444,7 +13511,7 @@
 
             $is_network_admin = fs_is_network_admin();
 
-            $api = $is_network_admin ?
+            $api = ( $is_network_admin && $this->is_network_registered() && false === $site_license_id ) ?
                 $this->get_api_network_user_scope() :
                 $this->get_api_user_scope();
 
@@ -13453,7 +13520,13 @@
             }
 
             $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json";
-            if ( $is_network_admin && ! empty ( $foreign_licenses ) ) {
+            if ( $is_network_admin && false === $site_license_id && ! empty ( $foreign_licenses ) ) {
+                $foreign_licenses = array(
+                    // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
+                    'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                    'license_keys' => implode( ',', array_map( 'urlencode', $foreign_licenses['license_keys'] ) )
+                );
+
                 $user_licenses_endpoint = add_query_arg( $foreign_licenses, $user_licenses_endpoint );
             }
 
@@ -13768,11 +13841,12 @@
          *
          * @uses   FS_Api
          *
-         * @param bool $background         Hints the method if it's a background sync. If false, it means that was initiated by
-         *                                 the admin.
-         * @param bool $is_site_level_sync @since 2.0.0.
+         * @param bool $background             Hints the method if it's a background sync. If false, it means that was initiated by
+         *                                     the admin.
+         * @param bool $is_context_single_site @since 2.0.0. This is used when syncing a license for a single install from the
+         *                                     network-level "Account" page.
          */
-        private function _sync_license( $background = false, $is_site_level_sync = false ) {
+        private function _sync_license( $background = false, $is_context_single_site = false ) {
             $this->_logger->entrance();
 
             $plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
@@ -13782,7 +13856,7 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license( $background, true, $is_site_level_sync );
+                $this->_sync_plugin_license( $background, true, $is_context_single_site );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
@@ -13867,11 +13941,13 @@
          * @since  1.0.6
          * @uses   FS_Api
          *
-         * @param bool $background           Hints the method if it's a background sync. If false, it means that was initiated by the admin.
-         * @param bool $send_installs_update Since 2.0.0
-         * @param bool $is_site_level_sync   Since 2.0.0
+         * @param bool $background             Hints the method if it's a background sync. If false, it means that was initiated by the admin.
+         * @param bool $send_installs_update   Since 2.0.0
+         * @param bool $is_context_single_site Since 2.0.0. This is used when sending an update for a single install and
+         *                                     syncing its license from the network-level "Account" page (e.g.: after
+         *                                     activating a license only for the single install).
          */
-        private function _sync_plugin_license( $background = false, $send_installs_update = true, $is_site_level_sync = false ) {
+        private function _sync_plugin_license($background = false, $send_installs_update = true, $is_context_single_site = false ) {
             $this->_logger->entrance();
 
             $plan_change = 'none';
@@ -13884,7 +13960,7 @@
                  *
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
-                $is_site_level_sync = ( $is_site_level_sync || is_blog_admin() || ! $this->_is_network_active );
+                $is_site_level_sync = ( $is_context_single_site || is_blog_admin() || ! $this->_is_network_active );
 
                 if ( $is_site_level_sync ) {
                     $result   = $this->send_install_update( array(), true );
@@ -13895,6 +13971,11 @@
                 }
 
                 if ( ! $is_valid ) {
+                    if ( $is_context_single_site ) {
+                        // Switch back to the main blog so that the following logic will have the right entities.
+                        $this->switch_to_blog( $this->_storage->network_install_blog_id );
+                    }
+
                     // Show API messages only if not background sync or if paying customer.
                     if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
@@ -15793,7 +15874,7 @@
          */
         function get_api_network_user_scope( $flush = false ) {
             $user = $this->get_network_user();
-            if ( isset( $this->_user ) && $this->_user->id == $user->id ) {
+            if ( ! is_object( $user ) || ( isset( $this->_user ) && $this->_user->id == $user->id ) ) {
                 return $this->get_api_user_scope( $flush );
             }
 

@@ -77,36 +77,38 @@
     $show_plan_row    = true;
     $show_license_row = is_object( $license );
 
-    $sites                   = Freemius::get_sites();
-    $site_view_params        = array();
-    $all_installs_plan_id    = null;
-    $all_installs_license_id = ( $show_license_row ? $license->id : null );
-    foreach ( $sites as $s ) {
-        $site_info   = $fs->get_site_info( $s );
-        $install     = $fs->get_install_by_blog_id( $site_info['blog_id'] );
-        $view_params = array(
-            'freemius' => $fs,
-            'license'  => $license,
-            'site'     => $site_info,
-            'install'  => $install,
-        );
+    if ( fs_is_network_admin() ) {
+        $sites                   = Freemius::get_sites();
+        $site_view_params        = array();
+        $all_installs_plan_id    = null;
+        $all_installs_license_id = ( $show_license_row ? $license->id : null );
+        foreach ( $sites as $s ) {
+            $site_info   = $fs->get_site_info( $s );
+            $install     = $fs->get_install_by_blog_id( $site_info['blog_id'] );
+            $view_params = array(
+                'freemius' => $fs,
+                'license'  => $license,
+                'site'     => $site_info,
+                'install'  => $install,
+            );
 
-        $site_view_params[] = $view_params;
+            $site_view_params[] = $view_params;
 
-        if ( empty( $install ) ) {
-            continue;
-        }
-
-        if ( $show_plan_row ) {
-            if ( is_null( $all_installs_plan_id ) ) {
-                $all_installs_plan_id = $install->plan_id;
-            } else if ( $all_installs_plan_id != $install->plan_id ) {
-                $show_plan_row = false;
+            if ( empty( $install ) ) {
+                continue;
             }
-        }
 
-        if ( $show_license_row && $all_installs_license_id != $install->license_id ) {
-            $show_license_row = false;
+            if ( $show_plan_row ) {
+                if ( is_null( $all_installs_plan_id ) ) {
+                    $all_installs_plan_id = $install->plan_id;
+                } else if ( $all_installs_plan_id != $install->plan_id ) {
+                    $show_plan_row = false;
+                }
+            }
+
+            if ( $show_license_row && $all_installs_license_id != $install->license_id ) {
+                $show_license_row = false;
+            }
         }
     }
 ?>
