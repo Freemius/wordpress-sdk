@@ -326,7 +326,7 @@ HTML;
 				/**
 				 * If license key is not empty, enable the license activation button.
 				 */
-				if ( licenseKey.length > 0 && ( ! isNetworkActive || hasSelectedSite() ) ) {
+				if ( licenseKey.length > 0 && ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActive || hasSelectedSite() ) ) {
 					enableActivateLicenseButton();
 				}
 			});
