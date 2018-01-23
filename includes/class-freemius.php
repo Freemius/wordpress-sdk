@@ -4759,8 +4759,6 @@
             $this->_sync_cron();
 
             // Reschedule next cron to run 24 hours from now (performance optimization).
-            $this->clear_sync_cron();
-
             $this->schedule_sync_cron( time() + WP_FS__TIME_24_HOURS_IN_SEC, false );
         }
 
@@ -4849,6 +4847,8 @@
          */
         private function schedule_sync_cron( $start_at = WP_FS__SCRIPT_START_TIME, $randomize_start = true ) {
             $this->_logger->entrance();
+
+            $this->clear_sync_cron(true);
 
             if ( $randomize_start ) {
                 // Schedule first sync with a random 12 hour time range from now.
