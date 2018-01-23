@@ -52,7 +52,7 @@
         /**
          * @var string[] Lazy collection of params on the site level.
          */
-        private static $_SITE_LEVEL_PARAMS;
+        private static $_SITE_OPTIONS_MAP;
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -201,6 +201,21 @@
         #--------------------------------------------------------------------------------
 
         /**
+         * We don't want to load the map right away since it's not even needed in a non-MS environment.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        private static function load_site_options_map() {
+            self::$_SITE_OPTIONS_MAP = array(
+                'sites'          => true,
+                'theme_sites'    => true,
+                'unique_id'      => true,
+                'active_plugins' => true,
+            );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
@@ -213,16 +228,11 @@
                 return false;
             }
 
-            if ( ! isset( self::$_SITE_LEVEL_PARAMS ) ) {
-                self::$_SITE_LEVEL_PARAMS = array(
-                    'sites'          => true,
-                    'theme_sites'    => true,
-                    'unique_id'      => true,
-                    'active_plugins' => true,
-                );
+            if ( ! isset( self::$_SITE_OPTIONS_MAP ) ) {
+                self::load_site_options_map();
             }
 
-            return isset( self::$_SITE_LEVEL_PARAMS[ $option ] );
+            return isset( self::$_SITE_OPTIONS_MAP[ $option ] );
         }
 
         /**
