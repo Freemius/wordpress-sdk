@@ -59,42 +59,12 @@
          * #1 digit - 1 if theme
          * #2 digit - 1 if module was network activated
          *
-         * @var array
+         * @var array {
+         * @key   string Option name
+         * @value bool|array
+         * }
          */
-        private static $_BINARY_MAP = array(
-            'activation_timestamp'       => array( '11' => true, '01' => true ),
-            'affiliate_application_data' => true,
-            'connectivity_test'          => true,
-            'has_trial_plan'             => true,
-            'install_sync_timestamp'     => true,
-            'install_sync_cron'          => true,
-            'install_timestamp'          => array( '11' => true, '01' => true ),
-            'is_anonymous'               => false,
-            'is_anonymous_ms'            => true,
-            'is_on'                      => true,
-            'is_pending_activation'      => array( '11' => true, '01' => true ),
-            'is_plugin_new_install'      => true,
-            'network_install_blog_id'    => true,
-            'pending_license_key'        => array( '11' => true, '01' => true ),
-            'pending_sites_info'         => true,
-            'plugin_last_version'        => true,
-            'plugin_main_file'           => true,
-            'plugin_version'             => true,
-            'prev_is_premium'            => array( '11' => true, '01' => true ),
-            'prev_user_id'               => array( '11' => true, '01' => true ),
-            'sdk_downgrade_mode'         => true,
-            'sdk_last_version'           => true,
-            'sdk_upgrade_mode'           => true,
-            'sdk_version'                => true,
-            'sticky_optin_added_ms'      => true,
-            'sticky_optin_added'         => array( '10' => true, '00' => true ),
-            'subscription'               => true,
-            'sync_timestamp'             => true,
-            'sync_cron'                  => true,
-            'uninstall_reason'           => array( '11' => true, '01' => true ),
-            'was_plugin_loaded'          => true,
-            'network_user_id'            => true,
-        );
+        private static $_NETWORK_OPTIONS_MAP;
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -262,6 +232,56 @@
         #--------------------------------------------------------------------------------
 
         /**
+         * We don't want to load the map right away since it's not even needed in a non-MS environment.
+         *
+         * Example:
+         * 'option1' => true, // Means that option should always be stored on the network level.
+         * 'option2' => array( '01' => true), // Means that if a plugin which was network level activated, store the option in the network level stroage.
+         *
+         * #1 digit - 1 if theme
+         * #2 digit - 1 if module was network activated
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        private static function load_network_options_map() {
+            self::$_NETWORK_OPTIONS_MAP = array(
+                'activation_timestamp'       => array( '11' => true, '01' => true ),
+                'affiliate_application_data' => true,
+                'connectivity_test'          => true,
+                'has_trial_plan'             => true,
+                'install_sync_timestamp'     => true,
+                'install_sync_cron'          => true,
+                'install_timestamp'          => array( '11' => true, '01' => true ),
+                'is_anonymous'               => false,
+                'is_anonymous_ms'            => true,
+                'is_on'                      => true,
+                'is_pending_activation'      => array( '11' => true, '01' => true ),
+                'is_plugin_new_install'      => true,
+                'network_install_blog_id'    => true,
+                'pending_license_key'        => array( '11' => true, '01' => true ),
+                'pending_sites_info'         => true,
+                'plugin_last_version'        => true,
+                'plugin_main_file'           => true,
+                'plugin_version'             => true,
+                'prev_is_premium'            => array( '11' => true, '01' => true ),
+                'prev_user_id'               => array( '11' => true, '01' => true ),
+                'sdk_downgrade_mode'         => true,
+                'sdk_last_version'           => true,
+                'sdk_upgrade_mode'           => true,
+                'sdk_version'                => true,
+                'sticky_optin_added_ms'      => true,
+                'sticky_optin_added'         => array( '10' => true, '00' => true ),
+                'subscription'               => true,
+                'sync_timestamp'             => true,
+                'sync_cron'                  => true,
+                'uninstall_reason'           => array( '11' => true, '01' => true ),
+                'was_plugin_loaded'          => true,
+                'network_user_id'            => true,
+            );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
@@ -270,12 +290,16 @@
          * @return bool|mixed
          */
         private function is_multisite_option( $key ) {
-            if ( ! isset( self::$_BINARY_MAP[ $key ] ) ) {
+            if ( ! isset( self::$_NETWORK_OPTIONS_MAP ) ) {
+                self::load_network_options_map();
+            }
+
+            if ( ! isset( self::$_NETWORK_OPTIONS_MAP[ $key ] ) ) {
                 return false;
             }
 
-            if ( is_bool( self::$_BINARY_MAP[ $key ] ) ) {
-                return self::$_BINARY_MAP[ $key ];
+            if ( is_bool( self::$_NETWORK_OPTIONS_MAP[ $key ] ) ) {
+                return self::$_NETWORK_OPTIONS_MAP[ $key ];
             }
 
             $is_theme = ( WP_FS__MODULE_TYPE_THEME === $this->_module_type );
@@ -291,8 +315,8 @@
             $binary_key = ( (int) $is_theme . (int) $this->_is_network_active );
 
             return (
-                isset( self::$_BINARY_MAP[ $key ][ $binary_key ] ) &&
-                true === self::$_BINARY_MAP[ $key ][ $binary_key ]
+                isset( self::$_NETWORK_OPTIONS_MAP[ $key ][ $binary_key ] ) &&
+                true === self::$_NETWORK_OPTIONS_MAP[ $key ][ $binary_key ]
             );
         }
 
