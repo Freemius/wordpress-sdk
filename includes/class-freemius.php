@@ -8725,7 +8725,6 @@
          * @return bool
          */
         function has_trial_plan() {
-            if ( ! $this->is_registered() ) {
                 /**
                  * @author Vova Feldman(@svovaf)
                  * @since  1.2.1.5
@@ -8736,9 +8735,6 @@
                 if ( $this->_trial_days >= 0 ) {
                     return true;
                 }
-
-                return false;
-            }
 
             return $this->_storage->get( 'has_trial_plan', false );
         }
