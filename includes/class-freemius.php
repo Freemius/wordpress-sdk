@@ -402,6 +402,22 @@
                 $this->_storage->set_network_active();
             }
 
+            if ( is_multisite() ) {
+                /**
+                 * If the install_timestamp exists on the site level but doesn't exist on the
+                 * network level storage, it means that we need to process the storage with migration.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  2.0.0
+                 */
+                if ( false === $this->_storage->get( 'install_timestamp', false, true ) &&
+                     false !== $this->_storage->get( 'install_timestamp', false, false )
+                ) {
+                    // Initiate storage migration.
+                    $this->_storage->migrate_to_network();
+                }
+            }
+
             $base_name_split        = explode( '/', $this->_plugin_basename );
             $this->_plugin_dir_name = $base_name_split[0];
 
@@ -2225,6 +2241,21 @@
             self::$_static_logger->entrance();
 
             self::$_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
+
+            if ( is_multisite() ) {
+                /**
+                 * If the id_slug_type_path_map exists on the site level but doesn't exist on the
+                 * network level storage, it means that we need to process the storage with migration.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  2.0.0
+                 */
+                if ( null === self::$_accounts->get_option( 'id_slug_type_path_map', null, true ) &&
+                     null !== self::$_accounts->get_option( 'id_slug_type_path_map', null, false )
+                ) {
+                    self::$_accounts->migrate_to_network();
+                }
+            }
 
             self::$_global_admin_notices = FS_Admin_Notices::instance( 'global' );
 

@@ -196,6 +196,7 @@
                 return $this->_network_storage->get( $key, $default );
             } else {
                 $storage = $this->get_site_storage( $network_level_or_blog_id );
+
                 return $storage->get( $key, $default );
             }
         }
@@ -225,6 +226,62 @@
                 $storage = $this->get_site_storage( $network_level_or_blog_id );
                 $storage->save();
             }
+        }
+
+        /**
+         * Migration script to the new storage data structure that is network compatible.
+         *
+         * IMPORTANT:
+         *      This method should be executed only after it is determined if this is a network
+         *      level compatible product activation.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function migrate_to_network() {
+            if ( ! $this->_is_multisite ) {
+                return;
+            }
+
+            $updated = false;
+
+            if ( ! isset( self::$_NETWORK_OPTIONS_MAP ) ) {
+                self::load_network_options_map();
+            }
+
+            foreach ( self::$_NETWORK_OPTIONS_MAP as $option => $storage_level ) {
+                if ( ! $this->is_multisite_option( $option ) ) {
+                    continue;
+                }
+
+                if ( isset( $this->_storage->{$option} ) && ! isset( $this->_network_storage->{$option} ) ) {
+                    // Migrate option to the network storage.
+                    $this->_network_storage->store( $option, $this->_storage->{$option}, false );
+
+                    /**
+                     * Remove the option from site level storage.
+                     *
+                     * IMPORTANT:
+                     *      The line below is intentionally commented since we want to preserve the option
+                     *      on the site storage level for "downgrade compatibility". Basically, if the user
+                     *      will downgrade to an older version of the plugin with the prev storage structure,
+                     *      it will continue working.
+                     *
+                     * @todo After a few releases we can remove this.
+                     */
+//                    $this->_storage->remove($option, false);
+
+                    $updated = true;
+                }
+            }
+
+            if ( ! $updated ) {
+                return;
+            }
+
+            // Update network level storage.
+            $this->_network_storage->save();
+//            $this->_storage->save();
         }
 
         #--------------------------------------------------------------------------------
