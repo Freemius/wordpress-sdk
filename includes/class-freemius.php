@@ -2415,7 +2415,9 @@
 
                 self::_delete_site_by_slug(
                     fs_request_get( 'slug' ),
-                    fs_request_get( 'module_type' )
+                    fs_request_get( 'module_type' ),
+                    true,
+                    fs_request_get( 'blog_id', null )
                 );
             } else if ( fs_request_is_action( 'download_logs' ) ) {
                 check_admin_referer( 'download_logs' );
