@@ -49,12 +49,17 @@
         /**
          * @var bool
          */
-        private $_is_network_active;
+        private $_is_network_active = false;
+
+        /**
+         * @var bool
+         */
+        private $_is_delegated_connection = false;
 
         /**
          * @var array {
          * @key   string Option name.
-         * @value bool If `true` store on the network level. If `false`, store on the network level only if module was network level activated.
+         * @value int If 0 store on the network level. If 1, store on the network level only if module was network level activated. If 2, store on the network level only if network activated and NOT delegated the connection.
          * }
          */
         private static $_NETWORK_OPTIONS_MAP;
@@ -82,9 +87,8 @@
          * @param string $slug
          */
         private function __construct( $module_type, $slug ) {
-            $this->_module_type       = $module_type;
-            $this->_is_multisite      = is_multisite();
-            $this->_is_network_active = false;
+            $this->_module_type  = $module_type;
+            $this->_is_multisite = is_multisite();
 
             if ( $this->_is_multisite ) {
                 $this->_blog_id         = get_current_blog_id();
@@ -101,9 +105,11 @@
          * @author Leo Fajardo (@leorw)
          *
          * @param bool $is_network_active
+         * @param bool $is_delegated_connection
          */
-        function set_network_active( $is_network_active = true ) {
-            $this->_is_network_active = $is_network_active;
+        function set_network_active( $is_network_active = true, $is_delegated_connection = false ) {
+            $this->_is_network_active       = $is_network_active;
+            $this->_is_delegated_connection = $is_delegated_connection;
         }
 
         /**
@@ -288,8 +294,9 @@
          *
          * Example:
          * array(
-         *      'option1' => true,  // Means that the option should always be stored on the network level.
-         *      'option2' => false, // Means that the option should be stored on the network level only when the module was network level activated.
+         *      'option1' => 0, // Means that the option should always be stored on the network level.
+         *      'option2' => 1, // Means that the option should be stored on the network level only when the module was network level activated.
+         *      'option2' => 2, // Means that the option should be stored on the network level only when the module was network level activated AND the connection was NOT delegated.
          * )
          *
          * @author Vova Feldman (@svovaf)
@@ -298,44 +305,50 @@
         private static function load_network_options_map() {
             self::$_NETWORK_OPTIONS_MAP = array(
                 // Network level options.
-                'affiliate_application_data' => true,
-                'connectivity_test'          => true,
-                'has_trial_plan'             => true,
-                'install_sync_timestamp'     => true,
-                'install_sync_cron'          => true,
-                'is_anonymous_ms'            => true,
-                'is_on'                      => true,
-                'is_plugin_new_install'      => true,
-                'network_install_blog_id'    => true,
-                'pending_sites_info'         => true,
-                'plugin_last_version'        => true,
-                'plugin_main_file'           => true,
-                'plugin_version'             => true,
-                'sdk_downgrade_mode'         => true,
-                'sdk_last_version'           => true,
-                'sdk_upgrade_mode'           => true,
-                'sdk_version'                => true,
-                'sticky_optin_added_ms'      => true,
-                'subscription'               => true,
-                'sync_timestamp'             => true,
-                'sync_cron'                  => true,
-                'was_plugin_loaded'          => true,
-                'network_user_id'            => true,
+                'affiliate_application_data' => 0,
+                'connectivity_test'          => 0,
+                'has_trial_plan'             => 0,
+                'install_sync_timestamp'     => 0,
+                'install_sync_cron'          => 0,
+                'is_anonymous_ms'            => 0,
+                'is_on'                      => 0,
+                'is_plugin_new_install'      => 0,
+                'network_install_blog_id'    => 0,
+                'pending_sites_info'         => 0,
+                'plugin_last_version'        => 0,
+                'plugin_main_file'           => 0,
+                'plugin_version'             => 0,
+                'sdk_downgrade_mode'         => 0,
+                'sdk_last_version'           => 0,
+                'sdk_upgrade_mode'           => 0,
+                'sdk_version'                => 0,
+                'sticky_optin_added_ms'      => 0,
+                'subscription'               => 0,
+                'sync_timestamp'             => 0,
+                'sync_cron'                  => 0,
+                'was_plugin_loaded'          => 0,
+                'network_user_id'            => 0,
+                'plugin_upgrade_mode'        => 0,
+                'plugin_downgrade_mode'      => 0,
 
-                // Mixed level options.
-                'prev_is_premium'            => false,
-                'prev_user_id'               => false,
-                'sticky_optin_added'         => false,
-                'uninstall_reason'           => false,
-                'activation_timestamp'       => false,
-                'install_timestamp'          => false,
-                'is_anonymous'               => false,
-                'is_pending_activation'      => false,
-                'pending_license_key'        => false,
+                // When network activated, then network level.
+                'install_timestamp'          => 1,
+                'prev_is_premium'            => 1,
+
+                // If not network activated OR delegated, then site level.
+                'activation_timestamp'       => 2,
+                'prev_user_id'               => 2,
+                'sticky_optin_added'         => 2,
+                'uninstall_reason'           => 2,
+                'is_anonymous'               => 2,
+                'is_pending_activation'      => 2,
+                'pending_license_key'        => 2,
             );
         }
 
         /**
+         * This method will and should only be executed when is_multisite() is true.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
@@ -349,14 +362,30 @@
             }
 
             if ( ! isset( self::$_NETWORK_OPTIONS_MAP[ $key ] ) ) {
+                // Option not found -> use site level storage.
                 return false;
             }
 
-            if ( true === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
+            if ( 0 === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
+                // Option found and set to always use the network level storage on a multisite.
                 return true;
             }
 
-            return $this->_is_network_active;
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            if ( 1 === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
+                // Network activated.
+                return true;
+            }
+
+            if ( 2 === self::$_NETWORK_OPTIONS_MAP[ $key ] && ! $this->_is_delegated_connection ) {
+                // Network activated and not delegated.
+                return true;
+            }
+
+            return false;
         }
 
         /**

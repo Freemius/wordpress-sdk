@@ -399,8 +399,8 @@
             );
 
             $this->_storage->set_network_active(
-                $this->_is_network_active &&
-                ! $this->is_delegated_connection()
+                $this->_is_network_active,
+                $this->is_delegated_connection()
             );
 
             #region Migration
@@ -10212,7 +10212,7 @@
 
             self::$_accounts->set_site_blog_context( $blog_id );
             $this->_storage->set_site_blog_context( $blog_id );
-            $this->_storage->set_network_active( ! $this->is_delegated_connection( $blog_id ) );
+            $this->_storage->set_network_active( true, $this->is_delegated_connection( $blog_id ) );
 
             $this->_site = is_object( $install ) ?
                 $install :
