@@ -398,9 +398,10 @@
                   is_plugin_inactive( $this->_plugin_basename ) )
             );
 
-            if ( $this->_is_network_active ) {
-                $this->_storage->set_network_active();
-            }
+            $this->_storage->set_network_active(
+                $this->_is_network_active &&
+                ! $this->is_delegated_connection()
+            );
 
             #region Migration
 
@@ -10034,8 +10035,9 @@
 
         /**
          * Check if delegated the connection. When running within the the network admin,
-         * checks if network level delegated. If running within a site admin, check if
-         * delegated the connection for the current context site.
+         * and haven't specified the blog ID, checks if network level delegated. If running
+         * within a site admin or specified a blog ID, check if delegated the connection for
+         * the current context site.
          *
          * If executed outside the the admin, check if delegated the connection
          * for the current context site OR the whole network.
@@ -10043,20 +10045,22 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
+         * @param int $blog_id If set, checks if network delegated or blog specific delegated.
+         *
          * @return bool
          */
-        function is_delegated_connection() {
+        function is_delegated_connection( $blog_id = 0 ) {
             if ( ! $this->_is_network_active ) {
                 return false;
             }
 
-            if ( fs_is_network_admin() ) {
+            if ( fs_is_network_admin() && 0 == $blog_id ) {
                 return $this->is_network_delegated_connection();
             }
 
             return (
                 $this->is_network_delegated_connection() ||
-                $this->is_site_delegated_connection()
+                $this->is_site_delegated_connection( $blog_id )
             );
         }
 
@@ -10219,6 +10223,7 @@
 
             self::$_accounts->set_site_blog_context( $blog_id );
             $this->_storage->set_site_blog_context( $blog_id );
+            $this->_storage->set_network_active( ! $this->is_delegated_connection( $blog_id ) );
 
             $this->_site = is_object( $install ) ?
                 $install :
