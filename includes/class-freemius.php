@@ -402,10 +402,14 @@
                 $this->_storage->set_network_active();
             }
 
+            #region Migration
+
             if ( is_multisite() ) {
                 /**
                  * If the install_timestamp exists on the site level but doesn't exist on the
                  * network level storage, it means that we need to process the storage with migration.
+                 *
+                 * The code in this `if` scope will only be executed once and only for the first site that will execute it because once we migrate the storage data, install_timestamp will be already set in the network level storage.
                  *
                  * @author Vova Feldman (@svovaf)
                  * @since  2.0.0
@@ -415,8 +419,13 @@
                 ) {
                     // Initiate storage migration.
                     $this->_storage->migrate_to_network();
+
+                    // Migrate module cache to network level storage.
+                    $this->_cache->migrate_to_network();
                 }
             }
+
+            #endregion
 
             $base_name_split        = explode( '/', $this->_plugin_basename );
             $this->_plugin_dir_name = $base_name_split[0];
@@ -1708,6 +1717,11 @@
                 return false;
             }
 
+            /**
+             * Load the essential static data prior to initiating FS_Plugin_Manager since there's an essential MS network migration logic that needs to be executed prior to the initiation.
+             */
+            self::_load_required_static();
+
             if ( ! is_numeric( $module_id ) ) {
                 if ( ! $is_init && true === $slug ) {
                     $is_init = true;
@@ -1725,10 +1739,6 @@
             $key = 'm_' . $module_id;
 
             if ( ! isset( self::$_instances[ $key ] ) ) {
-                if ( 0 === count( self::$_instances ) ) {
-                    self::_load_required_static();
-                }
-
                 self::$_instances[ $key ] = new Freemius( $module_id, $slug, $is_init );
             }
 
@@ -2247,6 +2257,8 @@
                  * If the id_slug_type_path_map exists on the site level but doesn't exist on the
                  * network level storage, it means that we need to process the storage with migration.
                  *
+                 * The code in this `if` scope will only be executed once and only for the first site that will execute it because once we migrate the storage data, id_slug_type_path_map will be already set in the network level storage.
+                 *
                  * @author Vova Feldman (@svovaf)
                  * @since  2.0.0
                  */
@@ -2254,6 +2266,13 @@
                      null !== self::$_accounts->get_option( 'id_slug_type_path_map', null, false )
                 ) {
                     self::$_accounts->migrate_to_network();
+
+                    // Migrate API options from site level to network level.
+                    $api_network_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true, true );
+                    $api_network_options->migrate_to_network();
+
+                    // Migrate API cache to network level storage.
+                    FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME )->migrate_to_network();
                 }
             }
 

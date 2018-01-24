@@ -28,7 +28,7 @@
          */
         private $_id;
         /**
-         * @var array
+         * @var array|object
          */
         private $_options;
         /**
@@ -410,6 +410,34 @@
                 wp_cache_set( $option_name, $this->_options, $this->get_cache_group() );
             }
         }
+
+        #--------------------------------------------------------------------------------
+        #region Migration
+        #--------------------------------------------------------------------------------
+
+        /**
+         * Migrate options from site level.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function migrate_to_network() {
+            $site_options = FS_Option_Manager::get_manager($this->_id, true, false);
+
+            $options = is_object( $site_options ) ?
+                get_object_vars( $site_options->_options ) :
+                $site_options->_options;
+
+            if ( ! empty( $options ) ) {
+                foreach ( $options as $key => $val ) {
+                    $this->set_option( $key, $val, false );
+                }
+
+                $this->store();
+            }
+        }
+
+        #endregion
 
         #--------------------------------------------------------------------------------
         #region Helper Methods
