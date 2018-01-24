@@ -11016,7 +11016,9 @@
             $api = $this->get_api_site_scope();
 
             $uid    = $this->get_anonymous_id();
-            $result = $api->get( "/users/{$this->_site->user_id}.json?uid={$uid}", false, WP_FS__TIME_10_MIN_IN_SEC );
+            $request_path = "/users/{$this->_site->user_id}.json?uid={$uid}";
+
+            $result = $api->get( $request_path, false, WP_FS__TIME_10_MIN_IN_SEC );
 
             if ( $this->is_api_result_entity( $result ) ) {
                 $user        = new FS_User( $result );
@@ -11033,7 +11035,7 @@
                  * Those API errors will continue coming and are not recoverable with the
                  * current site's data. Therefore, extend the API call's cached result to 7 days.
                  */
-                $api->update_cache_expiration( "/users/{$this->_site->user_id}.json?uid={$uid}", WP_FS__TIME_WEEK_IN_SEC );
+                $api->update_cache_expiration( $request_path, WP_FS__TIME_WEEK_IN_SEC );
             }
 
             return $result;
