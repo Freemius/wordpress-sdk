@@ -204,15 +204,16 @@
          * @param string $key
          * @param mixed  $value
          * @param int    $expiration
+         * @param int    $created Since 2.0.0 Cache creation date.
          */
-        function set( $key, $value, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+        function set( $key, $value, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $created = WP_FS__SCRIPT_START_TIME ) {
             $this->_logger->entrance( 'key = ' . $key );
 
             $cache_entry = new stdClass();
 
             $cache_entry->result    = $value;
-            $cache_entry->created   = WP_FS__SCRIPT_START_TIME;
-            $cache_entry->timestamp = WP_FS__SCRIPT_START_TIME + $expiration;
+            $cache_entry->created   = $created;
+            $cache_entry->timestamp = $created + $expiration;
             $this->_options->set_option( $key, $cache_entry, true );
         }
 
@@ -254,6 +255,34 @@
             $this->_logger->entrance( 'key = ' . $key );
 
             $this->_options->unset_option( $key, true );
+        }
+
+        /**
+         * Extend cached item caching period.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $key
+         * @param int    $expiration
+         *
+         * @return bool
+         */
+        function update_expiration( $key, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+            $this->_logger->entrance( 'key = ' . $key );
+
+            $cache_entry = $this->_options->get_option( $key, false );
+
+            if ( ! is_object( $cache_entry ) ||
+                 ! isset( $cache_entry->timestamp ) ||
+                 ! is_numeric( $cache_entry->timestamp )
+            ) {
+                return false;
+            }
+
+            $this->set( $key, $cache_entry->result, $expiration, $cache_entry->created );
+
+            return true;
         }
 
         /**
