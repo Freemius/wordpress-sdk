@@ -5513,7 +5513,7 @@
 
             unset( $all_licenses[ $this->_module_id ] );
 
-            $this->set_account_option( 'licenses', $all_licenses, $store );
+            self::$_accounts->set_option( 'all_licenses', $all_licenses, $store );
         }
 
         /**
@@ -7514,10 +7514,11 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
-         * @param array  $new_user_id_license_ids_map
-         * @param number $module_id
+         * @param array       $new_user_id_license_ids_map
+         * @param number      $module_id
+         * @param number|null $user_id
          */
-        private static function store_user_id_license_ids_map( $new_user_id_license_ids_map, $module_id ) {
+        private static function store_user_id_license_ids_map( $new_user_id_license_ids_map, $module_id, $user_id = null ) {
             $all_modules_user_id_license_ids_map = self::get_account_option( 'user_id_license_ids_map' );
             if ( ! is_array( $all_modules_user_id_license_ids_map ) ) {
                 $all_modules_user_id_license_ids_map = array();
@@ -7527,7 +7528,11 @@
                 $all_modules_user_id_license_ids_map[ $module_id ] = array();
             }
 
-            $all_modules_user_id_license_ids_map[ $module_id ] = $new_user_id_license_ids_map;
+            if ( FS_User::is_valid_id( $user_id ) ) {
+                $all_modules_user_id_license_ids_map[ $module_id ][ $user_id ] = $new_user_id_license_ids_map;
+            } else {
+                $all_modules_user_id_license_ids_map[ $module_id ] = $new_user_id_license_ids_map;
+            }
 
             self::$_accounts->set_option( 'user_id_license_ids_map', $all_modules_user_id_license_ids_map, true );
         }
@@ -8393,22 +8398,10 @@
                                             $user_license_ids_map[ $this->_user->id ] :
                                             array() );
 
-                if ( ! $current_user_only ) {
-                    if ( ! empty( $user_license_ids_map ) ) {
-                        foreach ( $user_license_ids_map as &$user_license_ids ) {
-                            foreach ( $user_license_ids as $key => $license_id ) {
-                                if ( ! isset( $licenses_map[ $license_id ] ) ) {
-                                    // Remove access to licenses that no longer exist.
-                                    unset( $user_license_ids[ $key ] );
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    foreach ( $user_license_ids as $key => $license_id ) {
-                        if ( ! isset( $licenses_map[ $license_id ] ) ) {
-                            unset( $user_license_ids[ $key ] );
-                        }
+                foreach ( $user_license_ids as $key => $license_id ) {
+                    if ( ! isset( $licenses_map[ $license_id ] ) ) {
+                        // Remove access to licenses that no longer exist.
+                        unset( $user_license_ids[ $key ] );
                     }
                 }
 
@@ -10236,37 +10229,37 @@
                     }
                 }
 
-                $all_licenses = self::get_all_licenses( $this->_module_id );
+                $all_plugin_licenses = self::get_all_licenses( $this->_module_id );
 
-                if ( is_array( $all_licenses ) &&
-                     isset( $all_licenses[ $this->_slug ] )
-                ) {
+                if ( ! empty( $all_plugin_licenses ) ) {
                     if ( ! FS_Plugin_License::is_valid_id( $this->_site->license_id ) ) {
                         $this->_license = null;
                     } else {
-                        $all_plugin_licenses = $all_licenses[ $this->_slug ];
-                        $license_found       = false;
-                        foreach ( $all_plugin_licenses as $user_id => $user_licenses ) {
-                            foreach ( $user_licenses as $license ) {
-                                if ( $license->id == $this->_site->license_id ) {
-                                    // License found.
-                                    $this->_license = $license;
-                                    $license_found  = true;
-                                    break;
-                                }
-                            }
-
-                            if ( $license_found ) {
+                        $license_found = false;
+                        foreach ( $all_plugin_licenses as $license ) {
+                            if ( $license->id == $this->_site->license_id ) {
+                                // License found.
+                                $this->_license = $license;
+                                $license_found  = true;
                                 break;
+                            }
+                        }
+
+                        if ( $license_found ) {
+                            $user_license_ids_map = self::get_user_id_license_ids_map( $this->_module_id );
+                            $user_license_ids     = ( isset( $user_license_ids_map[ $this->_user->id ] ) ?
+                                $user_license_ids_map[ $this->_user->id ] :
+                                array() );
+
+                            if ( ! in_array( $this->_license->id, $user_license_ids ) ) {
+                                $user_license_ids[]                       = $this->_license->id;
+                                $user_license_ids_map[ $this->_user->id ] = $user_license_ids;
+                                self::store_user_id_license_ids_map( $user_license_ids_map, $this->_module_id );
                             }
                         }
                     }
 
-                    if ( isset( $all_licenses[ $this->_slug ][ $this->_user->id ] ) ) {
-                        $this->_licenses = $all_licenses[ $this->_slug ][ $this->_user->id ];
-                    } else {
-                        $this->_licenses = false;
-                    }
+                    $this->_licenses = $this->get_user_licenses( $this->_user->id );
                 }
             }
 
@@ -13441,9 +13434,44 @@
             if ( ! FS_Plugin::is_valid_id( $module_id ) ) {
                 $module_id = $this->_module_id;
 
-                $licenses = is_array( $this->_licenses ) ?
+                $user_licenses = is_array( $this->_licenses ) ?
                     $this->_licenses :
                     array();
+
+                if ( empty( $user_licenses ) ) {
+                    // If the context user doesn't have any license, don't update the licenses collection.
+                    return;
+                }
+
+                $new_user_licenses_map = array();
+                foreach ( $user_licenses as $user_license ) {
+                    $new_user_licenses_map[ $user_license->id ] = $user_license;
+                }
+
+                self::store_user_id_license_ids_map( array_keys( $new_user_licenses_map ), $this->_module_id, $this->_user->id );
+
+                // Update user licenses.
+                $licenses_to_update_count = count( $new_user_licenses_map );
+                foreach ( $all_licenses[ $module_id ] as $key => $license ) {
+                    if ( 0 === $licenses_to_update_count ) {
+                        break;
+                    }
+
+                    if ( isset( $new_user_licenses_map[ $license->id ] ) ) {
+                        // Update license.
+                        $all_licenses[ $module_id ][ $key ] = $new_user_licenses_map[ $license->id ];
+                        unset( $new_user_licenses_map[ $license->id ] );
+
+                        $licenses_to_update_count --;
+                    }
+                }
+
+                if ( ! empty( $new_user_licenses_map ) ) {
+                    // Add new licenses.
+                    $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
+                }
+
+                $licenses = $all_licenses[ $module_id ];
             }
 
             if ( ! isset( $all_licenses[ $module_id ] ) ) {
@@ -13809,14 +13837,26 @@
                         $api_errors[] = $api_result;
                     }
                 } else if ( is_object( $this->_license ) ) {
-                    // Fetch foreign license by ID and license key.
-                    $license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
-                                          urlencode( $this->_license->secret_key ) );
+                    $is_license_in_result = false;
+                    if ( ! empty( $result ) ) {
+                        foreach ( $result as $license ) {
+                            if ( $license->id == $this->_license->id ) {
+                                $is_license_in_result = true;
+                                break;
+                            }
+                        }
+                    }
 
-                    if ( $this->is_api_result_entity( $license ) ) {
-                        $result[] = new FS_Plugin_License( $license );
-                    } else {
-                        $api_errors[] = $license;
+                    if ( ! $is_license_in_result ) {
+                        // Fetch foreign license by ID and license key.
+                        $license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
+                            urlencode( $this->_license->secret_key ) );
+
+                        if ( $this->is_api_result_entity( $license ) ) {
+                            $result[] = new FS_Plugin_License( $license );
+                        } else {
+                            $api_errors[] = $license;
+                        }
                     }
                 }
             }
@@ -13913,9 +13953,9 @@
          * @since  1.0.5
          *
          * @param FS_Plugin_License[] $licenses
-         * @param string|bool         $plugin_slug
+         * @param number              $module_id
          */
-        private function _update_licenses( $licenses, $plugin_slug = false ) {
+        private function _update_licenses( $licenses, $module_id ) {
             $this->_logger->entrance();
 
             if ( is_array( $licenses ) ) {
@@ -13924,11 +13964,7 @@
                 }
             }
 
-            if ( ! is_string( $plugin_slug ) ) {
-                $this->_licenses = $licenses;
-            }
-
-            $this->_store_licenses( true, $plugin_slug, $licenses );
+            $this->_store_licenses( true, $module_id, $licenses );
         }
 
         /**
@@ -14141,7 +14177,7 @@
 
             // Sync add-on licenses.
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
-                $this->_update_licenses( $licenses, $addon->slug );
+                $this->_update_licenses( $licenses, $addon->id );
 
                 if ( ! $this->is_addon_installed( $addon->id ) && FS_License_Manager::has_premium_license( $licenses ) ) {
                     $plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
