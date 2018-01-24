@@ -466,7 +466,7 @@
                                             fs_esc_html_inline( 'Change License', 'change-license', $slug ) :
                                             fs_esc_html_inline( 'Activate License', 'activate-license', $slug );
                                     ?>
-                                    <a class="button activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
+                                    <a class="button button-primary activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
                                 <?php endif ?>
 								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
 							</div>
