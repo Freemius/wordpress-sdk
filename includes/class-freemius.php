@@ -10950,23 +10950,30 @@
             if ( is_object( $user ) ) {
                 $this->_user = clone $user;
             } else if ( $this->_site ) {
+                $user = self::_get_user_by_id( $this->_site->user_id );
+
+                if ( ! is_object( $user ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
                 /**
-                 * If the install owner's details are not stored locally, use the previous user's details if available.
-                 *
-                 * @author Leo Fajardo (@leorw)
+                     * Try to load the previous owner. This recovery is used for the following use-case:
+                     *      1. Opt-in
+                     *      2. Cloning site1 to site2
+                     *      3. Ownership switch in site1 (same applies for site2)
+                     *      4. Install data sync on site2
+                     *      5. Now site2's install is associated with the new owner which does not exists locally.
                  */
-                if ( ! isset( $users[ $this->_site->user_id ] ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
-                    $user_id = $this->_storage->prev_user_id;
-                } else {
-                    $user_id = $this->_site->user_id;
+                    $user = self::_get_user_by_id( $this->_storage->prev_user_id );
                 }
 
-                if ( isset( $users[ $user_id ] ) && $users[ $user_id ] instanceof FS_User ) {
-                    // Load relevant user.
-                    $this->_user = clone $users[ $user_id ];
-                } else {
-                    // Recovery????
+                if ( ! is_object( $user ) ) {
+                    /**
+                     * This is a special fault tolerance mechanism to handle a scenario that the user data is missing.
+                     */
+                    $user = $this->fetch_user_by_install();
                 }
+
+                $this->_user = ( $user instanceof FS_User ) ?
+                    clone $user :
+                    null;
             }
 
             if ( is_object( $this->_user ) ) {
@@ -10987,6 +10994,41 @@
             if ( $this->is_theme() ) {
                 $this->_register_account_hooks();
             }
+        }
+
+        /**
+         * Special user recovery mechanism.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return \FS_User|mixed
+         */
+        private function fetch_user_by_install() {
+            $api = $this->get_api_site_scope();
+
+            $uid    = $this->get_anonymous_id();
+            $result = $api->get( "/users/{$this->_site->user_id}.json?uid={$uid}", false, WP_FS__TIME_10_MIN_IN_SEC );
+
+            if ( $this->is_api_result_entity( $result ) ) {
+                $user        = new FS_User( $result );
+                $this->_user = $user;
+                $this->_store_user();
+
+                return $user;
+            }
+
+            $error_code = FS_Api::get_error_code( $result );
+
+            if ( in_array( $error_code, array( 'invalid_unique_id', 'user_cannot_be_recovered' ) ) ) {
+                /**
+                 * Those API errors will continue coming and are not recoverable with the
+                 * current site's data. Therefore, extend the API call's cached result to 7 days.
+                 */
+                $api->update_cache_expiration( "/users/{$this->_site->user_id}.json?uid={$uid}", WP_FS__TIME_WEEK_IN_SEC );
+            }
+
+            return $result;
         }
 
         /**

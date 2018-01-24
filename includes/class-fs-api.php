@@ -300,7 +300,26 @@
 			self::$_cache->purge( $cache_key );
 		}
 
-		/**
+        /**
+         * Invalidate a cached version of the API request.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $path
+         * @param int    $expiration
+         * @param string $method
+         * @param array  $params
+         */
+        function update_cache_expiration( $path, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $method = 'GET', $params = array() ) {
+            $this->_logger->entrance( "{$method}:{$path}:{$expiration}" );
+
+            $cache_key = $this->get_cache_key( $path, $method, $params );
+
+            self::$_cache->update_expiration( $cache_key, $expiration );
+        }
+
+        /**
 		 * @param string $path
 		 * @param string $method
 		 * @param array  $params
@@ -553,6 +572,28 @@
 			return self::is_api_result_object( $result, 'id' ) &&
 			       FS_Entity::is_valid_id( $result->id );
 		}
+
+        /**
+         * Get API result error code. If failed to get code, returns an empty string.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param mixed $result
+         *
+         * @return string
+         */
+        static function get_error_code( $result ) {
+            if ( is_object( $result ) &&
+                 isset( $result->error ) &&
+                 is_object( $result->error ) &&
+                 ! empty( $result->error->code )
+            ) {
+                return $result->error->code;
+            }
+
+            return '';
+        }
 
 		#endregion
 	}
