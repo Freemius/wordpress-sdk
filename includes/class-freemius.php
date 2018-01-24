@@ -10194,17 +10194,6 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
-         * @return int
-         */
-        private function get_main_site_blog_id() {
-            global $current_site;
-
-            return $current_site->blog_id;
-        }
-
-        /**
          * Switches the Freemius site level context to a specified blog.
          *
          * @author Vova Feldman (@svovaf)
