@@ -100,11 +100,12 @@ HTML;
              */
             foreach ( $available_licenses as $license ) {
                 $label = sprintf(
-                    "%s-Site License - %s",
+                    "%s-Site %s License - %s",
                      ( 1 == $license->quota ?
                          'Single' :
                          $license->quota
                      ),
+                     $fs->_get_plan_by_id( $license->plan_id )->title,
                      ( htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) .
                         str_pad( '', 23 * 6, '&bull;' ) .
                         htmlspecialchars( substr( $license->secret_key, - 3 ) ) )
@@ -122,11 +123,12 @@ HTML;
              */
             $available_license  = $available_licenses[0];
             $value              = sprintf(
-                "%s-Site License - %s",
+                "%s-Site %s License - %s",
                 ( 1 == $available_license->quota ?
                     'Single' :
                     $available_license->quota
                 ),
+                $fs->_get_plan_by_id( $available_license->plan_id )->title,
                 ( htmlspecialchars( substr( $available_license->secret_key, 0, 6 ) ) .
                     str_pad( '', 23 * 6, '&bull;' ) .
                     htmlspecialchars( substr( $available_license->secret_key, - 3 ) ) )
