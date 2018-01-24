@@ -1004,11 +1004,12 @@
             }
 
             if ( $this->is_plugin() ) {
-                if ( $this->_is_network_active ) {
-                    if ( isset( $this->_storage->is_anonymous_ms ) && $this->_storage->is_anonymous_ms['is'] ) {
+                if ( $this->_is_network_active &&
+                     isset( $this->_storage->is_anonymous_ms ) &&
+                     $this->_storage->is_anonymous_ms['is']
+                ) {
                         add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
                     }
-                }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
             }
