@@ -5207,7 +5207,8 @@
                         }
 
                         if ( ! fs_is_network_admin() &&
-                             $this->is_network_activation_mode()
+                             $this->is_network_activation_mode() &&
+                             ! $this->is_delegated_connection()
                         ) {
                             return;
                         }
