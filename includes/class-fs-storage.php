@@ -52,16 +52,9 @@
         private $_is_network_active;
 
         /**
-         * Example:
-         *
-         * 'key' => array( '11' => true )
-         *
-         * #1 digit - 1 if theme
-         * #2 digit - 1 if module was network activated
-         *
          * @var array {
-         * @key   string Option name
-         * @value bool|array
+         * @key   string Option name.
+         * @value bool If `true` store on the network level. If `false`, store on the network level only if module was network level activated.
          * }
          */
         private static $_NETWORK_OPTIONS_MAP;
@@ -106,9 +99,11 @@
          * are retrieved/stored from/into the storage.
          *
          * @author Leo Fajardo (@leorw)
+         *
+         * @param bool $is_network_active
          */
-        function set_network_active() {
-            $this->_is_network_active = true;
+        function set_network_active( $is_network_active = true ) {
+            $this->_is_network_active = $is_network_active;
         }
 
         /**
@@ -292,49 +287,51 @@
          * We don't want to load the map right away since it's not even needed in a non-MS environment.
          *
          * Example:
-         * 'option1' => true, // Means that option should always be stored on the network level.
-         * 'option2' => array( '01' => true), // Means that if a plugin which was network level activated, store the option in the network level stroage.
-         *
-         * #1 digit - 1 if theme
-         * #2 digit - 1 if module was network activated
+         * array(
+         *      'option1' => true,  // Means that the option should always be stored on the network level.
+         *      'option2' => false, // Means that the option should be stored on the network level only when the module was network level activated.
+         * )
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          */
         private static function load_network_options_map() {
             self::$_NETWORK_OPTIONS_MAP = array(
-                'activation_timestamp'       => array( '11' => true, '01' => true ),
+                // Network level options.
                 'affiliate_application_data' => true,
                 'connectivity_test'          => true,
                 'has_trial_plan'             => true,
                 'install_sync_timestamp'     => true,
                 'install_sync_cron'          => true,
-                'install_timestamp'          => array( '11' => true, '01' => true ),
-                'is_anonymous'               => false,
                 'is_anonymous_ms'            => true,
                 'is_on'                      => true,
-                'is_pending_activation'      => array( '11' => true, '01' => true ),
                 'is_plugin_new_install'      => true,
                 'network_install_blog_id'    => true,
-                'pending_license_key'        => array( '11' => true, '01' => true ),
                 'pending_sites_info'         => true,
                 'plugin_last_version'        => true,
                 'plugin_main_file'           => true,
                 'plugin_version'             => true,
-                'prev_is_premium'            => array( '11' => true, '01' => true ),
-                'prev_user_id'               => array( '11' => true, '01' => true ),
                 'sdk_downgrade_mode'         => true,
                 'sdk_last_version'           => true,
                 'sdk_upgrade_mode'           => true,
                 'sdk_version'                => true,
                 'sticky_optin_added_ms'      => true,
-                'sticky_optin_added'         => array( '10' => true, '00' => true ),
                 'subscription'               => true,
                 'sync_timestamp'             => true,
                 'sync_cron'                  => true,
-                'uninstall_reason'           => array( '11' => true, '01' => true ),
                 'was_plugin_loaded'          => true,
                 'network_user_id'            => true,
+
+                // Mixed level options.
+                'prev_is_premium'            => false,
+                'prev_user_id'               => false,
+                'sticky_optin_added'         => false,
+                'uninstall_reason'           => false,
+                'activation_timestamp'       => false,
+                'install_timestamp'          => false,
+                'is_anonymous'               => false,
+                'is_pending_activation'      => false,
+                'pending_license_key'        => false,
             );
         }
 
@@ -355,26 +352,11 @@
                 return false;
             }
 
-            if ( is_bool( self::$_NETWORK_OPTIONS_MAP[ $key ] ) ) {
-                return self::$_NETWORK_OPTIONS_MAP[ $key ];
+            if ( true === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
+                return true;
             }
 
-            $is_theme = ( WP_FS__MODULE_TYPE_THEME === $this->_module_type );
-
-            /**
-             * Example:
-             *
-             * 'key' => array( '11' => true )
-             *
-             * #1 digit - 1 if theme
-             * #2 digit - 1 if module was network activated
-             */
-            $binary_key = ( (int) $is_theme . (int) $this->_is_network_active );
-
-            return (
-                isset( self::$_NETWORK_OPTIONS_MAP[ $key ][ $binary_key ] ) &&
-                true === self::$_NETWORK_OPTIONS_MAP[ $key ][ $binary_key ]
-            );
+            return $this->_is_network_active;
         }
 
         /**
