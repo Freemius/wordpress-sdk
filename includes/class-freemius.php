@@ -619,6 +619,10 @@
             }
         }
 
+        #--------------------------------------------------------------------------------
+        #region Data Migration on SDK Update
+        #--------------------------------------------------------------------------------
+
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.5
@@ -638,8 +642,7 @@
                  version_compare( $sdk_version, '2.0.0', '>=' )
             ) {
                 /**
-                 * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have
-                 * `plan_id` instead.
+                 * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have `plan_id` instead.
                  *
                  * @author Leo Fajardo (@leorw)
                  */
@@ -655,8 +658,7 @@
                  version_compare( $sdk_version, '1.2.3', '>=' )
             ) {
                 /**
-                 * Starting from version 1.2.3, paths are stored as relative paths and not absolute paths; so when
-                 * upgrading to 1.2.3, make paths relative.
+                 * Starting from version 1.2.3, paths are stored as relative paths and not absolute paths; so when upgrading to 1.2.3, make paths relative.
                  *
                  * @author Leo Fajardo (@leorw)
                  */
@@ -817,6 +819,8 @@
                 $this->_cache->expire( 'tabs_stylesheets' );
             }
         }
+
+        #endregion
 
         /**
          * This action is connected to the 'plugins_loaded' hook and helps to determine
