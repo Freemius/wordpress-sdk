@@ -12245,11 +12245,26 @@
 //				return;
 //			}
 
-            $is_admin_and_network_activation_mode = ( ! fs_is_network_admin() && $this->is_network_activation_mode() );
+            /**
+             * When running from a site admin with a network activated module and the connection
+             * was NOT delegated and the user still haven't skipped or opted-in, then hide the
+             * site level settings.
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.0.0
+             */
+            $should_hide_site_admin_settings = (
+                $this->_is_network_active &&
+                ! fs_is_network_admin() &&
+                ! $this->is_delegated_connection() &&
+                ! $this->is_anonymous() &&
+                ! $this->is_registered()
+            );
+
             if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
-                $is_admin_and_network_activation_mode
+                $should_hide_site_admin_settings
             ) {
-                $this->_menu->remove_menu_item( $is_admin_and_network_activation_mode );
+                $this->_menu->remove_menu_item( $should_hide_site_admin_settings );
             } else {
                 $this->do_action( fs_is_network_admin() ?
                     'before_network_admin_menu_init' :
