@@ -3552,10 +3552,6 @@
                         $this->run_manual_sync();
                     }
                 }
-
-                if ( $this->has_affiliate_program() ) {
-                    $this->fetch_affiliate_and_terms();
-                }
             }
 
             if ( $this->is_registered() ) {
