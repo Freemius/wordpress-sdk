@@ -7788,7 +7788,7 @@
             if ( is_array( $users ) ) {
                 if ( isset( $users[ $user_id ] ) &&
                      $users[ $user_id ] instanceof FS_User &&
-                     $user_id == $users[ $user_id ]->user_id
+                     $user_id == $users[ $user_id ]->id
                 ) {
                     return $users[ $user_id ];
                 }
