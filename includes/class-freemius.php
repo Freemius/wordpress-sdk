@@ -696,7 +696,10 @@
             }
 
             if ( isset( $this->_site->plan ) && is_object( $this->_site->plan ) ) {
+                if ( isset( $this->_site->plan->id ) && is_numeric( $this->_site->plan->id ) ) {
                 $this->_site->plan_id = $this->_site->plan->id;
+                }
+
                 unset( $this->_site->plan );
             }
 
