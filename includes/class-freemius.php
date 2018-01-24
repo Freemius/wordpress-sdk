@@ -644,7 +644,11 @@
                  * @author Leo Fajardo (@leorw)
                  */
                 $this->migrate_site_plan_to_plan_id();
+                
                 $this->consolidate_licenses();
+
+                // Clear trial_plan since it's now loaded from the plans collection when needed.
+                $this->_storage->remove( 'trial_plan', true, false );
             }
 
             if ( version_compare( $sdk_prev_version, '1.2.3', '<' ) &&
