@@ -219,6 +219,7 @@ HTML;
             $availableLicenseKey = $( '#available_license_key' ),
             $otherLicenseKey     = $( '#other_license_key' ),
             $multisiteOptionsContainer = $( '#multisite_options_container' ),
+            $activationsLeft     = null,
             hasLicensesDropdown  = ( $licensesDropdown.length > 0 ),
             hasLicenseTypes      = ( $licenseTypes.length > 0 ),
             maxSitesListHeight   = null,
@@ -250,6 +251,8 @@ HTML;
                 });
 
                 $sitesListContainer.delegate( 'input[type="checkbox"]', 'click', function() {
+                    enableDisableSitesSelection();
+
                     if ( hasValidLicenseKey() && hasSelectedSite() ) {
                         enableActivateLicenseButton();
                     } else {
@@ -298,6 +301,7 @@ HTML;
 
                     if ( otherLicenseKeySelected ) {
                         $applyOnAllSites.attr( 'disabled', false );
+                        enableDisableSitesSelection();
                         resetActivateLicenseCheckboxLabel();
                     } else if ( ! $modal.hasClass( 'is-single-site-activation' ) ) {
                         toggleActivationOnAllSites();
@@ -454,6 +458,23 @@ HTML;
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.0.0
+         */
+		function enableDisableSitesSelection() {
+            var
+                canApplyOnAllSites = $applyOnAllSites.is( ':enabled' ),
+                selectedSites      = $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length,
+                activationsLeft    = Math.max( 0, $activationsLeft.data( 'left' ) - selectedSites );
+
+            $sitesListContainer
+                .find( 'input[type="checkbox"]:not(:checked)' )
+                .attr( 'disabled',  ( ! canApplyOnAllSites && 0 === activationsLeft ) );
+
+            $activationsLeft.text( activationsLeft );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.0
          *
          * @returns {Boolean}
          */
@@ -505,6 +526,7 @@ HTML;
 
             if ( activationsLeft >= totalSites ) {
                 $applyOnAllSites.attr( 'disabled', false );
+                enableDisableSitesSelection();
 
                 resetActivateLicenseCheckboxLabel();
 
@@ -516,15 +538,18 @@ HTML;
 
             showSites( true );
 
-            var activateLicenseCheckboxLabel = '<?php fs_esc_js_echo_inline( 'Choose up to', 'choose-up-to', $slug ) ?>';
-            activateLicenseCheckboxLabel += ( ' ' + activationsLeft + ' ' );
-            activateLicenseCheckboxLabel += '<?php fs_esc_js_echo_inline( 'site(s) to activate the license on.', 'sites-to-activate-the-license-on', $slug ) ?>';
+            var
+                activateLicenseCheckboxLabel = '<?php fs_esc_js_echo_inline( 'Choose up to %s site(s) to activate the license on.', 'choose-up-to-n-sites-to-activate-the-license-on', $slug ) ?>';
+
+            activateLicenseCheckboxLabel = activateLicenseCheckboxLabel.replace( '%s', '<span data-left="' + activationsLeft + '" class="activations-left">' + activationsLeft + '</span>' );
 
             // Update the label of the "Activate license on all sites" checkbox.
-            $applyOnAllSites.parent().find( 'span' ).text( activateLicenseCheckboxLabel );
+            $applyOnAllSites.parent().find( 'span' ).html( activateLicenseCheckboxLabel );
+            $activationsLeft = $( '.activations-left' );
 
             if ( hasSelectedSite() ) {
                 enableActivateLicenseButton();
+                enableDisableSitesSelection();
             } else {
                 disableActivateLicenseButton();
             }
