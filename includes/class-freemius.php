@@ -5515,7 +5515,7 @@
 
             unset( $all_licenses[ $this->_module_id ] );
 
-            $this->set_account_option( 'licenses', $all_licenses, $store );
+            self::$_accounts->set_option( 'all_licenses', $all_licenses, $store );
         }
 
         /**
@@ -13940,9 +13940,9 @@
          * @since  1.0.5
          *
          * @param FS_Plugin_License[] $licenses
-         * @param string|bool         $plugin_slug
+         * @param number              $module_id
          */
-        private function _update_licenses( $licenses, $plugin_slug = false ) {
+        private function _update_licenses( $licenses, $module_id ) {
             $this->_logger->entrance();
 
             if ( is_array( $licenses ) ) {
@@ -13951,11 +13951,7 @@
                 }
             }
 
-            if ( ! is_string( $plugin_slug ) ) {
-                $this->_licenses = $licenses;
-            }
-
-            $this->_store_licenses( true, $plugin_slug, $licenses );
+            $this->_store_licenses( true, $module_id, $licenses );
         }
 
         /**
@@ -14168,7 +14164,7 @@
 
             // Sync add-on licenses.
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
-                $this->_update_licenses( $licenses, $addon->slug );
+                $this->_update_licenses( $licenses, $addon->id );
 
                 if ( ! $this->is_addon_installed( $addon->id ) && FS_License_Manager::has_premium_license( $licenses ) ) {
                     $plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
