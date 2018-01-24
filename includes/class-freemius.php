@@ -7786,6 +7786,14 @@
             $users = self::get_all_users();
 
             if ( is_array( $users ) ) {
+                if ( isset( $users[ $user_id ] ) &&
+                     $users[ $user_id ] instanceof FS_User &&
+                     $user_id == $users[ $user_id ]->user_id
+                ) {
+                    return $users[ $user_id ];
+                }
+
+                // If user wasn't found by the key, iterate over all the users collection.
                 foreach ( $users as $user ) {
                     /**
                      * @var FS_User $user
