@@ -8602,6 +8602,197 @@
         }
 
         /**
+         * Checks if license can be activated on all the network sites (opted-in or skipped) that are not yet associated with a license. If possible, try to make the activation, if not return false.
+         *
+         * Notice: On success, this method will also update the license activations counters (without updating the license in the storage).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_User           $user
+         * @param \FS_Plugin_License $license
+         *
+         * @return bool
+         */
+        private function try_activate_license_on_network( FS_User $user, FS_Plugin_License $license ) {
+            $this->_logger->entrance();
+
+            $sites = self::get_sites();
+
+            $production_count = 0;
+            $localhost_count  = 0;
+
+            $installs_without_license = array();
+            $disconnected_site_ids    = array();
+
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( is_object( $install ) ) {
+                    if ( FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                        // License already activated on the install.
+                        continue;
+                    }
+
+                    $url = $install->url;
+
+                    $installs_without_license[ $blog_id ] = $install;
+                } else {
+                    $url = is_object( $site ) ?
+                        $site->siteurl :
+                        get_site_url( $blog_id );
+
+                    $disconnected_site_ids[] = $blog_id;
+                }
+
+                if ( FS_Site::is_localhost_by_address( $url ) ) {
+                    $localhost_count ++;
+                } else {
+                    $production_count ++;
+                }
+            }
+
+            if ( ! $license->can_activate_bulk( $production_count, $localhost_count ) ) {
+                return false;
+            }
+
+            if ( ! empty( $installs_without_license ) ) {
+                $this->activate_license_on_many_installs( $user, $license, $installs_without_license );
+            }
+
+            if ( ! empty( $disconnected_site_ids ) ) {
+                $this->activate_license_on_many_sites( $user, $license, $disconnected_site_ids );
+            }
+
+            $this->link_license_2_user($license->id, $user->id);
+
+            // Sync license after activations.
+            $license->activated += $production_count;
+            $license->activated_local += $localhost_count;
+//            $this->_store_licenses()
+
+            return true;
+        }
+
+        /**
+         * Activate a given license on a collection of installs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_User          $user
+         * @param FS_Plugin_License $license
+         * @param array             $blog_2_install_map {
+         * @key    int Blog ID.
+         * @value  FS_Site Blog's associated install.
+         * }
+         *
+         * @return mixed|true
+         */
+        private function activate_license_on_many_installs(
+            FS_User $user,
+            FS_Plugin_License $license,
+            array $blog_2_install_map
+        ) {
+            $params = array(
+                array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
+            );
+
+            $install_2_blog_map = array();
+            foreach ( $blog_2_install_map as $blog_id => $install ) {
+                $params[] = array( 'id' => $install->id );
+
+                $install_2_blog_map[ $install->id ] = $blog_id;
+            }
+
+            $result = $this->get_api_user_scope_by_user( $user )->call(
+                "plugins/{$this->_plugin->id}/installs.json",
+                'PUT',
+                $params
+            );
+
+            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                return $result;
+            }
+
+            foreach ( $result->installs as $r_install ) {
+                // Update install.
+                $this->_store_site(
+                    true,
+                    $install_2_blog_map[ $r_install->id ],
+                    new FS_Site( $r_install )
+                );
+            }
+
+            return true;
+        }
+
+        /**
+         * Activate a given license on a collection of blogs/sites that are not yet opted-in.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_User           $user
+         * @param \FS_Plugin_License $license
+         * @param int[]              $site_ids
+         */
+        private function activate_license_on_many_sites(
+            FS_User $user,
+            FS_Plugin_License $license,
+            array $site_ids
+        ) {
+            $sites = array();
+            foreach ( $site_ids as $site_id ) {
+                $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
+            }
+
+            // Install the plugin.
+            $result = $this->create_installs_with_user(
+                $user,
+                $license->secret_key,
+                false,
+                $sites,
+                false,
+                true
+            );
+
+            if ( ! $this->is_api_result_entity( $result ) &&
+                 ! $this->is_api_result_object( $result, 'installs' )
+            ) {
+                // @todo Handler potential API error of the $result
+            }
+
+            $installs = array();
+            foreach ( $result->installs as $install ) {
+                $installs[] = new FS_Site( $install );
+            }
+
+            // Map site addresses to their blog IDs.
+            $address_to_blog_map = $this->get_address_to_blog_map();
+
+            $first_blog_id = null;
+
+            foreach ( $installs as $install ) {
+                $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                $blog_id = $address_to_blog_map[ $address ];
+
+                $this->_store_site( true, $blog_id, $install );
+
+                $this->reset_anonymous_mode( $blog_id );
+
+                if ( is_null( $first_blog_id ) ) {
+                    $first_blog_id = $blog_id;
+                }
+            }
+
+            if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
+                $this->_storage->network_install_blog_id = $first_blog_id;
+            }
+        }
+
+        /**
          * Sync site's license with user licenses.
          *
          * @author Vova Feldman (@svovaf)
@@ -14617,7 +14808,25 @@
                         } else {
                             // License changed.
                             $this->_site = $site;
+
+                            /**
+                             * IMPORTANT:
+                             * The line below should be executed before trying to activate the license on the rest of the network, otherwise, the license' activation counters may be out of sync + there's no need to activate the license on the context site since it's already activated on it.
+                             *
+                             * @author Vova Feldman (@svovaf)
+                             * @since  2.0.0
+                             */
                             $this->_update_site_license( $new_license );
+
+                            if ( ! $is_context_single_site &&
+                                 fs_is_network_admin() &&
+                                 $this->_is_network_active
+                            ) {
+                                // See if license can activated on all sites.
+                                if ( ! $this->try_activate_license_on_network( $this->_user, $new_license ) ) {
+                                }
+                            }
+
                             $this->_store_licenses();
 
                             $plan_change = $is_free ?
