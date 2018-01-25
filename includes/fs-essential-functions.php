@@ -371,28 +371,46 @@
 	 * @global $fs_active_plugins
 	 */
 	function fs_newest_sdk_plugin_first() {
-		global $fs_active_plugins;
+        global $fs_active_plugins;
 
-		/**
-		 * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
-		 *
-		 * @link https://github.com/Freemius/wordpress-sdk/issues/26
-		 */
-//		$active_sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
+        /**
+         * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
+         *
+         * @link https://github.com/Freemius/wordpress-sdk/issues/26
+         */
 
-		$active_plugins        = get_option( 'active_plugins' );
-		$newest_sdk_plugin_key = array_search( $fs_active_plugins->newest->plugin_path, $active_plugins );
-		if ( 0 == $newest_sdk_plugin_key ) {
-			// if it's 0 it's the first plugin already, no need to continue
-			return false;
-		}
+        $newest_sdk_plugin_path = $fs_active_plugins->newest->plugin_path;
 
-		array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
-		array_unshift( $active_plugins, $fs_active_plugins->newest->plugin_path );
-		update_option( 'active_plugins', $active_plugins );
+        $active_plugins        = get_option( 'active_plugins' );
+        $newest_sdk_plugin_key = array_search( $newest_sdk_plugin_path, $active_plugins );
+        if ( 0 === $newest_sdk_plugin_key ) {
+            // if it's 0 it's the first plugin already, no need to continue
+            return false;
+        } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+            array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
+            array_unshift( $active_plugins, $newest_sdk_plugin_path );
+            update_option( 'active_plugins', $active_plugins );
 
-		return true;
-	}
+            return true;
+        } else if ( is_multisite() && false === $newest_sdk_plugin_key ) {
+            // Plugin is network active.
+            $network_active_plugins = get_site_option( 'active_sitewide_plugins' );
+            $newest_sdk_plugin_key  = array_search( $newest_sdk_plugin_path, $network_active_plugins );
+
+            if ( 0 === $newest_sdk_plugin_key ) {
+                // if it's 0 it's the first plugin already, no need to continue
+                return false;
+            } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+                array_splice( $network_active_plugins, $newest_sdk_plugin_key, 1 );
+                array_unshift( $network_active_plugins, $newest_sdk_plugin_path );
+                update_site_option( 'active_sitewide_plugins', $network_active_plugins );
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 	/**
 	 * Go over all Freemius SDKs in the system and find and "remember"
