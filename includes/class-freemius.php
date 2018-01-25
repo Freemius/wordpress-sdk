@@ -8420,6 +8420,8 @@
          * @return FS_Plugin_License[]|object
          */
         function _sync_licenses( $site_license_id = false, $blog_id = null ) {
+            $this->_logger->entrance();
+
             $is_network_admin = fs_is_network_admin();
 
             if ( $is_network_admin && is_null( $blog_id ) ) {
