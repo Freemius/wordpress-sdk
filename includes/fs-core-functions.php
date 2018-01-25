@@ -1218,6 +1218,7 @@
     #region Multisite Network
     #--------------------------------------------------------------------------------
 
+    if ( ! function_exists( 'fs_is_plugin_uninstall' ) ) {
         /**
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
@@ -1228,7 +1229,9 @@
                 ( 0 < did_action( 'update_option_uninstall_plugins' ) )
             );
         }
+    }
 
+    if ( ! function_exists( 'fs_is_network_admin' ) ) {
         /**
          * Unlike is_network_admin(), this one will also work properly when
          * the context execution is WP AJAX handler, and during plugin
@@ -1243,7 +1246,9 @@
                 ( is_multisite() && fs_is_plugin_uninstall() )
             );
         }
+    }
 
+    if ( ! function_exists( 'fs_is_blog_admin' ) ) {
         /**
          * Unlike is_blog_admin(), this one will also work properly when
          * the context execution is WP AJAX handler, and during plugin
@@ -1258,6 +1263,7 @@
                 ( ! is_multisite() && fs_is_plugin_uninstall() )
             );
         }
+    }
 
     #endregion
 
