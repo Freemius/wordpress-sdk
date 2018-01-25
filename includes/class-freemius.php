@@ -8336,17 +8336,14 @@
          * @since  1.0.6
          *
          * @param number|bool $site_license_id
-         * @param bool        $current_user_only
+         * @param number|null $blog_id
          *
          * @return FS_Plugin_License[]|object
          */
-        function _sync_licenses($site_license_id = false, $current_user_only = false ) {
+        function _sync_licenses( $site_license_id = false, $blog_id = null ) {
             $is_network_admin = fs_is_network_admin();
-            if ( ! $is_network_admin ) {
-                $current_user_only = true;
-            }
 
-            if ( $is_network_admin && ! $current_user_only ) {
+            if ( $is_network_admin && is_null( $blog_id ) ) {
                 $all_licenses = self::get_all_licenses( $this->_module_id );
             } else {
                 $all_licenses = $this->get_user_licenses( $this->_user->id );
@@ -8360,7 +8357,7 @@
             $all_licenses_map = array();
             foreach ( $all_licenses as $license ) {
                 $all_licenses_map[ $license->id ] = true;
-                if ( $license->user_id == $this->_user->id ) {
+                if ( $license->user_id == $this->_user->id || $license->id == $site_license_id ) {
                     continue;
                 }
 
@@ -8372,7 +8369,7 @@
                 $foreign_licenses = array();
             }
 
-            $licenses = $this->_fetch_licenses( false, $site_license_id, $foreign_licenses );
+            $licenses = $this->_fetch_licenses( false, $site_license_id, $foreign_licenses, $blog_id );
 
             if ( $this->is_array_instanceof( $licenses, 'FS_Plugin_License' ) ) {
                 $licenses_map = array();
@@ -8418,7 +8415,7 @@
                     $user_license_ids = array_keys( $licenses_map );
                 }
 
-                if ( ! $is_network_admin || $current_user_only ) {
+                if ( ! $is_network_admin || ! is_null( $blog_id ) ) {
                     $user_licenses = array();
                     foreach ( $licenses as $license ) {
                         if ( ! in_array( $license->id, $user_license_ids ) ) {
@@ -13772,10 +13769,16 @@
          * @param number|bool $plugin_id
          * @param number|bool $site_license_id
          * @param array       $foreign_licenses @since 2.0.0. This is used by network-activated plugins.
+         * @param number|null $blog_id
          *
          * @return FS_Plugin_License[]|object
          */
-        private function _fetch_licenses( $plugin_id = false, $site_license_id = false, $foreign_licenses = array() ) {
+        private function _fetch_licenses(
+            $plugin_id = false,
+            $site_license_id = false,
+            $foreign_licenses = array(),
+            $blog_id = null
+        ) {
             $this->_logger->entrance();
 
             $api = $this->get_api_user_scope();
@@ -13819,6 +13822,16 @@
             }
 
             if ( ! $is_site_license_synced ) {
+                if ( ! is_null( $blog_id ) ) {
+                    /**
+                     * If blog ID is not null, the request is for syncing of the license of a single site via the
+                     * network-level "Account" page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->switch_to_blog( $blog_id );
+                }
+
                 $api = $this->get_api_site_scope();
 
                 if ( is_numeric( $site_license_id ) ) {
@@ -13858,6 +13871,10 @@
                             $api_errors[] = $license;
                         }
                     }
+                }
+
+                if ( ! is_null( $blog_id ) ) {
+                    $this->switch_to_blog( $this->_storage->network_install_blog_id );
                 }
             }
 
@@ -14326,7 +14343,7 @@
                 $site_license_id = $site->license_id;
 
                 if ( $is_context_single_site ) {
-                    $context_site_id = get_current_blog_id();
+                    $context_blog_id = get_current_blog_id();
 
                     // Switch back to the main blog in order to properly sync the license.
                     $this->switch_to_blog( $this->_storage->network_install_blog_id );
@@ -14336,10 +14353,16 @@
                  * Sync licenses. Pass the site's license ID so that the foreign licenses will be fetched if the license
                  * associated with that ID is not included in the user's licenses collection.
                  */
-                $this->_sync_licenses( $site_license_id, $is_context_single_site );
+                $this->_sync_licenses(
+                    $site_license_id,
+                    ( $is_context_single_site ?
+                        $context_blog_id :
+                        null
+                    )
+                );
 
                 if ( $is_context_single_site ) {
-                    $this->switch_to_blog( $context_site_id );
+                    $this->switch_to_blog( $context_blog_id );
                 }
 
                 // Check if plan / license changed.
