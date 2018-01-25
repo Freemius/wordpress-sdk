@@ -12154,63 +12154,19 @@
             // We have to set the user before getting user scope API handler.
             $this->_user = $user;
 
-            $extra_install_params = array(
-                'uid'             => $this->get_anonymous_id(),
-                'is_disconnected' => false,
-            );
-
-            if ( ! empty( $license_key ) ) {
-                $filtered_license_key                = $this->apply_filters( 'license_key', $license_key );
-                $extra_install_params['license_key'] = $filtered_license_key;
-            } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
-                $extra_install_params['trial_plan_id'] = $trial_plan_id;
-            }
-
-            if ( ! empty( $sites ) ) {
-                $extra_install_params['sites'] = $sites;
-            }
-
-            $args = $this->get_install_data_for_api( $extra_install_params, false, false );
-
             // Install the plugin.
-            $result = $this->get_api_user_scope()->call(
-                "/plugins/{$this->get_id()}/installs.json",
-                'post',
-                $args
+            $result = $this->create_installs_with_user(
+                $user,
+                $license_key,
+                $trial_plan_id,
+                $sites,
+                $redirect
             );
 
-            if ( ! $this->is_api_result_entity( $result ) && ! $this->is_api_result_object( $result, 'installs' ) ) {
-                if ( ! empty( $args['license_key'] ) ) {
-                    // Pass full the fully entered license key to the failure handler.
-                    $args['license_key'] = $license_key;
-                }
-
-                $result = $this->apply_filters( 'after_install_failure', $result, $args );
-
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $result->error->message . '</b>',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
-
-                if ( $redirect ) {
-                    /**
-                     * We set the user before getting the user scope API handler, so the user became temporarily
-                     * registered (`is_registered() = true`). Since the API returned an error and we will redirect,
-                     * we have to set the user to `null`, otherwise, the user will be redirected to the wrong
-                     * activation page based on the return value of `is_registered()`. In addition, in case the
-                     * context plugin doesn't have a settings menu and the default page is the `Plugins` page,
-                     * misleading plugin activation errors will be shown on the `Plugins` page.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     */
-                    $this->_user = null;
-
-                    fs_redirect( $this->get_activation_url( array( 'error' => $result->error->message ) ) );
-                }
-
-                return $result;
+            if ( ! $this->is_api_result_entity( $result ) &&
+                 ! $this->is_api_result_object( $result, 'installs' )
+            ) {
+                // @todo Handler potential API error of the $result
             }
 
             if ( empty( $sites ) ) {
@@ -12231,14 +12187,103 @@
 
                 return $this->setup_account( $this->_user, $this->_site, $redirect );
             } else {
-                $this->install_many_with_new_user(
-                    $this->_user->id,
-                    $this->_user->public_key,
-                    $this->_user->secret_key,
-                    $result->installs,
+                $installs = array();
+                foreach ( $result->installs as $install ) {
+                    $installs[] = new FS_Site( $install );
+                }
+
+                return $this->setup_network_account(
+                    $user,
+                    $installs,
                     $redirect
                 );
             }
+        }
+
+        /**
+         * Initiate an API request to create a collection of installs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_User $user
+         * @param bool     $license_key
+         * @param bool     $trial_plan_id
+         * @param array    $sites
+         * @param bool     $redirect
+         * @param bool     $silent
+         *
+         * @return object|mixed
+         */
+        private function create_installs_with_user(
+            FS_User $user,
+            $license_key = false,
+            $trial_plan_id = false,
+            $sites = array(),
+            $redirect = false,
+            $silent = false
+        ) {
+            $extra_install_params = array(
+                'uid'             => $this->get_anonymous_id(),
+                'is_disconnected' => false,
+            );
+
+            if ( ! empty( $license_key ) ) {
+                $extra_install_params['license_key'] = $this->apply_filters( 'license_key', $license_key );
+            } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
+                $extra_install_params['trial_plan_id'] = $trial_plan_id;
+            }
+
+            if ( ! empty( $sites ) ) {
+                $extra_install_params['sites'] = $sites;
+            }
+
+            $args = $this->get_install_data_for_api( $extra_install_params, false, false );
+
+            // Install the plugin.
+            $result = $this->get_api_user_scope_by_user( $user )->call(
+                "/plugins/{$this->get_id()}/installs.json",
+                'post',
+                $args
+            );
+
+            if ( ! $this->is_api_result_entity( $result ) &&
+                 ! $this->is_api_result_object( $result, 'installs' )
+            ) {
+                if ( ! empty( $args['license_key'] ) ) {
+                    // Pass full the fully entered license key to the failure handler.
+                    $args['license_key'] = $license_key;
+                }
+
+                $result = $this->apply_filters( 'after_install_failure', $result, $args );
+
+                if ( ! $silent ) {
+                $this->_admin_notices->add(
+                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $result->error->message . '</b>',
+                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                    'error'
+                );
+                }
+
+                if ( $redirect ) {
+                    /**
+                     * We set the user before getting the user scope API handler, so the user became temporarily
+                     * registered (`is_registered() = true`). Since the API returned an error and we will redirect,
+                     * we have to set the user to `null`, otherwise, the user will be redirected to the wrong
+                     * activation page based on the return value of `is_registered()`. In addition, in case the
+                     * context plugin doesn't have a settings menu and the default page is the `Plugins` page,
+                     * misleading plugin activation errors will be shown on the `Plugins` page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_user = null;
+
+                    fs_redirect( $this->get_activation_url( array( 'error' => $result->error->message ) ) );
+                }
+            }
+
+            return $result;
         }
 
         /**
