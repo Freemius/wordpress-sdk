@@ -42,16 +42,21 @@
         <div id="sites_list_container">
             <table cellspacing="0">
                 <tbody>
+                <?php $site_props = array('uid', 'url', 'title', 'charset', 'language') ?>
                 <?php foreach ( $sites as $site ) : ?>
                     <tr>
                         <?php if ( $require_license_key ) : ?>
                             <td><input type="checkbox" value="true" /></td>
                         <?php endif ?>
                         <td class="blog-id"><span><?php echo $site['blog_id'] ?></span>.</td>
-                        <td width="600"><?php
+                        <td width="600"><span><?php
                             $url = str_replace( 'http://', '', str_replace( 'https://', '', $site['url'] ) );
                             echo $url;
-                            ?></td>
+                            ?></span>
+                            <?php foreach ($site_props as $prop) : ?>
+                                <input class="<?php echo $prop ?>" type="hidden" value="<?php echo esc_attr($site[$prop]) ?>" />
+                            <?php endforeach ?>
+                        </td>
                         <?php if ( ! $require_license_key ) : ?>
                             <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                             <?php echo $separator ?>
@@ -61,11 +66,6 @@
                                 <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
                             <?php endif ?>
                         <?php endif ?>
-                        <input class="uid" type="hidden" value="<?php echo $site['uid'] ?>" />
-                        <input class="url" type="hidden" value="<?php echo esc_attr($site['url']) ?>" />
-                        <input class="title" type="hidden" value="<?php echo esc_attr($site['title']) ?>" />
-                        <input class="charset" type="hidden" value="<?php echo $site['charset'] ?>" />
-                        <input class="language" type="hidden" value="<?php echo $site['language'] ?>" />
                     </tr>
                 <?php endforeach ?>
                 </tbody>
