@@ -6511,7 +6511,7 @@
         }
 
         /**
-         * Update install details.
+         * Get site data for API install request.
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.2
@@ -8403,7 +8403,7 @@
         }
 
         /**
-         * Sync local plugin plans with remote server.
+         * Sync local licenses with remote server.
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
