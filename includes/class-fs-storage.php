@@ -425,7 +425,10 @@
          * @return \FS_Key_Value_Storage
          */
         private function get_site_storage( $blog_id = 0 ) {
-            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_blog_id ) {
+            if ( ! is_numeric( $blog_id ) ||
+                 $blog_id == $this->_blog_id ||
+                 0 == $blog_id
+            ) {
                 return $this->_storage;
             }
 
