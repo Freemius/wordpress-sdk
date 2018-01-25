@@ -16319,20 +16319,32 @@
          *
          * @return FS_Api
          */
-        function get_api_user_scope( $flush = false ) {
+        private function get_api_user_scope( $flush = false ) {
             if ( ! isset( $this->_user_api ) || $flush ) {
-                $this->_user_api = FS_Api::instance(
-                    $this->_module_id,
-                    'user',
-                    $this->_user->id,
-                    $this->_user->public_key,
-                    ! $this->is_live(),
-                    $this->_user->secret_key
-                );
+                $this->_user_api = $this->get_api_user_scope_by_user( $this->_user );
             }
 
             return $this->_user_api;
         }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_User $user
+         *
+         * @return \FS_Api
+         */
+        private function get_api_user_scope_by_user( FS_User $user ) {
+            return FS_Api::instance(
+                    $this->_module_id,
+                    'user',
+                $user->id,
+                $user->public_key,
+                    ! $this->is_live(),
+                $user->secret_key
+                );
+            }
 
         /**
          *
@@ -16343,7 +16355,7 @@
          *
          * @return FS_Api
          */
-        function get_current_or_network_user_api_scope( $flush = false ) {
+        private function get_current_or_network_user_api_scope( $flush = false ) {
             if ( ! $this->_is_network_active || isset( $this->_user ) ) {
                 return $this->get_api_user_scope( $flush );
             }
@@ -16373,7 +16385,7 @@
          *
          * @return FS_Api
          */
-        function get_api_site_scope( $flush = false ) {
+        private function get_api_site_scope( $flush = false ) {
             if ( ! isset( $this->_site_api ) || $flush ) {
                 $this->_site_api = FS_Api::instance(
                     $this->_module_id,
