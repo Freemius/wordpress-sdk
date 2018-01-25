@@ -473,6 +473,15 @@
 
             $this->_register_hooks();
 
+            /**
+             * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have `plan_id`
+             * instead. This should be called before calling `_load_account()`, otherwise, `$this->_site` will not be
+             * loaded in `_load_account` for versions of SDK starting from 2.0.0.
+             *
+             * @author Leo Fajardo (@leorw)
+             */
+            $this->migrate_site_plan_to_plan_id();
+
             $this->_load_account();
 
             $this->_version_updates_handler();
@@ -680,6 +689,32 @@
                         unset( $this->_storage->is_on );
                     }
 
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.0
+         */
+        private function migrate_site_plan_to_plan_id() {
+            if ( ! empty( $this->_storage->sdk_version ) && version_compare( $this->_storage->sdk_version, '2.0.0', '<' ) ) {
+                $installs = self::get_all_sites( $this->_module_type );
+                $install  = isset( $installs[ $this->_slug ] ) ? $installs[ $this->_slug ] : null;
+
+                if ( ! is_object( $install ) ) {
+                    return;
+                }
+
+                if ( isset( $install->plan ) && is_object( $install->plan ) ) {
+                    if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
+                        $install->plan_id = self::_decrypt( $install->plan->id );
+                    }
+
+                    unset( $install->plan );
+
+                    $installs[ $this->_slug ] = clone $install;
+                    $this->set_account_option( 'sites', $installs, true );
                 }
             }
         }
