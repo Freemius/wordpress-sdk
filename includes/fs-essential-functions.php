@@ -225,31 +225,6 @@
 		}
 	}
 
-	if ( ! function_exists( 'fs_override_i18n' ) ) {
-		/**
-		 * Override default i18n text phrases.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.6
-		 *
-		 * @param string[] $key_value
-		 * @param string   $slug
-		 *
-		 * @global         $fs_text_overrides
-		 */
-		function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
-			global $fs_text_overrides;
-
-			if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
-				$fs_text_overrides[ $slug ] = array();
-			}
-
-			foreach ( $key_value as $key => $value ) {
-				$fs_text_overrides[ $slug ][ $key ] = $value;
-			}
-		}
-	}
-
 	if ( ! function_exists( 'fs_get_ip' ) ) {
 		/**
 		 * Get client IP.
@@ -470,30 +445,3 @@
 			fs_update_sdk_newest_version( $newest_sdk_path, $newest_sdk_data->plugin_path );
 		}
 	}
-
-	#region Actions / Filters -----------------------------------------
-
-	/**
-	 * Apply filter for specific plugin.
-	 *
-	 * @author Vova Feldman (@svovaf)
-	 * @since  1.0.9
-	 *
-	 * @param string $module_unique_affix Module's unique affix.
-	 * @param string $tag                 The name of the filter hook.
-	 * @param mixed  $value               The value on which the filters hooked to `$tag` are applied on.
-	 *
-	 * @return mixed The filtered value after all hooked functions are applied to it.
-	 *
-	 * @uses   apply_filters()
-	 */
-	function fs_apply_filter( $module_unique_affix, $tag, $value ) {
-		$args = func_get_args();
-
-		return call_user_func_array( 'apply_filters', array_merge(
-				array( "fs_{$tag}_{$module_unique_affix}" ),
-				array_slice( $args, 2 ) )
-		);
-	}
-
-	#endregion Actions / Filters -----------------------------------------

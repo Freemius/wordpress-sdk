@@ -1187,51 +1187,101 @@
         }
     }
 
-#endregion
+    if ( ! function_exists( 'fs_override_i18n' ) ) {
+        /**
+         * Override default i18n text phrases.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.1.6
+         *
+         * @param array[string]string $key_value
+         * @param string              $slug
+         *
+         * @global $fs_text_overrides
+         */
+        function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
+            global $fs_text_overrides;
+
+            if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+                $fs_text_overrides[ $slug ] = array();
+            }
+
+            foreach ( $key_value as $key => $value ) {
+                $fs_text_overrides[ $slug ][ $key ] = $value;
+            }
+        }
+    }
+
+    #endregion
 
     #--------------------------------------------------------------------------------
     #region Multisite Network
     #--------------------------------------------------------------------------------
 
-    /**
-     * @author Vova Feldman (@svovaf)
-     * @since  2.0.0
-     */
-    function fs_is_plugin_uninstall() {
-        return (
-            defined( 'WP_UNINSTALL_PLUGIN' ) ||
-            ( 0 < did_action( 'update_option_uninstall_plugins' ) )
-        );
-    }
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_plugin_uninstall() {
+            return (
+                defined( 'WP_UNINSTALL_PLUGIN' ) ||
+                ( 0 < did_action( 'update_option_uninstall_plugins' ) )
+            );
+        }
 
-    /**
-     * Unlike is_network_admin(), this one will also work properly when
-     * the context execution is WP AJAX handler, and during plugin
-     * uninstall.
-     *
-     * @author Vova Feldman (@svovaf)
-     * @since  2.0.0
-     */
-    function fs_is_network_admin() {
-        return (
-            WP_FS__IS_NETWORK_ADMIN ||
-            ( is_multisite() && fs_is_plugin_uninstall() )
-        );
-    }
+        /**
+         * Unlike is_network_admin(), this one will also work properly when
+         * the context execution is WP AJAX handler, and during plugin
+         * uninstall.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_network_admin() {
+            return (
+                WP_FS__IS_NETWORK_ADMIN ||
+                ( is_multisite() && fs_is_plugin_uninstall() )
+            );
+        }
 
-    /**
-     * Unlike is_blog_admin(), this one will also work properly when
-     * the context execution is WP AJAX handler, and during plugin
-     * uninstall.
-     *
-     * @author Vova Feldman (@svovaf)
-     * @since  2.0.0
-     */
-    function fs_is_blog_admin() {
-        return (
-            WP_FS__IS_BLOG_ADMIN ||
-            ( !is_multisite() && fs_is_plugin_uninstall() )
-        );
-    }
+        /**
+         * Unlike is_blog_admin(), this one will also work properly when
+         * the context execution is WP AJAX handler, and during plugin
+         * uninstall.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_blog_admin() {
+            return (
+                WP_FS__IS_BLOG_ADMIN ||
+                ( ! is_multisite() && fs_is_plugin_uninstall() )
+            );
+        }
 
-#endregion
+    #endregion
+
+    if ( ! function_exists( 'fs_apply_filter' ) ) {
+        /**
+         * Apply filter for specific plugin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.9
+         *
+         * @param string $module_unique_affix Module's unique affix.
+         * @param string $tag                 The name of the filter hook.
+         * @param mixed  $value               The value on which the filters hooked to `$tag` are applied on.
+         *
+         * @return mixed The filtered value after all hooked functions are applied to it.
+         *
+         * @uses   apply_filters()
+         */
+        function fs_apply_filter( $module_unique_affix, $tag, $value ) {
+            $args = func_get_args();
+
+            return call_user_func_array( 'apply_filters', array_merge(
+                    array( "fs_{$tag}_{$module_unique_affix}" ),
+                    array_slice( $args, 2 ) )
+            );
+        }
+    }
