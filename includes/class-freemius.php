@@ -6109,8 +6109,8 @@
                  get_current_blog_id() == $network_or_blog_id ||
                  ( true === $network_or_blog_id && fs_is_network_admin() )
             ) {
-            unset( $this->_is_anonymous );
-        }
+                unset( $this->_is_anonymous );
+            }
         }
 
         /**
@@ -12449,12 +12449,12 @@
                 $result = $this->apply_filters( 'after_install_failure', $result, $args );
 
                 if ( ! $silent ) {
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $result->error->message . '</b>',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
+                    $this->_admin_notices->add(
+                        sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+                        $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $result->error->message . '</b>',
+                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                        'error'
+                    );
                 }
 
                 if ( $redirect ) {
@@ -14632,10 +14632,16 @@
          *                                     syncing its license from the network-level "Account" page (e.g.: after
          *                                     activating a license only for the single install).
          */
-        private function _sync_plugin_license($background = false, $send_installs_update = true, $is_context_single_site = false ) {
+        private function _sync_plugin_license(
+            $background = false,
+            $send_installs_update = true,
+            $is_context_single_site = false
+        ) {
             $this->_logger->entrance();
 
             $plan_change = 'none';
+
+            $is_site_level_sync = ( $is_context_single_site || fs_is_blog_admin() || ! $this->_is_network_active );
 
             if ( ! $send_installs_update ) {
                 $site = $this->_site;
@@ -14645,8 +14651,6 @@
                  *
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
-                $is_site_level_sync = ( $is_context_single_site || fs_is_blog_admin() || ! $this->_is_network_active );
-
                 if ( $is_site_level_sync ) {
                     $result   = $this->send_install_update( array(), true );
                     $is_valid = $this->is_api_result_entity( $result );
@@ -14707,6 +14711,7 @@
                     $address_to_blog_map = $this->get_address_to_blog_map();
 
                     // Find the current context install.
+                    $site = null;
                     foreach ( $result->installs as $install ) {
                         if ( $install->id == $this->_site->id ) {
                             $site = new FS_Site( $install );
@@ -14735,8 +14740,8 @@
                         $this->get_network_install_blog_id()
                 );
             } else {
-                $site_license_id = $site->license_id;
-
+                $context_blog_id = 0;
+                
                 if ( $is_context_single_site ) {
                     $context_blog_id = get_current_blog_id();
 
@@ -14749,7 +14754,7 @@
                  * associated with that ID is not included in the user's licenses collection.
                  */
                 $this->_sync_licenses(
-                    $site_license_id,
+                    $site->license_id,
                     ( $is_context_single_site ?
                         $context_blog_id :
                         null
@@ -16599,14 +16604,14 @@
          */
         private function get_api_user_scope_by_user( FS_User $user ) {
             return FS_Api::instance(
-                    $this->_module_id,
-                    'user',
+                $this->_module_id,
+                'user',
                 $user->id,
                 $user->public_key,
-                    ! $this->is_live(),
+                ! $this->is_live(),
                 $user->secret_key
-                );
-            }
+            );
+        }
 
         /**
          *
