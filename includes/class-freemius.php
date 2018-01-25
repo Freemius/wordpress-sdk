@@ -757,7 +757,7 @@
         /**
          * Makes paths relative.
          *
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          */
         private function make_paths_relative() {
@@ -1058,7 +1058,7 @@
          * plugin will trigger inclusion of the free or premium version and if one of them is active during the
          * uninstallation, a fatal error may occur in case the plugin's class or functions are already defined.
          *
-         * @author Leo Fajardo (leorw)
+         * @author Leo Fajardo (@leorw)
          *
          * @since  1.2.0
          */
@@ -1482,7 +1482,7 @@
         }
 
         /**
-         * @author Leo Fajardo (leorw)
+         * @author Leo Fajardo (@leorw)
          * @since  1.1.2
          *
          * @param string $user_type
@@ -9365,7 +9365,7 @@
         #----------------------------------------------------------------------------------
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          *
          * @return bool
@@ -9440,7 +9440,7 @@
         }
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          *
          * @return FS_Affiliate
@@ -9451,7 +9451,7 @@
 
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          *
          * @return FS_AffiliateTerms
@@ -9463,7 +9463,7 @@
         }
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          */
         function _submit_affiliate_application() {
@@ -9557,7 +9557,7 @@
         }
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          *
          * @return array|null
@@ -11706,7 +11706,7 @@
 
             if ( is_numeric( $plugin_id ) ) {
                 /**
-                 * @author Leo Fajardo
+                 * @author Leo Fajardo (@leorw)
                  * @since  1.2.1.6
                  *
                  * Also sync the license after an anonymous user subscribes.
@@ -12585,7 +12585,7 @@
         }
 
         /**
-         * @author Leo Fajardo (leorw)
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.1
          *
          * return string
@@ -16690,7 +16690,7 @@
         }
 
         /**
-         * @author Leo Fajardo (leorw)
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.2
          */
         function _show_theme_activation_optin_dialog() {
@@ -16700,7 +16700,7 @@
         }
 
         /**
-         * @author Leo Fajardo (leorw)
+         * @author Leo Fajardo (@leorw)
          * @since  1.2.2
          */
         function _add_fs_theme_activation_dialog() {
