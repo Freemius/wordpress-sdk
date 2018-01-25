@@ -15023,12 +15023,14 @@
                 if ( is_object( $user ) ) {
                     $this->install_with_user( $user, $premium_license->secret_key, false, false, false );
                 } else {
-                    return $this->opt_in(
+                    $this->opt_in(
                         false,
                         false,
                         false,
                         $premium_license->secret_key
                     );
+
+                    return;
                 }
             }
 
