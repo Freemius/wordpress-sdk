@@ -323,7 +323,7 @@
                 'sdk_upgrade_mode'           => 0,
                 'sdk_version'                => 0,
                 'sticky_optin_added_ms'      => 0,
-                'subscription'               => 0,
+                'subscriptions'              => 0,
                 'sync_timestamp'             => 0,
                 'sync_cron'                  => 0,
                 'was_plugin_loaded'          => 0,

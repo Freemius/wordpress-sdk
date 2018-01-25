@@ -277,6 +277,7 @@
      * @param string      $title
      * @param array       $params
      * @param bool        $is_primary
+     * @param bool        $is_small
      * @param string|bool $icon_class   Optional class for an icon (since 1.1.7).
      * @param string|bool $confirmation Optional confirmation message before submit (since 1.1.7).
      * @param string      $method       Since 1.1.7
@@ -290,6 +291,7 @@
         $title,
         $params = array(),
         $is_primary = true,
+        $is_small = false,
         $icon_class = false,
         $confirmation = false,
         $method = 'GET'
@@ -301,6 +303,7 @@
             $title,
             $params,
             $is_primary,
+            $is_small,
             $icon_class,
             $confirmation,
             $method
@@ -317,6 +320,7 @@
      * @param string      $title
      * @param array       $params
      * @param bool        $is_primary
+     * @param bool        $is_small
      * @param string|bool $icon_class   Optional class for an icon.
      * @param string|bool $confirmation Optional confirmation message before submit.
      * @param string      $method
@@ -330,6 +334,7 @@
         $title,
         $params = array(),
         $is_primary = true,
+        $is_small = false,
         $icon_class = false,
         $confirmation = false,
         $method = 'GET'
@@ -343,7 +348,7 @@
                 $method,
                 $action,
                 wp_nonce_field( $action, '_wpnonce', true, false ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $confirmation,
                 $title
             );
@@ -353,13 +358,13 @@
                 $method,
                 $action,
                 wp_nonce_field( $action, '_wpnonce', true, false ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $title
             );
         } else {
             return sprintf( '<a href="%s" class="%s">%s</a></form>',
                 wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $title
             );
         }

@@ -642,13 +642,8 @@
             if ( version_compare( $sdk_prev_version, '2.0.0', '<' ) &&
                  version_compare( $sdk_version, '2.0.0', '>=' )
             ) {
-                /**
-                 * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have `plan_id` instead.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 */
-                $this->migrate_site_plan_to_plan_id();
-                
+                $this->migrate_to_subscriptions_collection();
+
                 $this->consolidate_licenses();
 
                 // Clear trial_plan since it's now loaded from the plans collection when needed.
@@ -690,23 +685,17 @@
         }
 
         /**
-         * @author Leo Fajardo
+         * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          */
-        private function migrate_site_plan_to_plan_id() {
+        private function migrate_to_subscriptions_collection() {
             if ( ! is_object( $this->_site ) ) {
                 return;
             }
 
-            if ( isset( $this->_site->plan ) && is_object( $this->_site->plan ) ) {
-                if ( isset( $this->_site->plan->id ) && is_numeric( $this->_site->plan->id ) ) {
-                $this->_site->plan_id = $this->_site->plan->id;
-                }
-
-                unset( $this->_site->plan );
+            if ( isset( $this->_storage->subscription ) && is_object( $this->_storage->subscription ) ) {
+                $this->_storage->subscriptions = array( $this->_storage->subscription );
             }
-
-            $this->_store_site();
         }
 
         /**
@@ -8627,7 +8616,7 @@
          */
         private function _sync_site_subscription( $license ) {
             if ( ! is_object( $license ) ) {
-                unset( $this->_storage->subscription );
+                $this->delete_unused_subscriptions();
 
                 return false;
             }
@@ -8638,9 +8627,9 @@
                 $this->_fetch_site_license_subscription();
 
             if ( is_object( $subscription ) && ! isset( $subscription->error ) ) {
-                $this->_storage->subscription = $subscription;
+                $this->store_subscription( $subscription );
             } else {
-                unset( $this->_storage->subscription );
+                $this->delete_unused_subscriptions();
             }
 
             return $subscription;
@@ -8661,12 +8650,105 @@
         }
 
         /**
-         * @return bool|\FS_Subscription
+         * @param number $license_id
+         *
+         * @return null|\FS_Subscription
          */
-        function _get_subscription() {
-            return isset( $this->_storage->subscription ) ?
-                $this->_storage->subscription :
-                false;
+        function _get_subscription( $license_id ) {
+            if ( ! isset( $this->_storage->subscriptions ) ||
+                empty( $this->_storage->subscriptions )
+            ) {
+                return null;
+            }
+
+            foreach ( $this->_storage->subscriptions as $subscription ) {
+                if ( $subscription->license_id == $license_id ) {
+                    return $subscription;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.0
+         *
+         * @param FS_Subscription $subscription
+         */
+        function store_subscription( FS_Subscription $subscription ) {
+            if ( ! isset( $this->_storage->subscriptions ) ) {
+                $this->_storage->subscriptions = array();
+            }
+
+            if ( empty( $this->_storage->subscriptions ) || ! is_multisite() ) {
+                $this->_storage->subscriptions = array( $subscription );
+                return;
+            }
+
+            $subscriptions = $this->_storage->subscriptions;
+
+            $updated_subscription = false;
+            foreach ( $subscriptions as $key => $existing_subscription ) {
+                if ( $existing_subscription->id == $subscription->id ) {
+                    $subscriptions[ $key ] = $subscription;
+                    $updated_subscription = true;
+                    break;
+                }
+            }
+
+            if ( ! $updated_subscription ) {
+                $subscriptions[] = $subscription;
+            }
+
+            $this->_storage->subscriptions = $subscriptions;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.0
+         */
+        function delete_unused_subscriptions() {
+            if ( ! isset( $this->_storage->subscriptions ) ||
+                empty( $this->_storage->subscriptions ) ||
+                // Clean up only if there are already at least 3 subscriptions.
+                ( count( $this->_storage->subscriptions ) < 3 )
+            ) {
+                return;
+            }
+
+            if ( ! is_multisite() ) {
+                // If not multisite, there should only be 1 subscription, so just clear the array.
+                $this->_storage->subscriptions = array();
+
+                return;
+            }
+
+            $subscriptions_to_keep_by_license_id_map = array();
+            $sites                                   = self::get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( ! is_object( $install ) ||
+                    ! FS_Plugin_License::is_valid_id( $install->license_id )
+                ) {
+                    continue;
+                }
+
+                $subscriptions_to_keep_by_license_id_map[ $install->license_id ] = true;
+            }
+
+            if ( empty( $subscriptions_to_keep_by_license_id_map ) ) {
+                $this->_storage->subscriptions = array();
+                return;
+            }
+
+            foreach ( $this->_storage->subscriptions as $key => $subscription ) {
+                if ( ! isset( $subscriptions_to_keep_by_license_id_map[ $subscription->license_id ] ) ) {
+                    unset( $this->_storage->subscriptions[ $key ] );
+                }
+            }
         }
 
         /**
@@ -15743,10 +15825,18 @@
                     return;
 
                 case 'downgrade_account':
-                    check_admin_referer( $action );
+                    if ( is_numeric( $blog_id ) ) {
+                        check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
+                    } else {
+                        check_admin_referer( $action );
+                    }
 
                     if ( $plugin_id == $this->get_id() ) {
                         $this->_downgrade_site();
+
+                        if ( is_numeric( $blog_id ) ) {
+                            $this->switch_to_blog( $this->_storage->network_install_blog_id );
+                        }
                     } else if ( $this->is_addon_activated( $plugin_id ) ) {
                         $fs_addon = self::get_instance_by_id( $plugin_id );
                         $fs_addon->_downgrade_site();

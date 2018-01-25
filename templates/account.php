@@ -28,7 +28,9 @@
     $site                   = $fs->get_site();
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
-    $subscription           = $fs->_get_subscription();
+    $subscription           = ( is_object( $license ) ?
+                                  $fs->_get_subscription( $license->id ) :
+                                  null );
     $plan                   = $fs->get_plan();
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
@@ -547,7 +549,9 @@
 													$user                       = $fs_addon->get_user();
 													$site                       = $fs_addon->get_site();
 													$license                    = $fs_addon->_get_license();
-													$subscription               = $fs_addon->_get_subscription();
+													$subscription               = ( is_object( $license ) ?
+                                                                                      $fs_addon->_get_subscription( $license->id ) :
+                                                                                      null );
 													$plan                       = $fs_addon->get_plan();
 													$is_active_subscription     = ( is_object( $subscription ) && $subscription->is_active() );
 													$is_paid_trial              = $fs_addon->is_paid_trial();
@@ -666,6 +670,8 @@
 																		array( 'plugin_id' => $addon_id ),
 																		false,
 																		false,
+																		false,
+																		false,
 																		( $downgrade_confirmation_message . ' ' . $after_downgrade_message ),
 																		'POST'
 																	);
@@ -677,6 +683,7 @@
 																	'cancel_trial',
                                                                     $cancel_trial_text,
 																	array( 'plugin_id' => $addon_id ),
+																	false,
 																	false,
 																	'dashicons dashicons-download',
                                                                     $cancel_trial_confirm_text,
@@ -875,6 +882,12 @@
 
 	        $('.fs-opt-in').click(function () {
 		        setLoading($(this), '<?php fs_esc_js_echo_inline('Opting in', 'opting-in' ) ?>...');
+	        });
+
+	        $( '#fs_downgrade' ).submit(function( event ) {
+                event.preventDefault();
+
+		        setLoading( $( this ).find( '.button' ), '<?php fs_esc_js_echo_inline( 'Downgrading', 'downgrading' ) ?>...' );
 	        });
 
             $('.fs-activate-license').click(function () {

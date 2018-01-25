@@ -262,6 +262,71 @@
                     </tr>
                     <?php $row_index ++ ?>
                     <!--/ License Key -->
+
+                    <?php if ( ! is_object( $main_license ) || $main_license->id != $license->id ) : ?>
+                        <?php $subscription = $fs->_get_subscription( $license->id ) ?>
+                        <?php if ( ! $license->is_lifetime() && is_object( $subscription ) ) : ?>
+                            <!-- Subscription -->
+                            <tr <?php if ( 1 == $row_index % 2 ) {
+                                echo ' class="alternate"';
+                            } ?>>
+                                <td>
+                                    <nobr><?php fs_esc_html_echo_inline( 'Subscription', 'subscription', $slug ) ?>:</nobr>
+                                </td>
+                                <?php
+                                    $is_active_subscription = $subscription->is_active();
+
+                                    $renews_in_text = fs_text_inline( 'Auto renews in %s', 'renews-in', $slug );
+                                    /* translators: %s: Time period (e.g. Expires in "2 months") */
+                                    $expires_in_text = fs_text_inline( 'Expires in %s', 'expires-in', $slug );
+                                ?>
+                                <td>
+                                    <code><?php echo $subscription->id ?> - <?php
+                                        echo ( 12 == $subscription->billing_cycle ?
+                                            _fs_text_inline( 'Annual', 'annual', $slug ) :
+                                            _fs_text_inline( 'Monthly', 'monthly', $slug )
+                                        );
+                                        ?>
+                                    </code>
+                                    <?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
+                                        <label class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $license->expiration ) ) ) ) ?></label>
+                                    <?php elseif ( $is_active_subscription && ! $subscription->is_first_payment_pending() ) : ?>
+                                        <label class="fs-tag fs-success"><?php echo esc_html( sprintf( $renews_in_text, human_time_diff( time(), strtotime( $subscription->next_payment ) ) ) ) ?></label>
+                                    <?php endif ?>
+                                </td>
+                                <?php if ( $is_active_subscription ) : ?>
+                                <?php
+                                    $downgrade_x_confirm_text          = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
+                                    $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s updates and support.', 'after-downgrade-non-blocking', $slug );
+                                    $after_downgrade_blocking_text     = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
+                                    $downgrade_text                    = fs_text_x_inline( 'Downgrade', 'verb', 'downgrade', $slug );
+
+                                    $human_readable_license_expiration = human_time_diff( time(), strtotime( $license->expiration ) );
+                                    $downgrade_confirmation_message    = sprintf(
+                                        $downgrade_x_confirm_text,
+                                        $plan->title,
+                                        $human_readable_license_expiration
+                                    );
+
+                                    $after_downgrade_message = ! $license->is_block_features ?
+                                        sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) :
+                                        sprintf( $after_downgrade_blocking_text, $plan->title );
+                                ?>
+                                <td>
+                                    <?php $action = 'downgrade_account' ?>
+                                    <form id="fs_downgrade" action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
+                                        <input type="hidden" name="fs_action" value="<?php echo $action ?>">
+                                        <?php wp_nonce_field( trim( "{$action}:{$blog_id}", ':' ) ) ?>
+                                        <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
+                                        <button class="button button-small" onclick="if (confirm('<?php echo ( $downgrade_confirmation_message . ' ' . $after_downgrade_message ) ?>')) { this.parentNode.submit(); } else { return false; }"><?php echo $downgrade_text ?></button>
+                                    </form>
+                                </td>
+                                <?php endif ?>
+                            </tr>
+                            <?php $row_index ++ ?>
+                        <?php endif ?>
+                        <!--/ Subscription -->
+                    <?php endif ?>
                 <?php endif ?>
 
                 </tbody>
