@@ -198,6 +198,30 @@
         }
 
         /**
+         * Check if license can be activated on a given number of production and localhost sites.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $production_count
+         * @param int $localhost_count
+         *
+         * @return bool
+         */
+        function can_activate_bulk( $production_count, $localhost_count ) {
+            if ( $this->is_unlimited() ) {
+                return true;
+            }
+
+            /**
+             * For simplicity, the logic will work as following: when given X sites to activate the license on, if it's
+             * possible to activate on ALL of them, do the activation. If it's not possible to activate on ALL of them,
+             * do NOT activate on any of them.
+             */
+            return ( $this->quota >= $this->activated + $production_count + ( $this->is_free_localhost ? 0 : $this->activated_local + $localhost_count ) );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1
          *
