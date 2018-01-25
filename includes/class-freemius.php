@@ -8586,7 +8586,7 @@
                 return array();
             }
 
-            $user_license_ids = $this->get_user_id_license_ids_map( $this->_module_id, $user_id );
+            $user_license_ids = $this->get_user_linked_license_ids($user_id);
             if ( empty( $user_license_ids ) ) {
                 return array();
             }
