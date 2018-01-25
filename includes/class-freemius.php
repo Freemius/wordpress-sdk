@@ -6087,13 +6087,13 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param bool $network Since 2.0.0.
+         * @param bool|int $network_or_blog_id Since 2.0.0.
          */
-        private function reset_anonymous_mode( $network = false ) {
-            if ( $network ) {
+        private function reset_anonymous_mode( $network_or_blog_id = 0 ) {
+            if ( true === $network_or_blog_id ) {
                 unset( $this->_storage->is_anonymous_ms );
             } else {
-                unset( $this->_storage->is_anonymous );
+                $this->_storage->remove( 'is_anonymous', true, $network_or_blog_id );
             }
 
             /**
@@ -6104,7 +6104,13 @@
              * @author Leo Fajardo (@leorw)
              * @since  1.2.2
              */
+            if ( ! $this->_is_network_active ||
+                 0 === $network_or_blog_id ||
+                 get_current_blog_id() == $network_or_blog_id ||
+                 ( true === $network_or_blog_id && fs_is_network_admin() )
+            ) {
             unset( $this->_is_anonymous );
+        }
         }
 
         /**
