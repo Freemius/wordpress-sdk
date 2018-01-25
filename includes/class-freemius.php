@@ -7538,6 +7538,55 @@
         }
 
         /**
+         * Get a collection of the user's linked license IDs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $user_id
+         *
+         * @return number[]
+         */
+        private function get_user_linked_license_ids($user_id) {
+            return self::get_user_id_license_ids_map( $this->_module_id, $user_id );
+        }
+
+        /**
+         * Override the user's linked license IDs with a new IDs collection.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number   $user_id
+         * @param number[] $license_ids
+         */
+        private function set_user_linked_license_ids( $user_id, array $license_ids ) {
+            self::store_user_id_license_ids_map( $license_ids, $this->_module_id, $user_id );
+        }
+
+        /**
+         * Link a specified license ID to a given user.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $license_id
+         * @param number $user_id
+         */
+        private function link_license_2_user($license_id, $user_id) {
+            $license_ids = $this->get_user_linked_license_ids($user_id);
+
+            if ( in_array( $license_id, $license_ids ) ) {
+                // License already linked.
+                return;
+            }
+
+            $license_ids[] = $license_id;
+
+            $this->set_user_linked_license_ids($user_id, $license_ids);
+        }
+
+        /**
          * @param string|bool $module_type
          *
          * @return FS_Plugin_Plan[]
@@ -8390,10 +8439,7 @@
 //                    }
 //                }
 
-                $user_license_ids_map = self::get_user_id_license_ids_map( $this->_module_id );
-                $user_license_ids     = ( isset( $user_license_ids_map[ $this->_user->id ] ) ?
-                                            $user_license_ids_map[ $this->_user->id ] :
-                                            array() );
+                $user_license_ids = $this->get_user_linked_license_ids( $this->_user->id );
 
                 foreach ( $user_license_ids as $key => $license_id ) {
                     if ( ! isset( $licenses_map[ $license_id ] ) ) {
@@ -8430,8 +8476,7 @@
                     $this->_licenses = $licenses;
                 }
 
-                $user_license_ids_map[ $this->_user->id ] = $user_license_ids;
-                self::store_user_id_license_ids_map( $user_license_ids_map, $this->_module_id );
+                $this->set_user_linked_license_ids( $this->_user->id, $user_license_ids );
 
                 $this->_store_licenses( true, $this->_module_id, $licenses );
             }
@@ -10243,16 +10288,7 @@
                         }
 
                         if ( $license_found ) {
-                            $user_license_ids_map = self::get_user_id_license_ids_map( $this->_module_id );
-                            $user_license_ids     = ( isset( $user_license_ids_map[ $this->_user->id ] ) ?
-                                $user_license_ids_map[ $this->_user->id ] :
-                                array() );
-
-                            if ( ! in_array( $this->_license->id, $user_license_ids ) ) {
-                                $user_license_ids[]                       = $this->_license->id;
-                                $user_license_ids_map[ $this->_user->id ] = $user_license_ids;
-                                self::store_user_id_license_ids_map( $user_license_ids_map, $this->_module_id );
-                            }
+                            $this->link_license_2_user( $this->_license->id, $this->_user->id );
                         }
                     }
 
