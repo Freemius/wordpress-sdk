@@ -158,6 +158,7 @@
 										<li>&nbsp;&bull;&nbsp;</li>
 									<?php endif ?>
 									<?php if ( $is_paying ) : ?>
+                                        <?php if ( ! fs_is_network_admin() ) : ?>
 										<li>
 											<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 												<input type="hidden" name="fs_action" value="deactivate_license">
@@ -168,6 +169,7 @@
 											</form>
 										</li>
 										<li>&nbsp;&bull;&nbsp;</li>
+                                        <?php endif ?>
 										<?php if ( ! $license->is_lifetime() &&
 										           $is_active_subscription
 										) : ?>
