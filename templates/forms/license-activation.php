@@ -461,15 +461,23 @@ HTML;
          */
 		function enableDisableSitesSelection() {
             var
-                canApplyOnAllSites = $applyOnAllSites.is( ':enabled' ),
-                selectedSites      = $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length,
-                activationsLeft    = Math.max( 0, $activationsLeft.data( 'left' ) - selectedSites );
+                canApplyOnAllSites    = $applyOnAllSites.is( ':enabled' ),
+                disableSitesSelection = null;
+
+            if ( ! canApplyOnAllSites ) {
+                var
+                    selectedSites         = $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length,
+                    activationsLeft       = Math.max( 0, $activationsLeft.data( 'left' ) - selectedSites ),
+                    disableSitesSelection = ( 0 === activationsLeft );
+
+                    $activationsLeft.text( activationsLeft );
+            } else {
+                disableSitesSelection = false;
+            }
 
             $sitesListContainer
                 .find( 'input[type="checkbox"]:not(:checked)' )
-                .attr( 'disabled',  ( ! canApplyOnAllSites && 0 === activationsLeft ) );
-
-            $activationsLeft.text( activationsLeft );
+                .attr( 'disabled', disableSitesSelection );
         }
 
         /**
