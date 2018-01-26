@@ -462,13 +462,14 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
-                                <?php if ( is_object( $license ) || ( $show_upgrade && $fs->is_premium() ) ) : ?>
+                                <?php $has_license = is_object( $license ) ?>
+                                <?php if ( $has_license || ( $show_upgrade && $fs->is_premium() ) ) : ?>
                                     <?php
-                                        $activate_license_button_text = is_object( $license ) ?
+                                        $activate_license_button_text = $has_license ?
                                             fs_esc_html_inline( 'Change License', 'change-license', $slug ) :
                                             fs_esc_html_inline( 'Activate License', 'activate-license', $slug );
                                     ?>
-                                    <a class="button button-primary activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
+                                    <a class="button<?php echo ( ! $has_license ? ' button-primary' : '' ) ?> activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php echo $activate_license_button_text ?></a>
                                 <?php endif ?>
 								<input class="fs-search" type="text" placeholder="<?php fs_esc_attr_echo_inline( 'Search by address', 'search-by-address', $slug ) ?>..."><span class="dashicons dashicons-search"></span>
 							</div>
