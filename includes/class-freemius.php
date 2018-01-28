@@ -8700,11 +8700,11 @@
             }
 
             if ( ! empty( $installs_without_license ) ) {
-                $this->activate_license_on_many_installs( $user, $license, $installs_without_license );
+                $this->activate_license_on_many_installs( $user, $license->secret_key, $installs_without_license );
             }
 
             if ( ! empty( $disconnected_site_ids ) ) {
-                $this->activate_license_on_many_sites( $user, $license, $disconnected_site_ids );
+                $this->activate_license_on_many_sites( $user, $license->secret_key, $disconnected_site_ids );
             }
 
             $this->link_license_2_user($license->id, $user->id);
@@ -8724,7 +8724,7 @@
          * @since  2.0.0
          *
          * @param \FS_User          $user
-         * @param FS_Plugin_License $license
+         * @param string   $license_key
          * @param array             $blog_2_install_map {
          * @key    int Blog ID.
          * @value  FS_Site Blog's associated install.
@@ -8734,11 +8734,11 @@
          */
         private function activate_license_on_many_installs(
             FS_User $user,
-            FS_Plugin_License $license,
+            $license_key,
             array $blog_2_install_map
         ) {
             $params = array(
-                array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
+                array( 'license_key' => $this->apply_filters( 'license_key', $license_key ) )
             );
 
             $install_2_blog_map = array();
@@ -8777,12 +8777,14 @@
          * @since  2.0.0
          *
          * @param \FS_User           $user
-         * @param \FS_Plugin_License $license
+         * @param string   $license_key
          * @param int[]              $site_ids
+         *
+         * @return true|mixed True if successful, otherwise, the API result.
          */
         private function activate_license_on_many_sites(
             FS_User $user,
-            FS_Plugin_License $license,
+            $license_key,
             array $site_ids
         ) {
             $sites = array();
@@ -8793,7 +8795,7 @@
             // Install the plugin.
             $result = $this->create_installs_with_user(
                 $user,
-                $license->secret_key,
+                $license_key,
                 false,
                 $sites,
                 false,
