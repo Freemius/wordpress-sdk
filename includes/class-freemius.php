@@ -10663,7 +10663,7 @@
          *
          * @return string
          */
-        private static function get_site_blog_id( &$site ) {
+        static function get_site_blog_id( &$site ) {
             return ( $site instanceof WP_Site ) ?
                 $site->blog_id :
                 $site['blog_id'];
@@ -14856,10 +14856,14 @@
 
                             if ( ! $is_context_single_site &&
                                  fs_is_network_admin() &&
-                                 $this->_is_network_active
+                                 $this->_is_network_active &&
+                                 $new_license->quota > 1 &&
+                                 get_blog_count() > 1
                             ) {
                                 // See if license can activated on all sites.
                                 if ( ! $this->try_activate_license_on_network( $this->_user, $new_license ) ) {
+                                    // Open the license activation dialog box on the account page.
+                                    add_action( 'admin_footer', array( &$this, '_open_license_activation_dialog_box' ) );
                                 }
                             }
 
@@ -15020,6 +15024,16 @@
             if ( 'none' !== $plan_change ) {
                 $this->do_action( 'after_license_change', $plan_change, $this->get_plan() );
             }
+        }
+
+        /**
+         * Include the required JS at the footer of the admin to trigger the license activation dialog box.
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        public function _open_license_activation_dialog_box() {
+            $vars = array( 'license_id' => $this->_site->license_id );
+            fs_require_once_template( 'js/open-license-activation.php', $vars );
         }
 
         /**
