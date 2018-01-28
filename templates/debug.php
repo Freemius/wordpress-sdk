@@ -375,6 +375,7 @@
                                 <input type="hidden" name="module_type" value="<?php echo $module_type ?>">
                                 <input type="hidden" name="slug" value="<?php echo $slug ?>">
                                 <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach ?>
@@ -452,6 +453,7 @@
                         <?php wp_nonce_field( 'delete_user' ) ?>
                         <input type="hidden" name="user_id" value="<?php echo $user->id ?>">
                         <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
+                    </form>
                 </td>
             </tr>
         <?php endforeach ?>
