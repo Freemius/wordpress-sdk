@@ -44,7 +44,9 @@
                 <tbody>
                 <?php $site_props = array('uid', 'url', 'title', 'charset', 'language') ?>
                 <?php foreach ( $sites as $site ) : ?>
-                    <tr>
+                    <tr<?php if ( ! empty( $site['license_id'] ) ) {
+                        echo ' data-license-id="' . $site['license_id'] . '"';
+                    } ?>>
                         <?php if ( $require_license_key ) : ?>
                             <td><input type="checkbox" value="true" /></td>
                         <?php endif ?>

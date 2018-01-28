@@ -45,18 +45,31 @@
 
 	$license_key_text = fs_text_inline( 'License key', 'license-key' , $slug );
 
-    $is_network_active       = ( $fs->is_network_active() && ! $fs->is_delegated_connection() );
+    $is_network_activation   = (
+        $fs->is_network_active() &&
+        fs_is_network_admin() &&
+        ! $fs->is_delegated_connection()
+    );
     $network_activation_html = '';
 
     $sites_details = array();
-    if ( $is_network_active ) {
+    if ( $is_network_activation ) {
         $all_sites = Freemius::get_sites();
 
         foreach ( $all_sites as $site ) {
-            $sites_details[] = $fs->get_site_info( $site );
+            $site_details = $fs->get_site_info( $site );
+
+            $blog_id = Freemius::get_site_blog_id( $site );
+            $install = $fs->get_install_by_blog_id($blog_id);
+
+            if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                $site_details['license_id'] = $install->license_id;
+            }
+
+            $sites_details[] = $site_details;
         }
 
-        if ( $is_network_active ) {
+        if ( $is_network_activation ) {
             $vars = array(
                 'id'                  => $fs->get_id(),
                 'sites'               => $sites_details,
@@ -111,7 +124,7 @@ HTML;
                         htmlspecialchars( substr( $license->secret_key, - 3 ) ) )
                 );
 
-                $license_input_html .= "<option value='{$license->secret_key}' data-left='{$license->left()}'>{$label}</option>";
+                $license_input_html .= "<option data-id='{$license->id}' value='{$license->secret_key}' data-left='{$license->left()}'>{$label}</option>";
             }
 
             $license_input_html .= '</select>';
@@ -139,6 +152,7 @@ HTML;
                     id="available_license_key"
                     type="text"
                     value="{$value}"
+                    data-id="{$available_license->id}"
                     data-license-key="{$available_license->secret_key}"
                     data-left="{$available_license->left()}"
                     readonly />
@@ -207,7 +221,7 @@ HTML;
 			$activateLicenseButton    = $modal.find('.button-activate-license'),
 			$licenseKeyInput          = $modal.find('input.license_key'),
 			$licenseActivationMessage = $modal.find( '.license-activation-message' ),
-            isNetworkActive           = <?php echo $is_network_active ? 'true' : 'false' ?>;
+            isNetworkActivation       = <?php echo $is_network_activation ? 'true' : 'false' ?>;
 
 		$modal.appendTo($('body'));
 
@@ -230,7 +244,7 @@ HTML;
             var
                 $otherLicenseKeyContainer = $( '#other_license_key_container' );
 
-            if ( isNetworkActive ) {
+            if ( isNetworkActivation ) {
                 $applyOnAllSites.click(function() {
                     var applyOnAllSites = $( this ).is( ':checked' );
 
@@ -247,7 +261,7 @@ HTML;
 
                 $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
                     // If a site row is clicked, trigger a click on the checkbox.
-                    $( this ).parent().find( 'input' ).click();
+                    $( this ).parent().find( 'td:first-child input' ).click();
                 });
 
                 $sitesListContainer.delegate( 'input[type="checkbox"]', 'click', function() {
@@ -266,7 +280,7 @@ HTML;
                     // When a license is selected, select the associated radio button.
                     $licenseTypes.filter( '[value="available"]' ).attr( 'checked', true );
 
-                    if ( ! isNetworkActive || $modal.hasClass( 'is-single-site-activation' ) ) {
+                    if ( ! isNetworkActivation || $modal.hasClass( 'is-single-site-activation' ) ) {
                         enableActivateLicenseButton();
                         return true;
                     }
@@ -282,7 +296,7 @@ HTML;
                         otherLicenseKeySelected = isOtherLicenseKeySelected();
 
                     if ( ( licenseKey.length > 0 || ( hasLicenseTypes && ! otherLicenseKeySelected ) ) &&
-                        ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActive || hasSelectedSite() )
+                        ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActivation || hasSelectedSite() )
                     ) {
                         /**
                          * If the "other" license is not empty or an available license is selected, enable the activate
@@ -295,7 +309,7 @@ HTML;
                         disableActivateLicenseButton();
                     }
 
-                    if ( ! isNetworkActive ) {
+                    if ( ! isNetworkActivation ) {
                         return;
                     }
 
@@ -332,7 +346,7 @@ HTML;
 				/**
 				 * If license key is not empty, enable the license activation button.
 				 */
-				if ( licenseKey.length > 0 && ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActive || hasSelectedSite() ) ) {
+				if ( licenseKey.length > 0 && ( $modal.hasClass( 'is-single-site-activation' ) || ! isNetworkActivation || hasSelectedSite() ) ) {
 					enableActivateLicenseButton();
 				}
 			});
@@ -347,7 +361,7 @@ HTML;
                  * If license key is empty, disable the license activation button.
                  */
                 if ( ( 0 === licenseKey.length && ( ! hasLicenseTypes || ! hasSelectedAvailableLicense ) ) ||
-                   ( isNetworkActive && ! hasSelectedSite() )
+                   ( isNetworkActivation && ! hasSelectedSite() )
                 ) {
                    disableActivateLicenseButton();
                 }
@@ -390,7 +404,7 @@ HTML;
                     module_id  : '<?php echo $fs->get_id() ?>'
                 };
 
-                if ( isNetworkActive ) {
+                if ( isNetworkActivation ) {
                     var
                         sites = [];
 
@@ -455,6 +469,8 @@ HTML;
 
 		registerEventHandlers();
 
+        $('body').trigger('licenseActivationLoaded');
+
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.0.0
@@ -467,7 +483,8 @@ HTML;
             if ( ! canApplyOnAllSites ) {
                 var
                     selectedSites         = $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length,
-                    activationsLeft       = Math.max( 0, $activationsLeft.data( 'left' ) - selectedSites ),
+                    activationsLeft       = Math.max( 0, $activationsLeft.data( 'left' ) - selectedSites );
+
                     disableSitesSelection = ( 0 === activationsLeft );
 
                     $activationsLeft.text( activationsLeft );
@@ -519,7 +536,7 @@ HTML;
          */
         function hasSelectedSite() {
             return ( $applyOnAllSites.is( ':checked' ) ||
-                $sitesListContainer.find( 'input[type="checkbox"]:checked' ).length > 0 );
+                $sitesListContainer.find( 'input[type="checkbox"]:checked:not(:disabled)' ).length > 0 );
         }
 
         /**
@@ -527,10 +544,31 @@ HTML;
          * @since 2.0.0
          */
         function toggleActivationOnAllSites() {
-            var
-                activationsLeft = hasLicensesDropdown ?
-                    $licensesDropdown.find( ':selected' ).data( 'left' ) :
-                    $availableLicenseKey.data( 'left' );
+            var activationsLeft,
+                licenseID;
+
+            if (hasLicensesDropdown) {
+                var $selectedOption = $licensesDropdown.find( ':selected' );
+                activationsLeft = $selectedOption.data('left');
+                licenseID = $selectedOption.data('id');
+            } else {
+                activationsLeft = $availableLicenseKey.data('left');
+                licenseID = $availableLicenseKey.data('id');
+            }
+
+            // Cleanup previously auto-selected site.
+            $('#sites_list_container input[type=checkbox]:disabled')
+                .attr('disabled', false)
+                .attr('checked', false);
+
+            var $blogsWithActiveLicense = $('#sites_list_container tr[data-license-id=' + licenseID + '] input[type=checkbox]');
+
+            if ($blogsWithActiveLicense.length > 0) {
+                $blogsWithActiveLicense.attr('checked', true)
+                    .attr('disabled', true);
+
+                activationsLeft += $blogsWithActiveLicense.length;
+            }
 
             if ( activationsLeft >= totalSites ) {
                 $applyOnAllSites.attr( 'disabled', false );
@@ -608,7 +646,7 @@ HTML;
                 $singleInstallDetails.prev().data( 'blog-id' ) :
                 null;
 
-            $multisiteOptionsContainer.toggle( isNetworkActive && ! isSingleSiteActivation );
+            $multisiteOptionsContainer.toggle( isNetworkActivation && ! isSingleSiteActivation );
 
             if ( hasLicenseTypes ) {
                 $licenseTypes.attr( 'checked', false );
