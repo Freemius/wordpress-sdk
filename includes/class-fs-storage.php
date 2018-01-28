@@ -146,9 +146,9 @@
         /**
          * @author Leo Fajardo (@leorw)
          *
-         * @param bool     $store
-         * @param string[] $exceptions               Set of keys to keep and not clear.
-         * @param int|null $network_level_or_blog_id Since 2.0.0
+         * @param bool          $store
+         * @param string[]      $exceptions Set of keys to keep and not clear.
+         * @param int|null|bool $network_level_or_blog_id
          */
         function clear_all( $store = true, $exceptions = array(), $network_level_or_blog_id = null ) {
             if ( ! $this->_is_multisite ||
