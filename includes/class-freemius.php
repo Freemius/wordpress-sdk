@@ -2484,7 +2484,7 @@
                 check_admin_referer( 'restart_freemius' );
 
                 if ( ! is_multisite() ) {
-                // Clear accounts data.
+                    // Clear accounts data.
                     self::$_accounts->clear( null, true );
                 } else {
                     $sites = self::get_sites();
@@ -8723,9 +8723,9 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param \FS_User          $user
+         * @param \FS_User $user
          * @param string   $license_key
-         * @param array             $blog_2_install_map {
+         * @param array    $blog_2_install_map {
          * @key    int Blog ID.
          * @value  FS_Site Blog's associated install.
          * }
@@ -8759,11 +8759,14 @@
             }
 
             foreach ( $result->installs as $r_install ) {
+                $install = new FS_Site( $r_install );
+                $install->is_disconnected = false;
+
                 // Update install.
                 $this->_store_site(
                     true,
                     $install_2_blog_map[ $r_install->id ],
-                    new FS_Site( $r_install )
+                    $install
                 );
             }
 
@@ -8776,9 +8779,9 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param \FS_User           $user
+         * @param \FS_User $user
          * @param string   $license_key
-         * @param int[]              $site_ids
+         * @param int[]    $site_ids
          *
          * @return true|mixed True if successful, otherwise, the API result.
          */
@@ -9301,7 +9304,7 @@
                         } else {
                             $site_ids[] = $site['blog_id'];
                         }
-                        }
+                    }
 
                     $user = $this->get_current_or_network_user();
 
@@ -9347,7 +9350,7 @@
                         $error = FS_Api::is_api_error_object( $install ) ?
                             $install->error->message :
                             var_export( $install->error, true );
-                } else {
+                    } else {
                         $fs->reconnect_locally( $has_valid_blog_id );
                     }
                 }
