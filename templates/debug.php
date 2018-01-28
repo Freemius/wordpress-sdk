@@ -434,6 +434,7 @@
             <th><?php fs_esc_html_echo_inline( 'Verified' ) ?></th>
             <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
             <th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
+            <th><?php fs_esc_html_echo_inline( 'Actions' ) ?></th>
         </tr>
         </thead>
         <tbody>
@@ -445,6 +446,13 @@
                 <td><?php echo json_encode( $user->is_verified ) ?></td>
                 <td><?php echo $user->public_key ?></td>
                 <td><?php echo $user->secret_key ?></td>
+                <td>
+                    <form action="" method="POST">
+                        <input type="hidden" name="fs_action" value="delete_user">
+                        <?php wp_nonce_field( 'delete_user' ) ?>
+                        <input type="hidden" name="user_id" value="<?php echo $user->id ?>">
+                        <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
+                </td>
             </tr>
         <?php endforeach ?>
         </tbody>

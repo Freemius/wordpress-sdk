@@ -2506,6 +2506,10 @@
                     true,
                     fs_request_get( 'blog_id', null )
                 );
+            } else if ( fs_request_is_action( 'delete_user' ) ) {
+                check_admin_referer( 'delete_user' );
+
+                self::delete_user( fs_request_get( 'user_id' ) );
             } else if ( fs_request_is_action( 'download_logs' ) ) {
                 check_admin_referer( 'download_logs' );
 
