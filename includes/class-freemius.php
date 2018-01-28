@@ -2483,8 +2483,19 @@
             if ( fs_request_is_action( 'restart_freemius' ) ) {
                 check_admin_referer( 'restart_freemius' );
 
+                if ( ! is_multisite() ) {
                 // Clear accounts data.
-                self::$_accounts->clear( true );
+                    self::$_accounts->clear( null, true );
+                } else {
+                    $sites = self::get_sites();
+                    foreach ( $sites as $site ) {
+                        $blog_id = self::get_site_blog_id( $site );
+                        self::$_accounts->clear( $blog_id, true );
+                    }
+
+                    // Clear network level storage.
+                    self::$_accounts->clear( true, true );
+                }
 
                 // Clear SDK reference cache.
                 delete_option( 'fs_active_plugins' );

@@ -197,6 +197,30 @@
         }
 
         /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int|null|bool $network_level_or_blog_id
+         * @param bool          $flush
+         */
+        function clear( $network_level_or_blog_id = null, $flush = false ) {
+            if ( ! $this->_is_multisite ||
+                 false === $network_level_or_blog_id ||
+                 0 == $network_level_or_blog_id ||
+                 is_null( $network_level_or_blog_id )
+            ) {
+                $site_options = $this->get_site_options( $network_level_or_blog_id );
+                $site_options->clear( $flush );
+            }
+
+            if ( $this->_is_multisite &&
+                 ( true === $network_level_or_blog_id || is_null( $network_level_or_blog_id ) )
+            ) {
+                $this->_network_options->clear( $flush );
+            }
+        }
+
+        /**
          * Migration script to the new storage data structure that is network compatible.
          *
          * IMPORTANT:
