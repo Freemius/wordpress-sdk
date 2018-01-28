@@ -5492,6 +5492,31 @@
         }
 
         /**
+         * Delete user.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $user_id
+         * @param bool   $store
+         *
+         * @return false|int The user ID if deleted. Otherwise, FALSE (when install not exist).
+         */
+        private static function delete_user( $user_id, $store = true ) {
+            $users = self::get_all_users();
+
+            if ( ! is_array( $users ) || ! isset( $users[ $user_id ] ) ) {
+                return false;
+            }
+
+            unset( $users[ $user_id ] );
+
+            self::$_accounts->set_option( 'users', $users, $store );
+
+            return $user_id;
+        }
+
+        /**
          * Delete plugin's plans information.
          *
          * @param bool $store                 Flush to Database if true.
