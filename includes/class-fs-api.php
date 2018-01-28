@@ -539,6 +539,22 @@
 			       is_string( $result );
 		}
 
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param mixed $result
+         *
+         * @return bool Is API result contains an error.
+         */
+        static function is_api_error_object( $result ) {
+            return (
+                is_object( $result ) &&
+                isset( $result->error ) &&
+                isset( $result->message )
+            );
+        }
+
 		/**
 		 * Checks if given API result is a non-empty and not an error object.
 		 *

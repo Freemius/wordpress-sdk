@@ -8805,7 +8805,7 @@
             if ( ! $this->is_api_result_entity( $result ) &&
                  ! $this->is_api_result_object( $result, 'installs' )
             ) {
-                // @todo Handler potential API error of the $result
+                return $result;
             }
 
             $installs = array();
@@ -8834,6 +8834,8 @@
             if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
                 $this->_storage->network_install_blog_id = $first_blog_id;
             }
+
+            return true;
         }
 
         /**
@@ -9281,29 +9283,46 @@
                 $blog_id           = fs_request_get( 'blog_id' );
                 $has_valid_blog_id = is_numeric( $blog_id );
 
-                $endpoint = '/';
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
-                    $api       = $fs->get_current_or_network_user_api_scope();
-                    $endpoint .= "plugins/{$this->_plugin->id}/installs.json";
-
-                    $params = array(
-                        array( 'license_key' => $fs->apply_filters( 'license_key', $license_key ) )
-                    );
+                    $blog_2_install_map = array();
+                    $site_ids           = array();
 
                     $sites = fs_request_get( 'sites', array(), 'post' );
-
                     foreach ( $sites as $site ) {
                         if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
                             continue;
                         }
 
                         $install = $this->get_install_by_blog_id( $site['blog_id'] );
-                        if ( ! is_object( $install ) ) {
-                            continue;
+
+                        if ( is_object( $install ) ) {
+                            $blog_2_install_map[ $site['blog_id'] ] = $install;
+                        } else {
+                            $site_ids[] = $site['blog_id'];
+                        }
                         }
 
-                        $params[] = array( 'id' => $install->id );
+                    $user = $this->get_current_or_network_user();
+
+                    if ( ! empty( $blog_2_install_map ) ) {
+                        $result = $this->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
+
+                        if ( true !== $result ) {
+                            $error = FS_Api::is_api_error_object( $result ) ?
+                                $result->error->message :
+                                var_export( $result, true );
+                        }
+                    }
+
+                    if ( empty( $error ) && ! empty( $site_ids ) ) {
+                        $result = $this->activate_license_on_many_sites( $user, $license_key, $site_ids );
+
+                        if ( true !== $result ) {
+                            $error = FS_Api::is_api_error_object( $result ) ?
+                                $result->error->message :
+                                var_export( $result, true );
+                        }
                     }
                 } else {
                     if ( $has_valid_blog_id ) {
@@ -9321,20 +9340,24 @@
                     $params = array(
                         'license_key' => $fs->apply_filters( 'license_key', $license_key )
                     );
+
+                    $install = $api->call( '/', 'put', $params );
+
+                    if ( FS_Api::is_api_error( $install ) ) {
+                        $error = FS_Api::is_api_error_object( $install ) ?
+                            $install->error->message :
+                            var_export( $install->error, true );
+                } else {
+                        $fs->reconnect_locally( $has_valid_blog_id );
+                    }
                 }
 
-                $install = $api->call( $endpoint, 'put', $params );
-
-                if ( isset( $install->error ) ) {
-                    $error = $install->error->message;
-                } else {
+                if ( empty( $error ) ) {
                     $fs->_sync_license( true, $has_valid_blog_id );
 
                     $next_page = $fs->is_addon() ?
                         $fs->get_parent_instance()->get_account_url() :
                         $fs->get_account_url();
-
-                    $fs->reconnect_locally( $has_valid_blog_id );
                 }
             } else {
                 $next_page = $fs->opt_in(
