@@ -51,7 +51,7 @@
         <!--/ Site URL -->
 
         <!-- License Activation / Deactivation -->
-        <td><?php if ( $has_paid_plan && $is_premium ) {
+        <td><?php if ( $has_paid_plan ) {
                 $view_params = array(
                     'freemius' => $fs,
                     'slug'     => $slug,
