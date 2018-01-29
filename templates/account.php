@@ -46,6 +46,14 @@
 		$fs->_add_auto_installation_dialog_box();
 	}
 
+	if ( fs_request_get_bool( 'activate_license' ) ) {
+		// Open the license activation dialog box on the account page.
+		add_action( 'admin_footer', array(
+			&$this,
+			'_open_license_activation_dialog_box'
+		) );
+	}
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {

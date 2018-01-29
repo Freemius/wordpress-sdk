@@ -8659,6 +8659,49 @@
         private function try_activate_license_on_network( FS_User $user, FS_Plugin_License $license ) {
             $this->_logger->entrance();
 
+            $result = $this->can_activate_license_on_network( $license );
+
+            if ( false === $result ) {
+                return false;
+            }
+
+            $installs_without_license = $result['installs'];
+            if ( ! empty( $installs_without_license ) ) {
+                $this->activate_license_on_many_installs( $user, $license->secret_key, $installs_without_license );
+            }
+
+            $disconnected_site_ids = $result['sites'];
+            if ( ! empty( $disconnected_site_ids ) ) {
+                $this->activate_license_on_many_sites( $user, $license->secret_key, $disconnected_site_ids );
+            }
+
+            $this->link_license_2_user( $license->id, $user->id );
+
+            // Sync license after activations.
+            $license->activated += $result['production_count'];
+            $license->activated_local += $result['localhost_count'];
+
+//            $this->_store_licenses()
+
+            return true;
+        }
+
+        /**
+         * Checks if the given license can be activated on the whole network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_Plugin_License $license
+         *
+         * @return false|array {
+         * @type array[int]FS_Site $installs Blog ID to install map.
+         * @type int[] $sites Non-connected blog IDs.
+         * @type int $production_count Production sites count.
+         * @type int $localhost_count Production sites count.
+         * }
+         */
+        private function can_activate_license_on_network( FS_Plugin_License $license ) {
             $sites = self::get_sites();
 
             $production_count = 0;
@@ -8699,22 +8742,12 @@
                 return false;
             }
 
-            if ( ! empty( $installs_without_license ) ) {
-                $this->activate_license_on_many_installs( $user, $license->secret_key, $installs_without_license );
-            }
-
-            if ( ! empty( $disconnected_site_ids ) ) {
-                $this->activate_license_on_many_sites( $user, $license->secret_key, $disconnected_site_ids );
-            }
-
-            $this->link_license_2_user($license->id, $user->id);
-
-            // Sync license after activations.
-            $license->activated += $production_count;
-            $license->activated_local += $localhost_count;
-//            $this->_store_licenses()
-
-            return true;
+            return array(
+                'installs'         => $installs_without_license,
+                'sites'            => $disconnected_site_ids,
+                'production_count' => $production_count,
+                'localhost_count'  => $localhost_count,
+            );
         }
 
         /**
@@ -14913,8 +14946,13 @@
                             ) {
                                 // See if license can activated on all sites.
                                 if ( ! $this->try_activate_license_on_network( $this->_user, $new_license ) ) {
-                                    // Open the license activation dialog box on the account page.
-                                    add_action( 'admin_footer', array( &$this, '_open_license_activation_dialog_box' ) );
+                                    if ( ! fs_request_get_bool( 'auto_install' ) ) {
+                                        // Open the license activation dialog box on the account page.
+                                        add_action( 'admin_footer', array(
+                                            &$this,
+                                            '_open_license_activation_dialog_box'
+                                        ) );
+                                    }
                                 }
                             }
 
@@ -17480,8 +17518,25 @@
          * @return string
          */
         private function get_complete_upgrade_instructions( $plan_title = '' ) {
+            $this->_logger->entrance();
+
+            $add_license_activation_instructions = (
+                fs_is_network_admin() &&
+                $this->_is_network_active &&
+                get_blog_count() > 1 &&
+                is_object( $this->_license ) &&
+                $this->_license->quota > 1 &&
+                ! $this->can_activate_license_on_network( $this->_license )
+            );
+
+            $activate_license_string = ! $add_license_activation_instructions ? '' : sprintf(
+                $this->get_text_inline( '%sClick here%s to choose the sites where you\'d like to activate the license on.', 'network-choose-sites-for-license' ),
+                '<a href="' . $this->get_account_url( false, array( 'activate_license' => 'true' ) ) . '">',
+                '</a>'
+            );
+
             if ( ! $this->has_premium_version() || $this->is_premium() ) {
-                return '';
+                return '' . $activate_license_string;
             }
 
             if ( empty( $plan_title ) ) {
@@ -17496,6 +17551,7 @@
             return sprintf(
                 ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
                 $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
+                ( ! $add_license_activation_instructions ? '' : '<li>' . $activate_license_string . '</li>' ) .
                 $this->get_latest_download_link( sprintf(
                 /* translators: %s: Plan title */
                     $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
