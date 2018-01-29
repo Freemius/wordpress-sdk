@@ -11611,7 +11611,11 @@
                 if ( ! $is_uninstall ) {
                     $fs_user = Freemius::_get_user_by_email( $email );
                     if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-                        return $this->install_with_current_user( false, $trial_plan_id );
+                        return $this->install_with_current_user(
+                            false,
+                            $trial_plan_id,
+                            $sites
+                        );
                     }
                 }
             }
@@ -12373,13 +12377,15 @@
          *
          * @param string|bool $license_key
          * @param number|bool $trial_plan_id
+         * @param array       $sites Since 2.0.0
          * @param bool        $redirect
          *
-         * @return string|object If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
+         * @return object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
          */
         private function install_with_current_user(
             $license_key = false,
             $trial_plan_id = false,
+            $sites = array(),
             $redirect = true
         ) {
             // Get current logged WP user.
@@ -12388,7 +12394,7 @@
             // Find the relevant FS user by the email.
             $user = self::_get_user_by_email( $current_user->user_email );
 
-            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect );
+            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
         }
 
         /**

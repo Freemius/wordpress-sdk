@@ -85,18 +85,20 @@
 		}
 	}
 
-	$fs_user                    = Freemius::_get_user_by_email( $current_user->user_email );
-	$activate_with_current_user = (
-		is_object( $fs_user ) &&
-		! $is_pending_activation &&
-		// If requires a license for activation, use the user associated with the license for the opt-in.
-		! $require_license_key
-	);
-
 	$is_network_level_activation = (
 		fs_is_network_admin() &&
 		$fs->is_network_active() &&
 		! $fs->is_network_delegated_connection()
+	);
+
+	$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
+
+	$activate_with_current_user = (
+		is_object( $fs_user ) &&
+		! $is_pending_activation &&
+		// If requires a license for activation, use the user associated with the license for the opt-in.
+		! $require_license_key &&
+		! $is_network_level_activation
 	);
 ?>
 <?php
