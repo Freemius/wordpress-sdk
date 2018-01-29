@@ -11363,14 +11363,14 @@
                 $user = self::_get_user_by_id( $this->_site->user_id );
 
                 if ( ! is_object( $user ) && FS_User::is_valid_id( $this->_storage->prev_user_id ) ) {
-                /**
+                    /**
                      * Try to load the previous owner. This recovery is used for the following use-case:
                      *      1. Opt-in
                      *      2. Cloning site1 to site2
                      *      3. Ownership switch in site1 (same applies for site2)
                      *      4. Install data sync on site2
                      *      5. Now site2's install is associated with the new owner which does not exists locally.
-                 */
+                     */
                     $user = self::_get_user_by_id( $this->_storage->prev_user_id );
                 }
 
@@ -11889,14 +11889,19 @@
                 $is_network_level_opt_in = true;
             }
 //            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
+            // If Freemius was OFF before, turn it on.
+            $this->turn_on();
+
             if ( ! $this->_is_network_active || ! $is_network_level_opt_in ) {
                 $this->_set_account( $user, $first_install );
+
+                $this->do_action( 'after_account_connection', $user, $first_install );
             } else {
                 // Map site addresses to their blog IDs.
                 $address_to_blog_map = $this->get_address_to_blog_map();
 
-                $first_blog_id = null;
-
+                $first_blog_id      = null;
+                $blog_2_install_map = array();
                 foreach ( $installs as $install ) {
                     $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
                     $blog_id = $address_to_blog_map[ $address ];
@@ -11906,6 +11911,8 @@
                     if ( is_null( $first_blog_id ) ) {
                         $first_blog_id = $blog_id;
                     }
+
+                    $blog_2_install_map[ $blog_id ] = $install;
                 }
 
                 if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
@@ -11923,24 +11930,23 @@
 
                 self::$_accounts->store();
 
-                if ( $this->_is_network_active ) {
-                    $this->send_installs_update();
-                } else {
-                    $this->send_install_update();
-                }
+                $this->send_installs_update();
 
                 // Switch install context back to the first install.
                 $this->_site = $first_install;
+
+                $current_blog = get_current_blog_id();
+
+                foreach ( $blog_2_install_map as $blog_id => $install ) {
+                    $this->switch_to_blog( $blog_id );
+
+                    $this->do_action( 'after_account_connection', $user, $install );
+                }
+
+                $this->switch_to_blog( $current_blog );
+
+                $this->do_action( 'after_network_account_connection', $user, $blog_2_install_map );
             }
-
-            // If Freemius was OFF before, turn it on.
-            $this->turn_on();
-
-            $this->do_action(
-                'after_account_connection',
-                $user,
-                ( $this->_is_network_active ? $installs : $first_install )
-            );
 
             if ( is_numeric( $first_install->license_id ) ) {
                 $this->_license = $this->_get_license_by_id( $first_install->license_id );
