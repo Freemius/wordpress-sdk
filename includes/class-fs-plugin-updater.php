@@ -635,7 +635,7 @@ if ( !isset($info->error) ) {
 		 * @return bool|WP_Error
 		 */
 		protected function try_activate_plugin( $file_path ) {
-			$activate = activate_plugin( $file_path );
+			$activate = activate_plugin( $file_path, '', $this->_fs->is_network_active() );
 
 			return is_wp_error( $activate ) ?
 				$activate :
