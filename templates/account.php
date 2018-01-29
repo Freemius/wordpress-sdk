@@ -49,7 +49,7 @@
 	if ( fs_request_get_bool( 'activate_license' ) ) {
 		// Open the license activation dialog box on the account page.
 		add_action( 'admin_footer', array(
-			&$this,
+			&$fs,
 			'_open_license_activation_dialog_box'
 		) );
 	}
