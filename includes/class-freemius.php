@@ -4368,9 +4368,19 @@
                     'license_activated',
                 ) );
 
+                $notice = '';
                 if ( ! $this->is_only_premium() ) {
+                    $notice = sprintf( $this->get_text_inline( 'Premium %s version was successfully activated.', 'premium-activated-message' ), $this->_module_type );
+                }
+
+                $license_notice = $this->get_license_network_activation_notice();
+                if ( ! empty( $license_notice ) ) {
+                    $notice .= ' ' . $license_notice;
+                }
+
+                if ( ! empty( $notice ) ) {
                     $this->_admin_notices->add_sticky(
-                        sprintf( $this->get_text_inline( 'Premium %s version was successfully activated.', 'premium-activated-message' ), $this->_module_type ),
+                        trim( $notice ),
                         'premium_activated',
                         $this->get_text_x_inline( 'W00t',
                             'Used to express elation, enthusiasm, or triumph (especially in electronic communication).', 'woot' ) . '!'
@@ -17520,20 +17530,7 @@
         private function get_complete_upgrade_instructions( $plan_title = '' ) {
             $this->_logger->entrance();
 
-            $add_license_activation_instructions = (
-                fs_is_network_admin() &&
-                $this->_is_network_active &&
-                get_blog_count() > 1 &&
-                is_object( $this->_license ) &&
-                $this->_license->quota > 1 &&
-                ! $this->can_activate_license_on_network( $this->_license )
-            );
-
-            $activate_license_string = ! $add_license_activation_instructions ? '' : sprintf(
-                $this->get_text_inline( '%sClick here%s to choose the sites where you\'d like to activate the license on.', 'network-choose-sites-for-license' ),
-                '<a href="' . $this->get_account_url( false, array( 'activate_license' => 'true' ) ) . '">',
-                '</a>'
-            );
+            $activate_license_string = $this->get_license_network_activation_notice();
 
             if ( ! $this->has_premium_version() || $this->is_premium() ) {
                 return '' . $activate_license_string;
@@ -17551,7 +17548,7 @@
             return sprintf(
                 ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
                 $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
-                ( ! $add_license_activation_instructions ? '' : '<li>' . $activate_license_string . '</li>' ) .
+                ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
                 $this->get_latest_download_link( sprintf(
                 /* translators: %s: Plan title */
                     $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
@@ -17561,6 +17558,53 @@
                 $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
                 '//bit.ly/upload-wp-' . $this->_module_type . 's',
                 $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
+            );
+        }
+
+        /**
+         * This method is used to enrich the after upgrade notice instructions when the upgraded
+         * license cannot be activated network wide (license quota isn't large enough).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+        private function get_license_network_activation_notice() {
+            if ( ! $this->_is_network_active ) {
+                // Module isn't network level activated.
+                return '';
+            }
+
+            if ( ! fs_is_network_admin() ) {
+                // Not network level admin.
+                return '';
+            }
+
+            if ( get_blog_count() == 1 ) {
+                // There's only a single site in the network so if there's a context license it was already activated.
+                return '';
+            }
+
+            if ( ! is_object( $this->_license ) ) {
+                // No context license.
+                return '';
+            }
+
+            if ( $this->_license->is_single_site() && 0 < $this->_license->activated ) {
+                // License was already utilized (this is not 100% the case if all the network is localhost sites and the license can be utilized on unlimited localhost sites).
+                return '';
+            }
+
+            if ( $this->can_activate_license_on_network( $this->_license ) ) {
+                // License can be activated on all the network, so probably, the license is already activate on all the network (that's how the after upgrade sync works).
+                return '';
+            }
+
+            return sprintf(
+                $this->get_text_inline( '%sClick here%s to choose the sites where you\'d like to activate the license on.', 'network-choose-sites-for-license' ),
+                '<a href="' . $this->get_account_url( false, array( 'activate_license' => 'true' ) ) . '">',
+                '</a>'
             );
         }
 
