@@ -424,7 +424,7 @@
         function migrate_to_network() {
             $site_options = FS_Option_Manager::get_manager($this->_id, true, false);
 
-            $options = is_object( $site_options ) ?
+            $options = is_object( $site_options->_options ) ?
                 get_object_vars( $site_options->_options ) :
                 $site_options->_options;
 
