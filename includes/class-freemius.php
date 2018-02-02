@@ -3531,7 +3531,24 @@
                                 // If anonymous mode is disabled, add firewall admin-notice message.
                                 add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
 
-                                $this->add_ajax_action( 'resolve_firewall_issues', array(
+                                $ajax_action_suffix = $this->_slug . ( $this->is_theme() ? ':theme' : '' );
+                                add_action( "wp_ajax_fs_resolve_firewall_issues_{$ajax_action_suffix}", array(
+                                    &$this,
+                                    '_email_about_firewall_issue'
+                                ) );
+
+                                add_action( "wp_ajax_fs_retry_connectivity_test_{$ajax_action_suffix}", array(
+                                    &$this,
+                                    '_retry_connectivity_test'
+                                ) );
+
+                                /**
+                                 * Currently the admin notice manager relies on the module's type and slug. The new AJAX actions manager uses module IDs, hence, consider to replace the if block above with the commented code below after adjusting the admin notices manager to work with module IDs.
+                                 *
+                                 * @author Vova Feldman (@svovaf)
+                                 * @since  2.0.0
+                                 */
+                                /*$this->add_ajax_action( 'resolve_firewall_issues', array(
                                     &$this,
                                     '_email_about_firewall_issue'
                                 ) );
@@ -3539,7 +3556,7 @@
                                 $this->add_ajax_action( 'retry_connectivity_test', array(
                                     &$this,
                                     '_retry_connectivity_test'
-                                ) );
+                                ) );*/
                             }
                         }
 
