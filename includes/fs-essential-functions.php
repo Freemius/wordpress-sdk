@@ -381,31 +381,43 @@
 
         $newest_sdk_plugin_path = $fs_active_plugins->newest->plugin_path;
 
-        $active_plugins        = get_option( 'active_plugins' );
+        $active_plugins        = get_option( 'active_plugins', array() );
         $newest_sdk_plugin_key = array_search( $newest_sdk_plugin_path, $active_plugins );
         if ( 0 === $newest_sdk_plugin_key ) {
             // if it's 0 it's the first plugin already, no need to continue
             return false;
         } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+            // Remove plugin from its current position.
             array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
+
+            // Set it to be included first.
             array_unshift( $active_plugins, $newest_sdk_plugin_path );
+
             update_option( 'active_plugins', $active_plugins );
 
             return true;
         } else if ( is_multisite() && false === $newest_sdk_plugin_key ) {
             // Plugin is network active.
-            $network_active_plugins = get_site_option( 'active_sitewide_plugins' );
-            $newest_sdk_plugin_key  = array_search( $newest_sdk_plugin_path, $network_active_plugins );
+            $network_active_plugins = get_site_option( 'active_sitewide_plugins', array() );
 
-            if ( 0 === $newest_sdk_plugin_key ) {
-                // if it's 0 it's the first plugin already, no need to continue
-                return false;
-            } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
-                array_splice( $network_active_plugins, $newest_sdk_plugin_key, 1 );
-                array_unshift( $network_active_plugins, $newest_sdk_plugin_path );
-                update_site_option( 'active_sitewide_plugins', $network_active_plugins );
+            if (isset($network_active_plugins[$newest_sdk_plugin_path])) {
+                reset($network_active_plugins);
+                if ( $newest_sdk_plugin_path === key($network_active_plugins) ) {
+                    // Plugin is already activated first on the network level.
+                    return false;
+                } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+                    $time = $network_active_plugins[$newest_sdk_plugin_path];
 
-                return true;
+                    // Remove plugin from its current position.
+                    unset($network_active_plugins[$newest_sdk_plugin_path]);
+
+                    // Set it to be included first.
+                    $network_active_plugins = array($newest_sdk_plugin_path => $time) + $network_active_plugins;
+
+                    update_site_option( 'active_sitewide_plugins', $network_active_plugins );
+
+                    return true;
+                }
             }
         }
 
