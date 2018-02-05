@@ -18,10 +18,12 @@
 
 	$slug = $fs->get_slug();
 
+	$set_update_transient_data = ( is_multisite() && ! is_plugin_active_for_network( $fs->get_plugin_basename() ) );
+
 	/**
 	 * @var FS_Plugin_Tag $update
 	 */
-	$update = $fs->get_update( false, false, WP_FS__TIME_24_HOURS_IN_SEC / 24 );
+	$update = $fs->get_update( false, false, WP_FS__TIME_24_HOURS_IN_SEC / 24, $set_update_transient_data );
 
 	$is_paying              = $fs->is_paying();
 	$user                   = $fs->get_user();
