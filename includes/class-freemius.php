@@ -11255,6 +11255,7 @@
 							$plan_change = 'cancelled';
 						} else if ( $is_free && ( ( ! is_object( $new_license ) || $new_license->is_expired() ) ) ) {
 							// The license is expired, so ignore upgrade method.
+                            $this->_site = $site;
 						} else {
 							// License changed.
 							$this->_site = $site;
