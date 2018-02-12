@@ -4780,6 +4780,20 @@
         }
 
         /**
+         * Check if super-admin opted-in for all sites in the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function is_network_connected() {
+            if ( ! $this->_is_network_active ) {
+                return false;
+            }
+
+            return $this->_storage->get( 'is_network_connected' );
+        }
+
+        /**
          * Check if the user skipped connecting the account with Freemius.
          *
          * @author Vova Feldman (@svovaf)
@@ -11984,6 +11998,11 @@
 
                 if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
                     $this->_storage->network_install_blog_id = $first_blog_id;
+                }
+
+                if ( count( $installs ) === count( $address_to_blog_map ) ) {
+                    // Super-admin opted-in for all sites in the network.
+                    $this->_storage->is_network_connected = true;
                 }
 
                 $this->_store_licenses( false );

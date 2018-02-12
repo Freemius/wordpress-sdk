@@ -330,6 +330,7 @@
                 'network_user_id'            => 0,
                 'plugin_upgrade_mode'        => 0,
                 'plugin_downgrade_mode'      => 0,
+                'is_network_connected'       => 0,
 
                 // When network activated, then network level.
                 'install_timestamp'          => 1,
