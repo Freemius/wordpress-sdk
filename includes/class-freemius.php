@@ -6001,6 +6001,12 @@
                 if ( FS_Site::is_valid_id( $install_id ) ) {
                     $install_ids[] = $install_id;
                 }
+
+                switch_to_blog( $blog_id );
+
+                $this->do_action( 'after_account_delete' );
+
+                restore_current_blog();
             }
 
             $this->_storage->clear_all( true, array(
