@@ -1028,11 +1028,8 @@
             }
 
             if ( $this->is_plugin() ) {
-                if ( $this->_is_network_active &&
-                     isset( $this->_storage->is_anonymous_ms ) &&
-                     $this->_storage->is_anonymous_ms['is']
-                ) {
-                        add_action( 'wpmu_new_blog', array( $this, 'set_anonymous_mode_for_new_blog' ), 10, 6 );
+                if ( $this->_is_network_active ) {
+                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
                     }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -6123,9 +6120,9 @@
          * @since  1.1.3
          *
          * @param bool $is_anonymous
-         * @param bool $network
+         * @param bool|int $network_or_blog_id Since 2.0.0
          */
-        private function set_anonymous_mode( $is_anonymous = true, $network = false ) {
+        private function set_anonymous_mode( $is_anonymous = true, $network_or_blog_id = 0 ) {
             // Store information regarding skip to try and opt-in the user
             // again in the future.
             $skip_info = array(
@@ -6134,10 +6131,10 @@
                 'version'   => $this->get_plugin_version(),
             );
 
-            if ( $network ) {
+            if ( true === $network_or_blog_id ) {
                 $this->_storage->is_anonymous_ms = $skip_info;
             } else {
-                $this->_storage->is_anonymous = $skip_info;
+                $this->_storage->store( 'is_anonymous', $skip_info, $network_or_blog_id );
             }
                     
             // Update anonymous mode cache.
@@ -6145,7 +6142,7 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * @author Vova Feldman (@svovaf)
          * @since 2.0.0
          *
          * @param int    $blog_id    Site ID.
@@ -6154,13 +6151,107 @@
          * @param string $path       Site path.
          * @param int    $network_id Network ID. Only relevant on multi-network installations.
          * @param array  $meta       Metadata. Used to set initial site options.
+         *
+         * @uses Freemius::is_license_network_active() to check if the context license was network activated by the super-admin.
+         * @uses Freemius::is_network_connected() to check if the super-admin network opted-in.
+         * @uses Freemius::is_network_anonymous() to check if the super-admin network skipped.
+         * @uses Freemius::is_network_delegated_connection() to check if the super-admin network delegated the connection to the site admins.
          */
-        function set_anonymous_mode_for_new_blog( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
-            $pong = $this->ping( $blog_id );
-            if ( $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
-                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                    'uids' => array( $this->get_anonymous_id( $blog_id ) ),
-                ) );
+        function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+            $this->_logger->entrance();
+
+            if ( $this->is_premium() &&
+                 $this->is_network_connected() &&
+                 is_object( $this->_license ) &&
+                 $this->_license->can_activate( FS_Site::is_localhost_by_address( $domain ) ) &&
+                 $this->is_license_network_active( $blog_id )
+            ) {
+                /**
+                 * Running the premium version, the license was network activated, and the license can also be activated on the current site -> so try to opt-in with the license key.
+                 */
+                $current_blog_id = get_current_blog_id();
+                $license         = clone $this->_license;
+
+                $this->switch_to_blog( $blog_id );
+
+                // Opt-in with network user.
+                $this->install_with_user(
+                    $this->get_network_user(),
+                    $license->secret_key,
+                    false,
+                    false,
+                    false
+                );
+
+                if ( is_object( $this->_site ) ) {
+                    if ( $this->_site->license_id == $license->id ) {
+                        /**
+                         * If the license was activated successfully, sync the license data from the remote server.
+                         */
+                        $this->_license = $license;
+                        $this->sync_site_license();
+                    }
+                }
+
+                $this->switch_to_blog( $current_blog_id );
+
+                if ( is_object( $this->_site ) ) {
+                    // Already connected (with or without a license), so no need to continue.
+                    return;
+                }
+            }
+
+            if ( $this->is_network_anonymous() ) {
+                /**
+                 * Opt-in was network skipped so automatically skip the opt-in for the new site.
+                 */
+                $this->skip_site_connection( $blog_id );
+            } else if ( $this->is_network_delegated_connection() ) {
+                /**
+                 * Opt-in was network delegated so automatically delegate the opt-in for the new site's admin.
+                 */
+                $this->delegate_site_connection( $blog_id );
+            } else if ( $this->is_network_connected() ) {
+                /**
+                 * Opt-in was network activated so automatically opt-in with the network user and new site admin.
+                 */
+                $current_blog_id = get_current_blog_id();
+
+                $this->switch_to_blog( $blog_id );
+
+                // Opt-in with network user.
+                $this->install_with_user(
+                    $this->get_network_user(),
+                    false,
+                    false,
+                    false,
+                    false
+                );
+
+                $this->switch_to_blog( $current_blog_id );
+            } else {
+                /**
+                 * If the super-admin mixed different options (connect, skip, delegated):
+                 *  a) If at least one site connection was delegated, then automatically delegate connection.
+                 *  b) Otherwise, it means that at least one site was skipped and at least one site was connected. For a simplified UX in the initial release of the multisite network integration, skip the connection for the newly created site. If the super-admin will want to opt-in they can still do that from the network level Account page.
+                 */
+                $has_delegated_site = false;
+
+                $sites = self::get_sites();
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                        $has_delegated_site = true;
+                        break;
+                    }
+                }
+
+                if ( $has_delegated_site ) {
+                    $this->delegate_site_connection( $blog_id );
+                } else {
+                    $this->skip_site_connection( $blog_id );
+                }
             }
         }
 
@@ -6247,6 +6338,26 @@
             // No user identified info nor any tracking will be sent after the user skips the opt-in.
             $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
                 'uids' => $uids,
+            ) );
+        }
+
+        /**
+         * Skip connection for specific site in the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $blog_id
+         */
+        private function skip_site_connection( $blog_id ) {
+            $this->_logger->entrance();
+
+            $this->_admin_notices->remove_sticky( 'connect_account', $blog_id );
+
+            $this->set_anonymous_mode( true, $blog_id );
+
+            $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
+                'uids' => array( $this->get_anonymous_id( $blog_id ) ),
             ) );
         }
 
@@ -8654,6 +8765,29 @@
         }
 
         /**
+         * Synchronize the site's context license by fetching the license form the API and updating the local data with it.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return \FS_Plugin_License|mixed
+         */
+        private function sync_site_license() {
+            $api = $this->get_api_user_scope();
+
+            $result = $api->get( "/licenses/{$this->_license->id}.json?license_key=" . urlencode( $this->_license->secret_key ), true );
+
+            if ( ! $this->is_api_result_entity( $result ) ) {
+                return $result;
+            }
+
+            $license = $this->_update_site_license( new FS_Plugin_License( $result ) );
+            $this->_store_licenses();
+
+            return $license;
+        }
+
+        /**
          * Get all user's available licenses for the current module.
          *
          * @author Vova Feldman (@svovaf)
@@ -8682,6 +8816,48 @@
             }
 
             return $licenses;
+        }
+
+        /**
+         * Checks if the context license is network activated except on the given blog ID.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $except_blog_id
+         *
+         * @return bool
+         */
+        private function is_license_network_active( $except_blog_id = 0 ) {
+            $this->_logger->entrance();
+
+            if ( ! is_object( $this->_license ) ) {
+                return false;
+            }
+
+            $sites = self::get_sites();
+
+            if ( $this->_license->total_activations() < ( count( $sites ) - 1 ) ) {
+                // There are more sites than the number of activations, so license cannot be network activated.
+                return false;
+            }
+
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+
+                if ( $except_blog_id == $blog_id ) {
+                    // Skip excluded blog.
+                    continue;
+                }
+
+                $install = $this->get_install_by_blog_id( $blog_id );
+
+                if ( is_object( $install ) && $install->license_id != $this->_license->id ) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /**
@@ -8922,6 +9098,8 @@
          * @since  1.0.6
          *
          * @param FS_Plugin_License|null $new_license
+         *
+         * @return FS_Plugin_License|null
          */
         function _update_site_license( $new_license ) {
             $this->_logger->entrance();
@@ -8932,7 +9110,7 @@
                 $this->_site->license_id = null;
                 $this->_sync_site_subscription( null );
 
-                return;
+                return $this->_license;
             }
 
             $this->_site->license_id = $this->_license->id;
@@ -8957,6 +9135,8 @@
             }
 
             $this->_sync_site_subscription( $new_license );
+
+            return $this->_license;
         }
 
         /**
@@ -10483,9 +10663,21 @@
             } else {
                 // Specified sites delegation.
                 foreach ( $sites as $site ) {
-                    self::$_accounts->set_option( 'is_delegated_connection', true, true, $site['blog_id'] );
+                    $this->delegate_site_connection( $site['blog_id'] );
                 }
             }
+        }
+
+        /**
+         * Delegate specific network site conncetion to the site admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $blog_id
+         */
+        private function delegate_site_connection( $blog_id ) {
+            self::$_accounts->set_option( 'is_delegated_connection', true, true, $blog_id );
         }
 
         /**

@@ -259,4 +259,11 @@
         function is_first_payment_pending() {
             return ( WP_FS__TIME_24_HOURS_IN_SEC >= strtotime( $this->expiration ) - strtotime( $this->created ) );
         }
+
+        /**
+         * @return int
+         */
+        function total_activations() {
+            return ( $this->activated + $this->activated_local );
+        }
     }
