@@ -1030,7 +1030,7 @@
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
                     add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
-                    }
+                }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
             }
@@ -6125,7 +6125,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param bool $is_anonymous
+         * @param bool     $is_anonymous
          * @param bool|int $network_or_blog_id Since 2.0.0
          */
         private function set_anonymous_mode( $is_anonymous = true, $network_or_blog_id = 0 ) {
@@ -8359,7 +8359,7 @@
          *
          * @return FS_Plugin_License[]
          */
-        function get_available_premium_licenses($is_localhost = null ) {
+        function get_available_premium_licenses( $is_localhost = null ) {
             $this->_logger->entrance();
 
             $licenses = array();
@@ -12733,6 +12733,8 @@
                     if ( ! empty( $license_key ) && FS_Plugin_License::is_valid_id( $site->license_id ) ) {
                         $this->sync_license_if_not_exist( $site->license_id, $license_key );
                     }
+
+                    $this->_admin_notices->remove_sticky( 'connect_account', false );
 
                     return $site;
                 }
