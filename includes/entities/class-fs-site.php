@@ -169,7 +169,6 @@
         }
 
         function is_localhost() {
-            // The server has no way to verify if localhost unless localhost appears in domain.
             return ( WP_FS__IS_LOCALHOST_FOR_SERVER || self::is_localhost_by_address( $this->url ) );
         }
 
