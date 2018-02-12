@@ -14,3 +14,4 @@ languages/_freemius-en.mo
 languages/_freemius-en.po
 foobox-image-lightbox.png
 transifex-config.json
+*.orig
