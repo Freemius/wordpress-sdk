@@ -10665,7 +10665,7 @@
 
             if ( is_null( $sites ) ) {
                 // All sites delegation.
-                self::$_accounts->set_option( 'is_delegated_connection', true, true, true );
+                $this->_storage->store( 'is_delegated_connection', true, true, true );
             } else {
                 // Specified sites delegation.
                 foreach ( $sites as $site ) {
@@ -10683,7 +10683,7 @@
          * @param int $blog_id
          */
         private function delegate_site_connection( $blog_id ) {
-            self::$_accounts->set_option( 'is_delegated_connection', true, true, $blog_id );
+            $this->_storage->store( 'is_delegated_connection', true, $blog_id, true );
         }
 
         /**
@@ -10699,7 +10699,7 @@
                 return false;
             }
 
-            return ( true === self::$_accounts->get_option( 'is_delegated_connection', false ) );
+            return $this->_storage->get( 'is_delegated_connection', false, true );
         }
 
         /**
@@ -10719,7 +10719,7 @@
                 $blog_id = get_current_blog_id();
             }
 
-            return self::$_accounts->get_option( 'is_delegated_connection', false, $blog_id );
+            return $this->_storage->get( 'is_delegated_connection', false, $blog_id );
         }
 
         /**
