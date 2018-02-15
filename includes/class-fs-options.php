@@ -229,40 +229,104 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
+         *
+         * @param int $blog_id
          */
-        function migrate_to_network() {
+        function migrate_to_network( $blog_id = 0 ) {
             if ( ! $this->_is_multisite ) {
                 return;
             }
 
             $updated = false;
 
-            if ( ! isset( self::$_SITE_OPTIONS_MAP ) ) {
-                self::load_site_options_map();
-            }
+            $site_options = $this->get_site_options( $blog_id );
 
-            foreach ( self::$_SITE_OPTIONS_MAP as $option => $dummy ) {
-                if ( $this->is_site_option( $option ) ) {
+            $keys = $site_options->get_options_keys();
+
+            foreach ( $keys as $option ) {
+                if ( $this->is_site_option( $option ) ||
+                     // Don't move admin notices to the network storage.
+                    in_array($option, array(
+                        // Don't move admin notices to the network storage.
+                        'admin_notices',
+                        // Don't migrate the module specific data, it will be migrated by the FS_Storage.
+                        'plugin_data',
+                        'theme_data',
+                    ))
+                ) {
                     continue;
                 }
 
-                if ( isset( $this->_options->{$option} ) && ! isset( $this->_network_options->{$option} ) ) {
-                    // Migrate option to the network storage.
-                    $this->_network_options->set_option( $option, $this->_options->{$option}, false );
+                $option_updated = false;
 
-                    /**
-                     * Remove the option from site level storage.
-                     *
-                     * IMPORTANT:
-                     *      The line below is intentionally commented since we want to preserve the option
-                     *      on the site storage level for "downgrade compatibility". Basically, if the user
-                     *      will downgrade to an older version of the plugin with the prev storage structure,
-                     *      it will continue working.
-                     *
-                     * @todo After a few releases we can remove this.
-                     */
-//                    $this->_options->unset_option($option, false);
+                // Migrate option to the network storage.
+                $site_option = $site_options->get_option( $option );
 
+                if ( ! $this->_network_options->has_option( $option ) ) {
+                    // Option not set on the network level, so just set it.
+                    $this->_network_options->set_option( $option, $site_option, false );
+
+                    $option_updated = true;
+                } else {
+                    // Option already set on the network level, so we need to merge it inelegantly.
+                    $network_option = $this->_network_options->get_option( $option );
+
+                    if ( is_array( $network_option ) && is_array( $site_option ) ) {
+                        // Option is an array.
+                        foreach ( $site_option as $key => $value ) {
+                            if ( ! isset( $network_option[ $key ] ) ) {
+                                $network_option[ $key ] = $value;
+
+                                $option_updated = true;
+                            } else if ( is_array( $network_option[ $key ] ) && is_array( $value ) ) {
+                                if ( empty( $network_option[ $key ] ) ) {
+                                    $network_option[ $key ] = $value;
+
+                                    $option_updated = true;
+                                } else if ( empty( $value ) ) {
+                                    // Do nothing.
+                                } else {
+                                    reset($value);
+                                    $first_key = key($value);
+                                    if ( $value[$first_key] instanceof FS_Entity ) {
+                                        // Merge entities by IDs.
+                                        $network_entities_ids = array();
+                                        foreach ( $network_option[ $key ] as $entity ) {
+                                            $network_entities_ids[ $entity->id ] = true;
+                                        }
+
+                                        foreach ( $value as $entity ) {
+                                            if ( ! isset( $network_entities_ids[ $entity->id ] ) ) {
+                                                $network_option[ $key ][] = $entity;
+
+                                                $option_updated = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if ( $option_updated ) {
+                        $this->_network_options->set_option( $option, $network_option, false );
+                    }
+                }
+
+                /**
+                 * Remove the option from site level storage.
+                 *
+                 * IMPORTANT:
+                 *      The line below is intentionally commented since we want to preserve the option
+                 *      on the site storage level for "downgrade compatibility". Basically, if the user
+                 *      will downgrade to an older version of the plugin with the prev storage structure,
+                 *      it will continue working.
+                 *
+                 * @todo After a few releases we can remove this.
+                 */
+//                    $site_options->unset_option($option, false);
+
+                if ( $option_updated ) {
                     $updated = true;
                 }
             }
@@ -273,7 +337,7 @@
 
             // Update network level storage.
             $this->_network_options->store();
-//            $this->_options->store();
+//            $site_options->store();
         }
 
 
