@@ -280,6 +280,15 @@
                             <?php if ( $fs->is_registered() ) : ?>
                                 <a class="button" href="<?php echo $fs->get_account_url() ?>"><?php fs_esc_html_echo_inline( 'Account', 'account' ) ?></a>
                             <?php endif ?>
+                            <?php if ( fs_is_network_admin() && ! $fs->is_network_upgrade_mode() ) : ?>
+                                <form action="" method="POST">
+                                    <input type="hidden" name="fs_action" value="simulate_network_upgrade">
+                                    <input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
+                                    <?php wp_nonce_field( 'simulate_network_upgrade' ) ?>
+
+                                    <button type="submit" class="button button-small"><?php fs_esc_html_echo_inline( 'Simulate Network Upgrade' ) ?></button>
+                                </form>
+                            <?php endif ?>
                         <?php endif ?>
                     </td>
                 </tr>

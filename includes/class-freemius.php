@@ -2792,6 +2792,12 @@
                 $fs->_storage->install_timestamp = ( time() - WP_FS__TIME_24_HOURS_IN_SEC );
                 // Unset the trial shown timestamp.
                 unset( $fs->_storage->trial_promotion_shown );
+            } else if ( fs_request_is_action( 'simulate_network_upgrade' ) ) {
+                check_admin_referer( 'simulate_network_upgrade' );
+
+                $fs = freemius( fs_request_get( 'module_id' ) );
+
+                self::set_network_upgrade_mode( $fs->_storage );
             } else if ( fs_request_is_action( 'delete_install' ) ) {
                 check_admin_referer( 'delete_install' );
 
