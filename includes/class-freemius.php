@@ -13069,7 +13069,7 @@
             // Find the relevant FS user by the email.
             $user = self::_get_user_by_email( $current_user->user_email );
 
-            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
+            return $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
         }
 
         /**
