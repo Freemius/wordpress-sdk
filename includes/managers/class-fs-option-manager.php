@@ -411,6 +411,24 @@
             }
         }
 
+        /**
+         * Get options keys.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @return string[]
+         */
+        function get_options_keys() {
+            if ( is_array( $this->_options ) ) {
+                return array_keys( $this->_options );
+            } else if ( is_object( $this->_options ) ) {
+                return array_keys( get_object_vars( $this->_options ) );
+            }
+
+            return array();
+        }
+
         #--------------------------------------------------------------------------------
         #region Migration
         #--------------------------------------------------------------------------------
