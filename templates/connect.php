@@ -224,7 +224,7 @@
                                 ) );
 
                             /* translators: %s: module type (plugin, theme, or add-on) */
-                            $message .= ' ' . sprintf( fs_text_inline( 'Alternatively, you can skip it for now and activate the license later in your %s\'s network level Account page.', 'connect_message_network_upgrade-premium-skip-license', $slug ), $fs->get_module_label( true ) );
+                            $message .= ' ' . sprintf( fs_text_inline( 'Alternatively, you can skip it for now and activate the license later, in your %s\'s network-level Account page.', 'connect_message_network_upgrade-premium-skip-license', $slug ), $fs->get_module_label( true ) );
                         }else {
                             $message = $network_integration_text . ' ' . sprintf( fs_text_inline( 'During the update process we detected %s site(s) in the network that are still pending your attention.', 'connect_message_network_upgrade-free', $slug ), count( $sites ) ) . '<br><br>' . ( fs_starts_with( $message, $hey_x_text . '<br>' ) ? substr( $message, strlen( $hey_x_text . '<br>' ) ) : $message );
                         }
