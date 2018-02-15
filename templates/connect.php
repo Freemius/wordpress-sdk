@@ -512,7 +512,7 @@
                 $skipActivationButton.click(function(){
                     $delegateToSiteAdminsButton.hide();
 
-                    $skipActivationButton.text('<?php fs_esc_js_echo_inline( 'Skipping, please wait', 'skipping-wait', $slug ) ?>...');
+                    $skipActivationButton.html('<?php fs_esc_js_echo_inline( 'Skipping, please wait', 'skipping-wait', $slug ) ?>...');
 
                     pauseCtaLabelUpdate = true;
 
@@ -527,7 +527,7 @@
                 });
 
                 $delegateToSiteAdminsButton.click(function(){
-                    $delegateToSiteAdminsButton.text('<?php fs_esc_js_echo_inline( 'Delegating, please wait', 'delegating-wait', $slug ) ?>...');
+                    $delegateToSiteAdminsButton.html('<?php fs_esc_js_echo_inline( 'Delegating, please wait', 'delegating-wait', $slug ) ?>...');
 
                     pauseCtaLabelUpdate = true;
 
@@ -564,7 +564,7 @@
 					break;
 			}
 
-			$primaryCta.text( text );
+			$primaryCta.html( text );
 		}
 
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
