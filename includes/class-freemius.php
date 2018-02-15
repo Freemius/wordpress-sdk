@@ -718,16 +718,16 @@
             $installs = self::get_all_sites( $module_type, $blog_id );
             $install  = isset( $installs[ $module_slug ] ) ? $installs[ $module_slug ] : null;
 
-                if ( ! is_object( $install ) ) {
-                    return;
+            if ( ! is_object( $install ) ) {
+                return;
+            }
+
+            if ( isset( $install->plan ) && is_object( $install->plan ) ) {
+                if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
+                    $install->plan_id = self::_decrypt( $install->plan->id );
                 }
 
-                if ( isset( $install->plan ) && is_object( $install->plan ) ) {
-                    if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
-                        $install->plan_id = self::_decrypt( $install->plan->id );
-                    }
-
-                    unset( $install->plan );
+                unset( $install->plan );
 
                 $installs[ $module_slug ] = clone $install;
 
@@ -783,28 +783,28 @@
 
             foreach ( $plugin_licenses as $user_id => $user_licenses ) {
                 if ( is_array( $user_licenses ) ) {
-                if ( ! isset( $user_license_ids[ $user_id ] ) ) {
-                    $user_id_license_ids_map[ $user_id ] = array();
-                }
+                    if ( ! isset( $user_license_ids[ $user_id ] ) ) {
+                        $user_id_license_ids_map[ $user_id ] = array();
+                    }
 
-                foreach ( $user_licenses as $user_license ) {
-                    $all_licenses[]                        = $user_license;
-                    $user_id_license_ids_map[ $user_id ][] = $user_license->id;
+                    foreach ( $user_licenses as $user_license ) {
+                        $all_licenses[]                        = $user_license;
+                        $user_id_license_ids_map[ $user_id ][] = $user_license->id;
+                    }
                 }
-            }
             }
 
             foreach ( $theme_licenses as $user_id => $user_licenses ) {
                 if ( is_array( $user_licenses ) ) {
-                if ( ! isset( $user_license_ids[ $user_id ] ) ) {
-                    $user_id_license_ids_map[ $user_id ] = array();
-                }
+                    if ( ! isset( $user_license_ids[ $user_id ] ) ) {
+                        $user_id_license_ids_map[ $user_id ] = array();
+                    }
 
-                foreach ( $user_licenses as $user_license ) {
-                    $all_licenses[]                        = $user_license;
-                    $user_id_license_ids_map[ $user_id ][] = $user_license->id;
+                    foreach ( $user_licenses as $user_license ) {
+                        $all_licenses[]                        = $user_license;
+                        $user_id_license_ids_map[ $user_id ][] = $user_license->id;
+                    }
                 }
-            }
             }
 
             self::store_user_id_license_ids_map(
@@ -5649,20 +5649,20 @@
          */
         private function should_add_sticky_optin_notice() {
             if ( fs_is_network_admin() ) {
-            if ( ! $this->_is_network_active ) {
+                if ( ! $this->_is_network_active ) {
                     return false;
-            }
+                }
 
                 if ( ! $this->is_network_activation_mode() ) {
                     return false;
-            }
+                }
 
                 return ! isset( $this->_storage->sticky_optin_added_ms );
             }
 
             if ( ! $this->is_activation_mode() ) {
-            return false;
-        }
+                return false;
+            }
 
             // If running from a blog admin and delegated the connection.
             return ! isset( $this->_storage->sticky_optin_added );
@@ -6448,6 +6448,8 @@
             } else {
                 $this->_storage->store( 'is_anonymous', $skip_info, $network_or_blog_id );
             }
+
+            $this->network_upgrade_mode_completed();
                     
             // Update anonymous mode cache.
             $this->_is_anonymous = $is_anonymous;
@@ -6619,7 +6621,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
-         * @param array|null $sites   Since 2.0.0. Specific sites.
+         * @param array|null $sites            Since 2.0.0. Specific sites.
          * @param bool       $skip_all_network Since 2.0.0. If true, skip connection for all sites.
          */
         private function skip_connection( $sites = null, $skip_all_network = false ) {
@@ -6634,30 +6636,30 @@
             if ( ! $skip_all_network && empty( $sites ) ) {
                 $this->skip_site_connection();
             } else {
-            $uids = array();
+                $uids = array();
 
                 if ( $skip_all_network ) {
                     $this->set_anonymous_mode( true, true );
 
-                $sites = self::get_sites();
-                foreach ( $sites as $site ) {
+                    $sites = self::get_sites();
+                    foreach ( $sites as $site ) {
                         $blog_id = self::get_site_blog_id( $site );
                         $this->skip_site_connection( $blog_id, false );
                         $uids[] = $this->get_anonymous_id( $blog_id );
-                }
-            } else if ( ! empty( $sites ) ) {
-                foreach ( $sites as $site ) {
-                    $uids[] = $site['uid'];
+                    }
+                } else if ( ! empty( $sites ) ) {
+                    foreach ( $sites as $site ) {
+                        $uids[] = $site['uid'];
                         $this->skip_site_connection( $site['blog_id'], false );
+                    }
                 }
-            }
 
-            // Send anonymous skip event.
-            // No user identified info nor any tracking will be sent after the user skips the opt-in.
-            $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                'uids' => $uids,
-            ) );
-        }
+                // Send anonymous skip event.
+                // No user identified info nor any tracking will be sent after the user skips the opt-in.
+                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
+                    'uids' => $uids,
+                ) );
+            }
 
             $this->network_upgrade_mode_completed();
         }
@@ -6679,10 +6681,10 @@
             $this->set_anonymous_mode( true, $blog_id );
 
             if ( $send_skip ) {
-            $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                'uids' => array( $this->get_anonymous_id( $blog_id ) ),
-            ) );
-        }
+                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
+                    'uids' => array( $this->get_anonymous_id( $blog_id ) ),
+                ) );
+            }
         }
 
         /**
@@ -10050,16 +10052,16 @@
 
                     if ( ! empty( $sites_by_action['allow'] ) ) {
                         if ( ! $fs->is_registered() || ! $this->_is_network_active ) {
-                        $next_page = $fs->opt_in(
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            $sites_by_action['allow']
-                        );
+                            $next_page = $fs->opt_in(
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                $sites_by_action['allow']
+                            );
                         } else {
                             $next_page = $fs->install_with_user(
                                 $this->get_network_user(),
@@ -12179,8 +12181,8 @@
                         if ( ! $this->is_site_delegated_connection( $blog_id ) &&
                              ! $this->is_installed_on_site( $blog_id )
                         ) {
-                        $params['sites'][] = $this->get_site_info( $site );
-                    }
+                            $params['sites'][] = $this->get_site_info( $site );
+                        }
                     }
                 }
             } else {
@@ -12598,7 +12600,7 @@
 
                 // Don't sync the installs data on network upgrade
                 if ( ! $this->network_upgrade_mode_completed() ) {
-                $this->send_installs_update();
+                    $this->send_installs_update();
                 }
 
                 // Switch install context back to the first install.
@@ -12676,8 +12678,8 @@
             // Store activation time ONLY for plugins & themes (not add-ons).
             if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
                 if ( empty( $this->_storage->activation_timestamp ) ) {
-                $this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
-            }
+                    $this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
+                }
             }
 
             $next_page = '';
