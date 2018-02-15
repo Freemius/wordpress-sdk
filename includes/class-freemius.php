@@ -876,10 +876,9 @@
          *  - Moves some data to the network level storage.
          *  - If the plugin's connection was skipped for all sites, set the plugin as if it was network skipped.
          *  - If the plugin's connection was ignored for all sites, don't do anything in terms of the network connection.
-         *  - If all plugin's opt-ins were by the same super-admin, set the plugin as if was network opted-in.
-         *  - If the plugin was connected for all sites by the same super-admin, set the plugin as if was network opted-in for all sites.
-         *  - If there's at least one site that was connected by a super-admin, find the "main super-admin" (the one that installed the majority of the plugin installs) and set the plugin as if was network activated with the main super-admin, set all the sites that were skipped or opted-in with a different user to delegated mode.
-         *  - If any user opted-in or skipped with the plugin in any of the network sites, and also have sites which the connection decision was not yet taken, set this plugin into network activation mode so the super-admin can choose what to do with the rest of the sites.
+         *  - If the plugin was connected to all sites by the same super-admin, set the plugin as if was network opted-in for all sites.
+         *  - If there's at least one site that was connected by a super-admin, find the "main super-admin" (the one that installed the majority of the plugin installs) and set the plugin as if was network activated with the main super-admin, set all the sites that were skipped or opted-in with a different user to delegated mode. Then, prompt the currently logged super-admin to choose what to do with the ignored sites.
+         *  - If there are any sites in the network which the connection decision was not yet taken for, set this plugin into network activation mode so a super-admin can choose what to do with the rest of the sites.
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
