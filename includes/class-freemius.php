@@ -13384,7 +13384,7 @@
 		function _add_license_action_link() {
 			$this->_logger->entrance();
 
-			if ( $this->is_free_plan() && $this->is_addon() ) {
+			if ( $this->is_free_plan() && !$this->is_only_premium() && $this->is_addon() ) {
 				return;
 			}
 
