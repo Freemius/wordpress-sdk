@@ -7610,6 +7610,10 @@
 		function pricing_url( $billing_cycle = WP_FS__PERIOD_ANNUALLY, $is_trial = false ) {
 			$this->_logger->entrance();
 
+			if($this->is_addon() && $this->is_only_premium()) {
+				return $this->_parent->addon_url($this->_slug);
+			}
+
 			$params = array(
 				'billing_cycle' => $billing_cycle
 			);
