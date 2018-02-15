@@ -782,6 +782,7 @@
             $user_id_license_ids_map = array();
 
             foreach ( $plugin_licenses as $user_id => $user_licenses ) {
+                if ( is_array( $user_licenses ) ) {
                 if ( ! isset( $user_license_ids[ $user_id ] ) ) {
                     $user_id_license_ids_map[ $user_id ] = array();
                 }
@@ -791,8 +792,10 @@
                     $user_id_license_ids_map[ $user_id ][] = $user_license->id;
                 }
             }
+            }
 
             foreach ( $theme_licenses as $user_id => $user_licenses ) {
+                if ( is_array( $user_licenses ) ) {
                 if ( ! isset( $user_license_ids[ $user_id ] ) ) {
                     $user_id_license_ids_map[ $user_id ] = array();
                 }
@@ -801,6 +804,7 @@
                     $all_licenses[]                        = $user_license;
                     $user_id_license_ids_map[ $user_id ][] = $user_license->id;
                 }
+            }
             }
 
             self::store_user_id_license_ids_map(
