@@ -14,6 +14,8 @@
      * Class FS_Storage
      *
      * A wrapper class for handling network level and single site level storage.
+     *
+     * @property bool $is_network_activation
      */
     class FS_Storage {
         /**
@@ -35,6 +37,11 @@
          * @var string
          */
         private $_module_type;
+
+        /**
+         * @var string
+         */
+        private $_module_slug;
 
         /**
          * @var int The ID of the blog that is associated with the current site level options.
@@ -88,6 +95,7 @@
          */
         private function __construct( $module_type, $slug ) {
             $this->_module_type  = $module_type;
+            $this->_module_slug  = $slug;
             $this->_is_multisite = is_multisite();
 
             if ( $this->_is_multisite ) {
@@ -230,6 +238,26 @@
         }
 
         /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+        function get_module_slug() {
+            return $this->_module_slug;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+        function get_module_type() {
+            return $this->_module_type;
+        }
+
+        /**
          * Migration script to the new storage data structure that is network compatible.
          *
          * IMPORTANT:
@@ -331,6 +359,12 @@
                 'plugin_upgrade_mode'        => 0,
                 'plugin_downgrade_mode'      => 0,
                 'is_network_connected'       => 0,
+                /**
+                 * Special flag that is used when a super-admin upgrades to the new version of the SDK that
+                 * supports network level integration, when the connection decision wasn't made for all of the
+                 * sites in the network.
+                 */
+                'is_network_activation'      => 0,
 
                 // When network activated, then network level.
                 'install_timestamp'          => 1,

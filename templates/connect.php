@@ -100,6 +100,14 @@
 		! $require_license_key &&
 		! $is_network_level_activation
 	);
+
+    $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation );
+    $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array();
+
+    $is_network_upgrade_mode = ( fs_is_network_admin() && $fs->is_network_upgrade_mode() );
+
+    /* translators: %s: name (e.g. Hey John,) */
+    $hey_x_text = esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) );
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -134,12 +142,13 @@
 			<?php endif ?>
 			<p><?php
 					$button_label = fs_text_inline( 'Allow & Continue', 'opt-in-connect', $slug );
+					$message = '';
 
 					if ( $is_pending_activation ) {
 						$button_label = fs_text_inline( 'Re-send activation email', 'resend-activation-email', $slug );
 
-						echo $fs->apply_filters( 'pending_activation_message', sprintf(
-						/* translators: %s: name (e.g. Thanks John!) */
+						$message = $fs->apply_filters( 'pending_activation_message', sprintf(
+						    /* translators: %s: name (e.g. Thanks John!) */
 							fs_text_inline( 'Thanks %s!', 'thanks-x', $slug ) . '<br>' .
 							fs_text_inline( 'You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s.', 'pending-activation-message', $slug ),
 							$first_name,
@@ -148,11 +157,17 @@
 							fs_text_inline( 'complete the install', 'complete-the-install', $slug )
 						) );
 					} else if ( $require_license_key ) {
-						$button_label = fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
+						$button_label = $is_network_upgrade_mode ?
+                            fs_text_inline( 'Activate License', 'agree-activate-license', $slug ) :
+                            fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
 
-						echo $fs->apply_filters( 'connect-message_on-premium',
-							/* translators: %s: name (e.g. Hey John,) */
-							sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', $slug ), $first_name ) . '<br>' .
+						$message = $fs->apply_filters(
+						    'connect-message_on-premium',
+                            ($is_network_upgrade_mode ?
+                                '' :
+                                /* translators: %s: name (e.g. Hey John,) */
+                                $hey_x_text . '<br>'
+                            ) .
 							sprintf( fs_text_inline( 'Thanks for purchasing %s! To get started, please enter your license key:', 'thanks-for-purchasing', $slug ), '<b>' . $fs->get_plugin_name() . '</b>' ),
 							$first_name,
 							$fs->get_plugin_name()
@@ -174,8 +189,13 @@
 							}
 						}
 
-						echo $fs->apply_filters( $filter,
-							esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) ) . '<br>' .
+						$message = $fs->apply_filters(
+						    $filter,
+                            ($is_network_upgrade_mode ?
+                                '' :
+                                /* translators: %s: name (e.g. Hey John,) */
+                                $hey_x_text . '<br>'
+                            ) .
 							sprintf(
 								esc_html( $default_optin_message ),
 								'<b>' . esc_html( $fs->get_plugin_name() ) . '</b>',
@@ -190,6 +210,27 @@
 							$freemius_link
 						);
 					}
+
+					if ( $is_network_upgrade_mode ) {
+                        $network_integration_text = esc_html( fs_text_inline( 'We\'re excited to introduce a network level integration.', 'connect_message_network_upgrade', $slug ) );
+
+                        if ($is_premium_code){
+                            $message = $network_integration_text . ' ' . sprintf( fs_text_inline( 'As part of the update process we found %d site(s) that are still pending license activation.', 'connect_message_network_upgrade-premium', $slug ), count( $sites ) );
+
+                            $message .= '<br><br>' . sprintf( fs_text_inline( 'If you\'d like to use the %s on those sites, please enter your license key below and click the activation button.', 'connect_message_network_upgrade-premium-activate-license', $slug ), $is_premium_only ? $fs->get_module_label( true ) : sprintf(
+                                /* translators: %s: module type (plugin, theme, or add-on) */
+                                    fs_text_inline( "%s's paid features", 'x-paid-features', $slug ),
+                                    $fs->get_module_label( true )
+                                ) );
+
+                            /* translators: %s: module type (plugin, theme, or add-on) */
+                            $message .= ' ' . sprintf( fs_text_inline( 'Alternatively, you can skip it for now and activate the license later in your %s\'s network level Account page.', 'connect_message_network_upgrade-premium-skip-license', $slug ), $fs->get_module_label( true ) );
+                        }else {
+                            $message = $network_integration_text . ' ' . sprintf( fs_text_inline( 'As part of the update process we found %s site(s) in the network that are still pending your attention.', 'connect_message_network_upgrade-free', $slug ), count( $sites ) ) . '<br><br>' . ( fs_starts_with( $message, $hey_x_text . '<br>' ) ? substr( $message, strlen( $hey_x_text . '<br>' ) ) : $message );
+                        }
+                    }
+
+					echo $message;
 				?></p>
 			<?php if ( $require_license_key ) : ?>
 				<div class="fs-license-key-container">
@@ -200,8 +241,6 @@
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key', $slug ); ?></a>
 				</div>
 			<?php endif ?>
-			<?php $optin_params = $fs->get_opt_in_params( array(), $is_network_level_activation ) ?>
-			<?php $sites        = isset( $optin_params['sites'] ) ? $optin_params['sites'] : array() ?>
 			<?php if ( $is_network_level_activation ) : ?>
             <?php
                 $vars = array(
@@ -215,7 +254,7 @@
 			<?php endif ?>
 		</div>
 		<div class="fs-actions">
-			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ! $require_license_key ) : ?>
+			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ( ! $require_license_key || $is_network_upgrade_mode ) ) : ?>
 				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ), $is_network_level_activation ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
 			<?php endif ?>
@@ -380,8 +419,10 @@
 		    isNetworkActive      = <?php echo $is_network_level_activation ? 'true' : 'false' ?>,
 		    requireLicenseKey    = <?php echo $require_license_key ? 'true' : 'false' ?>,
 		    hasContextUser       = <?php echo $activate_with_current_user ? 'true' : 'false' ?>,
+		    isNetworkUpgradeMode = <?php echo $is_network_upgrade_mode ? 'true' : 'false' ?>,
 		    $licenseSecret,
-		    $licenseKeyInput     = $('#fs_license_key');
+		    $licenseKeyInput     = $('#fs_license_key'),
+            pauseCtaLabelUpdate  = false;
 
 		$('.fs-actions .button').on('click', function () {
 			// Set loading mode.
@@ -416,9 +457,7 @@
 					updatePrimaryCtaText( 'allow' );
 				}
 
-				if ( 0 !== $skipActivationButton.length ) {
-					$skipActivationButton.toggle();
-				}
+                $skipActivationButton.toggle();
 
 				$delegateToSiteAdminsButton.toggle();
 
@@ -468,23 +507,60 @@
 					updatePrimaryCtaText( 'mixed' );
 				}
 			});
+
+            if (isNetworkUpgradeMode) {
+                $skipActivationButton.click(function(){
+                    $delegateToSiteAdminsButton.hide();
+
+                    $skipActivationButton.text('<?php fs_esc_js_echo_inline( 'Skipping, please wait', 'skipping-wait', $slug ) ?>...');
+
+                    pauseCtaLabelUpdate = true;
+
+                    // Check all sites to be skipped.
+                    $allSitesOptions.find('.action.action-skip').click();
+
+                    $form.submit();
+
+                    pauseCtaLabelUpdate = false;
+
+                    return false;
+                });
+
+                $delegateToSiteAdminsButton.click(function(){
+                    $delegateToSiteAdminsButton.text('<?php fs_esc_js_echo_inline( 'Delegating, please wait', 'delegating-wait', $slug ) ?>...');
+
+                    pauseCtaLabelUpdate = true;
+
+                    // Check all sites to be skipped.
+                    $allSitesOptions.find('.action.action-delegate').click();
+
+                    $form.submit();
+
+                    pauseCtaLabelUpdate = false;
+
+                    return false;
+                });
+            }
 		}
 
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 */
 		function updatePrimaryCtaText( actionType ) {
-			var text = '<?php fs_echo( 'Continue', 'continue', $slug ) ?>';
+            if (pauseCtaLabelUpdate)
+                return;
+
+			var text = '<?php fs_esc_js_echo_inline( 'Continue', 'continue', $slug ) ?>';
 
 			switch ( actionType ) {
 				case 'allow':
-					text = '<?php fs_echo( 'Allow & Continue', 'opt-in-connect', $slug ) ?>';
+					text = '<?php fs_esc_js_echo_inline( 'Allow & Continue', 'opt-in-connect', $slug ) ?>';
 					break;
 				case 'delegate':
-					text = '<?php fs_echo( 'Delegate to Site Admins & Continue', 'delegate-to-site-admins-and-continue', $slug ) ?>';
+					text = '<?php fs_esc_js_echo_inline( 'Delegate to Site Admins & Continue', 'delegate-to-site-admins-and-continue', $slug ) ?>';
 					break;
 				case 'skip':
-					text = '<?php fs_echo( 'Skip', 'verb', 'skip', $slug ) ?>';
+					text = '<?php fs_esc_js_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?>';
 					break;
 			}
 
@@ -499,7 +575,7 @@
 			 * @since 1.1.9
 			 */
 			if ( ajaxOptin ) {
-				if (!hasContextUser) {
+				if (!hasContextUser || isNetworkUpgradeMode) {
 					<?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
 
 					$('.fs-error').remove();
@@ -533,10 +609,9 @@
 								blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
 							};
 
-							if ( ! requireLicenseKey)
-								site.action = ( applyOnAllSites ?
-									'allow' :
-									$this.find( '.action.selected' ).data( 'action-type' ) );
+							if ( ! requireLicenseKey) {
+                                site.action = $this.find('.action.selected').data('action-type');
+                            }
 
 							sites.push( site );
 						});

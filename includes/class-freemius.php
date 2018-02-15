@@ -480,7 +480,7 @@
              *
              * @author Leo Fajardo (@leorw)
              */
-            $this->migrate_site_plan_to_plan_id();
+            self::migrate_install_plan_to_plan_id( $this->_storage );
 
             $this->_load_account();
 
@@ -696,11 +696,27 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
+         *
+         * @param \FS_Storage   $storage
+         * @param bool|int|null $blog_id
          */
-        private function migrate_site_plan_to_plan_id() {
-            if ( ! empty( $this->_storage->sdk_version ) && version_compare( $this->_storage->sdk_version, '2.0.0', '<' ) ) {
-                $installs = self::get_all_sites( $this->_module_type );
-                $install  = isset( $installs[ $this->_slug ] ) ? $installs[ $this->_slug ] : null;
+        private static function migrate_install_plan_to_plan_id( FS_Storage $storage, $blog_id = null ) {
+            if ( empty( $storage->sdk_version ) ) {
+                // New installation of the plugin, no need to upgrade.
+                return;
+            }
+
+            if ( ! version_compare( $storage->sdk_version, '2.0.0', '<' ) ) {
+                // Previous version is >= 2.0.0, so no need to migrate.
+                return;
+            }
+
+            // Alias.
+            $module_type = $storage->get_module_type();
+            $module_slug = $storage->get_module_slug();
+
+            $installs = self::get_all_sites( $module_type, $blog_id );
+            $install  = isset( $installs[ $module_slug ] ) ? $installs[ $module_slug ] : null;
 
                 if ( ! is_object( $install ) ) {
                     return;
@@ -713,9 +729,15 @@
 
                     unset( $install->plan );
 
-                    $installs[ $this->_slug ] = clone $install;
-                    $this->set_account_option( 'sites', $installs, true );
-                }
+                $installs[ $module_slug ] = clone $install;
+
+                self::set_account_option_by_module(
+                    $module_type,
+                    'sites',
+                    $installs,
+                    true,
+                    $blog_id
+                );
             }
         }
 
@@ -843,6 +865,263 @@
                 $this->_cache->expire( 'tabs' );
                 $this->_cache->expire( 'tabs_stylesheets' );
             }
+        }
+
+        /**
+         * A special migration logic for the $_accounts, executed for all the plugins in the system:
+         *  - Moves some data to the network level storage.
+         *  - If the plugin's connection was skipped for all sites, set the plugin as if it was network skipped.
+         *  - If the plugin's connection was ignored for all sites, don't do anything in terms of the network connection.
+         *  - If all plugin's opt-ins were by the same super-admin, set the plugin as if was network opted-in.
+         *  - If the plugin was connected for all sites by the same super-admin, set the plugin as if was network opted-in for all sites.
+         *  - If there's at least one site that was connected by a super-admin, find the "main super-admin" (the one that installed the majority of the plugin installs) and set the plugin as if was network activated with the main super-admin, set all the sites that were skipped or opted-in with a different user to delegated mode.
+         *  - If any user opted-in or skipped with the plugin in any of the network sites, and also have sites which the connection decision was not yet taken, set this plugin into network activation mode so the super-admin can choose what to do with the rest of the sites.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        private static function migrate_accounts_to_network() {
+            $sites             = self::get_sites();
+            $sites_count       = count( $sites );
+            $connection_status = array();
+            $plugin_slugs      = array();
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+
+                self::$_accounts->migrate_to_network( $blog_id );
+
+                /**
+                 * Build a list of all Freemius powered plugins slugs.
+                 */
+                $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array(), $blog_id );
+                foreach ( $id_slug_type_path_map as $module_id => $data ) {
+                    if ( WP_FS__MODULE_TYPE_PLUGIN === $data['type'] ) {
+                        $plugin_slugs[ $data['slug'] ] = true;
+                    }
+                }
+
+                $installs = self::get_account_option( 'sites', WP_FS__MODULE_TYPE_PLUGIN, $blog_id );
+
+                if ( is_array( $installs ) ) {
+                    foreach ( $installs as $slug => $install ) {
+                        if ( ! isset( $connection_status[ $slug ] ) ) {
+                            $connection_status[ $slug ] = array();
+                        }
+
+                        if ( is_object( $install ) &&
+                             FS_Site::is_valid_id( $install->id ) &&
+                             FS_User::is_valid_id( $install->user_id )
+                        ) {
+                            $connection_status[ $slug ][ $blog_id ] = $install->user_id;
+                        }
+                    }
+                }
+            }
+
+            foreach ( $plugin_slugs as $slug => $true ) {
+                if ( ! isset( $connection_status[ $slug ] ) ) {
+                    $connection_status[ $slug ] = array();
+                }
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    if ( isset( $connection_status[ $slug ][ $blog_id ] ) ) {
+                        continue;
+                    }
+
+                    $storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+
+                    $is_anonymous = $storage->get( 'is_anonymous', null, $blog_id );
+
+                    if ( ! is_null( $is_anonymous ) ) {
+                        // Since 1.1.3 is_anonymous is an array.
+                        if ( is_array( $is_anonymous ) && isset( $is_anonymous['is'] ) ) {
+                            $is_anonymous = $is_anonymous['is'];
+                        }
+
+                        if ( is_bool( $is_anonymous ) && true === $is_anonymous ) {
+                            $connection_status[ $slug ][ $blog_id ] = 'skipped';
+                        }
+                    }
+
+                    if ( ! isset( $connection_status[ $slug ][ $blog_id ] ) ) {
+                        $connection_status[ $slug ][ $blog_id ] = 'ignored';
+                    }
+                }
+            }
+
+            $super_admins = array();
+
+            foreach ( $connection_status as $slug => $blogs_status ) {
+                $skips                 = 0;
+                $ignores               = 0;
+                $connections           = 0;
+                $opted_in_users        = array();
+                $opted_in_super_admins = array();
+
+                $storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+
+                foreach ( $blogs_status as $blog_id => $status_or_user_id ) {
+                    if ( 'skipped' === $status_or_user_id ) {
+                        $skips ++;
+                    } else if ( 'ignored' === $status_or_user_id ) {
+                        $ignores ++;
+                    } else if ( FS_User::is_valid_id( $status_or_user_id ) ) {
+                        $connections ++;
+
+                        if ( ! isset( $opted_in_users[ $status_or_user_id ] ) ) {
+                            $opted_in_users[ $status_or_user_id ] = array();
+                        }
+
+                        $opted_in_users[ $status_or_user_id ][] = $blog_id;
+
+                        if ( isset( $super_admins[ $status_or_user_id ] ) ||
+                             self::is_super_admin( $status_or_user_id )
+                        ) {
+                            // Cache super-admin data.
+                            $super_admins[ $status_or_user_id ] = true;
+
+                            // Remember opted-in super-admins for the plugin.
+                            $opted_in_super_admins[ $status_or_user_id ] = true;
+                        }
+                    }
+                }
+
+                $main_super_admin_user_id = null;
+                $all_migrated             = false;
+                if ( $sites_count == $skips ) {
+                    // All sites were skipped -> network skip by copying the anonymous mode from any of the sites.
+                    $storage->is_anonymous_ms = $storage->is_anonymous;
+
+                    $all_migrated = true;
+                } else if ( $sites_count == $ignores ) {
+                    // Don't do anything, still in activation mode.
+
+                    $all_migrated = true;
+                } else if ( 0 < count( $opted_in_super_admins ) ) {
+                    // Find the super-admin with the majority of installs.
+                    $max_installs_by_super_admin = 0;
+                    foreach ( $opted_in_super_admins as $user_id => $true ) {
+                        $installs_count = count( $opted_in_users[ $user_id ] );
+
+                        if ( $installs_count > $max_installs_by_super_admin ) {
+                            $max_installs_by_super_admin = $installs_count;
+                            $main_super_admin_user_id    = $user_id;
+                        }
+                    }
+
+                    if ( $sites_count == $connections && 1 == count( $opted_in_super_admins ) ) {
+                        // Super-admin opted-in for all sites in the network.
+                        $storage->is_network_connected = true;
+
+                        $all_migrated = true;
+                    }
+
+                    // Store network user.
+                    $storage->network_user_id = $main_super_admin_user_id;
+
+                    $storage->network_install_blog_id = ( $sites_count == $connections ) ?
+                        // Since all sites are opted-in, associating with the main site.
+                        get_current_blog_id() :
+                        // Associating with the 1st found opted-in site.
+                        $opted_in_users[ $main_super_admin_user_id ][0];
+
+                    /**
+                     * Make sure we migrate the plan ID of the network install, otherwise, if after the migration
+                     * the 1st page that will be loaded is the network level WP Admin and $storage->network_install_blog_id
+                     * is different than the main site of the network, the $this->_site will not be set since the plan_id
+                     * will be empty.
+                     */
+                    $storage->migrate_to_network();
+                    self::migrate_install_plan_to_plan_id( $storage, $storage->network_install_blog_id );
+                } else {
+                    // At least one opt-in. All the opt-in were created by a non-super-admin.
+                    if ( 0 == $ignores ) {
+                        // All sites were opted-in or skipped, all by non-super-admin. So delegate all.
+                        $storage->store( 'is_delegated_connection', true, true );
+
+                        $all_migrated = true;
+                    }
+                }
+
+                if ( ! $all_migrated ) {
+                    /**
+                     * Delegate all sites that were:
+                     *  1) Opted-in by a user that is NOT the main-super-admin.
+                     *  2) Skipped and non of the sites was opted-in by a super-admin. If any site was opted-in by a super-admin, there will be a main-super-admin, and we consider the skip as if it was done by that user.
+                     */
+                    foreach ( $blogs_status as $blog_id => $status_or_user_id ) {
+                        if ( $status_or_user_id == $main_super_admin_user_id ) {
+                            continue;
+                        }
+
+                        if ( FS_User::is_valid_id( $status_or_user_id ) ||
+                             ( 'skipped' === $status_or_user_id && is_null( $main_super_admin_user_id ) )
+                        ) {
+                            $storage->store( 'is_delegated_connection', true, $blog_id );
+                        }
+                    }
+                }
+
+
+                if ( ( $connections + $skips > 0 ) ) {
+                    if ( $ignores > 0 ) {
+                        /**
+                         * If admin already opted-in or skipped in any of the network sites, and also
+                         * have sites which the connection decision was not yet taken, set this plugin
+                         * into network activation mode so the super-admin can choose what to do with
+                         * the rest of the sites.
+                         */
+                        self::set_network_upgrade_mode( $storage );
+                    }
+                }
+            }
+        }
+
+        /**
+         * Set a module into network upgrade mode.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param \FS_Storage $storage
+         *
+         * @return bool
+         */
+        private static function set_network_upgrade_mode( FS_Storage $storage ) {
+            return $storage->is_network_activation = true;
+        }
+
+        /**
+         * Will return true after upgrading to the SDK with the network level integration,
+         * when the super-admin involvement is required regarding the rest of the sites.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return bool
+         */
+        function is_network_upgrade_mode() {
+            return $this->_storage->get( 'is_network_activation' );
+        }
+
+        /**
+         * Clear flag after the upgrade mode completion.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return bool True if network activation was on and now completed.
+         */
+        private function network_upgrade_mode_completed() {
+            if ( fs_is_network_admin() && $this->is_network_upgrade_mode() ) {
+                $this->_storage->remove( 'is_network_activation' );
+
+                return true;
+            }
+
+            return false;
         }
 
         #endregion
@@ -1977,6 +2256,11 @@
                 return false;
             }
 
+            if ( $this->is_network_upgrade_mode() ) {
+                // Special flag to enforce network activation mode to decide what to do with the sites that are not yet opted-in nor skipped.
+                return true;
+            }
+
             if ( ! $this->is_site_activation_mode( $and_on ) ) {
                 // Whether the context is single site or the network, if the plugin is no longer in activation mode then it is not in network activation mode as well.
                 return false;
@@ -2299,7 +2583,7 @@
                 if ( null === self::$_accounts->get_option( 'id_slug_type_path_map', null, true ) &&
                      null !== self::$_accounts->get_option( 'id_slug_type_path_map', null, false )
                 ) {
-                    self::$_accounts->migrate_to_network();
+                    self::migrate_accounts_to_network();
 
                     // Migrate API options from site level to network level.
                     $api_network_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true, true );
@@ -2312,7 +2596,10 @@
 
             self::$_global_admin_notices = FS_Admin_Notices::instance( 'global' );
 
-            add_action( ( fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu', array( 'Freemius', '_add_debug_section' ) );
+            add_action( ( fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu', array(
+                'Freemius',
+                '_add_debug_section'
+            ) );
 
             add_action( "wp_ajax_fs_toggle_debug_mode", array( 'Freemius', '_toggle_debug_mode' ) );
 
@@ -5254,7 +5541,9 @@
                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
             }
 
-            if ( $this->is_network_activation_mode() && fs_request_is_action( $this->get_unique_affix() . '_delegate_activation' ) ) {
+            if ( $this->is_network_activation_mode() &&
+                 fs_request_is_action( $this->get_unique_affix() . '_delegate_activation' )
+            ) {
                 check_admin_referer( $this->get_unique_affix() . '_delegate_activation' );
 
                 $this->delegate_connection();
@@ -5262,7 +5551,14 @@
                 fs_redirect( $this->get_after_activation_url( 'after_delegation_url' ) );
             }
 
-            if ( ! $this->is_addon() && ! $this->is_registered() && ! $this->is_anonymous() ) {
+            if ( ! $this->is_addon() &&
+                 (
+                     // Not registered nor anonymous.
+                     ( ! $this->is_registered() && ! $this->is_anonymous() ) ||
+                     // OR, network level and in network upgrade mode.
+                     ( fs_is_network_admin() && $this->_is_network_active && $this->is_network_upgrade_mode() )
+                 )
+            ) {
                 if ( ! $this->is_pending_activation() ) {
                     if ( ! $this->_menu->is_main_settings_page() ) {
                         /**
@@ -6310,34 +6606,40 @@
         /**
          * Skip account connect, and set anonymous mode.
          *
-         * @todo   If `sites` is an array, handle bulk skipping.
-         *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
          * @param array|null $sites   Since 2.0.0. Specific sites.
-         * @param bool       $network Since 2.0.0. If true, skip connection for all sites.
+         * @param bool       $skip_all_network Since 2.0.0. If true, skip connection for all sites.
          */
-        private function skip_connection( $sites = null, $network = false ) {
+        private function skip_connection( $sites = null, $skip_all_network = false ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
-            $this->set_anonymous_mode( true, $network );
+            if ( $skip_all_network ) {
+                $this->set_anonymous_mode( true, true );
+            }
 
+            if ( ! $skip_all_network && empty( $sites ) ) {
+                $this->skip_site_connection();
+            } else {
             $uids = array();
 
-            if ( $network ) {
+                if ( $skip_all_network ) {
+                    $this->set_anonymous_mode( true, true );
+
                 $sites = self::get_sites();
                 foreach ( $sites as $site ) {
-                    $uids[] = $this->get_anonymous_id( self::get_site_blog_id( $site ) );
+                        $blog_id = self::get_site_blog_id( $site );
+                        $this->skip_site_connection( $blog_id, false );
+                        $uids[] = $this->get_anonymous_id( $blog_id );
                 }
             } else if ( ! empty( $sites ) ) {
                 foreach ( $sites as $site ) {
                     $uids[] = $site['uid'];
+                        $this->skip_site_connection( $site['blog_id'], false );
                 }
-            } else {
-                $uids[] = $this->get_anonymous_id();
             }
 
             // Send anonymous skip event.
@@ -6347,24 +6649,30 @@
             ) );
         }
 
+            $this->network_upgrade_mode_completed();
+        }
+
         /**
          * Skip connection for specific site in the network.
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int $blog_id
+         * @param int|null $blog_id
+         * @param bool     $send_skip
          */
-        private function skip_site_connection( $blog_id ) {
+        private function skip_site_connection( $blog_id = null, $send_skip = true ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account', $blog_id );
 
             $this->set_anonymous_mode( true, $blog_id );
 
+            if ( $send_skip ) {
             $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
                 'uids' => array( $this->get_anonymous_id( $blog_id ) ),
             ) );
+        }
         }
 
         /**
@@ -8088,6 +8396,35 @@
             return null;
         }
 
+        /**
+         * Checks if a Freemius user_id is associated with a super-admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $user_id
+         *
+         * @return bool
+         */
+        private static function is_super_admin( $user_id ) {
+            $is_super_admin = false;
+
+            $user = self::_get_user_by_id( $user_id );
+
+            if ( $user instanceof FS_User && ! empty( $user->email ) ) {
+                self::require_pluggable_essentials();
+
+                $wp_user = get_user_by( 'email', $user->email );
+
+                if ( $wp_user instanceof WP_User ) {
+                    $super_admins = get_super_admins();
+                    $is_super_admin = ( is_array( $super_admins ) && in_array( $wp_user->user_login, $super_admins ) );
+                }
+            }
+
+            return $is_super_admin;
+        }
+
         #----------------------------------------------------------------------------------
         #region Plans & Licensing
         #----------------------------------------------------------------------------------
@@ -9616,6 +9953,8 @@
                 }
 
                 if ( empty( $error ) ) {
+                    $this->network_upgrade_mode_completed();
+
                     $fs->_sync_license( true, $has_valid_blog_id );
 
                     $next_page = $fs->is_addon() ?
@@ -9686,7 +10025,9 @@
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
 
                 $next_page = '';
-                if ( $total_sites === $total_sites_to_delegate ) {
+                if ( $total_sites === $total_sites_to_delegate &&
+                    ! $this->is_network_upgrade_mode()
+                ) {
                     $this->delegate_connection();
                 } else {
                     if ( ! empty( $sites_by_action['delegate'] ) ) {
@@ -9698,6 +10039,7 @@
                     }
 
                     if ( ! empty( $sites_by_action['allow'] ) ) {
+                        if ( ! $fs->is_registered() || ! $this->_is_network_active ) {
                         $next_page = $fs->opt_in(
                             false,
                             false,
@@ -9708,8 +10050,18 @@
                             false,
                             $sites_by_action['allow']
                         );
+                        } else {
+                            $next_page = $fs->install_with_user(
+                                $this->get_network_user(),
+                                false,
+                                false,
+                                false,
+                                true,
+                                $sites_by_action['allow']
+                            );
+                        }
 
-                        if ( isset( $next_page->error ) ) {
+                        if ( is_object( $next_page ) && isset( $next_page->error ) ) {
                             $error = $next_page->error;
                         }
                     }
@@ -10672,6 +11024,8 @@
                     $this->delegate_site_connection( $site['blog_id'] );
                 }
             }
+
+            $this->network_upgrade_mode_completed();
         }
 
         /**
@@ -11057,6 +11411,28 @@
             }
 
             return $install;
+        }
+
+        /**
+         * Check if module is installed on a specified site.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int|null $blog_id
+         *
+         * @return bool
+         */
+        function is_installed_on_site( $blog_id = null ) {
+            $installs = self::get_all_sites( $this->_module_type, $blog_id );
+            $install  = isset( $installs[ $this->_slug ] ) ? $installs[ $this->_slug ] : null;
+
+            return (
+                is_object( $install ) &&
+                is_numeric( $install->id ) &&
+                is_numeric( $install->user_id ) &&
+                FS_Plugin_Plan::is_valid_id( $install->plan_id )
+            );
         }
 
         /**
@@ -11789,10 +12165,13 @@
                     $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
+                        $blog_id = self::get_site_blog_id( $site );
+                        if ( ! $this->is_site_delegated_connection( $blog_id ) &&
+                             ! $this->is_installed_on_site( $blog_id )
+                        ) {
                         $params['sites'][] = $this->get_site_info( $site );
                     }
-
-                    restore_current_blog();
+                    }
                 }
             } else {
                 $site = is_numeric( $network_level_or_blog_id ) ?
@@ -12207,7 +12586,10 @@
 
                 self::$_accounts->store();
 
+                // Don't sync the installs data on network upgrade
+                if ( ! $this->network_upgrade_mode_completed() ) {
                 $this->send_installs_update();
+                }
 
                 // Switch install context back to the first install.
                 $this->_site = $first_install;
@@ -12283,7 +12665,9 @@
 
             // Store activation time ONLY for plugins & themes (not add-ons).
             if ( ! is_numeric( $plugin_id ) || ( $plugin_id == $this->_plugin->id ) ) {
+                if ( empty( $this->_storage->activation_timestamp ) ) {
                 $this->_storage->activation_timestamp = WP_FS__SCRIPT_START_TIME;
+            }
             }
 
             $next_page = '';
@@ -12601,7 +12985,7 @@
                  * @author Vova Feldman
                  * @since  1.2.1.6
                  */
-                $this->skip_connection();
+                $this->skip_connection( null, fs_is_network_admin() );
             } else {
                 // Install must be activated via email since
                 // user with the same email already exist.
