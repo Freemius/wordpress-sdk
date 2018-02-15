@@ -148,24 +148,20 @@
                         <nobr><?php fs_esc_html_echo_inline( 'Blog ID', 'blog-id', $slug ) ?>:</nobr>
                     </td>
                     <td><code><?php echo $blog_id ?></code></td>
-                    <?php if ( ! FS_Plugin_License::is_valid_id( $install->license_id ) ) : ?>
-
+                    <td><?php if ( ! FS_Plugin_License::is_valid_id( $install->license_id ) ) : ?>
                         <!-- Toggle Usage Tracking -->
-                        <td>
-                            <?php $action = 'toggle_tracking' ?>
-                            <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-                                <input type="hidden" name="fs_action" value="<?php echo $action ?>">
-                                <?php wp_nonce_field( trim( "{$action}:{$blog_id}:{$install->id}", ':' ) ) ?>
-                                <input type="hidden" name="install_id" value="<?php echo $install->id ?>">
-                                <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
-                                <button class="fs-toggle-tracking button button-small<?php if ( $install->is_disconnected ) {
-                                    echo ' button-primary';
-                                } ?>" data-is-disconnected="<?php echo $install->is_disconnected ? 'true' : 'false' ?>"><?php $install->is_disconnected ? fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) : fs_esc_html_echo_inline( 'Opt Out', 'opt-out', $slug ) ?></button>
-                            </form>
-                        </td>
-                        <!--/ Toggle Usage Tracking -->
-
-                    <?php endif ?>
+                        <?php $action = 'toggle_tracking' ?>
+                        <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
+                            <input type="hidden" name="fs_action" value="<?php echo $action ?>">
+                            <?php wp_nonce_field( trim( "{$action}:{$blog_id}:{$install->id}", ':' ) ) ?>
+                            <input type="hidden" name="install_id" value="<?php echo $install->id ?>">
+                            <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
+                            <button class="fs-toggle-tracking button button-small<?php if ( $install->is_disconnected ) {
+                                echo ' button-primary';
+                            } ?>" data-is-disconnected="<?php echo $install->is_disconnected ? 'true' : 'false' ?>"><?php $install->is_disconnected ? fs_esc_html_echo_inline( 'Opt In', 'opt-in', $slug ) : fs_esc_html_echo_inline( 'Opt Out', 'opt-out', $slug ) ?></button>
+                        </form>
+                    <!--/ Toggle Usage Tracking -->
+                    <?php endif ?></td>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Blog ID -->
@@ -184,7 +180,7 @@
                             <td>
                                 <nobr><?php fs_esc_html_echo_inline( 'Owner Name', 'owner-name', $slug ) ?>:</nobr>
                             </td>
-                            <td><code><?php echo htmlspecialchars( $user->get_name() ) ?></code></td>
+                            <td colspan="2"><code><?php echo htmlspecialchars( $user->get_name() ) ?></code></td>
                         </tr>
                         <?php $row_index ++ ?>
                         <!--/ User Name -->
@@ -196,7 +192,7 @@
                             <td>
                                 <nobr><?php fs_esc_html_echo_inline( 'Owner Email', 'owner-email', $slug ) ?>:</nobr>
                             </td>
-                            <td><code><?php echo htmlspecialchars( $user->email ) ?></code></td>
+                            <td colspan="2"><code><?php echo htmlspecialchars( $user->email ) ?></code></td>
                         </tr>
                         <?php $row_index ++ ?>
                         <!--/ User Email -->
@@ -208,7 +204,7 @@
                             <td>
                                 <nobr><?php fs_esc_html_echo_inline( 'Owner ID', 'owner-id', $slug ) ?>:</nobr>
                             </td>
-                            <td><code><?php echo $user->id ?></code></td>
+                            <td colspan="2"><code><?php echo $user->id ?></code></td>
                         </tr>
                         <?php $row_index ++ ?>
                         <!--/ User ID -->
@@ -222,7 +218,7 @@
                     <td>
                         <nobr><?php fs_esc_html_echo_inline( 'Public Key', 'public-key', $slug ) ?>:</nobr>
                     </td>
-                    <td><code><?php echo htmlspecialchars( $install->public_key ) ?></code></td>
+                    <td colspan="2"><code><?php echo htmlspecialchars( $install->public_key ) ?></code></td>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Public Key -->
@@ -294,7 +290,7 @@
                                         <label class="fs-tag fs-success"><?php echo esc_html( sprintf( $renews_in_text, human_time_diff( time(), strtotime( $subscription->next_payment ) ) ) ) ?></label>
                                     <?php endif ?>
                                 </td>
-                                <?php if ( $is_active_subscription ) : ?>
+                                <td><?php if ( $is_active_subscription ) : ?>
                                 <?php
                                     $downgrade_x_confirm_text          = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
                                     $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s updates and support.', 'after-downgrade-non-blocking', $slug );
@@ -312,7 +308,6 @@
                                         sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) :
                                         sprintf( $after_downgrade_blocking_text, $plan->title );
                                 ?>
-                                <td>
                                     <?php $action = 'downgrade_account' ?>
                                     <form id="fs_downgrade" action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
                                         <input type="hidden" name="fs_action" value="<?php echo $action ?>">
@@ -320,8 +315,7 @@
                                         <input type="hidden" name="blog_id" value="<?php echo $blog_id ?>">
                                         <button class="button button-small" onclick="if (confirm('<?php echo ( $downgrade_confirmation_message . ' ' . $after_downgrade_message ) ?>')) { this.parentNode.submit(); } else { return false; }"><?php echo $downgrade_text ?></button>
                                     </form>
-                                </td>
-                                <?php endif ?>
+                                <?php endif ?></td>
                             </tr>
                             <?php $row_index ++ ?>
                         <?php endif ?>
