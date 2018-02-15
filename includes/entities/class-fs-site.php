@@ -164,7 +164,9 @@
                 // ngrok tunneling.
                 fs_ends_with( $subdomain, '.ngrok.io' ) ||
                 // SiteGround staging.
-                fs_starts_with( $subdomain, 'staging' )
+                fs_starts_with( $subdomain, 'staging' ) ||
+                // WPEngine staging.
+                fs_ends_with( $subdomain, '.staging.wpengine.com' )
             );
         }
 
