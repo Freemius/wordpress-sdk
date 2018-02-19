@@ -772,10 +772,16 @@
 				 * @since  1.1.9
 				 */
 				if ( empty( $this->_storage->was_plugin_loaded ) ) {
-					if ( $this->is_plugin() &&
-					     $this->is_activation_mode( false ) &&
-					     0 == did_action( 'plugins_loaded' )
-					) {
+					/**
+					 * During the plugin activation (not theme), 'plugins_loaded' will be already executed
+					 * when the logic gets here since the activation logic first add the activate plugins,
+					 * then triggers 'plugins_loaded', and only then include the code of the plugin that
+					 * is activated. Which means that _plugins_loaded() will NOT be executed during the
+					 * plugin activation, and that IS intentional.
+					 *
+					 * @author Vova Feldman (@svovaf)
+					 */
+					if ( $this->is_plugin() && $this->is_activation_mode( false ) ) {
 						add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
 					} else {
 						// If was activated before, then it was already loaded before.
