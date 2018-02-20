@@ -16,6 +16,7 @@
      * A wrapper class for handling network level and single site level storage.
      *
      * @property bool $is_network_activation
+     * @property int  $network_install_blog_id
      */
     class FS_Storage {
         /**
