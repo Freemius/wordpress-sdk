@@ -325,6 +325,7 @@
          *      'option1' => 0, // Means that the option should always be stored on the network level.
          *      'option2' => 1, // Means that the option should be stored on the network level only when the module was network level activated.
          *      'option2' => 2, // Means that the option should be stored on the network level only when the module was network level activated AND the connection was NOT delegated.
+         *      'option3' => 3, // Means that the option should always be stored on the site level.
          * )
          *
          * @author Vova Feldman (@svovaf)
@@ -375,9 +376,11 @@
                 'prev_user_id'               => 2,
                 'sticky_optin_added'         => 2,
                 'uninstall_reason'           => 2,
-                'is_anonymous'               => 2,
                 'is_pending_activation'      => 2,
                 'pending_license_key'        => 2,
+
+                // Site level options.
+                'is_anonymous'               => 3,
             );
         }
 
@@ -404,6 +407,11 @@
             if ( 0 === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
                 // Option found and set to always use the network level storage on a multisite.
                 return true;
+            }
+
+            if ( 3 === self::$_NETWORK_OPTIONS_MAP[ $key ] ) {
+                // Option found and set to always use the site level storage on a multisite.
+                return false;
             }
 
             if ( ! $this->_is_network_active ) {
