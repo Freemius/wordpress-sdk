@@ -1195,21 +1195,29 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.0.0
          */
-        function _enrich_ajax_url() {
+        static function _enrich_ajax_url() {
             $admin_param = is_network_admin() ?
                 '_fs_network_admin' :
                 '_fs_blog_admin';
             ?>
-            <script>
-                if ( ajaxurl && ! ( ajaxurl.indexOf( '<?php echo $admin_param ?>' ) > 0 ) ) {
-                    if ( ajaxurl.indexOf( '?' ) > 0 ) {
-                        ajaxurl += '&';
+            <script type="text/javascript">
+                (function($){
+                    $( document ).ajaxSend(function(event, jqxhr, settings) {
+                        if ( settings.url &&
+                            -1 < settings.url.indexOf('admin-ajax.php') &&
+                            ! ( settings.url.indexOf( '<?php echo $admin_param ?>' ) > 0 )
+                        ) {
+                            if ( settings.url.indexOf( '?' ) > 0 ) {
+                                settings.url += '&';
                     } else {
-                        ajaxurl += '?';
+                                settings.url += '?';
                     }
 
-                    ajaxurl += '<?php echo $admin_param ?>=true';
+                            settings.url += '<?php echo $admin_param ?>=true';
+
                 }
+                    });
+                })(jQuery);
             </script>
             <?php
         }
@@ -1242,8 +1250,6 @@
                         $plugin_dir . $this->premium_plugin_basename(),
                         array( &$this, '_activate_plugin_event_hook' )
                     );
-
-                    add_action( 'admin_enqueue_scripts', array( &$this, '_enrich_ajax_url' ) );
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
@@ -2615,6 +2621,8 @@
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
             }
+
+            add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
 
             self::$_statics_loaded = true;
         }
