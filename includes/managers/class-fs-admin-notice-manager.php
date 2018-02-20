@@ -116,7 +116,7 @@
             }
 
             if ( ( $this->_is_network_notices && fs_is_network_admin() ) ||
-                 ( ! $this->_is_network_notices && is_blog_admin() )
+                 ( ! $this->_is_network_notices && fs_is_blog_admin() )
             ) {
                 if ( 0 < count( $this->_sticky_storage ) ) {
                     $ajax_action_suffix = str_replace( ':', '-', $this->_id );
