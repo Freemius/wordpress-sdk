@@ -7698,8 +7698,10 @@
             }
 
             if ( 0 < count( $params ) ) {
+                if ( ! is_multisite() ) {
                 // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
+                }
 
                 $params['uid'] = $this->get_anonymous_id();
 
@@ -7707,8 +7709,10 @@
                 $site = $this->get_api_site_scope()->call( '/', 'put', $params );
 
                 if ( $this->is_api_result_entity( $site ) ) {
+                    if ( ! is_multisite() ) {
                     // I successfully sent install update, clear scheduled sync if exist.
                     $this->clear_install_sync_cron();
+                }
                 }
 
                 return $site;
