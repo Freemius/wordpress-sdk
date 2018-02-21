@@ -4178,9 +4178,18 @@
             $install_id_2_blog_id = array();
             $installs_map         = $this->get_blog_install_map();
 
+            $opt_out_all = true;
+
             $params = array();
             foreach ( $installs_map as $blog_id => $install ) {
                 if ( $install->is_tracking_prohibited() ) {
+                    // Already opted-out.
+                    continue;
+                }
+
+                if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                    // Opt-out only from non-delegated installs.
+                    $opt_out_all = false;
                     continue;
                 }
 
@@ -4211,7 +4220,7 @@
                 $this->_store_site( true, $blog_id, $install );
             }
 
-            $this->clear_sync_cron(true);
+            $this->clear_sync_cron( $opt_out_all );
 
             // Successfully disconnected.
             return true;
