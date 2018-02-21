@@ -223,6 +223,10 @@
                 <th><?php fs_esc_html_echo_inline( 'Freemius State' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Module Path' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
+                <?php if ( is_multisite() ) : ?>
+                    <th><?php fs_esc_html_echo_inline( 'Network Blog' ) ?></th>
+                    <th><?php fs_esc_html_echo_inline( 'Network User' ) ?></th>
+                <?php endif ?>
                 <th><?php fs_esc_html_echo_inline( 'Actions' ) ?></th>
             </tr>
             </thead>
@@ -266,6 +270,14 @@
                         } ?></td>
                     <td><?php echo $data->file ?></td>
                     <td><?php echo $data->public_key ?></td>
+                    <?php if ( is_multisite() ) : ?>
+                        <?php $network_blog_id = $fs->get_network_install_blog_id() ?>
+                        <?php $network_user = $fs->get_network_user() ?>
+                        <td><?php echo is_numeric($network_blog_id) ? $network_blog_id : '' ?></td>
+                        <td><?php if ( is_object( $network_user ) ) {
+                                echo $network_user->email;
+                            } ?></td>
+                    <?php endif ?>
                     <td>
                         <?php if ( $is_active ) : ?>
                             <?php if ( $fs->has_trial_plan() ) : ?>
