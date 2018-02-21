@@ -6615,7 +6615,7 @@
             $this->do_action( 'before_account_delete' );
 
             // Clear all admin notices.
-            $this->_admin_notices->clear_all_sticky();
+            $this->_admin_notices->clear_all_sticky( false );
 
             $this->_delete_site( false );
 
@@ -6632,10 +6632,10 @@
                 $this->_delete_plans( false );
 
                 $this->_delete_licenses( false );
-            }
 
             // Delete add-ons related to plugin's account.
             $this->_delete_account_addons( false );
+            }
 
             // @todo Delete plans and licenses of add-ons.
 
