@@ -220,6 +220,19 @@
 					$plugin_details->new_version = $new_version->version;
 					$plugin_details->url         = WP_FS__ADDRESS;
 					$plugin_details->package     = $new_version->url;
+                    $plugin_details->tested      = $new_version->tested_up_to_version;
+                    $plugin_details->requires    = $new_version->requires_platform_version;
+
+                    $icon = $this->_fs->get_local_icon_url();
+
+                    if ( ! empty( $icon ) ) {
+                        $plugin_details->icons = array(
+                            '1x'      => $icon,
+                            '2x'      => $icon,
+                            'default' => $icon,
+                        );
+                    }
+
 					$plugin_details->{ $this->_fs->get_module_type() } = $this->_fs->get_plugin_basename();
 
 					/**
