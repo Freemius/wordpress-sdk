@@ -5160,9 +5160,450 @@
             return $this->_is_org_compliant;
         }
 
+        #--------------------------------------------------------------------------------
+        #region WP Cron Common
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         *
+         * @return object
+         */
+        private function get_cron_data( $name ) {
+            $this->_logger->entrance( $name );
+
+            /**
+             * @var object $cron_data
+             */
+            return $this->_storage->get( "{$name}_cron", null );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         */
+        private function clear_cron_data( $name ) {
+            $this->_logger->entrance( $name );
+
+            $this->_storage->remove( "{$name}_cron" );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name         Cron name.
+         * @param int    $cron_blog_id The cron executing blog ID.
+         */
+        private function set_cron_data( $name, $cron_blog_id = 0 ) {
+            $this->_logger->entrance( $name );
+
+            $this->_storage->store( "{$name}_cron", (object) array(
+                'version'     => $this->get_plugin_version(),
+                'blog_id'     => $cron_blog_id,
+                'sdk_version' => $this->version,
+                'timestamp'   => WP_FS__SCRIPT_START_TIME,
+                'on'          => true,
+            ) );
+        }
+
+        /**
+         * Get the cron's executing blog ID.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         *
+         * @return int
+         */
+        private function get_cron_blog_id( $name ) {
+            $this->_logger->entrance( $name );
+
+            /**
+             * @var object $cron_data
+             */
+            $cron_data = $this->get_cron_data( $name );
+
+            return ( is_object( $cron_data ) && is_numeric( $cron_data->blog_id ) ) ?
+                $cron_data->blog_id :
+                0;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         *
+         * @return bool
+         */
+        private function is_cron_on( $name ) {
+            $this->_logger->entrance( $name );
+
+            /**
+             * @var object $cron_data
+             */
+            $cron_data = $this->get_cron_data( $name );
+
+            return ( ! is_null( $cron_data ) && true === $cron_data->on );
+        }
+
+        /**
+         * Unix timestamp for previous cron execution or false if never executed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         *
+         * @return int|false
+         */
+        private function cron_last_execution( $name ) {
+            $this->_logger->entrance( $name );
+
+            return $this->_storage->get( "{$name}_timestamp" );
+        }
+
+        /**
+         * Set cron execution time to now.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name Cron name.
+         */
+        private function set_cron_execution_timestamp( $name ) {
+            $this->_logger->entrance( $name );
+
+            $this->_storage->store( "{$name}_timestamp", time() );
+        }
+
+        /**
+         * Check if cron was executed in the last $period of seconds.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name   Cron name.
+         * @param int    $period In seconds
+         *
+         * @return bool
+         */
+        private function is_cron_executed( $name, $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
+            $this->_logger->entrance( $name );
+
+            $last_execution = $this->set_cron_execution_timestamp( $name );
+
+            if ( ! is_numeric( $last_execution ) ) {
+                return false;
+            }
+
+            return ( $last_execution > ( WP_FS__SCRIPT_START_TIME - $period ) );
+        }
+
+        /**
+         * WP Cron is executed on a site level. When running in a multisite network environment
+         * with the network integration activated, for optimization reasons, we are consolidating
+         * the installs data sync cron to be executed only from a single site.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $except_blog_id Target any except the excluded blog ID.
+         *
+         * @return int
+         */
+        private function get_cron_target_blog_id( $except_blog_id = 0 ) {
+            if ( ! is_multisite() ) {
+                return 0;
+            }
+
+            if ( $this->_is_network_active &&
+                 is_numeric( $this->_storage->network_install_blog_id ) &&
+                 $except_blog_id != $this->_storage->network_install_blog_id &&
+                 self::is_site_active( $this->_storage->network_install_blog_id )
+            ) {
+                // Try to run cron from the main network blog.
+                $install = $this->get_install_by_blog_id( $this->_storage->network_install_blog_id );
+
+                if ( is_object( $install ) &&
+                     ( $this->is_premium() || $install->is_tracking_allowed() )
+                ) {
+                    return $this->_storage->network_install_blog_id;
+                }
+            }
+
+            // Get first opted-in blog ID with active tracking.
+            $installs = $this->get_blog_install_map();
+            foreach ( $installs as $blog_id => $install ) {
+                if ( $except_blog_id != $blog_id &&
+                     self::is_site_active( $blog_id ) &&
+                     ( $this->is_premium() || $install->is_tracking_allowed() )
+                ) {
+                    return $blog_id;
+                }
+            }
+
+            return 0;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name             Cron name.
+         * @param string $action_tag       Callback action tag.
+         * @param bool   $is_network_clear If set to TRUE, clear sync cron even if there are installs that are still connected.
+         */
+        private function clear_cron( $name, $action_tag = '', $is_network_clear = false ) {
+            $this->_logger->entrance( $name );
+
+            if ( ! $this->is_cron_on( $name ) ) {
+                return;
+            }
+
+            $clear_cron = true;
+            if ( ! $is_network_clear && $this->_is_network_active ) {
+                $installs = $this->get_blog_install_map();
+
+                foreach ( $installs as $blog_id => $install ) {
+                    /**
+                     * @var FS_Site $install
+                     */
+                    if ( $install->is_tracking_allowed() ) {
+                        $clear_cron = false;
+                        break;
+                    }
+                }
+            }
+
+            if ( ! $clear_cron ) {
+                return;
+            }
+
+            /**
+             * @var object $cron_data
+             */
+            $cron_data = $this->get_cron_data( $name );
+
+            $cron_blog_id = is_object( $cron_data ) && isset( $cron_data->blog_id ) ?
+                $cron_data->blog_id :
+                0;
+
+            $this->clear_cron_data( $name );
+
+            if ( 0 < $cron_blog_id ) {
+                switch_to_blog( $cron_blog_id );
+            }
+
+            if ( empty( $action_tag ) ) {
+                $action_tag = $name;
+            }
+
+            wp_clear_scheduled_hook( $this->get_action_tag( $action_tag ) );
+
+            if ( 0 < $cron_blog_id ) {
+                restore_current_blog();
+            }
+        }
+
+        /**
+         * Unix timestamp for next cron execution or false if not scheduled.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name       Cron name.
+         * @param string $action_tag Callback action tag.
+         *
+         * @return int|false
+         */
+        private function get_next_scheduled_cron( $name, $action_tag = '' ) {
+            $this->_logger->entrance( $name );
+
+            if ( ! $this->is_cron_on( $name ) ) {
+                return false;
+            }
+
+            /**
+             * @var object $cron_data
+             */
+            $cron_data = $this->get_cron_data( $name );
+
+            $cron_blog_id = is_object($cron_data) && isset($cron_data->blog_id) ?
+                $cron_data->blog_id :
+                0;
+
+            if ( 0 < $cron_blog_id ) {
+                switch_to_blog( $cron_blog_id );
+            }
+
+            if ( empty( $action_tag ) ) {
+                $action_tag = $name;
+            }
+
+            $next_scheduled = wp_next_scheduled( $this->get_action_tag( $action_tag ) );
+
+            if ( 0 < $cron_blog_id ) {
+                restore_current_blog();
+            }
+
+            return $next_scheduled;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $name            Cron name.
+         * @param string $action_tag      Callback action tag.
+         * @param string $recurrence      'single' or 'daily'.
+         * @param int    $start_at        Defaults to now.
+         * @param bool   $randomize_start If true, schedule first job randomly during the next 12 hours. Otherwise, schedule job to start right away.
+         * @param int    $except_blog_id  Target any except the excluded blog ID.
+         */
+        private function schedule_cron(
+            $name,
+            $action_tag = '',
+            $recurrence = 'single',
+            $start_at = WP_FS__SCRIPT_START_TIME,
+            $randomize_start = true,
+            $except_blog_id = 0
+        ) {
+            $this->_logger->entrance( $name );
+
+            $this->clear_cron( $name, $action_tag, true );
+
+            $cron_blog_id = $this->get_cron_target_blog_id( $except_blog_id );
+
+            if ( is_multisite() && 0 == $cron_blog_id ) {
+                // Don't schedule cron since couldn't find a target blog.
+                return;
+            }
+
+            if ( 0 < $cron_blog_id ) {
+                switch_to_blog( $cron_blog_id );
+            }
+
+            if ( 'daily' === $recurrence ) {
+                if ( $randomize_start ) {
+                    // Schedule first sync with a random 12 hour time range from now.
+                    $start_at += rand( 0, ( WP_FS__TIME_24_HOURS_IN_SEC / 2 ) );
+                }
+
+                // Schedule daily WP cron.
+                wp_schedule_event(
+                    $start_at,
+                    'daily',
+                    $this->get_action_tag( $action_tag )
+                );
+            } else if ( 'single' === $recurrence ) {
+                // Schedule single cron.
+                wp_schedule_single_event(
+                    $start_at,
+                    $this->get_action_tag( $action_tag )
+                );
+            }
+
+            $this->set_cron_data( $name, $cron_blog_id );
+
+            if ( 0 < $cron_blog_id ) {
+                restore_current_blog();
+            }
+        }
+
+        /**
+         * Consolidated cron execution for performance optimization. The max number of API requests is based on the number of unique opted-in users.
+         * that doesn't halt page loading.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string   $name     Cron name.
+         * @param callable $callable The function that should be executed.
+         */
+        private function execute_cron( $name, $callable ) {
+            $this->_logger->entrance( $name );
+
+            // Store the last time data sync was executed.
+            $this->set_cron_execution_timestamp( $name );
+
+            // Check if API is temporary down.
+            if ( FS_Api::is_temporary_down() ) {
+                return;
+            }
+
+            // @todo Add logic that identifies API latency, and reschedule the next background sync randomly between 8-16 hours.
+
+            $users_2_blog_ids = array();
+
+            if ( ! is_multisite() ) {
+                // Add dummy blog.
+                $users_2_blog_ids[0] = array( 0 );
+            } else {
+                $installs = $this->get_blog_install_map();
+                foreach ( $installs as $blog_id => $install ) {
+                    if ( $this->is_premium() || $install->is_tracking_allowed() ) {
+                        if ( ! isset( $users_2_blog_ids[ $install->user_id ] ) ) {
+                            $users_2_blog_ids[ $install->user_id ] = array();
+                        }
+
+                        $users_2_blog_ids[ $install->user_id ][] = $blog_id;
+                    }
+                }
+            }
+
+            foreach ( $users_2_blog_ids as $user_id => $blog_ids ) {
+                if ( 0 < $blog_ids[0] ) {
+                    $this->switch_to_blog( $blog_ids[0] );
+                }
+
+                call_user_func_array( $callable, array( $blog_ids ) );
+
+                foreach ( $blog_ids as $blog_id ) {
+                    $this->do_action( "after_{$name}_cron", $blog_id );
+                }
+            }
+
+            if ( is_multisite() ) {
+                $this->do_action( "after_{$name}_cron_multisite" );
+            }
+        }
+
+        #endregion
+
         #----------------------------------------------------------------------------------
         #region Daily Sync Cron
         #----------------------------------------------------------------------------------
+
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return bool
+         */
+        private function is_sync_cron_scheduled() {
+            return $this->is_cron_on( 'sync' );
+        }
+
+        /**
+         * Get the sync cron's executing blog ID.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return int
+         */
+        private function get_sync_cron_blog_id() {
+            return $this->get_cron_blog_id( 'sync' );
+        }
 
         /**
          * @author Vova Feldman (@svovaf)
@@ -5188,20 +5629,23 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
+         * @since  2.0.0   Consolidate all the data sync into the same cron for performance optimization. The max number of API requests is based on the number of unique opted-in users.
          */
         function _sync_cron() {
             $this->_logger->entrance();
 
-            // Store the last time data sync was executed.
-            $this->_storage->sync_timestamp = time();
-
-            // Check if API is temporary down.
-            if ( FS_Api::is_temporary_down() ) {
-                return;
+            $this->execute_cron( 'sync', array( &$this, '_sync_cron_method' ) );
             }
 
-            // @todo Add logic that identifies API latency, and reschedule the next background sync randomly between 8-16 hours.
-
+        /**
+         * The actual data sync cron logic.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int[] $blog_ids
+         */
+        function _sync_cron_method( array $blog_ids ) {
             if ( $this->is_registered() ) {
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
@@ -5212,16 +5656,14 @@
                         $this->check_updates( true );
                     }
                 } else {
-                    // Sync install (only if something changed locally).
-                    if ( $this->_is_network_active ) {
-                        $this->sync_installs( array(), true );
+                    // Sync install(s) (only if something changed locally).
+                    if ( 1 < count( $blog_ids ) ) {
+                        $this->sync_installs();
                     } else {
-                        $this->sync_install( array(), true );
+                        $this->sync_install();
                     }
                 }
             }
-
-            $this->do_action( 'after_sync_cron' );
         }
 
         /**
@@ -5235,11 +5677,7 @@
          * @return bool
          */
         private function is_sync_executed( $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
-            if ( ! isset( $this->_storage->sync_timestamp ) ) {
-                return false;
-            }
-
-            return ( $this->_storage->sync_timestamp > ( WP_FS__SCRIPT_START_TIME - $period ) );
+            return $this->is_cron_executed( 'sync', $period );
         }
 
         /**
@@ -5249,12 +5687,7 @@
          * @return bool
          */
         private function is_sync_cron_on() {
-            /**
-             * @var object $sync_cron_data
-             */
-            $sync_cron_data = $this->_storage->get( 'sync_cron', null );
-
-            return ( ! is_null( $sync_cron_data ) && true === $sync_cron_data->on );
+            return $this->is_cron_on( 'sync' );
         }
 
         /**
@@ -5262,32 +5695,22 @@
          * @since  1.1.7.3
          *
          * @param int  $start_at        Defaults to now.
-         * @param bool $randomize_start If true, schedule first job randomly during the next 12 hours. Otherwise,
-         *                              schedule job to start right away.
+         * @param bool $randomize_start If true, schedule first job randomly during the next 12 hours. Otherwise, schedule job to start right away.
+         * @param int  $except_blog_id  Since 2.0.0 when running in a multisite network environment, the cron execution is consolidated. This param allows excluding excluded specified blog ID from being the cron executor.
          */
-        private function schedule_sync_cron( $start_at = WP_FS__SCRIPT_START_TIME, $randomize_start = true ) {
-            $this->_logger->entrance();
-
-            $this->clear_sync_cron(true);
-
-            if ( $randomize_start ) {
-                // Schedule first sync with a random 12 hour time range from now.
-                $start_at += rand( 0, ( WP_FS__TIME_24_HOURS_IN_SEC / 2 ) );
-            }
-
-            // Schedule daily WP cron.
-            wp_schedule_event(
-                $start_at,
+        private function schedule_sync_cron(
+            $start_at = WP_FS__SCRIPT_START_TIME,
+            $randomize_start = true,
+            $except_blog_id = 0
+        ) {
+            $this->schedule_cron(
+                'sync',
+                'data_sync',
                 'daily',
-                $this->get_action_tag( 'data_sync' )
+                $start_at,
+                $randomize_start,
+                $except_blog_id
             );
-
-            $this->_storage->store( 'sync_cron', (object) array(
-                'version'     => $this->get_plugin_version(),
-                'sdk_version' => $this->version,
-                'timestamp'   => WP_FS__SCRIPT_START_TIME,
-                'on'          => true,
-            ) );
         }
 
         /**
@@ -5309,32 +5732,7 @@
         private function clear_sync_cron( $is_network_clear = false ) {
             $this->_logger->entrance();
 
-            if ( ! $this->is_sync_cron_on() ) {
-                return;
-            }
-
-            $clear_cron = true;
-            if ( ! $is_network_clear && $this->_is_network_active ) {
-                $installs = $this->get_blog_install_map();
-
-                foreach ( $installs as $blog_id => $install ) {
-                    /**
-                     * @var FS_Site $install
-                     */
-                    if ( $install->is_tracking_allowed() ) {
-                        $clear_cron = false;
-                        break;
-                    }
-                }
-            }
-
-            if ( ! $clear_cron ) {
-                return;
-            }
-
-            $this->_storage->remove( 'sync_cron' );
-
-            wp_clear_scheduled_hook( $this->get_action_tag( 'data_sync' ) );
+            $this->clear_cron( 'sync', 'data_sync', $is_network_clear );
         }
 
         /**
@@ -5346,13 +5744,7 @@
          * @return int|false
          */
         function next_sync_cron() {
-            $this->_logger->entrance();
-
-            if ( ! $this->is_sync_cron_on() ) {
-                return false;
-            }
-
-            return wp_next_scheduled( $this->get_action_tag( 'data_sync' ) );
+            return $this->get_next_scheduled_cron( 'sync', 'data_sync' );
         }
 
         /**
@@ -5364,9 +5756,7 @@
          * @return int|false
          */
         function last_sync_cron() {
-            $this->_logger->entrance();
-
-            return $this->_storage->get( 'sync_timestamp' );
+            return $this->cron_last_execution( 'sync' );
         }
 
         #endregion Daily Sync Cron ------------------------------------------------------------------
@@ -5382,12 +5772,19 @@
          * @return bool
          */
         private function is_install_sync_scheduled() {
-            /**
-             * @var object $cron_data
-             */
-            $cron_data = $this->_storage->get( 'install_sync_cron', null );
+            return $this->is_cron_on( 'install_sync' );
+        }
 
-            return ( ! is_null( $cron_data ) && true === $cron_data->on );
+            /**
+         * Get the sync cron's executing blog ID.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return int
+             */
+        private function get_install_sync_cron_blog_id() {
+            return $this->get_cron_blog_id( 'install_sync' );
         }
 
         /**
@@ -5395,31 +5792,17 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
+         *
+         * @param int  $except_blog_id  Since 2.0.0 when running in a multisite network environment, the cron execution is consolidated. This param allows excluding excluded specified blog ID from being the cron executor.
          */
-        private function schedule_install_sync() {
-            $this->_logger->entrance();
-
-            $this->clear_install_sync_cron();
-
-            // Schedule immediate install sync.
-            wp_schedule_single_event(
-                WP_FS__SCRIPT_START_TIME,
-                $this->get_action_tag( 'install_sync' )
-            );
-
-            $this->_storage->store( 'install_sync_cron', (object) array(
-                'version'     => $this->get_plugin_version(),
-                'sdk_version' => $this->version,
-                'timestamp'   => WP_FS__SCRIPT_START_TIME,
-                'on'          => true,
-            ) );
+        private function schedule_install_sync( $except_blog_id = 0 ) {
+            $this->schedule_cron( 'install_sync', 'install_sync', 'single', 0, false, $except_blog_id );
         }
 
         /**
          * Unix timestamp for previous install sync cron execution or false if never executed.
          *
-         * @todo   There's some very strange bug that $this->_storage->install_sync_timestamp value is not being
-         *         updated. But for sure the sync event is working.
+         * @todo   There's some very strange bug that $this->_storage->install_sync_timestamp value is not being updated. But for sure the sync event is working.
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
@@ -5427,9 +5810,7 @@
          * @return int|false
          */
         function last_install_sync() {
-            $this->_logger->entrance();
-
-            return $this->_storage->get( 'install_sync_timestamp' );
+            return $this->cron_last_execution( 'install_sync' );
         }
 
         /**
@@ -5441,13 +5822,7 @@
          * @return int|false
          */
         function next_install_sync() {
-            $this->_logger->entrance();
-
-            if ( ! $this->is_install_sync_scheduled() ) {
-                return false;
-            }
-
-            return wp_next_scheduled( $this->get_action_tag( 'install_sync' ) );
+            return $this->get_next_scheduled_cron( 'install_sync', 'install_sync' );
         }
 
         /**
@@ -5463,33 +5838,41 @@
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
+         *
+         * @param bool $is_network_clear Since 2.0.0 If set to TRUE, clear sync cron even if there are installs that are still connected.
          */
-        private function clear_install_sync_cron() {
+        private function clear_install_sync_cron( $is_network_clear = false ) {
             $this->_logger->entrance();
 
-            if ( ! $this->is_install_sync_scheduled() ) {
-                return;
-            }
-
-            $this->_storage->remove( 'install_sync_cron' );
-
-            wp_clear_scheduled_hook( $this->get_action_tag( 'install_sync' ) );
+            $this->clear_cron( 'install_sync', 'install_sync', $is_network_clear );
         }
 
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
+         * @since  2.0.0   Consolidate all the data sync into the same cron for performance optimization. The max number of API requests is based on the number of unique opted-in users.
          */
         public function _run_sync_install() {
             $this->_logger->entrance();
 
-            // Update last install sync timestamp.
-            $this->_storage->install_sync_timestamp = time();
+            $this->execute_cron( 'sync', array( &$this, '_sync_install_cron_method' ) );
+        }
 
-            if ( $this->_is_network_active ) {
+        /**
+         * The actual install(s) sync cron logic.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int[] $blog_ids
+         */
+        function _sync_install_cron_method( array $blog_ids ) {
+            if ( $this->is_registered() ) {
+                if ( 1 < count( $blog_ids ) ) {
                 $this->sync_installs( array(), true );
             } else {
             $this->sync_install( array(), true );
+        }
         }
         }
 
@@ -7297,7 +7680,7 @@
 
             if ( 0 < count( $params ) ) {
                 // Update last install sync timestamp.
-                $this->_storage->install_sync_timestamp = time();
+                    $this->set_cron_execution_timestamp( 'install_sync' );
 
                 $params['uid'] = $this->get_anonymous_id();
 
@@ -7336,7 +7719,7 @@
             }
 
             // Update last install sync timestamp.
-            $this->_storage->install_sync_timestamp = time();
+            $this->set_cron_execution_timestamp( 'install_sync' );
 
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
@@ -11199,6 +11582,34 @@
         }
 
         /**
+         * Checks if a given blog is active.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param $blog_id
+         *
+         * @return bool
+         */
+        private static function is_site_active( $blog_id ) {
+            global $wpdb;
+
+            $blog_info = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->blogs} WHERE blog_id = %d", $blog_id ) );
+
+            if ( ! is_object( $blog_info ) ) {
+                return false;
+            }
+
+            return (
+                true == $blog_info->public &&
+                false == $blog_info->archived &&
+                false == $blog_info->mature &&
+                false == $blog_info->spam &&
+                false == $blog_info->deleted
+            );
+        }
+
+        /**
          * Get a mapping between the site addresses to their blog IDs.
          *
          * @author Vova Feldman (@svovaf)
@@ -11235,7 +11646,7 @@
          * @value  FS_Site Associated install.
          * }
          */
-        private function get_blog_install_map() {
+        function get_blog_install_map() {
             $sites = self::get_sites();
 
             // Map site blog ID to its install.
@@ -11369,7 +11780,7 @@
          *
          * @param array|WP_Site $site
          *
-         * @return string
+         * @return int
          */
         static function get_site_blog_id( &$site ) {
             return ( $site instanceof WP_Site ) ?
