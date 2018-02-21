@@ -6770,7 +6770,7 @@
             register_uninstall_hook( $this->_plugin_main_file_path, array( 'Freemius', '_uninstall_plugin_hook' ) );
 
             $this->clear_module_main_file_cache();
-            $this->clear_sync_cron( true );
+            $this->clear_sync_cron( $this->_is_network_active );
             $this->clear_install_sync_cron();
 
             if ( $this->is_registered() ) {
