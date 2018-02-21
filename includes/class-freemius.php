@@ -1209,13 +1209,13 @@
                         ) {
                             if ( settings.url.indexOf( '?' ) > 0 ) {
                                 settings.url += '&';
-                    } else {
+                            } else {
                                 settings.url += '?';
-                    }
+                            }
 
                             settings.url += '<?php echo $admin_param ?>=true';
 
-                }
+                        }
                     });
                 })(jQuery);
             </script>
@@ -5644,7 +5644,7 @@
             $this->_logger->entrance();
 
             $this->execute_cron( 'sync', array( &$this, '_sync_cron_method' ) );
-            }
+        }
 
         /**
          * The actual data sync cron logic.
@@ -5784,14 +5784,14 @@
             return $this->is_cron_on( 'install_sync' );
         }
 
-            /**
+        /**
          * Get the sync cron's executing blog ID.
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
          * @return int
-             */
+         */
         private function get_install_sync_cron_blog_id() {
             return $this->get_cron_blog_id( 'install_sync' );
         }
@@ -5878,11 +5878,11 @@
         function _sync_install_cron_method( array $blog_ids ) {
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
-                $this->sync_installs( array(), true );
-            } else {
-            $this->sync_install( array(), true );
-        }
-        }
+                    $this->sync_installs( array(), true );
+                } else {
+                    $this->sync_install( array(), true );
+                }
+            }
         }
 
         #endregion Async Install Sync ------------------------------------------------------------------
@@ -6006,38 +6006,38 @@
                             return;
                         }
 
-                        if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                            // Show notice for new plugin installations.
-                            $this->_admin_notices->add(
-                                sprintf(
-                                    $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
-                                    sprintf( '<b><a href="%s">%s</a></b>',
-                                        $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
-                                        sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
-                                            '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
-                                    )
-                                ),
-                                '',
-                                'update-nag'
-                            );
-                        } else {
-                            if ( $this->should_add_sticky_optin_notice() ) {
-                                $this->add_sticky_optin_admin_notice();
+                            if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
+                                // Show notice for new plugin installations.
+                                $this->_admin_notices->add(
+                                    sprintf(
+                                        $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
+                                        sprintf( '<b><a href="%s">%s</a></b>',
+                                            $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
+                                            sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
+                                                '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
+                                        )
+                                    ),
+                                    '',
+                                    'update-nag'
+                                );
+                            } else {
+                                if ( $this->should_add_sticky_optin_notice() ) {
+                                    $this->add_sticky_optin_admin_notice();
+                                }
+
+                                if ( $this->has_filter( 'optin_pointer_element' ) ) {
+                                    // Don't show admin nag if plugin update.
+                                    wp_enqueue_script( 'wp-pointer' );
+                                    wp_enqueue_style( 'wp-pointer' );
+
+                                    $this->_enqueue_connect_essentials();
+
+                                    add_action( 'admin_print_footer_scripts', array(
+                                        $this,
+                                        '_add_connect_pointer_script'
+                                    ) );
+                                }
                             }
-
-                            if ( $this->has_filter( 'optin_pointer_element' ) ) {
-                                // Don't show admin nag if plugin update.
-                                wp_enqueue_script( 'wp-pointer' );
-                                wp_enqueue_style( 'wp-pointer' );
-
-                                $this->_enqueue_connect_essentials();
-
-                                add_action( 'admin_print_footer_scripts', array(
-                                    $this,
-                                    '_add_connect_pointer_script'
-                                ) );
-                            }
-                        }
                     }
                 }
 
@@ -6633,8 +6633,8 @@
 
                 $this->_delete_licenses( false );
 
-            // Delete add-ons related to plugin's account.
-            $this->_delete_account_addons( false );
+                // Delete add-ons related to plugin's account.
+                $this->_delete_account_addons( false );
             }
 
             // @todo Delete plans and licenses of add-ons.
@@ -6751,7 +6751,7 @@
                 return;
             }
 
-            $is_network_deactivation = fs_is_network_admin();
+            $is_network_deactivation  = fs_is_network_admin();
             $storage_keys_for_removal = array();
 
             $this->_admin_notices->clear_all_sticky();
@@ -6780,10 +6780,10 @@
                         'is_active' => false,
                     ) );
                 } else {
-                // Send deactivation event.
-                $this->sync_install( array(
-                    'is_active' => false,
-                ) );
+                    // Send deactivation event.
+                    $this->sync_install( array(
+                        'is_active' => false,
+                    ) );
                 }
             } else {
                 if ( ! $this->has_api_connectivity() ) {
@@ -6805,11 +6805,11 @@
                     foreach ( $sites as $site ) {
                         $blog_id = self::get_site_blog_id( $site );
 
-                        foreach ($storage_keys_for_removal as $key) {
+                        foreach ( $storage_keys_for_removal as $key ) {
                             $this->_storage->remove( $key, false, $blog_id );
                         }
 
-                        $this->_storage->save($blog_id);
+                        $this->_storage->save( $blog_id );
                     }
                 }
             }
@@ -7699,7 +7699,7 @@
 
             if ( 0 < count( $params ) ) {
                 if ( ! is_multisite() ) {
-                // Update last install sync timestamp.
+                    // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
                 }
 
@@ -7710,9 +7710,9 @@
 
                 if ( $this->is_api_result_entity( $site ) ) {
                     if ( ! is_multisite() ) {
-                    // I successfully sent install update, clear scheduled sync if exist.
-                    $this->clear_install_sync_cron();
-                }
+                        // I successfully sent install update, clear scheduled sync if exist.
+                        $this->clear_install_sync_cron();
+                    }
                 }
 
                 return $site;
@@ -19470,6 +19470,178 @@
             );
 
             fs_require_template( '/js/style-premium-theme.php', $params );
+        }
+
+        /**
+         * This method will return the absolute URL of the module's local icon.
+         *
+         * When you are running your plugin or theme on a **localhost** environment, if the icon
+         * is not found in the local assets folder, try to fetch the icon URL from Freemius. If not set and
+         * it's a plugin hosted on WordPress.org, try fetching the icon URL from wordpress.org.
+         * If an icon is found, this method will automatically attempt to download the icon and store it
+         * in /freemius/assets/img/{slug}.{png|jpg|gif|svg}.
+         *
+         * It's important to mention that this method is NOT phoning home since the developer will deploy
+         * the product with the local icon in the assets folder. The download process just simplifies
+         * the process for the developer.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+        function get_local_icon_url() {
+            global $fs_active_plugins;
+
+            /**
+             * @since 1.1.7.5
+             */
+            $local_path = $this->apply_filters( 'plugin_icon', false );
+
+            if ( is_string( $local_path ) ) {
+                $icons = array( $local_path );
+            } else {
+                $img_dir = WP_FS__DIR_IMG;
+
+                // Locate the main assets folder.
+                if ( 1 < count( $fs_active_plugins->plugins ) ) {
+                    $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root() );
+
+                    foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
+                        if ( $data->plugin_path == $this->get_plugin_basename() ) {
+                            $img_dir = $plugin_or_theme_img_dir
+                                       . '/'
+                                       . str_replace( '../themes/', '', $sdk_path )
+                                       . '/assets/img';
+
+                            break;
+                        }
+                    }
+                }
+
+                // Try to locate the icon in the assets folder.
+                $icons = glob( fs_normalize_path( $img_dir . "/{$this->_slug}.*" ) );
+
+                if ( ! is_array( $icons ) || 0 === count( $icons ) ) {
+                    if ( ! WP_FS__IS_LOCALHOST && $this->is_theme() ) {
+                        $icons = array(
+                            fs_normalize_path( $img_dir . '/theme-icon.png' )
+                        );
+                    } else {
+                        $icon_found = false;
+                        $local_path = fs_normalize_path( "{$img_dir}/{$this->_slug}.png" );
+
+                        $have_write_permissions = ( 'direct' === get_filesystem_method( array(), fs_normalize_path( $img_dir ) ) );
+
+                        /**
+                         * IMPORTANT: THIS CODE WILL NEVER RUN AFTER THE PLUGIN IS IN THE REPO.
+                         *
+                         * This code will only be executed once during the testing
+                         * of the plugin in a local environment. The plugin icon file WILL
+                         * already exist in the assets folder when the plugin is deployed to
+                         * the repository.
+                         */
+                        if ( WP_FS__IS_LOCALHOST && $have_write_permissions ) {
+                            // Fetch icon from Freemius.
+                            $icon = $this->fetch_remote_icon_url();
+
+                            // Fetch icon from WordPress.org.
+                            if ( empty( $icon ) && $this->is_plugin() && $this->is_org_repo_compliant() ) {
+                                if ( ! function_exists( 'plugins_api' ) ) {
+                                    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+                                }
+
+                                $plugin_information = plugins_api( 'plugin_information', array(
+                                    'slug'   => $this->_slug,
+                                    'fields' => array(
+                                        'sections' => false,
+                                        'tags'     => false,
+                                        'icons'    => true
+                                    )
+                                ) );
+
+                                if (
+                                    ! is_wp_error( $plugin_information )
+                                    && isset( $plugin_information->icons )
+                                    && ! empty( $plugin_information->icons )
+                                ) {
+                                    /**
+                                     * Get the smallest icon.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since  1.2.2
+                                     */
+                                    $icon = end( $plugin_information->icons );
+                                }
+                            }
+
+                            if ( ! empty( $icon ) ) {
+                                if ( 0 !== strpos( $icon, 'http' ) ) {
+                                    $icon = 'http:' . $icon;
+                                }
+
+                                /**
+                                 * Get a clean file extension, e.g.: "jpg" and not "jpg?rev=1305765".
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since  1.2.2
+                                 */
+                                $ext = pathinfo( strtok( $icon, '?' ), PATHINFO_EXTENSION );
+
+                                $local_path = fs_normalize_path( "{$img_dir}/{$this->_slug}.{$ext}" );
+
+                                // Try to download the icon.
+                                $icon_found = fs_download_image( $icon, $local_path );
+                            }
+                        }
+
+                        if ( ! $icon_found ) {
+                            // No icons found, fallback to default icon.
+                            if ( $have_write_permissions ) {
+                                // If have write permissions, copy default icon.
+                                copy( fs_normalize_path( $img_dir . "/{$this->_module_type}-icon.png" ), $local_path );
+                            } else {
+                                // If doesn't have write permissions, use default icon path.
+                                $local_path = fs_normalize_path( $img_dir . "/{$this->_module_type}-icon.png" );
+                            }
+                        }
+
+                        $icons = array( $local_path );
+                    }
+                }
+            }
+
+            $icon_dir = dirname( $icons[0] );
+
+            return fs_img_url( substr( $icons[0], strlen( $icon_dir ) ), $icon_dir );
+        }
+
+        /**
+         * Fetch module's extended info.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return object|mixed
+         */
+        private function fetch_module_info() {
+            return $this->get_api_plugin_scope()->get( 'info.json', false, WP_FS__TIME_WEEK_IN_SEC );
+        }
+
+        /**
+         * Fetch module's remote icon URL.
+         * 
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *         
+         * @return string
+         */
+        function fetch_remote_icon_url() {
+            $info = $this->fetch_module_info();
+
+            return ( $this->is_api_result_object( $info, 'icon' ) && is_string( $info->icon ) ) ?
+                $info->icon :
+                '';
         }
 
         #----------------------------------------------------------------------------------
