@@ -1323,6 +1323,17 @@
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
             }
 
+            if ( is_multisite() ) {
+                add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
+                add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
+                add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
+                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+
+                add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
+                add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
+                add_action( 'make_ham_blog', array( &$this, '_after_site_reactivated_callback' ) );
+            }
+
             if ( $this->is_theme() && self::is_customizer() ) {
                 // Register customizer upsell.
                 add_action( 'customize_register', array( &$this, '_customizer_register' ) );
@@ -11584,6 +11595,159 @@
          */
         private function is_network_level_action() {
             return ( $this->_is_network_active && fs_is_network_admin() );
+        }
+
+        /**
+         * Needs to be executed after site deactivation, archive, deletion, or flag as spam.
+         * The logic updates the network level user and blog, and reschedule the crons if the cron executing site matching the site that is no longer publicly active.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $context_blog_id
+         */
+        private function update_multisite_data_after_site_deactivation( $context_blog_id = 0 ) {
+            $this->_logger->entrance();
+
+            if ( $this->_is_network_active ) {
+                if ( $context_blog_id == $this->_storage->network_install_blog_id ) {
+                    $installs_map = $this->get_blog_install_map();
+
+                    foreach ( $installs_map as $blog_id => $install ) {
+                        /**
+                         * @var FS_Site $install
+                         */
+                        if ( $context_blog_id == $blog_id ) {
+                            continue;
+                        }
+
+                        if ( $install->user_id != $this->_storage->network_user_id ) {
+                            continue;
+                        }
+
+                        // Switch reference to a blog that is opted-in and belong to the same super-admin.
+                        $this->_storage->network_install_blog_id = $blog_id;
+                        break;
+                    }
+                }
+            }
+
+            if ( $this->is_sync_cron_scheduled() &&
+                 $context_blog_id == $this->get_sync_cron_blog_id()
+            ) {
+                $this->schedule_sync_cron( WP_FS__SCRIPT_START_TIME, true, $context_blog_id );
+            }
+
+            if ( $this->is_install_sync_scheduled() &&
+                 $context_blog_id == $this->get_install_sync_cron_blog_id()
+            ) {
+                $this->schedule_install_sync( $context_blog_id );
+            }
+        }
+
+        /**
+         * Executed after site deactivation, archive, or flag as spam.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $context_blog_id
+         */
+        public function _after_site_deactivated_callback( $context_blog_id = 0 ) {
+            $this->_logger->entrance();
+
+            $install = $this->get_install_by_blog_id( $context_blog_id );
+
+            if ( ! is_object( $install ) ) {
+                // Site not connected.
+                return;
+            }
+
+            $this->update_multisite_data_after_site_deactivation( $context_blog_id );
+
+            $current_blog_id = get_current_blog_id();
+
+            $this->switch_to_blog( $context_blog_id );
+
+            // Send deactivation event.
+            $this->sync_install( array(
+                'is_active' => false,
+            ) );
+
+            $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site deletion.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int  $context_blog_id
+         * @param bool $drop True if site's database tables should be dropped. Default is false.
+         */
+        public function _after_site_deleted_callback( $context_blog_id = 0, $drop = false ) {
+            $this->_logger->entrance();
+
+            $install = $this->get_install_by_blog_id( $context_blog_id );
+
+            if ( ! is_object( $install ) ) {
+                // Site not connected.
+                return;
+            }
+
+            $this->update_multisite_data_after_site_deactivation( $context_blog_id );
+
+            $current_blog_id = get_current_blog_id();
+
+            $this->switch_to_blog( $context_blog_id );
+
+            if ( $drop ) {
+                // Delete install if dropping site DB.
+                $this->delete_account_event();
+            } else {
+                // Send deactivation event.
+                $this->sync_install( array(
+                    'is_active' => false,
+                ) );
+            }
+
+            $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site re-activation.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int  $context_blog_id
+         */
+        public function _after_site_reactivated_callback( $context_blog_id = 0 ) {
+            $this->_logger->entrance();
+
+            $install = $this->get_install_by_blog_id( $context_blog_id );
+
+            if ( ! is_object( $install ) ) {
+                // Site not connected.
+                return;
+            }
+
+            if ( ! self::is_site_active( $context_blog_id ) ) {
+                // Site not yet active (can be in spam mode, archived, deleted...).
+                return;
+            }
+
+            $current_blog_id = get_current_blog_id();
+
+            $this->switch_to_blog( $context_blog_id );
+
+            // Send re-activation event.
+            $this->sync_install( array(
+                'is_active' => true,
+            ) );
+
+            $this->switch_to_blog( $current_blog_id );
         }
 
         #endregion Multisite
