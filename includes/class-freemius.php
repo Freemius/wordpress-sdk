@@ -7560,6 +7560,16 @@
                 $install = $this->get_install_by_blog_id( $blog_id );
 
                 if ( is_object( $install ) ) {
+                    if ( $install->user_id != $this->_user->id ) {
+                        // Install belongs to a different owner.
+                        continue;
+                    }
+
+                    if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
+                        // Don't send updates regarding opted-out installs.
+                        continue;
+                    }
+
                     $install_data = $this->get_site_info( $site );
 
                     $uid = $install_data['uid'];
