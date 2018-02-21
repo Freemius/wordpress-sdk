@@ -11170,15 +11170,28 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
-         * @return array Sites collection.
+         * @return array Active & public sites collection.
          */
         static function get_sites() {
+            /**
+             * For consistency with get_blog_list() which only return active public sites.
+             *
+             * @author Vova Feldman (@svovaf)
+             */
+            $args = array(
+                'public'   => 1,
+                'archived' => 0,
+                'mature'   => 0,
+                'spam'     => 0,
+                'deleted'  => 0,
+            );
+
             if ( function_exists( 'get_sites' ) ) {
                 // For WP 4.6 and above.
-                return get_sites();
+                return get_sites( $args );
             } else if ( function_exists( 'wp_get_sites' ) ) {
                 // For WP 3.7 to WP 4.5.
-                return wp_get_sites();
+                return wp_get_sites( $args );
             } else {
                 // For WP 3.6 and below.
                 return get_blog_list( 0, 'all' );
