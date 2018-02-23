@@ -206,8 +206,8 @@
         function clear( $network_level_or_blog_id = null, $flush = false ) {
             if ( ! $this->_is_multisite ||
                  false === $network_level_or_blog_id ||
-                 0 == $network_level_or_blog_id ||
-                 is_null( $network_level_or_blog_id )
+                 is_null( $network_level_or_blog_id ) ||
+                 is_numeric( $network_level_or_blog_id )
             ) {
                 $site_options = $this->get_site_options( $network_level_or_blog_id );
                 $site_options->clear( $flush );

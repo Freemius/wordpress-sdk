@@ -163,8 +163,8 @@
         function clear_all( $store = true, $exceptions = array(), $network_level_or_blog_id = null ) {
             if ( ! $this->_is_multisite ||
                  false === $network_level_or_blog_id ||
-                 0 == $network_level_or_blog_id ||
-                 is_null( $network_level_or_blog_id )
+                 is_null( $network_level_or_blog_id ) ||
+                 is_numeric( $network_level_or_blog_id )
             ) {
                 $storage = $this->get_site_storage( $network_level_or_blog_id );
                 $storage->clear_all( $store, $exceptions );
