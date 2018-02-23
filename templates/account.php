@@ -23,6 +23,22 @@
 	 */
 	$update = $fs->get_update( false, false, WP_FS__TIME_24_HOURS_IN_SEC / 24 );
 
+	if ( is_object($update) ) {
+		/**
+		 * This logic is particularly required for multisite environment.
+         * If a module is site activated (not network) and not on the main site,
+         * the module will NOT be executed on the network level, therefore, the
+         * custom updates logic will not be executed as well, so unless we force
+         * the injection of the update into the updates transient, premium updates
+         * will not work.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+		$updater = FS_Plugin_Updater::instance( $fs );
+		$updater->set_update_data( $update );
+	}
+
     $is_paying              = $fs->is_paying();
     $user                   = $fs->get_user();
     $site                   = $fs->get_site();

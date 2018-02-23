@@ -9523,7 +9523,7 @@
         function _get_license_by_id( $id, $sync_licenses = true ) {
             $this->_logger->entrance();
 
-            if ( ! is_numeric( $id ) ) {
+            if ( ! FS_Plugin_License::is_valid_id( $id ) ) {
                 return false;
             }
 
@@ -9560,6 +9560,30 @@
             }
 
             return false;
+        }
+
+        /**
+         * Get license by ID. Unlike _get_license_by_id(), this method only checks the local storage and return any license, whether it's associated with the current context user/install or not.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param number $id
+         *
+         * @return FS_Plugin_License
+         */
+        private function get_license_by_id( $id ) {
+            $licenses = self::get_all_licenses( $this->_module_id );
+
+            if ( is_array( $licenses ) && ! empty( $licenses ) ) {
+                foreach ( $licenses as $license ) {
+                    if ( $id == $license->id ) {
+                        return $license;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /**
@@ -16893,8 +16917,14 @@
          *
          * @return object|false Plugin latest tag info.
          */
-        function _fetch_latest_version( $addon_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+        function _fetch_latest_version(
+            $addon_id = false,
+            $flush = true,
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC
+        ) {
             $this->_logger->entrance();
+
+            $switch_to_blog_id = null;
 
             /**
              * @since 1.1.7.3 Check for plugin updates from Freemius only if opted-in.
@@ -16903,7 +16933,42 @@
             if ( ! $this->is_registered() &&
                  ! $this->_is_addon_id( $addon_id )
             ) {
+                if ( ! is_multisite() ) {
                 return false;
+            }
+
+                $installs_map = $this->get_blog_install_map();
+
+                foreach ( $installs_map as $blog_id => $install ) {
+                    /**
+                     * @var FS_Site $install
+                     */
+                    if ( $install->is_trial() ) {
+                        $switch_to_blog_id = $blog_id;
+                        break;
+                    }
+
+                    if ( FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                        $license = $this->get_license_by_id( $install->license_id );
+
+                        if ( is_object( $license ) && $license->is_features_enabled() ) {
+                            $switch_to_blog_id = $blog_id;
+                            break;
+                        }
+                    }
+                }
+
+                if ( is_null( $switch_to_blog_id ) ) {
+                    return false;
+                }
+            }
+
+            $current_blog_id = is_numeric( $switch_to_blog_id ) ?
+                get_current_blog_id() :
+                0;
+
+            if ( is_numeric( $switch_to_blog_id ) ) {
+                $this->switch_to_blog( $switch_to_blog_id );
             }
 
             $tag = $this->get_api_site_or_plugin_scope()->get(
@@ -16911,6 +16976,10 @@
                 $flush,
                 $expiration
             );
+
+            if ( is_numeric( $switch_to_blog_id ) ) {
+                $this->switch_to_blog( $current_blog_id );
+            }
 
             $latest_version = ( is_object( $tag ) && isset( $tag->version ) ) ? $tag->version : 'couldn\'t get';
 
