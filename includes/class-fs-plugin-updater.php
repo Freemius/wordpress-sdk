@@ -30,12 +30,39 @@
 		 */
 		private $_update_details;
 
-		function __construct( Freemius $freemius ) {
+        #--------------------------------------------------------------------------------
+        #region Singleton
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @var FS_Plugin_Updater[]
+         * @since 2.0.0
+         */
+        private static $_INSTANCES = array();
+
+        /**
+         * @param Freemius $freemius
+         *
+         * @return FS_Plugin_Updater
+         */
+        static function instance( Freemius $freemius ) {
+            $key = $freemius->get_id();
+
+            if ( ! isset( self::$_INSTANCES[ $key ] ) ) {
+                self::$_INSTANCES[ $key ] = new self( $freemius );
+            }
+
+            return self::$_INSTANCES[ $key ];
+        }
+
+        #endregion
+
+        private function __construct( Freemius $freemius ) {
 			$this->_fs = $freemius;
 
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $freemius->get_slug() . '_updater', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_filters();
+            $this->filters();
 		}
 
 		/**
@@ -44,7 +71,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.4
 		 */
-		private function _filters() {
+        private function filters() {
 			// Override request for plugin information
 			add_filter( 'plugins_api', array( &$this, 'plugins_api_filter' ), 10, 3 );
 

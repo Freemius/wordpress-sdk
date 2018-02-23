@@ -4027,7 +4027,7 @@
              * @since  1.2.1.6
              */
             if ( $this->is_premium() && $this->has_release_on_freemius() ) {
-                new FS_Plugin_Updater( $this );
+                FS_Plugin_Updater::instance( $this );
             }
 
             $this->do_action( 'initiated' );
@@ -19094,7 +19094,7 @@
             $this->_isAutoInstall = true;
 
             // Try to install and activate.
-            $updater = new FS_Plugin_Updater( $this );
+            $updater = FS_Plugin_Updater::instance( $this );
             $result  = $updater->install_and_activate_plugin( $plugin_id );
 
             if ( is_array( $result ) && ! empty( $result['message'] ) ) {
