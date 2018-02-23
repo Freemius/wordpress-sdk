@@ -10938,10 +10938,11 @@
 		 * @param bool|number $plugin_id
 		 * @param bool        $flush      Since 1.1.7.3
 		 * @param int         $expiration Since 1.2.2.7
+		 * @param bool        $set_transient_data 2.0.0
 		 *
 		 * @return bool|FS_Plugin_Tag
 		 */
-		function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+		function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $set_transient_data = false ) {
 			$this->_logger->entrance();
 
 			if ( ! is_numeric( $plugin_id ) ) {
@@ -10951,7 +10952,32 @@
 			$this->check_updates( true, $plugin_id, $flush, $expiration );
 			$updates = $this->get_all_updates();
 
-			return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
+			$new_version = false;
+			if ( isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ) {
+                $new_version = $updates[ $plugin_id ];
+
+                if ( $set_transient_data ) {
+                    $transient_name ="update_{$this->_module_type}s";
+                    $site_transient = get_site_transient( $transient_name );
+
+                    $plugin_details                          = new stdClass();
+                    $plugin_details->slug                    = $this->_slug;
+                    $plugin_details->new_version             = $new_version->version;
+                    $plugin_details->url                     = WP_FS__ADDRESS;
+                    $plugin_details->package                 = $new_version->url;
+                    $plugin_details->{ $this->_module_type } = $this->_plugin_basename;
+
+                    if ( $this->is_plugin() ) {
+                        $site_transient->response[ $this->get_plugin_basename() ] = $plugin_details;
+                    } else {
+                        $site_transient->response[ $plugin_details->theme ] = (array) $plugin_details;
+                    }
+
+                    set_site_transient( $transient_name, $site_transient );
+                }
+            }
+
+            return $new_version;
 		}
 
 		/**
