@@ -12,9 +12,6 @@
 		exit;
 	}
 
-	// Uncomment this line for testing.
-//	set_site_transient( 'update_plugins', null );
-
 	class FS_Plugin_Updater {
 
 		/**

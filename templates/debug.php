@@ -72,6 +72,14 @@
             </form>
         </td>
         <td>
+            <!-- Clear Updates Transients -->
+            <form action="" method="POST">
+                <input type="hidden" name="fs_action" value="clear_updates_data">
+                <?php wp_nonce_field( 'clear_updates_data' ) ?>
+                <button class="button"><?php fs_esc_html_echo_inline( 'Clear Updates Transients' ) ?></button>
+            </form>
+        </td>
+        <td>
             <!-- Sync Data with Server -->
             <form action="" method="POST">
                 <input type="hidden" name="background_sync" value="true">

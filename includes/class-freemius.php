@@ -2805,6 +2805,25 @@
 
                 // Clear SDK reference cache.
                 delete_option( 'fs_active_plugins' );
+            } else if ( fs_request_is_action( 'clear_updates_data' ) ) {
+                check_admin_referer( 'clear_updates_data' );
+
+                if ( ! is_multisite() ) {
+                    set_site_transient( 'update_plugins', null );
+                    set_site_transient( 'update_themes', null );
+                } else {
+                    $current_blog_id = get_current_blog_id();
+
+                    $sites = self::get_sites();
+                    foreach ( $sites as $site ) {
+                        switch_to_blog( self::get_site_blog_id( $site ) );
+
+                        set_site_transient( 'update_plugins', null );
+                        set_site_transient( 'update_themes', null );
+                    }
+
+                    switch_to_blog( $current_blog_id );
+                }
             } else if ( fs_request_is_action( 'simulate_trial' ) ) {
                 check_admin_referer( 'simulate_trial' );
 
