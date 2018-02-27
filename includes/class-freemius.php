@@ -5166,6 +5166,30 @@
         }
 
         /**
+         * Check if the user skipped the connection of a specified site.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param int $blog_id
+         *
+         * @return bool
+         */
+        function is_anonymous_site( $blog_id = 0 ) {
+            if ( $this->is_network_anonymous() ) {
+                return true;
+            }
+
+            $is_anonymous = $this->_storage->get( 'is_anonymous', false, $blog_id );
+
+            if ( empty( $is_anonymous ) ) {
+                return false;
+            }
+
+            return $is_anonymous['is'];
+        }
+
+        /**
          * Check if user connected his account and install pending email activation.
          *
          * @author Vova Feldman (@svovaf)
@@ -10337,7 +10361,9 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  1.1.9
+         *
+         * @since 1.1.9
+         * @since 2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
          */
         function _activate_license_ajax_action() {
             $this->_logger->entrance();
@@ -10358,16 +10384,19 @@
             $error     = false;
             $next_page = false;
 
-            if ( $fs->is_registered() ) {
-                $blog_id           = fs_request_get( 'blog_id' );
-                $has_valid_blog_id = is_numeric( $blog_id );
+            $sites = fs_is_network_admin() ?
+                fs_request_get( 'sites', array(), 'post' ) :
+                array();
 
+            $blog_id           = fs_request_get( 'blog_id' );
+            $has_valid_blog_id = is_numeric( $blog_id );
+
+            if ( $fs->is_registered() ) {
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
                     $site_ids           = array();
 
-                    $sites = fs_request_get( 'sites', array(), 'post' );
                     foreach ( $sites as $site ) {
                         if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
                             continue;
@@ -10449,11 +10478,66 @@
                     false,
                     false,
                     false,
-                    fs_request_get( 'sites', array(), 'post' )
+                    $sites
                 );
 
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
+                } else {
+                    if ( fs_is_network_admin() ) {
+                        /**
+                         * Get the list of sites that were just opted-in (and license activated).
+                         * This is an optimization for the next part below saving some DB queries.
+                         */
+                        $connected_sites = array();
+                        foreach ( $sites as $site ) {
+                            if ( isset( $site['blog_id'] ) && is_numeric( $site['blog_id'] ) ) {
+                                $connected_sites[ $site['blog_id'] ] = true;
+                            }
+                        }
+
+                        $all_sites     = self::get_sites();
+                        $pending_sites = array();
+
+                        /**
+                         * Check if there are any sites that are not connected, skipped, nor delegated. For every site that falls into that category, if the product is freemium, skip the connection. If the product is premium only, delegate the connection to the site administrator.
+                         *
+                         * @author Vova Feldman (@svovaf)
+                         */
+                        foreach ( $all_sites as $site ) {
+                            $blog_id = self::get_site_blog_id( $site );
+
+                            if ( isset( $connected_sites[ $blog_id ] ) ) {
+                                // Site was just connected.
+                                continue;
+                            }
+
+                            if ( $this->is_installed_on_site( $blog_id ) ) {
+                                // Site was already connected before.
+                                continue;
+                            }
+
+                            if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                                // Site's connection was delegated.
+                                continue;
+                            }
+
+                            if ( $this->is_anonymous_site( $blog_id ) ) {
+                                // Site connection was already skipped.
+                                continue;
+                            }
+
+                            $pending_sites[] = self::get_site_info( $site );
+                        }
+
+                        if ( ! empty( $pending_sites ) ) {
+                            if ( $this->is_freemium() ) {
+                                $this->skip_connection( $pending_sites );
+                            } else {
+                                $this->delegate_connection( $pending_sites );
+                            }
+                        }
+                    }
                 }
             }
 
