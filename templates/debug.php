@@ -341,6 +341,7 @@
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
                 <?php if ( $is_multisite ) : ?>
                     <th><?php fs_esc_html_echo_inline( 'Blog ID' ) ?></th>
+                    <th><?php fs_esc_html_echo_inline( 'Address' ) ?></th>
                 <?php endif ?>
                 <th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
@@ -360,6 +361,7 @@
                         <td><?php echo $site->id ?></td>
                         <?php if ( $is_multisite ) : ?>
                             <td><?php echo $site->blog_id ?></td>
+                            <td><?php echo fs_strip_url_protocol( $site->url ) ?></td>
                         <?php endif ?>
                         <td><?php echo $slug ?></td>
                         <td><?php echo $site->user_id ?></td>
