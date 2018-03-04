@@ -764,7 +764,9 @@
 									<?php $annual_discount = ( $has_annual && $has_monthly ) ? $plan->pricing[0]->annual_discount_percentage() : 0 ?>
 									<?php if ( $annual_discount > 0 ) : ?>
 										<span
-											class="fs-annual-discount"><?php printf( fs_esc_html_x_inline( 'Save %s', 'as a discount of $5 or 10%', 'save-x', $api->slug ), $annual_discount . '%' ) ?></span>
+											class="fs-annual-discount"><?php printf(
+												/* translators: %s: Discount (e.g. discount of $5 or 10%) */
+												fs_esc_html_inline( 'Save %s', 'save-x', $api->slug ), $annual_discount . '%' ) ?></span>
 									<?php endif ?>
 									<ul class="fs-licenses">
 									</ul>
