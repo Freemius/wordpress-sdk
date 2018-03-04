@@ -166,7 +166,10 @@
                 // SiteGround staging.
                 fs_starts_with( $subdomain, 'staging' ) ||
                 // WPEngine staging.
-                fs_ends_with( $subdomain, '.staging.wpengine.com' )
+                fs_ends_with( $subdomain, '.staging.wpengine.com' ) ||
+                // Pantheon
+                ( fs_ends_with($subdomain, 'pantheonsite.io') &&
+                  (fs_starts_with($subdomain, 'test-') || fs_starts_with($subdomain, 'dev-')))
             );
         }
 
