@@ -161,18 +161,26 @@
 			// @deprecated
 			$this->_parent_type = 'page';
 
-			if ( ! $is_addon && isset( $menu ) ) {
-				$this->_default_submenu_items = array(
-					'contact'     => $this->get_bool_option( $menu, 'contact', true ),
-					'support'     => $this->get_bool_option( $menu, 'support', true ),
-                    'affiliation' => $this->get_bool_option( $menu, 'affiliation', true ),
-					'account'     => $this->get_bool_option( $menu, 'account', true ),
-					'pricing'     => $this->get_bool_option( $menu, 'pricing', true ),
-					'addons'      => $this->get_bool_option( $menu, 'addons', true ),
-				);
+			if ( isset( $menu ) ) {
+			    if ( ! $is_addon ) {
+                    $this->_default_submenu_items = array(
+                        'contact'     => $this->get_bool_option( $menu, 'contact', true ),
+                        'support'     => $this->get_bool_option( $menu, 'support', true ),
+                        'affiliation' => $this->get_bool_option( $menu, 'affiliation', true ),
+                        'account'     => $this->get_bool_option( $menu, 'account', true ),
+                        'pricing'     => $this->get_bool_option( $menu, 'pricing', true ),
+                        'addons'      => $this->get_bool_option( $menu, 'addons', true ),
+                    );
 
-				// @deprecated
-				$this->_type              = $this->get_option( $menu, 'type', 'page' );
+                    // @deprecated
+                    $this->_type = $this->get_option( $menu, 'type', 'page' );
+
+                    $this->_first_time_path = $this->get_option( $menu, 'first-path', false );
+                    if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
+                        $this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
+                    }
+                }
+
 				$this->_is_override_exact = $this->get_bool_option( $menu, 'override_exact' );
 
 				if ( isset( $menu['parent'] ) ) {
@@ -192,11 +200,6 @@
 //						'cpt',
 //						'page'
 //					) );
-				}
-
-				$this->_first_time_path = $this->get_option( $menu, 'first-path', false );
-				if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
-					$this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
 				}
 			}
 		}
