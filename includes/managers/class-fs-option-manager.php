@@ -1,224 +1,278 @@
 <?php
-	/**
-	 * @package     Freemius
-	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since       1.0.3
-	 */
+    /**
+     * @package     Freemius
+     * @copyright   Copyright (c) 2015, Freemius, Inc.
+     * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
+     * @since       1.0.3
+     */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+    if ( ! defined( 'ABSPATH' ) ) {
+        exit;
+    }
 
-	/**
-	 * 3-layer lazy options manager.
-	 *      layer 3: Memory
-	 *      layer 2: Cache (if there's any caching plugin and if WP_FS__DEBUG_SDK is FALSE)
-	 *      layer 1: Database (options table). All options stored as one option record in the DB to reduce number of DB
-	 *      queries.
-	 *
-	 * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to
-	 * explicitly call store().
-	 *
-	 * Class Freemius_Option_Manager
-	 */
-	class FS_Option_Manager {
-		/**
-		 * @var string
-		 */
-		private $_id;
-		/**
-		 * @var array
-		 */
-		private $_options;
-		/**
-		 * @var FS_Logger
-		 */
-		private $_logger;
+    /**
+     * 3-layer lazy options manager.
+     *      layer 3: Memory
+     *      layer 2: Cache (if there's any caching plugin and if WP_FS__DEBUG_SDK is FALSE)
+     *      layer 1: Database (options table). All options stored as one option record in the DB to reduce number of DB
+     *      queries.
+     *
+     * If load() is not explicitly called, starts as empty manager. Same thing about saving the data - you have to
+     * explicitly call store().
+     *
+     * Class Freemius_Option_Manager
+     */
+    class FS_Option_Manager {
+        /**
+         * @var string
+         */
+        private $_id;
+        /**
+         * @var array|object
+         */
+        private $_options;
+        /**
+         * @var FS_Logger
+         */
+        private $_logger;
 
-		/**
-		 * @var FS_Option_Manager[]
-		 */
-		private static $_MANAGERS = array();
+        /**
+         * @since 2.0.0
+         * @var int The ID of the blog that is associated with the current site level options.
+         */
+        private $_blog_id = 0;
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param string $id
-		 * @param bool   $load
-		 */
-		private function __construct( $id, $load = false ) {
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_opt_mngr_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+        /**
+         * @since 2.0.0
+         * @var bool
+         */
+        private $_is_network_storage;
 
-			$this->_logger->entrance();
-			$this->_logger->log( 'id = ' . $id );
+        /**
+         * @var array[string]FS_Option_Manager {
+         * @key   string
+         * @value FS_Option_Manager
+         * }
+         */
+        private static $_MANAGERS = array();
 
-			$this->_id = $id;
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param string   $id
+         * @param bool     $load
+         * @param bool|int $network_level_or_blog_id Since 2.0.0
+         */
+        private function __construct( $id, $load = false, $network_level_or_blog_id = false ) {
+            $id = strtolower( $id );
 
-			if ( $load ) {
-				$this->load();
-			}
-		}
+            $this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_opt_mngr_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param $id
-		 * @param $load
-		 *
-		 * @return FS_Option_Manager
-		 */
-		static function get_manager( $id, $load = false ) {
-			$id = strtolower( $id );
+            $this->_logger->entrance();
+            $this->_logger->log( 'id = ' . $id );
 
-			if ( ! isset( self::$_MANAGERS[ $id ] ) ) {
-				self::$_MANAGERS[ $id ] = new FS_Option_Manager( $id, $load );
-			} // If load required but not yet loaded, load.
-			else if ( $load && ! self::$_MANAGERS[ $id ]->is_loaded() ) {
-				self::$_MANAGERS[ $id ]->load();
-			}
+            $this->_id = $id;
 
-			return self::$_MANAGERS[ $id ];
-		}
+            if ( is_multisite() ) {
+                $this->_is_network_storage = ( true === $network_level_or_blog_id );
 
-		private function _get_option_manager_name() {
-//			return WP_FS__SLUG . '_' . $this->_id;
-			return $this->_id;
-		}
+                if ( is_numeric( $network_level_or_blog_id ) ) {
+                    $this->_blog_id = $network_level_or_blog_id;
+                }
+            } else {
+                $this->_is_network_storage = false;
+            }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param bool $flush
-		 */
-		function load( $flush = false ) {
-			$this->_logger->entrance();
+            if ( $load ) {
+                $this->load();
+            }
+        }
 
-			$option_name = $this->_get_option_manager_name();
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param string   $id
+         * @param bool     $load
+         * @param bool|int $network_level_or_blog_id Since 2.0.0
+         *
+         * @return FS_Option_Manager
+         */
+        static function get_manager( $id, $load = false, $network_level_or_blog_id = false ) {
+            $key = strtolower( $id );
 
-			if ( $flush || ! isset( $this->_options ) ) {
-				if ( isset( $this->_options ) ) {
-					// Clear prev options.
-					$this->clear();
-				}
+            if ( is_multisite() ) {
+                if ( true === $network_level_or_blog_id ) {
+                    $key .= ':ms';
+                } else if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
+                    $key .= ":{$network_level_or_blog_id}";
+                } else {
+                    $network_level_or_blog_id = get_current_blog_id();
 
-				if ( ! WP_FS__DEBUG_SDK ) {
-					$this->_options = wp_cache_get( $option_name, WP_FS__SLUG );
-				}
+                    $key .= ":{$network_level_or_blog_id}";
+                }
+            }
 
-//				$this->_logger->info('wp_cache_get = ' . var_export($this->_options, true));
+            if ( ! isset( self::$_MANAGERS[ $key ] ) ) {
+                self::$_MANAGERS[ $key ] = new FS_Option_Manager( $id, $load, $network_level_or_blog_id );
+            } // If load required but not yet loaded, load.
+            else if ( $load && ! self::$_MANAGERS[ $key ]->is_loaded() ) {
+                self::$_MANAGERS[ $key ]->load();
+            }
 
-//				if ( is_array( $this->_options ) ) {
-//					$this->clear();
-//				}
+            return self::$_MANAGERS[ $key ];
+        }
 
-				$cached = true;
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param bool $flush
+         */
+        function load( $flush = false ) {
+            $this->_logger->entrance();
 
-				if ( empty( $this->_options ) ) {
-					$this->_options = get_option( $option_name );
+            $option_name = $this->get_option_manager_name();
 
-					if ( is_string( $this->_options ) ) {
-						$this->_options = json_decode( $this->_options );
-					}
+            if ( $flush || ! isset( $this->_options ) ) {
+                if ( isset( $this->_options ) ) {
+                    // Clear prev options.
+                    $this->clear();
+                }
+
+                $cache_group = $this->get_cache_group();
+
+                if ( ! WP_FS__DEBUG_SDK ) {
+
+                    $this->_options = wp_cache_get(
+                        $option_name,
+                        $cache_group
+                    );
+                }
+
+                $cached = true;
+
+                if ( empty( $this->_options ) ) {
+                    if ( $this->_is_network_storage ) {
+                        $this->_options = get_site_option( $option_name );
+                    } else if ( $this->_blog_id > 0 ) {
+                        $this->_options = get_blog_option( $this->_blog_id, $option_name );
+                    } else {
+                        $this->_options = get_option( $option_name );
+                    }
+
+                    if ( is_string( $this->_options ) ) {
+                        $this->_options = json_decode( $this->_options );
+                    }
 
 //					$this->_logger->info('get_option = ' . var_export($this->_options, true));
 
-					if ( false === $this->_options ) {
-						$this->clear();
-					}
+                    if ( false === $this->_options ) {
+                        $this->clear();
+                    }
 
-					$cached = false;
-				}
+                    $cached = false;
+                }
 
-				if ( ! WP_FS__DEBUG_SDK && ! $cached ) // Set non encoded cache.
-				{
-					wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
-				}
-			}
-		}
+                if ( ! WP_FS__DEBUG_SDK && ! $cached ) {
+                    // Set non encoded cache.
+                    wp_cache_set( $option_name, $this->_options, $cache_group );
+                }
+            }
+        }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @return bool
-		 */
-		function is_loaded() {
-			return isset( $this->_options );
-		}
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @return bool
+         */
+        function is_loaded() {
+            return isset( $this->_options );
+        }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @return bool
-		 */
-		function is_empty() {
-			return ( $this->is_loaded() && false === $this->_options );
-		}
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @return bool
+         */
+        function is_empty() {
+            return ( $this->is_loaded() && false === $this->_options );
+        }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
-		 *
-		 * @param bool $flush
-		 */
-		function clear( $flush = false ) {
-			$this->_logger->entrance();
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.6
+         *
+         * @param bool $flush
+         */
+        function clear( $flush = false ) {
+            $this->_logger->entrance();
 
-			$this->_options = array();
+            $this->_options = array();
 
-			if ( $flush ) {
-				$this->store();
-			}
-		}
+            if ( $flush ) {
+                $this->store();
+            }
+        }
 
-		/**
-		 * Delete options manager from DB.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9
-		 */
-		function delete() {
-			delete_option( $this->_get_option_manager_name() );
-		}
+        /**
+         * Delete options manager from DB.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.9
+         */
+        function delete() {
+            $option_name = $this->get_option_manager_name();
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.6
-		 *
-		 * @param string $option
-		 *
-		 * @return bool
-		 */
-		function has_option( $option ) {
-			return array_key_exists( $option, $this->_options );
-		}
+            if ( $this->_is_network_storage ) {
+                delete_site_option( $option_name );
+            } else if ( $this->_blog_id > 0 ) {
+                delete_blog_option( $this->_blog_id, $option_name );
+            } else {
+                delete_option( $option_name );
+            }
+        }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param string $option
-		 * @param mixed  $default
-		 *
-		 * @return mixed
-		 */
-		function get_option( $option, $default = null ) {
-			$this->_logger->entrance( 'option = ' . $option );
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.6
+         *
+         * @param string $option
+         *
+         * @return bool
+         */
+        function has_option( $option ) {
+            return array_key_exists( $option, $this->_options );
+        }
 
-			if ( is_array( $this->_options ) ) {
-				$value = isset( $this->_options[ $option ] ) ?
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param string $option
+         * @param mixed  $default
+         *
+         * @return mixed
+         */
+        function get_option( $option, $default = null ) {
+            $this->_logger->entrance( 'option = ' . $option );
+
+            if ( ! $this->is_loaded() ) {
+                $this->load();
+            }
+
+            if ( is_array( $this->_options ) ) {
+                $value = isset( $this->_options[ $option ] ) ?
                     $this->_options[ $option ] :
                     $default;
-			} else if ( is_object( $this->_options ) ) {
+            } else if ( is_object( $this->_options ) ) {
                 $value = isset( $this->_options->{$option} ) ?
                     $this->_options->{$option} :
                     $default;
-			} else {
+            } else {
                 $value = $default;
             }
 
@@ -243,23 +297,23 @@
              *
              * @author Vova Feldman
              */
-			return is_object($value) ? clone $value : $value;
-		}
+            return is_object( $value ) ? clone $value : $value;
+        }
 
-		/**
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param string $option
-		 * @param mixed  $value
-		 * @param bool   $flush
-		 */
-		function set_option( $option, $value, $flush = false ) {
-			$this->_logger->entrance( 'option = ' . $option );
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param string $option
+         * @param mixed  $value
+         * @param bool   $flush
+         */
+        function set_option( $option, $value, $flush = false ) {
+            $this->_logger->entrance( 'option = ' . $option );
 
-			if ( ! $this->is_loaded() ) {
-				$this->clear();
-			}
+            if ( ! $this->is_loaded() ) {
+                $this->clear();
+            }
 
             /**
              * If it's an object, store a clone of the object, otherwise,
@@ -283,71 +337,154 @@
              *
              * @author Vova Feldman
              */
-            $copy = is_object($value) ? clone $value : $value;
+            $copy = is_object( $value ) ? clone $value : $value;
 
-			if ( is_array( $this->_options ) ) {
-				$this->_options[ $option ] = $copy;
-			} else if ( is_object( $this->_options ) ) {
-				$this->_options->{$option} = $copy;
-			}
+            if ( is_array( $this->_options ) ) {
+                $this->_options[ $option ] = $copy;
+            } else if ( is_object( $this->_options ) ) {
+                $this->_options->{$option} = $copy;
+            }
 
-			if ( $flush ) {
-				$this->store();
-			}
-		}
+            if ( $flush ) {
+                $this->store();
+            }
+        }
 
-		/**
-		 * Unset option.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 *
-		 * @param string $option
-		 * @param bool   $flush
-		 */
-		function unset_option( $option, $flush = false ) {
-			$this->_logger->entrance( 'option = ' . $option );
+        /**
+         * Unset option.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @param string $option
+         * @param bool   $flush
+         */
+        function unset_option( $option, $flush = false ) {
+            $this->_logger->entrance( 'option = ' . $option );
 
-			if ( is_array( $this->_options ) ) {
-				if ( ! isset( $this->_options[ $option ] ) ) {
-					return;
-				}
+            if ( is_array( $this->_options ) ) {
+                if ( ! isset( $this->_options[ $option ] ) ) {
+                    return;
+                }
 
-				unset( $this->_options[ $option ] );
+                unset( $this->_options[ $option ] );
 
-			} else if ( is_object( $this->_options ) ) {
-				if ( ! isset( $this->_options->{$option} ) ) {
-					return;
-				}
+            } else if ( is_object( $this->_options ) ) {
+                if ( ! isset( $this->_options->{$option} ) ) {
+                    return;
+                }
 
-				unset( $this->_options->{$option} );
-			}
+                unset( $this->_options->{$option} );
+            }
 
-			if ( $flush ) {
-				$this->store();
-			}
-		}
+            if ( $flush ) {
+                $this->store();
+            }
+        }
 
-		/**
-		 * Dump options to database.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.3
-		 */
-		function store() {
-			$this->_logger->entrance();
+        /**
+         * Dump options to database.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         */
+        function store() {
+            $this->_logger->entrance();
 
-			$option_name = $this->_get_option_manager_name();
+            $option_name = $this->get_option_manager_name();
 
-			if ( $this->_logger->is_on() ) {
-				$this->_logger->info( $option_name . ' = ' . var_export( $this->_options, true ) );
-			}
+            if ( $this->_logger->is_on() ) {
+                $this->_logger->info( $option_name . ' = ' . var_export( $this->_options, true ) );
+            }
 
-			// Update DB.
-			update_option( $option_name, $this->_options );
+            // Update DB.
+            if ( $this->_is_network_storage ) {
+                update_site_option( $option_name, $this->_options );
+            } else if ( $this->_blog_id > 0 ) {
+                update_blog_option( $this->_blog_id, $option_name, $this->_options );
+            } else {
+                update_option( $option_name, $this->_options );
+            }
 
-			if ( ! WP_FS__DEBUG_SDK ) {
-				wp_cache_set( $option_name, $this->_options, WP_FS__SLUG );
-			}
-		}
-	}
+            if ( ! WP_FS__DEBUG_SDK ) {
+                wp_cache_set( $option_name, $this->_options, $this->get_cache_group() );
+            }
+        }
+
+        /**
+         * Get options keys.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.3
+         *
+         * @return string[]
+         */
+        function get_options_keys() {
+            if ( is_array( $this->_options ) ) {
+                return array_keys( $this->_options );
+            } else if ( is_object( $this->_options ) ) {
+                return array_keys( get_object_vars( $this->_options ) );
+            }
+
+            return array();
+        }
+
+        #--------------------------------------------------------------------------------
+        #region Migration
+        #--------------------------------------------------------------------------------
+
+        /**
+         * Migrate options from site level.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function migrate_to_network() {
+            $site_options = FS_Option_Manager::get_manager($this->_id, true, false);
+
+            $options = is_object( $site_options->_options ) ?
+                get_object_vars( $site_options->_options ) :
+                $site_options->_options;
+
+            if ( ! empty( $options ) ) {
+                foreach ( $options as $key => $val ) {
+                    $this->set_option( $key, $val, false );
+                }
+
+                $this->store();
+            }
+        }
+
+        #endregion
+
+        #--------------------------------------------------------------------------------
+        #region Helper Methods
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @return string
+         */
+        private function get_option_manager_name() {
+            return $this->_id;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+        private function get_cache_group() {
+            $group = WP_FS__SLUG;
+
+            if ( $this->_is_network_storage ) {
+                $group .= '_ms';
+            } else if ( $this->_blog_id > 0 ) {
+                $group .= "_s{$this->_blog_id}";
+            }
+
+            return $group;
+        }
+
+        #endregion
+    }

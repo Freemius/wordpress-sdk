@@ -11,7 +11,7 @@
 	}
 
 	/**
-	 * Find the plugin main file path based on any give file inside the plugin's folder.
+	 * Find the plugin main file path based on any given file inside the plugin's folder.
 	 *
 	 * @author Vova Feldman (@svovaf)
 	 * @since  1.1.7.1
