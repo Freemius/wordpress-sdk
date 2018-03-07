@@ -1466,10 +1466,12 @@
                 array( &$this, '_submit_uninstall_reason_action' )
             );
 
-            if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
-                 ( $this->is_theme() && self::is_themes_page() )
-            ) {
-                add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+            if ( !$this->is_addon() || $this->is_parent_plugin_installed() ) {
+                if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
+                     ( $this->is_theme() && self::is_themes_page() )
+                ) {
+                    add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+                }
             }
         }
 
@@ -18567,9 +18569,9 @@
          */
         function _enqueue_common_css() {
             if ( $this->has_paid_plan() && ! $this->is_paying() ) {
-                // Add basic CSS for admin-notices and menu-item colors.
-                fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
-            }
+            // Add basic CSS for admin-notices and menu-item colors.
+            fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+        }
         }
 
         /**
