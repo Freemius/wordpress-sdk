@@ -9433,6 +9433,13 @@
 					array( &$this, '_connect_page_render' )
 				);
 			} else if ( $this->_menu->is_top_level() ) {
+                if ( $this->_menu->is_override_exact() ) {
+                    // Make sure the current page is matching the activation page.
+                    if ( ! $this->is_matching_url( $this->get_activation_url() ) ) {
+                        return;
+                    }
+                }
+
 				$hook = $this->_menu->override_menu_item( array( &$this, '_connect_page_render' ) );
 
 				if ( false === $hook ) {
