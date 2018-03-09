@@ -58,8 +58,8 @@
 			$file = '';
 			$line = '';
 			if ( headers_sent($file, $line) ) {
-				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notice_Manager' ) ) {
-					$notices = FS_Admin_Notice_Manager::instance( 'global' );
+				if ( WP_FS__DEBUG_SDK && class_exists( 'FS_Admin_Notices' ) ) {
+					$notices = FS_Admin_Notices::instance( 'global' );
 
 					$notices->add( "Freemius failed to redirect the page because the headers have been already sent from line <b><code>{$line}</code></b> in file <b><code>{$file}</code></b>. If it's unexpected, it usually happens due to invalid space and/or EOL character(s).", 'Oops...', 'error' );
 				}
@@ -171,6 +171,8 @@
 		 * @global       $fs_text, $fs_text_overrides
 		 */
 		function __fs( $key, $slug = 'freemius' ) {
+            _deprecated_function( __FUNCTION__, '2.0.0', 'fs_text()' );
+
 			global $fs_text,
 			       $fs_module_info_text,
 			       $fs_text_overrides;
@@ -220,31 +222,6 @@
 		 */
 		function _efs( $key, $slug = 'freemius' ) {
 			fs_echo( $key, $slug );
-		}
-	}
-
-	if ( ! function_exists( 'fs_override_i18n' ) ) {
-		/**
-		 * Override default i18n text phrases.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.6
-		 *
-		 * @param string[] $key_value
-		 * @param string   $slug
-		 *
-		 * @global         $fs_text_overrides
-		 */
-		function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
-			global $fs_text_overrides;
-
-			if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
-				$fs_text_overrides[ $slug ] = array();
-			}
-
-			foreach ( $key_value as $key => $value ) {
-				$fs_text_overrides[ $slug ][ $key ] = $value;
-			}
 		}
 	}
 
@@ -394,28 +371,58 @@
 	 * @global $fs_active_plugins
 	 */
 	function fs_newest_sdk_plugin_first() {
-		global $fs_active_plugins;
+        global $fs_active_plugins;
 
-		/**
-		 * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
-		 *
-		 * @link https://github.com/Freemius/wordpress-sdk/issues/26
-		 */
-//		$active_sitewide_plugins = get_site_option( 'active_sitewide_plugins' );
+        /**
+         * @todo Multi-site network activated plugin are always loaded prior to site plugins so if there's a a plugin activated in the network mode that has an older version of the SDK of another plugin which is site activated that has new SDK version, the fs-essential-functions.php will be loaded from the older SDK. Same thing about MU plugins (loaded even before network activated plugins).
+         *
+         * @link https://github.com/Freemius/wordpress-sdk/issues/26
+         */
 
-		$active_plugins        = get_option( 'active_plugins' );
-		$newest_sdk_plugin_key = array_search( $fs_active_plugins->newest->plugin_path, $active_plugins );
-		if ( 0 == $newest_sdk_plugin_key ) {
-			// if it's 0 it's the first plugin already, no need to continue
-			return false;
-		}
+        $newest_sdk_plugin_path = $fs_active_plugins->newest->plugin_path;
 
-		array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
-		array_unshift( $active_plugins, $fs_active_plugins->newest->plugin_path );
-		update_option( 'active_plugins', $active_plugins );
+        $active_plugins        = get_option( 'active_plugins', array() );
+        $newest_sdk_plugin_key = array_search( $newest_sdk_plugin_path, $active_plugins );
+        if ( 0 === $newest_sdk_plugin_key ) {
+            // if it's 0 it's the first plugin already, no need to continue
+            return false;
+        } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+            // Remove plugin from its current position.
+            array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
 
-		return true;
-	}
+            // Set it to be included first.
+            array_unshift( $active_plugins, $newest_sdk_plugin_path );
+
+            update_option( 'active_plugins', $active_plugins );
+
+            return true;
+        } else if ( is_multisite() && false === $newest_sdk_plugin_key ) {
+            // Plugin is network active.
+            $network_active_plugins = get_site_option( 'active_sitewide_plugins', array() );
+
+            if (isset($network_active_plugins[$newest_sdk_plugin_path])) {
+                reset($network_active_plugins);
+                if ( $newest_sdk_plugin_path === key($network_active_plugins) ) {
+                    // Plugin is already activated first on the network level.
+                    return false;
+                } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
+                    $time = $network_active_plugins[$newest_sdk_plugin_path];
+
+                    // Remove plugin from its current position.
+                    unset($network_active_plugins[$newest_sdk_plugin_path]);
+
+                    // Set it to be included first.
+                    $network_active_plugins = array($newest_sdk_plugin_path => $time) + $network_active_plugins;
+
+                    update_site_option( 'active_sitewide_plugins', $network_active_plugins );
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
 	/**
 	 * Go over all Freemius SDKs in the system and find and "remember"
@@ -468,30 +475,3 @@
 			fs_update_sdk_newest_version( $newest_sdk_path, $newest_sdk_data->plugin_path );
 		}
 	}
-
-	#region Actions / Filters -----------------------------------------
-
-	/**
-	 * Apply filter for specific plugin.
-	 *
-	 * @author Vova Feldman (@svovaf)
-	 * @since  1.0.9
-	 *
-	 * @param string $module_unique_affix Module's unique affix.
-	 * @param string $tag                 The name of the filter hook.
-	 * @param mixed  $value               The value on which the filters hooked to `$tag` are applied on.
-	 *
-	 * @return mixed The filtered value after all hooked functions are applied to it.
-	 *
-	 * @uses   apply_filters()
-	 */
-	function fs_apply_filter( $module_unique_affix, $tag, $value ) {
-		$args = func_get_args();
-
-		return call_user_func_array( 'apply_filters', array_merge(
-				array( "fs_{$tag}_{$module_unique_affix}" ),
-				array_slice( $args, 2 ) )
-		);
-	}
-
-	#endregion Actions / Filters -----------------------------------------
