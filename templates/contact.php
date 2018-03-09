@@ -43,6 +43,10 @@
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 	fs_enqueue_local_style( 'fs_checkout', '/admin/common.css' );
 
+	/**
+	 * @var array    $VARS
+	 * @var Freemius $fs
+	 */
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 

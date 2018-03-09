@@ -53,6 +53,30 @@ $form_width: 480px;
         }
     }
 
+    &.require-license-key {
+        #sites_list_container {
+            td {
+                cursor: pointer;
+            }
+        }
+    }
+
+    #delegate_to_site_admins {
+        margin-right: 15px;
+        float: right;
+        height: 26px;
+        vertical-align: middle;
+        line-height: 37px;
+        font-weight: bold;
+        border-bottom: 1px dashed;
+        text-decoration: none;
+
+        &.rtl {
+            margin-left: 15px;
+            margin-right: 0;
+        }
+    }
+
     .fs-actions
     {
         padding:    10px 20px;
@@ -325,6 +349,9 @@ $form_width: 480px;
         }
     }
 }
+
+@import "multisite-options";
+@import "tooltip";
 
 .rtl
 {
