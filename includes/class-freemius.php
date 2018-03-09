@@ -3068,6 +3068,19 @@
 				// Check if Freemius is on for the current plugin.
 				// This MUST be executed after all the plugin variables has been loaded.
 				if ( ! $this->is_on() ) {
+
+					//Load add-on modals when Freemius is OFF
+					if ( $this->is_user_in_admin() ) {
+						if ( $this->is_plugin() && $this->has_addons() &&
+						     'plugin-information' === fs_request_get( 'tab', false ) &&
+						     $this->get_id() == fs_request_get( 'parent_plugin_id', false )
+						) {
+							require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
+
+							new FS_Plugin_Info_Dialog( $this );
+						}
+					}
+
 					return;
 				}
 			}
@@ -7602,6 +7615,10 @@
 		 */
 		function pricing_url( $billing_cycle = WP_FS__PERIOD_ANNUALLY, $is_trial = false ) {
 			$this->_logger->entrance();
+
+			if($this->is_addon() && $this->is_only_premium()) {
+				return $this->_parent->addon_url($this->_slug);
+			}
 
 			$params = array(
 				'billing_cycle' => $billing_cycle
@@ -13386,7 +13403,7 @@
 		function _add_license_action_link() {
 			$this->_logger->entrance();
 
-			if ( $this->is_free_plan() && $this->is_addon() ) {
+			if ( $this->is_free_plan() && !$this->is_only_premium() && $this->is_addon() ) {
 				return;
 			}
 
