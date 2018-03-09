@@ -14,3 +14,5 @@ languages/_freemius-en.mo
 languages/_freemius-en.po
 foobox-image-lightbox.png
 transifex-config.json
+npm-debug.log
+package-lock.json
