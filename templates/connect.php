@@ -271,7 +271,7 @@
 				</form>
 			<?php else : ?>
 				<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
-					<?php unset( $optin_params['sites']) ?>
+					<?php unset( $optin_params['sites']); ?>
 					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
