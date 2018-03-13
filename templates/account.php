@@ -700,7 +700,6 @@
 																		false,
 																		false,
 																		false,
-																		false,
 																		( $downgrade_confirmation_message . ' ' . $after_downgrade_message ),
 																		'POST'
 																	);
