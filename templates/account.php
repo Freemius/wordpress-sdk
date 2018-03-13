@@ -673,6 +673,7 @@
 																	'account',
 																	'deactivate_license',
 																	fs_text_inline( 'Deactivate License', 'deactivate-license', $slug ),
+																	'',
 																	array( 'plugin_id' => $addon_id ),
 																	false
 																);
@@ -694,6 +695,7 @@
 																		'account',
 																		'downgrade_account',
                                                                         $downgrade_text,
+                                                                        '',
 																		array( 'plugin_id' => $addon_id ),
 																		false,
 																		false,
@@ -709,6 +711,7 @@
 																	'account',
 																	'cancel_trial',
                                                                     $cancel_trial_text,
+                                                                    '',
 																	array( 'plugin_id' => $addon_id ),
 																	false,
 																	false,
@@ -720,13 +723,15 @@
 																$premium_license = $fs_addon->_get_available_premium_license();
 
 																if ( is_object( $premium_license ) ) {
-																	$site = $fs_addon->get_site();
+                                                                    $premium_plan = $fs_addon->_get_plan_by_id( $premium_license->plan_id );
+																	$site         = $fs_addon->get_site();
 
 																	$buttons[] = fs_ui_get_action_button(
 																		$fs->get_id(),
 																		'account',
 																		'activate_license',
-																		sprintf( $activate_plan_text, $fs_addon->get_plan_title(), ( $site->is_localhost() && $premium_license->is_free_localhost ) ? '[localhost]' : ( 1 < $premium_license->left() ? $premium_license->left() . ' left' : '' ) ),
+																		sprintf( $activate_plan_text, $premium_plan->title, ( $site->is_localhost() && $premium_license->is_free_localhost ) ? '[localhost]' : ( 1 < $premium_license->left() ? $premium_license->left() . ' left' : '' ) ),
+                                                                        '',
 																		array(
 																			'plugin_id'  => $addon_id,
 																			'license_id' => $premium_license->id,
@@ -736,14 +741,31 @@
 															}
 
 															if ( 0 == count( $buttons ) ) {
-																// Add sync license only if non of the other CTAs are visible.
+                                                                $fs_addon->_add_license_activation_dialog_box();
+
+                                                                $buttons[] = fs_ui_get_action_button(
+                                                                    $fs->get_id(),
+                                                                    'account',
+                                                                    'activate_license',
+                                                                    fs_esc_html_inline( 'Activate License', 'activate-license', $slug ),
+                                                                    'activate-license-trigger ' . $fs_addon->get_unique_affix(),
+                                                                    array(
+                                                                        'plugin_id'  => $addon_id,
+                                                                    ),
+                                                                    false,
+                                                                    true
+                                                                );
+
+                                                                // Add sync license only if non of the other CTAs are visible.
 																$buttons[] = fs_ui_get_action_button(
 																	$fs->get_id(),
 																	'account',
 																	$fs->get_unique_affix() . '_sync_license',
                                                                     $sync_license_text,
+                                                                    '',
 																	array( 'plugin_id' => $addon_id ),
-																	false
+																	false,
+                                                                    true
 																);
 
 															}
@@ -774,7 +796,7 @@
 														}
 
 														if ( $show_upgrade ) {
-															$buttons[] = sprintf( '<a href="%s" class="thickbox button button-primary" aria-label="%s" data-title="%s"><i class="dashicons dashicons-cart"></i> %s</a>',
+															$buttons[] = sprintf( '<a href="%s" class="thickbox button button-small button-primary" aria-label="%s" data-title="%s"><i class="dashicons dashicons-cart"></i> %s</a>',
 																esc_url( network_admin_url( 'plugin-install.php?tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 																                            '&TB_iframe=true&width=600&height=550' ) ),
 																esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
@@ -831,8 +853,10 @@
 																		$fs->get_id(), 'account',
 																		'delete_account',
 																		fs_text_x_inline( 'Delete', 'verb', 'delete', $slug ),
+																		'',
 																		array( 'plugin_id' => $addon_id ),
-																		false
+																		false,
+                                                                        $show_upgrade
 																	);
 																}
 															?>
