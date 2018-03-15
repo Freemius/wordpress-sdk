@@ -14030,18 +14030,19 @@
                 return;
             }
 
-            // First of all, set site info - otherwise we won't
+            // Get user information based on parent's plugin.
+            $user = $parent_fs->get_user();
+
+            // First of all, set site and user info - otherwise we won't
             // be able to invoke API calls.
             $this->_site = new FS_Site( $addon_install );
+            $this->_user = $user;
 
             // Sync add-on plans.
             $this->_sync_plans();
 
             // Get site's current plan.
             //$this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
-
-            // Get user information based on parent's plugin.
-            $user = $parent_fs->get_user();
 
             $this->_set_account( $user, $this->_site );
 
