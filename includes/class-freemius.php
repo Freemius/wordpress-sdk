@@ -3938,11 +3938,11 @@
                 new FS_Plugin_Info_Dialog( $this );
             }
 
-                // Check if Freemius is on for the current plugin.
-                // This MUST be executed after all the plugin variables has been loaded.
+            // Check if Freemius is on for the current plugin.
+            // This MUST be executed after all the plugin variables has been loaded.
             if ( ! $this->is_registered() && ! $this->is_on() ) {
-                    return;
-                }
+                return;
+            }
 
             if ( $this->has_api_connectivity() ) {
                 if ( self::is_cron() ) {
@@ -18728,10 +18728,6 @@
          */
         function _add_license_action_link() {
             $this->_logger->entrance();
-
-            if ( $this->is_free_plan() && $this->is_addon() ) {
-                return;
-            }
 
             if ( ! self::is_ajax() ) {
                 // Inject license activation dialog UI and client side code.
