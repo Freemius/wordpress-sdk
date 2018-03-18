@@ -3918,13 +3918,31 @@
                         }
                     }
                 }
+            }
+
+            /**
+             * This should be executed even if Freemius is off for the core module,
+             * otherwise, the add-ons dialogbox won't work properly. This is esepcially
+             * relevant when the developer decided to turn FS off for existing users.
+             *
+             * @author Vova Feldman (@svovaf)
+             */
+            if ( $this->is_user_in_admin() &&
+                 ! $this->is_addon() &&
+                 $this->has_addons() &&
+                 'plugin-information' === fs_request_get( 'tab', false ) &&
+                 $this->get_id() == fs_request_get( 'parent_plugin_id', false )
+            ) {
+                require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
+
+                new FS_Plugin_Info_Dialog( $this );
+            }
 
                 // Check if Freemius is on for the current plugin.
                 // This MUST be executed after all the plugin variables has been loaded.
-                if ( ! $this->is_on() ) {
+            if ( ! $this->is_registered() && ! $this->is_on() ) {
                     return;
                 }
-            }
 
             if ( $this->has_api_connectivity() ) {
                 if ( self::is_cron() ) {
@@ -4007,15 +4025,6 @@
                         }
 
 //						$this->deactivate_premium_only_addon_without_license();
-                    }
-                } else {
-                    if ( $this->has_addons() &&
-                         'plugin-information' === fs_request_get( 'tab', false ) &&
-                         $this->get_id() == fs_request_get( 'parent_plugin_id', false )
-                    ) {
-                        require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
-
-                        new FS_Plugin_Info_Dialog( $this );
                     }
                 }
 
