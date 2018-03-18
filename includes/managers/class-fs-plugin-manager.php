@@ -68,14 +68,14 @@
 		}
 
 		protected function get_option_manager() {
-			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
+			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true, true );
 		}
 
 		/**
 		 * @author Leo Fajardo (@leorw)
 		 * @since  1.2.2
 		 *
-		 * @param  string|false $module_type "plugin", "theme", or "false" for all modules.
+		 * @param  string|bool $module_type "plugin", "theme", or "false" for all modules.
 		 *
 		 * @return array
 		 */

@@ -275,8 +275,10 @@
      * @param string      $page
      * @param string      $action
      * @param string      $title
+     * @param string      $button_class
      * @param array       $params
      * @param bool        $is_primary
+     * @param bool        $is_small
      * @param string|bool $icon_class   Optional class for an icon (since 1.1.7).
      * @param string|bool $confirmation Optional confirmation message before submit (since 1.1.7).
      * @param string      $method       Since 1.1.7
@@ -288,8 +290,10 @@
         $page,
         $action,
         $title,
+        $button_class = '',
         $params = array(),
         $is_primary = true,
+        $is_small = false,
         $icon_class = false,
         $confirmation = false,
         $method = 'GET'
@@ -299,8 +303,10 @@
             $page,
             $action,
             $title,
+            $button_class,
             $params,
             $is_primary,
+            $is_small,
             $icon_class,
             $confirmation,
             $method
@@ -315,8 +321,10 @@
      * @param string      $page
      * @param string      $action
      * @param string      $title
+     * @param string      $button_class
      * @param array       $params
      * @param bool        $is_primary
+     * @param bool        $is_small
      * @param string|bool $icon_class   Optional class for an icon.
      * @param string|bool $confirmation Optional confirmation message before submit.
      * @param string      $method
@@ -328,8 +336,10 @@
         $page,
         $action,
         $title,
+        $button_class = '',
         $params = array(),
         $is_primary = true,
+        $is_small = false,
         $icon_class = false,
         $confirmation = false,
         $method = 'GET'
@@ -343,7 +353,7 @@
                 $method,
                 $action,
                 wp_nonce_field( $action, '_wpnonce', true, false ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( ! empty( $button_class ) ? ' ' . $button_class : '' ) . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $confirmation,
                 $title
             );
@@ -353,13 +363,13 @@
                 $method,
                 $action,
                 wp_nonce_field( $action, '_wpnonce', true, false ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( ! empty( $button_class ) ? ' ' . $button_class : '' ) . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $title
             );
         } else {
             return sprintf( '<a href="%s" class="%s">%s</a></form>',
                 wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ),
-                'button' . ( $is_primary ? ' button-primary' : '' ),
+                'button' . ( ! empty( $button_class ) ? ' ' . $button_class : '' ) . ( $is_primary ? ' button-primary' : '' ) . ( $is_small ? ' button-small' : '' ),
                 $title
             );
         }
@@ -431,6 +441,42 @@
             $length = strlen( $needle );
 
             return ( substr( $haystack, 0, $length ) === $needle );
+        }
+    }
+
+    if ( ! function_exists( 'fs_ends_with' ) ) {
+        /**
+         * Check if string ends with.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $haystack
+         * @param string $needle
+         *
+         * @return bool
+         */
+        function fs_ends_with( $haystack, $needle ) {
+            $length = strlen( $needle );
+            $start  = $length * - 1; // negative
+
+            return ( substr( $haystack, $start ) === $needle );
+        }
+    }
+
+    if ( ! function_exists( 'fs_strip_url_protocol' ) ) {
+        function fs_strip_url_protocol( $url ) {
+            if ( ! fs_starts_with( $url, 'http' ) ) {
+                return $url;
+            }
+
+            $protocol_pos = strpos( $url, '://' );
+
+            if ( $protocol_pos > 5 ) {
+                return $url;
+            }
+
+            return substr( $url, $protocol_pos + 3 );
         }
     }
 
@@ -629,7 +675,38 @@
          * @global       $fs_text , $fs_text_overrides
          */
         function fs_text( $key, $slug = 'freemius' ) {
-            return __fs( $key, $slug );
+            global $fs_text,
+                   $fs_module_info_text,
+                   $fs_text_overrides;
+
+            if ( isset( $fs_text_overrides[ $slug ] ) ) {
+                if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $key ];
+                }
+
+                $lower_key = strtolower( $key );
+                if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+                    return $fs_text_overrides[ $slug ][ $lower_key ];
+                }
+            }
+
+            if ( ! isset( $fs_text ) ) {
+                $dir = defined( 'WP_FS__DIR_INCLUDES' ) ?
+                    WP_FS__DIR_INCLUDES :
+                    dirname( __FILE__ );
+
+                require_once $dir . '/i18n.php';
+            }
+
+            if ( isset( $fs_text[ $key ] ) ) {
+                return $fs_text[ $key ];
+            }
+
+            if ( isset( $fs_module_info_text[ $key ] ) ) {
+                return $fs_module_info_text[ $key ];
+            }
+
+            return $key;
         }
 
         /**
@@ -1115,4 +1192,107 @@
         }
     }
 
-#endregion
+    if ( ! function_exists( 'fs_override_i18n' ) ) {
+        /**
+         * Override default i18n text phrases.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.1.6
+         *
+         * @param array[string]string $key_value
+         * @param string              $slug
+         *
+         * @global $fs_text_overrides
+         */
+        function fs_override_i18n( array $key_value, $slug = 'freemius' ) {
+            global $fs_text_overrides;
+
+            if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+                $fs_text_overrides[ $slug ] = array();
+            }
+
+            foreach ( $key_value as $key => $value ) {
+                $fs_text_overrides[ $slug ][ $key ] = $value;
+            }
+        }
+    }
+
+    #endregion
+
+    #--------------------------------------------------------------------------------
+    #region Multisite Network
+    #--------------------------------------------------------------------------------
+
+    if ( ! function_exists( 'fs_is_plugin_uninstall' ) ) {
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_plugin_uninstall() {
+            return (
+                defined( 'WP_UNINSTALL_PLUGIN' ) ||
+                ( 0 < did_action( 'update_option_uninstall_plugins' ) )
+            );
+        }
+    }
+
+    if ( ! function_exists( 'fs_is_network_admin' ) ) {
+        /**
+         * Unlike is_network_admin(), this one will also work properly when
+         * the context execution is WP AJAX handler, and during plugin
+         * uninstall.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_network_admin() {
+            return (
+                WP_FS__IS_NETWORK_ADMIN ||
+                ( is_multisite() && fs_is_plugin_uninstall() )
+            );
+        }
+    }
+
+    if ( ! function_exists( 'fs_is_blog_admin' ) ) {
+        /**
+         * Unlike is_blog_admin(), this one will also work properly when
+         * the context execution is WP AJAX handler, and during plugin
+         * uninstall.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         */
+        function fs_is_blog_admin() {
+            return (
+                WP_FS__IS_BLOG_ADMIN ||
+                ( ! is_multisite() && fs_is_plugin_uninstall() )
+            );
+        }
+    }
+
+    #endregion
+
+    if ( ! function_exists( 'fs_apply_filter' ) ) {
+        /**
+         * Apply filter for specific plugin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.9
+         *
+         * @param string $module_unique_affix Module's unique affix.
+         * @param string $tag                 The name of the filter hook.
+         * @param mixed  $value               The value on which the filters hooked to `$tag` are applied on.
+         *
+         * @return mixed The filtered value after all hooked functions are applied to it.
+         *
+         * @uses   apply_filters()
+         */
+        function fs_apply_filter( $module_unique_affix, $tag, $value ) {
+            $args = func_get_args();
+
+            return call_user_func_array( 'apply_filters', array_merge(
+                    array( "fs_{$tag}_{$module_unique_affix}" ),
+                    array_slice( $args, 2 ) )
+            );
+        }
+    }

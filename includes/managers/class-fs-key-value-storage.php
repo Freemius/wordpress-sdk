@@ -46,21 +46,36 @@
 		 * @var string
 		 */
 		protected $_id;
+
 		/**
 		 * @since 1.2.2
 		 *
 		 * @var string
 		 */
 		protected $_secondary_id;
+
+        /**
+         * @since 2.0.0
+         * @var int The ID of the blog that is associated with the current site level options.
+         */
+        private $_blog_id = 0;
+
+        /**
+         * @since 2.0.0
+         * @var bool
+         */
+        private $_is_multisite_storage;
+
 		/**
 		 * @var array
 		 */
 		protected $_data;
 
 		/**
-		 * @var FS_Plugin_Manager[]
+		 * @var FS_Key_Value_Storage[]
 		 */
 		private static $_instances = array();
+
 		/**
 		 * @var FS_Logger
 		 */
@@ -69,29 +84,60 @@
 		/**
 		 * @param string $id
 		 * @param string $secondary_id
+		 * @param bool   $network_level_or_blog_id
 		 *
 		 * @return FS_Key_Value_Storage
 		 */
-		static function instance( $id, $secondary_id ) {
-			$key = $id . ':' . $secondary_id;
+		static function instance( $id, $secondary_id, $network_level_or_blog_id = false ) {
+            $key = $id . ':' . $secondary_id;
+
+            if ( is_multisite() ) {
+                if ( true === $network_level_or_blog_id ) {
+                    $key .= ':ms';
+                } else if ( is_numeric( $network_level_or_blog_id ) && $network_level_or_blog_id > 0 ) {
+                    $key .= ":{$network_level_or_blog_id}";
+                } else {
+                    $network_level_or_blog_id = get_current_blog_id();
+
+                    $key .= ":{$network_level_or_blog_id}";
+                }
+            }
+
 			if ( ! isset( self::$_instances[ $key ] ) ) {
-				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id );
+				self::$_instances[ $key ] = new FS_Key_Value_Storage( $id, $secondary_id, $network_level_or_blog_id );
 			}
 
 			return self::$_instances[ $key ];
 		}
 
-		protected function __construct( $id, $secondary_id ) {
+		protected function __construct( $id, $secondary_id, $network_level_or_blog_id = false ) {
 			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $secondary_id . '_' . $id, WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-			$this->_secondary_id = $secondary_id;
-			$this->_id   	     = $id;
+            $this->_id                   = $id;
+            $this->_secondary_id         = $secondary_id;
+
+            if ( is_multisite() ) {
+                $this->_is_multisite_storage = ( true === $network_level_or_blog_id );
+
+                if ( is_numeric( $network_level_or_blog_id ) ) {
+                    $this->_blog_id = $network_level_or_blog_id;
+                }
+            } else {
+                $this->_is_multisite_storage = false;
+            }
+
 			$this->load();
 		}
 
 		protected function get_option_manager() {
-			return FS_Option_Manager::get_manager( WP_FS__ACCOUNTS_OPTION_NAME, true );
-		}
+            return FS_Option_Manager::get_manager(
+                WP_FS__ACCOUNTS_OPTION_NAME,
+                true,
+                $this->_is_multisite_storage ?
+                    true :
+                    ( $this->_blog_id > 0 ? $this->_blog_id : false )
+            );
+        }
 
 		protected function get_all_data() {
 			return $this->get_option_manager()->get_option( $this->_id, array() );
@@ -137,6 +183,14 @@
 			$options_manager = $this->get_option_manager();
 			$options_manager->set_option( $this->_id, $all_data, $flush );
 		}
+
+        /**
+         * @author   Vova Feldman (@svovaf)
+         * @since    2.0.0
+         */
+        function save() {
+            $this->get_option_manager()->store();
+        }
 
 		/**
 		 * @author   Vova Feldman (@svovaf)
@@ -214,6 +268,16 @@
 				$this->_data[ $key ] :
 				$default;
 		}
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @return string
+         */
+		function get_secondary_id() {
+            return $this->_secondary_id;
+        }
 
 
 		/* ArrayAccess + Magic Access (better for refactoring)
