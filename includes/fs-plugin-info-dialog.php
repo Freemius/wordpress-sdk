@@ -279,7 +279,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-		 * @since  1.1.7
+         * @since  2.0.0
          *
          * @param FS_Plugin_Plan $plan
          * @param FS_Pricing     $pricing
@@ -304,14 +304,19 @@
          * @since  1.1.7
          *
          * @param object         $api
-		 * @param FS_Plugin_Plan|null $plan
+         * @param FS_Plugin_Plan $plan
          *
          * @return string
          */
-		private function get_plugin_cta( $api, $plan = null ) {
-			if ( ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) ) {
+        private function get_checkout_cta( $api, $plan = null ) {
+            if ( empty( $api->checkout_link ) ||
+                 ! isset( $api->plans ) ||
+                 ! is_array( $api->plans ) ||
+                 0 == count( $api->plans )
+            ) {
+                return '';
+            }
 
-				if ( ! empty( $api->checkout_link ) && isset( $api->plans ) && 0 < is_array( $api->plans ) ) {
             if ( is_null( $plan ) ) {
                 foreach ( $api->plans as $p ) {
                     if ( ! empty( $p->pricing ) ) {
@@ -321,7 +326,7 @@
                 }
             }
 
-					return ' <a class="button button-primary right" href="' . $this->_fs->addon_checkout_url(
+            return '<a class="button button-primary fs-checkout-button right" href="' . $this->_fs->addon_checkout_url(
                 $plan->plugin_id,
                 $plan->pricing[0]->id,
                 $this->get_billing_cycle( $plan ),
@@ -336,49 +341,137 @@
                        )
                    ) .
                    '</a>';
+        }
 
-					// @todo Add Cart concept.
-//			echo ' <a class="button right" href="' . $status['url'] . '" target="_parent">' . __( 'Add to Cart' ) . '</a>';
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param object $api
+         * @param bool   $is_primary
+         *
+         * @return string
+         */
+        private function get_download_cta( $api, $is_primary = true ) {
+            if ( empty( $api->download_link ) ) {
+                return '';
+            }
 
-				} else if ( ! empty( $api->download_link ) ) {
             $status = install_plugin_install_status( $api );
+
+            $has_paid_version = $api->has_paid_plan;
 
             // Hosted on WordPress.org.
             switch ( $status['status'] ) {
                 case 'install':
-							if ( $api->external &&
-							     $this->_fs->is_org_repo_compliant() ||
-							     ! $this->_fs->is_premium()
+                    if ( $api->is_wp_org_compliant ||
+                         ! $this->_fs->is_org_repo_compliant() ||
+                         $this->_fs->is_premium()
                     ) {
                         /**
-								 * Add-on hosted on Freemius, not yet installed, and core
-								 * plugin is wordpress.org compliant. Therefore, require a download
-								 * since installing external plugins is not allowed by the wp.org guidelines.
+                         * Allow immediate installation if one of the following:
+                         *  1. WordPress.org add-on.
+                         *  2. The core module is NOT wp.org compliant.
+                         *  3. The core module is running the premium version which is not wp.org compliant.
                          */
-								return ' <a class="button button-primary right" href="' . esc_url( $api->download_link ) . '" target="_blank">' . fs_esc_html_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $api->slug ) . '</a>';
-							} else {
                         if ( $status['url'] ) {
-									return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) . '</a>';
+                            return $this->get_cta(
+                                ( $has_paid_version ?
+                                    fs_esc_html_inline( 'Install Free Version Now', 'install-free-version-now', $api->slug ) :
+                                    fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) ),
+                                $is_primary,
+                                false,
+                                $status['url'],
+                                '_parent'
+                            );
                         }
                     }
+
+                    return $this->get_cta(
+                        ( $has_paid_version ?
+                            fs_esc_html_x_inline( 'Download Latest Free Version', 'as download latest version', 'download-latest-free-version', $api->slug ) :
+                            fs_esc_html_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $api->slug ) ),
+                        $is_primary,
+                        false,
+                        esc_url( $api->download_link )
+                    );
                     break;
                 case 'update_available':
                     if ( $status['url'] ) {
-								return '<a class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . fs_text_inline( 'Install Update Now', 'install-update-now', $api->slug ) . '</a>';
+                        return $this->get_cta(
+                            ( $has_paid_version ?
+                                fs_esc_html_inline( 'Install Free Version Update Now', 'install-free-version-update-now', $api->slug ) :
+                                fs_esc_html_inline( 'Install Update Now', 'install-update-now', $api->slug ) ),
+                            $is_primary,
+                            false,
+                            $status['url'],
+                            '_parent'
+                        );
                     }
                     break;
                 case 'newer_installed':
-							return '<a class="button button-primary right disabled">' . sprintf( fs_text_inline( 'Newer Version (%s) Installed', 'newer-installed', $api->slug ), $status['version'] ) . '</a>';
+                    return $this->get_cta(
+                        ( $has_paid_version ?
+                            esc_html( sprintf( fs_text_inline( 'Newer Free Version (%s) Installed', 'newer-free-installed', $api->slug ), $status['version'] ) ) :
+                            esc_html( sprintf( fs_text_inline( 'Newer Version (%s) Installed', 'newer-installed', $api->slug ), $status['version'] ) ) ),
+                        $is_primary,
+                        true
+                    );
                     break;
                 case 'latest_installed':
-							return '<a class="button button-primary right disabled">' . fs_text_inline( 'Latest Version Installed', 'latest-installed', $api->slug ) . '</a>';
+                    return $this->get_cta(
+                        ( $has_paid_version ?
+                            fs_esc_html_inline( 'Latest Free Version Installed', 'latest-free-installed', $api->slug ) :
+                            fs_esc_html_inline( 'Latest Version Installed', 'latest-installed', $api->slug ) ),
+                        $is_primary,
+                        true
+                    );
                     break;
             }
 
+            return '';
         }
+
+        /**
+         * Helper method to get a CTA button HTML.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.0.0
+         *
+         * @param string $label
+         * @param bool   $is_primary
+         * @param bool   $is_disabled
+         * @param string $href
+         * @param string $target
+         *
+         * @return string
+         */
+        private function get_cta(
+            $label,
+            $is_primary = true,
+            $is_disabled = false,
+            $href = '',
+            $target = '_blank'
+        ) {
+            $classes = array();
+
+            if ( ! $is_primary ) {
+                $classes[] = 'left';
+            } else {
+                $classes[] = 'button-primary';
+                $classes[] = 'right';
             }
 
-			return '';
+            if ( $is_disabled ) {
+                $classes[] = 'disabled';
+            }
+
+            return sprintf(
+                '<a %s class="button %s">%s</a>',
+                empty( $href ) ? '' : 'href="' . $href . '" target="' . $target . '"',
+                implode( ' ', $classes ),
+                $label
+            );
         }
 
         /**
@@ -612,11 +705,12 @@
                                                 <a class="nav-tab" data-billing-cycle="<?php echo $cycle ?>"
                                                    data-pricing="<?php echo esc_attr( json_encode( $prices ) ) ?>">
                                                     <?php if ( $is_featured ) : ?>
-														<label>&#9733; <?php fs_esc_html_echo_x_inline( 'Best', 'e.g. the best product', 'best', $api->slug ) ?> &#9733;</label>
+                                                        <label>
+                                                            &#9733; <?php fs_esc_html_echo_x_inline( 'Best', 'e.g. the best product', 'best', $api->slug ) ?>
+                                                            &#9733;</label>
                                                     <?php endif ?>
                                                     <?php
-														switch ($cycle)
-														{
+                                                        switch ( $cycle ) {
                                                             case 'monthly':
                                                                 fs_esc_html_echo_x_inline( 'Monthly', 'as every month', 'monthly', $api->slug );
                                                                 break;
@@ -683,10 +777,12 @@
                                                     return '<?php echo esc_url_raw( remove_query_arg( 'billing_cycle', add_query_arg( array( 'plugin_id' => $plan->plugin_id ), $api->checkout_link ) ) ) ?>' +
                                                         '&plan_id=' + plan +
                                                         '&pricing_id=' + pricing +
-														'&billing_cycle=' + cycle<?php if ($plan->has_trial()) { echo " + '&trial=true'"; }?>;
+                                                        '&billing_cycle=' + cycle<?php if ( $plan->has_trial() ) {
+                                                        echo " + '&trial=true'";
+                                                    }?>;
                                                 },
                                                 _updateCtaUrl           = function (plan, pricing, cycle) {
-													$('.plugin-information-pricing .button, #plugin-information-footer .button').attr('href', _checkoutUrl(plan, pricing, cycle));
+                                                    $('.plugin-information-pricing .button, #plugin-information-footer .button.fs-checkout-button').attr('href', _checkoutUrl(plan, pricing, cycle));
                                                 };
 
                                             $(document).ready(function () {
@@ -773,7 +869,7 @@
                                     <?php endif ?>
                                     <ul class="fs-licenses">
                                     </ul>
-									<?php echo $this->get_plugin_cta( $api, $plan ) ?>
+                                    <?php echo $this->get_checkout_cta( $api, $plan, false ) ?>
                                     <div style="clear:both"></div>
                                     <?php if ( $plan->has_trial() ) : ?>
                                         <?php $trial_period = $this->get_trial_period( $plan ) ?>
@@ -796,19 +892,23 @@
                     <h3><?php fs_echo_inline( 'Details', 'details', $api->slug ) ?></h3>
                     <ul>
                         <?php if ( ! empty( $api->version ) ) { ?>
-							<li><strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>:</strong> <?php echo $api->version; ?></li>
+                            <li>
+                                <strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>
+                                    :</strong> <?php echo $api->version; ?></li>
                             <?php
                         }
                             if ( ! empty( $api->author ) ) {
                                 ?>
                                 <li>
-									<strong><?php fs_echo_x_inline( 'Author', 'as the plugin author', 'author', $api->slug ); ?>:</strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
+                                    <strong><?php fs_echo_x_inline( 'Author', 'as the plugin author', 'author', $api->slug ); ?>
+                                        :</strong> <?php echo links_add_target( $api->author, '_blank' ); ?>
                                 </li>
                                 <?php
                             }
                             if ( ! empty( $api->last_updated ) ) {
                                 ?>
-								<li><strong><?php fs_echo_inline( 'Last Updated', 'last-updated', $api->slug ); ?>:</strong> <span
+                                <li><strong><?php fs_echo_inline( 'Last Updated', 'last-updated', $api->slug ); ?>
+                                        :</strong> <span
                                         title="<?php echo $api->last_updated; ?>">
 				<?php echo esc_html( sprintf(
                 /* translators: %s: time period (e.g. "2 hours" ago) */
@@ -821,20 +921,24 @@
                             if ( ! empty( $api->requires ) ) {
                                 ?>
                                 <li>
-									<strong><?php fs_esc_html_echo_inline( 'Requires WordPress Version', 'requires-wordpress-version', $api->slug ) ?>:</strong> <?php echo esc_html( sprintf( fs_text_inline( '%s or higher', 'x-or-higher', $api->slug ), $api->requires ) ) ?>
+                                    <strong><?php fs_esc_html_echo_inline( 'Requires WordPress Version', 'requires-wordpress-version', $api->slug ) ?>
+                                        :</strong> <?php echo esc_html( sprintf( fs_text_inline( '%s or higher', 'x-or-higher', $api->slug ), $api->requires ) ) ?>
                                 </li>
                                 <?php
                             }
                             if ( ! empty( $api->tested ) ) {
                                 ?>
-								<li><strong><?php fs_esc_html_echo_inline( 'Compatible up to', 'compatible-up-to', $api->slug ); ?>:</strong> <?php echo $api->tested; ?>
+                                <li>
+                                    <strong><?php fs_esc_html_echo_inline( 'Compatible up to', 'compatible-up-to', $api->slug ); ?>
+                                        :</strong> <?php echo $api->tested; ?>
                                 </li>
                                 <?php
                             }
                             if ( ! empty( $api->downloaded ) ) {
                                 ?>
                                 <li>
-									<strong><?php fs_esc_html_echo_inline( 'Downloaded', 'downloaded', $api->slug ) ?>:</strong> <?php echo esc_html( sprintf(
+                                    <strong><?php fs_esc_html_echo_inline( 'Downloaded', 'downloaded', $api->slug ) ?>
+                                        :</strong> <?php echo esc_html( sprintf(
                                         ( ( 1 == $api->downloaded ) ?
                                             /* translators: %s: 1 or One (Number of times downloaded) */
                                             fs_text_inline( '%s time', 'x-time', $api->slug ) :
@@ -846,24 +950,27 @@
                                 </li>
                                 <?php
                             }
-							if ( ! empty( $api->slug ) && empty( $api->external ) ) {
+                            if ( ! empty( $api->slug ) && empty( $api->is_wp_org_compliant ) ) {
                                 ?>
                                 <li><a target="_blank"
-								       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?> &#187;</a>
+                                       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?>
+                                        &#187;</a>
                                 </li>
                                 <?php
                             }
                             if ( ! empty( $api->homepage ) ) {
                                 ?>
                                 <li><a target="_blank"
-								       href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?> &#187;</a>
+                                       href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?>
+                                        &#187;</a>
                                 </li>
                                 <?php
                             }
                             if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
                                 ?>
                                 <li><a target="_blank"
-								       href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?> &#187;</a>
+                                       href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
+                                        &#187;</a>
                                 </li>
                             <?php } ?>
                     </ul>
@@ -885,7 +992,8 @@
                                     fs_text_inline( '%s ratings', 'x-ratings', $api->slug )
                                 ),
                                 number_format_i18n( $api->num_ratings )
-							) ) ) ?>)</small>
+                            ) ) ) ?>)
+                    </small>
                     <?php
                 }
 
@@ -943,7 +1051,8 @@
                         </ul>
                         <?php if ( ! empty( $api->donate_link ) ) { ?>
                             <a target="_blank"
-							   href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?> &#187;</a>
+                               href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
+                                &#187;</a>
                         <?php } ?>
                     <?php } ?>
             </div>
@@ -964,8 +1073,8 @@
                 $display = ( $section_name === $section ) ? 'block' : 'none';
 
                 if ( 'description' === $section_name &&
-				     ( ( ! $api->external && $api->wp_org_missing ) ||
-				       ( $api->external && $api->fs_missing ) )
+                     ( ( $api->is_wp_org_compliant && $api->wp_org_missing ) ||
+                       ( ! $api->is_wp_org_compliant && $api->fs_missing ) )
                 ) {
                     $missing_notice = array(
                         'type'    => 'error',
@@ -985,7 +1094,13 @@
             echo "</div>\n"; // #plugin-information-scrollable
             echo "<div id='$tab-footer'>\n";
 
-			echo $this->get_plugin_cta( $api );
+            if ( ! empty( $api->checkout_link ) ) {
+                echo $this->get_checkout_cta( $api );
+            }
+
+            if ( ! empty( $api->download_link ) ) {
+                echo $this->get_download_cta( $api, empty( $api->checkout_link ) );
+            }
 
             echo "</div>\n";
 
