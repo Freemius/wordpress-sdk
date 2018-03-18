@@ -11130,6 +11130,10 @@
                 $params['trial'] = 'true';
             }
 
+            if ( $this->is_addon() ) {
+                return $this->_parent->addon_url( $this->_slug );
+            }
+
             return $this->_get_admin_page_url( 'pricing', $params );
         }
 
