@@ -303,6 +303,10 @@
 						FS.PostMessage.post('context', <?php echo json_encode( $install_data ) ?>, frame[0]);
 					});
 
+					FS.PostMessage.receiveOnce('purchaseCompleted', <?php echo $fs->apply_filters('checkout/purchaseCompleted', 'function (data) {
+						console.log("checkout", "purchaseCompleted");
+					}') ?>);
+
 					FS.PostMessage.receiveOnce('get_dimensions', function (data) {
 						console.debug('receiveOnce', 'get_dimensions');
 
