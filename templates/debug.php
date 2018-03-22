@@ -510,24 +510,18 @@
             </tr>
             </thead>
             <tbody>
-            <?php foreach ( $licenses as $slug => $module_licenses ) : ?>
-                <?php foreach ( $module_licenses as $id => $licenses ) : ?>
-                    <?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-                        <?php foreach ( $licenses as $license ) : ?>
-                            <tr>
-                                <td><?php echo $license->id ?></td>
-                                <td><?php echo $license->plugin_id ?></td>
-                                <td><?php echo $license->user_id ?></td>
-                                <td><?php echo $license->plan_id ?></td>
-                                <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
-                                <td><?php echo $license->activated ?></td>
-                                <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
-                                <td><?php echo esc_html( $license->secret_key ) ?></td>
-                                <td><?php echo $license->expiration ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                <?php endforeach ?>
+            <?php foreach ( $licenses as $license ) : ?>
+                <tr>
+                    <td><?php echo $license->id ?></td>
+                    <td><?php echo $license->plugin_id ?></td>
+                    <td><?php echo $license->user_id ?></td>
+                    <td><?php echo $license->plan_id ?></td>
+                    <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
+                    <td><?php echo $license->activated ?></td>
+                    <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+                    <td><?php echo esc_html( $license->secret_key ) ?></td>
+                    <td><?php echo $license->expiration ?></td>
+                </tr>
             <?php endforeach ?>
             </tbody>
         </table>
