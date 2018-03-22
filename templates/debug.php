@@ -394,7 +394,7 @@
                                 echo $plan_name;
                             ?></td>
                         <td><?php echo $site->public_key ?></td>
-                        <td><?php echo $site->secret_key ?></td>
+                        <td><?php echo esc_html( $site->secret_key ) ?></td>
                         <td>
                             <form action="" method="POST">
                                 <input type="hidden" name="fs_action" value="delete_install">
@@ -443,7 +443,7 @@
                     <td><?php echo $addon->slug ?></td>
                     <td><?php echo $addon->version ?></td>
                     <td><?php echo $addon->public_key ?></td>
-                    <td><?php echo $addon->secret_key ?></td>
+                    <td><?php echo esc_html( $addon->secret_key ) ?></td>
                 </tr>
             <?php endforeach ?>
         </tbody>
@@ -477,7 +477,7 @@
                 <td><a href="mailto:<?php echo esc_attr( $user->email ) ?>"><?php echo $user->email ?></a></td>
                 <td><?php echo json_encode( $user->is_verified ) ?></td>
                 <td><?php echo $user->public_key ?></td>
-                <td><?php echo $user->secret_key ?></td>
+                <td><?php echo esc_html( $user->secret_key ) ?></td>
                 <td>
                     <form action="" method="POST">
                         <input type="hidden" name="fs_action" value="delete_user">
@@ -510,24 +510,18 @@
             </tr>
             </thead>
             <tbody>
-            <?php foreach ( $licenses as $slug => $module_licenses ) : ?>
-                <?php foreach ( $module_licenses as $id => $licenses ) : ?>
-                    <?php if ( is_array( $licenses ) && 0 < count( $licenses ) ) : ?>
-                        <?php foreach ( $licenses as $license ) : ?>
-                            <tr>
-                                <td><?php echo $license->id ?></td>
-                                <td><?php echo $license->plugin_id ?></td>
-                                <td><?php echo $license->user_id ?></td>
-                                <td><?php echo $license->plan_id ?></td>
-                                <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
-                                <td><?php echo $license->activated ?></td>
-                                <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
-                                <td><?php echo htmlentities( $license->secret_key ) ?></td>
-                                <td><?php echo $license->expiration ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    <?php endif ?>
-                <?php endforeach ?>
+            <?php foreach ( $licenses as $license ) : ?>
+                <tr>
+                    <td><?php echo $license->id ?></td>
+                    <td><?php echo $license->plugin_id ?></td>
+                    <td><?php echo $license->user_id ?></td>
+                    <td><?php echo $license->plan_id ?></td>
+                    <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
+                    <td><?php echo $license->activated ?></td>
+                    <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+                    <td><?php echo esc_html( $license->secret_key ) ?></td>
+                    <td><?php echo $license->expiration ?></td>
+                </tr>
             <?php endforeach ?>
             </tbody>
         </table>

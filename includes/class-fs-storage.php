@@ -21,10 +21,9 @@
      */
     class FS_Storage {
         /**
-         * @var FS_Storage
+         * @var FS_Storage[]
          */
-        private static $_instance;
-
+        private static $_instances = array();
         /**
          * @var FS_Key_Value_Storage Site level storage.
          */
@@ -82,11 +81,13 @@
          * @return FS_Storage
          */
         static function instance( $module_type, $slug ) {
-            if ( ! isset( self::$_instance ) ) {
-                self::$_instance = new FS_Storage( $module_type, $slug );
+            $key = $module_type . ':' . $slug;
+
+            if ( ! isset( self::$_instances[ $key ] ) ) {
+                self::$_instances[ $key ] = new FS_Storage( $module_type, $slug );
             }
 
-            return self::$_instance;
+            return self::$_instances[ $key ];
         }
 
         /**

@@ -2919,14 +2919,16 @@
                 }
             }
 
+            $licenses_by_module_type = self::get_all_licenses_by_module_type();
+
             $vars = array(
                 'plugin_sites'    => $all_plugins_installs,
                 'theme_sites'     => $all_themes_installs,
                 'users'           => self::get_all_users(),
                 'addons'          => self::get_all_addons(),
                 'account_addons'  => self::get_all_account_addons(),
-                'plugin_licenses' => self::get_all_licenses( WP_FS__MODULE_TYPE_PLUGIN ),
-                'theme_licenses'  => self::get_all_licenses( WP_FS__MODULE_TYPE_THEME )
+                'plugin_licenses' => $licenses_by_module_type[ WP_FS__MODULE_TYPE_PLUGIN ],
+                'theme_licenses'  => $licenses_by_module_type[ WP_FS__MODULE_TYPE_THEME ]
             );
 
             fs_enqueue_local_style( 'fs_debug', '/admin/debug.css' );
@@ -8517,6 +8519,36 @@
                 array();
 
             return $licenses;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.0
+         *
+         * @return array
+         */
+        private static function get_all_licenses_by_module_type() {
+            $licenses = self::get_account_option( 'all_licenses' );
+
+            $licenses_by_module_type = array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(),
+                WP_FS__MODULE_TYPE_THEME  => array()
+            );
+
+            if ( ! is_array( $licenses ) ) {
+                return $licenses_by_module_type;
+            }
+
+            foreach ( $licenses as $module_id => $module_licenses ) {
+                $fs = self::get_instance_by_id( $module_id );
+                if ( false === $fs ) {
+                    continue;
+                }
+
+                $licenses_by_module_type[ $fs->_module_type ] = array_merge( $licenses_by_module_type[ $fs->_module_type ], $module_licenses );
+            }
+
+            return $licenses_by_module_type;
         }
 
         /**
