@@ -376,3 +376,7 @@
     }
 
     #endregion
+
+    if ( ! defined( 'WP_FS__DEMO_MODE' ) ) {
+        define( 'WP_FS__DEMO_MODE', false );
+    }
