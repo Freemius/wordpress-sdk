@@ -1373,7 +1373,7 @@
 
             add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
             add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
-            add_action( 'admin_init', array( &$this, '_enqueue_common_css' ) );
+            add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
              * Handle request to reset anonymous mode for `get_reconnect_url()`.
