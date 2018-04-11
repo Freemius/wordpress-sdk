@@ -13367,6 +13367,8 @@
 
                 $this->do_action( 'after_account_connection', $user, $first_install );
             } else {
+                $this->_store_user();
+
                 // Map site addresses to their blog IDs.
                 $address_to_blog_map = $this->get_address_to_blog_map();
 
