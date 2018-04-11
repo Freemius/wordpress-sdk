@@ -9042,7 +9042,7 @@
         function is_trial() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_registered() ) {
+            if ( ! $this->is_registered() || ! is_object( $this->_site ) ) {
                 return false;
             }
 
