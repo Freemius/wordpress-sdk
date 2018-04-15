@@ -9201,7 +9201,7 @@
          *
          * @return bool
          */
-        private function has_any_license() {
+        function has_any_license() {
             return is_array( $this->_licenses ) && ( 0 < count( $this->_licenses ) );
         }
 
