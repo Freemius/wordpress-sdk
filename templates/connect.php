@@ -450,14 +450,14 @@
 			$applyOnAllSites.click(function() {
 				var isChecked = $( this ).is( ':checked' );
 
-				if ( ! isChecked ) {
-					$multisiteOptionsContainer.find( '.action-allow' ).addClass( 'selected' );
-				} else {
+				if ( isChecked ) {
 					$multisiteOptionsContainer.find( '.action' ).removeClass( 'selected' );
 					updatePrimaryCtaText( 'allow' );
 				}
 
-                $skipActivationButton.toggle();
+				$multisiteOptionsContainer.find( '.action-allow' ).addClass( 'selected' );
+
+				$skipActivationButton.toggle();
 
 				$delegateToSiteAdminsButton.toggle();
 
