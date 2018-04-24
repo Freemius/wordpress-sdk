@@ -108,6 +108,8 @@
 
     /* translators: %s: name (e.g. Hey John,) */
     $hey_x_text = esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) );
+
+	$is_gdpr_required = false;
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -174,12 +176,16 @@
 						);
 					} else {
 						$filter                = 'connect_message';
-						$default_optin_message = fs_text_inline( 'Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug);;
+						$default_optin_message = $is_gdpr_required ?
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug) :
+							fs_text_inline( 'Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug);
 
 						if ( $fs->is_plugin_update() ) {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
-							$default_optin_message = fs_text_inline( 'Please help us improve %1$s! If you opt in, some data about your usage of %1$s will be sent to %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug );
+							$default_optin_message = $is_gdpr_required ?
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug ) :
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug );
 
 							// If user customized the opt-in message on update, use
 							// that message. Otherwise, fallback to regular opt-in
@@ -207,7 +213,8 @@
 							$fs->get_plugin_name(),
 							$current_user->user_login,
 							'<a href="' . $site_url . '" target="_blank">' . $site_url . '</a>',
-							$freemius_link
+							$freemius_link,
+							$is_gdpr_required
 						);
 					}
 
@@ -309,16 +316,10 @@
 					'desc'       => $fs->get_text_inline( 'Activation, deactivation and uninstall', 'permissions-events_desc' ),
 					'priority'   => 20,
 				),
-//			'plugins_themes' => array(
-//				'icon-class' => 'dashicons dashicons-admin-settings',
-//				'label'      => fs_text_inline( 'Plugins & Themes', 'permissions-plugins_themes' ),
-//				'desc'       => fs_text_inline( 'Titles, versions and state.', 'permissions-plugins_themes_desc' ),
-//				'priority'   => 30,
-//			),
 			);
 
 			// Add newsletter permissions if enabled.
-			if ( $fs->is_permission_requested( 'newsletter' ) ) {
+			if ( $is_gdpr_required || $fs->is_permission_requested( 'newsletter' ) ) {
 				$permissions['newsletter'] = array(
 					'icon-class' => 'dashicons dashicons-email-alt',
 					'label'      => $fs->get_text_inline( 'Newsletter', 'permissions-newsletter' ),
