@@ -1339,7 +1339,7 @@
                 add_action( 'customize_register', array( &$this, '_customizer_register' ) );
             }
 
-            add_action( 'init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
+            add_action( 'admin_init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
             if ( $this->is_theme() ) {
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
@@ -14280,7 +14280,8 @@
         function _redirect_on_clicked_menu_link() {
             $this->_logger->entrance();
 
-            $page = strtolower( isset( $_REQUEST['page'] ) ? $_REQUEST['page'] : '' );
+            $page = fs_request_get('page');
+            $page = is_string($page) ? strtolower($page) : '';
 
             $this->_logger->log( 'page = ' . $page );
 
