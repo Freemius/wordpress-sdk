@@ -1346,6 +1346,8 @@
             }
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
+            add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection') );
+
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
 
@@ -10365,6 +10367,27 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection_dialog_box() {
+            $is_theme = $this->is_theme();
+            $current  = get_site_transient( $is_theme ? 'update_themes' : 'update_plugins' );
+            if ( ! isset( $current->response[ $this->_plugin_basename ] ) ) {
+                return;
+            }
+
+            $vars = array(
+                'id'          => $this->_module_id,
+                'new_version' => $is_theme ?
+                    $current->response[ $this->_plugin_basename ]['new_version'] :
+                    $current->response[ $this->_plugin_basename ]->new_version
+            );
+
+            fs_require_template( 'forms/premium-version-upgrade.php', $vars );
+        }
+
+        /**
          * Displays the opt-out dialog box when the user clicks on the "Opt Out" link on the "Plugins"
          * page.
          *
@@ -10416,6 +10439,24 @@
 
             // Add resend license AJAX callback.
             $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection() {
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            if ( ! $this->is_premium() || $this->has_active_valid_license() ) {
+                return;
+            }
+
+            if ( self::is_updates_page() || ( $this->is_plugin() && self::is_plugins_page() ) ) {
+                $this->_add_premium_version_upgrade_selection_action();
+            }
         }
 
         /**
@@ -10882,6 +10923,16 @@
          */
         static function is_plugins_page() {
             return ( 'plugins.php' === self::get_current_page() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         *
+         * @return bool
+         */
+        static function is_updates_page() {
+            return ( 'update-core.php' === self::get_current_page() );
         }
 
         /**
@@ -18783,6 +18834,18 @@
                 11,
                 ( 'activate-license ' . $this->get_unique_affix() )
             );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection_action() {
+            $this->_logger->entrance();
+
+            if ( ! self::is_ajax() ) {
+                add_action( 'admin_footer', array( &$this, '_add_premium_version_upgrade_selection_dialog_box' ) );
+            }
         }
 
         /**
