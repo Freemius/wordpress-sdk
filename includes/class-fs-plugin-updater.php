@@ -175,7 +175,7 @@
             $plugin_update_row = preg_replace(
                 '/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
                 '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s features and support.', 'renew-license-now' ),
+                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
                     '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
                     $r->new_version ) .
                 '$4',

@@ -1346,7 +1346,7 @@
             }
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
-            add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection') );
+            add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -10371,20 +10371,20 @@
          * @since  2.0.2
          */
         function _add_premium_version_upgrade_selection_dialog_box() {
-            $is_theme = $this->is_theme();
-            $current  = get_site_transient( $is_theme ? 'update_themes' : 'update_plugins' );
-            if ( ! isset( $current->response[ $this->_plugin_basename ] ) ) {
+            $transient = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
+            if ( ! isset( $transient->response[ $this->_plugin_basename ] ) ) {
                 return;
             }
 
             $vars = array(
                 'id'          => $this->_module_id,
-                'new_version' => $is_theme ?
-                    $current->response[ $this->_plugin_basename ]['new_version'] :
-                    $current->response[ $this->_plugin_basename ]->new_version
+                'new_version' => is_object( $transient->response[ $this->_plugin_basename ] ) ?
+                    $transient->response[ $this->_plugin_basename ]->new_version :
+                    $transient->response[ $this->_plugin_basename ]['new_version']
             );
 
-            fs_require_template( 'forms/premium-version-upgrade.php', $vars );
+            fs_require_template( 'forms/premium-versions-upgrade-metadata.php', $vars );
+            fs_require_once_template( 'forms/premium-versions-upgrade-handler.php', $vars );
         }
 
         /**
@@ -10451,6 +10451,7 @@
             }
 
             if ( ! $this->is_premium() || $this->has_active_valid_license() ) {
+                // This is relevant only to the free versions and premium versions without an active license.
                 return;
             }
 

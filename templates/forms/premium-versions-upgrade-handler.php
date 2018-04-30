@@ -22,11 +22,11 @@
 
     $message = sprintf(
         fs_text_inline( 'There is a new version of %s available.', 'new-version-available-message', $slug ) .
-        fs_text_inline( ' %sRenew your license now%s to access version %s features and support.', 'renew-license-now', $slug ),
-        $plugin_name,
-        '<a href="' . $fs->pricing_url() . '">',
+        fs_text_inline( ' %sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
+        '<span id="plugin_name"></span>',
+        '<a id="pricing_url" href="">',
         '</a>',
-        $VARS['new_version']
+        '<span id="new_version"></span>'
     );
 
     $modal_content_html = "<p>{$message}</p>";
@@ -40,8 +40,13 @@
 <script type="text/javascript">
 (function( $ ) {
 	$( document ).ready(function() {
+	    var $licenseExpired = $( '.license-expired' );
+	    if ( 0 === $licenseExpired.length ) {
+	        return;
+        }
+
 		var modalContentHtml = <?php echo json_encode( $modal_content_html ) ?>,
-			modalHtml =
+			modalHtml        =
 				'<div class="fs-modal fs-modal-upgrade-premium-version">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
@@ -57,15 +62,20 @@
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
-			$modal = $( modalHtml ),
-			$upgradePremiumVersionCheckbox = $( 'input[type="checkbox"][value="<?php echo $plugin_basename ?>"]' ),
-            isPluginsPage = <?php echo Freemius::is_plugins_page() ? 'true' : 'false' ?>;
+			$modal           = $( modalHtml ),
+            isPluginsPage    = <?php echo Freemius::is_plugins_page() ? 'true' : 'false' ?>;
 
 		$modal.appendTo( $( 'body' ) );
 
 		function registerEventHandlers() {
-            $upgradePremiumVersionCheckbox.click(function( evt ) {
+            $( 'body' ).on( 'click', '.license-expired', function( evt ) {
 				evt.preventDefault();
+
+				var $module = $( this );
+
+                $modal.find( '#plugin_name' ).text( $module.data( 'plugin-name' ) );
+                $modal.find( '#pricing_url' ).attr( 'href', $module.data( 'pricing-url' ) );
+                $modal.find( '#new_version' ).text( $module.data( 'new-version' ) );
 
 				showModal( evt );
 			});
@@ -79,25 +89,15 @@
 			if ( isPluginsPage ) {
                 $( 'body' ).on( 'change', 'select[id*="bulk-action-selector"]', function() {
                     if ( 'update-selected' === $( this ).val() ) {
-                        var module = $( '.wp-list-table.plugins' ).find( 'input[type="checkbox"][value="<?php echo $plugin_basename ?>"]' );
-                        if ( module.length > 0 ) {
-                            setTimeout(function() {
-                                module.prop( 'checked', false );
-                            }, 1);
-                        }
+                        setTimeout(function() {
+                            $licenseExpired.prop( 'checked', false );
+                            $( '[id*="select-all"]' ).prop( 'checked', false );
+                        }, 0);
                     }
                 });
             }
 
-			$( 'body' ).on( 'click', '[id*="select-all"]', function() {
-                var
-                    parent = $( this ).parents( 'table:first' ),
-                    module = parent.find( 'input[type="checkbox"][value="<?php echo $plugin_basename ?>"]' );
-
-                if ( 0 === module.length > 0 ) {
-                    return true;
-                }
-
+			$( 'body' ).on( 'click', '[id*="select-all"]', function( evt ) {
                 if ( isPluginsPage ) {
                     if ( 'update-selected' !== $( '#bulk-action-selector-top' ).val() &&
                         'update-selected' !== $( '#bulk-action-selector-bottom' ).val() ) {
@@ -105,11 +105,40 @@
                     }
                 }
 
-                if ( module.length > 0 ) {
-                    setTimeout(function() {
-                        module.prop( 'checked', false );
-                    }, 1);
-                }
+                evt.stopImmediatePropagation();
+
+                var $this          = $( this ),
+                    $table         = $this.closest( 'table' ),
+                    controlChecked = $this.prop( 'checked' ),
+                    toggle         = event.shiftKey || $this.data( 'wp-toggle' );
+
+                $table.children( 'tbody' ).filter( ':visible' )
+                    .children().children( '.check-column' ).find( ':checkbox:not(.license-expired)' )
+                    .prop( 'checked', function() {
+                        if ( $( this ).is( ':hidden,:disabled' ) ) {
+                            return false;
+                        }
+
+                        if ( toggle ) {
+                            return ! $( this ).prop( 'checked' );
+                        } else if ( controlChecked ) {
+                            return true;
+                        }
+
+                        return false;
+                    });
+
+                $table.children( 'thead,  tfoot' ).filter( ':visible' )
+                    .children().children( '.check-column' ).find( ':checkbox' )
+                    .prop( 'checked', function() {
+                        if ( toggle ) {
+                            return false;
+                        } else if ( controlChecked ) {
+                            return true;
+                        }
+
+                        return false;
+                    });
             });
 		}
 
