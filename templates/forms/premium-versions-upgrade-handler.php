@@ -71,13 +71,7 @@
             $( 'body' ).on( 'click', '.license-expired', function( evt ) {
 				evt.preventDefault();
 
-				var $module = $( this );
-
-                $modal.find( '#plugin_name' ).text( $module.data( 'plugin-name' ) );
-                $modal.find( '#pricing_url' ).attr( 'href', $module.data( 'pricing-url' ) );
-                $modal.find( '#new_version' ).text( $module.data( 'new-version' ) );
-
-				showModal( evt );
+				showModal( $( this ) );
 			});
 
 			// If the user has clicked outside the window, close the modal.
@@ -107,10 +101,15 @@
 
                 evt.stopImmediatePropagation();
 
-                var $this          = $( this ),
-                    $table         = $this.closest( 'table' ),
-                    controlChecked = $this.prop( 'checked' ),
-                    toggle         = event.shiftKey || $this.data( 'wp-toggle' );
+                var $this                       = $( this ),
+                    $table                      = $this.closest( 'table' ),
+                    controlChecked              = $this.prop( 'checked' ),
+                    toggle                      = ( event.shiftKey || $this.data( 'wp-toggle' ) ),
+                    modulesWithNonActiveLicense = $table.find( ':checkbox.license-expired' );
+
+                if ( 1 === modulesWithNonActiveLicense.length ) {
+                    showModal( modulesWithNonActiveLicense );
+                }
 
                 $table.children( 'tbody' ).filter( ':visible' )
                     .children().children( '.check-column' ).find( ':checkbox:not(.license-expired)' )
@@ -144,8 +143,12 @@
 
 		registerEventHandlers();
 
-		function showModal() {
-			// Display the dialog box.
+		function showModal( $module ) {
+            $modal.find( '#plugin_name' ).text( $module.data( 'plugin-name' ) );
+            $modal.find( '#pricing_url' ).attr( 'href', $module.data( 'pricing-url' ) );
+            $modal.find( '#new_version' ).text( $module.data( 'new-version' ) );
+
+            // Display the dialog box.
 			$modal.addClass( 'active' );
 			$( 'body' ).addClass( 'has-fs-modal' );
 		}
