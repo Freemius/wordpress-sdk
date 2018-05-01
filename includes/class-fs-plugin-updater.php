@@ -206,9 +206,9 @@
                 return $prepared_themes;
             }
 
-            $theme_update = get_site_transient( 'update_themes' );
-            if ( ! isset( $theme_update->response[ $theme_basename ] ) ||
-                empty( $theme_update->response[ $theme_basename ]['package'] )
+            $themes_update = get_site_transient( 'update_themes' );
+            if ( ! isset( $themes_update->response[ $theme_basename ] ) ||
+                empty( $themes_update->response[ $theme_basename ]['package'] )
             ) {
                 return $prepared_themes;
             }
@@ -218,7 +218,7 @@
                 '$1 $2 ' . sprintf(
                     $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
                     '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $theme_update->response[ $theme_basename ]['new_version'] ) .
+                    $themes_update->response[ $theme_basename ]['new_version'] ) .
                 '$4',
                 $prepared_themes[ $theme_basename ]['update']
             );
@@ -430,6 +430,38 @@
             // Flag the module as if it was already checked.
             $transient_data->checked[ $basename ] = $this->_fs->get_plugin_version();
             $transient_data->last_checked         = time();
+
+            set_site_transient( $transient_key, $transient_data );
+
+            $this->add_transient_filters();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.2
+         */
+        function delete_update_data() {
+            $this->_logger->entrance();
+
+            $transient_key = "update_{$this->_fs->get_module_type()}s";
+
+            $transient_data = get_site_transient( $transient_key );
+
+            // Alias
+            $basename = $this->_fs->get_plugin_basename();
+
+            if ( ! is_object( $transient_data ) ||
+                ! isset( $transient_data->response ) ||
+                 ! is_array( $transient_data->response ) ||
+                empty( $transient_data->response[ $basename ] )
+            ) {
+                return;
+            }
+
+            unset( $transient_data->response[ $basename ] );
+
+            // Remove the added filters.
+            $this->remove_transient_filters();
 
             set_site_transient( $transient_key, $transient_data );
 

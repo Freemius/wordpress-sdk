@@ -2027,6 +2027,10 @@
              * @since  1.2.2
              */
             if ( $this->is_theme() ) {
+                if ( $this->is_premium() && ! $this->has_active_valid_license() ) {
+                    delete_site_transient( 'update_themes' );
+                }
+
                 $this->_uninstall_plugin_event( false );
                 $this->remove_sdk_reference();
             }
@@ -6846,6 +6850,10 @@
             $this->clear_install_sync_cron();
 
             if ( $this->is_registered() ) {
+                if ( $this->is_premium() && ! $this->has_active_valid_license() ) {
+                    FS_Plugin_Updater::instance( $this )->delete_update_data();
+                }
+
                 if ( $is_network_deactivation ) {
                     // Send deactivation event.
                     $this->sync_installs( array(
@@ -10371,16 +10379,16 @@
          * @since  2.0.2
          */
         function _add_premium_version_upgrade_selection_dialog_box() {
-            $module_update = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
-            if ( ! isset( $module_update->response[ $this->_plugin_basename ] ) ) {
+            $modules_update = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
+            if ( ! isset( $modules_update->response[ $this->_plugin_basename ] ) ) {
                 return;
             }
 
             $vars = array(
                 'id'          => $this->_module_id,
-                'new_version' => is_object( $module_update->response[ $this->_plugin_basename ] ) ?
-                    $module_update->response[ $this->_plugin_basename ]->new_version :
-                    $module_update->response[ $this->_plugin_basename ]['new_version']
+                'new_version' => is_object( $modules_update->response[ $this->_plugin_basename ] ) ?
+                    $modules_update->response[ $this->_plugin_basename ]->new_version :
+                    $modules_update->response[ $this->_plugin_basename ]['new_version']
             );
 
             fs_require_template( 'forms/premium-versions-upgrade-metadata.php', $vars );
