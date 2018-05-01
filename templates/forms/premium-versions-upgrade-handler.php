@@ -124,11 +124,23 @@
                     $modulesWithNonActiveLicense = $modules.filter( '.license-expired' );
 
                 if ( 0 === $modulesWithNonActiveLicense.length ) {
+                    /**
+                     * It's possible that the context HTML table element doesn't have checkboxes with
+                     * ".license-expired" class if for example only the themes table has such checkboxes and the user
+                     * clicks on a "Select All" checkbox on the plugins table which has no such checkboxes.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
                     return true;
                 } else if ( 1 === $modulesWithNonActiveLicense.length ) {
                     showModal( $modulesWithNonActiveLicense );
                 }
 
+                /**
+                 * Prevent the default WordPress handler from checking all checkboxes.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
                 evt.stopImmediatePropagation();
 
                 $modules.filter( ':not(.license-expired)' )
