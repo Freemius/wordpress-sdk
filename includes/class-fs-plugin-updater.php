@@ -206,7 +206,9 @@
             }
 
             $theme_update = get_site_transient( 'update_themes' );
-            if ( ! isset( $theme_update->response[ $theme_basename ] ) ) {
+            if ( ! isset( $theme_update->response[ $theme_basename ] ) ||
+                empty( $theme_update->response[ $theme_basename ]['package'] )
+            ) {
                 return $prepared_themes;
             }
 
