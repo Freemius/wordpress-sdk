@@ -1,22 +1,22 @@
 <?php
-	/**
-	 * @package     Freemius
-	 * @copyright   Copyright (c) 2015, Freemius, Inc.
-	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since       2.0.2
-	 */
+    /**
+     * @package   Freemius
+     * @copyright Copyright (c) 2015, Freemius, Inc.
+     * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
+     * @since     2.0.2
+     */
 
-	if ( ! defined( 'ABSPATH' ) ) {
-		exit;
-	}
+    if ( ! defined( 'ABSPATH' ) ) {
+        exit;
+    }
 
-	/**
-	 * @var Freemius $fs
-	 */
-	$fs   = freemius( $VARS['id'] );
-	$slug = $fs->get_slug();
+    /**
+     * @var Freemius $fs
+     */
+    $fs   = freemius( $VARS['id'] );
+    $slug = $fs->get_slug();
 
-	$plugin_data     = $fs->get_plugin_data();
+    $plugin_data     = $fs->get_plugin_data();
     $plugin_name     = $plugin_data['Name'];
     $plugin_basename = $fs->get_plugin_basename();
 
@@ -39,59 +39,77 @@
 ?>
 <script type="text/javascript">
 (function( $ ) {
-	$( document ).ready(function() {
-	    var $licenseExpired = $( '.license-expired' );
-	    if ( 0 === $licenseExpired.length ) {
-	        return;
+    $( document ).ready(function() {
+        if ( 0 === $( '.license-expired' ).length ) {
+            return;
         }
 
-		var modalContentHtml = <?php echo json_encode( $modal_content_html ) ?>,
-			modalHtml        =
-				'<div class="fs-modal fs-modal-upgrade-premium-version">'
-				+ '	<div class="fs-modal-dialog">'
-				+ '		<div class="fs-modal-header">'
-				+ '		    <h4><?php echo esc_js( $header_title ) ?></h4>'
-				+ '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php echo esc_js( fs_text_x_inline( 'Dismiss', 'close a window', 'dismiss', $slug ) ) ?>"></i></a>'
-				+ '		</div>'
-				+ '		<div class="fs-modal-body">'
-				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
-				+ '		</div>'
-				+ '		<div class="fs-modal-footer">'
-				+ '			<a class="button button-primary button-renew-license" tabindex="3" href="<?php echo $fs->pricing_url() ?>"><?php echo esc_js( $renew_license_button_text ) ?></a>'
-                + '			<button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></button>'
-				+ '		</div>'
-				+ '	</div>'
-				+ '</div>',
-			$modal           = $( modalHtml ),
+        var modalContentHtml = <?php echo json_encode( $modal_content_html ) ?>,
+            modalHtml        =
+                '<div class="fs-modal fs-modal-upgrade-premium-version">'
+                + ' <div class="fs-modal-dialog">'
+                + '     <div class="fs-modal-header">'
+                + '         <h4><?php echo esc_js( $header_title ) ?></h4>'
+                + '         <a href="!#" class="fs-close"><i class="dashicons dashicons-no" title="<?php echo esc_js( fs_text_x_inline( 'Dismiss', 'close a window', 'dismiss', $slug ) ) ?>"></i></a>'
+                + '     </div>'
+                + '     <div class="fs-modal-body">'
+                + '         <div class="fs-modal-panel active">' + modalContentHtml + '</div>'
+                + '     </div>'
+                + '     <div class="fs-modal-footer">'
+                + '         <a class="button button-primary button-renew-license" tabindex="3" href="<?php echo $fs->pricing_url() ?>"><?php echo esc_js( $renew_license_button_text ) ?></a>'
+                + '         <button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></button>'
+                + '     </div>'
+                + ' </div>'
+                + '</div>',
+            $modal           = $( modalHtml ),
             isPluginsPage    = <?php echo Freemius::is_plugins_page() ? 'true' : 'false' ?>;
 
-		$modal.appendTo( $( 'body' ) );
+        $modal.appendTo( $( 'body' ) );
 
-		function registerEventHandlers() {
+        function registerEventHandlers() {
             $( 'body' ).on( 'click', '.license-expired', function( evt ) {
-				evt.preventDefault();
+                var $this = $( this );
 
-				showModal( $( this ) );
-			});
+                if ( ! $this.is( ':checked' ) ||
+                    (
+                        isPluginsPage &&
+                        'update-selected' !== $( '#bulk-action-selector-top' ).val() &&
+                        'update-selected' !== $( '#bulk-action-selector-bottom' ).val()
+                    )
+                ) {
+                    return true;
+                }
 
-			// If the user has clicked outside the window, close the modal.
-			$modal.on( 'click', '.fs-close, .button-secondary', function() {
-				closeModal();
-				return false;
-			});
+                evt.preventDefault();
+                evt.stopImmediatePropagation();
 
-			if ( isPluginsPage ) {
+                showModal( $this );
+            });
+
+            // If the user has clicked outside the window, close the modal.
+            $modal.on( 'click', '.fs-close, .button-secondary', function() {
+                closeModal();
+                return false;
+            });
+
+            if ( isPluginsPage ) {
                 $( 'body' ).on( 'change', 'select[id*="bulk-action-selector"]', function() {
                     if ( 'update-selected' === $( this ).val() ) {
                         setTimeout(function() {
-                            $licenseExpired.prop( 'checked', false );
+                            $( '.license-expired' ).prop( 'checked', false );
                             $( '[id*="select-all"]' ).prop( 'checked', false );
                         }, 0);
                     }
                 });
             }
 
-			$( 'body' ).on( 'click', '[id*="select-all"]', function( evt ) {
+            $( 'body' ).on( 'click', '[id*="select-all"]', function( evt ) {
+                var $this = $( this );
+
+                if ( ! $this.is( ':checked' ) ) {
+                    return true;
+                }
+
                 if ( isPluginsPage ) {
                     if ( 'update-selected' !== $( '#bulk-action-selector-top' ).val() &&
                         'update-selected' !== $( '#bulk-action-selector-bottom' ).val() ) {
@@ -99,20 +117,21 @@
                     }
                 }
 
-                evt.stopImmediatePropagation();
+                var $table                       = $this.closest( 'table' ),
+                    controlChecked               = $this.prop( 'checked' ),
+                    toggle                       = ( event.shiftKey || $this.data( 'wp-toggle' ) ),
+                    $modules                     = $table.children( 'tbody' ).filter( ':visible' ).children().children( '.check-column' ).find( ':checkbox' ),
+                    $modulesWithNonActiveLicense = $modules.filter( '.license-expired' );
 
-                var $this                       = $( this ),
-                    $table                      = $this.closest( 'table' ),
-                    controlChecked              = $this.prop( 'checked' ),
-                    toggle                      = ( event.shiftKey || $this.data( 'wp-toggle' ) ),
-                    modulesWithNonActiveLicense = $table.find( ':checkbox.license-expired' );
-
-                if ( 1 === modulesWithNonActiveLicense.length ) {
-                    showModal( modulesWithNonActiveLicense );
+                if ( 0 === $modulesWithNonActiveLicense.length ) {
+                    return true;
+                } else if ( 1 === $modulesWithNonActiveLicense.length ) {
+                    showModal( $modulesWithNonActiveLicense );
                 }
 
-                $table.children( 'tbody' ).filter( ':visible' )
-                    .children().children( '.check-column' ).find( ':checkbox:not(.license-expired)' )
+                evt.stopImmediatePropagation();
+
+                $modules.filter( ':not(.license-expired)' )
                     .prop( 'checked', function() {
                         if ( $( this ).is( ':hidden,:disabled' ) ) {
                             return false;
@@ -127,36 +146,26 @@
                         return false;
                     });
 
-                $table.children( 'thead,  tfoot' ).filter( ':visible' )
-                    .children().children( '.check-column' ).find( ':checkbox' )
-                    .prop( 'checked', function() {
-                        if ( toggle ) {
-                            return false;
-                        } else if ( controlChecked ) {
-                            return true;
-                        }
-
-                        return false;
-                    });
+                return false;
             });
-		}
+        }
 
-		registerEventHandlers();
+        registerEventHandlers();
 
-		function showModal( $module ) {
+        function showModal( $module ) {
             $modal.find( '#plugin_name' ).text( $module.data( 'plugin-name' ) );
             $modal.find( '#pricing_url' ).attr( 'href', $module.data( 'pricing-url' ) );
             $modal.find( '#new_version' ).text( $module.data( 'new-version' ) );
 
             // Display the dialog box.
-			$modal.addClass( 'active' );
-			$( 'body' ).addClass( 'has-fs-modal' );
-		}
+            $modal.addClass( 'active' );
+            $( 'body' ).addClass( 'has-fs-modal' );
+        }
 
-		function closeModal() {
-			$modal.removeClass( 'active' );
-			$( 'body' ).removeClass( 'has-fs-modal' );
-		}
-	});
+        function closeModal() {
+            $modal.removeClass( 'active' );
+            $( 'body' ).removeClass( 'has-fs-modal' );
+        }
+    });
 })( jQuery );
 </script>
