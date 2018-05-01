@@ -93,7 +93,8 @@ HTML;
 		$anonymousFeedback    = $modal.find( '.anonymous-feedback-label' ),
 		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
 		otherReasonID         = <?php echo Freemius::REASON_OTHER; ?>,
-		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>;
+		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
+        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_active_valid_license() ? 'true' : 'false' ?>;
 
 	$modal.appendTo($('body'));
 
@@ -182,8 +183,28 @@ HTML;
 				var $radio = $('input[type="radio"]:checked');
 
 				if (0 === $radio.length) {
-					// If no selected reason, just deactivate the plugin.
-					window.location.href = redirectLink;
+				    if ( ! deleteThemeUpdateData ) {
+                        // If no selected reason, just deactivate the plugin.
+                        window.location.href = redirectLink;
+                    } else {
+                        $.ajax({
+                            url       : ajaxurl,
+                            method    : 'POST',
+                            data      : {
+                                action   : '<?php echo $fs->get_ajax_action( 'delete_theme_update_data' ) ?>',
+                                security : '<?php echo $fs->get_ajax_security( 'delete_theme_update_data' ) ?>',
+                                module_id: '<?php echo $fs->get_id() ?>'
+                            },
+                            beforeSend: function() {
+                                _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+                                _parent.find( '.fs-modal-footer .button-secondary' ).text( 'Processing...' );
+                            },
+                            complete  : function() {
+                                window.location.href = redirectLink;
+                            }
+                        });
+                    }
+
 					return;
 				}
 
