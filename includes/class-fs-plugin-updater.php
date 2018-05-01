@@ -193,6 +193,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
          *
          * @param array $prepared_themes
          *
@@ -221,6 +222,9 @@
                 '$4',
                 $prepared_themes[ $theme_basename ]['update']
             );
+
+            // Set to false to prevent the "Update now" link for the context theme from being shown on the "Themes" page.
+            $prepared_themes[ $theme_basename ]['hasPackage'] = false;
 
             return $prepared_themes;
         }
