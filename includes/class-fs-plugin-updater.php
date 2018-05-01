@@ -104,8 +104,14 @@
                 ), 10, 3 );
             }
 
-            if ( $this->_fs->is_premium() && $this->is_correct_folder_name() ) {
-                add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+            if ( $this->_fs->is_premium() ) {
+                if ( $this->is_correct_folder_name() ) {
+                    add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+                }
+
+                if ( ! $this->_fs->has_active_valid_license() ) {
+                    add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
+                }
             }
         }
 
@@ -183,6 +189,38 @@
             );
 
             echo $plugin_update_row;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param array $prepared_themes
+         *
+         * @return array
+         */
+        function change_theme_update_info_html( $prepared_themes ) {
+            $theme_basename = $this->_fs->get_plugin_basename();
+
+            if ( ! isset( $prepared_themes[ $theme_basename ] ) ) {
+                return $prepared_themes;
+            }
+
+            $theme_update = get_site_transient( 'update_themes' );
+            if ( ! isset( $theme_update->response[ $theme_basename ] ) ) {
+                return $prepared_themes;
+            }
+
+            $prepared_themes[ $theme_basename ]['update'] = preg_replace(
+                '/(\<p.+>)(.+)(\<a.+\<a.+)\.(.+\<\/p\>)/is',
+                '$1 $2 ' . sprintf(
+                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
+                    $theme_update->response[ $theme_basename ]['new_version'] ) .
+                '$4',
+                $prepared_themes[ $theme_basename ]['update']
+            );
+
+            return $prepared_themes;
         }
 
         /**

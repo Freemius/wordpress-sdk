@@ -10371,16 +10371,16 @@
          * @since  2.0.2
          */
         function _add_premium_version_upgrade_selection_dialog_box() {
-            $transient = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
-            if ( ! isset( $transient->response[ $this->_plugin_basename ] ) ) {
+            $module_update = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
+            if ( ! isset( $module_update->response[ $this->_plugin_basename ] ) ) {
                 return;
             }
 
             $vars = array(
                 'id'          => $this->_module_id,
-                'new_version' => is_object( $transient->response[ $this->_plugin_basename ] ) ?
-                    $transient->response[ $this->_plugin_basename ]->new_version :
-                    $transient->response[ $this->_plugin_basename ]['new_version']
+                'new_version' => is_object( $module_update->response[ $this->_plugin_basename ] ) ?
+                    $module_update->response[ $this->_plugin_basename ]->new_version :
+                    $module_update->response[ $this->_plugin_basename ]['new_version']
             );
 
             fs_require_template( 'forms/premium-versions-upgrade-metadata.php', $vars );
