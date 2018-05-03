@@ -8160,6 +8160,14 @@
                 } else {
                     $theme_data = wp_get_theme();
 
+                    if ( $this->_plugin_basename !== $theme_data->get_stylesheet() ) {
+                        $parent_theme = $theme_data->parent();
+
+                        if ( ( $parent_theme instanceof WP_Theme ) && $this->_plugin_basename === $parent_theme->get_stylesheet() ) {
+                            $theme_data = $parent_theme;
+                        }
+                    }
+
                     $plugin_data = array(
                         'Name'        => $theme_data->get( 'Name' ),
                         'Version'     => $theme_data->get( 'Version' ),
