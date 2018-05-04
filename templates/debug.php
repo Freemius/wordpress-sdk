@@ -247,7 +247,7 @@
                     $current_theme = wp_get_theme();
                     $is_active     = ( $current_theme->stylesheet === $data->file );
 
-                    if ( ! $is_active ) {
+                    if ( ! $is_active && is_child_theme() ) {
                         $parent_theme = $current_theme->parent();
 
                         $is_active = ( ( $parent_theme instanceof WP_Theme ) && $parent_theme->stylesheet === $data->file );
