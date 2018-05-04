@@ -533,10 +533,12 @@
          * @since  1.2.2.7 Even if the menu item was specified to be hidden, when it is the context page, then show the submenu item so the user will have the right context page.
          *
          * @param string $slug
+         * @param bool   $ignore_free_wp_org_theme_context This is used to decide if the associated tab should be shown
+         *                                                 or hidden.
          *
          * @return bool
          */
-        function is_submenu_item_visible( $slug ) {
+        function is_submenu_item_visible( $slug, $ignore_free_wp_org_theme_context = false ) {
             if ( $this->is_admin_page( $slug ) ) {
                 /**
                  * It is the current context page, so show the submenu item
@@ -551,7 +553,7 @@
                 return false;
             }
 
-            if ( $this->is_free_wp_org_theme() ) {
+            if ( ! $ignore_free_wp_org_theme_context && $this->is_free_wp_org_theme() ) {
                 /**
                  * wp.org themes are limited to a single submenu item, and
                  * sub-submenu items are most likely not allowed (never verified).
