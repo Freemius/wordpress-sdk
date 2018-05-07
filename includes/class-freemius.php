@@ -3271,7 +3271,7 @@
 
             $gdpr_data[ $current_user->ID ] = $is_gdpr_required;
 
-            self::$_accounts->set_option( 'gdpr', $gdpr_data );
+            self::$_accounts->set_option( 'gdpr', $gdpr_data, true );
         }
 
         /**
