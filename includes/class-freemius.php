@@ -3041,27 +3041,22 @@
                 return false;
             }
 
-            if ( $is_gdpr_test ) {
-                $params = array( 'is_gdpr_test' => true );
-            } else {
-                $version = $this->get_plugin_version();
+            $version = $this->get_plugin_version();
 
-                $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-                $params = array(
-                    'is_update' => json_encode( $is_update ),
-                    'version'   => $version,
-                    'sdk'       => $this->version,
-                    'is_admin'  => json_encode( is_admin() ),
-                    'is_ajax'   => json_encode( self::is_ajax() ),
-                    'is_cron'   => json_encode( self::is_cron() ),
-                    'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
-                );
-            }
+            $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
             return $this->get_api_plugin_scope()->ping(
                 $this->get_anonymous_id( $blog_id ),
-                $params
+                array(
+                    'is_update'    => json_encode( $is_update ),
+                    'version'      => $version,
+                    'sdk'          => $this->version,
+                    'is_admin'     => json_encode( is_admin() ),
+                    'is_ajax'      => json_encode( self::is_ajax() ),
+                    'is_cron'      => json_encode( self::is_cron() ),
+                    'is_gdpr_test' => $is_gdpr_test,
+                    'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
+                )
             );
         }
 
