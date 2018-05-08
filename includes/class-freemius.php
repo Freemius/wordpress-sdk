@@ -629,6 +629,154 @@
             }
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _gdpr_optin_notice_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'gdpr_optin_notice_action' );
+
+            if ( ! fs_request_has( 'gdpr_optin' ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $this->_storage->store( 'gdpr_optin_notice_reschedule', false );
+
+            exit;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param string $sdk_prev_version
+         * @param string $sdk_version
+         */
+        function _maybe_show_admin_notice_for_opted_in_eu_users( $sdk_prev_version, $sdk_version ) {
+            if ( ! $this->is_user_in_admin() && ! $this->is_user_admin() ) {
+                return;
+            }
+
+            $reschedule_showing_gdpr_optin_notice = $this->_storage->get( 'gdpr_optin_notice_reschedule', true );
+            if ( ! $reschedule_showing_gdpr_optin_notice ) {
+                return;
+            }
+
+            $last_time_gdpr_optin_notice_shown = $this->_storage->get( 'gdpr_optin_notice_shown', false );
+            $was_notice_shown_before           = ( false !== $last_time_gdpr_optin_notice_shown );
+
+            if ( $was_notice_shown_before &&
+                30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_gdpr_optin_notice_shown
+            ) {
+                return false;
+            }
+
+            /**
+             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
+             */
+            if ( empty( $sdk_prev_version ) ) {
+                return;
+            }
+
+            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
+                 version_compare( $sdk_version, '2.1.0', '>=' )
+            ) {
+                $current_wp_user            = $this->_get_current_wp_user();
+                $current_wp_user_plugin_ids = array();
+
+                /**
+                 * @var FS_User $current_fs_user
+                 */
+                $current_fs_user = null;
+
+                if ( ! $this->_is_multisite_integrated ) {
+                    $installs = array_merge(
+                        self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
+                        self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
+                    );
+
+                    foreach ( $installs as $install ) {
+                        if ( ! is_null( $current_fs_user ) && $current_fs_user->id != $install->user_id ) {
+                            continue;
+                        }
+
+                        $fs_user = $this->_get_user_by_id( $install->user_id );
+
+                        if ( $fs_user->email === $current_wp_user->user_email )
+                        {
+                            if ( is_null( $current_fs_user ) ) {
+                                $current_fs_user = $fs_user;
+                            }
+
+                            $current_wp_user_plugin_ids[] = $install->plugin_id;
+                        }
+                    }
+                } else {
+                    $installs_map = $this->get_blog_install_map();
+
+                    foreach ( $installs_map as $blog_id => $install ) {
+                        if ( ! is_null( $current_fs_user ) && $current_fs_user->id != $install->user_id ) {
+                            continue;
+                        }
+
+                        $fs_user = $this->_get_user_by_id( $install->user_id );
+
+                        if ( $fs_user->email === $current_wp_user->user_email )
+                        {
+                            if ( is_null( $current_fs_user ) ) {
+                                $current_fs_user = $fs_user;
+                            }
+
+                            $current_wp_user_plugin_ids[] = $install->plugin_id;
+                        }
+                    }
+                }
+
+                if ( empty( $current_wp_user_plugin_ids ) ) {
+                    return;
+                }
+
+                $user_plugins = $this->get_user_plugins( $current_wp_user->user_email, $current_wp_user_plugin_ids );
+                if ( empty( $user_plugins ) ) {
+                    return;
+                }
+
+                $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
+
+                $modules = array_merge( $fs_options->get_option( 'plugins', array() ), $fs_options->get_option( 'themes', array() ) );
+
+                foreach ( $user_plugins as $key => $user_plugin ) {
+                    if ( true == $user_plugin->is_marketing_allowed ) {
+                        $found_plugin = false;
+                        foreach ( $modules as $module ) {
+                            if ( $module->id == $user_plugin->plugin_id ) {
+                                $user_plugins[ $key ] = $module;
+                                $found_plugin = true;
+                                break;
+                            }
+                        }
+
+                        if ( $found_plugin ) {
+                            continue;
+                        }
+                    }
+
+                    unset( $user_plugins[ $key ] );
+                }
+
+                if ( empty( $user_plugins ) ) {
+                    return;
+                }
+
+                // Add license activation AJAX callback.
+                $this->add_ajax_action( 'gdpr_optin_notice_action', array( &$this, '_gdpr_optin_notice_action' ) );
+
+                $this->_admin_notices->add_sticky( $this->get_gdpr_admin_notice_string( $user_plugins ), 'gdpr' );
+            }
+        }
+
         #--------------------------------------------------------------------------------
         #region Data Migration on SDK Update
         #--------------------------------------------------------------------------------
@@ -1363,6 +1511,7 @@
             $this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
             $this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
+            $this->add_action( 'sdk_version_update', array( &$this, '_maybe_show_admin_notice_for_opted_in_eu_users' ), WP_FS__DEFAULT_PRIORITY, 2 );
             $this->add_action(
                 'plugin_version_update',
                 array( &$this, '_after_version_update' ),
@@ -19058,6 +19207,160 @@
             );
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param array $user_plugins
+         *
+         * @return string
+         */
+        private function get_gdpr_admin_notice_string( $user_plugins ) {
+            $this->_logger->entrance();
+
+            $is_single_parent_product = ( 1 === count( $user_plugins ) );
+            $single_parent_product_has_addons = true;
+
+            $multiple_products_text = '';
+
+            if ( $is_single_parent_product ) {
+                $single_parent_product = array_values( $user_plugins )[0];
+
+                $thank_you = sprintf(
+                    ( $single_parent_product_has_addons ?
+                        $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-products' ) :
+                        $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-products' ) ),
+                    $single_parent_product->title
+                );
+
+                $already_opted_in = sprintf(
+                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s." ),
+                    ( WP_FS__MODULE_TYPE_THEME === $single_parent_product->type ) ? WP_FS__MODULE_TYPE_THEME : WP_FS__MODULE_TYPE_PLUGIN
+                );
+            } else {
+                $thank_you        = $this->get_text_inline( 'Thank you so much for using our products!', 'thank-you-for-using-products' );
+                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them." );
+
+                $products_and_add_ons = '';
+                foreach ( $user_plugins as $user_plugin ) {
+                    if ( ! empty( $products_and_add_ons ) ) {
+                        $products_and_add_ons .= ', ';
+                    }
+
+                    if ( ! FS_Plugin::is_valid_id( $user_plugin->parent_plugin_id ) ) {
+                        $products_and_add_ons .= $user_plugin->title;
+                    } else {
+                        $products_and_add_ons .= sprintf(
+                            $this->get_text_inline( '%s and its add-ons' ),
+                            $user_plugin->title
+                        );
+                    }
+                }
+
+                $multiple_products_text = sprintf(
+                    "<small>Products: %s</small>",
+                    $products_and_add_ons
+                );
+            }
+
+            $buttons = sprintf(
+                '<ul><li>%s - send me security & feature updates, educational content and offers.</li><li>%s - do NOT send me security & feature updates, educational content and offers.</li></ul>',
+                sprintf('<button class="button button-primary">%s</button>', $this->get_text_inline( 'Yes' ) ),
+                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No' ) )
+            );
+
+            return sprintf(
+                '%s %s %s',
+                $thank_you,
+                $already_opted_in,
+                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂') .
+                '<br />' .
+                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:" ) .
+                $buttons .
+                ( $is_single_parent_product ? '' : $multiple_products_text )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string $user_email
+         * @param array  $plugin_ids
+         *
+         * @return object|null
+         */
+        private function get_user_plugins( $user_email, $plugin_ids ) {
+            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
+
+            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
+                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+
+                $request['cookies'] = array(
+                    new WP_Http_Cookie( array(
+                        'name'  => 'XDEBUG_SESSION',
+                        'value' => 'PHPSTORM',
+                    ) )
+                );
+            }
+
+            $params = array(
+                'email'      => $user_email,
+                'plugin_ids' => $plugin_ids
+            );
+
+            $request = array(
+                'method'  => 'POST',
+                'body'    => $params,
+                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+            );
+
+            $result = array();
+
+            $total_plugin_ids             = count( $plugin_ids );
+            $plugin_ids_count_per_request = 10;
+            for ( $i = 1; $i <= $total_plugin_ids; $i += $plugin_ids_count_per_request ) {
+                $plugin_ids_set                = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
+                $request['body']['plugin_ids'] = $plugin_ids_set;
+
+                $response = wp_remote_post( $url, $request );
+
+                if ( $response instanceof WP_Error ) {
+                    if ( 'https://' === substr( $url, 0, 8 ) &&
+                        isset( $response->errors ) &&
+                        isset( $response->errors['http_request_failed'] )
+                    ) {
+                        $http_error = strtolower( $response->errors['http_request_failed'][0] );
+
+                        if ( false !== strpos( $http_error, 'ssl' ) ||
+                            false !== strpos( $http_error, 'curl error 35' )
+                        ) {
+                            // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+                            $url = 'http://' . substr( $url, 8 );
+
+                            $response = wp_remote_post( $url, array(
+                                'method'  => 'POST',
+                                'body'    => $params['plugin_ids'] = $plugin_ids_set,
+                                'timeout' => 15,
+                            ) );
+                        }
+                    }
+                }
+
+                if ( ! is_wp_error( $response ) ) {
+                    $decoded = is_string( $response['body'] ) ?
+                        json_decode( $response['body'] ) :
+                        null;
+
+                    if ( ! empty( $decoded ) && $this->is_api_result_object( $decoded ) ) {
+                        $result = array_merge( $result, $decoded->data );
+                    }
+                }
+            }
+
+            return $result;
+        }
         /**
          * This method is used to enrich the after upgrade notice instructions when the upgraded
          * license cannot be activated network wide (license quota isn't large enough).
