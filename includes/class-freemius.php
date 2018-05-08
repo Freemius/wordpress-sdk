@@ -17131,9 +17131,9 @@
 
             $is_premium = null;
             if ( ! $is_addon ) {
-                $is_premium = $this->_can_download_premium();
+                $is_premium = $this->is_premium();
             } else if ( $this->is_addon_activated( $addon_id ) ) {
-                $is_premium = self::get_instance_by_id( $addon_id )->_can_download_premium();
+                $is_premium = self::get_instance_by_id( $addon_id )->is_premium();
             }
 
             // If add-on, then append add-on ID.
