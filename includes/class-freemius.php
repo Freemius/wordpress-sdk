@@ -19248,6 +19248,37 @@
 
             $addons = self::get_all_addons();
 
+            foreach ( $user_plugins as $user_plugin ) {
+                $has_addons = isset( $addons[ $user_plugin->id ] );
+
+                if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
+                    if ( $this->_module_id == $user_plugin->id ) {
+                        $plugin_addons = $this->get_addons();
+                        $has_addons = ( ! empty( $plugin_addons ) );
+                    } else {
+                        $plugin_api = FS_Api::instance(
+                            $user_plugin->id,
+                            'plugin',
+                            $user_plugin->id,
+                            $user_plugin->public_key,
+                            ! $user_plugin->is_live
+                        );
+
+                        $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );
+
+                        $plugin_addons = array();
+                        if ( $this->is_api_result_object( $addons_result, 'plugins' ) &&
+                            is_array( $addons_result->plugins ) &&
+                            ! empty( $addons_result->plugins )
+                        ) {
+                            $has_addons = true;
+                        }
+                    }
+                }
+
+                $user_plugin->has_addons = $has_addons;
+            }
+
             $is_single_parent_product = ( 1 === count( $user_plugins ) );
 
             $multiple_products_text = '';
@@ -19256,7 +19287,7 @@
                 $single_parent_product = array_values( $user_plugins )[0];
 
                 $thank_you = sprintf(
-                    ( isset( $addons[ $single_parent_product->id ] )  ?
+                    ( $single_parent_product->has_addons  ?
                         $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-products' ) :
                         $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-products' ) ),
                     $single_parent_product->title
@@ -19276,7 +19307,7 @@
                         $products_and_add_ons .= ', ';
                     }
 
-                    if ( ! isset( $addons[ $user_plugin->id ] ) ) {
+                    if ( ! $user_plugin->has_addons ) {
                         $products_and_add_ons .= $user_plugin->title;
                     } else {
                         $products_and_add_ons .= sprintf(
