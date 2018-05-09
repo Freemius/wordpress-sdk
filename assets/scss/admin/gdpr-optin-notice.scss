@@ -1,0 +1,21 @@
+@import "../start";
+
+$form_width: 480px;
+
+.fs-notice[data-id="gdpr_optin_actions"]
+{
+    .underline {
+        text-decoration: underline;
+    }
+
+    ul {
+        .button, .action-description {
+            vertical-align: middle;
+        }
+
+        .action-description {
+            display: inline-block;
+            margin-left: 3px;
+        }
+    }
+}
