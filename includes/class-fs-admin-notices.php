@@ -180,18 +180,22 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
-         * @param string   $message
-         * @param string   $id Message ID
-         * @param string   $title
-         * @param string   $type
-         * @param int|null $network_level_or_blog_id
+         * @param string      $message
+         * @param string      $id Message ID
+         * @param string      $title
+         * @param string      $type
+         * @param int|null    $network_level_or_blog_id
+         * @param number|null $wp_user_id
+         * @param string|null $plugin_title
          */
         function add_sticky(
             $message,
             $id,
             $title = '',
             $type = 'success',
-            $network_level_or_blog_id = null
+            $network_level_or_blog_id = null,
+            $wp_user_id = null,
+            $plugin_title = null
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -199,7 +203,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            $notices->add_sticky( $message, $id, $title, $type );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title );
         }
 
         /**

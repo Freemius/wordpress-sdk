@@ -17,7 +17,7 @@
 ?>
 <script type="text/javascript">
 	jQuery( document ).ready(function( $ ) {
-	    var $gdprOptinNotice = $( 'div[data-id="gdpr_optin_actions"]' );
+	    var $gdprOptinNotice = $( 'div[data-id^="gdpr_optin_actions"]' );
 	    if ( 0 === $gdprOptinNotice.length ) {
 	        return;
         }

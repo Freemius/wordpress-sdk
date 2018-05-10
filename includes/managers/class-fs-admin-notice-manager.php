@@ -136,7 +136,9 @@
                             $msg['type'],
                             true,
                             $msg['id'],
-                            false
+                            false,
+                            isset( $msg['wp_user_id'] ) ? $msg['wp_user_id'] : null,
+                            ! empty( $msg['plugin'] ) ? $msg['plugin'] : null
                         );
                     }
                 }
@@ -196,6 +198,12 @@
             }
 
             foreach ( $this->_notices as $id => $msg ) {
+                if ( isset( $msg['wp_user_id'] ) && is_numeric( $msg['wp_user_id'] ) ) {
+                    if ( get_current_user_id() != $msg['wp_user_id'] ) {
+                        continue;
+                    }
+                }
+
                 fs_require_template( 'admin-notice.php', $msg );
 
                 if ( $msg['sticky'] ) {
@@ -220,16 +228,18 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.4
          *
-         * @param string $message
-         * @param string $title
-         * @param string $type
-         * @param bool   $is_sticky
-         * @param string $id Message ID
-         * @param bool   $store_if_sticky
+         * @param string      $message
+         * @param string      $title
+         * @param string      $type
+         * @param bool        $is_sticky
+         * @param string      $id Message ID
+         * @param bool        $store_if_sticky
+         * @param number|null $wp_user_id
+         * @param string|null $plugin_title
          *
          * @uses   add_action()
          */
-        function add( $message, $title = '', $type = 'success', $is_sticky = false, $id = '', $store_if_sticky = true ) {
+        function add( $message, $title = '', $type = 'success', $is_sticky = false, $id = '', $store_if_sticky = true, $wp_user_id = null, $plugin_title = null ) {
             $notices_type = $this->get_notices_type();
 
             if ( empty( $this->_notices ) ) {
@@ -248,7 +258,8 @@
                 'sticky'     => $is_sticky,
                 'id'         => $id,
                 'manager_id' => $this->_id,
-                'plugin'     => $this->_title,
+                'plugin'     => ( ! is_null( $plugin_title ) ? $plugin_title : $this->_title ),
+                'wp_user_id' => $wp_user_id,
             );
 
             if ( $is_sticky && $store_if_sticky ) {
@@ -299,18 +310,20 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
-         * @param string $message
-         * @param string $id Message ID
-         * @param string $title
-         * @param string $type
+         * @param string      $message
+         * @param string      $id Message ID
+         * @param string      $title
+         * @param string      $type
+         * @param number|null $wp_user_id
+         * @param string|null $plugin_title
          */
-        function add_sticky( $message, $id, $title = '', $type = 'success' ) {
+        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null ) {
             if ( ! empty( $this->_module_unique_affix ) ) {
                 $message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
                 $title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
             }
 
-            $this->add( $message, $title, $type, true, $id );
+            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title );
         }
 
         /**

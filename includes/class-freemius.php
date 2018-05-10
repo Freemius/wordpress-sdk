@@ -636,7 +636,35 @@
          * @param string $sdk_prev_version
          * @param string $sdk_version
          */
-        function _maybe_show_admin_notice_for_opted_in_eu_users( $sdk_prev_version, $sdk_version ) {
+        function _handle_gdpr_admin_notice( $sdk_prev_version, $sdk_version ) {
+            /**
+             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
+             */
+            if ( empty( $sdk_prev_version ) ) {
+                return;
+            }
+
+            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
+                version_compare( $sdk_version, '2.1.0', '>=' )
+            ) {
+                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _maybe_show_gdpr_admin_notice() {
+            $current_wp_user = $this->_get_current_wp_user();
+            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
+                // Add GDPR action AJAX callback.
+                $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
+
+                add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
+                add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+            }
+
             if ( ! $this->is_user_in_admin() ) {
                 return;
             }
@@ -647,111 +675,110 @@
                 return;
             }
 
-            /**
-             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
-             */
-            if ( empty( $sdk_prev_version ) ) {
+            $storage = FS_Storage::instance( 'gdpr_global', '' );
+
+            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
                 return;
             }
 
-            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
-                 version_compare( $sdk_version, '2.1.0', '>=' )
-            ) {
-                if ( $this->_admin_notices->has_sticky( 'gdpr_optin_actions' ) ) {
-                    return;
-                }
-
-                $show_gdpr_optin_notice = $this->_storage->get( 'show_gdpr_optin_notice', true );
-                if ( ! $show_gdpr_optin_notice ) {
-                    return;
-                }
-
-                $last_time_gdpr_optin_notice_shown = $this->_storage->get( 'gdpr_optin_notice_shown', false );
-                $was_notice_shown_before           = ( false !== $last_time_gdpr_optin_notice_shown );
-
-                if ( $was_notice_shown_before &&
-                    30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_gdpr_optin_notice_shown
-                ) {
-                    // If the notice was shown before, show it again after 30 days from the last time it was shown.
-                    return;
-                }
-
-                $current_wp_user = $this->_get_current_wp_user();
-                $plugin_ids_map  = array();
-
-                /**
-                 * @var FS_User $current_fs_user
-                 */
-                $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
-                if ( ! is_object( $current_fs_user ) ) {
-                    return;
-                }
-
-                if ( $this->_is_multisite_integrated ) {
-                    $installs = $this->get_blog_install_map();
-                } else {
-                    $installs = array_merge(
-                        self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
-                        self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
-                    );
-                }
-
-                foreach ( $installs as $install ) {
-                    if ( $current_fs_user->id != $install->user_id ) {
-                        continue;
-                    }
-
-                    $plugin_ids_map[ $install->plugin_id ] = true;
-                }
-
-                if ( empty( $plugin_ids_map ) ) {
-                    return;
-                }
-
-                $user_plugins = $this->get_user_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
-                if ( empty( $user_plugins ) ) {
-                    return;
-                }
-
-                $has_unset_marketing_optin = false;
-
-                foreach ( $user_plugins as $key => $user_plugin ) {
-                    if ( true == $user_plugin->is_marketing_allowed ) {
-                        unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
-                    }
-
-                    if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
-                        $has_unset_marketing_optin = true;
-                    }
-                }
-
-                if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
-                    return;
-                }
-
-                $modules = array_merge(
-                    array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                    array_values( self::$_accounts->get_option( 'themes', array() ) )
-                );
-
-                foreach ( $modules as $module ) {
-                    if ( ! FS_Plugin::is_valid_id( $module->parent_plugin_id ) && isset( $plugin_ids_map[ $module->id ] ) ) {
-                        $plugin_ids_map[ $module->id ] = $module;
-                    }
-                }
-
-                add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-                add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
-
-                $this->_admin_notices->add_sticky(
-                    $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
-                    'gdpr_optin_actions',
-                    '',
-                    'promotion'
-                );
-
-                $this->_storage->gdpr_optin_notice_shown = WP_FS__SCRIPT_START_TIME;
+            $show_gdpr_optin_notice = $storage->get( "show_gdpr_optin_notice_{$current_wp_user->ID}", true );
+            if ( ! $show_gdpr_optin_notice ) {
+                return;
             }
+
+            $last_time_gdpr_optin_notice_shown = $storage->get( "gdpr_optin_notice_shown_{$current_wp_user->ID}", false );
+            $was_notice_shown_before           = ( false !== $last_time_gdpr_optin_notice_shown );
+
+            if ( $was_notice_shown_before &&
+                30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_gdpr_optin_notice_shown
+            ) {
+                // If the notice was shown before, show it again after 30 days from the last time it was shown.
+                return;
+            }
+
+            $plugin_ids_map = array();
+
+            /**
+             * @var FS_User $current_fs_user
+             */
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+            if ( ! is_object( $current_fs_user ) ) {
+                return;
+            }
+
+            if ( $this->_is_multisite_integrated ) {
+                $installs = $this->get_blog_install_map();
+            } else {
+                $installs = array_merge(
+                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
+                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
+                );
+            }
+
+            foreach ( $installs as $install ) {
+                if ( $current_fs_user->id != $install->user_id ) {
+                    continue;
+                }
+
+                $plugin_ids_map[ $install->plugin_id ] = true;
+            }
+
+            if ( empty( $plugin_ids_map ) ) {
+                return;
+            }
+
+            $user_plugins = $this->get_user_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
+            if ( empty( $user_plugins ) ) {
+                return;
+            }
+
+            $has_unset_marketing_optin = false;
+
+            foreach ( $user_plugins as $key => $user_plugin ) {
+                if ( true == $user_plugin->is_marketing_allowed ) {
+                    unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
+                }
+
+                if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
+                    $has_unset_marketing_optin = true;
+                }
+            }
+
+            if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
+                return;
+            }
+
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $module ) {
+                if ( ! FS_Plugin::is_valid_id( $module->parent_plugin_id ) && isset( $plugin_ids_map[ $module->id ] ) ) {
+                    $plugin_ids_map[ $module->id ] = $module;
+                }
+            }
+
+            $plugin_title = null;
+            if ( 1 === count( $plugin_ids_map ) ) {
+                $module       = array_values( $plugin_ids_map )[0];
+                $plugin_title = $module->title;
+            }
+
+            add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
+            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+
+            self::$_global_admin_notices->add_sticky(
+                $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
+                "gdpr_optin_actions_{$current_wp_user->ID}",
+                '',
+                'promotion',
+                null,
+                $current_wp_user->ID,
+                $plugin_title
+            );
+
+            $storage->{"gdpr_optin_notice_shown_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
         }
 
         /**
@@ -789,11 +816,16 @@
 
             }
 
-            $this->_admin_notices->remove_sticky( array(
-                'gdpr_optin_actions',
-            ) );
+            $current_wp_user = $this->_get_current_wp_user();
 
-            $this->_storage->store( 'show_gdpr_optin_notice', false );
+            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
+                self::$_global_admin_notices->remove_sticky( array(
+                    "gdpr_optin_actions_{$current_wp_user->ID}",
+                ) );
+            }
+
+            $storage = FS_Storage::instance( 'gdpr_global', '' );
+            $storage->store( "show_gdpr_optin_notice_{$current_wp_user->ID}", false );
 
             self::shoot_ajax_success();
 
@@ -1455,14 +1487,6 @@
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
                 }
 
-                if ( $this->_admin_notices->has_sticky( 'gdpr_optin_actions' ) ) {
-                    // Add GDPR action AJAX callback.
-                    $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
-
-                    add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-                    add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
-                }
-
                 /**
                  * Part of the mechanism to identify new plugin install vs. plugin update.
                  *
@@ -1542,7 +1566,7 @@
             $this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
             $this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
-            $this->add_action( 'sdk_version_update', array( &$this, '_maybe_show_admin_notice_for_opted_in_eu_users' ), WP_FS__DEFAULT_PRIORITY, 2 );
+            $this->add_action( 'sdk_version_update', array( &$this, '_handle_gdpr_admin_notice'), WP_FS__DEFAULT_PRIORITY, 2 );
             $this->add_action(
                 'plugin_version_update',
                 array( &$this, '_after_version_update' ),
