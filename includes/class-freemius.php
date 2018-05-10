@@ -713,16 +713,19 @@
                     return;
                 }
 
+                $has_unset_marketing_optin = false;
+
                 foreach ( $user_plugins as $key => $user_plugin ) {
-                    if (
-                        true == $user_plugin->is_marketing_allowed ||
-                        ( $was_notice_shown_before && ! is_null( $user_plugin->is_marketing_allowed ) )
-                    ) {
+                    if ( true == $user_plugin->is_marketing_allowed ) {
                         unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
+                    }
+
+                    if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
+                        $has_unset_marketing_optin = true;
                     }
                 }
 
-                if ( empty( $plugin_ids_map ) ) {
+                if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
                     return;
                 }
 
