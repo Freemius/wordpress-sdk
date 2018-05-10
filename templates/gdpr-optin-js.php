@@ -25,7 +25,15 @@
         $gdprOptinNotice.on( 'click', '.button', function() {
 			var
                 allowMarketing = $( this ).hasClass( 'allow-marketing' ),
-                cursor         = $( this ).css( 'cursor' );
+                cursor         = $( this ).css( 'cursor' ),
+                $products      = $gdprOptinNotice.find( '.products span' ),
+                pluginIDs      = [];
+
+			if ( $products.length > 0 ) {
+			    $products.each(function() {
+			        pluginIDs.push( $( this ).data( 'plugin-id' ) );
+                });
+            }
 
             $.ajax({
                 url       : ajaxurl + '?' + $.param({
@@ -35,7 +43,8 @@
                 }),
                 method    : 'POST',
                 data      : {
-                    allow_marketing: allowMarketing
+                    allow_marketing: allowMarketing,
+                    plugin_ids     : pluginIDs
                 },
                 beforeSend: function() {
                     $gdprOptinNotice.find( '.button' ).addClass( 'disabled' );

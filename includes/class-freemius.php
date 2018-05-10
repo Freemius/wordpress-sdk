@@ -765,9 +765,6 @@
                 $plugin_title = $module->title;
             }
 
-            add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
-
             self::$_global_admin_notices->add_sticky(
                 $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
                 "gdpr_optin_actions_{$current_wp_user->ID}",
@@ -808,15 +805,49 @@
 
             $this->check_ajax_referer( 'gdpr_optin_action' );
 
-            if ( ! fs_request_has( 'allow_marketing' ) ) {
+            if ( ! fs_request_has( 'allow_marketing' ) || ! fs_request_has( 'plugin_ids' ) ) {
                 self::shoot_ajax_failure();
             }
 
-            if ( true == fs_request_get_bool( 'allow_marketing' ) ) {
-
-            }
-
             $current_wp_user = $this->_get_current_wp_user();
+
+            if ( true == fs_request_get_bool( 'allow_marketing' ) ) {
+                $plugin_ids = fs_request_get( 'plugin_ids', array() );
+                if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
+                    self::shoot_ajax_failure();
+                }
+
+                $modules = array_merge(
+                    array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                    array_values( self::$_accounts->get_option( 'themes', array() ) )
+                );
+
+                foreach ( $modules as $key => $module ) {
+                    if ( ! in_array( $module->id, $plugin_ids ) ) {
+                        unset( $modules[ $key ] );
+                    }
+                }
+
+                if ( empty( $modules ) ) {
+                    self::shoot_ajax_failure();
+                }
+
+                $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+
+                foreach ( $modules as $module ) {
+                    $plugin_api = FS_Api::instance(
+                        $module->id,
+                        'plugin',
+                        $module->id,
+                        $module->public_key,
+                        ! $module->is_live
+                    );
+
+                    $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
+                        'is_marketing_allowed' => true
+                    ) );
+                }
+            }
 
             if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
                 self::$_global_admin_notices->remove_sticky( array(
@@ -19280,8 +19311,7 @@
 
                 if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
                     if ( $this->_module_id == $user_plugin->id ) {
-                        $plugin_addons = $this->get_addons();
-                        $has_addons = ( ! empty( $plugin_addons ) );
+                        $has_addons = ( ! empty( $this->get_addons() ) );
                     } else {
                         $plugin_api = FS_Api::instance(
                             $user_plugin->id,
@@ -19293,7 +19323,6 @@
 
                         $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );
 
-                        $plugin_addons = array();
                         if ( $this->is_api_result_object( $addons_result, 'plugins' ) &&
                             is_array( $addons_result->plugins ) &&
                             ! empty( $addons_result->plugins )
@@ -19335,24 +19364,32 @@
                     }
 
                     if ( ! $user_plugin->has_addons ) {
-                        $products_and_add_ons .= $user_plugin->title;
+                        $products_and_add_ons .= sprintf(
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            $user_plugin->title
+                        );
                     } else {
                         $products_and_add_ons .= sprintf(
-                            $this->get_text_inline( '%s and its add-ons' ),
-                            $user_plugin->title
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            sprintf(
+                                $this->get_text_inline( '%s and its add-ons' ),
+                                $user_plugin->title
+                            )
                         );
                     }
                 }
 
                 $multiple_products_text = sprintf(
-                    "<small><strong>Products:</strong> %s</small>",
+                    "<small class='products'><strong>Products:</strong> %s</small>",
                     $products_and_add_ons
                 );
             }
 
             $actions = sprintf(
                 '<ul><li>%s<span class="action-description"> - send me security & feature updates, educational content and offers.</span></li><li>%s<span class="action-description"> - do <span class="underline">NOT</span> send me security & feature updates, educational content and offers.</span></li></ul>',
-                sprintf('<button class="button button-primary">%s</button>', $this->get_text_inline( 'Yes' ) ),
+                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes' ) ),
                 sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No' ) )
             );
 
