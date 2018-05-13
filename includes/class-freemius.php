@@ -811,42 +811,40 @@
 
             $current_wp_user = $this->_get_current_wp_user();
 
-            if ( true == fs_request_get_bool( 'allow_marketing' ) ) {
-                $plugin_ids = fs_request_get( 'plugin_ids', array() );
-                if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
-                    self::shoot_ajax_failure();
-                }
+            $plugin_ids = fs_request_get( 'plugin_ids', array() );
+            if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
+                self::shoot_ajax_failure();
+            }
 
-                $modules = array_merge(
-                    array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                    array_values( self::$_accounts->get_option( 'themes', array() ) )
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $key => $module ) {
+                if ( ! in_array( $module->id, $plugin_ids ) ) {
+                    unset( $modules[ $key ] );
+                }
+            }
+
+            if ( empty( $modules ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+
+            foreach ( $modules as $module ) {
+                $plugin_api = FS_Api::instance(
+                    $module->id,
+                    'plugin',
+                    $module->id,
+                    $module->public_key,
+                    ! $module->is_live
                 );
 
-                foreach ( $modules as $key => $module ) {
-                    if ( ! in_array( $module->id, $plugin_ids ) ) {
-                        unset( $modules[ $key ] );
-                    }
-                }
-
-                if ( empty( $modules ) ) {
-                    self::shoot_ajax_failure();
-                }
-
-                $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
-
-                foreach ( $modules as $module ) {
-                    $plugin_api = FS_Api::instance(
-                        $module->id,
-                        'plugin',
-                        $module->id,
-                        $module->public_key,
-                        ! $module->is_live
-                    );
-
-                    $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
-                        'is_marketing_allowed' => true
-                    ) );
-                }
+                $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
+                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'allow_marketing' ) )
+                ) );
             }
 
             if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
@@ -859,8 +857,6 @@
             $storage->store( "show_gdpr_optin_notice_{$current_wp_user->ID}", false );
 
             self::shoot_ajax_success();
-
-            exit;
         }
 
         #--------------------------------------------------------------------------------
@@ -19482,7 +19478,9 @@
                         null;
 
                     if ( ! empty( $decoded ) && $this->is_api_result_object( $decoded ) ) {
-                        $result = array_merge( $result, $decoded->data );
+                        $result = is_array( $decoded->data ) ?
+                            array_merge( $result, $decoded->data ) :
+                            array( $decoded->data );
                     }
                 }
             }
