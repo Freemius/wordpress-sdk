@@ -26,7 +26,7 @@
 			var
                 allowMarketing = $( this ).hasClass( 'allow-marketing' ),
                 cursor         = $( this ).css( 'cursor' ),
-                $products      = $gdprOptinNotice.find( '.products span' ),
+                $products      = $gdprOptinNotice.find( 'span[data-plugin-id]' ),
                 pluginIDs      = [];
 
 			if ( $products.length > 0 ) {

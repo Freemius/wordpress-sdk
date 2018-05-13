@@ -19343,10 +19343,14 @@
                 $single_parent_product = array_values( $user_plugins )[0];
 
                 $thank_you = sprintf(
-                    ( $single_parent_product->has_addons  ?
-                        $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-products' ) :
-                        $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-products' ) ),
-                    $single_parent_product->title
+                    "<span data-plugin-id='%d'>%s</span>",
+                    $single_parent_product->id,
+                    sprintf(
+                        $single_parent_product->has_addons ?
+                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-products' ) :
+                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-products' ),
+                        $single_parent_product->title
+                    )
                 );
 
                 $already_opted_in = sprintf(
