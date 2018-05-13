@@ -57,6 +57,7 @@
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
+         * @param bool   $all_admins
          * @param bool   $network_level_or_blog_id Since 2.0.0
          *
          * @return \FS_Admin_Notice_Manager
@@ -65,8 +66,13 @@
             $id,
             $title = '',
             $module_unique_affix = '',
+            $all_admins = false,
             $network_level_or_blog_id = false
         ) {
+            if ( $all_admins ) {
+                $network_level_or_blog_id = true;
+            }
+
             $key = strtolower( $id );
 
             if ( is_multisite() ) {
@@ -86,6 +92,7 @@
                     $id,
                     $title,
                     $module_unique_affix,
+                    $all_admins,
                     $network_level_or_blog_id
                 );
             }
@@ -97,6 +104,7 @@
             $id,
             $title = '',
             $module_unique_affix = '',
+            $all_admins = false,
             $network_level_or_blog_id = false
         ) {
             $this->_id                  = $id;
@@ -115,8 +123,12 @@
                 $this->_is_network_notices = false;
             }
 
-            if ( ( $this->_is_network_notices && fs_is_network_admin() ) ||
-                 ( ! $this->_is_network_notices && fs_is_blog_admin() )
+            $is_network_admin = fs_is_network_admin();
+            $is_blog_admin    = fs_is_blog_admin();
+
+            if ( ( $this->_is_network_notices && $is_network_admin ) ||
+                 ( ! $this->_is_network_notices && $is_blog_admin ) ||
+                ( $all_admins && ( $is_network_admin || $is_blog_admin ) )
             ) {
                 if ( 0 < count( $this->_sticky_storage ) ) {
                     $ajax_action_suffix = str_replace( ':', '-', $this->_id );
@@ -138,7 +150,8 @@
                             $msg['id'],
                             false,
                             isset( $msg['wp_user_id'] ) ? $msg['wp_user_id'] : null,
-                            ! empty( $msg['plugin'] ) ? $msg['plugin'] : null
+                            ! empty( $msg['plugin'] ) ? $msg['plugin'] : null,
+                            $all_admins
                         );
                     }
                 }
@@ -236,14 +249,31 @@
          * @param bool        $store_if_sticky
          * @param number|null $wp_user_id
          * @param string|null $plugin_title
+         * @param bool        $all_admins
          *
          * @uses   add_action()
          */
-        function add( $message, $title = '', $type = 'success', $is_sticky = false, $id = '', $store_if_sticky = true, $wp_user_id = null, $plugin_title = null ) {
+        function add(
+            $message,
+            $title = '',
+            $type = 'success',
+            $is_sticky = false,
+            $id = '',
+            $store_if_sticky = true,
+            $wp_user_id = null,
+            $plugin_title = null,
+            $all_admins = false
+        ) {
             $notices_type = $this->get_notices_type();
 
             if ( empty( $this->_notices ) ) {
-                add_action( $notices_type, array( &$this, "_admin_notices_hook" ) );
+                if ( ! $all_admins ) {
+                    add_action( $notices_type, array( &$this, "_admin_notices_hook" ) );
+                } else {
+                    add_action( 'network_admin_notices', array( &$this, "_admin_notices_hook" ) );
+                    add_action( 'admin_notices', array( &$this, "_admin_notices_hook" ) );
+                }
+
                 add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_styles' ) );
             }
 
@@ -316,14 +346,15 @@
          * @param string      $type
          * @param number|null $wp_user_id
          * @param string|null $plugin_title
+         * @param bool        $all_admins
          */
-        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null ) {
+        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null, $all_admins = false ) {
             if ( ! empty( $this->_module_unique_affix ) ) {
                 $message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
                 $title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
             }
 
-            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title );
+            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title, $all_admins );
         }
 
         /**

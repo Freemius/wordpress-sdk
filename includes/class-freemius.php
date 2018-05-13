@@ -249,6 +249,13 @@
         private static $_global_admin_notices;
 
         /**
+         * @since 2.1.0
+         *
+         * @var FS_Admin_Notices
+         */
+        private static $_all_admin_notices;
+
+        /**
          * @var FS_Logger
          * @since 1.0.0
          */
@@ -669,7 +676,9 @@
             $storage         = FS_Storage::instance( 'gdpr_global', '' );
             $current_wp_user = self::_get_current_wp_user();
 
-            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
+            self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
+
+            if ( self::$_all_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}", true ) ) {
                 return;
             }
 
@@ -757,14 +766,15 @@
                 $plugin_title = $module->title;
             }
 
-            self::$_global_admin_notices->add_sticky(
+            self::$_all_admin_notices->add_sticky(
                 $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
                 "gdpr_optin_actions_{$current_wp_user->ID}",
                 '',
                 'promotion',
-                null,
+                true,
                 $current_wp_user->ID,
-                $plugin_title
+                $plugin_title,
+                true
             );
 
             $storage->{"gdpr_optin_notice_shown_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
@@ -793,9 +803,17 @@
          * @since  2.1.0
          */
         function _maybe_add_gdpr_optin_ajax_handler() {
+            if ( ! fs_is_network_admin() && ! $this->is_registered() ) {
+                return;
+            }
+
+            if ( ! self::$_all_admin_notices instanceof FS_Admin_Notices ) {
+                self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
+            }
+
             $current_wp_user = self::_get_current_wp_user();
 
-            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
+            if ( self::$_all_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}", true ) ) {
                 // Add GDPR action AJAX callback.
                 $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
 
@@ -855,9 +873,10 @@
                 ) );
             }
 
-            self::$_global_admin_notices->remove_sticky( array(
-                "gdpr_optin_actions_{$current_wp_user->ID}",
-            ) );
+            self::$_all_admin_notices->remove_sticky(
+                array( "gdpr_optin_actions_{$current_wp_user->ID}" ),
+                true
+            );
 
             $storage = FS_Storage::instance( 'gdpr_global', '' );
             $storage->store( "show_gdpr_optin_notice_{$current_wp_user->ID}", false );
