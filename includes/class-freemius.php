@@ -656,15 +656,6 @@
          * @since  2.1.0
          */
         function _maybe_show_gdpr_admin_notice() {
-            $current_wp_user = $this->_get_current_wp_user();
-            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
-                // Add GDPR action AJAX callback.
-                $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
-
-                add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-                add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
-            }
-
             if ( ! $this->is_user_in_admin() ) {
                 return;
             }
@@ -675,7 +666,8 @@
                 return;
             }
 
-            $storage = FS_Storage::instance( 'gdpr_global', '' );
+            $storage         = FS_Storage::instance( 'gdpr_global', '' );
+            $current_wp_user = self::_get_current_wp_user();
 
             if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
                 return;
@@ -800,6 +792,22 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.0
          */
+        function _maybe_add_gdpr_optin_ajax_handler() {
+            $current_wp_user = self::_get_current_wp_user();
+
+            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
+                // Add GDPR action AJAX callback.
+                $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
+
+                add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
+                add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
         function gdpr_optin_ajax_action() {
             $this->_logger->entrance();
 
@@ -809,7 +817,7 @@
                 self::shoot_ajax_failure();
             }
 
-            $current_wp_user = $this->_get_current_wp_user();
+            $current_wp_user = self::_get_current_wp_user();
 
             $plugin_ids = fs_request_get( 'plugin_ids', array() );
             if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
@@ -847,11 +855,9 @@
                 ) );
             }
 
-            if ( self::$_global_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}" ) ) {
-                self::$_global_admin_notices->remove_sticky( array(
-                    "gdpr_optin_actions_{$current_wp_user->ID}",
-                ) );
-            }
+            self::$_global_admin_notices->remove_sticky( array(
+                "gdpr_optin_actions_{$current_wp_user->ID}",
+            ) );
 
             $storage = FS_Storage::instance( 'gdpr_global', '' );
             $storage->store( "show_gdpr_optin_notice_{$current_wp_user->ID}", false );
@@ -1543,6 +1549,8 @@
                         add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
                     }
                 }
+
+                add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
             }
 
             if ( $this->is_plugin() ) {
