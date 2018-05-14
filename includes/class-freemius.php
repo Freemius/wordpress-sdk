@@ -667,14 +667,21 @@
                 return;
             }
 
-            self::require_pluggable_essentials();
+            $current_wp_user = self::_get_current_wp_user();
 
             if ( ! $this->is_user_admin() ) {
                 return;
             }
 
-            $storage         = FS_Storage::instance( 'gdpr_global', '' );
-            $current_wp_user = self::_get_current_wp_user();
+            $user_id = $current_wp_user->ID;
+
+            if ( get_transient( "locked_{$user_id}" ) ) {
+                return;
+            }
+
+            set_transient( "locked_{$user_id}", true,  20 ); // 20-sec lock.
+
+            $storage = FS_Storage::instance( 'gdpr_global', '' );
 
             self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
 
