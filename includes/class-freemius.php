@@ -13415,17 +13415,7 @@
 
             $url = WP_FS__ADDRESS . '/action/service/user/install/';
 
-            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
-                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
-                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
-
-                $request['cookies'] = array(
-                    new WP_Http_Cookie( array(
-                        'name'  => 'XDEBUG_SESSION',
-                        'value' => 'PHPSTORM',
-                    ) )
-                );
-            }
+            $this->enrich_request_for_debug( $url, $request );
 
             $response = wp_remote_post( $url, $request );
 
@@ -19442,20 +19432,6 @@
          * @return array
          */
         private function get_user_plugins( $user_email, $plugin_ids ) {
-            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
-
-            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
-                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
-                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
-
-                $request['cookies'] = array(
-                    new WP_Http_Cookie( array(
-                        'name'  => 'XDEBUG_SESSION',
-                        'value' => 'PHPSTORM',
-                    ) )
-                );
-            }
-
             $params = array(
                 'email'      => $user_email,
                 'plugin_ids' => $plugin_ids
@@ -19466,6 +19442,10 @@
                 'body'    => $params,
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
             );
+
+            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
+
+            $this->enrich_request_for_debug( $url, $request );
 
             $result = array();
 
@@ -19514,6 +19494,28 @@
 
             return $result;
         }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string $url
+         * @param array  $request
+         */
+        private function enrich_request_for_debug( &$url, &$request ) {
+            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
+                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+
+                $request['cookies'] = array(
+                    new WP_Http_Cookie( array(
+                        'name'  => 'XDEBUG_SESSION',
+                        'value' => 'PHPSTORM',
+                    ) )
+                );
+            }
+        }
+
         /**
          * This method is used to enrich the after upgrade notice instructions when the upgraded
          * license cannot be activated network wide (license quota isn't large enough).
