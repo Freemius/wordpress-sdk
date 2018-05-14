@@ -189,7 +189,8 @@
          * @param int|null    $network_level_or_blog_id
          * @param number|null $wp_user_id
          * @param string|null $plugin_title
-         * @param bool        $all_admins
+         * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                                blog admin pages.
          */
         function add_sticky(
             $message,
@@ -199,7 +200,7 @@
             $network_level_or_blog_id = null,
             $wp_user_id = null,
             $plugin_title = null,
-            $all_admins = false
+            $is_network_and_blog_admins = false
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -207,7 +208,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $all_admins );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins );
         }
 
         /**

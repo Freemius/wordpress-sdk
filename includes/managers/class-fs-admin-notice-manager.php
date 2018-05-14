@@ -57,7 +57,8 @@
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
-         * @param bool   $all_admins
+         * @param bool   $is_network_and_blog_admins           Whether or not the message should be shown both on
+         *                                                     network and blog admin pages.
          * @param bool   $network_level_or_blog_id Since 2.0.0
          *
          * @return \FS_Admin_Notice_Manager
@@ -66,10 +67,10 @@
             $id,
             $title = '',
             $module_unique_affix = '',
-            $all_admins = false,
+            $is_network_and_blog_admins = false,
             $network_level_or_blog_id = false
         ) {
-            if ( $all_admins ) {
+            if ( $is_network_and_blog_admins ) {
                 $network_level_or_blog_id = true;
             }
 
@@ -92,7 +93,7 @@
                     $id,
                     $title,
                     $module_unique_affix,
-                    $all_admins,
+                    $is_network_and_blog_admins,
                     $network_level_or_blog_id
                 );
             }

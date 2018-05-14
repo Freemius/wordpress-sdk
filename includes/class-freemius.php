@@ -682,16 +682,16 @@
                 return;
             }
 
-            $show_gdpr_optin_notice = $storage->get( "show_gdpr_optin_notice_{$current_wp_user->ID}", true );
-            if ( ! $show_gdpr_optin_notice ) {
+            $show_notice = $storage->get( "show_notice_{$current_wp_user->ID}", true );
+            if ( ! $show_notice ) {
                 return;
             }
 
-            $last_time_gdpr_optin_notice_shown = $storage->get( "gdpr_optin_notice_shown_{$current_wp_user->ID}", false );
-            $was_notice_shown_before           = ( false !== $last_time_gdpr_optin_notice_shown );
+            $last_time_notice_shown  = $storage->get( "notice_shown_at_{$current_wp_user->ID}", false );
+            $was_notice_shown_before = ( false !== $last_time_notice_shown );
 
             if ( $was_notice_shown_before &&
-                30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_gdpr_optin_notice_shown
+                30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_notice_shown
             ) {
                 // If the notice was shown before, show it again after 30 days from the last time it was shown.
                 return;
@@ -777,7 +777,7 @@
                 true
             );
 
-            $storage->{"gdpr_optin_notice_shown_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
+            $storage->{"notice_shown_at_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
         }
 
         /**
@@ -879,7 +879,7 @@
             );
 
             $storage = FS_Storage::instance( 'gdpr_global', '' );
-            $storage->store( "show_gdpr_optin_notice_{$current_wp_user->ID}", false );
+            $storage->store( "show_notice_{$current_wp_user->ID}", false );
 
             self::shoot_ajax_success();
         }
