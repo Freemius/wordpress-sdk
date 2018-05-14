@@ -681,6 +681,14 @@
 
             set_transient( "locked_{$user_id}", true,  20 ); // 20-sec lock.
 
+            /**
+             * @var FS_User $current_fs_user
+             */
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+            if ( ! is_object( $current_fs_user ) ) {
+                return;
+            }
+
             $storage = FS_Storage::instance( 'gdpr_global', '' );
 
             self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
@@ -705,14 +713,6 @@
             }
 
             $plugin_ids_map = array();
-
-            /**
-             * @var FS_User $current_fs_user
-             */
-            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
-            if ( ! is_object( $current_fs_user ) ) {
-                return;
-            }
 
             if ( $this->_is_multisite_integrated ) {
                 $installs = $this->get_blog_install_map();
