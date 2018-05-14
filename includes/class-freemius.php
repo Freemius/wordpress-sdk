@@ -19302,7 +19302,8 @@
 
                 if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
                     if ( $this->_module_id == $user_plugin->id ) {
-                        $has_addons = ( ! empty( $this->get_addons() ) );
+                        $addons     = $this->get_addons();
+                        $has_addons = ( ! empty( $addons ) );
                     } else {
                         $plugin_api = FS_Api::instance(
                             $user_plugin->id,
