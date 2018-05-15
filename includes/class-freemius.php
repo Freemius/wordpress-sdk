@@ -7105,7 +7105,7 @@
          * @param array|null $sites            Since 2.0.0. Specific sites.
          * @param bool       $skip_all_network Since 2.0.0. If true, skip connection for all sites.
          */
-        private function skip_connection( $sites = null, $skip_all_network = false ) {
+        function skip_connection( $sites = null, $skip_all_network = false ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
