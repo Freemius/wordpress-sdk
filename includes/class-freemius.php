@@ -6044,6 +6044,8 @@
                 fs_redirect( $this->get_after_activation_url( 'after_delegation_url' ) );
             }
 
+            $this->_add_upgrade_action_link();
+
             if ( ! $this->is_addon() &&
                  (
                      // Not registered nor anonymous.
@@ -6120,8 +6122,6 @@
                     $this->_show_theme_activation_optin_dialog();
                 }
             }
-
-            $this->_add_upgrade_action_link();
         }
 
         /**
@@ -18737,7 +18737,6 @@
         function _add_upgrade_action_link() {
             $this->_logger->entrance();
 
-            if ( $this->is_registered() ) {
                 if ( ! $this->is_paying() && $this->has_paid_plan() ) {
                     $this->add_plugin_action_link(
                         $this->get_text_inline( 'Upgrade', 'upgrade' ),
@@ -18758,7 +18757,6 @@
                     );
                 }
             }
-        }
 
         /**
          * Adds "Activate License" or "Change License" link to the main Plugins page link actions collection.
