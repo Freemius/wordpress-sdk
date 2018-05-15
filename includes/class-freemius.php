@@ -19435,14 +19435,9 @@
          * @return array
          */
         private function get_user_plugins( $user_email, $plugin_ids ) {
-            $params = array(
-                'email'      => $user_email,
-                'plugin_ids' => $plugin_ids
-            );
-
             $request = array(
                 'method'  => 'POST',
-                'body'    => $params,
+                'body'    => array( 'email' => $user_email ),
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
             );
 
@@ -19458,17 +19453,26 @@
                 $plugin_ids_set                = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
                 $request['body']['plugin_ids'] = $plugin_ids_set;
 
-                $response = $this->safe_remote_post( $url, $request );
+                $response = $this->safe_remote_post(
+                    $url,
+                    $request,
+                    'fs_user_plugins_' . md5( $user_email . implode( ',', $plugin_ids_set ) ),
+                    WP_FS__TIME_24_HOURS_IN_SEC,
+                    WP_FS__TIME_12_HOURS_IN_SEC
+                );
 
                 if ( ! is_wp_error( $response ) ) {
                     $decoded = is_string( $response['body'] ) ?
                         json_decode( $response['body'] ) :
                         null;
 
-                    if ( ! empty( $decoded ) && $this->is_api_result_object( $decoded ) ) {
-                        $result = is_array( $decoded->data ) ?
-                            array_merge( $result, $decoded->data ) :
-                            array( $decoded->data );
+                    if (
+                        ! empty( $decoded ) &&
+                        $this->is_api_result_object( $decoded ) &&
+                        isset( $decoded->data ) &&
+                        is_array( $decoded->data )
+                    ) {
+                        $result = array_merge( $result, $decoded->data );
                     }
                 }
             }
@@ -19501,30 +19505,55 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          *
-         * @param string $url
-         * @param array  $request
+         * @param string      $url
+         * @param array       $request
+         * @param string|bool $cache_key
+         * @param int         $success_cache_expiration
+         * @param int         $failure_cache_expiration
          *
          * @return WP_Error|array
          */
-        private function safe_remote_post( $url, $request ) {
-            $response = wp_remote_post( $url, $request );
+        private function safe_remote_post(
+            $url,
+            $request,
+            $cache_key = false,
+            $success_cache_expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $failure_cache_expiration = WP_FS__TIME_24_HOURS_IN_SEC
+        ) {
+            $response = ( false !== $cache_key ) ?
+                get_transient( $cache_key ) :
+                false;
 
-            if ( $response instanceof WP_Error ) {
-                if ( 'https://' === substr( $url, 0, 8 ) &&
-                    isset( $response->errors ) &&
-                    isset( $response->errors['http_request_failed'] )
-                ) {
-                    $http_error = strtolower( $response->errors['http_request_failed'][0] );
+            if ( false === $response ) {
+                $response = wp_remote_post( $url, $request );
 
-                    if ( false !== strpos( $http_error, 'ssl' ) ||
-                        false !== strpos( $http_error, 'curl error 35' )
+                if ( $response instanceof WP_Error ) {
+                    if ( 'https://' === substr( $url, 0, 8 ) &&
+                        isset( $response->errors ) &&
+                        isset( $response->errors['http_request_failed'] )
                     ) {
-                        // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
-                        $url = 'http://' . substr( $url, 8 );
+                        $http_error = strtolower( $response->errors['http_request_failed'][0] );
 
-                        $request['timeout'] = 15;
-                        $response           = wp_remote_post( $url, $request );
+                        if ( false !== strpos( $http_error, 'ssl' ) ||
+                            false !== strpos( $http_error, 'curl error 35' )
+                        ) {
+                            // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+                            $url = 'http://' . substr( $url, 8 );
+
+                            $request['timeout'] = 15;
+                            $response           = wp_remote_post( $url, $request );
+                        }
                     }
+                }
+
+                if ( false !== $cache_key ) {
+                    set_transient(
+                        $cache_key,
+                        $response,
+                        ( ( $response instanceof WP_Error ) ?
+                            $failure_cache_expiration :
+                            $success_cache_expiration )
+                    );
                 }
             }
 
