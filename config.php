@@ -248,6 +248,9 @@
     if ( ! defined( 'WP_FS__API_CACHE_OPTION_NAME' ) ) {
         define( 'WP_FS__API_CACHE_OPTION_NAME', WP_FS___OPTION_PREFIX . 'api_cache' );
     }
+    if ( ! defined( 'WP_FS__GDPR_OPTION_NAME' ) ) {
+        define( 'WP_FS__GDPR_OPTION_NAME', WP_FS___OPTION_PREFIX . 'gdpr' );
+    }
     define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
     /**

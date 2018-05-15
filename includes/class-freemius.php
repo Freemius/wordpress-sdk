@@ -3107,7 +3107,7 @@
             }
 
             if ( $is_connected ) {
-                self::store_gdpr_data_for_current_user( $pong->is_gdpr_required );
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
             }
             
             $this->store_connectivity_info( $pong, $is_connected );
@@ -3232,61 +3232,33 @@
         }
 
         /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.0
+         *
+         * @return int
+         */
+        static function get_current_wp_user_id() {
+            $wp_user = self::_get_current_wp_user();
+
+            return $wp_user->ID;
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.0.2
+         * @since 2.1.0
          *
          * @return bool
          */
-        function fetch_and_store_gdpr_data_for_current_user() {
+        function fetch_and_store_current_user_gdpr_anonymously() {
             $pong = $this->ping( null, true );
 
             if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
                 return false;
             } else {
-                self::store_gdpr_data_for_current_user( $pong->is_gdpr_required );
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
 
                 return $pong->is_gdpr_required;
             }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.0.2
-         *
-         * @param bool $is_gdpr_required
-         */
-        static function store_gdpr_data_for_current_user( $is_gdpr_required ) {
-            $gdpr_data = self::$_accounts->get_option( 'gdpr', array() );
-
-            if ( ! is_array( $gdpr_data ) ) {
-                $gdpr_data = array();
-            }
-
-            $current_user = self::_get_current_wp_user();
-
-            $gdpr_data[ $current_user->ID ] = $is_gdpr_required;
-
-            self::$_accounts->set_option( 'gdpr', $gdpr_data, true );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.0.2
-         *
-         * @return bool|null
-         */
-        static function is_gdpr_required() {
-            $gdpr_data = self::$_accounts->get_option( 'gdpr', array() );
-
-            if ( ! is_array( $gdpr_data ) ) {
-                $gdpr_data = array();
-            }
-
-            $current_user = self::_get_current_wp_user();
-
-            return isset( $gdpr_data[ $current_user->ID ] ) ?
-                $gdpr_data[ $current_user->ID ] :
-                null;
         }
 
         /**
@@ -3594,7 +3566,7 @@
             $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
             if ( $is_connected ) {
-                self::store_gdpr_data_for_current_user( $pong->is_gdpr_required );
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
 
                 $this->store_connectivity_info( $pong, $is_connected );
 
@@ -3668,7 +3640,7 @@
             $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
             if ( $is_connected ) {
-                self::store_gdpr_data_for_current_user( $pong->is_gdpr_required );
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
 
                 $this->store_connectivity_info( $pong, $is_connected );
 
