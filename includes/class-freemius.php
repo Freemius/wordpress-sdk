@@ -629,250 +629,6 @@
             }
         }
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         *
-         * @param string $sdk_prev_version
-         * @param string $sdk_version
-         */
-        function _handle_gdpr_admin_notice( $sdk_prev_version, $sdk_version ) {
-            /**
-             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
-             */
-            if ( empty( $sdk_prev_version ) ) {
-                return;
-            }
-
-            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
-                version_compare( $sdk_version, '2.1.0', '>=' )
-            ) {
-                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function _maybe_show_gdpr_admin_notice() {
-            if ( ! $this->is_user_in_admin() ) {
-                return;
-            }
-
-            $current_wp_user = self::_get_current_wp_user();
-
-            if ( ! $this->is_user_admin() ) {
-                return;
-            }
-
-            $user_id = $current_wp_user->ID;
-
-            if ( get_transient( "locked_{$user_id}" ) ) {
-                return;
-            }
-
-            set_transient( "locked_{$user_id}", true,  20 ); // 20-sec lock.
-
-            /**
-             * @var FS_User $current_fs_user
-             */
-            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
-            if ( ! is_object( $current_fs_user ) ) {
-                return;
-            }
-
-            $gdpr = FS_GDPR_Manager::instance();
-
-            if ( $gdpr->is_opt_in_notice_shown() ) {
-                return;
-            }
-
-            if ( ! $gdpr->should_show_opt_in_notice() ) {
-                return;
-            }
-
-            $last_time_notice_shown  = $gdpr->last_time_notice_was_shown();
-            $was_notice_shown_before = ( false !== $last_time_notice_shown );
-
-            if ( $was_notice_shown_before &&
-                30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_notice_shown
-            ) {
-                // If the notice was shown before, show it again after 30 days from the last time it was shown.
-                return;
-            }
-
-            $plugin_ids_map = array();
-
-            if ( $this->_is_multisite_integrated ) {
-                $installs = $this->get_blog_install_map();
-            } else {
-                $installs = array_merge(
-                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
-                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
-                );
-            }
-
-            foreach ( $installs as $install ) {
-                if ( $current_fs_user->id != $install->user_id ) {
-                    continue;
-                }
-
-                $plugin_ids_map[ $install->plugin_id ] = true;
-            }
-
-            if ( empty( $plugin_ids_map ) ) {
-                return;
-            }
-
-            $user_plugins = $this->get_user_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
-            if ( empty( $user_plugins ) ) {
-                return;
-            }
-
-            $has_unset_marketing_optin = false;
-
-            foreach ( $user_plugins as $key => $user_plugin ) {
-                if ( true == $user_plugin->is_marketing_allowed ) {
-                    unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
-                }
-
-                if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
-                    $has_unset_marketing_optin = true;
-                }
-            }
-
-            if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
-                return;
-            }
-
-            $modules = array_merge(
-                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                array_values( self::$_accounts->get_option( 'themes', array() ) )
-            );
-
-            foreach ( $modules as $module ) {
-                if ( ! FS_Plugin::is_valid_id( $module->parent_plugin_id ) && isset( $plugin_ids_map[ $module->id ] ) ) {
-                    $plugin_ids_map[ $module->id ] = $module;
-                }
-            }
-
-            $plugin_title = null;
-            if ( 1 === count( $plugin_ids_map ) ) {
-                $module       = array_values( $plugin_ids_map )[0];
-                $plugin_title = $module->title;
-            }
-
-            $gdpr->add_opt_in_sticky_notice(
-                $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
-                $plugin_title
-            );
-
-            $this->add_gdpr_optin_ajax_handler_and_style();
-
-            $gdpr->notice_was_just_shown();
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function add_gdpr_optin_js() {
-            $vars = array( 'id' => $this->_module_id );
-
-            fs_require_once_template( 'gdpr-optin-js.php', $vars );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function enqueue_gdpr_optin_notice_style() {
-            fs_enqueue_local_style( 'fs_gdpr_optin_notice', '/admin/gdpr-optin-notice.css' );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function _maybe_add_gdpr_optin_ajax_handler() {
-            if ( ! fs_is_network_admin() && ! $this->is_registered() ) {
-                return;
-            }
-
-            if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
-                $this->add_gdpr_optin_ajax_handler_and_style();
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        private function add_gdpr_optin_ajax_handler_and_style() {
-            // Add GDPR action AJAX callback.
-            $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
-
-            add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function gdpr_optin_ajax_action() {
-            $this->_logger->entrance();
-
-            $this->check_ajax_referer( 'gdpr_optin_action' );
-
-            if ( ! fs_request_has( 'allow_marketing' ) || ! fs_request_has( 'plugin_ids' ) ) {
-                self::shoot_ajax_failure();
-            }
-
-            $current_wp_user = self::_get_current_wp_user();
-
-            $plugin_ids = fs_request_get( 'plugin_ids', array() );
-            if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
-                self::shoot_ajax_failure();
-            }
-
-            $modules = array_merge(
-                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                array_values( self::$_accounts->get_option( 'themes', array() ) )
-            );
-
-            foreach ( $modules as $key => $module ) {
-                if ( ! in_array( $module->id, $plugin_ids ) ) {
-                    unset( $modules[ $key ] );
-                }
-            }
-
-            if ( empty( $modules ) ) {
-                self::shoot_ajax_failure();
-            }
-
-            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
-
-            foreach ( $modules as $module ) {
-                $plugin_api = FS_Api::instance(
-                    $module->id,
-                    'plugin',
-                    $module->id,
-                    $module->public_key,
-                    ! $module->is_live
-                );
-
-                $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
-                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'allow_marketing' ) )
-                ) );
-            }
-
-            FS_GDPR_Manager::instance()->remove_opt_in_notice();
-
-            self::shoot_ajax_success();
-        }
-
         #--------------------------------------------------------------------------------
         #region Data Migration on SDK Update
         #--------------------------------------------------------------------------------
@@ -3488,24 +3244,6 @@
             $wp_user = self::_get_current_wp_user();
 
             return $wp_user->ID;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.0
-         *
-         * @return bool
-         */
-        function fetch_and_store_current_user_gdpr_anonymously() {
-            $pong = $this->ping( null, true );
-
-            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
-                return false;
-            } else {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-
-                return $pong->is_gdpr_required;
-            }
         }
 
         /**
@@ -19321,185 +19059,6 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         *
-         * @param array $user_plugins
-         *
-         * @return string
-         */
-        private function get_gdpr_admin_notice_string( $user_plugins ) {
-            $this->_logger->entrance();
-
-            $addons = self::get_all_addons();
-
-            foreach ( $user_plugins as $user_plugin ) {
-                $has_addons = isset( $addons[ $user_plugin->id ] );
-
-                if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
-                    if ( $this->_module_id == $user_plugin->id ) {
-                        $addons     = $this->get_addons();
-                        $has_addons = ( ! empty( $addons ) );
-                    } else {
-                        $plugin_api = FS_Api::instance(
-                            $user_plugin->id,
-                            'plugin',
-                            $user_plugin->id,
-                            $user_plugin->public_key,
-                            ! $user_plugin->is_live
-                        );
-
-                        $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );
-
-                        if ( $this->is_api_result_object( $addons_result, 'plugins' ) &&
-                            is_array( $addons_result->plugins ) &&
-                            ! empty( $addons_result->plugins )
-                        ) {
-                            $has_addons = true;
-                        }
-                    }
-                }
-
-                $user_plugin->has_addons = $has_addons;
-            }
-
-            $is_single_parent_product = ( 1 === count( $user_plugins ) );
-
-            $multiple_products_text = '';
-
-            if ( $is_single_parent_product ) {
-                $single_parent_product = array_values( $user_plugins )[0];
-
-                $thank_you = sprintf(
-                    "<span data-plugin-id='%d'>%s</span>",
-                    $single_parent_product->id,
-                    sprintf(
-                        $single_parent_product->has_addons ?
-                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-product-and-its-addons' ) :
-                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-product' ),
-                        $single_parent_product->title
-                    )
-                );
-
-                $already_opted_in = sprintf(
-                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s.", 'already-opted-in-to-product-usage-tracking' ),
-                    ( WP_FS__MODULE_TYPE_THEME === $single_parent_product->type ) ? WP_FS__MODULE_TYPE_THEME : WP_FS__MODULE_TYPE_PLUGIN
-                );
-            } else {
-                $thank_you        = $this->get_text_inline( 'Thank you so much for using our products!', 'thank-you-for-using-products' );
-                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them.", 'already-opted-in-to-products-usage-tracking' );
-
-                $products_and_add_ons = '';
-                foreach ( $user_plugins as $user_plugin ) {
-                    if ( ! empty( $products_and_add_ons ) ) {
-                        $products_and_add_ons .= ', ';
-                    }
-
-                    if ( ! $user_plugin->has_addons ) {
-                        $products_and_add_ons .= sprintf(
-                            "<span data-plugin-id='%d'>%s</span>",
-                            $user_plugin->id,
-                            $user_plugin->title
-                        );
-                    } else {
-                        $products_and_add_ons .= sprintf(
-                            "<span data-plugin-id='%d'>%s</span>",
-                            $user_plugin->id,
-                            sprintf(
-                                $this->get_text_inline( '%s and its add-ons', 'product-and-its-addons' ),
-                                $user_plugin->title
-                            )
-                        );
-                    }
-                }
-
-                $multiple_products_text = sprintf(
-                    "<small class='products'><strong>%s</strong> %s</small>",
-                    $this->get_text_inline( 'Products:', 'products' ),
-                    $products_and_add_ons
-                );
-            }
-
-            $actions = sprintf(
-                '<ul><li>%s<span class="action-description"> - %s</span></li><li>%s<span class="action-description"> - %s</span></li></ul>',
-                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes', 'yes' ) ),
-                $this->get_text_inline( 'send me security & feature updates, educational content and offers.', 'send-updates' ),
-                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No', 'no' ) ),
-                sprintf(
-                    $this->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
-                    '<span class="underline">',
-                    '</span>'
-                )
-            );
-
-            return sprintf(
-                '%s %s %s',
-                $thank_you,
-                $already_opted_in,
-                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ) .
-                '<br />' .
-                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) .
-                $actions .
-                ( $is_single_parent_product ? '' : $multiple_products_text )
-            );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.0
-         *
-         * @param string $user_email
-         * @param array  $plugin_ids
-         *
-         * @return array
-         */
-        private function get_user_plugins( $user_email, $plugin_ids ) {
-            $request = array(
-                'method'  => 'POST',
-                'body'    => array( 'email' => $user_email ),
-                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
-            );
-
-            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
-
-            $this->enrich_request_for_debug( $url, $request );
-
-            $result = array();
-
-            $total_plugin_ids             = count( $plugin_ids );
-            $plugin_ids_count_per_request = 10;
-            for ( $i = 1; $i <= $total_plugin_ids; $i += $plugin_ids_count_per_request ) {
-                $plugin_ids_set                = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
-                $request['body']['plugin_ids'] = $plugin_ids_set;
-
-                $response = $this->safe_remote_post(
-                    $url,
-                    $request,
-                    'fs_user_plugins_' . md5( $user_email . implode( ',', $plugin_ids_set ) ),
-                    WP_FS__TIME_24_HOURS_IN_SEC,
-                    WP_FS__TIME_12_HOURS_IN_SEC
-                );
-
-                if ( ! is_wp_error( $response ) ) {
-                    $decoded = is_string( $response['body'] ) ?
-                        json_decode( $response['body'] ) :
-                        null;
-
-                    if (
-                        ! empty( $decoded ) &&
-                        $this->is_api_result_object( $decoded ) &&
-                        isset( $decoded->data ) &&
-                        is_array( $decoded->data )
-                    ) {
-                        $result = array_merge( $result, $decoded->data );
-                    }
-                }
-            }
-
-            return $result;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          *
          * @param string $url
@@ -20408,6 +19967,453 @@
                 $info->icon :
                 '';
         }
+
+        #--------------------------------------------------------------------------------
+        #region GDPR
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @return bool
+         */
+        function fetch_and_store_current_user_gdpr_anonymously() {
+            $pong = $this->ping( null, true );
+
+            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
+                return false;
+            } else {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+
+                return $pong->is_gdpr_required;
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param array $user_plugins
+         *
+         * @return string
+         */
+        private function get_gdpr_admin_notice_string( $user_plugins ) {
+            $this->_logger->entrance();
+
+            $addons = self::get_all_addons();
+
+            foreach ( $user_plugins as $user_plugin ) {
+                $has_addons = isset( $addons[ $user_plugin->id ] );
+
+                if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
+                    if ( $this->_module_id == $user_plugin->id ) {
+                        $addons     = $this->get_addons();
+                        $has_addons = ( ! empty( $addons ) );
+                    } else {
+                        $plugin_api = FS_Api::instance(
+                            $user_plugin->id,
+                            'plugin',
+                            $user_plugin->id,
+                            $user_plugin->public_key,
+                            ! $user_plugin->is_live
+                        );
+
+                        $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );
+
+                        if ( $this->is_api_result_object( $addons_result, 'plugins' ) &&
+                             is_array( $addons_result->plugins ) &&
+                             ! empty( $addons_result->plugins )
+                        ) {
+                            $has_addons = true;
+                        }
+                    }
+                }
+
+                $user_plugin->has_addons = $has_addons;
+            }
+
+            $is_single_parent_product = ( 1 === count( $user_plugins ) );
+
+            $multiple_products_text = '';
+
+            if ( $is_single_parent_product ) {
+                $single_parent_product = array_values( $user_plugins )[0];
+
+                $thank_you = sprintf(
+                    "<span data-plugin-id='%d'>%s</span>",
+                    $single_parent_product->id,
+                    sprintf(
+                        $single_parent_product->has_addons ?
+                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-product-and-its-addons' ) :
+                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-product' ),
+                        $single_parent_product->title
+                    )
+                );
+
+                $already_opted_in = sprintf(
+                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s.", 'already-opted-in-to-product-usage-tracking' ),
+                    ( WP_FS__MODULE_TYPE_THEME === $single_parent_product->type ) ? WP_FS__MODULE_TYPE_THEME : WP_FS__MODULE_TYPE_PLUGIN
+                );
+            } else {
+                $thank_you        = $this->get_text_inline( 'Thank you so much for using our products!', 'thank-you-for-using-products' );
+                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them.", 'already-opted-in-to-products-usage-tracking' );
+
+                $products_and_add_ons = '';
+                foreach ( $user_plugins as $user_plugin ) {
+                    if ( ! empty( $products_and_add_ons ) ) {
+                        $products_and_add_ons .= ', ';
+                    }
+
+                    if ( ! $user_plugin->has_addons ) {
+                        $products_and_add_ons .= sprintf(
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            $user_plugin->title
+                        );
+                    } else {
+                        $products_and_add_ons .= sprintf(
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            sprintf(
+                                $this->get_text_inline( '%s and its add-ons', 'product-and-its-addons' ),
+                                $user_plugin->title
+                            )
+                        );
+                    }
+                }
+
+                $multiple_products_text = sprintf(
+                    "<small class='products'><strong>%s</strong> %s</small>",
+                    $this->get_text_inline( 'Products:', 'products' ),
+                    $products_and_add_ons
+                );
+            }
+
+            $actions = sprintf(
+                '<ul><li>%s<span class="action-description"> - %s</span></li><li>%s<span class="action-description"> - %s</span></li></ul>',
+                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes', 'yes' ) ),
+                $this->get_text_inline( 'send me security & feature updates, educational content and offers.', 'send-updates' ),
+                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No', 'no' ) ),
+                sprintf(
+                    $this->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
+                    '<span class="underline">',
+                    '</span>'
+                )
+            );
+
+            return sprintf(
+                '%s %s %s',
+                $thank_you,
+                $already_opted_in,
+                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ) .
+                '<br />' .
+                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) .
+                $actions .
+                ( $is_single_parent_product ? '' : $multiple_products_text )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string $user_email
+         * @param array  $plugin_ids
+         *
+         * @return array
+         */
+        private function get_user_plugins( $user_email, $plugin_ids ) {
+            $request = array(
+                'method'  => 'POST',
+                'body'    => array( 'email' => $user_email ),
+                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+            );
+
+            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
+
+            $this->enrich_request_for_debug( $url, $request );
+
+            $result = array();
+
+            $total_plugin_ids             = count( $plugin_ids );
+            $plugin_ids_count_per_request = 10;
+            for ( $i = 1; $i <= $total_plugin_ids; $i += $plugin_ids_count_per_request ) {
+                $plugin_ids_set                = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
+                $request['body']['plugin_ids'] = $plugin_ids_set;
+
+                $response = $this->safe_remote_post(
+                    $url,
+                    $request,
+                    'fs_user_plugins_' . md5( $user_email . implode( ',', $plugin_ids_set ) ),
+                    WP_FS__TIME_24_HOURS_IN_SEC,
+                    WP_FS__TIME_12_HOURS_IN_SEC
+                );
+
+                if ( ! is_wp_error( $response ) ) {
+                    $decoded = is_string( $response['body'] ) ?
+                        json_decode( $response['body'] ) :
+                        null;
+
+                    if (
+                        ! empty( $decoded ) &&
+                        $this->is_api_result_object( $decoded ) &&
+                        isset( $decoded->data ) &&
+                        is_array( $decoded->data )
+                    ) {
+                        $result = array_merge( $result, $decoded->data );
+                    }
+                }
+            }
+
+            return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param string $sdk_prev_version
+         * @param string $sdk_version
+         */
+        function _handle_gdpr_admin_notice( $sdk_prev_version, $sdk_version ) {
+            /**
+             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
+             */
+            if ( empty( $sdk_prev_version ) ) {
+                return;
+            }
+
+            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
+                 version_compare( $sdk_version, '2.1.0', '>=' )
+            ) {
+                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _maybe_show_gdpr_admin_notice() {
+            if ( ! $this->is_user_in_admin() ) {
+                return;
+            }
+
+            $current_wp_user = self::_get_current_wp_user();
+
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            $user_id = $current_wp_user->ID;
+
+            if ( get_transient( "locked_{$user_id}" ) ) {
+                return;
+            }
+
+            set_transient( "locked_{$user_id}", true,  20 ); // 20-sec lock.
+
+            /**
+             * @var FS_User $current_fs_user
+             */
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+            if ( ! is_object( $current_fs_user ) ) {
+                return;
+            }
+
+            $gdpr = FS_GDPR_Manager::instance();
+
+            if ( $gdpr->is_opt_in_notice_shown() ) {
+                return;
+            }
+
+            if ( ! $gdpr->should_show_opt_in_notice() ) {
+                return;
+            }
+
+            $last_time_notice_shown  = $gdpr->last_time_notice_was_shown();
+            $was_notice_shown_before = ( false !== $last_time_notice_shown );
+
+            if ( $was_notice_shown_before &&
+                 30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_notice_shown
+            ) {
+                // If the notice was shown before, show it again after 30 days from the last time it was shown.
+                return;
+            }
+
+            $plugin_ids_map = array();
+
+            if ( $this->_is_multisite_integrated ) {
+                $installs = $this->get_blog_install_map();
+            } else {
+                $installs = array_merge(
+                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
+                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
+                );
+            }
+
+            foreach ( $installs as $install ) {
+                if ( $current_fs_user->id != $install->user_id ) {
+                    continue;
+                }
+
+                $plugin_ids_map[ $install->plugin_id ] = true;
+            }
+
+            if ( empty( $plugin_ids_map ) ) {
+                return;
+            }
+
+            $user_plugins = $this->get_user_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
+            if ( empty( $user_plugins ) ) {
+                return;
+            }
+
+            $has_unset_marketing_optin = false;
+
+            foreach ( $user_plugins as $key => $user_plugin ) {
+                if ( true == $user_plugin->is_marketing_allowed ) {
+                    unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
+                }
+
+                if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
+                    $has_unset_marketing_optin = true;
+                }
+            }
+
+            if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
+                return;
+            }
+
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $module ) {
+                if ( ! FS_Plugin::is_valid_id( $module->parent_plugin_id ) && isset( $plugin_ids_map[ $module->id ] ) ) {
+                    $plugin_ids_map[ $module->id ] = $module;
+                }
+            }
+
+            $plugin_title = null;
+            if ( 1 === count( $plugin_ids_map ) ) {
+                $module       = array_values( $plugin_ids_map )[0];
+                $plugin_title = $module->title;
+            }
+
+            $gdpr->add_opt_in_sticky_notice(
+                $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
+                $plugin_title
+            );
+
+            $this->add_gdpr_optin_ajax_handler_and_style();
+
+            $gdpr->notice_was_just_shown();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _add_gdpr_optin_js() {
+            $vars = array( 'id' => $this->_module_id );
+
+            fs_require_once_template( 'gdpr-optin-js.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function enqueue_gdpr_optin_notice_style() {
+            fs_enqueue_local_style( 'fs_gdpr_optin_notice', '/admin/gdpr-optin-notice.css' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _maybe_add_gdpr_optin_ajax_handler() {
+            if ( ! fs_is_network_admin() && ! $this->is_registered() ) {
+                return;
+            }
+
+            if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
+                $this->add_gdpr_optin_ajax_handler_and_style();
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        private function add_gdpr_optin_ajax_handler_and_style() {
+            // Add GDPR action AJAX callback.
+            $this->add_ajax_action( 'gdpr_optin_action', array( &$this, '_gdpr_optin_ajax_action' ) );
+
+            add_action( 'admin_footer', array( &$this, '_add_gdpr_optin_js' ) );
+            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _gdpr_optin_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'gdpr_optin_action' );
+
+            if ( ! fs_request_has( 'allow_marketing' ) || ! fs_request_has( 'plugin_ids' ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $current_wp_user = self::_get_current_wp_user();
+
+            $plugin_ids = fs_request_get( 'plugin_ids', array() );
+            if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $key => $module ) {
+                if ( ! in_array( $module->id, $plugin_ids ) ) {
+                    unset( $modules[ $key ] );
+                }
+            }
+
+            if ( empty( $modules ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+
+            foreach ( $modules as $module ) {
+                $plugin_api = FS_Api::instance(
+                    $module->id,
+                    'plugin',
+                    $module->id,
+                    $module->public_key,
+                    ! $module->is_live
+                );
+
+                $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
+                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'allow_marketing' ) )
+                ) );
+            }
+
+            FS_GDPR_Manager::instance()->remove_opt_in_notice();
+
+            self::shoot_ajax_success();
+        }
+
+        #endregion
 
         #----------------------------------------------------------------------------------
         #region Marketing
