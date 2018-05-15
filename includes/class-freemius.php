@@ -19086,8 +19086,8 @@
          *
          * @return WP_Error|array
          */
-            $url,
         private static function safe_remote_post(
+            &$url,
             $request,
             $success_cache_expiration = 0,
             $failure_cache_expiration = 0
