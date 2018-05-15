@@ -19092,6 +19092,8 @@
             $success_cache_expiration = 0,
             $failure_cache_expiration = 0
         ) {
+            $should_cache = ($success_cache_expiration + $failure_cache_expiration > 0);
+
             $cache_key = $should_cache ? md5( fs_strip_url_protocol($url) . json_encode( $request ) ) : false;
 
             $response = ( false !== $cache_key ) ?
@@ -20131,17 +20133,18 @@
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
             );
 
-            $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
-
             $result = array();
 
-            $total_plugin_ids             = count( $plugin_ids );
+            $url              = WP_FS__ADDRESS . '/action/service/user_plugin/';
+            $total_plugin_ids = count( $plugin_ids );
+
             $plugin_ids_count_per_request = 10;
             for ( $i = 1; $i <= $total_plugin_ids; $i += $plugin_ids_count_per_request ) {
-                $plugin_ids_set                = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
+                $plugin_ids_set = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
+
                 $request['body']['plugin_ids'] = $plugin_ids_set;
 
-                $response = $this->safe_remote_post(
+                $response = self::safe_remote_post(
                     $url,
                     $request,
                     WP_FS__TIME_24_HOURS_IN_SEC,
