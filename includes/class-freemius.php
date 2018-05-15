@@ -20115,6 +20115,8 @@
         }
 
         /**
+         * This method is called for opted-in users to fetch the is_marketing_allowed flag of the user for all the plugins and themes they've opted-in to.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          *
@@ -20123,7 +20125,7 @@
          *
          * @return array
          */
-        private function get_user_plugins( $user_email, $plugin_ids ) {
+        private function fetch_user_marketing_flag_status_by_plugins( $user_email, $plugin_ids ) {
             $request = array(
                 'method'  => 'POST',
                 'body'    => array( 'email' => $user_email ),
@@ -20208,6 +20210,9 @@
 
             $user_id = $current_wp_user->ID;
 
+            /**
+             * A storage based lock to make that the logic will not be executed more than once per admin every 20-sec tops.
+             */
             if ( get_transient( "locked_{$user_id}" ) ) {
                 return;
             }
@@ -20253,6 +20258,9 @@
                 );
             }
 
+            /**
+             * Find all plugin IDs that were installed by the current admin.
+             */
             foreach ( $installs as $install ) {
                 if ( $current_fs_user->id != $install->user_id ) {
                     continue;
@@ -20265,7 +20273,10 @@
                 return;
             }
 
-            $user_plugins = $this->get_user_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
+            /**
+             *
+             */
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
             if ( empty( $user_plugins ) ) {
                 return;
             }
