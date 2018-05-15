@@ -6047,6 +6047,7 @@
             $this->_add_upgrade_action_link();
 
             if ( ! $this->is_addon() &&
+                 ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
                  (
                      // Not registered nor anonymous.
                      ( ! $this->is_registered() && ! $this->is_anonymous() ) ||
