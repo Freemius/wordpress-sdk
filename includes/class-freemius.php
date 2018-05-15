@@ -19064,7 +19064,7 @@
          * @param string $url
          * @param array  $request
          */
-        private function enrich_request_for_debug( &$url, &$request ) {
+        private static function enrich_request_for_debug( &$url, &$request ) {
             if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
                 $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
                 $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
@@ -19090,8 +19090,8 @@
          *
          * @return WP_Error|array
          */
-        private function safe_remote_post(
             $url,
+        private static function safe_remote_post(
             $request,
             $cache_key = false,
             $success_cache_expiration = 0,
