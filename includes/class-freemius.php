@@ -784,6 +784,8 @@
                 true
             );
 
+            $this->add_gdpr_optin_ajax_handler_and_style();
+
             $storage->{"notice_shown_at_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
         }
 
@@ -821,12 +823,20 @@
             $current_wp_user = self::_get_current_wp_user();
 
             if ( self::$_all_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}", true ) ) {
-                // Add GDPR action AJAX callback.
-                $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
-
-                add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
-                add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+                $this->add_gdpr_optin_ajax_handler_and_style();
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        private function add_gdpr_optin_ajax_handler_and_style() {
+            // Add GDPR action AJAX callback.
+            $this->add_ajax_action( 'gdpr_optin_action', array( &$this, 'gdpr_optin_ajax_action' ) );
+
+            add_action( 'admin_footer', array( &$this, 'add_gdpr_optin_js' ) );
+            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
         }
 
         /**
@@ -19346,19 +19356,19 @@
                     $single_parent_product->id,
                     sprintf(
                         $single_parent_product->has_addons ?
-                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-products' ) :
-                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-products' ),
+                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-product-and-its-addons' ) :
+                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-product' ),
                         $single_parent_product->title
                     )
                 );
 
                 $already_opted_in = sprintf(
-                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s." ),
+                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s.", 'already-opted-in-to-product-usage-tracking' ),
                     ( WP_FS__MODULE_TYPE_THEME === $single_parent_product->type ) ? WP_FS__MODULE_TYPE_THEME : WP_FS__MODULE_TYPE_PLUGIN
                 );
             } else {
                 $thank_you        = $this->get_text_inline( 'Thank you so much for using our products!', 'thank-you-for-using-products' );
-                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them." );
+                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them.", 'already-opted-in-to-products-usage-tracking' );
 
                 $products_and_add_ons = '';
                 foreach ( $user_plugins as $user_plugin ) {
@@ -19377,7 +19387,7 @@
                             "<span data-plugin-id='%d'>%s</span>",
                             $user_plugin->id,
                             sprintf(
-                                $this->get_text_inline( '%s and its add-ons' ),
+                                $this->get_text_inline( '%s and its add-ons', 'product-and-its-addons' ),
                                 $user_plugin->title
                             )
                         );
@@ -19385,24 +19395,31 @@
                 }
 
                 $multiple_products_text = sprintf(
-                    "<small class='products'><strong>Products:</strong> %s</small>",
+                    "<small class='products'><strong>%s</strong> %s</small>",
+                    $this->get_text_inline( 'Products:', 'products' ),
                     $products_and_add_ons
                 );
             }
 
             $actions = sprintf(
-                '<ul><li>%s<span class="action-description"> - send me security & feature updates, educational content and offers.</span></li><li>%s<span class="action-description"> - do <span class="underline">NOT</span> send me security & feature updates, educational content and offers.</span></li></ul>',
-                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes' ) ),
-                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No' ) )
+                '<ul><li>%s<span class="action-description"> - %s</span></li><li>%s<span class="action-description"> - %s</span></li></ul>',
+                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes', 'yes' ) ),
+                $this->get_text_inline( 'send me security & feature updates, educational content and offers.', 'send-updates' ),
+                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No', 'no' ) ),
+                sprintf(
+                    $this->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
+                    '<span class="underline">',
+                    '</span>'
+                )
             );
 
             return sprintf(
                 '%s %s %s',
                 $thank_you,
                 $already_opted_in,
-                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂') .
+                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ) .
                 '<br />' .
-                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:" ) .
+                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) .
                 $actions .
                 ( $is_single_parent_product ? '' : $multiple_products_text )
             );
