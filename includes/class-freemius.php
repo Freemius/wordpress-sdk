@@ -6021,9 +6021,9 @@
                      * Don't redirect if activating multiple plugins at once (bulk activation).
                      */
                 } else {
-                $this->_redirect_on_activation_hook();
-                return;
-            }
+                    $this->_redirect_on_activation_hook();
+                    return;
+                }
             }
 
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
@@ -16521,7 +16521,10 @@
                         break;
                     case 'downgraded':
                         $this->_admin_notices->add_sticky(
-                            sprintf( $this->get_text_inline( 'Your license has expired. You can still continue using the free %s forever.', 'license-expired-blocking-message' ), $this->_module_type ),
+                            ($this->has_free_plan() ?
+                                sprintf( $this->get_text_inline( 'Your license has expired. You can still continue using the free %s forever.', 'license-expired-blocking-message' ), $this->_module_type ) :
+                                /* translators: %1$s: product title; %2$s, %3$s: wrapping HTML anchor element; %4$s: 'plugin', 'theme', or 'add-on'. */
+                                sprintf( $this->get_text_inline( 'Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions.', 'license-expired-blocking-message_premium-only' ), sprintf('<a href="%s">', $this->pricing_url()), '</a>', $this->get_module_label(true) ) ),
                             'license_expired',
                             $hmm_text
                         );
@@ -16564,7 +16567,10 @@
                         break;
                     case 'trial_expired':
                         $this->_admin_notices->add_sticky(
-                            $this->get_text_inline( 'Your trial has expired. You can still continue using all our free features.', 'trial-expired-message' ),
+                            ($this->has_free_plan() ?
+                                $this->get_text_inline( 'Your free trial has expired. You can still continue using all our free features.', 'trial-expired-message' ) :
+                                /* translators: %1$s: product title; %2$s, %3$s: wrapping HTML anchor element; %4$s: 'plugin', 'theme', or 'add-on'. */
+                                sprintf( $this->get_text_inline( 'Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions.', 'trial-expired-message_premium-only' ), sprintf('<a href="%s">', $this->pricing_url()), '</a>', $this->get_module_label(true))),
                             'trial_expired',
                             $hmm_text
                         );
@@ -18738,26 +18744,26 @@
         function _add_upgrade_action_link() {
             $this->_logger->entrance();
 
-                if ( ! $this->is_paying() && $this->has_paid_plan() ) {
-                    $this->add_plugin_action_link(
-                        $this->get_text_inline( 'Upgrade', 'upgrade' ),
-                        $this->get_upgrade_url(),
-                        false,
-                        7,
-                        'upgrade'
-                    );
-                }
-
-                if ( $this->has_addons() ) {
-                    $this->add_plugin_action_link(
-                        $this->get_text_inline( 'Add-Ons', 'add-ons' ),
-                        $this->_get_admin_page_url( 'addons' ),
-                        false,
-                        9,
-                        'addons'
-                    );
-                }
+            if ( ! $this->is_paying() && $this->has_paid_plan() ) {
+                $this->add_plugin_action_link(
+                    $this->get_text_inline( 'Upgrade', 'upgrade' ),
+                    $this->get_upgrade_url(),
+                    false,
+                    7,
+                    'upgrade'
+                );
             }
+
+            if ( $this->has_addons() ) {
+                $this->add_plugin_action_link(
+                    $this->get_text_inline( 'Add-Ons', 'add-ons' ),
+                    $this->_get_admin_page_url( 'addons' ),
+                    false,
+                    9,
+                    'addons'
+                );
+            }
+        }
 
         /**
          * Adds "Activate License" or "Change License" link to the main Plugins page link actions collection.
