@@ -109,7 +109,13 @@
     /* translators: %s: name (e.g. Hey John,) */
     $hey_x_text = esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) );
 
-	$is_gdpr_required = false;
+    $is_gdpr_required = ( ! $is_pending_activation && ! $require_license_key ) ?
+	    FS_GDPR_Manager::instance()->is_required() :
+        false;
+
+    if ( is_null( $is_gdpr_required ) ) {
+        $is_gdpr_required = $fs->fetch_and_store_current_user_gdpr_anonymously();
+    }
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -241,7 +247,7 @@
 				?></p>
 			<?php if ( $require_license_key ) : ?>
 				<div class="fs-license-key-container">
-					<input id="fs_license_key" name="fs_key" type="text" required maxlength="32"
+					<input id="fs_license_key" name="fs_key" type="text" required maxlength="<?php echo $fs->apply_filters('license_key_maxlength', 32) ?>"
 					       placeholder="<?php fs_esc_attr_echo_inline( 'License key', 'license-key', $slug ) ?>" tabindex="1"/>
 					<i class="dashicons dashicons-admin-network"></i>
 					<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix() ?>"
