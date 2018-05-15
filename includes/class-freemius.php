@@ -19081,7 +19081,6 @@
          *
          * @param string      $url
          * @param array       $request
-         * @param string|bool $cache_key
          * @param int         $success_cache_expiration
          * @param int         $failure_cache_expiration
          *
@@ -19090,10 +19089,11 @@
             $url,
         private static function safe_remote_post(
             $request,
-            $cache_key = false,
             $success_cache_expiration = 0,
             $failure_cache_expiration = 0
         ) {
+            $cache_key = $should_cache ? md5( fs_strip_url_protocol($url) . json_encode( $request ) ) : false;
+
             $response = ( false !== $cache_key ) ?
                 get_transient( $cache_key ) :
                 false;
@@ -20144,7 +20144,6 @@
                 $response = $this->safe_remote_post(
                     $url,
                     $request,
-                    'fs_user_plugins_' . md5( $user_email . implode( ',', $plugin_ids_set ) ),
                     WP_FS__TIME_24_HOURS_IN_SEC,
                     WP_FS__TIME_12_HOURS_IN_SEC
                 );
