@@ -3031,11 +3031,12 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
-         * @param int|null $blog_id Since 2.0.0.
+         * @param int|null $blog_id      Since 2.0.0.
+         * @param bool     $is_gdpr_test Since 2.0.2. Perform only the GDPR test.
          *
          * @return object|false
          */
-        private function ping( $blog_id = null ) {
+        private function ping( $blog_id = null, $is_gdpr_test = false ) {
             if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
                 return false;
             }
@@ -3047,13 +3048,14 @@
             return $this->get_api_plugin_scope()->ping(
                 $this->get_anonymous_id( $blog_id ),
                 array(
-                    'is_update' => json_encode( $is_update ),
-                    'version'   => $version,
-                    'sdk'       => $this->version,
-                    'is_admin'  => json_encode( is_admin() ),
-                    'is_ajax'   => json_encode( self::is_ajax() ),
-                    'is_cron'   => json_encode( self::is_cron() ),
-                    'is_http'   => json_encode( WP_FS__IS_HTTP_REQUEST ),
+                    'is_update'    => json_encode( $is_update ),
+                    'version'      => $version,
+                    'sdk'          => $this->version,
+                    'is_admin'     => json_encode( is_admin() ),
+                    'is_ajax'      => json_encode( self::is_ajax() ),
+                    'is_cron'      => json_encode( self::is_cron() ),
+                    'is_gdpr_test' => $is_gdpr_test,
+                    'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
                 )
             );
         }
@@ -3104,6 +3106,10 @@
                 $this->_add_connectivity_issue_message( $pong );
             }
 
+            if ( $is_connected ) {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+            }
+            
             $this->store_connectivity_info( $pong, $is_connected );
 
             return $this->_has_api_connection;
@@ -3223,6 +3229,36 @@
             self::require_pluggable_essentials();
 
             return wp_get_current_user();
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.0
+         *
+         * @return int
+         */
+        static function get_current_wp_user_id() {
+            $wp_user = self::_get_current_wp_user();
+
+            return $wp_user->ID;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @return bool
+         */
+        function fetch_and_store_current_user_gdpr_anonymously() {
+            $pong = $this->ping( null, true );
+
+            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
+                return false;
+            } else {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+
+                return $pong->is_gdpr_required;
+            }
         }
 
         /**
@@ -3530,6 +3566,8 @@
             $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
             if ( $is_connected ) {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+
                 $this->store_connectivity_info( $pong, $is_connected );
 
                 echo $this->get_after_plugin_activation_redirect_url();
@@ -3602,6 +3640,8 @@
             $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
 
             if ( $is_connected ) {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+
                 $this->store_connectivity_info( $pong, $is_connected );
 
                 echo $this->get_after_plugin_activation_redirect_url();

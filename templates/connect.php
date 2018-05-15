@@ -109,7 +109,13 @@
     /* translators: %s: name (e.g. Hey John,) */
     $hey_x_text = esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) );
 
-	$is_gdpr_required = false;
+    $is_gdpr_required = ( ! $is_pending_activation && ! $require_license_key ) ?
+	    FS_GDPR_Manager::instance()->is_required() :
+        false;
+
+    if ( is_null( $is_gdpr_required ) ) {
+        $is_gdpr_required = $fs->fetch_and_store_current_user_gdpr_anonymously();
+    }
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
