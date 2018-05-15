@@ -249,13 +249,6 @@
         private static $_global_admin_notices;
 
         /**
-         * @since 2.1.0
-         *
-         * @var FS_Admin_Notices
-         */
-        private static $_all_admin_notices;
-
-        /**
          * @var FS_Logger
          * @since 1.0.0
          */
@@ -689,20 +682,17 @@
                 return;
             }
 
-            $storage = FS_Storage::instance( 'gdpr_global', '' );
+            $gdpr = FS_GDPR_Manager::instance();
 
-            self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
-
-            if ( self::$_all_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}", true ) ) {
+            if ( $gdpr->is_opt_in_notice_shown() ) {
                 return;
             }
 
-            $show_notice = $storage->get( "show_notice_{$current_wp_user->ID}", true );
-            if ( ! $show_notice ) {
+            if ( ! $gdpr->should_show_opt_in_notice() ) {
                 return;
             }
 
-            $last_time_notice_shown  = $storage->get( "notice_shown_at_{$current_wp_user->ID}", false );
+            $last_time_notice_shown  = $gdpr->last_time_notice_was_shown();
             $was_notice_shown_before = ( false !== $last_time_notice_shown );
 
             if ( $was_notice_shown_before &&
@@ -773,20 +763,14 @@
                 $plugin_title = $module->title;
             }
 
-            self::$_all_admin_notices->add_sticky(
+            $gdpr->add_opt_in_sticky_notice(
                 $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
-                "gdpr_optin_actions_{$current_wp_user->ID}",
-                '',
-                'promotion',
-                true,
-                $current_wp_user->ID,
-                $plugin_title,
-                true
+                $plugin_title
             );
 
             $this->add_gdpr_optin_ajax_handler_and_style();
 
-            $storage->{"notice_shown_at_{$current_wp_user->ID}"} = WP_FS__SCRIPT_START_TIME;
+            $gdpr->notice_was_just_shown();
         }
 
         /**
@@ -816,13 +800,7 @@
                 return;
             }
 
-            if ( ! self::$_all_admin_notices instanceof FS_Admin_Notices ) {
-                self::$_all_admin_notices = FS_Admin_Notices::instance( 'all_admins', '', '', true );
-            }
-
-            $current_wp_user = self::_get_current_wp_user();
-
-            if ( self::$_all_admin_notices->has_sticky( "gdpr_optin_actions_{$current_wp_user->ID}", true ) ) {
+            if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
                 $this->add_gdpr_optin_ajax_handler_and_style();
             }
         }
@@ -890,13 +868,7 @@
                 ) );
             }
 
-            self::$_all_admin_notices->remove_sticky(
-                array( "gdpr_optin_actions_{$current_wp_user->ID}" ),
-                true
-            );
-
-            $storage = FS_Storage::instance( 'gdpr_global', '' );
-            $storage->store( "show_notice_{$current_wp_user->ID}", false );
+            FS_GDPR_Manager::instance()->remove_opt_in_notice();
 
             self::shoot_ajax_success();
         }
