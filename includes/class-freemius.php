@@ -5995,9 +5995,9 @@
          * @return bool
          */
         function is_plugin_activation() {
-            return get_option( 'fs_'
-                               . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-                               . "{$this->_slug}_activated", false );
+            $result = get_transient( "fs_{$this->_module_type}_{$this->_slug}_activated" );
+
+            return !empty($result);
         }
 
         /**
@@ -6014,9 +6014,7 @@
              * @since 1.1.7 Do NOT redirect to opt-in when running in network admin mode.
              */
             if ( $this->is_plugin_activation() ) {
-                delete_option( 'fs_'
-                               . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-                               . "{$this->_slug}_activated" );
+                delete_transient( "fs_{$this->_module_type}_{$this->_slug}_activated" );
 
                 $this->_redirect_on_activation_hook();
 
@@ -6651,9 +6649,7 @@
                  ! $this->_isAutoInstall
             ) {
                 // Store hint that the plugin was just activated to enable auto-redirection to settings.
-                add_option( 'fs_'
-                            . ( $this->is_plugin() ? '' : $this->_module_type . '_' )
-                            . "{$this->_slug}_activated", true );
+                set_transient( "fs_{$this->_module_type}_{$this->_slug}_activated", true, 60 );
             }
 
             /**
