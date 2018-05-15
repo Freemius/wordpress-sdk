@@ -13183,10 +13183,7 @@
             );
 
             $url = WP_FS__ADDRESS . '/action/service/user/install/';
-
-            $this->enrich_request_for_debug( $url, $request );
-
-            $response = $this->safe_remote_post( $url, $request );
+            $response = self::safe_remote_post( $url, $request );
 
             if ( is_wp_error( $response ) ) {
                 /**
@@ -19102,6 +19099,8 @@
                 false;
 
             if ( false === $response ) {
+                self::enrich_request_for_debug( $url, $request );
+
                 $response = wp_remote_post( $url, $request );
 
                 if ( $response instanceof WP_Error ) {
@@ -20133,8 +20132,6 @@
             );
 
             $url = WP_FS__ADDRESS . '/action/service/user_plugin/';
-
-            $this->enrich_request_for_debug( $url, $request );
 
             $result = array();
 
