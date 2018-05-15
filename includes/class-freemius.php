@@ -6016,9 +6016,14 @@
             if ( $this->is_plugin_activation() ) {
                 delete_transient( "fs_{$this->_module_type}_{$this->_slug}_activated" );
 
+                if ( isset( $_GET['activate-multi'] ) ) {
+                    /**
+                     * Don't redirect if activating multiple plugins at once (bulk activation).
+                     */
+                } else {
                 $this->_redirect_on_activation_hook();
-
                 return;
+            }
             }
 
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
