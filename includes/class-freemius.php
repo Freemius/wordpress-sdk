@@ -19094,8 +19094,8 @@
             $url,
             $request,
             $cache_key = false,
-            $success_cache_expiration = WP_FS__TIME_24_HOURS_IN_SEC,
-            $failure_cache_expiration = WP_FS__TIME_24_HOURS_IN_SEC
+            $success_cache_expiration = 0,
+            $failure_cache_expiration = 0
         ) {
             $response = ( false !== $cache_key ) ?
                 get_transient( $cache_key ) :
