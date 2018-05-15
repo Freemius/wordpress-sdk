@@ -101,11 +101,19 @@
             return self::$_instances[ $key ];
         }
 
+        /**
+         * @param string $id
+         * @param string $title
+         * @param string $module_unique_affix
+         * @param bool   $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                             blog admin pages.
+         * @param bool|int $network_level_or_blog_id
+         */
         protected function __construct(
             $id,
             $title = '',
             $module_unique_affix = '',
-            $all_admins = false,
+            $is_network_and_blog_admins = false,
             $network_level_or_blog_id = false
         ) {
             $this->_id                  = $id;
@@ -129,7 +137,7 @@
 
             if ( ( $this->_is_network_notices && $is_network_admin ) ||
                  ( ! $this->_is_network_notices && $is_blog_admin ) ||
-                ( $all_admins && ( $is_network_admin || $is_blog_admin ) )
+                ( $is_network_and_blog_admins && ( $is_network_admin || $is_blog_admin ) )
             ) {
                 if ( 0 < count( $this->_sticky_storage ) ) {
                     $ajax_action_suffix = str_replace( ':', '-', $this->_id );
@@ -152,7 +160,7 @@
                             false,
                             isset( $msg['wp_user_id'] ) ? $msg['wp_user_id'] : null,
                             ! empty( $msg['plugin'] ) ? $msg['plugin'] : null,
-                            $all_admins
+                            $is_network_and_blog_admins
                         );
                     }
                 }
@@ -250,7 +258,8 @@
          * @param bool        $store_if_sticky
          * @param number|null $wp_user_id
          * @param string|null $plugin_title
-         * @param bool        $all_admins
+         * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network
+         *                                                and blog admin pages.
          *
          * @uses   add_action()
          */
@@ -263,12 +272,12 @@
             $store_if_sticky = true,
             $wp_user_id = null,
             $plugin_title = null,
-            $all_admins = false
+            $is_network_and_blog_admins = false
         ) {
             $notices_type = $this->get_notices_type();
 
             if ( empty( $this->_notices ) ) {
-                if ( ! $all_admins ) {
+                if ( ! $is_network_and_blog_admins ) {
                     add_action( $notices_type, array( &$this, "_admin_notices_hook" ) );
                 } else {
                     add_action( 'network_admin_notices', array( &$this, "_admin_notices_hook" ) );
@@ -347,15 +356,16 @@
          * @param string      $type
          * @param number|null $wp_user_id
          * @param string|null $plugin_title
-         * @param bool        $all_admins
+         * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network
+         *                                                and blog admin pages.
          */
-        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null, $all_admins = false ) {
+        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null, $is_network_and_blog_admins = false ) {
             if ( ! empty( $this->_module_unique_affix ) ) {
                 $message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
                 $title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
             }
 
-            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title, $all_admins );
+            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title, $is_network_and_blog_admins );
         }
 
         /**

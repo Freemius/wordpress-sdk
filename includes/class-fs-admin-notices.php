@@ -55,18 +55,27 @@
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
+         * @param bool   $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                           blog admin pages.
          *
          * @return FS_Admin_Notices
          */
-        static function instance( $id, $title = '', $module_unique_affix = '', $all_admins = false ) {
+        static function instance( $id, $title = '', $module_unique_affix = '', $is_network_and_blog_admins = false ) {
             if ( ! isset( self::$_instances[ $id ] ) ) {
-                self::$_instances[ $id ] = new FS_Admin_Notices( $id, $title, $module_unique_affix, $all_admins );
+                self::$_instances[ $id ] = new FS_Admin_Notices( $id, $title, $module_unique_affix, $is_network_and_blog_admins );
             }
 
             return self::$_instances[ $id ];
         }
 
-        protected function __construct( $id, $title = '', $module_unique_affix = '', $all_admins = false ) {
+        /**
+         * @param string $id
+         * @param string $title
+         * @param string $module_unique_affix
+         * @param bool   $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                           blog admin pages.
+         */
+        protected function __construct( $id, $title = '', $module_unique_affix = '', $is_network_and_blog_admins = false ) {
             $this->_id                  = $id;
             $this->_title               = $title;
             $this->_module_unique_affix = $module_unique_affix;
@@ -79,7 +88,7 @@
                     $id,
                     $title,
                     $module_unique_affix,
-                    $all_admins,
+                    $is_network_and_blog_admins,
                     true
                 );
             }
