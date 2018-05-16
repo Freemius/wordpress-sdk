@@ -1314,6 +1314,7 @@
                     }
                 }
 
+                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
             }
 
@@ -20116,7 +20117,8 @@
         }
 
         /**
-         * This method is called for opted-in users to fetch the is_marketing_allowed flag of the user for all the plugins and themes they've opted-in to.
+         * This method is called for opted-in users to fetch the is_marketing_allowed flag of the user for all the
+         * plugins and themes they've opted in to.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.1.0
@@ -20201,6 +20203,10 @@
                 return;
             }
 
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             $current_wp_user = self::_get_current_wp_user();
 
             if ( ! $this->is_user_admin() ) {
@@ -20216,23 +20222,32 @@
                 return;
             }
 
-            set_transient( "locked_{$user_id}", true,  20 ); // 20-sec lock.
+            $this->lock_user( $user_id, 60 ); // 60-sec lock.
 
             /**
              * @var FS_User $current_fs_user
              */
             $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
             if ( ! is_object( $current_fs_user ) ) {
+                // 10-year lock.
+                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+
                 return;
             }
 
             $gdpr = FS_GDPR_Manager::instance();
 
             if ( $gdpr->is_opt_in_notice_shown() ) {
+                // 30-day lock.
+                $this->lock_user( $user_id, 30 * WP_FS__TIME_24_HOURS_IN_SEC );
+
                 return;
             }
 
             if ( ! $gdpr->should_show_opt_in_notice() ) {
+                // 10-year lock.
+                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+
                 return;
             }
 
@@ -20269,14 +20284,17 @@
             }
 
             if ( empty( $plugin_ids_map ) ) {
+                // 10-year lock.
+                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+
                 return;
             }
 
-            /**
-             *
-             */
             $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
             if ( empty( $user_plugins ) ) {
+                // 10-year lock.
+                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+
                 return;
             }
 
@@ -20293,6 +20311,9 @@
             }
 
             if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
+                // 10-year lock.
+                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+
                 return;
             }
 
@@ -20321,6 +20342,20 @@
             $this->add_gdpr_optin_ajax_handler_and_style();
 
             $gdpr->notice_was_just_shown();
+
+            // 30-day lock.
+            $this->lock_user( $user_id, 30 * WP_FS__TIME_24_HOURS_IN_SEC );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param number $wp_user_id
+         * @param int    $expiration
+         */
+        private function lock_user( $wp_user_id, $expiration ) {
+            set_transient( "locked_{$wp_user_id}", true,  $expiration );
         }
 
         /**
@@ -20419,6 +20454,9 @@
             }
 
             FS_GDPR_Manager::instance()->remove_opt_in_notice();
+
+            // 10-year lock.
+            $this->lock_user( $current_wp_user->ID, WP_FS__TIME_10_YEARS_IN_SEC );
 
             self::shoot_ajax_success();
         }
