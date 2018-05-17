@@ -13284,6 +13284,9 @@
                     $decoded->user_id,
                     $decoded->user_public_key,
                     $decoded->user_secret_key,
+                    ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
+                        $decoded->is_marketing_allowed :
+                        null ),
                     $decoded->installs,
                     false
                 );
@@ -13729,14 +13732,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param number   $user_id
-         * @param string   $user_public_key
-         * @param string   $user_secret_key
-         * @param object[] $installs
-         * @param bool     $redirect
-         * @param bool     $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                               redirect (or return a URL) to the account page with a special parameter to
-         *                               trigger the auto installation processes.
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param object[]  $installs
+         * @param bool      $redirect
+         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                                redirect (or return a URL) to the account page with a special parameter to
+         *                                trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13744,11 +13748,16 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             array $installs,
             $redirect = true,
             $auto_install = false
         ) {
             $this->setup_user( $user_id, $user_public_key, $user_secret_key );
+
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
 
             $install_ids = array();
 
