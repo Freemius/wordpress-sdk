@@ -13562,6 +13562,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
+                            fs_request_get_bool( 'is_marketing_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
                             $pending_sites_info['trial_plan_id']
@@ -13697,13 +13698,14 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
-         * @param number $user_id
-         * @param string $user_public_key
-         * @param string $user_secret_key
-         * @param array  $site_ids
-         * @param bool   $license_key
-         * @param bool   $trial_plan_id
-         * @param bool   $redirect
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param array     $site_ids
+         * @param bool      $license_key
+         * @param bool      $trial_plan_id
+         * @param bool      $redirect
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13711,12 +13713,17 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
+
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
