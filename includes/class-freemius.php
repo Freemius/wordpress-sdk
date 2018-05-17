@@ -13271,6 +13271,9 @@
                     $decoded->user_id,
                     $decoded->user_public_key,
                     $decoded->user_secret_key,
+                    ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
+                        $decoded->is_marketing_allowed :
+                        null ),
                     $decoded->install_id,
                     $decoded->install_public_key,
                     $decoded->install_secret_key,
@@ -13565,6 +13568,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
+                            fs_request_get_bool( 'is_marketing_allowed', null ),
                             fs_request_get( 'install_id' ),
                             fs_request_get( 'install_public_key' ),
                             fs_request_get( 'install_secret_key' ),
@@ -13616,16 +13620,17 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
-         * @param number $user_id
-         * @param string $user_public_key
-         * @param string $user_secret_key
-         * @param number $install_id
-         * @param string $install_public_key
-         * @param string $install_secret_key
-         * @param bool   $redirect
-         * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                             redirect (or return a URL) to the account page with a special parameter to
-         *                             trigger the auto installation processes.
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param number    $install_id
+         * @param string    $install_public_key
+         * @param string    $install_secret_key
+         * @param bool      $redirect
+         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                                redirect (or return a URL) to the account page with a special parameter to
+         *                                trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13633,6 +13638,7 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             $install_id,
             $install_public_key,
             $install_secret_key,
@@ -13669,6 +13675,10 @@
             $site_result = $this->get_api_site_scope()->get();
             $site        = new FS_Site( $site_result );
             $this->_site = $site;
+
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
 
             return $this->setup_account(
                 $this->_user,
@@ -20356,6 +20366,22 @@
          */
         private function lock_user( $wp_user_id, $expiration ) {
             set_transient( "locked_{$wp_user_id}", true,  $expiration );
+        }
+
+        /**
+         * Prevents the GDPR opt-in admin notice from being added if the user has already chosen to allow or not allow
+         * marketing.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        private function disable_opt_in_notice_and_lock_user() {
+            FS_GDPR_Manager::instance()->disable_opt_in_notice();
+
+            $current_wp_user = self::_get_current_wp_user();
+
+            // 10-year lock.
+            $this->lock_user( $current_wp_user->ID, WP_FS__TIME_10_YEARS_IN_SEC );
         }
 
         /**
