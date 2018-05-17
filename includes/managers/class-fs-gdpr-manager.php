@@ -128,6 +128,16 @@
         public function remove_opt_in_notice() {
             $this->_notices->remove_sticky( "gdpr_optin_actions_{$this->_wp_user_id}", true );
 
+            $this->disable_opt_in_notice();
+        }
+
+        /**
+         * Prevents the opt-in message from being added/shown.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        public function disable_opt_in_notice() {
             $this->update_option( 'show_opt_in_notice', false );
         }
 
