@@ -16,7 +16,11 @@
          */
         private $_storage;
         /**
-         * @var array
+         * @var array {
+         * @type bool $required           Are GDPR rules apply on the current context admin.
+         * @type bool $show_opt_in_notice Should the marketing and offers opt-in message be shown to the admin or not. If not set, defaults to `true`.
+         * @type int  $notice_shown_at    Last time the special GDPR opt-in message was shown to the current admin.
+         * }
          */
         private $_data;
         /**
@@ -73,10 +77,10 @@
          * @since  2.1.0
          *
          * @param string $name
-         * @param mixed $value
+         * @param mixed  $value
          */
-        private function update_option($name, $value) {
-            $this->_data[$name] = $value;
+        private function update_option( $name, $value ) {
+            $this->_data[ $name ] = $value;
 
             $this->_storage->set_option( $this->_option_name, $this->_data, true );
         }
@@ -100,7 +104,7 @@
          * @param bool $is_required
          */
         public function store_is_required( $is_required ) {
-            $this->update_option('required', $is_required);
+            $this->update_option( 'required', $is_required );
         }
 
         /**
@@ -124,7 +128,7 @@
         public function remove_opt_in_notice() {
             $this->_notices->remove_sticky( "gdpr_optin_actions_{$this->_wp_user_id}", true );
 
-            $this->update_option('show_opt_in_notice', false);
+            $this->update_option( 'show_opt_in_notice', false );
         }
 
         /**
@@ -163,7 +167,7 @@
          * @since  2.1.0
          */
         public function notice_was_just_shown() {
-            $this->update_option('notice_shown_at', WP_FS__SCRIPT_START_TIME);
+            $this->update_option( 'notice_shown_at', WP_FS__SCRIPT_START_TIME );
         }
 
         /**
