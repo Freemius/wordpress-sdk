@@ -20244,7 +20244,7 @@
             /**
              * A storage based lock to make that the logic will not be executed more than once per admin every 20-sec tops.
              */
-            if ( get_transient( "locked_{$user_id}" ) ) {
+            if ( $this->is_user_locked( $user_id ) ) {
                 return;
             }
 
@@ -20381,7 +20381,23 @@
          * @param int    $expiration
          */
         private function lock_user( $wp_user_id, $expiration ) {
-            set_transient( "locked_{$wp_user_id}", true,  $expiration );
+            if ( $this->_is_multisite_integrated ) {
+                set_site_transient( "locked_{$wp_user_id}", true,  $expiration );
+            } else {
+                set_transient( "locked_{$wp_user_id}", true,  $expiration );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param number $wp_user_id
+         */
+        private function is_user_locked( $wp_user_id ) {
+            return $this->_is_multisite_integrated ?
+                get_site_transient( "locked_{$wp_user_id}" ) :
+                get_transient( "locked_{$wp_user_id}" );
         }
 
         /**
