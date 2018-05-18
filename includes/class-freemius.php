@@ -20479,18 +20479,10 @@
                 self::shoot_ajax_failure();
             }
 
-            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+            $user_api = $this->get_api_user_scope_by_user( Freemius::_get_user_by_email( $current_wp_user->user_email ) );
 
             foreach ( $modules as $module ) {
-                $plugin_api = FS_Api::instance(
-                    $module->id,
-                    'plugin',
-                    $module->id,
-                    $module->public_key,
-                    ! $module->is_live
-                );
-
-                $plugin_api->call( "users/{$current_fs_user->id}.json", 'put', array(
+                $user_api->call( "?plugin_id={$module->id}", 'put', array(
                     'is_marketing_allowed' => ( true == fs_request_get_bool( 'allow_marketing' ) )
                 ) );
             }
