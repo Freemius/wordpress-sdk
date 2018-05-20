@@ -10565,6 +10565,7 @@
                     false,
                     false,
                     false,
+                    fs_request_get( 'is_marketing_allowed', null ),
                     $sites
                 );
 
@@ -10698,6 +10699,7 @@
                                 false,
                                 false,
                                 false,
+                                fs_request_get( 'is_marketing_allowed', null ),
                                 $sites_by_action['allow']
                             );
                         } else {
@@ -13071,12 +13073,13 @@
          * @param string|bool $first
          * @param string|bool $last
          * @param string|bool $license_key
-         * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
-         *                                        In this case, the user and site info will be sent to the server but no
-         *                                        data will be saved to the WP installation's database.
+         * @param bool        $is_uninstall         If "true", this means that the module is currently being uninstalled.
+         *                                          In this case, the user and site info will be sent to the server but no
+         *                                          data will be saved to the WP installation's database.
          * @param number|bool $trial_plan_id
-         * @param bool        $is_disconnected    Whether or not to opt in without tracking.
-         * @param array       $sites              If network-level opt-in, an array of containing details of sites.
+         * @param bool        $is_disconnected      Whether or not to opt in without tracking.
+         * @param null|bool   $is_marketing_allowed
+         * @param array       $sites                If network-level opt-in, an array of containing details of sites.
          *
          * @return string|object
          * @use    WP_Error
@@ -13089,6 +13092,7 @@
             $is_uninstall = false,
             $trial_plan_id = false,
             $is_disconnected = false,
+            $is_marketing_allowed = null,
             $sites = array()
         ) {
             $this->_logger->entrance();
@@ -13174,8 +13178,9 @@
                 }
             }
 
-            $params['is_disconnected'] = $is_disconnected;
-            $params['format']          = 'json';
+            $params['is_disconnected']      = $is_disconnected;
+            $params['is_marketing_allowed'] = $is_marketing_allowed;
+            $params['format']               = 'json';
 
             $request = array(
                 'method'  => 'POST',
@@ -20125,7 +20130,7 @@
                 sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No', 'no' ) ),
                 sprintf(
                     $this->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
-                    '<span class="underline">',
+                    '<span class="underlined">',
                     '</span>'
                 )
             );
@@ -20149,17 +20154,25 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          *
-         * @param string $user_email
-         * @param array  $plugin_ids
+         * @param string      $user_email
+         * @param string      $license_key
+         * @param array       $plugin_ids
+         * @param string|null $license_key
          *
          * @return array
          */
-        private function fetch_user_marketing_flag_status_by_plugins( $user_email, $plugin_ids ) {
+        private function fetch_user_marketing_flag_status_by_plugins( $user_email, $license_key, $plugin_ids ) {
             $request = array(
                 'method'  => 'POST',
-                'body'    => array( 'email' => $user_email ),
+                'body'    => array(),
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
             );
+
+            if ( is_string( $user_email ) ) {
+                $request['body']['email'] = $user_email;
+            } else {
+                $request['body']['license_key'] = $license_key;
+            }
 
             $result = array();
 
@@ -20316,7 +20329,7 @@
                 return;
             }
 
-            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins( $current_fs_user->email, array_keys( $plugin_ids_map ) );
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins( $current_fs_user->email, null, array_keys( $plugin_ids_map ) );
             if ( empty( $user_plugins ) ) {
                 // 10-year lock.
                 $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
@@ -20439,6 +20452,14 @@
          * @since  2.1.0
          */
         function _maybe_add_gdpr_optin_ajax_handler() {
+            if ( $this->is_activation_mode() ) {
+                if ( FS_GDPR_Manager::instance()->is_required() ) {
+                    $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
+                }
+
+                return;
+            }
+
             if ( ! fs_is_network_admin() && ! $this->is_registered() ) {
                 return;
             }
@@ -20446,6 +20467,33 @@
             if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
                 $this->add_gdpr_optin_ajax_handler_and_style();
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         */
+        function _fetch_is_marketing_required_flag_value_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'fetch_is_marketing_required_flag_value' );
+
+            $error = $this->get_text_inline( 'Invalid license key.', 'invalid-license-key' ) ;
+            if ( ! fs_request_has( 'license_key' ) ) {
+                self::shoot_ajax_failure( $error );
+            }
+
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
+                null,
+                fs_request_get( 'license_key' ),
+                array( $this->_plugin->id )
+            );
+
+            if ( empty( $user_plugins ) ) {
+                self::shoot_ajax_failure( $error );
+            }
+
+            self::shoot_ajax_success( array( 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed ) );
         }
 
         /**

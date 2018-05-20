@@ -253,6 +253,36 @@
 					<a class="show-license-resend-modal show-license-resend-modal-<?php echo $fs->get_unique_affix() ?>"
 					   href="#"><?php fs_esc_html_echo_inline( "Can't find your license key?", 'cant-find-license-key', $slug ); ?></a>
 				</div>
+                <?php
+                    $send_updates_text = sprintf(
+                        '%s<span class="action-description"> - %s</span>',
+                        $fs->get_text_inline( 'Yes', 'yes' ),
+                        $fs->get_text_inline( 'send me security & feature updates, educational content and offers.', 'send-updates' )
+                    );
+
+                    $do_not_send_updates_text = sprintf(
+                        '%s<span class="action-description"> - %s</span>',
+                        $fs->get_text_inline( 'No', 'no' ),
+                        sprintf(
+                            $fs->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
+                            '<span class="underlined">',
+                            '</span>'
+                        )
+                    );
+                ?>
+                <div id="marketing_optin" class="checkbox-container">
+                    <span class="message"><?php fs_echo_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) ?></span>
+                    <div class="input-container">
+                        <label>
+                            <input type="radio" name="allow-marketing" value="true" />
+                            <span class="input-label"><?php echo $send_updates_text ?></span>
+                        </label>
+                        <label>
+                            <input type="radio" name="allow-marketing" value="false" />
+                            <span class="input-label"><?php echo $do_not_send_updates_text ?></span>
+                        </label>
+                    </div>
+                </div>
 			<?php endif ?>
 			<?php if ( $is_network_level_activation ) : ?>
             <?php
@@ -429,7 +459,80 @@
 		    isNetworkUpgradeMode = <?php echo $is_network_upgrade_mode ? 'true' : 'false' ?>,
 		    $licenseSecret,
 		    $licenseKeyInput     = $('#fs_license_key'),
-            pauseCtaLabelUpdate  = false;
+            pauseCtaLabelUpdate  = false,
+            isGdprRequired       = <?php echo $is_gdpr_required ? 'true' : 'false' ?>,
+            gdprData             = {},
+            $marketingOptin      = $( '#marketing_optin' ),
+            cursor               = $( document.body ).css( 'cursor' ),
+            /**
+             * @author Leo Fajardo (@leorw)
+             * @since 2.1.0
+             */
+            fetchIsMarketingAllowedFlagAndToggleOptin = function( showNoOptinSelectionError ) {
+                if ( undefined === showNoOptinSelectionError ) {
+                    showNoOptinSelectionError = false;
+                }
+
+                var licenseKey = $licenseKeyInput.val();
+                if ( '' === $licenseKeyInput.val() ) {
+                    return;
+                }
+
+                if ( typeof gdprData[ licenseKey ] === 'object' ) {
+                    $marketingOptin.toggle( null == gdprData[ licenseKey ].is_marketing_allowed );
+                    $primaryCta.prop( 'disabled', false );
+                    resetLoadingMode();
+                } else {
+                    var $fsError = $( '.fs-error' );
+                    if ( $fsError.length > 0 ) {
+                        $fsError.remove();
+                    }
+
+                    $.ajax({
+                        url    : ajaxurl,
+                        method : 'POST',
+                        data   : {
+                            action     : '<?php echo $fs->get_ajax_action( 'fetch_is_marketing_required_flag_value' ) ?>',
+                            security   : '<?php echo $fs->get_ajax_security( 'fetch_is_marketing_required_flag_value' ) ?>',
+                            license_key: licenseKey,
+                            module_id  : '<?php echo $fs->get_id() ?>'
+                        },
+                        success: function( result ) {
+                            if ( result.success ) {
+                                result = result.data;
+
+                                gdprData[ licenseKey ] = result;
+
+                                $marketingOptin.toggle( null == result.is_marketing_allowed );
+                                if ( null == result.is_marketing_allowed && showNoOptinSelectionError ) {
+                                    $marketingOptin.addClass( 'error' );
+                                }
+
+                                $primaryCta.prop( 'disabled', false );
+                            } else {
+                                $marketingOptin.hide();
+
+                                // Show error.
+                                $( '.fs-content' ).prepend( '<p class="fs-error">' + ( result.error.message ?  result.error.message : result.error) + '</p>' );
+                            }
+                        },
+                        complete: function() {
+                            resetLoadingMode();
+                        }
+                    });
+                }
+            },
+            /**
+             * @author Leo Fajardo (@leorw)
+             * @since 2.1.0
+             */
+            resetLoadingMode = function() {
+                // Reset loading mode.
+                $primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
+                $primaryCta.html('<?php echo esc_js( $button_label ) ?>');
+                $primaryCta.prop('disabled', false);
+                $(document.body).css({'cursor': cursor});
+            };
 
 		$('.fs-actions .button').on('click', function () {
 			// Set loading mode.
@@ -439,7 +542,9 @@
 			$this.css({'cursor': 'wait'});
 
 			setTimeout(function () {
-				$this.attr('disabled', 'disabled');
+			    if ( ! $marketingOptin.hasClass( 'error' ) ) {
+                    $this.attr('disabled', 'disabled');
+                }
 			}, 200);
 		});
 
@@ -586,13 +691,35 @@
 					<?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
 
 					$('.fs-error').remove();
+                    $marketingOptin.removeClass( 'error' );
 
-					var data = {
-						action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
-						security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
-						license_key: $licenseKeyInput.val(),
-						module_id  : '<?php echo $fs->get_id() ?>'
-					};
+					var
+                        licenseKey         = $licenseKeyInput.val(),
+                        $gdprOptinAction   = $marketingOptin.find( 'input[type="radio"][name="allow-marketing"]:checked'),
+                        isMarketingAllowed = ( $gdprOptinAction.length > 0 ? $gdprOptinAction.val() : null ),
+                        data               = {
+                            action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
+                            security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
+                            license_key: licenseKey,
+                            module_id  : '<?php echo $fs->get_id() ?>'
+                        };
+
+                    if ( typeof gdprData[ licenseKey ] !== 'object' ) {
+                        fetchIsMarketingAllowedFlagAndToggleOptin( true );
+                        return false;
+                    }
+
+                    if ( null == gdprData[ licenseKey ].is_marketing_allowed && null == isMarketingAllowed ) {
+                        $marketingOptin.addClass( 'error' );
+                        resetLoadingMode();
+                        return false;
+                    } else if ( null == isMarketingAllowed ) {
+                        isMarketingAllowed = gdprData[ licenseKey ].is_marketing_allowed;
+                    }
+
+                    data.is_marketing_allowed = isMarketingAllowed;
+
+                    $marketingOptin.removeClass( 'error' );
 
 					if ( isNetworkActive ) {
 						var
@@ -646,11 +773,7 @@
 								// Show error.
 								$('.fs-content').prepend('<p class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</p>');
 
-								// Reset loading mode.
-								$primaryCta.removeClass('fs-loading').css({'cursor': 'auto'});
-								$primaryCta.html('<?php echo esc_js( $button_label ) ?>');
-								$primaryCta.prop('disabled', false);
-								$(document.body).css({'cursor': 'auto'});
+								resetLoadingMode();
 							}
 						}
 					});
@@ -670,6 +793,10 @@
 
 			return true;
 		});
+
+		$marketingOptin.find( 'input' ).click(function() {
+		    $marketingOptin.removeClass( 'error' );
+        });
 
 		$primaryCta.on('click', function () {
 			$(this).addClass('fs-loading');
@@ -700,6 +827,16 @@
 					}
 				}
 			});
+
+			/**
+			 * Disable activation button when empty license key.
+			 *
+			 * @author Vova Feldman (@svovaf)
+			 * @since 1.1.9
+			 */
+			$licenseKeyInput.on( 'blur', function() {
+                fetchIsMarketingAllowedFlagAndToggleOptin();
+            });
 
 			/**
 			 * Disable activation button when empty license key.
