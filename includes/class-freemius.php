@@ -20518,15 +20518,7 @@
          */
         function _maybe_add_gdpr_optin_ajax_handler() {
             if ( $this->is_activation_mode() ) {
-                if ( FS_GDPR_Manager::instance()->is_required() ) {
-                    $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
-                }
-
-                return;
-            }
-
-            if ( ! fs_is_network_admin() && ! $this->is_registered() ) {
-                return;
+                $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
             }
 
             if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
