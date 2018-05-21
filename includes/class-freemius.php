@@ -11908,6 +11908,69 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param number $fs_user_id
+         *
+         * @return array
+         */
+        function get_all_installs_by_user( $fs_user_id ) {
+            $current_wp_user = self::_get_current_wp_user();
+
+            $sites = is_super_admin( $current_wp_user->ID ) ?
+                self::get_sites() :
+                get_blogs_of_user( $current_wp_user->ID );
+
+            $installs_map = array();
+
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+
+                $installs = array_merge(
+                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id ),
+                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id )
+                );
+
+                if ( empty( $installs ) ) {
+                    continue;
+                }
+
+                foreach ( $installs as $install ) {
+                    if ( is_object( $install ) &&
+                        is_numeric( $install->id ) &&
+                        is_numeric( $install->user_id ) &&
+                        ( $install->user_id == $fs_user_id )
+                    ) {
+                        $installs_map[ $blog_id ] = $install;
+                    }
+                }
+            }
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_network_active() ) {
+                    continue;
+                }
+
+                $network_install_blog_id = $instance->get_network_install_blog_id();
+                if ( is_null( $network_install_blog_id ) || isset( $installs_map[ $network_install_blog_id ] ) ) {
+                    continue;
+                }
+
+                $network_install = $instance->get_network_install();
+
+                if ( $network_install->user_id != $fs_user_id ) {
+                    continue;
+                }
+
+                $installs_map[ $network_install_blog_id ] = $network_install;
+            }
+
+
+            return $installs_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          *
          * @return null|array {
          *      'install' => FS_Site Module's install,
@@ -12027,7 +12090,9 @@
         static function get_site_blog_id( &$site ) {
             return ( $site instanceof WP_Site ) ?
                 $site->blog_id :
-                $site['blog_id'];
+                ( is_object( $site ) && isset( $site->userblog_id ) ?
+                    $site->userblog_id :
+                    $site['blog_id'] );
         }
 
         /**
@@ -20302,8 +20367,8 @@
 
             $plugin_ids_map = array();
 
-            if ( $this->_is_multisite_integrated ) {
-                $installs = $this->get_blog_install_map();
+            if ( is_multisite() ) {
+                $installs = $this->get_all_installs_by_user( $current_fs_user->id );
             } else {
                 $installs = array_merge(
                     self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
