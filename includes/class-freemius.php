@@ -20389,7 +20389,7 @@
 
             $has_unset_marketing_optin = false;
 
-            foreach ( $user_plugins as $key => $user_plugin ) {
+            foreach ( $user_plugins as $user_plugin ) {
                 if ( true == $user_plugin->is_marketing_allowed ) {
                     unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
                 }
