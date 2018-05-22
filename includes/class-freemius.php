@@ -20459,11 +20459,7 @@
          * @param int    $expiration
          */
         private function lock_user( $wp_user_id, $expiration ) {
-            if ( $this->_is_multisite_integrated ) {
-                set_site_transient( "locked_{$wp_user_id}", true,  $expiration );
-            } else {
-                set_transient( "locked_{$wp_user_id}", true,  $expiration );
-            }
+            set_site_transient( "locked_{$wp_user_id}", true,  $expiration );
         }
 
         /**
@@ -20473,9 +20469,7 @@
          * @param number $wp_user_id
          */
         private function is_user_locked( $wp_user_id ) {
-            return $this->_is_multisite_integrated ?
-                get_site_transient( "locked_{$wp_user_id}" ) :
-                get_transient( "locked_{$wp_user_id}" );
+            get_site_transient( "locked_{$wp_user_id}" );
         }
 
         /**
