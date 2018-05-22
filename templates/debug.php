@@ -279,9 +279,16 @@
                     <td><?php echo $data->file ?></td>
                     <td><?php echo $data->public_key ?></td>
                     <?php if ( is_multisite() ) : ?>
-                        <?php $network_blog_id = $fs->get_network_install_blog_id() ?>
-                        <?php $network_user = $fs->get_network_user() ?>
-                        <td><?php echo is_numeric($network_blog_id) ? $network_blog_id : '' ?></td>
+                        <?php
+                        $network_blog_id = null;
+                        $network_user    = null;
+
+                        if ( is_object( $fs ) ) {
+                            $network_blog_id = $fs->get_network_install_blog_id();
+                            $network_user    = $fs->get_network_user();
+                        }
+                        ?>
+                        <td><?php echo is_numeric( $network_blog_id ) ? $network_blog_id : '' ?></td>
                         <td><?php if ( is_object( $network_user ) ) {
                                 echo $network_user->email;
                             } ?></td>
@@ -401,7 +408,7 @@
                                 <?php wp_nonce_field( 'delete_install' ) ?>
                                 <input type="hidden" name="module_id" value="<?php echo $site->plugin_id ?>">
                                 <?php if ( $is_multisite ) : ?>
-                                <input type="hidden" name="blog_id" value="<?php echo $site->blog_id ?>">
+                                    <input type="hidden" name="blog_id" value="<?php echo $site->blog_id ?>">
                                 <?php endif ?>
                                 <input type="hidden" name="module_type" value="<?php echo $module_type ?>">
                                 <input type="hidden" name="slug" value="<?php echo $slug ?>">
