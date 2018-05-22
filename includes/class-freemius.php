@@ -1314,7 +1314,7 @@
                     }
                 }
 
-                if ( $this->_storage->get( 'handle_gdpr_admin_notice', false ) ) {
+                if ( $this->should_handle_gdpr_admin_notice() ) {
                     add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
                     add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
                 }
@@ -20296,8 +20296,11 @@
             if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
                  version_compare( $sdk_version, '2.1.0', '>=' )
             ) {
-                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
                 $this->_storage->handle_gdpr_admin_notice = true;
+
+                if ( $this->should_handle_gdpr_admin_notice() ) {
+                    add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+                }
             }
         }
 
@@ -20598,6 +20601,25 @@
             FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
 
             self::shoot_ajax_success();
+        }
+
+        /**
+         * Checks if the GDPR admin notice should be handled. By default, this logic is off, unless the integrator adds the special 'handle_gdpr_admin_notice' filter.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.0
+         *
+         * @return bool
+         */
+        private function should_handle_gdpr_admin_notice() {
+            return (
+                $this->_storage->get( 'handle_gdpr_admin_notice' ) &&
+                $this->apply_filters(
+                    'handle_gdpr_admin_notice',
+                    // Default to false.
+                    false
+                )
+            );
         }
 
         #endregion
