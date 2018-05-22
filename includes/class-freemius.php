@@ -20310,30 +20310,36 @@
                 return;
             }
 
-            $current_wp_user = self::_get_current_wp_user();
-
             if ( ! $this->is_user_admin() ) {
                 return;
             }
 
-            $user_id = $current_wp_user->ID;
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
+            $lock = FS_User_Lock::instance();
 
             /**
-             * A storage based lock to make that the logic will not be executed more than once per admin every 20-sec tops.
+             * Try to acquire a 60-sec lock based on the WP user and thread/process ID.
              */
-            if ( $this->is_user_locked( $user_id ) ) {
+            if ( ! $lock->try_lock( 60 ) ) {
                 return;
             }
 
-            $this->lock_user( $user_id, 60 ); // 60-sec lock.
+            /**
+             * @var $current_wp_user WP_User
+             */
+            $current_wp_user = self::_get_current_wp_user();
 
             /**
              * @var FS_User $current_fs_user
              */
             $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+
+            $ten_years_in_sec = 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC;
+
             if ( ! is_object( $current_fs_user ) ) {
                 // 10-year lock.
-                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+                $lock->lock( $ten_years_in_sec );
 
                 return;
             }
@@ -20342,14 +20348,14 @@
 
             if ( $gdpr->is_opt_in_notice_shown() ) {
                 // 30-day lock.
-                $this->lock_user( $user_id, 30 * WP_FS__TIME_24_HOURS_IN_SEC );
+                $lock->lock( 30 * WP_FS__TIME_24_HOURS_IN_SEC );
 
                 return;
             }
 
             if ( ! $gdpr->should_show_opt_in_notice() ) {
                 // 10-year lock.
-                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+                $lock->lock( $ten_years_in_sec );
 
                 return;
             }
@@ -20387,16 +20393,19 @@
             }
 
             if ( empty( $plugin_ids_map ) ) {
-                // 10-year lock.
-                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+                $lock->lock( $ten_years_in_sec );
 
                 return;
             }
 
-            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins( $current_fs_user->email, null, array_keys( $plugin_ids_map ) );
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
+                $current_fs_user->email,
+                null,
+                array_keys( $plugin_ids_map )
+            );
+
             if ( empty( $user_plugins ) ) {
-                // 10-year lock.
-                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+                $lock->lock( $ten_years_in_sec );
 
                 return;
             }
@@ -20413,9 +20422,10 @@
                 }
             }
 
-            if ( empty( $plugin_ids_map ) || ( $was_notice_shown_before && ! $has_unset_marketing_optin ) ) {
-                // 10-year lock.
-                $this->lock_user( $user_id, WP_FS__TIME_10_YEARS_IN_SEC );
+            if ( empty( $plugin_ids_map ) ||
+                 ( $was_notice_shown_before && ! $has_unset_marketing_optin )
+            ) {
+                $lock->lock( $ten_years_in_sec );
 
                 return;
             }
@@ -20447,28 +20457,7 @@
             $gdpr->notice_was_just_shown();
 
             // 30-day lock.
-            $this->lock_user( $user_id, 30 * WP_FS__TIME_24_HOURS_IN_SEC );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         *
-         * @param number $wp_user_id
-         * @param int    $expiration
-         */
-        private function lock_user( $wp_user_id, $expiration ) {
-            set_site_transient( "locked_{$wp_user_id}", true,  $expiration );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         *
-         * @param number $wp_user_id
-         */
-        private function is_user_locked( $wp_user_id ) {
-            get_site_transient( "locked_{$wp_user_id}" );
+            $lock->lock( 30 * WP_FS__TIME_24_HOURS_IN_SEC );
         }
 
         /**
@@ -20481,10 +20470,10 @@
         private function disable_opt_in_notice_and_lock_user() {
             FS_GDPR_Manager::instance()->disable_opt_in_notice();
 
-            $current_wp_user = self::_get_current_wp_user();
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
 
             // 10-year lock.
-            $this->lock_user( $current_wp_user->ID, WP_FS__TIME_10_YEARS_IN_SEC );
+            FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
         }
 
         /**
@@ -20603,8 +20592,10 @@
 
             FS_GDPR_Manager::instance()->remove_opt_in_notice();
 
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
             // 10-year lock.
-            $this->lock_user( $current_wp_user->ID, WP_FS__TIME_10_YEARS_IN_SEC );
+            FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
 
             self::shoot_ajax_success();
         }
