@@ -270,16 +270,16 @@
                         )
                     );
                 ?>
-                <div id="marketing_optin" class="checkbox-container">
-                    <span class="message"><?php fs_echo_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) ?></span>
-                    <div class="input-container">
+                <div id="fs_marketing_optin">
+                    <span class="fs-message"><?php fs_echo_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) ?></span>
+                    <div class="fs-input-container">
                         <label>
-                            <input type="radio" name="allow-marketing" value="true" />
-                            <span class="input-label"><?php echo $send_updates_text ?></span>
+                            <input type="radio" name="allow-marketing" value="true" tabindex="1" />
+                            <span class="fs-input-label"><?php echo $send_updates_text ?></span>
                         </label>
                         <label>
-                            <input type="radio" name="allow-marketing" value="false" />
-                            <span class="input-label"><?php echo $do_not_send_updates_text ?></span>
+                            <input type="radio" name="allow-marketing" value="false" tabindex="1" />
+                            <span class="fs-input-label"><?php echo $do_not_send_updates_text ?></span>
                         </label>
                     </div>
                 </div>
