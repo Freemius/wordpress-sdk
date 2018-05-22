@@ -20182,8 +20182,8 @@
                 }
 
                 $multiple_products_text = sprintf(
-                    "<small class='products'><strong>%s</strong> %s</small>",
-                    $this->get_text_inline( 'Products:', 'products' ),
+                    "<small class='products'><strong>%s:</strong> %s</small>",
+                    $this->get_text_inline( 'Products', 'products' ),
                     $products_and_add_ons
                 );
             }
