@@ -6493,8 +6493,6 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.2
-         *
-         * @return string
          */
         private function activate_previous_theme() {
             switch_theme( $this->get_previous_theme_slug() );
