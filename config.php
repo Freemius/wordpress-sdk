@@ -294,9 +294,6 @@
     if ( ! defined( 'WP_FS__TIME_WEEK_IN_SEC' ) ) {
         define( 'WP_FS__TIME_WEEK_IN_SEC', 7 * WP_FS__TIME_24_HOURS_IN_SEC );
     }
-    if ( ! defined( 'WP_FS__TIME_10_YEARS_IN_SEC' ) ) {
-        define( 'WP_FS__TIME_10_YEARS_IN_SEC', 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
-    }
 
     #--------------------------------------------------------------------------------
     #region Debugging
