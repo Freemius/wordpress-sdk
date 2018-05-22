@@ -20377,7 +20377,12 @@
             );
 
             if ( empty( $user_plugins ) ) {
-                $lock->lock( $ten_years_in_sec );
+                $lock->lock(
+                    is_array($user_plugins) ?
+                        $ten_years_in_sec :
+                        // Lock for 24-hours on errors.
+                        WP_FS__TIME_24_HOURS_IN_SEC
+                );
 
                 return;
             }
