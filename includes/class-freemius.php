@@ -1316,8 +1316,9 @@
 
                 if ( $this->should_handle_gdpr_admin_notice() ) {
                     add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
-                    add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
                 }
+
+                add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
             }
 
             if ( $this->is_plugin() ) {
