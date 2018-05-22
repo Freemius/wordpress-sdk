@@ -11907,66 +11907,53 @@
         }
 
         /**
+         * Gets a map of module IDs that the given user has opted-in to.
+         *
          * @author Leo Fajardo (@leorw)
          * @since  2.1.0
          *
          * @param number $fs_user_id
          *
-         * @return array
+         * @return array {
+         * @key number $plugin_id
+         * @value bool Always true.
+         * }
          */
-        function get_all_installs_by_user( $fs_user_id ) {
-            $current_wp_user = self::_get_current_wp_user();
+        private static function get_user_opted_in_module_ids_map( $fs_user_id ) {
+            self::$_static_logger->entrance();
 
-            $sites = is_super_admin( $current_wp_user->ID ) ?
-                self::get_sites() :
-                get_blogs_of_user( $current_wp_user->ID );
-
-            $installs_map = array();
-
-            foreach ( $sites as $site ) {
-                $blog_id = self::get_site_blog_id( $site );
-
+            if ( ! is_multisite() ) {
                 $installs = array_merge(
-                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id ),
-                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id )
+                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
+                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
                 );
+            } else {
+                $sites = self::get_sites();
 
-                if ( empty( $installs ) ) {
-                    continue;
-                }
+                $installs = array();
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
 
-                foreach ( $installs as $install ) {
-                    if ( is_object( $install ) &&
-                        is_numeric( $install->id ) &&
-                        is_numeric( $install->user_id ) &&
-                        ( $install->user_id == $fs_user_id )
-                    ) {
-                        $installs_map[ $blog_id ] = $install;
-                    }
+                    $installs = array_merge(
+                        $installs,
+                        self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id ),
+                        self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id )
+                    );
                 }
             }
 
-            foreach ( self::$_instances as $instance ) {
-                if ( ! $instance->is_network_active() ) {
-                    continue;
+            $module_ids_map = array();
+            foreach ( $installs as $install ) {
+                if ( is_object( $install ) &&
+                     FS_Site::is_valid_id( $install->id ) &&
+                     FS_User::is_valid_id( $install->user_id ) &&
+                     ( $install->user_id == $fs_user_id )
+                ) {
+                    $module_ids_map[ $install->plugin_id ] = true;
                 }
-
-                $network_install_blog_id = $instance->get_network_install_blog_id();
-                if ( is_null( $network_install_blog_id ) || isset( $installs_map[ $network_install_blog_id ] ) ) {
-                    continue;
-                }
-
-                $network_install = $instance->get_network_install();
-
-                if ( $network_install->user_id != $fs_user_id ) {
-                    continue;
-                }
-
-                $installs_map[ $network_install_blog_id ] = $network_install;
             }
 
-
-            return $installs_map;
+            return $module_ids_map;
         }
 
         /**
@@ -20371,27 +20358,10 @@
                 return;
             }
 
-            $plugin_ids_map = array();
-
-            if ( is_multisite() ) {
-                $installs = $this->get_all_installs_by_user( $current_fs_user->id );
-            } else {
-                $installs = array_merge(
-                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
-                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
-                );
-            }
-
             /**
              * Find all plugin IDs that were installed by the current admin.
              */
-            foreach ( $installs as $install ) {
-                if ( $current_fs_user->id != $install->user_id ) {
-                    continue;
-                }
-
-                $plugin_ids_map[ $install->plugin_id ] = true;
-            }
+            $plugin_ids_map = self::get_user_opted_in_module_ids_map( $current_fs_user->id );
 
             if ( empty( $plugin_ids_map ) ) {
                 $lock->lock( $ten_years_in_sec );
