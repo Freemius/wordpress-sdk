@@ -1314,8 +1314,10 @@
                     }
                 }
 
-                add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
-                add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
+                if ( $this->_storage->get( 'handle_gdpr_admin_notice', false ) ) {
+                    add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+                    add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
+                }
             }
 
             if ( $this->is_plugin() ) {
@@ -20295,6 +20297,7 @@
                  version_compare( $sdk_version, '2.1.0', '>=' )
             ) {
                 add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+                $this->_storage->handle_gdpr_admin_notice = true;
             }
         }
 
@@ -20304,10 +20307,6 @@
          */
         function _maybe_show_gdpr_admin_notice() {
             if ( ! $this->is_user_in_admin() ) {
-                return;
-            }
-
-            if ( ! $this->is_registered() ) {
                 return;
             }
 
