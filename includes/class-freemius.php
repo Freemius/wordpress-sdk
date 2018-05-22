@@ -20488,19 +20488,27 @@
 
             $this->check_ajax_referer( 'fetch_is_marketing_required_flag_value' );
 
-            $error = $this->get_text_inline( 'Invalid license key.', 'invalid-license-key' ) ;
             if ( ! fs_request_has( 'license_key' ) ) {
-                self::shoot_ajax_failure( $error );
+                self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
             }
 
             $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
                 null,
                 fs_request_get( 'license_key' ),
-                array( $this->_plugin->id )
+                array( $this->_module_id )
             );
 
-            if ( empty( $user_plugins ) ) {
-                self::shoot_ajax_failure( $error );
+            if ( ! is_array( $user_plugins ) ||
+                 empty($user_plugins) ||
+                 !isset($user_plugins[0]->plugin_id) ||
+                 $user_plugins[0]->plugin_id != $this->_module_id
+            ) {
+                /**
+                 * If faced an error or if the module ID do not match to the current module, ask for GDPR opt-in.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 */
+                self::shoot_ajax_success( array( 'is_marketing_allowed' => null ) );
             }
 
             self::shoot_ajax_success( array( 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed ) );
