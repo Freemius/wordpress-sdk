@@ -285,8 +285,11 @@
         define( 'WP_FS__TIME_10_MIN_IN_SEC', 600 );
     }
 //	define( 'WP_FS__TIME_15_MIN_IN_SEC', 900 );
+    if ( ! defined( 'WP_FS__TIME_12_HOURS_IN_SEC' ) ) {
+        define( 'WP_FS__TIME_12_HOURS_IN_SEC', 43200 );
+    }
     if ( ! defined( 'WP_FS__TIME_24_HOURS_IN_SEC' ) ) {
-        define( 'WP_FS__TIME_24_HOURS_IN_SEC', 86400 );
+        define( 'WP_FS__TIME_24_HOURS_IN_SEC', WP_FS__TIME_12_HOURS_IN_SEC * 2 );
     }
     if ( ! defined( 'WP_FS__TIME_WEEK_IN_SEC' ) ) {
         define( 'WP_FS__TIME_WEEK_IN_SEC', 7 * WP_FS__TIME_24_HOURS_IN_SEC );

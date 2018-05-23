@@ -640,12 +640,18 @@
          * @param string $sdk_prev_version
          * @param string $sdk_version
          */
-        function _data_migration( $sdk_prev_version, $sdk_version ) {
+        function _sdk_version_update( $sdk_prev_version, $sdk_version ) {
             /**
              * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
              */
             if ( empty( $sdk_prev_version ) ) {
                 return;
+            }
+
+            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
+                 version_compare( $sdk_version, '2.1.0', '>=' )
+            ) {
+                $this->_storage->handle_gdpr_admin_notice = true;
             }
 
             if ( version_compare( $sdk_prev_version, '2.0.0', '<' ) &&
@@ -1313,6 +1319,12 @@
                         add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
                     }
                 }
+
+                if ( $this->_storage->handle_gdpr_admin_notice ) {
+                    add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+                }
+
+                add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
             }
 
             if ( $this->is_plugin() ) {
@@ -1362,7 +1374,8 @@
 
             $this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
-            $this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
+            $this->add_action( 'sdk_version_update', array( &$this, '_sdk_version_update' ), WP_FS__DEFAULT_PRIORITY, 2 );
+
             $this->add_action(
                 'plugin_version_update',
                 array( &$this, '_after_version_update' ),
@@ -3241,24 +3254,6 @@
             $wp_user = self::_get_current_wp_user();
 
             return $wp_user->ID;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.0
-         *
-         * @return bool
-         */
-        function fetch_and_store_current_user_gdpr_anonymously() {
-            $pong = $this->ping( null, true );
-
-            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
-                return false;
-            } else {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-
-                return $pong->is_gdpr_required;
-            }
         }
 
         /**
@@ -6505,8 +6500,6 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.2
-         *
-         * @return string
          */
         private function activate_previous_theme() {
             switch_theme( $this->get_previous_theme_slug() );
@@ -10468,7 +10461,7 @@
          */
         function _activate_license_ajax_action() {
             $this->_logger->entrance();
-
+            
             $this->check_ajax_referer( 'activate_license' );
 
             $license_key = trim( fs_request_get( 'license_key' ) );
@@ -10579,6 +10572,7 @@
                     false,
                     false,
                     false,
+                    fs_request_get_bool( 'is_marketing_allowed', null ),
                     $sites
                 );
 
@@ -10712,6 +10706,7 @@
                                 false,
                                 false,
                                 false,
+                                fs_request_get_bool( 'is_marketing_allowed', null ),
                                 $sites_by_action['allow']
                             );
                         } else {
@@ -11919,6 +11914,56 @@
         }
 
         /**
+         * Gets a map of module IDs that the given user has opted-in to.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param number $fs_user_id
+         *
+         * @return array {
+         * @key number $plugin_id
+         * @value bool Always true.
+         * }
+         */
+        private static function get_user_opted_in_module_ids_map( $fs_user_id ) {
+            self::$_static_logger->entrance();
+
+            if ( ! is_multisite() ) {
+                $installs = array_merge(
+                    self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN ),
+                    self::get_all_sites( WP_FS__MODULE_TYPE_THEME )
+                );
+            } else {
+                $sites = self::get_sites();
+
+                $installs = array();
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    $installs = array_merge(
+                        $installs,
+                        self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id ),
+                        self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id )
+                    );
+                }
+            }
+
+            $module_ids_map = array();
+            foreach ( $installs as $install ) {
+                if ( is_object( $install ) &&
+                     FS_Site::is_valid_id( $install->id ) &&
+                     FS_User::is_valid_id( $install->user_id ) &&
+                     ( $install->user_id == $fs_user_id )
+                ) {
+                    $module_ids_map[ $install->plugin_id ] = true;
+                }
+            }
+
+            return $module_ids_map;
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          *
          * @return null|array {
@@ -12039,7 +12084,9 @@
         static function get_site_blog_id( &$site ) {
             return ( $site instanceof WP_Site ) ?
                 $site->blog_id :
-                $site['blog_id'];
+                ( is_object( $site ) && isset( $site->userblog_id ) ?
+                    $site->userblog_id :
+                    $site['blog_id'] );
         }
 
         /**
@@ -13085,12 +13132,13 @@
          * @param string|bool $first
          * @param string|bool $last
          * @param string|bool $license_key
-         * @param bool        $is_uninstall       If "true", this means that the module is currently being uninstalled.
-         *                                        In this case, the user and site info will be sent to the server but no
-         *                                        data will be saved to the WP installation's database.
+         * @param bool        $is_uninstall         If "true", this means that the module is currently being uninstalled.
+         *                                          In this case, the user and site info will be sent to the server but no
+         *                                          data will be saved to the WP installation's database.
          * @param number|bool $trial_plan_id
-         * @param bool        $is_disconnected    Whether or not to opt in without tracking.
-         * @param array       $sites              If network-level opt-in, an array of containing details of sites.
+         * @param bool        $is_disconnected      Whether or not to opt in without tracking.
+         * @param null|bool   $is_marketing_allowed
+         * @param array       $sites                If network-level opt-in, an array of containing details of sites.
          *
          * @return string|object
          * @use    WP_Error
@@ -13103,6 +13151,7 @@
             $is_uninstall = false,
             $trial_plan_id = false,
             $is_disconnected = false,
+            $is_marketing_allowed = null,
             $sites = array()
         ) {
             $this->_logger->entrance();
@@ -13188,8 +13237,12 @@
                 }
             }
 
-            $params['is_disconnected'] = $is_disconnected;
-            $params['format']          = 'json';
+            if ( is_bool( $is_marketing_allowed ) ) {
+                $params['is_marketing_allowed'] = $is_marketing_allowed;
+            }
+
+            $params['is_disconnected']      = $is_disconnected;
+            $params['format']               = 'json';
 
             $request = array(
                 'method'  => 'POST',
@@ -13198,42 +13251,7 @@
             );
 
             $url = WP_FS__ADDRESS . '/action/service/user/install/';
-
-            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
-                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
-                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
-
-                $request['cookies'] = array(
-                    new WP_Http_Cookie( array(
-                        'name'  => 'XDEBUG_SESSION',
-                        'value' => 'PHPSTORM',
-                    ) )
-                );
-            }
-
-            $response = wp_remote_post( $url, $request );
-
-            if ( $response instanceof WP_Error ) {
-                if ( 'https://' === substr( $url, 0, 8 ) &&
-                     isset( $response->errors ) &&
-                     isset( $response->errors['http_request_failed'] )
-                ) {
-                    $http_error = strtolower( $response->errors['http_request_failed'][0] );
-
-                    if ( false !== strpos( $http_error, 'ssl' ) ||
-                         false !== strpos( $http_error, 'curl error 35' )
-                    ) {
-                        // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
-                        $url = 'http://' . substr( $url, 8 );
-
-                        $response = wp_remote_post( $url, array(
-                            'method'  => 'POST',
-                            'body'    => $params,
-                            'timeout' => 15,
-                        ) );
-                    }
-                }
-            }
+            $response = self::safe_remote_post( $url, $request );
 
             if ( is_wp_error( $response ) ) {
                 /**
@@ -13320,6 +13338,9 @@
                     $decoded->user_id,
                     $decoded->user_public_key,
                     $decoded->user_secret_key,
+                    ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
+                        $decoded->is_marketing_allowed :
+                        null ),
                     $decoded->install_id,
                     $decoded->install_public_key,
                     $decoded->install_secret_key,
@@ -13330,6 +13351,9 @@
                     $decoded->user_id,
                     $decoded->user_public_key,
                     $decoded->user_secret_key,
+                    ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
+                        $decoded->is_marketing_allowed :
+                        null ),
                     $decoded->installs,
                     false
                 );
@@ -13395,6 +13419,17 @@
             $this->_site = $first_install;
 
             $this->_sync_plans();
+
+            if ( $this->_storage->handle_gdpr_admin_notice &&
+                 $this->should_handle_gdpr_admin_notice() &&
+                 FS_GDPR_Manager::instance()->should_show_opt_in_notice()
+            ) {
+                /**
+                 * Clear user lock after an opt-in.
+                 */
+                require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+                FS_User_Lock::instance()->unlock();
+            }
 
             if ( 1 < count( $installs ) ) {
                 // Only network level opt-in can have more than one install.
@@ -13605,6 +13640,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
+                            fs_request_get_bool( 'is_marketing_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
                             $pending_sites_info['trial_plan_id']
@@ -13614,6 +13650,7 @@
                             fs_request_get( 'user_id' ),
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
+                            fs_request_get_bool( 'is_marketing_allowed', null ),
                             fs_request_get( 'install_id' ),
                             fs_request_get( 'install_public_key' ),
                             fs_request_get( 'install_secret_key' ),
@@ -13665,16 +13702,17 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
-         * @param number $user_id
-         * @param string $user_public_key
-         * @param string $user_secret_key
-         * @param number $install_id
-         * @param string $install_public_key
-         * @param string $install_secret_key
-         * @param bool   $redirect
-         * @param bool   $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                             redirect (or return a URL) to the account page with a special parameter to
-         *                             trigger the auto installation processes.
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param number    $install_id
+         * @param string    $install_public_key
+         * @param string    $install_secret_key
+         * @param bool      $redirect
+         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                                redirect (or return a URL) to the account page with a special parameter to
+         *                                trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13682,6 +13720,7 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             $install_id,
             $install_public_key,
             $install_secret_key,
@@ -13719,6 +13758,10 @@
             $site        = new FS_Site( $site_result );
             $this->_site = $site;
 
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
+
             return $this->setup_account(
                 $this->_user,
                 $this->_site,
@@ -13733,13 +13776,14 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
-         * @param number $user_id
-         * @param string $user_public_key
-         * @param string $user_secret_key
-         * @param array  $site_ids
-         * @param bool   $license_key
-         * @param bool   $trial_plan_id
-         * @param bool   $redirect
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param array     $site_ids
+         * @param bool      $license_key
+         * @param bool      $trial_plan_id
+         * @param bool      $redirect
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13747,12 +13791,17 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
+
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -13768,14 +13817,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param number   $user_id
-         * @param string   $user_public_key
-         * @param string   $user_secret_key
-         * @param object[] $installs
-         * @param bool     $redirect
-         * @param bool     $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                               redirect (or return a URL) to the account page with a special parameter to
-         *                               trigger the auto installation processes.
+         * @param number    $user_id
+         * @param string    $user_public_key
+         * @param string    $user_secret_key
+         * @param bool|null $is_marketing_allowed
+         * @param object[]  $installs
+         * @param bool      $redirect
+         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
+         *                                redirect (or return a URL) to the account page with a special parameter to
+         *                                trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -13783,11 +13833,16 @@
             $user_id,
             $user_public_key,
             $user_secret_key,
+            $is_marketing_allowed,
             array $installs,
             $redirect = true,
             $auto_install = false
         ) {
             $this->setup_user( $user_id, $user_public_key, $user_secret_key );
+
+            if ( ! is_null( $is_marketing_allowed ) ) {
+                $this->disable_opt_in_notice_and_lock_user();
+            }
 
             $install_ids = array();
 
@@ -19105,6 +19160,90 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string $url
+         * @param array  $request
+         */
+        private static function enrich_request_for_debug( &$url, &$request ) {
+            if ( WP_FS__DEBUG_SDK || isset( $_COOKIE['XDEBUG_SESSION'] ) ) {
+                $url = add_query_arg( 'XDEBUG_SESSION_START', rand( 0, 9999999 ), $url );
+                $url = add_query_arg( 'XDEBUG_SESSION', 'PHPSTORM', $url );
+
+                $request['cookies'] = array(
+                    new WP_Http_Cookie( array(
+                        'name'  => 'XDEBUG_SESSION',
+                        'value' => 'PHPSTORM',
+                    ) )
+                );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string      $url
+         * @param array       $request
+         * @param int         $success_cache_expiration
+         * @param int         $failure_cache_expiration
+         *
+         * @return WP_Error|array
+         */
+        private static function safe_remote_post(
+            &$url,
+            $request,
+            $success_cache_expiration = 0,
+            $failure_cache_expiration = 0
+        ) {
+            $should_cache = ($success_cache_expiration + $failure_cache_expiration > 0);
+
+            $cache_key = $should_cache ? md5( fs_strip_url_protocol($url) . json_encode( $request ) ) : false;
+
+            $response = (!WP_FS__DEBUG_SDK && ( false !== $cache_key )) ?
+                get_transient( $cache_key ) :
+                false;
+
+            if ( false === $response ) {
+                self::enrich_request_for_debug( $url, $request );
+
+                $response = wp_remote_post( $url, $request );
+
+                if ( $response instanceof WP_Error ) {
+                    if ( 'https://' === substr( $url, 0, 8 ) &&
+                        isset( $response->errors ) &&
+                        isset( $response->errors['http_request_failed'] )
+                    ) {
+                        $http_error = strtolower( $response->errors['http_request_failed'][0] );
+
+                        if ( false !== strpos( $http_error, 'ssl' ) ||
+                            false !== strpos( $http_error, 'curl error 35' )
+                        ) {
+                            // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+                            $url = 'http://' . substr( $url, 8 );
+
+                            $request['timeout'] = 15;
+                            $response           = wp_remote_post( $url, $request );
+                        }
+                    }
+                }
+
+                if ( false !== $cache_key ) {
+                    set_transient(
+                        $cache_key,
+                        $response,
+                        ( ( $response instanceof WP_Error ) ?
+                            $failure_cache_expiration :
+                            $success_cache_expiration )
+                    );
+                }
+            }
+
+            return $response;
+        }
+
+        /**
          * This method is used to enrich the after upgrade notice instructions when the upgraded
          * license cannot be activated network wide (license quota isn't large enough).
          *
@@ -19934,6 +20073,538 @@
                 $info->icon :
                 '';
         }
+
+        #--------------------------------------------------------------------------------
+        #region GDPR
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @return bool
+         */
+        function fetch_and_store_current_user_gdpr_anonymously() {
+            $pong = $this->ping( null, true );
+
+            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
+                return false;
+            } else {
+                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
+
+                return $pong->is_gdpr_required;
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         *
+         * @param array $user_plugins
+         *
+         * @return string
+         */
+        private function get_gdpr_admin_notice_string( $user_plugins ) {
+            $this->_logger->entrance();
+
+            $addons = self::get_all_addons();
+
+            foreach ( $user_plugins as $user_plugin ) {
+                $has_addons = isset( $addons[ $user_plugin->id ] );
+
+                if ( WP_FS__MODULE_TYPE_PLUGIN === $user_plugin->type && ! $has_addons ) {
+                    if ( $this->_module_id == $user_plugin->id ) {
+                        $addons     = $this->get_addons();
+                        $has_addons = ( ! empty( $addons ) );
+                    } else {
+                        $plugin_api = FS_Api::instance(
+                            $user_plugin->id,
+                            'plugin',
+                            $user_plugin->id,
+                            $user_plugin->public_key,
+                            ! $user_plugin->is_live
+                        );
+
+                        $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );
+
+                        if ( $this->is_api_result_object( $addons_result, 'plugins' ) &&
+                             is_array( $addons_result->plugins ) &&
+                             ! empty( $addons_result->plugins )
+                        ) {
+                            $has_addons = true;
+                        }
+                    }
+                }
+
+                $user_plugin->has_addons = $has_addons;
+            }
+
+            $is_single_parent_product = ( 1 === count( $user_plugins ) );
+
+            $multiple_products_text = '';
+
+            if ( $is_single_parent_product ) {
+                $single_parent_product = array_values( $user_plugins )[0];
+
+                $thank_you = sprintf(
+                    "<span data-plugin-id='%d'>%s</span>",
+                    $single_parent_product->id,
+                    sprintf(
+                        $single_parent_product->has_addons ?
+                            $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-product-and-its-addons' ) :
+                            $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-product' ),
+                        sprintf('<b><i>%s</i></b>', $single_parent_product->title)
+                    )
+                );
+
+                $already_opted_in = sprintf(
+                    $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving the %s.", 'already-opted-in-to-product-usage-tracking' ),
+                    ( WP_FS__MODULE_TYPE_THEME === $single_parent_product->type ) ? WP_FS__MODULE_TYPE_THEME : WP_FS__MODULE_TYPE_PLUGIN
+                );
+            } else {
+                $thank_you        = $this->get_text_inline( 'Thank you so much for using our products!', 'thank-you-for-using-products' );
+                $already_opted_in = $this->get_text_inline( "You've already opted-in to our usage-tracking, which helps us keep improving them.", 'already-opted-in-to-products-usage-tracking' );
+
+                $products_and_add_ons = '';
+                foreach ( $user_plugins as $user_plugin ) {
+                    if ( ! empty( $products_and_add_ons ) ) {
+                        $products_and_add_ons .= ', ';
+                    }
+
+                    if ( ! $user_plugin->has_addons ) {
+                        $products_and_add_ons .= sprintf(
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            $user_plugin->title
+                        );
+                    } else {
+                        $products_and_add_ons .= sprintf(
+                            "<span data-plugin-id='%d'>%s</span>",
+                            $user_plugin->id,
+                            sprintf(
+                                $this->get_text_inline( '%s and its add-ons', 'product-and-its-addons' ),
+                                $user_plugin->title
+                            )
+                        );
+                    }
+                }
+
+                $multiple_products_text = sprintf(
+                    "<small class='products'><strong>%s:</strong> %s</small>",
+                    $this->get_text_inline( 'Products', 'products' ),
+                    $products_and_add_ons
+                );
+            }
+
+            $actions = sprintf(
+                '<ul><li>%s<span class="action-description"> - %s</span></li><li>%s<span class="action-description"> - %s</span></li></ul>',
+                sprintf('<button class="button button-primary allow-marketing">%s</button>', $this->get_text_inline( 'Yes', 'yes' ) ),
+                $this->get_text_inline( 'send me security & feature updates, educational content and offers.', 'send-updates' ),
+                sprintf('<button class="button button-secondary">%s</button>', $this->get_text_inline( 'No', 'no' ) ),
+                sprintf(
+                    $this->get_text_inline( 'do %sNOT%s send me security & feature updates, educational content and offers.', 'do-not-send-updates' ),
+                    '<span class="underlined">',
+                    '</span>'
+                )
+            );
+
+            return sprintf(
+                '%s %s %s',
+                $thank_you,
+                $already_opted_in,
+                sprintf($this->get_text_inline( 'Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ), '<a href="https://eugdpr.org/" target="_blank" rel="noopener noreferrer">', '</a>') .
+                '<br><br>' .
+                '<b>' . $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) . '</b>' .
+                $actions .
+                ( $is_single_parent_product ? '' : $multiple_products_text )
+            );
+        }
+
+        /**
+         * This method is called for opted-in users to fetch the is_marketing_allowed flag of the user for all the
+         * plugins and themes they've opted in to.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         *
+         * @param string      $user_email
+         * @param string      $license_key
+         * @param array       $plugin_ids
+         * @param string|null $license_key
+         *
+         * @return array|false
+         */
+        private function fetch_user_marketing_flag_status_by_plugins( $user_email, $license_key, $plugin_ids ) {
+            $request = array(
+                'method'  => 'POST',
+                'body'    => array(),
+                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+            );
+
+            if ( is_string( $user_email ) ) {
+                $request['body']['email'] = $user_email;
+            } else {
+                $request['body']['license_key'] = $license_key;
+            }
+
+            $result = array();
+
+            $url              = WP_FS__ADDRESS . '/action/service/user_plugin/';
+            $total_plugin_ids = count( $plugin_ids );
+
+            $plugin_ids_count_per_request = 10;
+            for ( $i = 1; $i <= $total_plugin_ids; $i += $plugin_ids_count_per_request ) {
+                $plugin_ids_set = array_slice( $plugin_ids, $i - 1, $plugin_ids_count_per_request );
+
+                $request['body']['plugin_ids'] = $plugin_ids_set;
+
+                $response = self::safe_remote_post(
+                    $url,
+                    $request,
+                    WP_FS__TIME_24_HOURS_IN_SEC,
+                    WP_FS__TIME_12_HOURS_IN_SEC
+                );
+
+                if ( ! is_wp_error( $response ) ) {
+                    $decoded = is_string( $response['body'] ) ?
+                        json_decode( $response['body'] ) :
+                        null;
+
+                    if (
+                        !is_object($decoded) ||
+                        !isset($decoded->success) ||
+                        true !== $decoded->success ||
+                        !isset( $decoded->data ) ||
+                        !is_array( $decoded->data )
+                    ) {
+                        return false;
+                    }
+
+                    $result = array_merge( $result, $decoded->data );
+                }
+            }
+
+            return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _maybe_show_gdpr_admin_notice() {
+            if ( ! $this->is_user_in_admin() ) {
+                return;
+            }
+
+            if ( ! $this->should_handle_gdpr_admin_notice() ) {
+                return;
+            }
+
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
+            $lock = FS_User_Lock::instance();
+
+            /**
+             * Try to acquire a 60-sec lock based on the WP user and thread/process ID.
+             */
+            if ( ! $lock->try_lock( 60 ) ) {
+                return;
+            }
+
+            /**
+             * @var $current_wp_user WP_User
+             */
+            $current_wp_user = self::_get_current_wp_user();
+
+            /**
+             * @var FS_User $current_fs_user
+             */
+            $current_fs_user = Freemius::_get_user_by_email( $current_wp_user->user_email );
+
+            $ten_years_in_sec = 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC;
+
+            if ( ! is_object( $current_fs_user ) ) {
+                // 10-year lock.
+                $lock->lock( $ten_years_in_sec );
+
+                return;
+            }
+
+            $gdpr = FS_GDPR_Manager::instance();
+
+            if ( $gdpr->is_opt_in_notice_shown() ) {
+                // 30-day lock.
+                $lock->lock( 30 * WP_FS__TIME_24_HOURS_IN_SEC );
+
+                return;
+            }
+
+            if ( ! $gdpr->should_show_opt_in_notice() ) {
+                // 10-year lock.
+                $lock->lock( $ten_years_in_sec );
+
+                return;
+            }
+
+            $last_time_notice_shown  = $gdpr->last_time_notice_was_shown();
+            $was_notice_shown_before = ( false !== $last_time_notice_shown );
+
+            if ( $was_notice_shown_before &&
+                 30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_notice_shown
+            ) {
+                // If the notice was shown before, show it again after 30 days from the last time it was shown.
+                return;
+            }
+
+            /**
+             * Find all plugin IDs that were installed by the current admin.
+             */
+            $plugin_ids_map = self::get_user_opted_in_module_ids_map( $current_fs_user->id );
+
+            if ( empty( $plugin_ids_map )) {
+                $lock->lock( $ten_years_in_sec );
+
+                return;
+            }
+
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
+                $current_fs_user->email,
+                null,
+                array_keys( $plugin_ids_map )
+            );
+
+            if ( empty( $user_plugins ) ) {
+                $lock->lock(
+                    is_array($user_plugins) ?
+                        $ten_years_in_sec :
+                        // Lock for 24-hours on errors.
+                        WP_FS__TIME_24_HOURS_IN_SEC
+                );
+
+                return;
+            }
+
+            $has_unset_marketing_optin = false;
+
+            foreach ( $user_plugins as $user_plugin ) {
+                if ( true == $user_plugin->is_marketing_allowed ) {
+                    unset( $plugin_ids_map[ $user_plugin->plugin_id ] );
+                }
+
+                if ( ! $has_unset_marketing_optin && is_null( $user_plugin->is_marketing_allowed ) ) {
+                    $has_unset_marketing_optin = true;
+                }
+            }
+
+            if ( empty( $plugin_ids_map ) ||
+                 ( $was_notice_shown_before && ! $has_unset_marketing_optin )
+            ) {
+                $lock->lock( $ten_years_in_sec );
+
+                return;
+            }
+
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $module ) {
+                if ( ! FS_Plugin::is_valid_id( $module->parent_plugin_id ) && isset( $plugin_ids_map[ $module->id ] ) ) {
+                    $plugin_ids_map[ $module->id ] = $module;
+                }
+            }
+
+            $plugin_title = null;
+            if ( 1 === count( $plugin_ids_map ) ) {
+                $module       = reset( $plugin_ids_map );
+                $plugin_title = $module->title;
+            }
+
+            $gdpr->add_opt_in_sticky_notice(
+                $this->get_gdpr_admin_notice_string( $plugin_ids_map ),
+                $plugin_title
+            );
+
+            $this->add_gdpr_optin_ajax_handler_and_style();
+
+            $gdpr->notice_was_just_shown();
+
+            // 30-day lock.
+            $lock->lock( 30 * WP_FS__TIME_24_HOURS_IN_SEC );
+        }
+
+        /**
+         * Prevents the GDPR opt-in admin notice from being added if the user has already chosen to allow or not allow
+         * marketing.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        private function disable_opt_in_notice_and_lock_user() {
+            FS_GDPR_Manager::instance()->disable_opt_in_notice();
+
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
+            // 10-year lock.
+            FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _add_gdpr_optin_js() {
+            $vars = array( 'id' => $this->_module_id );
+
+            fs_require_once_template( 'gdpr-optin-js.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function enqueue_gdpr_optin_notice_style() {
+            fs_enqueue_local_style( 'fs_gdpr_optin_notice', '/admin/gdpr-optin-notice.css' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _maybe_add_gdpr_optin_ajax_handler() {
+            if ( $this->is_activation_mode() ) {
+                $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
+            }
+
+            if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
+                $this->add_gdpr_optin_ajax_handler_and_style();
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.0
+         */
+        function _fetch_is_marketing_required_flag_value_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'fetch_is_marketing_required_flag_value' );
+
+            $license_key = fs_request_get( 'license_key' );
+
+            if ( empty($license_key) ) {
+                self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
+            }
+
+            $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
+                null,
+                $license_key,
+                array( $this->_module_id )
+            );
+
+            if ( ! is_array( $user_plugins ) ||
+                 empty($user_plugins) ||
+                 !isset($user_plugins[0]->plugin_id) ||
+                 $user_plugins[0]->plugin_id != $this->_module_id
+            ) {
+                /**
+                 * If faced an error or if the module ID do not match to the current module, ask for GDPR opt-in.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 */
+                self::shoot_ajax_success( array( 'is_marketing_allowed' => null ) );
+            }
+
+            self::shoot_ajax_success( array( 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        private function add_gdpr_optin_ajax_handler_and_style() {
+            // Add GDPR action AJAX callback.
+            $this->add_ajax_action( 'gdpr_optin_action', array( &$this, '_gdpr_optin_ajax_action' ) );
+
+            add_action( 'admin_footer', array( &$this, '_add_gdpr_optin_js' ) );
+            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.0
+         */
+        function _gdpr_optin_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'gdpr_optin_action' );
+
+            if ( ! fs_request_has( 'is_marketing_allowed' ) || ! fs_request_has( 'plugin_ids' ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $current_wp_user = self::_get_current_wp_user();
+
+            $plugin_ids = fs_request_get( 'plugin_ids', array() );
+            if ( ! is_array( $plugin_ids ) || empty( $plugin_ids ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $modules = array_merge(
+                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
+                array_values( self::$_accounts->get_option( 'themes', array() ) )
+            );
+
+            foreach ( $modules as $key => $module ) {
+                if ( ! in_array( $module->id, $plugin_ids ) ) {
+                    unset( $modules[ $key ] );
+                }
+            }
+
+            if ( empty( $modules ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $user_api = $this->get_api_user_scope_by_user( Freemius::_get_user_by_email( $current_wp_user->user_email ) );
+
+            foreach ( $modules as $module ) {
+                $user_api->call( "?plugin_id={$module->id}", 'put', array(
+                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'is_marketing_allowed' ) )
+                ) );
+            }
+
+            FS_GDPR_Manager::instance()->remove_opt_in_notice();
+
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
+            // 10-year lock.
+            FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
+
+            self::shoot_ajax_success();
+        }
+
+        /**
+         * Checks if the GDPR admin notice should be handled. By default, this logic is off, unless the integrator adds the special 'handle_gdpr_admin_notice' filter.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.0
+         *
+         * @return bool
+         */
+        private function should_handle_gdpr_admin_notice() {
+            return $this->apply_filters(
+                'handle_gdpr_admin_notice',
+                // Default to false.
+                false
+            );
+        }
+
+        #endregion
 
         #----------------------------------------------------------------------------------
         #region Marketing
