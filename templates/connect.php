@@ -643,7 +643,8 @@
                             module_id  : '<?php echo $fs->get_id() ?>'
                         };
 
-					if ( requireLicenseKey ) {
+					if (requireLicenseKey &&
+                        isMarketingAllowedByLicense.hasOwnProperty(licenseKey)) {
                         var
                             $gdprOptinAction   = $marketingOptin.find( 'input[type="radio"][name="allow-marketing"]:checked'),
                             isMarketingAllowed = ( $gdprOptinAction.length > 0 ? $gdprOptinAction.val() : null );
