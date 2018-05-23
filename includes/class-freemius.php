@@ -640,12 +640,18 @@
          * @param string $sdk_prev_version
          * @param string $sdk_version
          */
-        function _data_migration( $sdk_prev_version, $sdk_version ) {
+        function _sdk_version_update( $sdk_prev_version, $sdk_version ) {
             /**
              * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
              */
             if ( empty( $sdk_prev_version ) ) {
                 return;
+            }
+
+            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
+                 version_compare( $sdk_version, '2.1.0', '>=' )
+            ) {
+                $this->_storage->handle_gdpr_admin_notice = true;
             }
 
             if ( version_compare( $sdk_prev_version, '2.0.0', '<' ) &&
@@ -1368,8 +1374,8 @@
 
             $this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
 
-            $this->add_action( 'sdk_version_update', array( &$this, '_data_migration' ), WP_FS__DEFAULT_PRIORITY, 2 );
-            $this->add_action( 'sdk_version_update', array( &$this, '_handle_gdpr_admin_notice'), WP_FS__DEFAULT_PRIORITY, 2 );
+            $this->add_action( 'sdk_version_update', array( &$this, '_sdk_version_update' ), WP_FS__DEFAULT_PRIORITY, 2 );
+
             $this->add_action(
                 'plugin_version_update',
                 array( &$this, '_after_version_update' ),
@@ -20284,35 +20290,10 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.1.0
-         *
-         * @param string $sdk_prev_version
-         * @param string $sdk_version
          */
-        function _handle_gdpr_admin_notice( $sdk_prev_version, $sdk_version ) {
-            /**
-             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
-             */
-            if ( empty( $sdk_prev_version ) ) {
                 return;
             }
 
-            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
-                 version_compare( $sdk_version, '2.1.0', '>=' )
-            ) {
-                $this->_storage->handle_gdpr_admin_notice = true;
-
-                if ( $this->should_handle_gdpr_admin_notice() ) {
-                    add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
-                }
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.1.0
-         */
-        function _maybe_show_gdpr_admin_notice() {
-            if ( ! $this->is_user_in_admin() ) {
                 return;
             }
 
