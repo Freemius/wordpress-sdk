@@ -19181,7 +19181,7 @@
 
             $cache_key = $should_cache ? md5( fs_strip_url_protocol($url) . json_encode( $request ) ) : false;
 
-            $response = ( false !== $cache_key ) ?
+            $response = (!WP_FS__DEBUG_SDK && ( false !== $cache_key )) ?
                 get_transient( $cache_key ) :
                 false;
 
