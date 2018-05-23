@@ -13231,8 +13231,11 @@
                 }
             }
 
-            $params['is_disconnected']      = $is_disconnected;
+            if ( is_bool( $is_marketing_allowed ) ) {
             $params['is_marketing_allowed'] = $is_marketing_allowed;
+            }
+
+            $params['is_disconnected']      = $is_disconnected;
             $params['format']               = 'json';
 
             $request = array(
