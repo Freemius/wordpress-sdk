@@ -644,10 +644,15 @@
                         };
 
 					if (requireLicenseKey &&
-                        isMarketingAllowedByLicense.hasOwnProperty(licenseKey)) {
+                        isMarketingAllowedByLicense.hasOwnProperty(licenseKey)
+                    ) {
                         var
-                            $gdprOptinAction   = $marketingOptin.find( 'input[type="radio"][name="allow-marketing"]:checked'),
-                            isMarketingAllowed = ( $gdprOptinAction.length > 0 ? $gdprOptinAction.val() : null );
+                            isMarketingAllowed = null,
+                            $isMarketingAllowed   = $marketingOptin.find( 'input[type="radio"][name="allow-marketing"]:checked');
+
+
+                        if ($isMarketingAllowed.length > 0)
+                            isMarketingAllowed = ('true' == $isMarketingAllowed.val());
 
                         if ( null == isMarketingAllowedByLicense[ licenseKey ] &&
                             null == isMarketingAllowed
