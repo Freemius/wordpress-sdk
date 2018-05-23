@@ -1320,7 +1320,7 @@
                     }
                 }
 
-                if ( $this->should_handle_gdpr_admin_notice() ) {
+                if ( $this->_storage->handle_gdpr_admin_notice ) {
                     add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
                 }
 
@@ -20291,9 +20291,12 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.0
          */
+        function _maybe_show_gdpr_admin_notice() {
+            if ( ! $this->is_user_in_admin() ) {
                 return;
             }
 
+            if ( ! $this->should_handle_gdpr_admin_notice() ) {
                 return;
             }
 
@@ -20594,13 +20597,10 @@
          * @return bool
          */
         private function should_handle_gdpr_admin_notice() {
-            return (
-                $this->_storage->get( 'handle_gdpr_admin_notice' ) &&
-                $this->apply_filters(
+            return $this->apply_filters(
                     'handle_gdpr_admin_notice',
                     // Default to false.
                     false
-                )
             );
         }
 
