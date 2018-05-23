@@ -20421,7 +20421,7 @@
 
             $plugin_title = null;
             if ( 1 === count( $plugin_ids_map ) ) {
-                $module       = array_values( $plugin_ids_map )[0];
+                $module       = reset( $plugin_ids_map );
                 $plugin_title = $module->title;
             }
 
@@ -20598,9 +20598,9 @@
          */
         private function should_handle_gdpr_admin_notice() {
             return $this->apply_filters(
-                    'handle_gdpr_admin_notice',
-                    // Default to false.
-                    false
+                'handle_gdpr_admin_notice',
+                // Default to false.
+                false
             );
         }
 
