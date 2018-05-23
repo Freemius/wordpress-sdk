@@ -20153,7 +20153,7 @@
                         $single_parent_product->has_addons ?
                             $this->get_text_inline( 'Thank you so much for using %s and its add-ons!', 'thank-you-for-using-product-and-its-addons' ) :
                             $this->get_text_inline( 'Thank you so much for using %s!', 'thank-you-for-using-product' ),
-                        $single_parent_product->title
+                        sprintf('<b><i>%s</i></b>', $single_parent_product->title)
                     )
                 );
 
@@ -20212,9 +20212,9 @@
                 '%s %s %s',
                 $thank_you,
                 $already_opted_in,
-                $this->get_text_inline( 'Due to the new GDPR compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ) .
-                '<br />' .
-                $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) .
+                sprintf($this->get_text_inline( 'Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂', 'due-to-gdpr-compliance-requirements' ), '<a href="https://eugdpr.org/" target="_blank" rel="noopener noreferrer">', '</a>') .
+                '<br><br>' .
+                '<b>' . $this->get_text_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) . '</b>' .
                 $actions .
                 ( $is_single_parent_product ? '' : $multiple_products_text )
             );
