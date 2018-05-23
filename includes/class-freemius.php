@@ -20212,7 +20212,7 @@
          * @param array       $plugin_ids
          * @param string|null $license_key
          *
-         * @return array
+         * @return array|false
          */
         private function fetch_user_marketing_flag_status_by_plugins( $user_email, $license_key, $plugin_ids ) {
             $request = array(
@@ -20251,13 +20251,16 @@
                         null;
 
                     if (
-                        ! empty( $decoded ) &&
-                        $this->is_api_result_object( $decoded ) &&
-                        isset( $decoded->data ) &&
-                        is_array( $decoded->data )
+                        !is_object($decoded) ||
+                        !isset($decoded->success) ||
+                        true !== $decoded->success ||
+                        !isset( $decoded->data ) ||
+                        !is_array( $decoded->data )
                     ) {
-                        $result = array_merge( $result, $decoded->data );
+                        return false;
                     }
+
+                    $result = array_merge( $result, $decoded->data );
                 }
             }
 
@@ -20364,7 +20367,7 @@
              */
             $plugin_ids_map = self::get_user_opted_in_module_ids_map( $current_fs_user->id );
 
-            if ( empty( $plugin_ids_map ) ) {
+            if ( empty( $plugin_ids_map )) {
                 $lock->lock( $ten_years_in_sec );
 
                 return;
