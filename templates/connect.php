@@ -878,6 +878,7 @@
 
                         setLoadingMode();
 
+                        $primaryCta.addClass('fs-loading');
                         $primaryCta.attr('disabled', 'disabled');
                         $primaryCta.html('<?php fs_esc_js_echo_inline( 'Please wait', 'please-wait', $slug ) ?>...');
 
