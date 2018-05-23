@@ -10566,7 +10566,7 @@
                     false,
                     false,
                     false,
-                    fs_request_get( 'is_marketing_allowed', null ),
+                    fs_request_get_bool( 'is_marketing_allowed', null ),
                     $sites
                 );
 
@@ -10700,7 +10700,7 @@
                                 false,
                                 false,
                                 false,
-                                fs_request_get( 'is_marketing_allowed', null ),
+                                fs_request_get_bool( 'is_marketing_allowed', null ),
                                 $sites_by_action['allow']
                             );
                         } else {
