@@ -13414,6 +13414,17 @@
 
             $this->_sync_plans();
 
+            if ( $this->_storage->handle_gdpr_admin_notice &&
+                 $this->should_handle_gdpr_admin_notice() &&
+                 FS_GDPR_Manager::instance()->should_show_opt_in_notice()
+            ) {
+                /**
+                 * Clear user lock after an opt-in.
+                 */
+                require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+                FS_User_Lock::instance()->unlock();
+            }
+
             if ( 1 < count( $installs ) ) {
                 // Only network level opt-in can have more than one install.
                 $is_network_level_opt_in = true;

@@ -106,6 +106,16 @@
         }
 
         /**
+         * Unlock the lock.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.0
+         */
+        function unlock() {
+            delete_site_transient( "locked_{$this->_wp_user_id}" );
+        }
+
+        /**
          * Checks if lock is currently acquired by the current locker.
          *
          * @return bool
