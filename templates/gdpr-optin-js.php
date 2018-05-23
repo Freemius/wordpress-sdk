@@ -45,8 +45,8 @@
                     }),
                     method    : 'POST',
                     data      : {
-                        allow_marketing: allowMarketing,
-                        plugin_ids     : pluginIDs
+                        is_marketing_allowed: allowMarketing,
+                        plugin_ids          : pluginIDs
                     },
                     beforeSend: function() {
                         $this.text( <?php fs_json_encode_echo_inline( 'Thanks, please wait', 'thanks-please-wait', $fs->get_slug() ) ?> + '...' );

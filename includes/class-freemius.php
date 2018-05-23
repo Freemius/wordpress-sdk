@@ -13232,7 +13232,7 @@
             }
 
             if ( is_bool( $is_marketing_allowed ) ) {
-            $params['is_marketing_allowed'] = $is_marketing_allowed;
+                $params['is_marketing_allowed'] = $is_marketing_allowed;
             }
 
             $params['is_disconnected']      = $is_disconnected;
@@ -20549,7 +20549,7 @@
 
             $this->check_ajax_referer( 'gdpr_optin_action' );
 
-            if ( ! fs_request_has( 'allow_marketing' ) || ! fs_request_has( 'plugin_ids' ) ) {
+            if ( ! fs_request_has( 'is_marketing_allowed' ) || ! fs_request_has( 'plugin_ids' ) ) {
                 self::shoot_ajax_failure();
             }
 
@@ -20579,7 +20579,7 @@
 
             foreach ( $modules as $module ) {
                 $user_api->call( "?plugin_id={$module->id}", 'put', array(
-                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'allow_marketing' ) )
+                    'is_marketing_allowed' => ( true == fs_request_get_bool( 'is_marketing_allowed' ) )
                 ) );
             }
 
