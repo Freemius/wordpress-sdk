@@ -470,6 +470,7 @@
                 $primaryCta.html(primaryCtaLabel);
                 $primaryCta.prop('disabled', false);
                 $(document.body).css({'cursor': 'auto'});
+                $('.fs-loading').removeClass('fs-loading');
 
                 console.log('resetLoadingMode - Primary button was enabled');
             },
