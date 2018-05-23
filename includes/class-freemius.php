@@ -20494,13 +20494,15 @@
 
             $this->check_ajax_referer( 'fetch_is_marketing_required_flag_value' );
 
-            if ( ! fs_request_has( 'license_key' ) ) {
+            $license_key = fs_request_get( 'license_key' );
+
+            if ( empty($license_key) ) {
                 self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
             }
 
             $user_plugins = $this->fetch_user_marketing_flag_status_by_plugins(
                 null,
-                fs_request_get( 'license_key' ),
+                $license_key,
                 array( $this->_module_id )
             );
 
