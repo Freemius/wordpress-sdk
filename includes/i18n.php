@@ -87,7 +87,7 @@
 		'license-single-site'           => _fs_text( 'Single Site License' ),
 		'license-unlimited'             => _fs_text( 'Unlimited Licenses' ),
 		'license-x-sites'               => _fs_text( 'Up to %s Sites' ),
-		'renew-license-now'             => _fs_text( '%sRenew your license now%s to access version %s features and support.' ),
+		'renew-license-now'             => _fs_text( '%sRenew your license now%s to access version %s security & feature updates, and support.' ),
 		'ask-for-upgrade-email-address' => _fs_text( "Enter the email address you've used for the upgrade below and we will resend you the license key." ),
 		'x-plan'                        => _fs_x( '%s Plan', 'e.g. Professional Plan' ),
 		'you-are-step-away'             => _fs_text( 'You are just one step away - %s' ),

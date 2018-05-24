@@ -533,10 +533,12 @@
          * @since  1.2.2.7 Even if the menu item was specified to be hidden, when it is the context page, then show the submenu item so the user will have the right context page.
          *
          * @param string $slug
+         * @param bool   $ignore_free_wp_org_theme_context This is used to decide if the associated tab should be shown
+         *                                                 or hidden.
          *
          * @return bool
          */
-        function is_submenu_item_visible( $slug ) {
+        function is_submenu_item_visible( $slug, $ignore_free_wp_org_theme_context = false ) {
             if ( $this->is_admin_page( $slug ) ) {
                 /**
                  * It is the current context page, so show the submenu item
@@ -551,7 +553,7 @@
                 return false;
             }
 
-            if ( $this->is_free_wp_org_theme() ) {
+            if ( ! $ignore_free_wp_org_theme_context && $this->is_free_wp_org_theme() ) {
                 /**
                  * wp.org themes are limited to a single submenu item, and
                  * sub-submenu items are most likely not allowed (never verified).
@@ -1358,6 +1360,8 @@
             }
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
+            add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
+
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
 
@@ -1483,6 +1487,13 @@
                 'submit_uninstall_reason',
                 array( &$this, '_submit_uninstall_reason_action' )
             );
+
+            if ( $this->is_theme() && $this->is_premium() && ! $this->has_active_valid_license() ) {
+                $this->add_ajax_action(
+                    'delete_theme_update_data',
+                    array( &$this, '_delete_theme_update_data_action' )
+                );
+            }
 
             if ( ! $this->is_addon() || $this->is_parent_plugin_installed() ) {
                 if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
@@ -2038,6 +2049,10 @@
              * @since  1.2.2
              */
             if ( $this->is_theme() ) {
+                if ( $this->is_premium() && ! $this->has_active_valid_license() ) {
+                    FS_Plugin_Updater::instance( $this )->delete_update_data();
+                }
+
                 $this->_uninstall_plugin_event( false );
                 $this->remove_sdk_reference();
             }
@@ -2045,6 +2060,14 @@
             // Print '1' for successful operation.
             echo 1;
             exit;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.2
+         */
+        function _delete_theme_update_data_action() {
+            FS_Plugin_Updater::instance( $this )->delete_update_data();
         }
 
         #endregion
@@ -6879,6 +6902,10 @@
             $this->clear_install_sync_cron();
 
             if ( $this->is_registered() ) {
+                if ( $this->is_premium() && ! $this->has_active_valid_license() ) {
+                    FS_Plugin_Updater::instance( $this )->delete_update_data();
+                }
+
                 if ( $is_network_deactivation ) {
                     // Send deactivation event.
                     $this->sync_installs( array(
@@ -8169,6 +8196,14 @@
                     );
                 } else {
                     $theme_data = wp_get_theme();
+
+                    if ( $this->_plugin_basename !== $theme_data->get_stylesheet() && is_child_theme() ) {
+                        $parent_theme = $theme_data->parent();
+
+                        if ( ( $parent_theme instanceof WP_Theme ) && $this->_plugin_basename === $parent_theme->get_stylesheet() ) {
+                            $theme_data = $parent_theme;
+                        }
+                    }
 
                     $plugin_data = array(
                         'Name'        => $theme_data->get( 'Name' ),
@@ -10400,6 +10435,27 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection_dialog_box() {
+            $modules_update = get_site_transient( $this->is_theme() ? 'update_themes' : 'update_plugins' );
+            if ( ! isset( $modules_update->response[ $this->_plugin_basename ] ) ) {
+                return;
+            }
+
+            $vars = array(
+                'id'          => $this->_module_id,
+                'new_version' => is_object( $modules_update->response[ $this->_plugin_basename ] ) ?
+                    $modules_update->response[ $this->_plugin_basename ]->new_version :
+                    $modules_update->response[ $this->_plugin_basename ]['new_version']
+            );
+
+            fs_require_template( 'forms/premium-versions-upgrade-metadata.php', $vars );
+            fs_require_once_template( 'forms/premium-versions-upgrade-handler.php', $vars );
+        }
+
+        /**
          * Displays the opt-out dialog box when the user clicks on the "Opt Out" link on the "Plugins"
          * page.
          *
@@ -10451,6 +10507,25 @@
 
             // Add resend license AJAX callback.
             $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection() {
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            if ( ! $this->is_premium() || $this->has_active_valid_license() ) {
+                // This is relevant only to the free versions and premium versions without an active license.
+                return;
+            }
+
+            if ( self::is_updates_page() || ( $this->is_plugin() && self::is_plugins_page() ) ) {
+                $this->_add_premium_version_upgrade_selection_action();
+            }
         }
 
         /**
@@ -10919,6 +10994,16 @@
          */
         static function is_plugins_page() {
             return ( 'plugins.php' === self::get_current_page() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         *
+         * @return bool
+         */
+        static function is_updates_page() {
+            return ( 'update-core.php' === self::get_current_page() );
         }
 
         /**
@@ -17150,9 +17235,9 @@
 
             $is_premium = null;
             if ( ! $is_addon ) {
-                $is_premium = $this->_can_download_premium();
+                $is_premium = $this->is_premium();
             } else if ( $this->is_addon_activated( $addon_id ) ) {
-                $is_premium = self::get_instance_by_id( $addon_id )->_can_download_premium();
+                $is_premium = self::get_instance_by_id( $addon_id )->is_premium();
             }
 
             // If add-on, then append add-on ID.
@@ -18885,6 +18970,18 @@
                 11,
                 ( 'activate-license ' . $this->get_unique_affix() )
             );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         */
+        function _add_premium_version_upgrade_selection_action() {
+            $this->_logger->entrance();
+
+            if ( ! self::is_ajax() ) {
+                add_action( 'admin_footer', array( &$this, '_add_premium_version_upgrade_selection_dialog_box' ) );
+            }
         }
 
         /**

@@ -241,11 +241,17 @@
             <tbody>
             <?php foreach ( $modules as $slug => $data ) : ?>
                 <?php
-                if ( WP_FS__MODULE_TYPE_THEME === $module_type ) {
+                if ( WP_FS__MODULE_TYPE_THEME !== $module_type ) {
+                    $is_active = is_plugin_active( $data->file );
+                } else {
                     $current_theme = wp_get_theme();
                     $is_active     = ( $current_theme->stylesheet === $data->file );
-                } else {
-                    $is_active = is_plugin_active( $data->file );
+
+                    if ( ! $is_active && is_child_theme() ) {
+                        $parent_theme = $current_theme->parent();
+
+                        $is_active = ( ( $parent_theme instanceof WP_Theme ) && $parent_theme->stylesheet === $data->file );
+                    }
                 }
                 ?>
                 <?php $fs = $is_active ? freemius( $data->id ) : null ?>

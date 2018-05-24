@@ -104,8 +104,14 @@
                 ), 10, 3 );
             }
 
-            if ( $this->_fs->is_premium() && $this->is_correct_folder_name() ) {
-                add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+            if ( $this->_fs->is_premium() ) {
+                if ( $this->is_correct_folder_name() ) {
+                    add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+                }
+
+                if ( ! $this->_fs->has_active_valid_license() ) {
+                    add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
+                }
             }
         }
 
@@ -175,7 +181,7 @@
             $plugin_update_row = preg_replace(
                 '/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
                 '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s features and support.', 'renew-license-now' ),
+                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
                     '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
                     $r->new_version ) .
                 '$4',
@@ -183,6 +189,44 @@
             );
 
             echo $plugin_update_row;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.0.2
+         *
+         * @param array $prepared_themes
+         *
+         * @return array
+         */
+        function change_theme_update_info_html( $prepared_themes ) {
+            $theme_basename = $this->_fs->get_plugin_basename();
+
+            if ( ! isset( $prepared_themes[ $theme_basename ] ) ) {
+                return $prepared_themes;
+            }
+
+            $themes_update = get_site_transient( 'update_themes' );
+            if ( ! isset( $themes_update->response[ $theme_basename ] ) ||
+                empty( $themes_update->response[ $theme_basename ]['package'] )
+            ) {
+                return $prepared_themes;
+            }
+
+            $prepared_themes[ $theme_basename ]['update'] = preg_replace(
+                '/(\<p.+>)(.+)(\<a.+\<a.+)\.(.+\<\/p\>)/is',
+                '$1 $2 ' . sprintf(
+                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
+                    $themes_update->response[ $theme_basename ]['new_version'] ) .
+                '$4',
+                $prepared_themes[ $theme_basename ]['update']
+            );
+
+            // Set to false to prevent the "Update now" link for the context theme from being shown on the "Themes" page.
+            $prepared_themes[ $theme_basename ]['hasPackage'] = false;
+
+            return $prepared_themes;
         }
 
         /**
@@ -386,6 +430,38 @@
             // Flag the module as if it was already checked.
             $transient_data->checked[ $basename ] = $this->_fs->get_plugin_version();
             $transient_data->last_checked         = time();
+
+            set_site_transient( $transient_key, $transient_data );
+
+            $this->add_transient_filters();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.0.2
+         */
+        function delete_update_data() {
+            $this->_logger->entrance();
+
+            $transient_key = "update_{$this->_fs->get_module_type()}s";
+
+            $transient_data = get_site_transient( $transient_key );
+
+            // Alias
+            $basename = $this->_fs->get_plugin_basename();
+
+            if ( ! is_object( $transient_data ) ||
+                ! isset( $transient_data->response ) ||
+                 ! is_array( $transient_data->response ) ||
+                empty( $transient_data->response[ $basename ] )
+            ) {
+                return;
+            }
+
+            unset( $transient_data->response[ $basename ] );
+
+            // Remove the added filters.
+            $this->remove_transient_filters();
 
             set_site_transient( $transient_key, $transient_data );
 
