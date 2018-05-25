@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2018-05-24 13:06+0000\n"
+"PO-Revision-Date: 2018-05-24 14:01+0000\n"
 "Last-Translator: Daniele Scasciafratte Mte90 <mte90net@gmail.com>\n"
 "Language: it_IT\n"
 "Language-Team: Italian (Italy) (http://www.transifex.com/freemius/wordpress-sdk/language/it_IT/)\n"
@@ -763,7 +763,7 @@ msgstr "La chiave licenza è vuota."
 #: includes/class-fs-plugin-updater.php184,
 #: includes/class-fs-plugin-updater.php:219
 msgid "%sRenew your license now%s to access version %s security & feature updates, and support."
-msgstr "%sRenew your license now%s to access version %s security & feature updates, and support."
+msgstr "%sRinnova la tua licenza ora%s per accedere alla versione %s con aggiornamenti di sicurezza e funzionalità e supporto."
 
 #: includes/class-fs-plugin-updater.php:776
 msgid "Installing plugin: %s"
@@ -771,7 +771,7 @@ msgstr "Installazione plugin: %s"
 
 #: includes/class-fs-plugin-updater.php:817
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
-msgstr "Unable to connect to the filesystem. Please confirm your credentials."
+msgstr "Impossibile accedere al filesystem. Conferma le tue credenziali."
 
 #: includes/class-fs-plugin-updater.php:923
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
@@ -789,7 +789,7 @@ msgstr "Inizia la mia %s"
 
 #: includes/fs-plugin-info-dialog.php:380
 msgid "Install Free Version Now"
-msgstr "Install Free Version Now"
+msgstr "Installa la versione gratuita ora"
 
 #: includes/fs-plugin-info-dialog.php381, templates/auto-installation.php111,
 #: templates/account/partials/addon.php267,
@@ -800,7 +800,7 @@ msgstr "Installa ora"
 #: includes/fs-plugin-info-dialog.php:392
 msgctxt "as download latest version"
 msgid "Download Latest Free Version"
-msgstr "Download Latest Free Version"
+msgstr "Scarica l'ultima versione gratuita"
 
 #: includes/fs-plugin-info-dialog.php393, templates/account.php80,
 #: templates/account/partials/addon.php:21
@@ -810,7 +810,7 @@ msgstr "Scarica l'ultima versione"
 
 #: includes/fs-plugin-info-dialog.php:403
 msgid "Install Free Version Update Now"
-msgstr "Install Free Version Update Now"
+msgstr "Installa l'ultima versione gratuita"
 
 #: includes/fs-plugin-info-dialog.php404, templates/account.php:448
 msgid "Install Update Now"
@@ -818,7 +818,7 @@ msgstr "Installa l'aggiornamento ora"
 
 #: includes/fs-plugin-info-dialog.php:415
 msgid "Newer Free Version (%s) Installed"
-msgstr "Newer Free Version (%s) Installed"
+msgstr "Nuova versione gratuita (%s) installata"
 
 #: includes/fs-plugin-info-dialog.php:416
 msgid "Newer Version (%s) Installed"
@@ -826,7 +826,7 @@ msgstr "Versione più recente (%s) installata"
 
 #: includes/fs-plugin-info-dialog.php:424
 msgid "Latest Free Version Installed"
-msgstr "Latest Free Version Installed"
+msgstr "Ultima versione gratuita installata"
 
 #: includes/fs-plugin-info-dialog.php:425
 msgid "Latest Version Installed"
@@ -1086,7 +1086,7 @@ msgstr "Cancellando il periodo di prova gratuito bloccherai immediatamente l'acc
 #: templates/account.php83, templates/account/partials/addon.php24,
 #: templates/account/partials/site.php:296
 msgid "You can still enjoy all %s features but you will not have access to %s updates and support."
-msgstr "You can still enjoy all %s features but you will not have access to %s updates and support."
+msgstr "Puoi continuare ad usufruire di tutte le funzionalità di %sma non potrai accedere agli aggiornamenti e supporto di %s."
 
 #: templates/account.php84, templates/account/partials/addon.php25,
 #: templates/account/partials/site.php:297
@@ -1168,7 +1168,7 @@ msgstr "L'eliminazione dell'account disattiva automaticamente la tua licenza del
 
 #: templates/account.php:177
 msgid "Deletion is not temporary. Only delete if you no longer want to use this %s anymore. Are you sure you would like to continue with the deletion?"
-msgstr "Deletion is not temporary. Only delete if you no longer want to use this %s anymore. Are you sure you would like to continue with the deletion?"
+msgstr "La cancellazione non è temporanea. Cancella solamente se non vuoi più utilizzare %s. Sei sicuro di voler cancellare questi dati?"
 
 #: templates/account.php:180
 msgid "Delete Account"
@@ -1280,7 +1280,7 @@ msgstr "Siti"
 
 #: templates/account.php:501
 msgid "Search by address"
-msgstr "Search by address"
+msgstr "Cerca per indirizzo"
 
 #: templates/account.php510, templates/account.php558, templates/debug.php226,
 #: templates/debug.php354, templates/debug.php439, templates/debug.php476,
@@ -1291,7 +1291,7 @@ msgstr "ID"
 
 #: templates/account.php511, templates/debug.php:357
 msgid "Address"
-msgstr "Address"
+msgstr "Indirizzo"
 
 #: templates/account.php:512
 msgid "License"
@@ -1313,7 +1313,7 @@ msgstr "Nascondi"
 
 #: templates/account.php:665
 msgid "Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?"
-msgstr "Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?"
+msgstr "Disattiva la tua licenza bloccando tutte le funzionalità premium ma potrai attivare la licenza su un altro sito. Sei sicuro di voler continuare?"
 
 #: templates/add-ons.php:36
 msgid "Add Ons for %s"
@@ -1389,43 +1389,43 @@ msgstr "Grazie per aver acquistato %s! Per iniziare, per favore inserisci la tua
 
 #: templates/connect.php:186
 msgid "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s."
-msgstr "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s."
+msgstr "Non perdere nessun aggiornamento importante, accetta gli aggiornamenti di sicurezza e funzionalità, contenuti formativi, offerte e il tracciamento diagnostico senza dati sensibili con %4$s."
 
 #: templates/connect.php:187
 msgid "Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s."
-msgstr "Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s."
+msgstr "Non perdere nessun aggiornamento importante, accetta i nostri aggiornamenti di sicurezza e notifiche di funzionalità e il tracciamento diagnostico senza dati sensibili con %4$s."
 
 #: templates/connect.php:193
 msgid "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
-msgstr "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
+msgstr "Non perdere nessun aggiornamento importante, accetta i nostri aggiornamenti di sicurezza e di nuove funzionalità, contenuto formativo, offerte e tracciamento diagnostico senza dati sensibili con %4$s. Se vuoi saltare questo passaggio non è un problema! %1$scontinuerà a funzionare."
 
 #: templates/connect.php:194
 msgid "Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
-msgstr "Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
+msgstr "Non perdere nessun aggiornamento importante, accetta i nostri aggiornamenti di sicurezza e di nuove funzionalità, contenuto formativo, offerte e tracciamento diagnostico senza dati sensibili con %4$s. Se vuoi saltare questo passaggio non è un problema! %1$s continuerà a funzionare."
 
 #: templates/connect.php:228
 msgid "We're excited to introduce the Freemius network-level integration."
-msgstr "We're excited to introduce the Freemius network-level integration."
+msgstr "Siamo felici di presentarvi il supporto al sistema multi network di Freemius."
 
 #: templates/connect.php:231
 msgid "During the update process we detected %d site(s) that are still pending license activation."
-msgstr "During the update process we detected %d site(s) that are still pending license activation."
+msgstr "Durante la procedura di aggiornamento abbiamo individuato%dsito/i che sono in attesa della attivazione della licenza."
 
 #: templates/connect.php:233
 msgid "If you'd like to use the %s on those sites, please enter your license key below and click the activation button."
-msgstr "If you'd like to use the %s on those sites, please enter your license key below and click the activation button."
+msgstr "Se vuoi utilizzare %ssu questi siti, inserisci la tua licenza sotto e fai clic sul pulsante di attivazione."
 
 #: templates/connect.php:235
 msgid "%s's paid features"
-msgstr "%s's paid features"
+msgstr "Funzionalità a pagamento di %s"
 
 #: templates/connect.php:240
 msgid "Alternatively, you can skip it for now and activate the license later, in your %s's network-level Account page."
-msgstr "Alternatively, you can skip it for now and activate the license later, in your %s's network-level Account page."
+msgstr "In caso puoi saltare per adesso e attivare la licenza successivamente nella tua pagina di attivazione network di %s."
 
 #: templates/connect.php:242
 msgid "During the update process we detected %s site(s) in the network that are still pending your attention."
-msgstr "During the update process we detected %s site(s) in the network that are still pending your attention."
+msgstr "Durante la procedura di aggiornamenti abbiamo individuato %s sito/i del network che sono in attesa di un tuo controllo."
 
 #: templates/connect.php251, templates/forms/license-activation.php:46
 msgid "License key"
@@ -1443,11 +1443,11 @@ msgstr "Salta"
 
 #: templates/connect.php:305
 msgid "Delegate to Site Admins"
-msgstr "Delegate to Site Admins"
+msgstr "Delega ai proprietari del sito"
 
 #: templates/connect.php:305
 msgid "If you click it, this decision will be delegated to the sites administrators."
-msgstr "If you click it, this decision will be delegated to the sites administrators."
+msgstr "Se fai clic questa decisione sarà delegata agli amministratori del sito."
 
 #: templates/connect.php:333
 msgid "Your Profile Overview"
@@ -1475,7 +1475,7 @@ msgstr "Aggiornamenti, annunci, marketing, no spam"
 
 #: templates/connect.php:351
 msgid "Current %s Events"
-msgstr "Current %s Events"
+msgstr "Eventi %sattuali"
 
 #: templates/connect.php:352
 msgid "Activation, deactivation and uninstall"
@@ -1487,7 +1487,7 @@ msgstr "Newsletter"
 
 #: templates/connect.php378, templates/forms/license-activation.php:38
 msgid "The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license."
-msgstr "The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license."
+msgstr "%1$sinvierà periodicamente dei dati a %2$sper verificare aggiornamenti di sicurezza e di funzionalità e verificare la validità della tua licenza."
 
 #: templates/connect.php:383
 msgid "What permissions are being granted?"
@@ -1565,7 +1565,7 @@ msgstr "Elimina cache API"
 
 #: templates/debug.php:79
 msgid "Clear Updates Transients"
-msgstr "Clear Updates Transients"
+msgstr "Svuota le Transient degli aggiornamenti"
 
 #: templates/debug.php:86
 msgid "Sync Data From Server"
@@ -1636,7 +1636,7 @@ msgstr "Network Blog"
 
 #: templates/debug.php:236
 msgid "Network User"
-msgstr "Network User"
+msgstr "Utente Network"
 
 #: templates/debug.php:273
 msgctxt "as connection was successful"
@@ -1654,7 +1654,7 @@ msgstr "Simula versione di prova"
 
 #: templates/debug.php:322
 msgid "Simulate Network Upgrade"
-msgstr "Simulate Network Upgrade"
+msgstr "Simula aggiornamento network"
 
 #: templates/debug.php:348
 msgid "%s Installs"
@@ -1769,7 +1769,7 @@ msgstr "Timestamp"
 
 #: templates/secure-https-header.php:28
 msgid "Secure HTTPS %s page, running from an external domain"
-msgstr "Secure HTTPS %s page, running from an external domain"
+msgstr "Metti in sicurezza la pagina HTTPS %sgestita da un dominio esterno"
 
 #: includes/customizer/class-fs-customizer-support-section.php55,
 #: templates/plugin-info/features.php:43
@@ -1950,7 +1950,7 @@ msgstr "Successivo"
 
 #: templates/forms/affiliation.php:82
 msgid "Non-expiring"
-msgstr "Non-expiring"
+msgstr "Non in scadenza"
 
 #: templates/forms/affiliation.php:85
 msgid "Apply to become an affiliate"
@@ -1958,67 +1958,67 @@ msgstr "Applica per diventare un affiliato"
 
 #: templates/forms/affiliation.php:104
 msgid "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s."
-msgstr "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s."
+msgstr "La tua applicazione di affiliazione per %s è stata accettata! Accedi alla tua area di affiliazione a %s."
 
 #: templates/forms/affiliation.php:119
 msgid "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information."
-msgstr "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information."
+msgstr "Grazie per la partecipazione al nostro programma di affiliazione, valuteremo la tua richiesta durante i prossimi 14 giorni e ti contatteremo per maggiori informazioni."
 
 #: templates/forms/affiliation.php:122
 msgid "Your affiliation account was temporarily suspended."
-msgstr "Your affiliation account was temporarily suspended."
+msgstr "Il tuo account di affiliazione è stato sospeso temporaneamente."
 
 #: templates/forms/affiliation.php:125
 msgid "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days."
-msgstr "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days."
+msgstr "Grazie per la partecipazione al nostro programma di affiliazione, sfortunatamente abbiamo valutato di rifiutare la tua richiesta. Prova nuovamente fra 30 giorni."
 
 #: templates/forms/affiliation.php:128
 msgid "Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support."
-msgstr "Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support."
+msgstr "A causa della violazione dei nostri termini di affiliazione abbiamo deciso di bloccare temporaneamente il tuo account affiliativo. Se hai domande contatta il supporto."
 
 #: templates/forms/affiliation.php:141
 msgid "Like the %s? Become our ambassador and earn cash ;-)"
-msgstr "Like the %s? Become our ambassador and earn cash ;-)"
+msgstr "Ti piace %s? Diventa il nostro ambasciatore e guadagna denaro ;-)"
 
 #: templates/forms/affiliation.php:142
 msgid "Refer new customers to our %s and earn %s commission on each successful sale you refer!"
-msgstr "Refer new customers to our %s and earn %s commission on each successful sale you refer!"
+msgstr "Comunica nuovi clienti al nostro %se guadagna %s di commissione per ogni vendita avvenuta!"
 
 #: templates/forms/affiliation.php:145
 msgid "Program Summary"
-msgstr "Program Summary"
+msgstr "Sommario programma"
 
 #: templates/forms/affiliation.php:147
 msgid "%s commission when a customer purchases a new license."
-msgstr "%s commission when a customer purchases a new license."
+msgstr "%scommissione quando un utente acquista una nuova lcienza."
 
 #: templates/forms/affiliation.php:149
 msgid "Get commission for automated subscription renewals."
-msgstr "Get commission for automated subscription renewals."
+msgstr "Ottieni delle commissioni dal sistema automatizzato di rinnovo."
 
 #: templates/forms/affiliation.php:152
 msgid "%s tracking cookie after the first visit to maximize earnings potential."
-msgstr "%s tracking cookie after the first visit to maximize earnings potential."
+msgstr "%s cookie di tracciamento dopo che la prima visita per massimizzare i margini di guadagno. "
 
 #: templates/forms/affiliation.php:155
 msgid "Unlimited commissions."
-msgstr "Unlimited commissions."
+msgstr "Commissioni illimitate."
 
 #: templates/forms/affiliation.php:157
 msgid "%s minimum payout amount."
-msgstr "%s minimum payout amount."
+msgstr "%s quantità minima per il pagamento."
 
 #: templates/forms/affiliation.php:158
 msgid "Payouts are in USD and processed monthly via PayPal."
-msgstr "Payouts are in USD and processed monthly via PayPal."
+msgstr "I pagamenti sono in Dollari Americani e processati mensilmente da PayPal."
 
 #: templates/forms/affiliation.php:159
 msgid "As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days."
-msgstr "As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days."
+msgstr "Ci riserviamo 30 giorni in caso di rimborsi, paghiamo le commissioni se sono più vecchie di 30 giorni."
 
 #: templates/forms/affiliation.php:162
 msgid "Affiliate"
-msgstr "Affiliate"
+msgstr "Affiliati"
 
 #: templates/forms/affiliation.php165, templates/forms/resend-key.php:23
 msgid "Email address"
@@ -2026,59 +2026,59 @@ msgstr "Indirizzo email"
 
 #: templates/forms/affiliation.php:169
 msgid "Full name"
-msgstr "Full name"
+msgstr "Nome completo"
 
 #: templates/forms/affiliation.php:173
 msgid "PayPal account email address"
-msgstr "PayPal account email address"
+msgstr "Indirizzo account email Paypal"
 
 #: templates/forms/affiliation.php:177
 msgid "Where are you going to promote the %s?"
-msgstr "Where are you going to promote the %s?"
+msgstr "Dove vuoi promuovere %s?"
 
 #: templates/forms/affiliation.php:179
 msgid "Enter the domain of your website or other websites from where you plan to promote the %s."
-msgstr "Enter the domain of your website or other websites from where you plan to promote the %s."
+msgstr "Inserisci il dominio del tuo sito o altri siti da dove vuoi promuovere %s."
 
 #: templates/forms/affiliation.php:181
 msgid "Add another domain"
-msgstr "Add another domain"
+msgstr "Aggiungi un altro dominio"
 
 #: templates/forms/affiliation.php:185
 msgid "Extra Domains"
-msgstr "Extra Domains"
+msgstr "Domini aggiuntivi"
 
 #: templates/forms/affiliation.php:186
 msgid "Extra domains where you will be marketing the product from."
-msgstr "Extra domains where you will be marketing the product from."
+msgstr "Domini aggiuntivi dove ci sarà il modulo promozionale."
 
 #: templates/forms/affiliation.php:196
 msgid "Promotion methods"
-msgstr "Promotion methods"
+msgstr "Metodi promozionali"
 
 #: templates/forms/affiliation.php:199
 msgid "Social media (Facebook, Twitter, etc.)"
-msgstr "Social media (Facebook, Twitter, etc.)"
+msgstr "Social network (Facebook, Twitter, ecc.)"
 
 #: templates/forms/affiliation.php:203
 msgid "Mobile apps"
-msgstr "Mobile apps"
+msgstr "Applicazioni mobile"
 
 #: templates/forms/affiliation.php:207
 msgid "Website, email, and social media statistics (optional)"
-msgstr "Website, email, and social media statistics (optional)"
+msgstr "Siti, email e statistiche dei social network (opzionali)"
 
 #: templates/forms/affiliation.php:210
 msgid "Please feel free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential)."
-msgstr "Please feel free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential)."
+msgstr "Facci sapere ogni sito o statistiche social valide, es: visite uniche mensili, numero di sottoscrizioni email, follower ecc (tratteremo queste informazioni come riservate)."
 
 #: templates/forms/affiliation.php:214
 msgid "How will you promote us?"
-msgstr "How will you promote us?"
+msgstr "Come ci promuoverai?"
 
 #: templates/forms/affiliation.php:217
 msgid "Please provide details on how you intend to promote %s (please be as specific as possible)."
-msgstr "Please provide details on how you intend to promote %s (please be as specific as possible)."
+msgstr "Fornisci i dettagli su come intendi promuovere %s. (sii più esplicativo possibile)"
 
 #: templates/forms/affiliation.php223, templates/forms/resend-key.php:22
 msgid "Cancel"
@@ -2086,7 +2086,7 @@ msgstr "Annulla"
 
 #: templates/forms/affiliation.php:225
 msgid "Become an affiliate"
-msgstr "Become an affiliate"
+msgstr "Diventa un affiliato"
 
 #: templates/forms/license-activation.php:20
 msgid "Please enter the license key that you received in the email right after the purchase:"
@@ -2116,19 +2116,19 @@ msgstr "Cliccando su \"Cancella iscrizione\", non invieremo più nessuna informa
 
 #: templates/forms/premium-versions-upgrade-handler.php:24
 msgid "There is a new version of %s available."
-msgstr "There is a new version of %s available."
+msgstr "C'è una nuova versione di %s disponibile."
 
 #: templates/forms/premium-versions-upgrade-handler.php:25
 msgid " %sRenew your license now%s to access version %s security & feature updates, and support."
-msgstr " %sRenew your license now%s to access version %s security & feature updates, and support."
+msgstr "%sRinnova la tua licenza ora %s per accedere alla versione %s  con aggiornamenti di sicurezza e funzionalità oltre che supporto."
 
 #: templates/forms/premium-versions-upgrade-handler.php:34
 msgid "New Version Available"
-msgstr "New Version Available"
+msgstr "Nuova versione disponibile"
 
 #: templates/forms/premium-versions-upgrade-handler.php:36
 msgid "Renew license"
-msgstr "Renew license"
+msgstr "Rinnova licenza"
 
 #: templates/forms/premium-versions-upgrade-handler.php:53
 msgctxt "close a window"
@@ -2149,7 +2149,7 @@ msgstr "Sei a un clic di distanza dall'iniziare il tuo periodo di prova gratuito
 
 #: templates/forms/trial-start.php:28
 msgid "For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial."
-msgstr "For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to %s to check for version updates and to validate your trial."
+msgstr "Per essere accettato del regolamento WordPress.org, prima di attivare il periodo di prova devi accettare di condividere informazioni come il tuo utente e dati non sensibili. Permettendo a %s di inviare dati periodicamente a %s per verificare gli aggiornamenti e approvare il periodo di prova."
 
 #: templates/js/style-premium-theme.php:37
 msgid "Premium"
@@ -2157,34 +2157,34 @@ msgstr "Premium"
 
 #: templates/partials/network-activation.php:23
 msgid "Activate license on all sites in the network."
-msgstr "Activate license on all sites in the network."
+msgstr "Attiva la licenza su tutti i siti del network."
 
 #: templates/partials/network-activation.php:24
 msgid "Apply on all sites in the network."
-msgstr "Apply on all sites in the network."
+msgstr "Applica su tutti i siti della rete."
 
 #: templates/partials/network-activation.php:27
 msgid "Activate license on all pending sites."
-msgstr "Activate license on all pending sites."
+msgstr "Attiva le licenze su tutti i siti in attesa."
 
 #: templates/partials/network-activation.php:28
 msgid "Apply on all pending sites."
-msgstr "Apply on all pending sites."
+msgstr "Applica su tutti i siti in attesa."
 
 #: templates/partials/network-activation.php36,
 #: templates/partials/network-activation.php:68
 msgid "allow"
-msgstr "allow"
+msgstr "permetti"
 
 #: templates/partials/network-activation.php38,
 #: templates/partials/network-activation.php:70
 msgid "delegate"
-msgstr "delegate"
+msgstr "delega"
 
 #: templates/partials/network-activation.php41,
 #: templates/partials/network-activation.php:73
 msgid "skip"
-msgstr "skip"
+msgstr "salta"
 
 #: templates/plugin-info/description.php72,
 #: templates/plugin-info/screenshots.php:31
@@ -2227,19 +2227,19 @@ msgstr "Attivare questo addon"
 
 #: templates/account/partials/site.php:181
 msgid "Owner Name"
-msgstr "Owner Name"
+msgstr "Nome proprietario"
 
 #: templates/account/partials/site.php:193
 msgid "Owner Email"
-msgstr "Owner Email"
+msgstr "Email proprietario"
 
 #: templates/account/partials/site.php:205
 msgid "Owner ID"
-msgstr "Owner ID"
+msgstr "ID proprietario"
 
 #: templates/account/partials/site.php:270
 msgid "Subscription"
-msgstr "Subscription"
+msgstr "Sottoscrivi"
 
 #: templates/forms/deactivation/contact.php:19
 msgid "Sorry for the inconvenience and we are here to help if you give us a chance."
@@ -2259,7 +2259,7 @@ msgstr "Disattiva"
 
 #: templates/forms/deactivation/form.php:65
 msgid "Activate %s"
-msgstr "Activate %s"
+msgstr "Attiva %s"
 
 #: templates/forms/deactivation/form.php:76
 msgid "Quick feedback"
@@ -2267,19 +2267,19 @@ msgstr "Feedback veloce"
 
 #: templates/forms/deactivation/form.php:80
 msgid "If you have a moment, please let us know why you are %s"
-msgstr "If you have a moment, please let us know why you are %s"
+msgstr "Se hai un attimo, facci sapere perché %s"
 
 #: templates/forms/deactivation/form.php:80
 msgid "deactivating"
-msgstr "deactivating"
+msgstr "disattivazione in corso"
 
 #: templates/forms/deactivation/form.php:80
 msgid "switching"
-msgstr "switching"
+msgstr "passa a"
 
 #: templates/forms/deactivation/form.php:269
 msgid "Submit & %s"
-msgstr "Submit & %s"
+msgstr "Invia e %s"
 
 #: templates/forms/deactivation/form.php:290
 msgid "Kindly tell us the reason so we can improve."
@@ -2287,7 +2287,7 @@ msgstr "Spiegandoci il motivo ci aiuterai a migliorare."
 
 #: templates/forms/deactivation/form.php:411
 msgid "Yes - %s"
-msgstr "Yes - %s"
+msgstr "SI - %s"
 
 #: templates/forms/deactivation/form.php:418
 msgid "Skip & %s"
