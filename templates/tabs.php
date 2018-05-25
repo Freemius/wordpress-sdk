@@ -20,11 +20,15 @@
 
     $menu_items = $fs->get_menu_items();
 
+    $is_free_wp_org_theme = $fs->is_free_wp_org_theme();
+
     $tabs = array();
     foreach ( $menu_items as $priority => $items ) {
         foreach ( $items as $item ) {
             if ( ! $item['show_submenu'] ) {
-                continue;
+                if ( ! $is_free_wp_org_theme || ! $fs->is_submenu_item_visible( $item['menu_slug'], true ) ) {
+                    continue;
+                }
             }
 
             $url   = $fs->_get_admin_page_url( $item['menu_slug'] );

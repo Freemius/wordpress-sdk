@@ -65,7 +65,7 @@
                         <?php endforeach ?>
                     </td>
                     <?php if ( ! $require_license_key ) : ?>
-                        <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
+                        <td><a class="action action-allow selected" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                         <?php echo $separator ?>
                         <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
                         <?php if ( $fs->is_enable_anonymous() ) : ?>

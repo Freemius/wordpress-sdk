@@ -339,6 +339,7 @@
                 // Network level options.
                 'affiliate_application_data' => 0,
                 'connectivity_test'          => 0,
+                'handle_gdpr_admin_notice'   => 0,
                 'has_trial_plan'             => 0,
                 'install_sync_timestamp'     => 0,
                 'install_sync_cron'          => 0,

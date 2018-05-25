@@ -55,18 +55,27 @@
          * @param string $id
          * @param string $title
          * @param string $module_unique_affix
+         * @param bool   $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                           blog admin pages.
          *
          * @return FS_Admin_Notices
          */
-        static function instance( $id, $title = '', $module_unique_affix = '' ) {
+        static function instance( $id, $title = '', $module_unique_affix = '', $is_network_and_blog_admins = false ) {
             if ( ! isset( self::$_instances[ $id ] ) ) {
-                self::$_instances[ $id ] = new FS_Admin_Notices( $id, $title, $module_unique_affix );
+                self::$_instances[ $id ] = new FS_Admin_Notices( $id, $title, $module_unique_affix, $is_network_and_blog_admins );
             }
 
             return self::$_instances[ $id ];
         }
 
-        protected function __construct( $id, $title = '', $module_unique_affix = '' ) {
+        /**
+         * @param string $id
+         * @param string $title
+         * @param string $module_unique_affix
+         * @param bool   $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                           blog admin pages.
+         */
+        protected function __construct( $id, $title = '', $module_unique_affix = '', $is_network_and_blog_admins = false ) {
             $this->_id                  = $id;
             $this->_title               = $title;
             $this->_module_unique_affix = $module_unique_affix;
@@ -79,6 +88,7 @@
                     $id,
                     $title,
                     $module_unique_affix,
+                    $is_network_and_blog_admins,
                     true
                 );
             }
@@ -87,6 +97,7 @@
                 $id,
                 $title,
                 $module_unique_affix,
+                false,
                 $this->_blog_id
             );
         }
@@ -180,18 +191,25 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
-         * @param string   $message
-         * @param string   $id Message ID
-         * @param string   $title
-         * @param string   $type
-         * @param int|null $network_level_or_blog_id
+         * @param string      $message
+         * @param string      $id Message ID
+         * @param string      $title
+         * @param string      $type
+         * @param int|null    $network_level_or_blog_id
+         * @param number|null $wp_user_id
+         * @param string|null $plugin_title
+         * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network and
+         *                                                blog admin pages.
          */
         function add_sticky(
             $message,
             $id,
             $title = '',
             $type = 'success',
-            $network_level_or_blog_id = null
+            $network_level_or_blog_id = null,
+            $wp_user_id = null,
+            $plugin_title = null,
+            $is_network_and_blog_admins = false
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -199,7 +217,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            $notices->add_sticky( $message, $id, $title, $type );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins );
         }
 
         /**
@@ -264,6 +282,7 @@
                 $this->_id,
                 $this->_title,
                 $this->_module_unique_affix,
+                false,
                 $blog_id
             );
         }

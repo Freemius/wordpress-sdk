@@ -359,7 +359,7 @@
 		#----------------------------------------------------------------------------------
 
 		/**
-		 * Check if plugin using the free plan.
+		 * Check if the user is on the free plan of the product.
 		 *
 		 * @since 1.0.4
 		 *

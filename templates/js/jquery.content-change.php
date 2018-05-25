@@ -43,5 +43,16 @@
 
 			return elements;
 		};
+
+        setInterval(function() {
+            if ( window.watchContentChange ) {
+                for ( var i in window.watchContentChange ) {
+                    if ( window.watchContentChange[ i ].element.data( 'lastContents' ) !== window.watchContentChange[ i ].element.html() ) {
+                        window.watchContentChange[ i ].callback.apply( undefined, [ false ] );
+                        window.watchContentChange[ i ].element.data( 'lastContents', window.watchContentChange[ i ].element.html() )
+                    }
+                }
+            }
+        }, 500 );
 	})(jQuery);
 </script>
