@@ -20241,7 +20241,7 @@
             $multiple_products_text = '';
 
             if ( $is_single_parent_product ) {
-                $single_parent_product = array_values( $user_plugins )[0];
+                $single_parent_product = reset( $user_plugins );
 
                 $thank_you = sprintf(
                     "<span data-plugin-id='%d'>%s</span>",
