@@ -17433,9 +17433,15 @@
 
             if ( ! empty( $plugin_id ) ) {
                 $params['plugin_id'] = $plugin_id;
+            } else if ( $this->is_addon() ) {
+                $params['plugin_id'] = $this->get_id();
             }
 
-            return $this->get_account_url( 'download_latest', $params );
+            $fs = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
+
+            return $fs->get_account_url( 'download_latest', $params );
         }
 
         #endregion Download Plugin ------------------------------------------------------------------
