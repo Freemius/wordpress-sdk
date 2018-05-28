@@ -14331,15 +14331,16 @@
                 unset( $parent_fs->_storage->is_pending_activation );
             }
 
+            // Get user information based on parent's plugin.
+            $user = $this->get_user();
+
             // First of all, set site info - otherwise we won't
             // be able to invoke API calls.
             $parent_fs->_site = new FS_Site( $parent_install );
+            $parent_fs->_user = $user;
 
             // Sync add-on plans.
             $parent_fs->_sync_plans();
-
-            // Get user information based on parent's plugin.
-            $user = $this->get_user();
 
             $parent_fs->_set_account( $user, $parent_fs->_site );
         }
