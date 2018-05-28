@@ -10805,7 +10805,7 @@
                     $next_page = $this->get_after_activation_url( 'after_network_activation_url' );
                 }
             } else {
-                $error = $this->get_text_inline( 'invalid_site_details_collection', 'Invalid site details collection.' );
+                $error = $this->get_text_inline( 'Invalid site details collection.', 'invalid_site_details_collection' );
             }
 
             $result = array(
