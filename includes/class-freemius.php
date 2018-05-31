@@ -3280,7 +3280,7 @@
          */
         private static function wp_cookie_constants() {
             if ( defined( 'LOGGED_IN_COOKIE' ) &&
-                 defined( 'AUTH_COOKIE' )
+                 ( defined( 'AUTH_COOKIE' ) || defined( 'SECURE_AUTH_COOKIE' ) )
             ) {
                 return;
             }
@@ -3308,6 +3308,13 @@
              */
             if ( ! defined( 'AUTH_COOKIE' ) ) {
                 define( 'AUTH_COOKIE', 'wordpress_' . COOKIEHASH );
+            }
+
+            /**
+             * @since 2.6.0
+             */
+            if ( ! defined( 'SECURE_AUTH_COOKIE' ) ) {
+                define( 'SECURE_AUTH_COOKIE', 'wordpress_sec_' . COOKIEHASH );
             }
         }
 
