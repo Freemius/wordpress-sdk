@@ -551,7 +551,7 @@
             return (
                 is_object( $result ) &&
                 isset( $result->error ) &&
-                isset( $result->message )
+                isset( $result->error->message )
             );
         }
 
