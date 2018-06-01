@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2018-05-24 14:01+0000\n"
+"PO-Revision-Date: 2018-05-25 22:15+0000\n"
 "Last-Translator: Daniele Scasciafratte Mte90 <mte90net@gmail.com>\n"
 "Language: it_IT\n"
 "Language-Team: Italian (Italy) (http://www.transifex.com/freemius/wordpress-sdk/language/it_IT/)\n"
@@ -176,7 +176,7 @@ msgstr "%s non può funzionare senza il plugin."
 #: includes/class-freemius.php4176, includes/class-freemius.php4201,
 #: includes/class-freemius.php:17103
 msgid "Unexpected API error. Please contact the %s's author with the following error."
-msgstr "Errore API inaspettato. Contatta l'autore di 1%s con il seguente errore."
+msgstr "Errore API inaspettato. Contatta l'autore di %s con il seguente errore."
 
 #: includes/class-freemius.php:4815
 msgid "Premium %s version was successfully activated."
@@ -414,11 +414,11 @@ msgstr "Il piano è stato cambiato con successo a %s."
 
 #: includes/class-freemius.php:16705
 msgid "Your license has expired. You can still continue using the free %s forever."
-msgstr "La tua licenza è scaduta. Puoi continuare ad usare la versione gratuita %sper sempre."
+msgstr "La tua licenza è scaduta. Puoi continuare ad usare la versione gratuita %s per sempre."
 
 #: includes/class-freemius.php:16707
 msgid "Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
-msgstr "La tua licenza è scaduta. %1$saggiorna ora %2$sper continuare ad utilizzare %3$ssenza interruzioni."
+msgstr "La tua licenza è scaduta. %1$saggiorna ora %2$sper continuare ad utilizzare %3$s senza interruzioni."
 
 #: includes/class-freemius.php:16715
 msgid "Your license has been cancelled. If you think it's a mistake, please contact support."
@@ -434,7 +434,7 @@ msgstr "La tua versione di prova gratuita è scaduta. Puoi continuare ad usare t
 
 #: includes/class-freemius.php:16753
 msgid "Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
-msgstr "La tua versione prova è scaduta.%1$saggiorna ora %2$sper continuare ad usare %3$ssenza interruzioni."
+msgstr "La tua versione prova è scaduta.%1$s aggiorna ora %2$s per continuare ad usare %3$s senza interruzioni."
 
 #: includes/class-freemius.php:16858
 msgid "It looks like the license could not be activated."
@@ -470,7 +470,7 @@ msgstr "Stiamo avendo qualche problema temporaneo con il downgrade del piano. Ri
 
 #: includes/class-freemius.php:17037
 msgid "You are already running the %s in a trial mode."
-msgstr "Stai già usando %sin modalità prova."
+msgstr "Stai già usando %s in modalità prova."
 
 #: includes/class-freemius.php:17048
 msgid "You already utilized a trial before."
@@ -538,7 +538,7 @@ msgstr "Fantastico"
 
 #: includes/class-freemius.php17910, templates/forms/optout.php:32
 msgid "We appreciate your help in making the %s better by letting us track some usage data."
-msgstr "Ti ringraziamo per averci concesso di tracciare alcuni dati di utilizzo al fine di migliorare %s"
+msgstr "Ti ringraziamo per averci concesso di tracciare alcuni dati di utilizzo al fine di migliorare %s."
 
 #: includes/class-freemius.php:17911
 msgid "Thank you!"
@@ -571,7 +571,7 @@ msgstr "Siamo spiacenti, non siamo riusciti a completare l'aggiornamento via ema
 
 #: includes/class-freemius.php:18067
 msgid "If you would like to give up the ownership of the %s's account to %s click the Change Ownership button."
-msgstr "Puoi abbandonare la proprietà dell'account %sa %scliccando il pulsante Cambia proprietario."
+msgstr "Puoi abbandonare la proprietà dell'account %s a %scliccando il pulsante Cambia proprietario."
 
 #: includes/class-freemius.php:18074
 msgid "Change Ownership"
@@ -626,7 +626,7 @@ msgstr "Inizia il periodo di prova gratuito"
 
 #: includes/class-freemius.php:18804
 msgid "Hey there, did you know that %s has an affiliate program? If you like the %s you can become our ambassador and earn some cash!"
-msgstr "Ciao, sai che %sha il programma di affiliazione? Se ti piace %s puoi diventare un nostro ambasciatore e guadagnare denaro!"
+msgstr "Ciao, sai che %s ha il programma di affiliazione? Se ti piace %s puoi diventare un nostro ambasciatore e guadagnare denaro!"
 
 #: includes/class-freemius.php:18813
 msgid "Learn more"
@@ -746,7 +746,7 @@ msgstr "No"
 
 #: includes/class-freemius.php20302, templates/connect.php:267
 msgid "do %sNOT%s send me security & feature updates, educational content and offers."
-msgstr "%snon %smi invierà aggiornamenti di funzionalità e sicurezza, contenuti formativi e offerte."
+msgstr "%snon %s mi invierà aggiornamenti di funzionalità e sicurezza, contenuti formativi e offerte."
 
 #: includes/class-freemius.php:20312
 msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard 🙂"
@@ -1409,11 +1409,11 @@ msgstr "Siamo felici di presentarvi il supporto al sistema multi network di Free
 
 #: templates/connect.php:231
 msgid "During the update process we detected %d site(s) that are still pending license activation."
-msgstr "Durante la procedura di aggiornamento abbiamo individuato%dsito/i che sono in attesa della attivazione della licenza."
+msgstr "Durante la procedura di aggiornamento abbiamo individuato%d sito/i che sono in attesa della attivazione della licenza."
 
 #: templates/connect.php:233
 msgid "If you'd like to use the %s on those sites, please enter your license key below and click the activation button."
-msgstr "Se vuoi utilizzare %ssu questi siti, inserisci la tua licenza sotto e fai clic sul pulsante di attivazione."
+msgstr "Se vuoi utilizzare %s su questi siti, inserisci la tua licenza sotto e fai clic sul pulsante di attivazione."
 
 #: templates/connect.php:235
 msgid "%s's paid features"
@@ -1487,7 +1487,7 @@ msgstr "Newsletter"
 
 #: templates/connect.php378, templates/forms/license-activation.php:38
 msgid "The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license."
-msgstr "%1$sinvierà periodicamente dei dati a %2$sper verificare aggiornamenti di sicurezza e di funzionalità e verificare la validità della tua licenza."
+msgstr " Il %1$s invierà periodicamente dei dati a %2$s per verificare aggiornamenti di sicurezza e di funzionalità e verificare la validità della tua licenza."
 
 #: templates/connect.php:383
 msgid "What permissions are being granted?"
@@ -1769,7 +1769,7 @@ msgstr "Timestamp"
 
 #: templates/secure-https-header.php:28
 msgid "Secure HTTPS %s page, running from an external domain"
-msgstr "Metti in sicurezza la pagina HTTPS %sgestita da un dominio esterno"
+msgstr "Metti in sicurezza la pagina HTTPS %s gestita da un dominio esterno"
 
 #: includes/customizer/class-fs-customizer-support-section.php55,
 #: templates/plugin-info/features.php:43
@@ -1982,7 +1982,7 @@ msgstr "Ti piace %s? Diventa il nostro ambasciatore e guadagna denaro ;-)"
 
 #: templates/forms/affiliation.php:142
 msgid "Refer new customers to our %s and earn %s commission on each successful sale you refer!"
-msgstr "Comunica nuovi clienti al nostro %se guadagna %s di commissione per ogni vendita avvenuta!"
+msgstr "Comunica nuovi clienti al nostro %s e guadagna %s di commissione per ogni vendita avvenuta!"
 
 #: templates/forms/affiliation.php:145
 msgid "Program Summary"

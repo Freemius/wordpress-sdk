@@ -3263,8 +3263,59 @@
          */
         static function _get_current_wp_user() {
             self::require_pluggable_essentials();
+            self::wp_cookie_constants();
 
             return wp_get_current_user();
+        }
+
+        /**
+         * Define cookie constants which are required by Freemius::_get_current_wp_user() since
+         * it uses wp_get_current_user() which needs the cookie constants set. When a plugin
+         * is network activated the cookie constants are only configured after the network
+         * plugins activation, therefore, if we don't define those constants WP will throw
+         * PHP warnings/notices.
+         *
+         * @author   Vova Feldman (@svovaf)
+         * @since    2.1.1
+         */
+        private static function wp_cookie_constants() {
+            if ( defined( 'LOGGED_IN_COOKIE' ) &&
+                 ( defined( 'AUTH_COOKIE' ) || defined( 'SECURE_AUTH_COOKIE' ) )
+            ) {
+                return;
+            }
+
+            /**
+             * Used to guarantee unique hash cookies
+             *
+             * @since 1.5.0
+             */
+            if ( ! defined( 'COOKIEHASH' ) ) {
+                $siteurl = get_site_option( 'siteurl' );
+                if ( $siteurl ) {
+                    define( 'COOKIEHASH', md5( $siteurl ) );
+                } else {
+                    define( 'COOKIEHASH', '' );
+                }
+            }
+
+            if ( ! defined( 'LOGGED_IN_COOKIE' ) ) {
+                define( 'LOGGED_IN_COOKIE', 'wordpress_logged_in_' . COOKIEHASH );
+            }
+
+            /**
+             * @since 2.5.0
+             */
+            if ( ! defined( 'AUTH_COOKIE' ) ) {
+                define( 'AUTH_COOKIE', 'wordpress_' . COOKIEHASH );
+            }
+
+            /**
+             * @since 2.6.0
+             */
+            if ( ! defined( 'SECURE_AUTH_COOKIE' ) ) {
+                define( 'SECURE_AUTH_COOKIE', 'wordpress_sec_' . COOKIEHASH );
+            }
         }
 
         /**
@@ -10805,7 +10856,7 @@
                     $next_page = $this->get_after_activation_url( 'after_network_activation_url' );
                 }
             } else {
-                $error = $this->get_text_inline( 'invalid_site_details_collection', 'Invalid site details collection.' );
+                $error = $this->get_text_inline( 'Invalid site details collection.', 'invalid_site_details_collection' );
             }
 
             $result = array(
@@ -14331,15 +14382,16 @@
                 unset( $parent_fs->_storage->is_pending_activation );
             }
 
+            // Get user information based on parent's plugin.
+            $user = $this->get_user();
+
             // First of all, set site info - otherwise we won't
             // be able to invoke API calls.
             $parent_fs->_site = new FS_Site( $parent_install );
+            $parent_fs->_user = $user;
 
             // Sync add-on plans.
             $parent_fs->_sync_plans();
-
-            // Get user information based on parent's plugin.
-            $user = $this->get_user();
 
             $parent_fs->_set_account( $user, $parent_fs->_site );
         }
@@ -17235,9 +17287,10 @@
 
             $is_premium = null;
             if ( ! $is_addon ) {
-                $is_premium = $this->is_premium();
+                $is_premium = ( $this->is_premium() || $this->_can_download_premium() );
             } else if ( $this->is_addon_activated( $addon_id ) ) {
-                $is_premium = self::get_instance_by_id( $addon_id )->is_premium();
+                $fs_addon   = self::get_instance_by_id( $addon_id );
+                $is_premium = ( $fs_addon->is_premium() || $fs_addon->_can_download_premium() );
             }
 
             // If add-on, then append add-on ID.
@@ -17433,9 +17486,15 @@
 
             if ( ! empty( $plugin_id ) ) {
                 $params['plugin_id'] = $plugin_id;
+            } else if ( $this->is_addon() ) {
+                $params['plugin_id'] = $this->get_id();
             }
 
-            return $this->get_account_url( 'download_latest', $params );
+            $fs = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
+
+            return $fs->get_account_url( 'download_latest', $params );
         }
 
         #endregion Download Plugin ------------------------------------------------------------------

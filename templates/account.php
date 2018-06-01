@@ -364,8 +364,12 @@
 														<?php endif ?>
 														<?php if ( is_object( $license ) && ! $license->is_lifetime() ) : ?>
 															<?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
+                                                                <?php $is_license_expired = $license->is_expired() ?>
+                                                                <?php $expired_ago_text   = ( fs_text_inline( 'Expired', 'expired', $slug ) . ' ' . fs_text_x_inline( '%s ago', 'x-ago', $slug ) ) ?>
 																<label
-																	class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $license->expiration ) ) ) ) ?></label>
+																	class="fs-tag <?php echo $is_license_expired ? 'fs-error' : 'fs-warn' ?>"><?php
+                                                                        echo esc_html( sprintf( $is_license_expired ? $expired_ago_text : $expires_in_text, human_time_diff( time(), strtotime( $license->expiration ) ) ) )
+                                                                    ?></label>
 															<?php elseif ( $is_active_subscription && ! $subscription->is_first_payment_pending() ) : ?>
 																<label class="fs-tag fs-success"><?php echo esc_html( sprintf( $renews_in_text, human_time_diff( time(), strtotime( $subscription->next_payment ) ) ) ) ?></label>
 															<?php endif ?>

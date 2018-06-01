@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.1.0';
+	$this_sdk_version = '2.1.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -179,6 +179,16 @@
 		} else {
 			$current_theme               = wp_get_theme();
 			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
+
+            $current_theme_parent = $current_theme->parent();
+
+            /**
+             * If the current theme is a child of the theme that has the newest SDK, this prevents a redirects loop
+             * from happening by keeping the SDK info stored in the `fs_active_plugins` option.
+             */
+            if ( ! $is_newest_sdk_plugin_active && $current_theme_parent instanceof WP_Theme ) {
+                $is_newest_sdk_plugin_active = ( $fs_newest_sdk->plugin_path === $current_theme_parent->stylesheet );
+            }
 		}
 
 		if ( $is_current_sdk_newest &&
