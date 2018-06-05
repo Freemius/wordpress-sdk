@@ -3954,7 +3954,7 @@
 
             $this->parse_settings( $plugin_info );
 
-            if ( $this->is_theme() && $this->is_premium() && ! $this->has_active_valid_license() ) {
+            if ( is_admin() && $this->is_theme() && $this->is_premium() && ! $this->has_active_valid_license() ) {
                 $this->add_ajax_action(
                     'delete_theme_update_data',
                     array( &$this, '_delete_theme_update_data_action' )
