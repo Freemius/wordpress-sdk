@@ -606,7 +606,8 @@
                 $url,
                 $request_args,
                 WP_FS__TIME_24_HOURS_IN_SEC,
-                WP_FS__TIME_12_HOURS_IN_SEC
+                WP_FS__TIME_12_HOURS_IN_SEC,
+                false
             );
 
             if ( is_wp_error( $raw_response ) ) {
