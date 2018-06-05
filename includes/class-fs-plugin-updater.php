@@ -322,19 +322,6 @@
                 }
             }
 
-            $slug = $this->_fs->get_slug();
-
-            if ( ! isset( $this->_translation_updates ) ) {
-                $this->_translation_updates = array();
-
-                if ( current_user_can( 'update_languages' ) ) {
-                    $translation_updates = $this->fetch_wp_org_module_translation_updates( $module_type, $slug );
-                    if ( ! empty( $translation_updates ) ) {
-                        $this->_translation_updates = $translation_updates;
-                    }
-                }
-            }
-
             if ( is_object( $this->_update_details ) ) {
                 // Add plugin to transient data.
                 $transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_fs->is_plugin() ?
@@ -342,29 +329,44 @@
                     (array) $this->_update_details;
             }
 
-            if ( ! empty( $this->_translation_updates ) ) {
-                $all_translation_updates = ( isset( $transient_data->translations ) && is_array( $transient_data->translations ) ) ?
-                    $transient_data->translations :
-                    array();
+            $slug = $this->_fs->get_slug();
 
-                $current_plugin_translation_updates_map = array();
-                foreach ( $all_translation_updates as $key => $translation_update ) {
-                    if ( $module_type === ( $translation_update['type'] . 's' ) && $slug === $translation_update['slug'] ) {
-                        $current_plugin_translation_updates_map[ $translation_update['language'] ] = $translation_update;
-                        unset( $all_translation_updates[ $key ] );
+            if ( $this->_fs->is_org_repo_compliant() && $this->_fs->is_freemium() ) {
+                if ( ! isset( $this->_translation_updates ) ) {
+                    $this->_translation_updates = array();
+
+                    if ( current_user_can( 'update_languages' ) ) {
+                        $translation_updates = $this->fetch_wp_org_module_translation_updates( $module_type, $slug );
+                        if ( ! empty( $translation_updates ) ) {
+                            $this->_translation_updates = $translation_updates;
+                        }
                     }
                 }
 
-                foreach ( $this->_translation_updates as $translation_update ) {
-                    $lang = $translation_update['language'];
-                    if ( ! isset( $current_plugin_translation_updates_map[ $lang ] ) ||
-                        version_compare( $translation_update['version'], $current_plugin_translation_updates_map[ $lang ]['version'], '>' )
-                    ) {
-                        $current_plugin_translation_updates_map[ $lang ] = $translation_update;
-                    }
-                }
+                if ( ! empty( $this->_translation_updates ) ) {
+                    $all_translation_updates = ( isset( $transient_data->translations ) && is_array( $transient_data->translations ) ) ?
+                        $transient_data->translations :
+                        array();
 
-                $transient_data->translations = array_merge( $all_translation_updates, array_values( $current_plugin_translation_updates_map ) );
+                    $current_plugin_translation_updates_map = array();
+                    foreach ( $all_translation_updates as $key => $translation_update ) {
+                        if ( $module_type === ( $translation_update['type'] . 's' ) && $slug === $translation_update['slug'] ) {
+                            $current_plugin_translation_updates_map[ $translation_update['language'] ] = $translation_update;
+                            unset( $all_translation_updates[ $key ] );
+                        }
+                    }
+
+                    foreach ( $this->_translation_updates as $translation_update ) {
+                        $lang = $translation_update['language'];
+                        if ( ! isset( $current_plugin_translation_updates_map[ $lang ] ) ||
+                            version_compare( $translation_update['version'], $current_plugin_translation_updates_map[ $lang ]['version'], '>' )
+                        ) {
+                            $current_plugin_translation_updates_map[ $lang ] = $translation_update;
+                        }
+                    }
+
+                    $transient_data->translations = array_merge( $all_translation_updates, array_values( $current_plugin_translation_updates_map ) );
+                }
             }
 
             return $transient_data;
