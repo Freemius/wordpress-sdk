@@ -565,11 +565,6 @@
          * @return array|null
          */
         private function fetch_wp_org_module_translation_updates( $module_type, $slug ) {
-            $url = "http://api.wordpress.org/{$module_type}/update-check/1.1/";
-            if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
-                $url = set_url_scheme( $url, 'https' );
-            }
-
             $plugin_data = $this->_fs->get_plugin_data();
 
             $locales = array_values( get_available_languages() );
@@ -583,7 +578,7 @@
 
             global $wp_version;
 
-            $args = array(
+            $request_args = array(
                 'timeout' => 15,
                 'body'    => array(
                     "{$module_type}" => json_encode(
@@ -602,7 +597,17 @@
                 'user-agent' => ( 'WordPress/' . $wp_version . '; ' . home_url( '/' ) )
             );
 
-            $raw_response = wp_remote_post( $url, $args );
+            $url = "http://api.wordpress.org/{$module_type}/update-check/1.1/";
+            if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
+                $url = set_url_scheme( $url, 'https' );
+            }
+
+            $raw_response = Freemius::safe_remote_post(
+                $url,
+                $request_args,
+                WP_FS__TIME_24_HOURS_IN_SEC,
+                WP_FS__TIME_12_HOURS_IN_SEC
+            );
 
             if ( is_wp_error( $raw_response ) ) {
                 return null;
