@@ -19344,14 +19344,16 @@
          * @param array       $request
          * @param int         $success_cache_expiration
          * @param int         $failure_cache_expiration
+         * @param bool        $maybe_enrich_request_for_debug
          *
          * @return WP_Error|array
          */
-        private static function safe_remote_post(
+        static function safe_remote_post(
             &$url,
             $request,
             $success_cache_expiration = 0,
-            $failure_cache_expiration = 0
+            $failure_cache_expiration = 0,
+            $maybe_enrich_request_for_debug = true
         ) {
             $should_cache = ($success_cache_expiration + $failure_cache_expiration > 0);
 
@@ -19362,7 +19364,9 @@
                 false;
 
             if ( false === $response ) {
-                self::enrich_request_for_debug( $url, $request );
+                if ( $maybe_enrich_request_for_debug ) {
+                    self::enrich_request_for_debug( $url, $request );
+                }
 
                 $response = wp_remote_post( $url, $request );
 
