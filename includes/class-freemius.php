@@ -16749,6 +16749,7 @@
                             'trial_promotion',
                             'trial_expired',
                             'activation_complete',
+                            'license_expired',
                         ) );
                         break;
                     case 'changed':
