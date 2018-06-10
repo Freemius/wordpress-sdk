@@ -15937,7 +15937,7 @@
             /**
              * @since 1.2.3 When running in DEV mode, retrieve pending plans as well.
              */
-            $result = $api->get( "/plugins/{$this->_module_id}/plans.json?show_pending=" . ( $this->has_secret_key() ? 'true' : 'false' ), true );
+            $result = $api->get( $this->add_show_pending( "/plugins/{$this->_module_id}/plans.json" ), true );
 
             if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
                 for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
@@ -16405,7 +16405,7 @@
                 $this->_update_licenses( $licenses, $addon->id );
 
                 if ( ! $this->is_addon_installed( $addon->id ) && FS_License_Manager::has_premium_license( $licenses ) ) {
-                    $plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
+                    $plans_result = $this->get_api_site_or_plugin_scope()->get( $this->add_show_pending( "/addons/{$addon_id}/plans.json" ) );
 
                     if ( ! isset( $plans_result->error ) ) {
                         $plans = array();
@@ -20822,6 +20822,30 @@
         function is_business() {
             // TODO: Implement is_business() method.
             throw new Exception( 'not implemented' );
+        }
+
+        #endregion
+
+        #----------------------------------------------------------------------------------
+        #region Helper
+        #----------------------------------------------------------------------------------
+
+        /**
+         * If running with a secret key, assume it's the developer and show pending plans as well.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.2
+         *
+         * @param string $path
+         *
+         * @return string
+         */
+        function add_show_pending( $path ) {
+            if ( ! $this->has_secret_key() ) {
+                return $path;
+            }
+
+            return $path . ( false !== strpos( $path, '?' ) ? '&' : '?' ) . 'show_pending=true';
         }
 
         #endregion
