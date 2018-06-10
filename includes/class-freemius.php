@@ -18515,7 +18515,9 @@
          * @return FS_Api
          */
         private function get_current_or_network_user_api_scope( $flush = false ) {
-            if ( ! $this->_is_network_active || isset( $this->_user ) ) {
+            if ( ! $this->_is_network_active ||
+                 ( isset( $this->_user ) && $this->_user instanceof FS_User )
+            ) {
                 return $this->get_api_user_scope( $flush );
             }
 
