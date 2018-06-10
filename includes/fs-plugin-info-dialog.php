@@ -101,7 +101,7 @@
             $has_features = false;
             $plans        = false;
 
-            $result = $this->_fs->get_api_plugin_scope()->get( "/addons/{$selected_addon->id}/pricing.json?type=visible&show_pending=" . ( $this->_fs->has_secret_key() ? 'true' : 'false' ) );
+            $result = $this->_fs->get_api_plugin_scope()->get( $this->_fs->add_show_pending( "/addons/{$selected_addon->id}/pricing.json?type=visible" ) );
 
             if ( ! isset( $result->error ) ) {
                 $plans = $result->plans;

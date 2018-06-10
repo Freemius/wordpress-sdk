@@ -55,7 +55,7 @@
 						$has_free_plan = false;
 						$has_paid_plan = false;
 
-						$result    = $fs->get_api_plugin_scope()->get( "/addons/{$addon->id}/pricing.json?type=visible&show_pending=" . ( $fs->has_secret_key() ? 'true' : 'false' ) );
+						$result    = $fs->get_api_plugin_scope()->get( $fs->add_show_pending( "/addons/{$addon->id}/pricing.json?type=visible" ) );
 						if ( ! isset( $result->error ) ) {
 							$plans = $result->plans;
 
