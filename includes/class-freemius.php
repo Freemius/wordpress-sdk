@@ -16405,7 +16405,7 @@
                 $this->_update_licenses( $licenses, $addon->id );
 
                 if ( ! $this->is_addon_installed( $addon->id ) && FS_License_Manager::has_premium_license( $licenses ) ) {
-                    $plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json" );
+                    $plans_result = $this->get_api_site_or_plugin_scope()->get( "/addons/{$addon_id}/plans.json?show_pending=" . ( $this->has_secret_key() ? 'true' : 'false' ) );
 
                     if ( ! isset( $plans_result->error ) ) {
                         $plans = array();
