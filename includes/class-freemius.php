@@ -14756,13 +14756,15 @@
         private function add_submenu_items() {
             $this->_logger->entrance();
 
+            $is_activation_mode = $this->is_activation_mode();
+
             if ( $this->is_addon() ) {
                 // No submenu items for add-ons.
                 $add_submenu_items = false;
             } else if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
                 // Also add submenu items when running in a free .org theme so the tabs will be visible.
                 $add_submenu_items = true;
-            } else if ( $this->is_activation_mode() && ! $this->is_free_wp_org_theme() ) {
+            } else if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
                 $add_submenu_items = false;
             } else if ( fs_is_network_admin() ) {
                 /**
@@ -14793,7 +14795,15 @@
                         $this->is_submenu_item_visible( 'affiliation' )
                     );
                 }
+            }
 
+            if ( $add_submenu_items ||
+                ( $is_activation_mode &&
+                    $this->is_only_premium() &&
+                    $this->is_admin_page( 'account' ) &&
+                    fs_request_is_action( $this->get_unique_affix() . '_sync_license' )
+                )
+            ) {
                 if ( ! WP_FS__DEMO_MODE && $this->is_registered() ) {
                     $show_account = (
                         $this->is_submenu_item_visible( 'account' ) &&
@@ -14812,10 +14822,12 @@
                         'account',
                         array( &$this, '_account_page_load' ),
                         WP_FS__DEFAULT_PRIORITY,
-                        $show_account
+                        ( $add_submenu_items && $show_account )
                     );
                 }
+            }
 
+            if ( $add_submenu_items ) {
                 // Add contact page.
                 $this->add_submenu_item(
                     $this->get_text_inline( 'Contact Us', 'contact-us' ),
@@ -14840,7 +14852,11 @@
                         $this->is_submenu_item_visible( 'addons' )
                     );
                 }
+            }
 
+            if ( $add_submenu_items ||
+                ( $is_activation_mode && $this->is_only_premium() && $this->is_admin_page( 'pricing' ) )
+            ) {
                 if ( ! WP_FS__DEMO_MODE ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
@@ -14869,7 +14885,7 @@
                         'pricing',
                         'Freemius::_clean_admin_content_section',
                         WP_FS__LOWEST_PRIORITY,
-                        $show_pricing,
+                        ( $add_submenu_items && $show_pricing ),
                         $pricing_class
                     );
                 }
@@ -16733,6 +16749,7 @@
                             'trial_promotion',
                             'trial_expired',
                             'activation_complete',
+                            'license_expired',
                         ) );
                         break;
                     case 'changed':
