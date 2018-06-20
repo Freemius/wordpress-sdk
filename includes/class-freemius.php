@@ -20656,9 +20656,7 @@
          * @since  2.1.0
          */
         function _maybe_add_gdpr_optin_ajax_handler() {
-            if ( $this->is_activation_mode() ) {
-                $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
-            }
+            $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
 
             if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
                 $this->add_gdpr_optin_ajax_handler_and_style();
