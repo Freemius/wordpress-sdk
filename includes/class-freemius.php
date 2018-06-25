@@ -18622,9 +18622,19 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param $plans
+         * @param FS_Plugin_Plan[] $plans
          */
         function _check_for_trial_plans( $plans ) {
+            /**
+             * For some reason core's do_action() flattens arrays when it has a single object item. Therefore, we need to restructure the array as expected.
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.1.2
+             */
+            if ( ! is_array( $plans ) && is_object( $plans ) ) {
+                $plans = array( $plans );
+            }
+
             $this->_storage->has_trial_plan = FS_Plan_Manager::instance()->has_trial_plan( $plans );
         }
 
