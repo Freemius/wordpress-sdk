@@ -121,7 +121,7 @@
 
 		$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
 
-		if ( is_object( $fs_user ) ) {
+		if ( is_object( $fs_user ) && $fs_user->is_verified() ) {
 			$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
 				$fs_user,
 				$timestamp,
