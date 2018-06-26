@@ -6192,19 +6192,21 @@
                         }
 
                         if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                            // Show notice for new plugin installations.
-                            $this->_admin_notices->add(
-                                sprintf(
-                                    $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
-                                    sprintf( '<b><a href="%s">%s</a></b>',
-                                        $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
-                                        sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
-                                            '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
-                                    )
-                                ),
-                                '',
-                                'update-nag'
-                            );
+                            if ( ! $this->_anonymous_mode ) {
+                                // Show notice for new plugin installations.
+                                $this->_admin_notices->add(
+                                    sprintf(
+                                        $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
+                                        sprintf( '<b><a href="%s">%s</a></b>',
+                                            $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
+                                            sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
+                                                '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
+                                        )
+                                    ),
+                                    '',
+                                    'update-nag'
+                                );
+                            }
                         } else {
                             if ( $this->should_add_sticky_optin_notice() ) {
                                 $this->add_sticky_optin_admin_notice();
