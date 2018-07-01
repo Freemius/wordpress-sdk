@@ -17592,19 +17592,21 @@
 
             $api = $this->get_api_site_or_plugin_scope();
 
+            $path = $this->add_show_pending( '/addons.json?enriched=true' );
+
             /**
              * @since 1.2.1
              *
              * If there's a cached version of the add-ons and not asking
              * for a flush, just use the currently stored add-ons.
              */
-            if ( ! $flush && $api->is_cached( '/addons.json?enriched=true' ) ) {
+            if ( ! $flush && $api->is_cached( $path ) ) {
                 $addons = self::get_all_addons();
 
                 return $addons[ $this->_plugin->id ];
             }
 
-            $result = $api->get( '/addons.json?enriched=true', $flush );
+            $result = $api->get( $path, $flush );
 
             $addons = array();
             if ( $this->is_api_result_object( $result, 'plugins' ) &&
