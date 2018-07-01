@@ -1348,7 +1348,10 @@
                 add_action( 'make_ham_blog', array( &$this, '_after_site_reactivated_callback' ) );
             }
 
-            if ( $this->is_theme() && self::is_customizer() ) {
+            if ( $this->is_theme() &&
+                 self::is_customizer() &&
+                 $this->apply_filters( 'show_customizer_upsell', true )
+            ) {
                 // Register customizer upsell.
                 add_action( 'customize_register', array( &$this, '_customizer_register' ) );
             }
