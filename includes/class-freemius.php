@@ -20157,6 +20157,10 @@
                         $icon_found = false;
                         $local_path = fs_normalize_path( "{$img_dir}/{$this->_slug}.png" );
 
+                        if ( ! function_exists( 'get_filesystem_method' ) ) {
+                            require_once ABSPATH . 'wp-admin/includes/file.php';
+                        }
+
                         $have_write_permissions = ( 'direct' === get_filesystem_method( array(), fs_normalize_path( $img_dir ) ) );
 
                         /**
