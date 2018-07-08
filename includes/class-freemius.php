@@ -18422,9 +18422,9 @@
             $vars = array( 'id' => $this->_module_id );
 
             if ( 'true' === fs_request_get( 'checkout', false ) ) {
-                fs_require_once_template( 'checkout.php', $vars );
+                echo $this->apply_filters( 'templates/checkout.php', fs_get_template( 'checkout.php', $vars ) );
             } else {
-                fs_require_once_template( 'pricing.php', $vars );
+                echo $this->apply_filters( 'templates/pricing.php', fs_get_template( 'pricing.php', $vars ) );
             }
         }
 
