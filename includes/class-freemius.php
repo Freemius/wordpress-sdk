@@ -18748,14 +18748,14 @@
 
             // Show promotion if never shown before and 24 hours after initial activation with FS.
             if ( ! $was_promotion_shown_before &&
-                 $this->_storage->install_timestamp > ( time() - WP_FS__TIME_24_HOURS_IN_SEC )
+                 $this->_storage->install_timestamp > ( time() - $this->apply_filters( 'show_first_trial_after_n_sec', WP_FS__TIME_24_HOURS_IN_SEC ) )
             ) {
                 return false;
             }
 
             // OR if promotion was shown before, try showing it every 30 days.
             if ( $was_promotion_shown_before &&
-                 30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_trial_promotion_shown
+                 $this->apply_filters( 'reshow_trial_after_every_n_sec', 30 * WP_FS__TIME_24_HOURS_IN_SEC ) > time() - $last_time_trial_promotion_shown
             ) {
                 return false;
             }
