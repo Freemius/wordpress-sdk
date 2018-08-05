@@ -15590,7 +15590,8 @@
                 return;
             }
 
-            $encrypted_site = clone ( is_object( $site ) ? $site : $this->_site );
+            $site_clone     = is_object( $site ) ? $site : $this->_site;
+            $encrypted_site = clone $site_clone;
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
