@@ -4,7 +4,7 @@
   "author": "Freemius, Inc.",
   "license": "GPL-3.0",
   "homepage": "https://freemius.com",
-  "version": "1.2.3",
+  "version": "2.1.2",
   "main": "gulpfile.js",
   "dependencies": {},
   "scripts": {
