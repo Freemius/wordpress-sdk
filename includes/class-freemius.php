@@ -15590,7 +15590,8 @@
                 return;
             }
 
-            $encrypted_site = clone ( is_object( $site ) ? $site : $this->_site );
+            $site_clone     = is_object( $site ) ? $site : $this->_site;
+            $encrypted_site = clone $site_clone;
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
@@ -18442,7 +18443,15 @@
             $this->_logger->entrance();
 
             $vars = array( 'id' => $this->_module_id );
-            fs_require_once_template( 'contact.php', $vars );
+
+            /**
+             * Added filter to the template to allow developers wrapping the template
+             * in custom HTML (e.g. within a wizard/tabs).
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.1.3
+             */
+            echo $this->apply_filters( 'templates/contact.php', fs_get_template( 'contact.php', $vars ) );
         }
 
         #endregion ------------------------------------------------------------------------
@@ -18748,14 +18757,14 @@
 
             // Show promotion if never shown before and 24 hours after initial activation with FS.
             if ( ! $was_promotion_shown_before &&
-                 $this->_storage->install_timestamp > ( time() - WP_FS__TIME_24_HOURS_IN_SEC )
+                 $this->_storage->install_timestamp > ( time() - $this->apply_filters( 'show_first_trial_after_n_sec', WP_FS__TIME_24_HOURS_IN_SEC ) )
             ) {
                 return false;
             }
 
             // OR if promotion was shown before, try showing it every 30 days.
             if ( $was_promotion_shown_before &&
-                 30 * WP_FS__TIME_24_HOURS_IN_SEC > time() - $last_time_trial_promotion_shown
+                 $this->apply_filters( 'reshow_trial_after_every_n_sec', 30 * WP_FS__TIME_24_HOURS_IN_SEC ) > time() - $last_time_trial_promotion_shown
             ) {
                 return false;
             }
