@@ -18443,7 +18443,15 @@
             $this->_logger->entrance();
 
             $vars = array( 'id' => $this->_module_id );
-            fs_require_once_template( 'contact.php', $vars );
+
+            /**
+             * Added filter to the template to allow developers wrapping the template
+             * in custom HTML (e.g. within a wizard/tabs).
+             *
+             * @author Vova Feldman (@svovaf)
+             * @since  2.1.3
+             */
+            echo $this->apply_filters( 'templates/contact.php', fs_get_template( 'contact.php', $vars ) );
         }
 
         #endregion ------------------------------------------------------------------------
