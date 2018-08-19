@@ -5987,7 +5987,7 @@
          * @param int $except_blog_id Since 2.0.0 when running in a multisite network environment, the cron execution is consolidated. This param allows excluding excluded specified blog ID from being the cron executor.
          */
         private function schedule_install_sync( $except_blog_id = 0 ) {
-            $this->schedule_cron( 'install_sync', 'install_sync', 'single', 0, false, $except_blog_id );
+            $this->schedule_cron( 'install_sync', 'install_sync', 'single', WP_FS__SCRIPT_START_TIME, false, $except_blog_id );
         }
 
         /**
