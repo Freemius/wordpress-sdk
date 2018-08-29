@@ -2630,26 +2630,28 @@
             self::$_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
             if ( is_multisite() ) {
+                $has_skipped_migration = (
+                    // 'id_slug_type_path_map' - was never stored on older versions, therefore, not exists on the site level.
+                    null === self::$_accounts->get_option( 'id_slug_type_path_map', null, false ) &&
+                    // 'file_slug_map' stored on the site level, so it was running an SDK version before it was integrated with MS-network.
+                    null !== self::$_accounts->get_option( 'file_slug_map', null, false )
+                );
+
                 /**
-                 * If the id_slug_type_path_map exists on the site level but doesn't exist on the
+                 * If the file_slug_map exists on the site level but doesn't exist on the
                  * network level storage, it means that we need to process the storage with migration.
                  *
-                 * The code in this `if` scope will only be executed once and only for the first site that will execute it because once we migrate the storage data, id_slug_type_path_map will be already set in the network level storage.
+                 * The code in this `if` scope will only be executed once and only for the first site that will execute it because once we migrate the storage data, file_slug_map will be already set in the network level storage.
                  *
                  * @author Vova Feldman (@svovaf)
                  * @since  2.0.0
                  */
-                if ( null === self::$_accounts->get_option( 'id_slug_type_path_map', null, true ) &&
-                     null !== self::$_accounts->get_option( 'id_slug_type_path_map', null, false )
+                if (
+                    ( $has_skipped_migration && true !== self::$_accounts->get_option( 'ms_migration_complete', false, true ) ) ||
+                    ( null === self::$_accounts->get_option( 'file_slug_map', null, true ) &&
+                        null !== self::$_accounts->get_option( 'file_slug_map', null, false ) )
                 ) {
-                    self::migrate_accounts_to_network();
-
-                    // Migrate API options from site level to network level.
-                    $api_network_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true, true );
-                    $api_network_options->migrate_to_network();
-
-                    // Migrate API cache to network level storage.
-                    FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME )->migrate_to_network();
+                    self::migrate_options_to_network();
                 }
             }
 
@@ -2677,6 +2679,24 @@
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
 
             self::$_statics_loaded = true;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 2.1.3
+         */
+        private static function migrate_options_to_network() {
+            self::migrate_accounts_to_network();
+
+            // Migrate API options from site level to network level.
+            $api_network_options = FS_Option_Manager::get_manager( WP_FS__OPTIONS_OPTION_NAME, true, true );
+            $api_network_options->migrate_to_network();
+
+            // Migrate API cache to network level storage.
+            FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME )->migrate_to_network();
+
+            self::$_accounts->set_option( 'ms_migration_complete', true, true );
         }
 
         #----------------------------------------------------------------------------------
@@ -2905,6 +2925,10 @@
                 }
 
                 fs_redirect( $download_url );
+            } else if ( fs_request_is_action( 'migrate_options_to_network' ) ) {
+                check_admin_referer( 'migrate_options_to_network' );
+
+                self::migrate_options_to_network();
             }
         }
 
