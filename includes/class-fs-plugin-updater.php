@@ -82,7 +82,7 @@
 
             $this->add_transient_filters();
 
-            if ( ! $this->_fs->has_active_valid_license() ) {
+            if ( ! $this->_fs->has_active_valid_license( true ) ) {
                 /**
                  * If user has the premium plugin's code but do NOT have an active license,
                  * encourage him to upgrade by showing that there's a new release, but instead
