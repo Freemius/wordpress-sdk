@@ -10598,7 +10598,7 @@
                 return;
             }
 
-            if ( ! $this->is_premium() || $this->has_active_valid_license() ) {
+            if ( ! $this->is_premium() || $this->has_active_valid_license( true ) ) {
                 // This is relevant only to the free versions and premium versions without an active license.
                 return;
             }
@@ -16311,14 +16311,54 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1
+         *
+         * @param bool $any_license Since 2.1.3.
          */
-        function has_active_valid_license() {
-            return (
-                is_object( $this->_license ) &&
-                is_numeric( $this->_license->id ) &&
-                $this->_license->is_active() &&
-                $this->_license->is_valid()
-            );
+        function has_active_valid_license( $any_license = false ) {
+            if ( ! $any_license || ! is_multisite() ) {
+                return (
+                    is_object( $this->_license ) &&
+                    is_numeric( $this->_license->id ) &&
+                    $this->_license->is_active() &&
+                    $this->_license->is_valid()
+                );
+            } else {
+                $licenses = self::get_all_licenses( $this->_module_id );
+                if ( empty( $licenses ) ) {
+                    return false;
+                }
+
+                $licenses_by_id = array();
+                foreach ( $licenses as $license ) {
+                    $licenses_by_id[ $license->id ] = $license;
+                }
+
+                $sites = self::get_sites();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    $install = $this->get_install_by_blog_id( $blog_id );
+
+                    if ( ! is_object( $install ) || ! FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                        continue;
+                    }
+
+                    $license = isset( $licenses_by_id[ $install->license_id ] ) ?
+                        $licenses_by_id[ $install->license_id ] :
+                        null;
+
+                    if (
+                        is_object( $license ) &&
+                        $license->is_active() &&
+                        $license->is_valid()
+                    ) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /**
