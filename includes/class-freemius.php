@@ -10598,7 +10598,7 @@
                 return;
             }
 
-            if ( ! $this->is_premium() || $this->has_active_valid_license() ) {
+            if ( ! $this->is_premium() || $this->has_any_active_valid_license() ) {
                 // This is relevant only to the free versions and premium versions without an active license.
                 return;
             }
@@ -16313,12 +16313,60 @@
          * @since  1.2.1
          */
         function has_active_valid_license() {
+            return self::is_active_valid_license( $this->_license );
+        }
+
+        /**
+         * Check if a given license is active & valid (not expired).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.3
+         *
+         * @param FS_Plugin_License $license
+         *
+         * @return bool
+         */
+        private static function is_active_valid_license( $license ) {
             return (
-                is_object( $this->_license ) &&
-                is_numeric( $this->_license->id ) &&
-                $this->_license->is_active() &&
-                $this->_license->is_valid()
+                is_object( $license ) &&
+                FS_Plugin_License::is_valid_id( $license->id ) &&
+                $license->is_active() &&
+                $license->is_valid()
             );
+        }
+
+        /**
+         * Checks if there's any site that is associated with an active & valid license.
+         * This logic is used to determine if the admin can download the premium code base from a network level admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.3
+         *
+         * @return bool
+         */
+        function has_any_active_valid_license() {
+            if ( ! fs_is_network_admin() ) {
+                return $this->has_active_valid_license();
+            }
+
+            $installs            = $this->get_blog_install_map();
+            $all_plugin_licenses = self::get_all_licenses( $this->_module_id );
+
+            foreach ( $installs as $blog_id => $install ) {
+                if ( ! FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                    continue;
+                }
+
+                foreach ( $all_plugin_licenses as $license ) {
+                    if ( $license->id == $install->license_id ) {
+                        if ( self::is_active_valid_license( $license ) ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         /**
