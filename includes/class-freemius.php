@@ -17362,7 +17362,7 @@
          * @return bool
          */
         private function _can_download_premium() {
-            return $this->has_active_valid_license() ||
+            return $this->has_any_active_valid_license() ||
                    ( $this->is_trial() && ! $this->get_trial_plan()->is_free() );
         }
 
