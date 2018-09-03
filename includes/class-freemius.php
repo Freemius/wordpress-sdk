@@ -14572,7 +14572,7 @@
 
             $hook = false;
 
-            if ( ! $this->_menu->has_menu() ) {
+            if ( ! $this->has_settings_menu() ) {
                 // Add the opt-in page without a menu item.
                 $hook = FS_Admin_Menu_Manager::add_subpage(
                     null,
@@ -14950,20 +14950,10 @@
 
             ksort( $this->_menu_items );
 
-            $is_first_submenu_item = true;
+            $removed_first_submenu_item = false;
 
             foreach ( $this->_menu_items as $priority => $items ) {
                 foreach ( $items as $item ) {
-                    if ( $item['show_submenu'] && $is_first_submenu_item ) {
-                        if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
-                            $item['menu_slug'] = '';
-
-                            $this->_menu->override_menu_item( $item['render_function'] );
-                        }
-
-                        $is_first_submenu_item = false;
-                    }
-
                     $capability = ( ! empty( $item['capability'] ) ? $item['capability'] : $top_level_menu_capability );
 
                     $menu_item = sprintf(
@@ -14974,12 +14964,13 @@
                         $item['menu_title']
                     );
 
-                    $menu_slug = $this->_menu->get_slug( $item['menu_slug'] );
+                    $top_level_menu_slug = $this->get_top_level_menu_slug();
+                    $menu_slug           = $this->_menu->get_slug( $item['menu_slug'] );
 
                     if ( ! isset( $item['url'] ) ) {
                         $hook = FS_Admin_Menu_Manager::add_subpage(
                             $item['show_submenu'] ?
-                                $this->get_top_level_menu_slug() :
+                                $top_level_menu_slug :
                                 null,
                             $item['page_title'],
                             $menu_item,
@@ -14994,7 +14985,7 @@
                     } else {
                         FS_Admin_Menu_Manager::add_subpage(
                             $item['show_submenu'] ?
-                                $this->get_top_level_menu_slug() :
+                                $top_level_menu_slug :
                                 null,
                             $item['page_title'],
                             $menu_item,
@@ -15002,6 +14993,14 @@
                             $menu_slug,
                             array( $this, '' )
                         );
+                    }
+
+                    if ( $item['show_submenu'] && ! $removed_first_submenu_item ) {
+                        if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
+                            remove_submenu_page( $top_level_menu_slug, $top_level_menu_slug );
+
+                            $removed_first_submenu_item = true;
+                        }
                     }
                 }
             }
