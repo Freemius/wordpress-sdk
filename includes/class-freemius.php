@@ -14950,7 +14950,7 @@
 
             ksort( $this->_menu_items );
 
-            $removed_first_submenu_item = false;
+            $is_first_submenu_item = true;
 
             foreach ( $this->_menu_items as $priority => $items ) {
                 foreach ( $items as $item ) {
@@ -14995,12 +14995,22 @@
                         );
                     }
 
-                    if ( $item['show_submenu'] && ! $removed_first_submenu_item ) {
+                    if ( $item['show_submenu'] && $is_first_submenu_item ) {
                         if ( $this->_is_network_active && ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
+                            /**
+                             * If the top-level menu has been dynamically created, remove the first submenu item that
+                             * WordPress automatically creates when there's no submenu item whose slug matches the
+                             * parent's. In the following example, the `Awesome Plugin` submenu item will be removed.
+                             *
+                             * Awesome Plugin
+                             *     - Awesome Plugin <-- we want to remove this since there's no real setting page for the top-level
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             */
                             remove_submenu_page( $top_level_menu_slug, $top_level_menu_slug );
-
-                            $removed_first_submenu_item = true;
                         }
+
+                        $is_first_submenu_item = false;
                     }
                 }
             }
