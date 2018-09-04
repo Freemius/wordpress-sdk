@@ -5308,7 +5308,7 @@
             if ( ! isset( $this->_is_anonymous ) ) {
                 if ( $this->is_network_anonymous() ) {
                     $this->_is_anonymous = true;
-                } else {
+                } else if ( ! fs_is_network_admin() ) {
                     if ( ! isset( $this->_storage->is_anonymous ) ) {
                         // Not skipped.
                         $this->_is_anonymous = false;
@@ -7222,6 +7222,23 @@
         }
 
         /**
+         * This is used to ensure that before redirecting to the opt-in page after resetting the anonymous mode or
+         * deleting the account in the network level, the URL of the page to redirect to is correct.
+         *
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 2.1.3
+         */
+        private function maybe_set_slug_and_network_menu_exists_flag() {
+            if ( ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
+                $this->_menu->set_slug_and_network_menu_exists_flag( $this->_menu->has_menu() ?
+                    $this->_menu->get_slug() :
+                    $this->_slug
+                );
+            }
+        }
+
+        /**
          * Clears the anonymous mode and redirects to the opt-in screen.
          *
          * @author Vova Feldman (@svovaf)
@@ -7233,6 +7250,8 @@
             }
 
             $this->reset_anonymous_mode( fs_is_network_admin() );
+
+            $this->maybe_set_slug_and_network_menu_exists_flag();
 
             fs_redirect( $this->get_activation_url() );
         }
@@ -18111,6 +18130,8 @@
                         // Clear user and site.
                         $this->_site = null;
                         $this->_user = null;
+
+                        $this->maybe_set_slug_and_network_menu_exists_flag();
 
                         fs_redirect( $this->get_activation_url() );
                     } else {
