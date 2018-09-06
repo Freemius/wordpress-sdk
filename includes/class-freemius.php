@@ -1491,6 +1491,11 @@
                 array( &$this, '_submit_uninstall_reason_action' )
             );
 
+            $this->add_ajax_action(
+                'downgrade_account',
+                array( &$this, 'downgrade_account_action' )
+            );
+
             if ( ! $this->is_addon() || $this->is_parent_plugin_installed() ) {
                 if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
                      ( $this->is_theme() && self::is_themes_page() )
@@ -2056,6 +2061,18 @@
             // Print '1' for successful operation.
             echo 1;
             exit;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.4
+         */
+        function downgrade_account_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'downgrade_account' );
+
+            $this->_downgrade_site();
         }
 
         /**
