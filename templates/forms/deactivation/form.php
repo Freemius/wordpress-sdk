@@ -31,9 +31,9 @@
         $license = $fs->_get_license_by_id( $site->license_id );
         if ( is_object( $license ) && ! $license->is_lifetime() && $license->is_single_site() ) {
             $subscription = $fs->_get_subscription( $license->id );
-            $plan         = $fs->get_plan();
 
             if ( is_object( $subscription ) && $subscription->is_active() ) {
+                $plan         = $fs->get_plan();
                 $module_label = $fs->get_module_label( true );
 
                 $subscription_cancellation_html .= sprintf(
@@ -70,20 +70,16 @@
                 );
 
                 $subscription_cancellation_html .= <<< HTML
-                    <ul>
+                    <ul class="subscription-actions">
                         <li>
                             <label>
-                                <span>
-                                    <input type="radio" name="subscription-action" value="true"/>
-                                </span>
+                                <input type="radio" name="cancel-subscription" value="true"/>
                                 <span>{$cancel_subscription_action_label}</span>
                             </label>
                         </li>
                         <li>
                             <label>
-                                <span>
-                                    <input type="radio" name="subscription-action" value="false"/>
-                                </span>
+                                <input type="radio" name="cancel-subscription" value="false"/>
                                 <span>{$keep_subscription_active_action_label}</span>
                             </label>
                         </li>
@@ -146,14 +142,14 @@ HTML;
     }
 
 	if ( ! empty( $subscription_cancellation_html ) ) {
-	    $modal_classes[] = 'show-subscription-action-options';
+	    $modal_classes[] = 'has-subscription-actions';
     }
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
 (function ($) {
-	var subscriptionCancellationHtml = <?php echo json_encode( $subscription_cancellation_html ); ?>,
+	var subscriptionCancellationHtml = <?php echo json_encode( $subscription_cancellation_html ) ?>,
 	    reasonsHtml = <?php echo json_encode( $reasons_list_items_html ); ?>,
 	    modalHtml =
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo ! empty( $modal_classes ) ? ( ' ' . implode(' ', $modal_classes ) ) : ''; ?>">'
@@ -163,8 +159,8 @@ HTML;
 		    + '		</div>'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
-		    + '			<div class="fs-modal-panel<?php echo empty($subscription_cancellation_html) ? ' active' : '' ?>" data-panel-id="reasons"><h3><strong><?php echo esc_js( sprintf( fs_text_inline( 'If you have a moment, please let us know why you are %s', 'deactivation-share-reason' , $slug ), ( $fs->is_plugin() ? fs_text_inline( 'deactivating', 'deactivating', $slug ) : fs_text_inline( 'switching', 'switching', $slug ) ) ) ) ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
-            + '			<div class="fs-modal-panel<?php echo ! empty($subscription_cancellation_html) ? ' active' : '' ?>" data-panel-id="subscription-action-options">' + subscriptionCancellationHtml + '</div>'
+		    + '			<div class="fs-modal-panel<?php echo empty( $subscription_cancellation_html ) ? ' active' : '' ?>" data-panel-id="reasons"><h3><strong><?php echo esc_js( sprintf( fs_text_inline( 'If you have a moment, please let us know why you are %s', 'deactivation-share-reason' , $slug ), ( $fs->is_plugin() ? fs_text_inline( 'deactivating', 'deactivating', $slug ) : fs_text_inline( 'switching', 'switching', $slug ) ) ) ) ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
+            + '			<div class="fs-modal-panel<?php echo ! empty( $subscription_cancellation_html ) ? ' active' : '' ?>" data-panel-id="subscription-actions">' + subscriptionCancellationHtml + '</div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
@@ -237,16 +233,6 @@ HTML;
 			}
 		});
 
-		$modal.on( 'input propertychange', 'input[name="subscription-action"]', function() {
-            var $primaryButton = $modal.find('.button-primary');
-
-            $primaryButton.html('<?php echo esc_js( sprintf(
-                fs_text_inline( 'Cancel Subscription & Proceed', 'cancel-subscription-and-proceed' , $slug )
-            ) ) ?>');
-
-            $primaryButton.removeClass('disabled');
-		});
-
 		$modal.on('blur', '.reason-input input', function () {
 			var $userReason = $(this);
 
@@ -276,9 +262,13 @@ HTML;
 			var _parent = $(this).parents('.fs-modal:first');
 			var _this = $(this);
 
-			if ( 'subscription-action-options' === getCurrentPanel() ) {
-			    <?php if ( is_object( $license ) ) : ?>
-                if ( _this.hasClass( 'button-primary' ) ) {
+            <?php if ( ! empty( $subscription_cancellation_html ) ) : ?>
+			if ( 'subscription-actions' === getCurrentPanel() && _this.hasClass( 'button-primary' ) ) {
+                if ( 'true' !== $( 'input[name="cancel-subscription"]:checked' ).val() ) {
+                    setTimeout(function() {
+                        showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'reasons' : 'confirm' );
+                    });
+                } else {
                     if ( confirm( '<?php echo esc_attr( sprintf( $downgrade_x_confirm_text, $plan->title, human_time_diff( time(), strtotime( $license->expiration ) ) ) ) ?> <?php if ( ! $license->is_block_features ) {
                         echo esc_attr( sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) );
                     } else {
@@ -294,24 +284,22 @@ HTML;
                             },
                             beforeSend: function() {
                                 _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
-                                _parent.find( '.fs-modal-footer .button-primary' ).text( 'Cancelling...' );
+                                _parent.find( '.fs-modal-footer .button-primary' ).text('<?php echo esc_js( sprintf(
+                                    fs_text_inline( 'Cancelling subscription...', 'cancelling-subscription' , $slug )
+                                ) ) ?>');
                             },
                             complete  : function() {
-                                showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'confirm' : 'reasons' );
+                                setTimeout(function() {
+                                    showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'reasons' : 'confirm' );
+                                });
                             }
                         });
                     }
-
-                    return;
                 }
-                <?php endif ?>
-
-                setTimeout(function() {
-                    showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'confirm' : 'reasons' );
-                });
 
                 return;
             }
+            <?php endif ?>
 
 			if (_this.hasClass('allow-deactivate')) {
 				var $radio = $('input[type="radio"]:checked');
@@ -371,6 +359,10 @@ HTML;
 					}
 				});
 			} else if (_this.hasClass('button-deactivate')) {
+                if ( 'subscription-actions' === getCurrentPanel() ) {
+                    closeModal();
+                }
+
 				// Change the Deactivate button's text and show the reasons panel.
 				_parent.find('.button-deactivate').addClass('allow-deactivate');
 
@@ -379,17 +371,31 @@ HTML;
 		});
 
 		$modal.on('click', 'input[type="radio"]', function () {
-		    if ( 'subscription-action-options' === getCurrentPanel() ) {
+            var $selectedOption = $( this );
+
+            if ( 'subscription-actions' === getCurrentPanel() ) {
+                var $primaryButton = $modal.find( '.button-primary' );
+
+                if ( 'true' === $selectedOption.val() ) {
+                    $primaryButton.html( '<?php echo esc_js( sprintf(
+                        fs_text_inline( 'Cancel Subscription & Proceed', 'cancel-subscription-and-proceed', $slug )
+                    ) ) ?>' );
+                } else {
+                    $primaryButton.html( '<?php echo esc_js( sprintf(
+                        fs_text_inline( 'Proceed', 'proceed', $slug )
+                    ) ) ?>' );
+                }
+
+                $primaryButton.removeClass( 'disabled' );
+
                 return;
             }
 
-			var $selectedReasonOption = $(this);
-
 			// If the selection has not changed, do not proceed.
-			if (selectedReasonID === $selectedReasonOption.val())
+			if (selectedReasonID === $selectedOption.val())
 				return;
 
-			selectedReasonID = $selectedReasonOption.val();
+			selectedReasonID = $selectedOption.val();
 
 			if ( isAnonymous ) {
 				if ( isReasonSelected( dontShareDataReasonID ) ) {
@@ -445,7 +451,7 @@ HTML;
 				return;
 			}
 
-            if ( 'subscription-action-options' === getCurrentPanel() ) {
+            if ( 'subscription-actions' === getCurrentPanel() ) {
                 return false;
             }
 
@@ -514,10 +520,12 @@ HTML;
 		 * If the modal dialog has no confirmation message, that is, it has only one panel, then ensure
 		 * that clicking the deactivate button will actually deactivate the plugin.
 		 */
-		if ($modal.hasClass('no-confirmation-message')) {
-			showPanel( $modal.hasClass( 'show-subscription-action-options' ) ? 'subscription-action-options' : 'reasons' );
+		if ( $modal.hasClass( 'has-subscription-actions' ) ) {
+            showPanel( 'subscription-actions' );
+        } else if ( $modal.hasClass( 'no-confirmation-message' ) ) {
+			showPanel( 'reasons' );
 		} else {
-			showPanel('confirm');
+			showPanel( 'confirm' );
 		}
 	}
 
@@ -537,52 +545,52 @@ HTML;
 		$modal.find('.fs-modal-panel').removeClass('active ');
 		$modal.find('[data-panel-id="' + panelType + '"]').addClass('active');
 
-        var $deactivateButton = $modal.find('.button-deactivate'),
-            $primaryButton    = $modal.find('.button-primary'),
+        var $deactivateButton = $modal.find( '.button-deactivate' ),
+            $primaryButton    = $modal.find( '.button-primary' ),
             currentPanel      = getCurrentPanel();
 
-        if ( 'subscription-action-options' === currentPanel || 'confirm' === currentPanel ) {
-            $deactivateButton.removeClass('allow-deactivate');
+        if ( 'subscription-actions' === currentPanel || 'confirm' === currentPanel ) {
+            $deactivateButton.removeClass( 'allow-deactivate' );
         } else {
-            $deactivateButton.addClass('allow-deactivate');
+            $deactivateButton.addClass( 'allow-deactivate' );
         }
 
-        if ( 'subscription-action-options' === currentPanel ) {
+        if ( 'subscription-actions' === currentPanel ) {
             $primaryButton.addClass( 'disabled' );
         } else {
             $primaryButton.removeClass( 'disabled' );
+            $deactivateButton.removeClass( 'disabled' );
         }
 
 		updateButtonLabels();
 	}
 
 	function updateButtonLabels() {
-		var $deactivateButton = $modal.find('.button-deactivate'),
-		    $primaryButton    = $modal.find('.button-primary'),
-            currentPanel      = getCurrentPanel();
+        var $primaryButton   = $modal.find('.button-primary'),
+		    $secondaryButton = $modal.find('.button-deactivate'),
+            currentPanel     = getCurrentPanel();
 
         $primaryButton.text('<?php echo esc_js( sprintf(
             fs_text_inline( 'Cancel', 'cancel' , $slug )
         ) ) ?>');
 
-        // Reset the deactivate button's text.
 		if ('confirm' === currentPanel) {
-            $deactivateButton.text('<?php echo esc_js(sprintf(
+            $secondaryButton.text('<?php echo esc_js(sprintf(
                 fs_text_inline('Yes - %s', 'deactivation-modal-button-confirm', $slug),
                 $fs->is_plugin() ?
                     $deactivate_text :
                     sprintf($activate_x_text, $theme_text)
             )) ?>');
-        } else if ( 'subscription-action-options' === currentPanel ) {
-            $deactivateButton.text('<?php echo esc_js( sprintf(
-                fs_text_inline( 'Cancel', 'cancel' , $slug )
-            ) ) ?>');
-
+        } else if ( 'subscription-actions' === currentPanel ) {
             $primaryButton.text('<?php echo esc_js( sprintf(
                 fs_text_inline( 'Proceed', 'proceed' , $slug )
             ) ) ?>');
+
+            $secondaryButton.text('<?php echo esc_js( sprintf(
+                fs_text_inline( 'Cancel', 'cancel' , $slug )
+            ) ) ?>');
 		} else {
-			$deactivateButton.html('<?php echo esc_js( sprintf(
+			$secondaryButton.html('<?php echo esc_js( sprintf(
 				fs_text_inline('Skip & %s', 'skip-and-x', $slug ),
 				$fs->is_plugin() ?
 					$deactivate_text :

@@ -48,6 +48,21 @@
             line-height: 1.5em;
         }
     }
+
+	&.has-subscription-actions {
+		ul.subscription-actions label {
+			input {
+				float: left;
+				top: 5px;
+				position: relative;
+			}
+
+			span {
+				display: block;
+				margin-left: 24px;
+			}
+		}
+	}
 }
 
 #the-list .deactivate > .fs-slug {
