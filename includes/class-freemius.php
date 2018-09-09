@@ -1492,8 +1492,8 @@
             );
 
             $this->add_ajax_action(
-                'downgrade_account',
-                array( &$this, 'downgrade_account_action' )
+                'cancel_subscription_or_trial',
+                array( &$this, 'cancel_subscription_or_trial_ajax_action' )
             );
 
             if ( ! $this->is_addon() || $this->is_parent_plugin_installed() ) {
@@ -2067,12 +2067,42 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.4
          */
-        function downgrade_account_action() {
+        function cancel_subscription_or_trial_ajax_action() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'downgrade_account' );
+            $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $this->_downgrade_site();
+            $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.4
+         *
+         * @param number   $plugin_id
+         * @param int|null $blog_id
+         */
+        private function cancel_subscription_or_trial( $plugin_id, $blog_id = null ) {
+            $fs = null;
+            if ( $plugin_id == $this->get_id() ) {
+                $fs = $this;
+            } else if ( $this->is_addon_activated( $plugin_id ) ) {
+                $fs = self::get_instance_by_id( $plugin_id );
+
+                $blog_id = null;
+            }
+
+            if ( ! is_null( $fs ) ) {
+                if ( $fs->is_trial() ) {
+                    $fs->_cancel_trial();
+                } else {
+                    $fs->_downgrade_site();
+
+                    if ( is_numeric( $blog_id ) ) {
+                        $fs->switch_to_blog( $fs->_storage->network_install_blog_id );
+                    }
+                }
+            }
         }
 
         /**
@@ -18169,16 +18199,7 @@
                         check_admin_referer( $action );
                     }
 
-                    if ( $plugin_id == $this->get_id() ) {
-                        $this->_downgrade_site();
-
-                        if ( is_numeric( $blog_id ) ) {
-                            $this->switch_to_blog( $this->_storage->network_install_blog_id );
-                        }
-                    } else if ( $this->is_addon_activated( $plugin_id ) ) {
-                        $fs_addon = self::get_instance_by_id( $plugin_id );
-                        $fs_addon->_downgrade_site();
-                    }
+                    $this->cancel_subscription_or_trial( $plugin_id, $blog_id );
 
                     return;
 
@@ -18307,14 +18328,7 @@
                 #region Actions that might be called from external links (e.g. email)
 
                 case 'cancel_trial':
-                    if ( $plugin_id == $this->get_id() ) {
-                        $this->_cancel_trial();
-                    } else {
-                        if ( $this->is_addon_activated( $plugin_id ) ) {
-                            $fs_addon = self::get_instance_by_id( $plugin_id );
-                            $fs_addon->_cancel_trial();
-                        }
-                    }
+                    $this->cancel_subscription_or_trial( $plugin_id );
 
                     return;
 
