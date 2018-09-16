@@ -78,14 +78,14 @@
                 <ul class="subscription-actions">
                     <li>
                         <label>
-                            <input type="radio" name="cancel-subscription" value="true"/>
-                            <span>{$cancel_subscription_action_label}</span>
+                            <input type="radio" name="cancel-subscription" value="false"/>
+                            <span>{$keep_subscription_active_action_label}</span>
                         </label>
                     </li>
                     <li>
                         <label>
-                            <input type="radio" name="cancel-subscription" value="false"/>
-                            <span>{$keep_subscription_active_action_label}</span>
+                            <input type="radio" name="cancel-subscription" value="true"/>
+                            <span>{$cancel_subscription_action_label}</span>
                         </label>
                     </li>
                 </ul>
@@ -578,11 +578,18 @@ HTML;
             $deactivateButton.addClass( 'allow-deactivate' );
         }
 
-        if ( 'subscription-actions' === currentPanel ) {
-            $primaryButton.addClass( 'disabled' );
-        } else {
+        if ( 'subscription-actions' !== currentPanel ) {
+            $modal.find( '.fs-modal-header h4' ).text( '<?php fs_esc_attr_echo_inline( 'Quick Feedback', 'quick-feedback' , $slug ) ?>' );
             $primaryButton.removeClass( 'disabled' );
             $deactivateButton.removeClass( 'disabled' );
+        } else {
+            $modal.find( '.fs-modal-header h4' ).text( '<?php
+                echo esc_js( sprintf(
+                    fs_text_inline( 'Cancel %s?', 'cancel-x' , $slug ),
+                    ucfirst( $subscription_cancellation_context )
+                ) ) ?>' );
+
+            $primaryButton.addClass( 'disabled' );
         }
 
 		updateButtonLabels();
