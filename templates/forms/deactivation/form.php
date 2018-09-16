@@ -43,35 +43,35 @@
                 '<p>%s</p>',
                 sprintf(
                     fs_text_inline(
-                        "Deactivation or uninstallation of the %s will automatically deactivate the license which you can then reuse on another site. If you are no longer planning to use the %s on this site, or any other site, are you also interested in cancelling the subscription?",
+                        "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site. In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?",
                         'deactivation-or-uninstallation-message',
                         $slug
                     ),
                     $module_label,
-                    $module_label
+                    $module_label,
+                    $subscription_cancellation_context
                 )
             );
 
             $cancel_subscription_action_label = sprintf(
                 fs_text_inline(
-                    "Cancel %s - I no longer need any security & feature updates, nor support for %s, because I'm no longer planning to use the %s on this site or any other.",
-                    'cancel-subscription',
+                    "Cancel %s - I no longer need any security & feature updates, nor support for %s because I'm not planning to use the %s on this, or any other site.",
+                    'cancel-x',
                     $slug
                 ),
                 $subscription_cancellation_context,
                 sprintf( '<strong>%s</strong>', $fs->get_plugin_title() ),
                 $module_label
+
             );
 
             $keep_subscription_active_action_label = sprintf(
                 fs_text_inline(
-                    "Don't cancel %s - I'm still interested in getting security & feature updates, and being able to contact support.",
-                    'dont-cancel-subscription',
+                    "Don't cancel %s - I'm still interested in getting security & feature updates, as well as be able to contact support.",
+                    'dont-cancel-x',
                     $slug
                 ),
-                $subscription_cancellation_context,
-                $fs->get_plugin_title(),
-                $module_label
+                $subscription_cancellation_context
             );
 
             $subscription_cancellation_html .= <<< HTML
