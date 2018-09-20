@@ -10717,9 +10717,7 @@
                         'license_key' => $fs->apply_filters( 'license_key', $license_key )
                     );
 
-                    $path = $fs->add_show_pending( '/' );
-
-                    $install = $api->call( $path, 'put', $params );
+                    $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
 
                     if ( FS_Api::is_api_error( $install ) ) {
                         $error = FS_Api::is_api_error_object( $install ) ?
@@ -13436,10 +13434,7 @@
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
             );
 
-            $url = WP_FS__ADDRESS . '/action/service/user/install/';
-
-            $url = $this->add_show_pending( $url );
-
+            $url = $this->add_show_pending( WP_FS__ADDRESS . '/action/service/user/install/' );
             $response = self::safe_remote_post( $url, $request );
 
             if ( is_wp_error( $response ) ) {
