@@ -64,30 +64,30 @@
 		}
 
 		.button-primary.warn {
-			box-shadow: 0 1px 0 #d2593c;
-			text-shadow: 0 -1px 1px #d2593c, 1px 0 1px #d2593c, 0 1px 1px #d2593c, -1px 0 1px #d2593c;
-			background: #f56a48;
-			border-color: #ec6544 #d2593c #d2593c;
+			box-shadow: 0 1px 0 $wp-button-alert-shadow-color;
+			text-shadow: 0 -1px 1px $wp-button-alert-shadow-color, 1px 0 1px $wp-button-alert-shadow-color, 0 1px 1px $wp-button-alert-shadow-color, -1px 0 1px $wp-button-alert-shadow-color;
+			background: $wp-button-alert-background-color;
+			border-color: $wp-button-alert-border-top-color $wp-button-alert-border-color $wp-button-alert-border-color;
 
 			&:hover {
-				background: #fd6d4a;
-				border-color: #d2593c;
+				background: $wp-button-alert-hovered-background-color;
+				border-color: $wp-button-alert-border-color;
 			}
 
 			&:focus {
-				box-shadow: 0 1px 0 #dd6041, 0 0 2px 1px #e4a796;
+				box-shadow: 0 1px 0 $wp-button-alert-focused-shadow1-color, 0 0 2px 1px $wp-button-alert-focused-shadow2-color;
 			}
 
 			&:active {
-				background: #dd6041;
-				border-color: #d2593c;
-				box-shadow: inset 0 2px 0 #d2593c;
+				background: $wp-button-alert-active-background-color;
+				border-color: $wp-button-alert-border-color;
+				box-shadow: inset 0 2px 0 $wp-button-alert-shadow-color;
 			}
 
 			&.disabled {
-				color: #f5b3a1 !important;
-				background: #e76444 !important;
-				border-color: #d85e40 !important;
+				color: $wp-button-alert-disabled-color !important;
+				background: $wp-button-alert-disabled-background-color !important;
+				border-color: $wp-button-alert-disabled-border-color !important;
 				text-shadow: 0 -1px 0 rgba(0,0,0,.1) !important;
 			}
 		}

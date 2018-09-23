@@ -2079,28 +2079,21 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.4
          *
-         * @param number   $plugin_id
-         * @param int|null $blog_id
+         * @param number $plugin_id
          */
-        private function cancel_subscription_or_trial( $plugin_id, $blog_id = null ) {
+        private function cancel_subscription_or_trial( $plugin_id ) {
             $fs = null;
             if ( $plugin_id == $this->get_id() ) {
                 $fs = $this;
             } else if ( $this->is_addon_activated( $plugin_id ) ) {
                 $fs = self::get_instance_by_id( $plugin_id );
-
-                $blog_id = null;
             }
 
             if ( ! is_null( $fs ) ) {
-                if ( $fs->is_trial() ) {
+                if ( $fs->is_paid_trial() ) {
                     $fs->_cancel_trial();
                 } else {
                     $fs->_downgrade_site();
-
-                    if ( is_numeric( $blog_id ) ) {
-                        $fs->switch_to_blog( $fs->_storage->network_install_blog_id );
-                    }
                 }
             }
         }
@@ -18199,7 +18192,17 @@
                         check_admin_referer( $action );
                     }
 
-                    $this->cancel_subscription_or_trial( $plugin_id, $blog_id );
+                    $switch_to_network_install_blog_after_cancellation = (
+                        is_numeric( $blog_id ) &&
+                        $plugin_id == $this->get_id() &&
+                        ! $this->is_trial()
+                    );
+
+                    $this->cancel_subscription_or_trial( $plugin_id );
+
+                    if ( $switch_to_network_install_blog_after_cancellation ) {
+                        $this->switch_to_blog( $this->_storage->network_install_blog_id );
+                    }
 
                     return;
 

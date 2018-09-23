@@ -31,7 +31,7 @@
         $subscription = $fs->_get_subscription( $license->id );
 
         if ( is_object( $subscription ) && $subscription->is_active() ) {
-            $has_trial                         = $subscription->has_trial();
+            $has_trial                         = $fs->is_paid_trial();
             $subscription_cancellation_context = $has_trial ?
                 fs_text_inline( 'trial', 'trial', $slug ) :
                 fs_text_inline( 'subscription', 'subscription', $slug );
@@ -41,7 +41,7 @@
 
             $subscription_cancellation_html .= sprintf(
                 '<p>%s</p>',
-                sprintf(
+                esc_html( sprintf(
                     fs_text_inline(
                         "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site. In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?",
                         'deactivation-or-uninstallation-message',
@@ -50,29 +50,28 @@
                     $module_label,
                     $module_label,
                     $subscription_cancellation_context
-                )
+                ) )
             );
 
             $cancel_subscription_action_label = sprintf(
-                fs_text_inline(
+                fs_esc_html_inline(
                     "Cancel %s - I no longer need any security & feature updates, nor support for %s because I'm not planning to use the %s on this, or any other site.",
                     'cancel-x',
                     $slug
                 ),
-                $subscription_cancellation_context,
-                sprintf( '<strong>%s</strong>', $fs->get_plugin_title() ),
-                $module_label
-
+                esc_html( $subscription_cancellation_context ),
+                sprintf( '<strong>%s</strong>', esc_html( $fs->get_plugin_title() ) ),
+                esc_html( $module_label )
             );
 
-            $keep_subscription_active_action_label = sprintf(
+            $keep_subscription_active_action_label = esc_html( sprintf(
                 fs_text_inline(
                     "Don't cancel %s - I'm still interested in getting security & feature updates, as well as be able to contact support.",
                     'dont-cancel-x',
                     $slug
                 ),
                 $subscription_cancellation_context
-            );
+            ) );
 
             $subscription_cancellation_html .= <<< HTML
                 <ul class="subscription-actions">
@@ -92,17 +91,17 @@
 HTML;
 
             $downgrade_x_confirm_text          = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
-            $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s updates and support.', 'after-downgrade-non-blocking', $slug );
+            $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
             $after_downgrade_blocking_text     = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
 
             $subscription_cancellation_confirmation_message = $has_trial ?
                 fs_text_inline( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'cancel-trial-confirm', $slug ) :
                 sprintf(
                     '%s %s %s',
-                    esc_attr( sprintf( $downgrade_x_confirm_text, $plan->title, human_time_diff( time(), strtotime( $license->expiration ) ) ) ),
+                    sprintf( $downgrade_x_confirm_text, $plan->title, human_time_diff( time(), strtotime( $license->expiration ) ) ),
                     ( $license->is_block_features ?
-                        esc_attr( sprintf( $after_downgrade_blocking_text, $plan->title ) ) :
-                        esc_attr( sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) ) ),
+                        sprintf( $after_downgrade_blocking_text, $plan->title ) :
+                        sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) ),
                     fs_esc_attr_inline( 'Are you sure you want to proceed?', 'proceed-confirmation', $slug )
                 );
         }
@@ -184,7 +183,7 @@ HTML;
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel' , $slug ) ?></a>'
+		    + '			<a href="#" class="button button-primary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
@@ -288,7 +287,7 @@ HTML;
                         showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'reasons' : 'confirm' );
                     });
                 } else {
-                    if ( confirm( '<?php echo $subscription_cancellation_confirmation_message ?>' ) ) {
+                    if ( confirm( <?php echo json_encode( $subscription_cancellation_confirmation_message ) ?> ) ) {
                         $.ajax({
                             url       : ajaxurl,
                             method    : 'POST',
@@ -397,14 +396,12 @@ HTML;
                     isSelected     = ( 'true' === $selectedOption.val() );
 
                 if ( isSelected ) {
-                    $primaryButton.html( '<?php echo esc_js( sprintf(
+                    $primaryButton.html( <?php echo json_encode( sprintf(
                         fs_text_inline( 'Cancel %s & Proceed', 'cancel-x-and-proceed', $slug ),
                         ucfirst( $subscription_cancellation_context )
-                    ) ) ?>' );
+                    ) ) ?> );
                 } else {
-                    $primaryButton.html( '<?php echo esc_js( sprintf(
-                        fs_text_inline( 'Proceed', 'proceed', $slug )
-                    ) ) ?>' );
+                    $primaryButton.html( <?php echo fs_json_encode_echo_inline( 'Proceed', 'proceed', $slug ) ?> );
                 }
 
                 $primaryButton.toggleClass( 'warn', isSelected );
@@ -579,15 +576,15 @@ HTML;
         }
 
         if ( 'subscription-actions' !== currentPanel ) {
-            $modal.find( '.fs-modal-header h4' ).text( '<?php fs_esc_attr_echo_inline( 'Quick Feedback', 'quick-feedback' , $slug ) ?>' );
+            $modal.find( '.fs-modal-header h4' ).text( <?php fs_json_encode_echo_inline( 'Quick Feedback', 'quick-feedback', $slug ) ?> );
             $primaryButton.removeClass( 'disabled' );
             $deactivateButton.removeClass( 'disabled' );
         } else {
-            $modal.find( '.fs-modal-header h4' ).text( '<?php
-                echo esc_js( sprintf(
+            $modal.find( '.fs-modal-header h4' ).text( <?php
+                echo json_encode( sprintf(
                     fs_text_inline( 'Cancel %s?', 'cancel-x' , $slug ),
                     ucfirst( $subscription_cancellation_context )
-                ) ) ?>' );
+                ) ) ?> );
 
             $primaryButton.addClass( 'disabled' );
         }
@@ -600,32 +597,26 @@ HTML;
 		    $secondaryButton = $modal.find('.button-deactivate'),
             currentPanel     = getCurrentPanel();
 
-        $primaryButton.text('<?php echo esc_js( sprintf(
-            fs_text_inline( 'Cancel', 'cancel' , $slug )
-        ) ) ?>');
+        $primaryButton.text( <?php fs_json_encode_echo( 'cancel', $slug ) ?> );
 
 		if ('confirm' === currentPanel) {
-            $secondaryButton.text('<?php echo esc_js(sprintf(
+            $secondaryButton.text( <?php echo json_encode(sprintf(
                 fs_text_inline('Yes - %s', 'deactivation-modal-button-confirm', $slug),
                 $fs->is_plugin() ?
                     $deactivate_text :
                     sprintf($activate_x_text, $theme_text)
-            )) ?>');
+            )) ?> );
         } else if ( 'subscription-actions' === currentPanel ) {
-            $primaryButton.text('<?php echo esc_js( sprintf(
-                fs_text_inline( 'Proceed', 'proceed' , $slug )
-            ) ) ?>');
+            $primaryButton.text( <?php fs_json_encode_echo_inline( 'Proceed', 'proceed', $slug ) ?> );
 
-            $secondaryButton.text('<?php echo esc_js( sprintf(
-                fs_text_inline( 'Cancel', 'cancel' , $slug )
-            ) ) ?>');
+            $secondaryButton.text( <?php fs_json_encode_echo( 'cancel', $slug ) ?> );
 		} else {
-			$secondaryButton.html('<?php echo esc_js( sprintf(
+			$secondaryButton.html( <?php echo json_encode( sprintf(
 				fs_text_inline('Skip & %s', 'skip-and-x', $slug ),
 				$fs->is_plugin() ?
 					$deactivate_text :
 					sprintf( $activate_x_text, $theme_text )
-			) ) ?>');
+			) ) ?> );
 		}
 	}
 
