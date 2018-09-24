@@ -90,18 +90,25 @@
                 </ul>
 HTML;
 
-            $downgrade_x_confirm_text          = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
-            $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
-            $after_downgrade_blocking_text     = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
+            $downgrade_x_confirm_text                   = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
+            $after_downgrade_non_blocking_text          = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
+            $after_downgrade_blocking_text              = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
+            $after_downgrade_blocking_text_premium_only = fs_text_inline( 'Once your license expires you will no longer be able to use the %s, unless you activate it again with a valid premium license.', 'after-downgrade-blocking-premium-only', $slug );
 
             $subscription_cancellation_confirmation_message = $has_trial ?
                 fs_text_inline( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'cancel-trial-confirm', $slug ) :
                 sprintf(
                     '%s %s %s',
                     sprintf( $downgrade_x_confirm_text, $plan->title, human_time_diff( time(), strtotime( $license->expiration ) ) ),
-                    ( $license->is_block_features ?
-                        sprintf( $after_downgrade_blocking_text, $plan->title ) :
-                        sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) ),
+                    (
+                        $license->is_block_features ?
+                            (
+                                $fs->is_only_premium() ?
+                                    sprintf( $after_downgrade_blocking_text_premium_only, $module_label ) :
+                                    sprintf( $after_downgrade_blocking_text, $plan->title )
+                            ) :
+                            sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) )
+                    ),
                     fs_esc_attr_inline( 'Are you sure you want to proceed?', 'proceed-confirmation', $slug )
                 );
         }

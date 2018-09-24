@@ -17357,9 +17357,6 @@
         private function _cancel_trial() {
             $this->_logger->entrance();
 
-            // Alias.
-            $oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
-
             if ( ! $this->is_trial() ) {
                 return (object) array(
                     'error' => (object) array(
