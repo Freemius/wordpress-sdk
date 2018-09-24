@@ -2072,12 +2072,20 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+
+            if ( $this->is_api_error( $result ) ) {
+                $this->shoot_ajax_failure( $result->error->message );
+            }
+
+            $this->shoot_ajax_success();
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.1.4
+         *
+         * @return object
          *
          * @param number $plugin_id
          */
@@ -2089,13 +2097,15 @@
                 $fs = self::get_instance_by_id( $plugin_id );
             }
 
+            $result = null;
+
             if ( ! is_null( $fs ) ) {
-                if ( $fs->is_paid_trial() ) {
-                    $fs->_cancel_trial();
-                } else {
+                $result = $fs->is_paid_trial() ?
+                    $fs->_cancel_trial() :
                     $fs->_downgrade_site();
-                }
             }
+
+            return $result;
         }
 
         /**
@@ -17183,6 +17193,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.4
          *
+         * @return object
+         *
          * @uses   FS_Api
          */
         private function _downgrade_site() {
@@ -17224,12 +17236,14 @@
                 // Store site updates.
                 $this->_store_site();
             } else {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'plan-downgraded-failure-message' ),
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
+                $site = (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'plan-downgraded-failure-message' )
+                    )
                 );
             }
+
+            return $site;
         }
 
         /**
@@ -17336,6 +17350,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
+         * @return object
+         *
          * @uses   FS_Api
          */
         private function _cancel_trial() {
@@ -17345,13 +17361,11 @@
             $oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
 
             if ( ! $this->is_trial() ) {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'trial-cancel-no-trial-message' ),
-                    $oops_text,
-                    'error'
+                return (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'trial-cancel-no-trial-message' )
+                    )
                 );
-
-                return;
             }
 
             $trial_plan = $this->get_trial_plan();
@@ -17401,12 +17415,14 @@
                     );
                 }
             } else {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' ),
-                    $oops_text,
-                    'error'
+                $site = (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' )
+                    )
                 );
             }
+
+            return $site;
         }
 
         /**
@@ -18198,7 +18214,14 @@
                         ! $this->is_trial()
                     );
 
-                    $this->cancel_subscription_or_trial( $plugin_id );
+                    $result = $this->cancel_subscription_or_trial( $plugin_id );
+                    if ( $this->is_api_error( $result ) ) {
+                        $this->_admin_notices->add(
+                            $result->error->message,
+                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                            'error'
+                        );
+                    }
 
                     if ( $switch_to_network_install_blog_after_cancellation ) {
                         $this->switch_to_blog( $this->_storage->network_install_blog_id );
@@ -18331,7 +18354,14 @@
                 #region Actions that might be called from external links (e.g. email)
 
                 case 'cancel_trial':
-                    $this->cancel_subscription_or_trial( $plugin_id );
+                    $result = $this->cancel_subscription_or_trial( $plugin_id );
+                    if ( $this->is_api_error( $result ) ) {
+                        $this->_admin_notices->add(
+                            $result->error->message,
+                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                            'error'
+                        );
+                    }
 
                     return;
 

@@ -40,7 +40,7 @@
             $module_label = $fs->get_module_label( true );
 
             $subscription_cancellation_html .= sprintf(
-                '<p>%s</p>',
+                '<div class="notice notice-error inline"><p></p></div><p>%s</p>',
                 esc_html( sprintf(
                     fs_text_inline(
                         "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site. In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?",
@@ -168,12 +168,12 @@ HTML;
 <script type="text/javascript">
 (function ($) {
 	var subscriptionCancellationHtml = <?php echo json_encode( $subscription_cancellation_html ) ?>,
-	    reasonsHtml = <?php echo json_encode( $reasons_list_items_html ); ?>,
+	    reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
 	    modalHtml =
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo ! empty( $modal_classes ) ? ( ' ' . implode(' ', $modal_classes ) ) : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-header">'
-		    + '		    <h4><?php fs_esc_attr_echo_inline( 'Quick feedback', 'quick-feedback' , $slug ) ?></h4>'
+		    + '		    <h4><?php fs_esc_attr_echo_inline( 'Quick Feedback', 'quick-feedback' , $slug ) ?></h4>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
@@ -195,7 +195,8 @@ HTML;
 		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
 		otherReasonID         = <?php echo Freemius::REASON_OTHER; ?>,
 		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
-        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>;
+        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>,
+        $errorMessage         = $modal.find( '.notice-error' );
 
 	$modal.appendTo($('body'));
 
@@ -297,18 +298,31 @@ HTML;
                                 module_id: '<?php echo $fs->get_id() ?>'
                             },
                             beforeSend: function() {
-                                _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
-                                _parent.find( '.fs-modal-footer .button-primary' ).text('<?php echo esc_js( sprintf(
-                                    sprintf( fs_text_inline( 'Cancelling %s...', 'cancelling-x' , $slug ), $subscription_cancellation_context )
-                                ) ) ?>');
-                            },
-                            complete  : function() {
-                                _parent.removeClass( 'has-subscription-actions' );
-                                _parent.find( '.fs-modal-footer .button-primary' ).removeClass( 'warn' );
+                                $errorMessage.hide();
 
-                                setTimeout(function() {
-                                    showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'reasons' : 'confirm' );
-                                });
+                                _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+                                _parent.find( '.fs-modal-footer .button-primary' ).text( '<?php echo esc_js(
+                                    sprintf( fs_text_inline( 'Cancelling %s...', 'cancelling-x' , $slug ), $subscription_cancellation_context )
+                                ) ?>' );
+                            },
+                            success: function( result ) {
+                                if ( result.success ) {
+                                    _parent.removeClass( 'has-subscription-actions' );
+                                    _parent.find( '.fs-modal-footer .button-primary' ).removeClass( 'warn' );
+
+                                    setTimeout(function() {
+                                        showPanel( $modal.hasClass( 'no-confirmation-message' ) ? 'reasons' : 'confirm' );
+                                    });
+                                } else {
+                                    $errorMessage.find( '> p' ).html( result.error );
+                                    $errorMessage.show();
+
+                                    _parent.find( '.fs-modal-footer .button' ).removeClass( 'disabled' );
+                                    _parent.find( '.fs-modal-footer .button-primary' ).html( <?php echo json_encode( sprintf(
+                                        fs_text_inline( 'Cancel %s & Proceed', 'cancel-x-and-proceed', $slug ),
+                                        ucfirst( $subscription_cancellation_context )
+                                    ) ) ?> );
+                                }
                             }
                         });
                     }
@@ -467,15 +481,15 @@ HTML;
 			}
 
 			// If the user has not clicked the close button and the clicked element is inside the modal dialog, just return.
-			if (!$target.hasClass('button-close') && ( $target.parents('.fs-modal-body').length > 0 || $target.parents('.fs-modal-footer').length > 0 )) {
+			if (
+			    ( ! $target.hasClass( 'button-close' ) || 'subscription-actions' === getCurrentPanel() ) &&
+                ( $target.parents( '.fs-modal-body' ).length > 0 || $target.parents( '.fs-modal-footer' ).length > 0 )
+            ) {
 				return;
 			}
 
-            if ( 'subscription-actions' === getCurrentPanel() ) {
-                return false;
-            }
-
 			closeModal();
+
 			return false;
 		});
 	}
@@ -534,8 +548,6 @@ HTML;
 			$anonymousFeedback.hide();
 		}
 
-		var $deactivateButton = $modal.find('.button-deactivate');
-
 		/*
 		 * If the modal dialog has no confirmation message, that is, it has only one panel, then ensure
 		 * that clicking the deactivate button will actually deactivate the plugin.
@@ -562,8 +574,10 @@ HTML;
 	}
 
 	function showPanel(panelType) {
-		$modal.find('.fs-modal-panel').removeClass('active ');
-		$modal.find('[data-panel-id="' + panelType + '"]').addClass('active');
+        $errorMessage.hide();
+
+        $modal.find( '.fs-modal-panel' ).removeClass( 'active' );
+		$modal.find( '[data-panel-id="' + panelType + '"]' ).addClass( 'active' );
 
         var $deactivateButton = $modal.find( '.button-deactivate' ),
             $primaryButton    = $modal.find( '.button-primary' ),
@@ -576,7 +590,7 @@ HTML;
         }
 
         if ( 'subscription-actions' !== currentPanel ) {
-            $modal.find( '.fs-modal-header h4' ).text( <?php fs_json_encode_echo_inline( 'Quick Feedback', 'quick-feedback', $slug ) ?> );
+            $modal.find( '.fs-modal-header h4' ).text( <?php fs_json_encode_echo( 'quick-feedback', $slug ) ?> );
             $primaryButton.removeClass( 'disabled' );
             $deactivateButton.removeClass( 'disabled' );
         } else {
@@ -586,6 +600,7 @@ HTML;
                     ucfirst( $subscription_cancellation_context )
                 ) ) ?> );
 
+            $primaryButton.removeClass( 'warn' );
             $primaryButton.addClass( 'disabled' );
         }
 
@@ -600,12 +615,12 @@ HTML;
         $primaryButton.text( <?php fs_json_encode_echo( 'cancel', $slug ) ?> );
 
 		if ('confirm' === currentPanel) {
-            $secondaryButton.text( <?php echo json_encode(sprintf(
+            $secondaryButton.text( <?php echo json_encode( sprintf(
                 fs_text_inline('Yes - %s', 'deactivation-modal-button-confirm', $slug),
                 $fs->is_plugin() ?
                     $deactivate_text :
                     sprintf($activate_x_text, $theme_text)
-            )) ?> );
+            ) ) ?> );
         } else if ( 'subscription-actions' === currentPanel ) {
             $primaryButton.text( <?php fs_json_encode_echo_inline( 'Proceed', 'proceed', $slug ) ?> );
 
