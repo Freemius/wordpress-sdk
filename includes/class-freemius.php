@@ -1722,7 +1722,10 @@
                         'requir' . 'e_once',
                         'requir' . 'e',
                         'includ' . 'e_once',
-                        'includ' . 'e'
+                        'includ' . 'e',
+                        'install_and_activate_plugin',
+                        'try_activate_plugin',
+                        'activate_plugin'
                     ) )
                 ) {
                     // Ignore call stack hooks and files inclusion.
