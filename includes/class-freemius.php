@@ -17425,7 +17425,13 @@
 
             // If add-on and not yet activated, try to fetch based on server licensing.
             if ( is_bool( $is_premium ) ) {
-                $endpoint = add_query_arg( 'is_premium', json_encode( $is_premium ), $endpoint );
+                $endpoint = add_query_arg(
+                    array(
+                        'is_premium' => json_encode( $is_premium ),
+                        'readme'     => 'true'
+                    ),
+                    $endpoint
+                );
             }
 
             if ( $this->has_secret_key() ) {
