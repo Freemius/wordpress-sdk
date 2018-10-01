@@ -721,47 +721,35 @@
                 $is_addon = true;
             }
 
+            $plugin_in_repo = false;
+            if ( ! $is_addon ) {
+                // Try to fetch info from .org repository.
+                $data = self::_fetch_plugin_info_from_repository( $action, $args );
+
+                $plugin_in_repo = ( false !== $data );
+            }
+
+            if ( ! $plugin_in_repo ) {
+                $data = $args;
+
+                // Fetch as much as possible info from local files.
+                $plugin_local_data = $this->_fs->get_plugin_data();
+                $data->name        = $plugin_local_data['Name'];
+                $data->author      = $plugin_local_data['Author'];
+                $data->sections    = array(
+                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
+                );
+
+                // @todo Store extra plugin info on Freemius or parse readme.txt markup.
+                /*$info = $this->_fs->get_api_site_scope()->call('/information.json');
+
+if ( !isset($info->error) ) {
+    $data = $info;
+}*/
+            }
+
             // Get plugin's newest update.
             $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
-            if ( is_object( $new_version ) && isset( $new_version->version ) && isset( $new_version->readme ) ) {
-                $data = $new_version->readme;
-
-                if ( isset( $data->sections ) ) {
-                    /**
-                     * The WP core logic expects it to be an array.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     */
-                    $data->sections = (array) $data->sections;
-                }
-            } else {
-                $plugin_in_repo = false;
-                if ( ! $is_addon ) {
-                    // Try to fetch info from .org repository.
-                    $data = self::_fetch_plugin_info_from_repository( $action, $args );
-
-                    $plugin_in_repo = ( false !== $data );
-                }
-
-                if ( ! $plugin_in_repo ) {
-                    $data = $args;
-
-                    // Fetch as much as possible info from local files.
-                    $plugin_local_data = $this->_fs->get_plugin_data();
-                    $data->name        = $plugin_local_data['Name'];
-                    $data->author      = $plugin_local_data['Author'];
-                    $data->sections    = array(
-                        'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
-                    );
-
-                    // @todo Store extra plugin info on Freemius or parse readme.txt markup.
-                    /*$info = $this->_fs->get_api_site_scope()->call('/information.json');
-
-    if ( !isset($info->error) ) {
-        $data = $info;
-    }*/
-                }
-            }
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
                 $data->version = $this->_fs->get_plugin_version();
@@ -781,6 +769,35 @@
 
                 $data->version       = $new_version->version;
                 $data->download_link = $new_version->url;
+
+                if ( isset( $new_version->readme ) && is_object( $new_version->readme ) ) {
+                    $new_version_readme_data = $new_version->readme;
+                    if ( isset( $new_version_readme_data->sections ) ) {
+                        $new_version_readme_data->sections = (array) $new_version_readme_data->sections;
+                    } else {
+                        $new_version_readme_data->sections = array();
+                    }
+
+                    if ( isset( $data->sections ) && isset( $data->sections['screenshots'] ) ) {
+                        $new_version_readme_data->sections['screenshots'] = $data->sections['screenshots'];
+                    }
+
+                    if ( isset( $data->banners ) ) {
+                        $new_version_readme_data->banners = $data->banners;
+                    }
+
+                    $new_version_readme_data->author                   = $data->author;
+                    $new_version_readme_data->author_profile           = $data->author_profile;
+                    $new_version_readme_data->rating                   = $data->rating;
+                    $new_version_readme_data->ratings                  = $data->ratings;
+                    $new_version_readme_data->support_threads          = $data->support_threads;
+                    $new_version_readme_data->support_threads_resolved = $data->support_threads_resolved;
+                    $new_version_readme_data->active_installs          = $data->active_installs;
+                    $new_version_readme_data->added                    = $data->added;
+                    $new_version_readme_data->homepage                 = $data->homepage;
+
+                    $data = $new_version_readme_data;
+                }
             }
 
             return $data;
