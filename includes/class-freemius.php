@@ -4076,6 +4076,8 @@
                 }
             }
 
+            $parent_plugin_id = fs_request_get( 'parent_plugin_id', false );
+
             /**
              * This should be executed even if Freemius is off for the core module,
              * otherwise, the add-ons dialogbox won't work properly. This is esepcially
@@ -4084,14 +4086,17 @@
              * @author Vova Feldman (@svovaf)
              */
             if ( $this->is_user_in_admin() &&
-                 ! $this->is_addon() &&
-                 $this->has_addons() &&
                  'plugin-information' === fs_request_get( 'tab', false ) &&
-                 $this->get_id() == fs_request_get( 'parent_plugin_id', false )
+                 false != $parent_plugin_id
             ) {
-                require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
+                if (
+                    ( ! $this->is_addon() && $this->has_addons() && $this->get_id() == $parent_plugin_id ) ||
+                    ( $this->is_addon() && $this->get_parent_id() == $parent_plugin_id )
+                ) {
+                    require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
 
-                new FS_Plugin_Info_Dialog( $this );
+                    new FS_Plugin_Info_Dialog( $this->is_addon() ? $this->get_parent_instance() : $this );
+                }
             }
 
             // Check if Freemius is on for the current plugin.
