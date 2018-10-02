@@ -247,7 +247,7 @@ msgstr "Accetta per rendere \"%s\" migliore!"
 
 #: includes/class-freemius.php:6659
 msgid "The upgrade of %s was successfully completed."
-msgstr "L'aggiornamento di %s è stato completato con successo."
+msgstr "L'upgrade di %s è stato completato con successo."
 
 #: includes/class-freemius.php8384, includes/class-fs-plugin-updater.php581,
 #: includes/class-fs-plugin-updater.php733,
@@ -305,7 +305,7 @@ msgstr "Contattaci con il seguente messaggio:"
 
 #: includes/class-freemius.php14666, includes/class-freemius.php:18929
 msgid "Upgrade"
-msgstr "Aggiornamento"
+msgstr "Upgrade"
 
 #: includes/class-freemius.php:14672
 msgid "Start Trial"
@@ -333,7 +333,7 @@ msgstr "Contattaci"
 #: includes/class-freemius.php18939, templates/account.php96,
 #: templates/account/partials/addon.php:37
 msgid "Add-Ons"
-msgstr "Addon"
+msgstr "Addons"
 
 #: includes/class-freemius.php14815, templates/pricing.php:97
 msgctxt "noun"
@@ -360,7 +360,7 @@ msgstr "Il piano del tuo add-on %s è stato aggiornato con successo."
 
 #: includes/class-freemius.php:16369
 msgid "%s Add-on was successfully purchased."
-msgstr "L' add-on %s è stato acquistato con successo."
+msgstr "L'add-on %s è stato acquistato con successo."
 
 #: includes/class-freemius.php:16372
 msgid "Download the latest version"
