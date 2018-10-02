@@ -82,25 +82,25 @@
 
             $this->add_transient_filters();
 
-            if ( ! $this->_fs->has_any_active_valid_license() ) {
-                /**
-                 * If user has the premium plugin's code but do NOT have an active license,
-                 * encourage him to upgrade by showing that there's a new release, but instead
-                 * of showing an update link, show upgrade link to the pricing page.
-                 *
-                 * @since 1.1.6
-                 *
-                 */
-                // WP 2.9+
-                add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                    &$this,
-                    'catch_plugin_update_row'
-                ), 9 );
-                add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                    &$this,
-                    'edit_and_echo_plugin_update_row'
-                ), 11, 2 );
-            }
+            /**
+             * If user has the premium plugin's code but do NOT have an active license,
+             * encourage him to upgrade by showing that there's a new release, but instead
+             * of showing an update link, show upgrade link to the pricing page.
+             *
+             * @since 1.1.6
+             *
+             */
+            // WP 2.9+
+            add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+                &$this,
+                'catch_plugin_update_row'
+            ), 9 );
+            add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+                &$this,
+                'edit_and_echo_plugin_update_row'
+            ), 11, 2 );
+
+            add_action( 'admin_head', array( &$this, 'catch_plugin_information_dialog_contents' ) );
 
             if ( ! WP_FS__IS_PRODUCTION_MODE ) {
                 add_filter( 'http_request_host_is_external', array(
@@ -118,6 +118,52 @@
                     add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 2.1.4
+         */
+        function catch_plugin_information_dialog_contents() {
+            if (
+                'plugin-information' !== fs_request_get( 'tab', false ) ||
+                $this->_fs->get_slug() !== fs_request_get( 'plugin', false )
+            ) {
+                return;
+            }
+
+            add_action( 'admin_footer', array( &$this, 'edit_and_echo_plugin_information_dialog_contents' ), 0, 1 );
+
+            ob_start();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @since 2.1.4
+         */
+        function edit_and_echo_plugin_information_dialog_contents( $hook_suffix ) {
+            if (
+                'plugin-information' !== fs_request_get( 'tab', false ) ||
+                $this->_fs->get_slug() !== fs_request_get( 'plugin', false )
+            ) {
+                return;
+            }
+
+            $contents = ob_get_clean();
+
+            $contents = preg_replace(
+                '/(.+\<a.+id="plugin_update_from_iframe".*href=")(.+)("\s.+\>)(.+)(\<\/a.+)/is',
+                sprintf(
+                    '$1%s$3%s$5',
+                    $this->_fs->checkout_url(),
+                    fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
+                ),
+                $contents
+            );
+
+            echo $contents;
         }
 
         /**
@@ -183,15 +229,38 @@
 
             $r = $current->response[ $file ];
 
-            $plugin_update_row = preg_replace(
-                '/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
-                '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $r->new_version ) .
-                '$4',
-                $plugin_update_row
-            );
+            if ( ! $this->_fs->has_any_active_valid_license() ) {
+                $plugin_update_row = preg_replace(
+                    '/(\<div.+>)(.+)(\<a.+href="(.+)"\s.+\<a.+)(\<\/div\>)/is',
+                    '$1 ' .
+                    sprintf(
+                        fs_text_inline( 'There is a %s of %s available. ' ),
+                        sprintf( '<a href="$4">%s</a>', fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() ) ),
+                        $this->_fs->get_plugin_title()
+                    ) .
+                    sprintf(
+                        $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                        '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
+                        $r->new_version
+                    ) .
+                    '$5',
+                    $plugin_update_row
+                );
+            }
+
+            if (
+                $this->_fs->is_plugin() &&
+                isset( $r->upgrade_notice ) &&
+                strlen( trim ( $r->upgrade_notice ) ) > 0
+            ) {
+                $upgrade_notice_html = sprintf(
+                    '<p class="notice upgrade-notice"><strong>%s</strong> %s</p>',
+                    fs_text_inline( 'Important Upgrade Notice:', 'upgrade_notice', $this->_fs->get_slug() ),
+                    esc_html( $r->upgrade_notice )
+                );
+
+                $plugin_update_row = str_replace('</div>', '</div>' . $upgrade_notice_html, $plugin_update_row);
+            }
 
             echo $plugin_update_row;
         }
@@ -399,6 +468,17 @@
 //                    '2x'      => $icon,
                     'default' => $icon,
                 );
+            }
+
+            if ( $this->_fs->is_premium() ) {
+                $latest_tag = $this->_fs->_fetch_latest_version( $this->_fs->get_id(), false );
+                if (
+                    isset( $latest_tag->readme ) &&
+                    isset( $latest_tag->readme->upgrade_notice ) &&
+                    ! empty( $latest_tag->readme->upgrade_notice )
+                ) {
+                    $update->upgrade_notice = $latest_tag->readme->upgrade_notice;
+                }
             }
 
             $update->{$this->_fs->get_module_type()} = $this->_fs->get_plugin_basename();
@@ -778,23 +858,40 @@ if ( !isset($info->error) ) {
                         $new_version_readme_data->sections = array();
                     }
 
-                    if ( isset( $data->sections ) && isset( $data->sections['screenshots'] ) ) {
-                        $new_version_readme_data->sections['screenshots'] = $data->sections['screenshots'];
+                    if ( isset( $data->sections ) ) {
+                        if ( isset( $data->sections['screenshots'] ) ) {
+                            $new_version_readme_data->sections['screenshots'] = $data->sections['screenshots'];
+                        }
+
+                        if ( isset( $data->sections['reviews'] ) ) {
+                            $new_version_readme_data->sections['reviews'] = $data->sections['reviews'];
+                        }
                     }
 
-                    if ( isset( $data->banners ) ) {
+                    if ( isset( $new_version_readme_data->banners ) ) {
+                        $new_version_readme_data->banners = (array) $new_version_readme_data->banners;
+                    } else if ( isset( $data->banners ) ) {
                         $new_version_readme_data->banners = $data->banners;
                     }
 
-                    $new_version_readme_data->author                   = $data->author;
-                    $new_version_readme_data->author_profile           = $data->author_profile;
-                    $new_version_readme_data->rating                   = $data->rating;
-                    $new_version_readme_data->ratings                  = $data->ratings;
-                    $new_version_readme_data->support_threads          = $data->support_threads;
-                    $new_version_readme_data->support_threads_resolved = $data->support_threads_resolved;
-                    $new_version_readme_data->active_installs          = $data->active_installs;
-                    $new_version_readme_data->added                    = $data->added;
-                    $new_version_readme_data->homepage                 = $data->homepage;
+                    $wp_org_sections = array(
+                        'author',
+                        'author_profile',
+                        'rating',
+                        'ratings',
+                        'num_ratings',
+                        'support_threads',
+                        'support_threads_resolved',
+                        'active_installs',
+                        'added',
+                        'homepage'
+                    );
+
+                    foreach ( $wp_org_sections as $wp_org_section ) {
+                        if ( isset( $data->{$wp_org_section} ) ) {
+                            $new_version_readme_data->{$wp_org_section} = $data->{$wp_org_section};
+                        }
+                    }
 
                     $data = $new_version_readme_data;
                 }
