@@ -151,15 +151,31 @@
                 return;
             }
 
+            $license = $this->_fs->_get_license();
+
+            $subscription = $this->_fs->_get_subscription( $license->id );
+
             $contents = ob_get_clean();
 
             $contents = preg_replace(
-                '/(.+\<a.+id="plugin_update_from_iframe".+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
-                sprintf(
-                    '$1%s$3%s$5',
-                    $this->_fs->checkout_url(),
-                    fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
-                ),
+                '/(.+\<a.+)(id="plugin_update_from_iframe")(.+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
+                is_object( $license ) ?
+                    sprintf(
+                        '$1$3%s$5%s$7',
+                        $this->_fs->checkout_url(
+                            is_object( $subscription ) ?
+                                ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                                WP_FS__PERIOD_LIFETIME,
+                            false,
+                            array( 'licenses' => $license->quota )
+                        ),
+                        fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
+                    ) :
+                    sprintf(
+                        '$1$3%s$5%s$7',
+                        $this->_fs->pricing_url(),
+                        fs_text_inline( 'Buy license', 'buy-license', $this->_fs->get_slug() )
+                    ),
                 $contents
             );
 
@@ -244,11 +260,7 @@
                             $this->_fs->get_plugin_title()
                         ) .
                         ' ' .
-                        sprintf(
-                            $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                            '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                            $r->new_version
-                        ) .
+                        $this->_fs->version_upgrade_checkout_link( $r->new_version ) .
                         '$6'
                     ),
                     $plugin_update_row
@@ -296,10 +308,7 @@
 
             $prepared_themes[ $theme_basename ]['update'] = preg_replace(
                 '/(\<p.+>)(.+)(\<a.+\<a.+)\.(.+\<\/p\>)/is',
-                '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $themes_update->response[ $theme_basename ]['new_version'] ) .
+                '$1 $2 ' . $this->_fs->version_upgrade_checkout_link( $themes_update->response[ $theme_basename ]['new_version'] ) .
                 '$4',
                 $prepared_themes[ $theme_basename ]['update']
             );

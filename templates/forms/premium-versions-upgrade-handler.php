@@ -20,11 +20,30 @@
     $plugin_name     = $plugin_data['Name'];
     $plugin_basename = $fs->get_plugin_basename();
 
+    $license = $fs->_get_license();
+
+    if ( ! is_object( $license ) ) {
+        $purchase_url = $fs->pricing_url();
+    } else {
+        $subscription = $fs->_get_subscription( $license->id );
+
+        $purchase_url = $fs->checkout_url(
+            is_object( $subscription ) ?
+                ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                WP_FS__PERIOD_LIFETIME,
+            false,
+            array( 'licenses' => $license->quota )
+        );
+    }
+
     $message = sprintf(
         fs_text_inline( 'There is a new version of %s available.', 'new-version-available-message', $slug ) .
-        fs_text_inline( ' %sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
+        fs_text_inline( ' %s%s now%s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
         '<span id="plugin_name"></span>',
         '<a id="pricing_url" href="">',
+        is_object( $license ) ?
+            fs_text_inline( 'Renew your license', 'renew-your-license', $slug ) :
+            fs_text_inline( 'Buy a license', 'buy-a-license', $slug ),
         '</a>',
         '<span id="new_version"></span>'
     );
@@ -33,7 +52,9 @@
 
     $header_title = fs_text_inline( 'New Version Available', 'new-version-available', $slug );
 
-    $renew_license_button_text = fs_text_inline( 'Renew license', 'renew-license', $slug );
+    $renew_license_button_text = is_object( $license ) ?
+        fs_text_inline( 'Renew license', 'renew-license', $slug ) :
+        fs_text_inline( 'Buy license', 'buy-license', $slug );
 
     fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
@@ -56,7 +77,7 @@
                 + '         <div class="fs-modal-panel active">' + modalContentHtml + '</div>'
                 + '     </div>'
                 + '     <div class="fs-modal-footer">'
-                + '         <a class="button button-primary button-renew-license" tabindex="3" href="<?php echo $fs->pricing_url() ?>"><?php echo esc_js( $renew_license_button_text ) ?></a>'
+                + '         <a class="button button-primary button-renew-license" tabindex="3" href="<?php echo $purchase_url ?>"><?php echo esc_js( $renew_license_button_text ) ?></a>'
                 + '         <button class="button button-secondary button-close" tabindex="4"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></button>'
                 + '     </div>'
                 + ' </div>'

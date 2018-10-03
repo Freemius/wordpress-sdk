@@ -11379,6 +11379,40 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         *
+         * @param string $new_version
+         *
+         * @return string
+         */
+        function version_upgrade_checkout_link( $new_version ) {
+            if ( ! is_object( $this->_license ) ) {
+                $url = $this->pricing_url();
+
+                $purchase_license_text = $this->get_text_inline( 'Buy a license', 'buy-license' );
+            } else {
+                $subscription = $this->_get_subscription( $this->_license->id );
+
+                $url = $this->checkout_url(
+                    is_object( $subscription ) ?
+                        ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                        WP_FS__PERIOD_LIFETIME,
+                    false,
+                    array( 'licenses' => $this->_license->quota )
+                );
+
+                $purchase_license_text = $this->get_text_inline( 'Renew your license', 'renew-your-license' );
+            }
+
+            return sprintf(
+                $this->get_text_inline( '%s%s now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                '<a href="' . $url . '">', $purchase_license_text, '</a>',
+                $new_version
+            );
+        }
+
+        /**
          * Plugin's pricing URL.
          *
          * @author Vova Feldman (@svovaf)
