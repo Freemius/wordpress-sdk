@@ -64,7 +64,7 @@
         function _get_addon_info_filter( $data, $action = '', $args = null ) {
             $this->_logger->entrance();
 
-            $parent_plugin_id = fs_request_get( 'parent_plugin_id', false );
+            $parent_plugin_id = fs_request_get( 'parent_plugin_id', $this->_fs->get_id() );
 
             if ( $this->_fs->get_id() != $parent_plugin_id ||
                  ( 'plugin_information' !== $action ) ||

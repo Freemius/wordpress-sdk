@@ -154,7 +154,7 @@
             $contents = ob_get_clean();
 
             $contents = preg_replace(
-                '/(.+\<a.+id="plugin_update_from_iframe".*href=")(.+)("\s.+\>)(.+)(\<\/a.+)/is',
+                '/(.+\<a.+id="plugin_update_from_iframe".+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
                 sprintf(
                     '$1%s$3%s$5',
                     $this->_fs->checkout_url(),
@@ -229,12 +229,28 @@
 
             $r = $current->response[ $file ];
 
-            $this->current_response = $r;
-
             if ( ! $this->_fs->has_any_active_valid_license() ) {
-                $plugin_update_row = preg_replace_callback(
+                $plugin_update_row = preg_replace(
                     '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
-                    array( &$this, 'edit_plugin_update_row' ),
+                    (
+                        '$1' .
+                        sprintf(
+                            fs_text_inline( 'There is a %s of %s available.', 'new-version-available', $this->_fs->get_slug() ),
+                            sprintf(
+                                '<a href="$4"%s>%s</a>',
+                                '$5',
+                                fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() )
+                            ),
+                            $this->_fs->get_plugin_title()
+                        ) .
+                        ' ' .
+                        sprintf(
+                            $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                            '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
+                            $r->new_version
+                        ) .
+                        '$6'
+                    ),
                     $plugin_update_row
                 );
             }
@@ -242,7 +258,7 @@
             if (
                 $this->_fs->is_plugin() &&
                 isset( $r->upgrade_notice ) &&
-                strlen( trim ( $r->upgrade_notice ) ) > 0
+                strlen( trim( $r->upgrade_notice ) ) > 0
             ) {
                 $upgrade_notice_html = sprintf(
                     '<p class="notice upgrade-notice"><strong>%s</strong> %s</p>',
@@ -250,51 +266,10 @@
                     esc_html( $r->upgrade_notice )
                 );
 
-                $plugin_update_row = str_replace('</div>', '</div>' . $upgrade_notice_html, $plugin_update_row);
+                $plugin_update_row = str_replace( '</div>', '</div>' . $upgrade_notice_html, $plugin_update_row );
             }
 
             echo $plugin_update_row;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.4
-         *
-         * @param array $matches
-         *
-         * @return string
-         */
-        private function edit_plugin_update_row( $matches ) {
-            if ( ! $this->_fs->is_addon() ) {
-                $plugin_information_url = $matches[4];
-            } else {
-                $parts = parse_url( html_entity_decode( $matches[4] ) );
-                $query = $parts['query'];
-
-                parse_str($query, $params);
-
-                $params = array_merge( array( 'parent_plugin_id' => $this->_fs->get_parent_id() ), $params );
-
-                $plugin_information_url = add_query_arg( $params, $matches[4] );
-            }
-
-            return $matches[1] .
-                sprintf(
-                    fs_text_inline( 'There is a %s of %s available. ' ),
-                    sprintf(
-                        '<a href="%s"%s>%s</a>',
-                        $plugin_information_url,
-                        $matches[5],
-                        fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() )
-                    ),
-                    $this->_fs->get_plugin_title()
-                ) .
-                sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $this->current_response->new_version
-                ) .
-                $matches[6];
         }
 
         /**
@@ -504,6 +479,7 @@
 
             if ( $this->_fs->is_premium() ) {
                 $latest_tag = $this->_fs->_fetch_latest_version( $this->_fs->get_id(), false );
+
                 if (
                     isset( $latest_tag->readme ) &&
                     isset( $latest_tag->readme->upgrade_notice ) &&
