@@ -122,7 +122,6 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         *
          * @since 2.1.4
          */
         function catch_plugin_information_dialog_contents() {
@@ -140,8 +139,9 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         *
          * @since 2.1.4
+         *
+         * @param string $hook_suffix
          */
         function edit_and_echo_plugin_information_dialog_contents( $hook_suffix ) {
             if (

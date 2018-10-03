@@ -1506,7 +1506,6 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         *
          * @since 2.1.4
          */
         function enqueue_plugin_upgrade_notice_style() {
@@ -17442,7 +17441,7 @@
                 $endpoint = add_query_arg(
                     array(
                         'is_premium' => json_encode( $is_premium ),
-                        'readme'     => $is_premium
+                        'readme'     => json_encode( $is_premium )
                     ),
                     $endpoint
                 );
