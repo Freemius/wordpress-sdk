@@ -1231,6 +1231,22 @@
         }
 
         /**
+         * Opens the support forum subemenu item in a new browser page.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.1.4
+         */
+        static function _open_support_forum_in_new_page() {
+            ?>
+            <script type="text/javascript">
+                (function ($) {
+                    $('.fs-submenu-item.wp-support-forum').parent().attr('target', '_blank');
+                })(jQuery);
+            </script>
+            <?php
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          */
@@ -2680,6 +2696,8 @@
             }
 
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
+            add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
+
 
             self::$_statics_loaded = true;
         }
