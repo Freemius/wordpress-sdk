@@ -5774,6 +5774,8 @@
                 }
             }
 
+            $current_blog_id = get_current_blog_id();
+
             foreach ( $users_2_blog_ids as $user_id => $blog_ids ) {
                 if ( 0 < $blog_ids[0] ) {
                     $this->switch_to_blog( $blog_ids[0] );
@@ -5787,6 +5789,8 @@
             }
 
             if ( is_multisite() ) {
+                $this->switch_to_blog( $current_blog_id );
+
                 $this->do_action( "after_{$name}_cron_multisite" );
             }
         }
