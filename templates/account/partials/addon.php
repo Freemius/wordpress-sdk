@@ -19,7 +19,10 @@
 
     // Aliases.
     $download_latest_text              = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
-    $downgrade_x_confirm_text          = fs_text_inline( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
+    $downgrading_plan_text        = fs_text_inline( 'Downgrading your plan', 'downgrading-plan', $slug );
+    $cancelling_subscription_text = fs_text_inline( 'Cancelling the subscription', 'cancelling-subscription', $slug );
+    /* translators: %1s: Either 'Downgrading your plan' or 'Cancelling the subscription' */
+    $downgrade_x_confirm_text     = fs_text_inline( '%1s will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
     $cancel_trial_confirm_text         = fs_text_inline( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'cancel-trial-confirm', $slug );
     $after_downgrade_non_blocking_text = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
     $after_downgrade_blocking_text     = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
@@ -161,6 +164,7 @@
                 $human_readable_license_expiration = human_time_diff( time(), strtotime( $license->expiration ) );
                 $downgrade_confirmation_message    = sprintf(
                     $downgrade_x_confirm_text,
+                    ( $fs_addon->is_only_premium() ? $cancelling_subscription_text : $downgrading_plan_text ),
                     $plan->title,
                     $human_readable_license_expiration
                 );
