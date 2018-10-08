@@ -94,9 +94,10 @@ HTML;
 	        $cancelling_subscription_text               = fs_text_inline( 'Cancelling the subscription', 'cancelling-subscription', $slug );
 	        /* translators: %1s: Either 'Downgrading your plan' or 'Cancelling the subscription' */
 	        $downgrade_x_confirm_text                   = fs_text_inline( '%1s will immediately stop all future recurring payments and your %s plan license will expire in %s.', 'downgrade-x-confirm', $slug );
-            $after_downgrade_non_blocking_text          = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
-            $after_downgrade_blocking_text              = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
-            $after_downgrade_blocking_text_premium_only = fs_text_inline( 'Once your license expires you will no longer be able to use the %s, unless you activate it again with a valid premium license.', 'after-downgrade-blocking-premium-only', $slug );
+	        $prices_increase_text                       = fs_text_inline( 'Please note that we will not be able to grandfather outdated pricing for renewals/new subscriptions after a cancellation. If you choose to renew the subscription manually in the future, after a price increase, which typically occurs once a year, you will be charged the updated price.', 'pricing-increase-warning', $slug );
+	        $after_downgrade_non_blocking_text          = fs_text_inline( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.', 'after-downgrade-non-blocking', $slug );
+	        $after_downgrade_blocking_text              = fs_text_inline( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.', 'after-downgrade-blocking', $slug );
+	        $after_downgrade_blocking_text_premium_only = fs_text_inline( 'Once your license expires you will no longer be able to use the %s, unless you activate it again with a valid premium license.', 'after-downgrade-blocking-premium-only', $slug );
 
             $subscription_cancellation_confirmation_message = $has_trial ?
                 fs_text_inline( 'Cancelling the trial will immediately block access to all premium features. Are you sure?', 'cancel-trial-confirm', $slug ) :
@@ -117,6 +118,7 @@ HTML;
                             ) :
                             sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) )
                     ),
+	                $prices_increase_text,
                     fs_esc_attr_inline( 'Are you sure you want to proceed?', 'proceed-confirmation', $slug )
                 );
         }
@@ -182,8 +184,7 @@ HTML;
 ?>
 <script type="text/javascript">
 (function ($) {
-	var subscriptionCancellationHtml = <?php echo json_encode( $subscription_cancellation_html ) ?>,
-	    reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
+	var reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
 	    modalHtml =
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo ! empty( $modal_classes ) ? ( ' ' . implode(' ', $modal_classes ) ) : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
@@ -193,7 +194,7 @@ HTML;
 		    + '		<div class="fs-modal-body">'
 		    + '			<div class="fs-modal-panel" data-panel-id="confirm"><p><?php echo $confirmation_message; ?></p></div>'
 		    + '			<div class="fs-modal-panel<?php echo empty( $subscription_cancellation_html ) ? ' active' : '' ?>" data-panel-id="reasons"><h3><strong><?php echo esc_js( sprintf( fs_text_inline( 'If you have a moment, please let us know why you are %s', 'deactivation-share-reason' , $slug ), ( $fs->is_plugin() ? fs_text_inline( 'deactivating', 'deactivating', $slug ) : fs_text_inline( 'switching', 'switching', $slug ) ) ) ) ?>:</strong></h3><ul id="reasons-list">' + reasonsHtml + '</ul></div>'
-            + '			<div class="fs-modal-panel<?php echo ! empty( $subscription_cancellation_html ) ? ' active' : '' ?>" data-panel-id="subscription-actions">' + subscriptionCancellationHtml + '</div>'
+            + '			<div class="fs-modal-panel<?php echo ! empty( $subscription_cancellation_html ) ? ' active' : '' ?>" data-panel-id="subscription-actions">' + <?php echo json_encode( $subscription_cancellation_html ) ?> + '<p class="fs-price-increase-warning" style="display: none;">' + <?php echo json_encode( $prices_increase_text ) ?> + '</p></div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
@@ -429,8 +430,11 @@ HTML;
                         fs_text_inline( 'Cancel %s & Proceed', 'cancel-x-and-proceed', $slug ),
                         ucfirst( $subscription_cancellation_context )
                     ) ) ?> );
+
+	                $modal.find('.fs-price-increase-warning').show();
                 } else {
                     $primaryButton.html( <?php echo fs_json_encode_echo_inline( 'Proceed', 'proceed', $slug ) ?> );
+	                $modal.find('.fs-price-increase-warning').hide();
                 }
 
                 $primaryButton.toggleClass( 'warn', isSelected );
