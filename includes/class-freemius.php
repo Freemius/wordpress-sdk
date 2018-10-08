@@ -1507,6 +1507,11 @@
                 array( &$this, '_submit_uninstall_reason_action' )
             );
 
+            $this->add_ajax_action(
+                'cancel_subscription_or_trial',
+                array( &$this, 'cancel_subscription_or_trial_ajax_action' )
+            );
+
             if ( ! $this->is_addon() || $this->is_parent_plugin_installed() ) {
                 if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
                      ( $this->is_theme() && self::is_themes_page() )
@@ -2075,6 +2080,51 @@
             // Print '1' for successful operation.
             echo 1;
             exit;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.4
+         */
+        function cancel_subscription_or_trial_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'cancel_subscription_or_trial' );
+
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+
+            if ( $this->is_api_error( $result ) ) {
+                $this->shoot_ajax_failure( $result->error->message );
+            }
+
+            $this->shoot_ajax_success();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.1.4
+         *
+         * @return object
+         *
+         * @param number $plugin_id
+         */
+        private function cancel_subscription_or_trial( $plugin_id ) {
+            $fs = null;
+            if ( $plugin_id == $this->get_id() ) {
+                $fs = $this;
+            } else if ( $this->is_addon_activated( $plugin_id ) ) {
+                $fs = self::get_instance_by_id( $plugin_id );
+            }
+
+            $result = null;
+
+            if ( ! is_null( $fs ) ) {
+                $result = $fs->is_paid_trial() ?
+                    $fs->_cancel_trial() :
+                    $fs->_downgrade_site();
+            }
+
+            return $result;
         }
 
         /**
@@ -17168,6 +17218,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.4
          *
+         * @return object
+         *
          * @uses   FS_Api
          */
         private function _downgrade_site() {
@@ -17195,26 +17247,28 @@
 
             }
 
-            if ( $plan_downgraded ) {
-                // Remove previous sticky message about upgrade (if exist).
-                $this->_admin_notices->remove_sticky( 'plan_upgraded' );
-
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'plan-x-downgraded-message' ),
-                        $plan->title,
-                        human_time_diff( time(), strtotime( $this->_license->expiration ) )
+            if ( ! $plan_downgraded ) {
+                return (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your subscription cancellation. Please try again in few minutes.', 'subscription-cancellation-failure-message' )
                     )
                 );
-
-                // Store site updates.
-                $this->_store_site();
-            } else {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'plan-downgraded-failure-message' ),
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
             }
+
+            // Remove previous sticky message about upgrade (if exist).
+            $this->_admin_notices->remove_sticky( 'plan_upgraded' );
+
+            $this->_admin_notices->add(
+                sprintf( $this->get_text_inline( 'Your subscription was successfully cancelled. Your %s plan license will expire in %s.', 'plan-x-downgraded-message' ),
+                    $plan->title,
+                    human_time_diff( time(), strtotime( $this->_license->expiration ) )
+                )
+            );
+
+            // Store site updates.
+            $this->_store_site();
+
+            return $site;
         }
 
         /**
@@ -17321,22 +17375,19 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
+         * @return object
+         *
          * @uses   FS_Api
          */
         private function _cancel_trial() {
             $this->_logger->entrance();
 
-            // Alias.
-            $oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
-
             if ( ! $this->is_trial() ) {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'trial-cancel-no-trial-message' ),
-                    $oops_text,
-                    'error'
+                return (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'It looks like you are not in trial mode anymore so there\'s nothing to cancel :)', 'trial-cancel-no-trial-message' )
+                    )
                 );
-
-                return;
             }
 
             $trial_plan = $this->get_trial_plan();
@@ -17367,31 +17418,33 @@
                 // @todo handle different error cases.
             }
 
-            if ( $trial_cancelled ) {
-                // Remove previous sticky messages about upgrade or trial (if exist).
-                $this->_admin_notices->remove_sticky( array(
-                    'trial_started',
-                    'trial_promotion',
-                    'plan_upgraded',
-                ) );
-
-                // Store site updates.
-                $this->_store_site();
-
-                if ( ! $this->is_addon() ||
-                     ! $this->deactivate_premium_only_addon_without_license( true )
-                ) {
-                    $this->_admin_notices->add(
-                        sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $trial_plan->title )
-                    );
-                }
-            } else {
-                $this->_admin_notices->add(
-                    $this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' ),
-                    $oops_text,
-                    'error'
+            if ( ! $trial_cancelled ) {
+                return (object) array(
+                    'error' => (object) array(
+                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' )
+                    )
                 );
             }
+
+            // Remove previous sticky messages about upgrade or trial (if exist).
+            $this->_admin_notices->remove_sticky( array(
+                'trial_started',
+                'trial_promotion',
+                'plan_upgraded',
+            ) );
+
+            // Store site updates.
+            $this->_store_site();
+
+            if ( ! $this->is_addon() ||
+                 ! $this->deactivate_premium_only_addon_without_license( true )
+            ) {
+                $this->_admin_notices->add(
+                    sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $trial_plan->title )
+                );
+            }
+
+            return $site;
         }
 
         /**
@@ -18177,15 +18230,23 @@
                         check_admin_referer( $action );
                     }
 
-                    if ( $plugin_id == $this->get_id() ) {
-                        $this->_downgrade_site();
+                    $switch_to_network_install_blog_after_cancellation = (
+                        is_numeric( $blog_id ) &&
+                        $plugin_id == $this->get_id() &&
+                        ! $this->is_trial()
+                    );
 
-                        if ( is_numeric( $blog_id ) ) {
-                            $this->switch_to_blog( $this->_storage->network_install_blog_id );
-                        }
-                    } else if ( $this->is_addon_activated( $plugin_id ) ) {
-                        $fs_addon = self::get_instance_by_id( $plugin_id );
-                        $fs_addon->_downgrade_site();
+                    $result = $this->cancel_subscription_or_trial( $plugin_id );
+                    if ( $this->is_api_error( $result ) ) {
+                        $this->_admin_notices->add(
+                            $result->error->message,
+                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                            'error'
+                        );
+                    }
+
+                    if ( $switch_to_network_install_blog_after_cancellation ) {
+                        $this->switch_to_blog( $this->_storage->network_install_blog_id );
                     }
 
                     return;
@@ -18315,13 +18376,13 @@
                 #region Actions that might be called from external links (e.g. email)
 
                 case 'cancel_trial':
-                    if ( $plugin_id == $this->get_id() ) {
-                        $this->_cancel_trial();
-                    } else {
-                        if ( $this->is_addon_activated( $plugin_id ) ) {
-                            $fs_addon = self::get_instance_by_id( $plugin_id );
-                            $fs_addon->_cancel_trial();
-                        }
+                    $result = $this->cancel_subscription_or_trial( $plugin_id );
+                    if ( $this->is_api_error( $result ) ) {
+                        $this->_admin_notices->add(
+                            $result->error->message,
+                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                            'error'
+                        );
                     }
 
                     return;
