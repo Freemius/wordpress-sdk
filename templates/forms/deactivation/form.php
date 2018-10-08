@@ -10,6 +10,9 @@
 		exit;
 	}
 
+	/**
+	 * @var array $VARS
+	 */
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
@@ -27,11 +30,21 @@
         $fs->_get_license() :
         null;
 
-    if ( is_object( $license ) && ! $license->is_lifetime() && $license->is_single_site() ) {
+	/**
+	 * If the installation is associated with a non-lifetime license, which is either a single-site or only activated on a single production site (or zero), and connected to an active subscription, suggest the customer to cancel the subscription upon deactivation.
+	 *
+	 * @author Leo Fajardo (@leorw) (Comment added by Vova Feldman @svovaf)
+	 * @since 2.2.0
+	 */
+	if ( is_object( $license ) &&
+	     ! $license->is_lifetime() &&
+	     ( $license->is_single_site() || 1 >= $license->activated )
+	) {
         $subscription = $fs->_get_subscription( $license->id );
 
         if ( is_object( $subscription ) && $subscription->is_active() ) {
-            $has_trial                         = $fs->is_paid_trial();
+	        $has_trial = $fs->is_paid_trial();
+
             $subscription_cancellation_context = $has_trial ?
                 fs_text_inline( 'trial', 'trial', $slug ) :
                 fs_text_inline( 'subscription', 'subscription', $slug );
@@ -44,7 +57,7 @@
                 esc_html( sprintf(
                     fs_text_inline(
                         "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site. In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?",
-                        'deactivation-or-uninstallation-message',
+                        'deactivation-or-uninstall-message',
                         $slug
                     ),
                     $module_label,
