@@ -17222,26 +17222,26 @@
 
             }
 
-            if ( $plan_downgraded ) {
-                // Remove previous sticky message about upgrade (if exist).
-                $this->_admin_notices->remove_sticky( 'plan_upgraded' );
-
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Your plan was successfully downgraded. Your %s plan license will expire in %s.', 'plan-x-downgraded-message' ),
-                        $plan->title,
-                        human_time_diff( time(), strtotime( $this->_license->expiration ) )
-                    )
-                );
-
-                // Store site updates.
-                $this->_store_site();
-            } else {
-                $site = (object) array(
+            if ( ! $plan_downgraded ) {
+                return (object) array(
                     'error' => (object) array(
-                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your plan downgrade. Please try again in few minutes.', 'plan-downgraded-failure-message' )
+                        'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your subscription cancellation. Please try again in few minutes.', 'subscription-cancellation-failure-message' )
                     )
                 );
             }
+
+            // Remove previous sticky message about upgrade (if exist).
+            $this->_admin_notices->remove_sticky( 'plan_upgraded' );
+
+            $this->_admin_notices->add(
+                sprintf( $this->get_text_inline( 'Your subscription was successfully cancelled. Your %s plan license will expire in %s.', 'plan-x-downgraded-message' ),
+                    $plan->title,
+                    human_time_diff( time(), strtotime( $this->_license->expiration ) )
+                )
+            );
+
+            // Store site updates.
+            $this->_store_site();
 
             return $site;
         }
@@ -17393,29 +17393,29 @@
                 // @todo handle different error cases.
             }
 
-            if ( $trial_cancelled ) {
-                // Remove previous sticky messages about upgrade or trial (if exist).
-                $this->_admin_notices->remove_sticky( array(
-                    'trial_started',
-                    'trial_promotion',
-                    'plan_upgraded',
-                ) );
-
-                // Store site updates.
-                $this->_store_site();
-
-                if ( ! $this->is_addon() ||
-                     ! $this->deactivate_premium_only_addon_without_license( true )
-                ) {
-                    $this->_admin_notices->add(
-                        sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $trial_plan->title )
-                    );
-                }
-            } else {
-                $site = (object) array(
+            if ( ! $trial_cancelled ) {
+                return (object) array(
                     'error' => (object) array(
                         'message' => $this->get_text_inline( 'Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes.', 'trial-cancel-failure-message' )
                     )
+                );
+            }
+
+            // Remove previous sticky messages about upgrade or trial (if exist).
+            $this->_admin_notices->remove_sticky( array(
+                'trial_started',
+                'trial_promotion',
+                'plan_upgraded',
+            ) );
+
+            // Store site updates.
+            $this->_store_site();
+
+            if ( ! $this->is_addon() ||
+                 ! $this->deactivate_premium_only_addon_without_license( true )
+            ) {
+                $this->_admin_notices->add(
+                    sprintf( $this->get_text_inline( 'Your %s free trial was successfully cancelled.', 'trial-cancel-message' ), $trial_plan->title )
                 );
             }
 
