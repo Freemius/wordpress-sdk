@@ -1378,6 +1378,10 @@
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
+            if ( version_compare( phpversion(), '5.3.0', '>=' ) ) {
+                add_action ( 'pre_prepare_themes_for_js', array( &$this, 'maybe_fix_child_themes_parent' ), 10, 3 );
+            }
+
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
 
@@ -1422,6 +1426,142 @@
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         *
+         * @param array      $prepared_themes An associative array of theme data. Defaults to empty array.
+         * @param WP_Theme[] $themes          An array of WP_Theme objects to prepare.
+         * @param string     $current_theme   The current theme slug.
+         *
+         * @return array
+         */
+        function maybe_fix_child_themes_parent( $prepared_themes, $themes, $current_theme ) {
+            if ( ! empty( $prepared_themes ) ) {
+                return $prepared_themes;
+            }
+
+            // Make sure the current theme is listed first.
+            $prepared_themes[ $current_theme ] = array();
+
+            $themes_with_errors = wp_get_themes( array( 'errors' => true ) );
+            if ( empty( $themes_with_errors ) ) {
+                return $prepared_themes;
+            }
+
+            $allowed_themes = wp_get_themes( array( 'allowed' => true ) );
+
+            foreach ( $themes_with_errors as $theme_name => $theme ) {
+                if (
+                    $theme->get_template() === $theme->get_stylesheet() ||
+                    ! isset( $allowed_themes[ $theme->get_template() . '-premium' ] )
+                ) {
+                    /**
+                     * Skip non-child themes and themes that don't have valid premium theme version parent.
+                     */
+                    continue;
+                }
+
+                $theme_cache_hash = md5( $theme->get_theme_root() . '/' . $theme->get_stylesheet() );
+
+                $ref_object   = new ReflectionObject( $theme );
+                $ref_Property = $ref_object->getProperty( 'parent' );
+                $ref_Property->setAccessible( true );
+                $ref_Property->setValue( $theme, new WP_Theme( $theme->get_template() . '-premium', $theme->get_theme_root(), $theme ) );
+
+                $ref_Property = $ref_object->getProperty( 'errors' );
+                $ref_Property->setAccessible( true );
+                $ref_Property->setValue( $theme, null );
+
+                $ref_Property = $ref_object->getProperty( 'template' );
+                $ref_Property->setAccessible( true );
+                $ref_Property->setValue( $theme, $theme->get_template() . '-premium' );
+
+                if ( $current_theme === $theme->get_stylesheet() ) {
+                    update_option( 'template', $theme->get_template() );
+                }
+
+                $cached = wp_cache_get( 'theme-' . $theme_cache_hash, 'themes' );
+                if ( is_array( $cached ) ) {
+                    unset( $cached['errors'] );
+                    wp_cache_set( 'theme-' . $theme_cache_hash, $cached, 'themes', 1800 );
+                }
+            }
+
+            $themes = array_merge(
+                $allowed_themes,
+                $themes_with_errors
+            );
+
+            if ( ! isset( $themes[ $current_theme ] ) ) {
+                $themes[ $current_theme ] = wp_get_theme();
+            }
+
+            $updates = array();
+            if ( current_user_can( 'update_themes' ) ) {
+                $updates_transient = get_site_transient( 'update_themes' );
+                if ( isset( $updates_transient->response ) ) {
+                    $updates = $updates_transient->response;
+                }
+            }
+
+            WP_Theme::sort_by_name( $themes );
+
+            $parents = array();
+
+            foreach ( $themes as $theme ) {
+                $slug = $theme->get_stylesheet();
+                $encoded_slug = urlencode( $slug );
+
+                $parent = false;
+                if ( $theme->parent() ) {
+                    $parent = $theme->parent();
+                    $parents[ $slug ] = $parent->get_stylesheet();
+                    $parent = $parent->display( 'Name' );
+                }
+
+                $customize_action = null;
+                if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+                    $customize_action = esc_url( add_query_arg(
+                        array(
+                            'return' => urlencode( esc_url_raw( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) ),
+                        ),
+                        wp_customize_url( $slug )
+                    ) );
+                }
+
+                $prepared_themes[ $slug ] = array(
+                    'id'           => $slug,
+                    'name'         => $theme->display( 'Name' ),
+                    'screenshot'   => array( $theme->get_screenshot() ), // @todo multiple
+                    'description'  => $theme->display( 'Description' ),
+                    'author'       => $theme->display( 'Author', false, true ),
+                    'authorAndUri' => $theme->display( 'Author' ),
+                    'version'      => $theme->display( 'Version' ),
+                    'tags'         => $theme->display( 'Tags' ),
+                    'parent'       => $parent,
+                    'active'       => $slug === $current_theme,
+                    'hasUpdate'    => isset( $updates[ $slug ] ),
+                    'hasPackage'   => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ][ 'package' ] ),
+                    'update'       => get_theme_update_available( $theme ),
+                    'actions'      => array(
+                        'activate' => current_user_can( 'switch_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,
+                        'customize' => $customize_action,
+                        'delete'   => current_user_can( 'delete_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
+                    ),
+                );
+            }
+
+            // Remove 'delete' action if theme has an active child
+            if ( ! empty( $parents ) && array_key_exists( $current_theme, $parents ) ) {
+                unset( $prepared_themes[ $parents[ $current_theme ] ]['actions']['delete'] );
+            }
+
+            $prepared_themes = array_values( $prepared_themes );
+
+            return array_filter( $prepared_themes );
         }
 
         /**
