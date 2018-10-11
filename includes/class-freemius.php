@@ -1378,6 +1378,8 @@
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
+            add_action( 'load-themes.php', array( &$this, 'maybe_fix_child_themes_parent' ), 9 );
+
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
 
@@ -1421,6 +1423,66 @@
                  $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         */
+        function maybe_fix_child_themes_parent() {
+            $theme_directories = search_theme_directories();
+
+            $file_headers = array(
+                'Name'        => 'Theme Name',
+                'ThemeURI'    => 'Theme URI',
+                'Description' => 'Description',
+                'Author'      => 'Author',
+                'AuthorURI'   => 'Author URI',
+                'Version'     => 'Version',
+                'Template'    => 'Template',
+                'Status'      => 'Status',
+                'Tags'        => 'Tags',
+                'TextDomain'  => 'Text Domain',
+                'DomainPath'  => 'Domain Path',
+            );
+
+            $parent_themes        = array();
+            $child_themes_headers = array();
+
+            foreach ( $theme_directories as $stylesheet => $theme_directory ) {
+                $headers = get_file_data( $theme_directory['theme_root'] . '/' . $theme_directory['theme_file'], $file_headers, 'theme' );
+                if ( empty( $headers['Template'] ) || $headers['Template'] === $stylesheet ) {
+                    $parent_themes[ $stylesheet ] = true;
+                } else {
+                    $child_themes_headers[ $stylesheet ] = $headers;
+                }
+            }
+
+            if ( empty( $child_themes_headers ) ) {
+                return;
+            }
+
+            foreach ( $child_themes_headers as $stylesheet => $headers ) {
+                $parent_template = $headers['Template'];
+                if ( fs_ends_with( $parent_template, '-premium' ) ||
+                    ! isset( $parent_themes[ $parent_template . '-premium' ] )
+                ) {
+                    continue;
+                }
+
+                $headers['Template'] = ( $parent_template . '-premium' );
+
+                wp_cache_set(
+                    ( 'theme-' . md5( $theme_directories[ $stylesheet ]['theme_root'] . '/' . $stylesheet ) ),
+                    array(
+                        'headers'    => $headers,
+                        'stylesheet' => $stylesheet,
+                        'template'   => $headers['Template']
+                    ),
+                    'themes',
+                    1800
+                );
             }
         }
 
