@@ -1378,7 +1378,7 @@
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
-            add_action( 'load-themes.php', array( &$this, 'maybe_fix_child_themes_parent' ), 9 );
+            add_action( 'admin_init', array( &$this, 'maybe_fix_child_themes_parent' ), 9 );
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
@@ -1431,55 +1431,42 @@
          * @since 2.2.1
          */
         function maybe_fix_child_themes_parent() {
-            $theme_directories = search_theme_directories();
-
-            $file_headers = array(
-                'Name'        => 'Theme Name',
-                'ThemeURI'    => 'Theme URI',
-                'Description' => 'Description',
-                'Author'      => 'Author',
-                'AuthorURI'   => 'Author URI',
-                'Version'     => 'Version',
-                'Template'    => 'Template',
-                'Status'      => 'Status',
-                'Tags'        => 'Tags',
-                'TextDomain'  => 'Text Domain',
-                'DomainPath'  => 'Domain Path',
-            );
-
-            $parent_themes        = array();
-            $child_themes_headers = array();
-
-            foreach ( $theme_directories as $stylesheet => $theme_directory ) {
-                $headers = get_file_data( $theme_directory['theme_root'] . '/' . $theme_directory['theme_file'], $file_headers, 'theme' );
-                if ( empty( $headers['Template'] ) || $headers['Template'] === $stylesheet ) {
-                    $parent_themes[ $stylesheet ] = true;
-                } else {
-                    $child_themes_headers[ $stylesheet ] = $headers;
-                }
-            }
-
-            if ( empty( $child_themes_headers ) ) {
+            global $pagenow;
+            if ( 'themes.php' !== $pagenow ) {
                 return;
             }
 
-            foreach ( $child_themes_headers as $stylesheet => $headers ) {
-                $parent_template = $headers['Template'];
-                if ( fs_ends_with( $parent_template, '-premium' ) ||
-                    ! isset( $parent_themes[ $parent_template . '-premium' ] )
+            $theme_directories = search_theme_directories();
+
+            $themes = array();
+            foreach ( $theme_directories as $stylesheet => $theme_root ) {
+                $theme = new WP_Theme( $stylesheet, $theme_root['theme_root'] );
+                if ( empty( $theme->errors() ) && $theme->parent() ) {
+                    continue;
+                }
+
+                $themes[ $stylesheet ] = $theme;
+            }
+
+            foreach ( $themes as $stylesheet => $theme ) {
+                if (
+                    $theme->get_template() === $stylesheet ||
+                    fs_ends_with( $theme->get_template(), '-premium' ) ||
+                    ! isset( $themes[ $theme->get_template() . '-premium' ] )
                 ) {
                     continue;
                 }
 
-                $headers['Template'] = ( $parent_template . '-premium' );
+                $cache_hash = ( 'theme-' . md5( $theme->get_theme_root() . '/' . $stylesheet ) );
+                $cache      = wp_cache_get( $cache_hash, 'themes' );
+
+                unset( $cache['errors'] );
+                $cache['template']            = ( $theme->get_template() . '-premium' );
+                $cache['headers']['Template'] = $cache['template'];
 
                 wp_cache_set(
-                    ( 'theme-' . md5( $theme_directories[ $stylesheet ]['theme_root'] . '/' . $stylesheet ) ),
-                    array(
-                        'headers'    => $headers,
-                        'stylesheet' => $stylesheet,
-                        'template'   => $headers['Template']
-                    ),
+                    $cache_hash,
+                    $cache,
                     'themes',
                     1800
                 );
