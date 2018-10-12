@@ -19523,29 +19523,50 @@
                 return '' . $activate_license_string;
             }
 
-            if ( empty( $plan_title ) ) {
-                $plan_title = $this->get_plan_title();
+            $premium_plugin_basename = $this->premium_plugin_basename();
+            $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
+            if ( ! empty( $premium_plugin ) ) {
+                $plan_name = $this->get_plan_name();
+
+                return sprintf(
+                    $this->get_text_inline( ' Hey%s, the paid version of %s is already installed. Please activate it to start benefiting the %s features. %s', 'activate-premium-version' ),
+                    ( ! empty( $this->_user->first ) ? ' ' . $this->_user->first : '' ),
+                    $this->get_plugin_title(),
+                    $plan_name,
+                    sprintf(
+                        '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
+                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
+                        esc_html( sprintf(
+                            $this->get_text_inline( 'Activate %s features', 'activate-x-features' ),
+                            $plan_name
+                        ) )
+                    )
+                );
+            } else {
+                if ( empty( $plan_title ) ) {
+                    $plan_title = $this->get_plan_title();
+                }
+
+                // @since 1.2.1.5 The free version is auto deactivated.
+                $deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
+                    ( '<li>' . $this->esc_html_inline( 'Deactivate the free version', 'deactivate-free-version' ) . '.</li>' ) :
+                    '';
+
+                return sprintf(
+                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+                    $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
+                    ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
+                    $this->get_latest_download_link( sprintf(
+                    /* translators: %s: Plan title */
+                        $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
+                        $plan_title
+                    ) ),
+                    $deactivation_step,
+                    $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
+                    '//bit.ly/upload-wp-' . $this->_module_type . 's',
+                    $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
+                );
             }
-
-            // @since 1.2.1.5 The free version is auto deactivated.
-            $deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
-                ( '<li>' . $this->esc_html_inline( 'Deactivate the free version', 'deactivate-free-version' ) . '.</li>' ) :
-                '';
-
-            return sprintf(
-                ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
-                $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
-                ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
-                $this->get_latest_download_link( sprintf(
-                /* translators: %s: Plan title */
-                    $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
-                    $plan_title
-                ) ),
-                $deactivation_step,
-                $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
-                '//bit.ly/upload-wp-' . $this->_module_type . 's',
-                $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
-            );
         }
 
         /**
