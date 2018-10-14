@@ -99,7 +99,7 @@
 			 * @since  1.2.1.7
 			 */
 			$has_changes = false;
-			foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
+			foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
 				if ( ! file_exists( WP_PLUGIN_DIR . '/' . $sdk_path ) ) {
 					unset( $fs_active_plugins->plugins[ $sdk_path ] );
 					$has_changes = true;
