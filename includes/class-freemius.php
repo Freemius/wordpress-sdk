@@ -19526,12 +19526,18 @@
             $premium_plugin_basename = $this->premium_plugin_basename();
             $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
             if ( ! empty( $premium_plugin ) ) {
+                /**
+                 * If the premium version is already installed, instead of showing the installation instructions,
+                 * tell the current user to activate it.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
                 $plan_name = $this->get_plan_name();
 
                 return sprintf(
-                    $this->get_text_inline( ' Hey%s, the paid version of %s is already installed. Please activate it to start benefiting the %s features. %s', 'activate-premium-version' ),
-                    ( ! empty( $this->_user->first ) ? ' ' . $this->_user->first : '' ),
-                    $this->get_plugin_title(),
+                    $this->get_text_inline( ' The paid version of %s is already installed. Please activate it to start benefiting the %s features. %s', 'activate-premium-version' ),
+                    sprintf( '<em>%s</em>', esc_html( $this->get_plugin_title() ) ),
                     $plan_name,
                     sprintf(
                         '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
