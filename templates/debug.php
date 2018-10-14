@@ -205,7 +205,7 @@
     </tr>
     </thead>
     <tbody>
-    <?php foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) : ?>
+    <?php foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) : ?>
         <?php $is_active = ( WP_FS__SDK_VERSION == $data->version ) ?>
         <tr<?php if ( $is_active ) {
             echo ' style="background: #E6FFE6; font-weight: bold"';

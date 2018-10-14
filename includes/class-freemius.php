@@ -1705,7 +1705,7 @@
             $all_plugins_paths = array();
 
             // Get active plugin's main files real full names (might be symlinks).
-            foreach ( $all_plugins as $relative_path => &$data ) {
+            foreach ( $all_plugins as $relative_path => $data ) {
                 if ( false === strpos( fs_normalize_path( $relative_path ), '/' ) ) {
                     /**
                      * Ignore plugins that don't have a folder (e.g. Hello Dolly) since they
@@ -5137,7 +5137,7 @@
 
             $all_plugins = $this->get_all_plugins();
 
-            foreach ( $all_plugins as $basename => &$data ) {
+            foreach ( $all_plugins as $basename => $data ) {
                 if ( $addon->slug === $data['slug'] ||
                      $addon->slug . '-premium' === $data['slug']
                 ) {
@@ -7114,7 +7114,7 @@
         private function remove_sdk_reference() {
             global $fs_active_plugins;
 
-            foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
+            foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
                 if ( $this->_plugin_basename == $data->plugin_path ) {
                     unset( $fs_active_plugins->plugins[ $sdk_path ] );
                     break;
