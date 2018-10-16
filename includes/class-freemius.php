@@ -2361,10 +2361,13 @@
         function is_site_activation_mode( $and_on = true ) {
             return (
                 ( $this->is_on() || ! $and_on ) &&
-                ( ! $this->is_registered() ||
-                  ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
-                ( ! $this->is_enable_anonymous() ||
-                  ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
+                ( $this->is_premium() && false === $this->_storage->skip_license_activation ) ||
+                (
+                    ( ! $this->is_registered() ||
+                      ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
+                    ( ! $this->is_enable_anonymous() ||
+                      ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
+                )
             );
         }
 
@@ -2399,7 +2402,7 @@
                 return false;
             }
 
-            if ( $this->is_network_anonymous() ) {
+            if ( $this->is_network_anonymous() && false !== $this->_storage->skip_license_activation ) {
                 // Super-admin skipped the connection network wide -> not activation mode.
                 return false;
             }
@@ -6260,6 +6263,7 @@
             if ( ! $this->is_addon() &&
                  ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
                  (
+                     ( false === $this->_storage->skip_license_activation ) ||
                      // Not registered nor anonymous.
                      ( ! $this->is_registered() && ! $this->is_anonymous() ) ||
                      // OR, network level and in network upgrade mode.
@@ -6276,14 +6280,18 @@
                          * @since  1.2.2
                          */
                         if ( $this->is_theme()
-                             && $this->is_only_premium()
                              && ! $this->has_settings_menu()
                              && ! isset( $_REQUEST['fs_action'] )
                              && $this->can_activate_previous_theme()
                         ) {
-                            $this->activate_previous_theme();
+                            if ( $this->is_only_premium() ) {
+                                $this->activate_previous_theme();
+                                return;
+                            }
 
-                            return;
+                            if ( false === $this->_storage->skip_license_activation ) {
+                                $this->_storage->skip_license_activation = true;
+                            }
                         }
 
                         if ( ! fs_is_network_admin() &&
@@ -6843,6 +6851,16 @@
                 ) {
                     $this->reset_anonymous_mode( $network );
                 }
+            }
+
+            if (
+                $is_premium_version_activation &&
+                (
+                    $this->is_anonymous() ||
+                    ( $this->is_registered() && ! $this->has_features_enabled_license() )
+                )
+            ) {
+                $this->_storage->skip_license_activation = false;
             }
 
             if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
@@ -10885,6 +10903,10 @@
                 }
             }
 
+            if ( false === $error && false === $this->_storage->skip_license_activation ) {
+                $this->_storage->skip_license_activation = true;
+            }
+
             $result = array(
                 'success' => ( false === $error )
             );
@@ -13214,6 +13236,12 @@
                     // then update plugin version event.
                     $this->update_plugin_version_event();
                 }
+            }
+
+            if ( false === $this->_storage->skip_license_activation &&
+                ! fs_request_get_bool( 'require_license', true )
+            ) {
+                $this->_storage->skip_license_activation = true;
             }
 
             if ( $this->is_theme() ) {
