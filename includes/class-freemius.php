@@ -10609,6 +10609,21 @@
         }
 
         /**
+         * Displays a subscription cancellation dialog box when the user clicks on the "Deactivate License"
+         * link on the "Account" page or deactivates a plugin.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.1
+         */
+        function _add_subscription_cancellation_dialog_box() {
+            $vars = array(
+                'id' => $this->_module_id,
+            );
+
+            fs_require_template( 'forms/subscription-cancellation.php', $vars );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.0.2
          */

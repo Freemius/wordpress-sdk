@@ -613,23 +613,27 @@
 		</div>
 	</div>
     <script type="text/javascript">
+        var setLoading = function ($this, label) {
+            // Set loading mode.
+            jQuery(document.body).css({'cursor': 'wait'});
+
+            $this.css({'cursor': 'wait'});
+
+            if ($this.is('input'))
+                $this.val(label);
+            else
+                $this.html(label);
+
+            setTimeout(function () {
+                $this.attr('disabled', 'disabled');
+            }, 200);
+        };
+    </script>
+    <?php if ( $is_paying && ! fs_is_network_admin() ) : ?>
+    <?php $fs->_add_subscription_cancellation_dialog_box() ?>
+    <?php endif ?>
+    <script type="text/javascript">
         (function ($) {
-            var setLoading = function ($this, label) {
-                // Set loading mode.
-                $(document.body).css({'cursor': 'wait'});
-
-                $this.css({'cursor': 'wait'});
-
-                if ($this.is('input'))
-                    $this.val(label);
-                else
-                    $this.html(label);
-
-                setTimeout(function () {
-                    $this.attr('disabled', 'disabled');
-                }, 200);
-            };
-
 	        $('.fs-toggle-visibility').click(function () {
 		        var
 			        $this = $(this),
@@ -672,17 +676,6 @@
 
             $('.fs-activate-license').click(function () {
                 setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
-            });
-
-            $('.fs-deactivate-license').click(function () {
-                if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
-                    var $this = $(this);
-
-                    setLoading($this, '<?php fs_esc_js_echo_inline('Deactivating', 'deactivating' ) ?>...');
-                    $this[0].parentNode.submit();
-                }
-
-                return false;
             });
 
             var $sitesSection = $('#fs_sites'),
