@@ -1,9 +1,9 @@
 <?php
 /**
- * @package     Freemius
- * @copyright   Copyright (c) 2015, Freemius, Inc.
- * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
- * @since       2.2.1
+ * @package   Freemius
+ * @copyright Copyright (c) 2015, Freemius, Inc.
+ * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
+ * @since     2.2.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -65,20 +65,20 @@ $keep_subscription_active_action_label = esc_html( sprintf(
 ) );
 
 $subscription_cancellation_html .= <<< HTML
-                <ul class="subscription-actions">
-                    <li>
-                        <label>
-                            <input type="radio" name="cancel-subscription" value="false"/>
-                            <span>{$keep_subscription_active_action_label}</span>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            <input type="radio" name="cancel-subscription" value="true"/>
-                            <span>{$cancel_subscription_action_label}</span>
-                        </label>
-                    </li>
-                </ul>
+    <ul class="subscription-actions">
+        <li>
+            <label>
+                <input type="radio" name="cancel-subscription" value="false"/>
+                <span>{$keep_subscription_active_action_label}</span>
+            </label>
+        </li>
+        <li>
+            <label>
+                <input type="radio" name="cancel-subscription" value="true"/>
+                <span>{$cancel_subscription_action_label}</span>
+            </label>
+        </li>
+    </ul>
 HTML;
 
 $downgrading_plan_text                      = fs_text_inline( 'Downgrading your plan', 'downgrading-plan', $slug );

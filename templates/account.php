@@ -681,7 +681,7 @@
                 $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
 
             if ( 0 !== $subscriptionCancellationModal.length ) {
-                $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription, requestParams ) {
+                $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
                     setLoading( $deactivateLicense, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
                     $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
 
@@ -712,7 +712,7 @@
                     if ( 0 !== $subscriptionCancellationModal.length ) {
                         $subscriptionCancellationModal.trigger( 'showModal' );
                     } else {
-                        setLoading($this, '<?php fs_esc_js_echo_inline('Deactivating', 'deactivating' ) ?>...');
+                        setLoading( $this, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
                         $this[0].parentNode.submit();
                     }
                 }
