@@ -630,7 +630,7 @@
         };
     </script>
     <?php if ( $is_paying && ! fs_is_network_admin() ) : ?>
-    <?php $fs->_add_subscription_cancellation_dialog_box() ?>
+    <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
     <?php endif ?>
     <script type="text/javascript">
         (function ($) {
@@ -676,6 +676,49 @@
 
             $('.fs-activate-license').click(function () {
                 setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
+            });
+
+            var $deactivateLicense             = $( '.fs-deactivate-license' ),
+                $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
+
+            if ( 0 !== $subscriptionCancellationModal.length ) {
+                $subscriptionCancellationModal.on( '<?php echo $fs->get_ajax_action( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription, requestParams ) {
+                    setLoading( $deactivateLicense, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
+                    $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+
+                    if ( false === cancelSubscription ) {
+                        $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).text( $deactivateLicense.text() );
+
+                        $deactivateLicense[0].parentNode.submit();
+                    } else {
+                        var $form = $( 'input[value="downgrade_account"],input[value="cancel_trial"]' ).parent();
+                        $form.prepend( '<input type="hidden" name="deactivate_license" value="true" />' );
+
+                        $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).text( '<?php echo esc_js( sprintf(
+                            fs_text_inline( 'Cancelling %s...', 'cancelling-x' , $slug ),
+                            $is_paid_trial ?
+                                fs_text_inline( 'trial', 'trial', $slug ) :
+                                fs_text_inline( 'subscription', 'subscription', $slug )
+                        ) ) ?>' );
+
+                        $form.submit();
+                    }
+                });
+            }
+
+            $deactivateLicense.click(function () {
+                if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
+                    var $this = $(this);
+
+                    if ( 0 !== $subscriptionCancellationModal.length ) {
+                        $subscriptionCancellationModal.trigger( 'showModal' );
+                    } else {
+                        setLoading($this, '<?php fs_esc_js_echo_inline('Deactivating', 'deactivating' ) ?>...');
+                        $this[0].parentNode.submit();
+                    }
+                }
+
+                return false;
             });
 
             var $sitesSection = $('#fs_sites'),

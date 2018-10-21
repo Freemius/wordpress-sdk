@@ -69,7 +69,7 @@ HTML;
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
-<?php $fs->_add_subscription_cancellation_dialog_box() ?>
+<?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
 <script type="text/javascript">
 (function ($) {
 	var reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
@@ -98,23 +98,82 @@ HTML;
 		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
 		otherReasonID         = <?php echo Freemius::REASON_OTHER; ?>,
 		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
-        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>;
+        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>,
+        $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
 
 	$modal.appendTo($('body'));
+
+	if ( 0 !== $subscriptionCancellationModal.length ) {
+        $subscriptionCancellationModal.on( '<?php echo $fs->get_ajax_action( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
+            if ( false === cancelSubscription ) {
+                showModal();
+
+                $subscriptionCancellationModal.trigger( 'closeModal' );
+            } else {
+                var $errorMessage = $subscriptionCancellationModal.find( '.notice-error' );
+
+                <?php
+                $subscription_cancellation_context = $fs->is_paid_trial() ?
+                    fs_text_inline( 'trial', 'trial', $slug ) :
+                    fs_text_inline( 'subscription', 'subscription', $slug );
+                ?>
+
+                $.ajax({
+                    url       : ajaxurl,
+                    method    : 'POST',
+                    data      : {
+                        action   : '<?php echo $fs->get_ajax_action( 'cancel_subscription_or_trial' ) ?>',
+                        security : '<?php echo $fs->get_ajax_security( 'cancel_subscription_or_trial' ) ?>',
+                        module_id: '<?php echo $fs->get_id() ?>'
+                    },
+                    beforeSend: function() {
+                        $errorMessage.hide();
+
+                        $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+                        $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).text( '<?php echo esc_js(
+                            sprintf( fs_text_inline( 'Cancelling %s...', 'cancelling-x' , $slug ), $subscription_cancellation_context )
+                        ) ?>' );
+                    },
+                    success: function( result ) {
+                        if ( result.success ) {
+                            $subscriptionCancellationModal.removeClass( 'has-subscription-actions' );
+                            $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).removeClass( 'warn' );
+
+                            $subscriptionCancellationModal.remove();
+                            showModal();
+                        } else {
+                            $errorMessage.find( '> p' ).html( result.error );
+                            $errorMessage.show();
+
+                            $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).removeClass( 'disabled' );
+                            $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).html( <?php echo json_encode( sprintf(
+                                fs_text_inline( 'Cancel %s & Proceed', 'cancel-x-and-proceed', $slug ),
+                                ucfirst( $subscription_cancellation_context )
+                            ) ) ?> );
+                        }
+                    }
+                });
+            }
+        });
+    }
 
 	registerEventHandlers();
 
 	function registerEventHandlers() {
-		<?php
-		if ( $fs->is_plugin() ) { ?>
 		$deactivateLink.click(function (evt) {
 			evt.preventDefault();
 
-			redirectLink = $(this).attr('href');
+            redirectLink = $(this).attr('href');
 
-			showModal();
+            if ( 0 == $subscriptionCancellationModal.length ) {
+                showModal();
+            } else {
+                $subscriptionCancellationModal.trigger( 'showModal' );
+            }
 		});
+
 		<?php
+        if ( ! $fs->is_plugin() ) {
 		/**
 		 * For "theme" module type, the modal is shown when the current user clicks on
 		 * the "Activate" button of any other theme. The "Activate" button is actually
@@ -126,7 +185,7 @@ HTML;
 		 *        
 		 * @since 1.2.2.7 Don't trigger the deactivation feedback form if activating the premium version of the theme.
 		 */
-		} else { ?>
+		?>
 		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $slug ?>-premium]) .theme-actions .button.activate', function (evt) {
 			evt.preventDefault();
 

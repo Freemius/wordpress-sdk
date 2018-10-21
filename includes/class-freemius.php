@@ -2091,7 +2091,7 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
 
             if ( $this->is_api_error( $result ) ) {
                 $this->shoot_ajax_failure( $result->error->message );
@@ -2104,9 +2104,9 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.4
          *
-         * @return object
-         *
          * @param number $plugin_id
+         *
+         * @return object
          */
         private function cancel_subscription_or_trial( $plugin_id ) {
             $fs = null;
@@ -10615,9 +10615,36 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.2.1
          */
-        function _add_subscription_cancellation_dialog_box() {
+        function _maybe_add_subscription_cancellation_dialog_box() {
+            $license = ( ! fs_is_network_admin() ) ?
+                $this->_get_license() :
+                null;
+
+            /**
+             * If the installation is associated with a non-lifetime license, which is either a single-site or only activated on a single production site (or zero), and connected to an active subscription, suggest the customer to cancel the subscription upon deactivation.
+             *
+             * @author Leo Fajardo (@leorw) (Comment added by Vova Feldman @svovaf)
+             * @since 2.2.0
+             */
+            if ( ! is_object( $license ) ||
+                $license->is_lifetime() ||
+                ( ! $license->is_single_site() && $license->activated > 1 )
+            ) {
+                return;
+            }
+
+            /**
+             * @var FS_Subscription $subscription
+             */
+            $subscription = $this->_get_subscription( $license->id );
+            if ( ! is_object( $subscription ) || ! $subscription->is_active() ) {
+                return;
+            }
+
             $vars = array(
-                'id' => $this->_module_id,
+                'id'        => $this->_module_id,
+                'license'   => $license,
+                'has_trial' => $this->is_paid_trial()
             );
 
             fs_require_template( 'forms/subscription-cancellation.php', $vars );
@@ -17186,6 +17213,10 @@
             $api     = $this->get_api_site_scope();
             $license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
 
+            $this->handle_license_deactivation_result( $license, $hmm_text, $show_notice );
+        }
+
+        private function handle_license_deactivation_result( $license, $hmm_text, $show_notice = true ) {
             if ( isset( $license->error ) ) {
                 $this->_admin_notices->add(
                     $this->get_text_inline( 'It looks like the license deactivation failed.', 'license-deactivation-failed-message' ) . '<br> ' .
@@ -17240,8 +17271,10 @@
         private function _downgrade_site() {
             $this->_logger->entrance();
 
+            $deactivate_license = fs_request_get_bool( 'deactivate_license' );
+
             $api  = $this->get_api_site_scope();
-            $site = $api->call( 'downgrade.json', 'put' );
+            $site = $api->call( 'downgrade.json', 'put', array( 'deactivate_license' => $deactivate_license ) );
 
             $plan_downgraded = false;
             $plan            = false;
@@ -17280,8 +17313,24 @@
                 )
             );
 
-            // Store site updates.
-            $this->_store_site();
+            if ( $deactivate_license ) {
+                $result = $api->get( "/licenses/{$this->_license->id}.json?license_key=" . urlencode( $this->_license->secret_key ), true );
+
+                if ( ! $this->is_api_result_entity( $result ) ) {
+                    // Store site updates.
+                    $this->_store_site();
+                } else {
+                    $this->handle_license_deactivation_result(
+                        new FS_Plugin_License( $result ),
+                        $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...'
+                    );
+                }
+            }
+
+            if ( ! $deactivate_license || ! $this->is_api_result_entity( $result ) ) {
+                // Store site updates.
+                $this->_store_site();
+            }
 
             return $site;
         }
