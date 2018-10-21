@@ -104,7 +104,7 @@ HTML;
 	$modal.appendTo($('body'));
 
 	if ( 0 !== $subscriptionCancellationModal.length ) {
-        $subscriptionCancellationModal.on( '<?php echo $fs->get_ajax_action( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
+        $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
             if ( false === cancelSubscription ) {
                 showModal();
 

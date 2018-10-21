@@ -2091,7 +2091,7 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
 
             if ( $this->is_api_error( $result ) ) {
                 $this->shoot_ajax_failure( $result->error->message );
@@ -10610,7 +10610,9 @@
 
         /**
          * Displays a subscription cancellation dialog box when the user clicks on the "Deactivate License"
-         * link on the "Account" page or deactivates a plugin.
+         * link on the "Account" page or deactivates a plugin and there's an active subscription that is
+         * either associated with a non-lifetime single-site license or non-lifetime multisite license that
+         * is only activated on a single production site.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.2.1
@@ -10624,7 +10626,7 @@
              * If the installation is associated with a non-lifetime license, which is either a single-site or only activated on a single production site (or zero), and connected to an active subscription, suggest the customer to cancel the subscription upon deactivation.
              *
              * @author Leo Fajardo (@leorw) (Comment added by Vova Feldman @svovaf)
-             * @since 2.2.0
+             * @since 2.2.1
              */
             if ( ! is_object( $license ) ||
                 $license->is_lifetime() ||
@@ -17216,6 +17218,14 @@
             $this->handle_license_deactivation_result( $license, $hmm_text, $show_notice );
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param FS_Plugin_License $license
+         * @param string            $hmm_text
+         * @param bool              $show_notice
+         */
         private function handle_license_deactivation_result( $license, $hmm_text, $show_notice = true ) {
             if ( isset( $license->error ) ) {
                 $this->_admin_notices->add(
@@ -17316,10 +17326,7 @@
             if ( $deactivate_license ) {
                 $result = $api->get( "/licenses/{$this->_license->id}.json?license_key=" . urlencode( $this->_license->secret_key ), true );
 
-                if ( ! $this->is_api_result_entity( $result ) ) {
-                    // Store site updates.
-                    $this->_store_site();
-                } else {
+                if ( $this->is_api_result_entity( $result ) ) {
                     $this->handle_license_deactivation_result(
                         new FS_Plugin_License( $result ),
                         $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...'

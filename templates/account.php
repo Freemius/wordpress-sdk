@@ -612,28 +612,27 @@
 			</div>
 		</div>
 	</div>
-    <script type="text/javascript">
-        var setLoading = function ($this, label) {
-            // Set loading mode.
-            jQuery(document.body).css({'cursor': 'wait'});
-
-            $this.css({'cursor': 'wait'});
-
-            if ($this.is('input'))
-                $this.val(label);
-            else
-                $this.html(label);
-
-            setTimeout(function () {
-                $this.attr('disabled', 'disabled');
-            }, 200);
-        };
-    </script>
     <?php if ( $is_paying && ! fs_is_network_admin() ) : ?>
-    <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
+        <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
     <?php endif ?>
     <script type="text/javascript">
         (function ($) {
+            var setLoading = function ($this, label) {
+                // Set loading mode.
+                $(document.body).css({'cursor': 'wait'});
+
+                $this.css({'cursor': 'wait'});
+
+                if ($this.is('input'))
+                    $this.val(label);
+                else
+                    $this.html(label);
+
+                setTimeout(function () {
+                    $this.attr('disabled', 'disabled');
+                }, 200);
+            };
+
 	        $('.fs-toggle-visibility').click(function () {
 		        var
 			        $this = $(this),
@@ -682,7 +681,7 @@
                 $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
 
             if ( 0 !== $subscriptionCancellationModal.length ) {
-                $subscriptionCancellationModal.on( '<?php echo $fs->get_ajax_action( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription, requestParams ) {
+                $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription, requestParams ) {
                     setLoading( $deactivateLicense, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
                     $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
 

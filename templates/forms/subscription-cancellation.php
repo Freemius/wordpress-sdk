@@ -103,9 +103,9 @@ $subscription_cancellation_confirmation_message = $has_trial ?
         (
         $license->is_block_features ?
             (
-            $fs->is_only_premium() ?
-                sprintf( $after_downgrade_blocking_text_premium_only, $module_label ) :
-                sprintf( $after_downgrade_blocking_text, $plan->title )
+                $fs->is_only_premium() ?
+                    sprintf( $after_downgrade_blocking_text_premium_only, $module_label ) :
+                    sprintf( $after_downgrade_blocking_text, $plan->title )
             ) :
             sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) )
         ),
@@ -132,8 +132,7 @@ fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
             + '		</div>'
             + '	</div>'
             + '</div>',
-            $modal  = $(modalHtml),
-            isChild = false;
+            $modal    = $(modalHtml);
 
         $modal.appendTo($('body'));
 
@@ -156,7 +155,7 @@ fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
                 }
 
                 var _this                                   = $(this),
-                    subscriptionCancellationActionEventName = <?php echo json_encode( $fs->get_ajax_action( 'subscription_cancellation_action' ) ) ?>;
+                    subscriptionCancellationActionEventName = <?php echo json_encode( $fs->get_action_tag( 'subscription_cancellation_action' ) ) ?>;
 
                 if ( _this.hasClass( 'button-primary' ) ) {
                     if ( 'true' !== $( 'input[name="cancel-subscription"]:checked' ).val() ) {
