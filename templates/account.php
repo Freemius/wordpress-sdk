@@ -233,8 +233,7 @@
 											<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
 												<input type="hidden" name="fs_action" value="cancel_trial">
 												<?php wp_nonce_field( 'cancel_trial' ) ?>
-												<a href="#"
-												   onclick="if (confirm('<?php echo esc_attr( $cancel_trial_confirm_text ) ?>')) this.parentNode.submit(); return false;"><i
+												<a href="#" class="fs-cancel-trial"><i
 														class="dashicons dashicons-download"></i> <?php echo esc_html( $cancel_trial_text ) ?></a>
 											</form>
 										</li>
@@ -612,9 +611,7 @@
 			</div>
 		</div>
 	</div>
-    <?php if ( $is_paying && ! fs_is_network_admin() ) : ?>
-        <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
-    <?php endif ?>
+    <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
     <script type="text/javascript">
         (function ($) {
             var setLoading = function ($this, label) {
@@ -677,18 +674,25 @@
                 setLoading($(this), '<?php fs_esc_js_echo_inline('Activating', 'activating' ) ?>...');
             });
 
-            var $deactivateLicense             = $( '.fs-deactivate-license' ),
-                $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
+            var $deactivateLicenseOrCancelTrial = $( '.fs-deactivate-license, .fs-cancel-trial' ),
+                $subscriptionCancellationModal  = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
 
             if ( 0 !== $subscriptionCancellationModal.length ) {
                 $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
-                    setLoading( $deactivateLicense, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
+                    setLoading(
+                        $deactivateLicenseOrCancelTrial,
+                        ( ! $deactivateLicenseOrCancelTrial.hasClass( 'fs-cancel-trial' ) ?
+                            '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating', $slug ) ?>' :
+                            '<?php echo esc_html( sprintf( fs_text_inline( 'Cancelling %s', 'cancelling-x', $slug ), fs_text_inline( 'trial', 'trial', $slug ) ) ) ?>' ) + '...'
+                    );
+
                     $subscriptionCancellationModal.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+                    $deactivateLicenseOrCancelTrial.unbind( 'click' );
 
-                    if ( false === cancelSubscription ) {
-                        $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).text( $deactivateLicense.text() );
+                    if ( false === cancelSubscription || $deactivateLicenseOrCancelTrial.hasClass( 'fs-cancel-trial' ) ) {
+                        $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).text( $deactivateLicenseOrCancelTrial.text() );
 
-                        $deactivateLicense[0].parentNode.submit();
+                        $deactivateLicenseOrCancelTrial[0].parentNode.submit();
                     } else {
                         var $form = $( 'input[value="downgrade_account"],input[value="cancel_trial"]' ).parent();
                         $form.prepend( '<input type="hidden" name="deactivate_license" value="true" />' );
@@ -705,14 +709,19 @@
                 });
             }
 
-            $deactivateLicense.click(function () {
-                if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
+            $deactivateLicenseOrCancelTrial.click(function() {
+                var $this = $( this );
+                if ( $this.hasClass( 'fs-cancel-trial' ) ) {
+                    $subscriptionCancellationModal.find( '.fs-modal-panel' ).find( 'ul.subscription-actions, .fs-price-increase-warning' ).remove();
+                    $subscriptionCancellationModal.find( '.fs-modal-panel > p' ).text( <?php echo json_encode( $cancel_trial_confirm_text ) ?> );
+                    $subscriptionCancellationModal.trigger( 'showModal' );
+                } else if (confirm('<?php fs_esc_attr_echo_inline( 'Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?', 'deactivate-license-confirm', $slug ) ?>')) {
                     var $this = $(this);
 
                     if ( 0 !== $subscriptionCancellationModal.length ) {
                         $subscriptionCancellationModal.trigger( 'showModal' );
                     } else {
-                        setLoading( $this, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating' ) ?>...' );
+                        setLoading( $this, '<?php fs_esc_js_echo_inline( 'Deactivating', 'deactivating', $slug ) ?>...' );
                         $this[0].parentNode.submit();
                     }
                 }
