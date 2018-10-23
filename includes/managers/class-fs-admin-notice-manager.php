@@ -226,6 +226,17 @@
                     }
                 }
 
+                $show_notice = call_user_func_array( 'fs_apply_filter', array(
+                    $this->_module_unique_affix,
+                    'show_admin_notice',
+                    true,
+                    $msg
+                ) );
+
+                if ( true !== $show_notice ) {
+                    continue;
+                }
+
                 fs_require_template( 'admin-notice.php', $msg );
 
                 if ( $msg['sticky'] ) {
