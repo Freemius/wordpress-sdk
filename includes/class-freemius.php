@@ -381,7 +381,7 @@
             $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
-            $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
+            $this->_free_plugin_basename  = ( $this->_slug . '/' . $this->_plugin_basename );
 
             $this->_is_multisite_integrated = (
                 defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
@@ -4744,11 +4744,13 @@
                 'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type ),
                 'public_key'           => $public_key,
                 'slug'                 => $this->_slug,
+                'premium_slug'         => $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" ),
                 'parent_plugin_id'     => $parent_id,
                 'version'              => $this->get_plugin_version(),
                 'title'                => $this->get_plugin_name(),
                 'file'                 => $this->_plugin_basename,
                 'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+                'premium_suffix'       => $this->get_bool_option( $plugin_info, 'premium_suffix', ' (Premium)' ),
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
             ) );
@@ -5129,7 +5131,7 @@
             }
 
             $addon            = $this->get_addon( $addon_id );
-            $premium_basename = "{$addon->slug}-premium/{$addon->slug}.php";
+            $premium_basename = "{$addon->premium_slug}/{$addon->slug}.php";
 
             if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_basename ) ) ) {
                 return $premium_basename;
@@ -5139,7 +5141,7 @@
 
             foreach ( $all_plugins as $basename => $data ) {
                 if ( $addon->slug === $data['slug'] ||
-                     $addon->slug . '-premium' === $data['slug']
+                     $addon->premium_slug === $data['slug']
                 ) {
                     return $basename;
                 }
@@ -8272,7 +8274,7 @@
          * @return string
          */
         function premium_plugin_basename() {
-            return "{$this->_slug}-premium/" . basename( $this->_free_plugin_basename );
+            return "{$this->_plugin->premium_slug}/" . basename( $this->_free_plugin_basename );
         }
 
         /**
@@ -8417,7 +8419,9 @@
          * @return string Plugin slug.
          */
         function get_target_folder_name() {
-            return $this->_slug . ( $this->can_use_premium_code() ? '-premium' : '' );
+            return $this->can_use_premium_code() ?
+                $this->_plugin->premium_slug :
+                $this->_slug;
         }
 
         /**
@@ -8499,8 +8503,8 @@
                 // Get name.
                 $this->_plugin_name = $plugin_data['Name'];
 
-                // Check if plugin name contains "(Premium)" suffix and remove it.
-                $suffix     = ' (premium)';
+                // Check if plugin name contains " (Premium)" or custom suffix and remove it.
+                $suffix     = strtolower( $this->_plugin->premium_suffix );
                 $suffix_len = strlen( $suffix );
 
                 if ( strlen( $plugin_data['Name'] ) > $suffix_len &&

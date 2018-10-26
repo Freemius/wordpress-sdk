@@ -585,7 +585,7 @@
                         array(
                             "{$module_type}" => array(
                                 $plugin_basename => array(
-                                    'Name'   => trim( str_replace( '(Premium)', '', $plugin_data['Name'] ) ),
+                                    'Name'   => trim( str_replace( trim( $this->_fs->get_plugin()->premium_suffix ), '', $plugin_data['Name'] ) ),
                                     'Author' => $plugin_data['Author'],
                                 )
                             )

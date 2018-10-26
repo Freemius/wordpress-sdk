@@ -25,6 +25,13 @@
          */
         public $slug;
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @var string
+         */
+        public $premium_slug;
+        /**
          * @since 1.2.2
          *
          * @var string 'plugin' or 'theme'
@@ -67,6 +74,13 @@
          * @var bool
          */
         public $is_premium;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @var string
+         */
+        public $premium_suffix;
         /**
          * @since 1.0.9
          *
