@@ -6308,7 +6308,7 @@
                     $this->_module_type,
                     sprintf( '<b><a href="%s">%s</a></b>',
                         $this->get_activation_url(),
-                        sprintf( $this->get_text_inline( 'Opt in to make "%s" better!', 'optin-x-now' ), $this->get_plugin_name() )
+                        sprintf( $this->get_text_inline( 'Opt in to make "%s" Better!', 'optin-x-now' ), $this->get_plugin_name() )
                     )
                 ),
                 'connect_account',
