@@ -19503,6 +19503,21 @@
         }
 
         /**
+         * Check if the paid version of the module is installed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.0
+         *
+         * @return bool
+         */
+        private function is_premium_version_installed() {
+            $premium_plugin_basename = $this->premium_plugin_basename();
+            $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
+
+            return ! empty( $premium_plugin );
+        }
+
+        /**
          * Helper function that returns the final steps for the upgrade completion.
          *
          * If the module is already running the premium code, returns an empty string.
@@ -19527,25 +19542,52 @@
                 $plan_title = $this->get_plan_title();
             }
 
-            // @since 1.2.1.5 The free version is auto deactivated.
-            $deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
-                ( '<li>' . $this->esc_html_inline( 'Deactivate the free version', 'deactivate-free-version' ) . '.</li>' ) :
-                '';
+            if ( $this->is_premium_version_installed() ) {
+                /**
+                 * If the premium version is already installed, instead of showing the installation instructions,
+                 * tell the current user to activate it.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                $premium_plugin_basename = $this->premium_plugin_basename();
 
-            return sprintf(
-                ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
-                $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
-                ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
-                $this->get_latest_download_link( sprintf(
-                /* translators: %s: Plan title */
-                    $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
-                    $plan_title
-                ) ),
-                $deactivation_step,
-                $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
-                '//bit.ly/upload-wp-' . $this->_module_type . 's',
-                $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
-            );
+                return sprintf(
+                /* translators: %1s: Product title; %2s: Plan title */
+                    $this->get_text_inline( ' The paid version of %1s is already installed. Please activate it to start benefiting the %2s features. %3s', 'activate-premium-version' ),
+                    sprintf( '<em>%s</em>', esc_html( $this->get_plugin_title() ) ),
+                    $plan_title,
+                    sprintf(
+                        '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
+                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
+                        esc_html( sprintf(
+                        /* translators: %s: Plan title */
+                            $this->get_text_inline( 'Activate %s features', 'activate-x-features' ),
+                            $plan_title
+                        ) )
+                    )
+                );
+            } else {
+                // @since 1.2.1.5 The free version is auto deactivated.
+                $deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
+                    ( '<li>' . $this->esc_html_inline( 'Deactivate the free version', 'deactivate-free-version' ) . '.</li>' ) :
+                    '';
+
+                return sprintf(
+                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+                    $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
+                    ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
+                    $this->get_latest_download_link( sprintf(
+                    /* translators: %s: Plan title */
+                        $this->get_text_inline( 'Download the latest %s version', 'download-latest-x-version' ),
+                        $plan_title
+                    ) ),
+                    $deactivation_step,
+                    $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
+                    '//bit.ly/upload-wp-' . $this->_module_type . 's',
+                    $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
+                );
+            }
         }
 
         /**
