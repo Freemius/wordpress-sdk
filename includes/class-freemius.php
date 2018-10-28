@@ -19503,6 +19503,21 @@
         }
 
         /**
+         * Check if the paid version of the module is installed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.0
+         *
+         * @return bool
+         */
+        private function is_premium_version_installed() {
+            $premium_plugin_basename = $this->premium_plugin_basename();
+            $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
+
+            return ! empty( $premium_plugin );
+        }
+
+        /**
          * Helper function that returns the final steps for the upgrade completion.
          *
          * If the module is already running the premium code, returns an empty string.
@@ -19523,9 +19538,11 @@
                 return '' . $activate_license_string;
             }
 
-            $premium_plugin_basename = $this->premium_plugin_basename();
-            $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
-            if ( ! empty( $premium_plugin ) ) {
+            if ( empty( $plan_title ) ) {
+                $plan_title = $this->get_plan_title();
+            }
+
+            if ( $this->is_premium_version_installed() ) {
                 /**
                  * If the premium version is already installed, instead of showing the installation instructions,
                  * tell the current user to activate it.
