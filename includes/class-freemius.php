@@ -19533,26 +19533,21 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.1
                  */
-                $plan_name = $this->get_plan_name();
 
                 return sprintf(
                     $this->get_text_inline( ' The paid version of %s is already installed. Please activate it to start benefiting the %s features. %s', 'activate-premium-version' ),
                     sprintf( '<em>%s</em>', esc_html( $this->get_plugin_title() ) ),
-                    $plan_name,
+                    $plan_title,
                     sprintf(
                         '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
                         wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
                         esc_html( sprintf(
                             $this->get_text_inline( 'Activate %s features', 'activate-x-features' ),
-                            $plan_name
+                            $plan_title
                         ) )
                     )
                 );
             } else {
-                if ( empty( $plan_title ) ) {
-                    $plan_title = $this->get_plan_title();
-                }
-
                 // @since 1.2.1.5 The free version is auto deactivated.
                 $deactivation_step = version_compare( $this->version, '1.2.1.5', '<' ) ?
                     ( '<li>' . $this->esc_html_inline( 'Deactivate the free version', 'deactivate-free-version' ) . '.</li>' ) :
