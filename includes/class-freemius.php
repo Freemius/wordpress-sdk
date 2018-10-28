@@ -19550,15 +19550,18 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.1
                  */
+                $premium_plugin_basename = $this->premium_plugin_basename();
 
                 return sprintf(
-                    $this->get_text_inline( ' The paid version of %s is already installed. Please activate it to start benefiting the %s features. %s', 'activate-premium-version' ),
+                /* translators: %1s: Product title; %2s: Plan title */
+                    $this->get_text_inline( ' The paid version of %1s is already installed. Please activate it to start benefiting the %2s features. %3s', 'activate-premium-version' ),
                     sprintf( '<em>%s</em>', esc_html( $this->get_plugin_title() ) ),
                     $plan_title,
                     sprintf(
                         '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
                         wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
                         esc_html( sprintf(
+                        /* translators: %s: Plan title */
                             $this->get_text_inline( 'Activate %s features', 'activate-x-features' ),
                             $plan_title
                         ) )
