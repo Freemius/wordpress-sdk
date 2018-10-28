@@ -2361,7 +2361,7 @@
         function is_site_activation_mode( $and_on = true ) {
             return (
                 ( $this->is_on() || ! $and_on ) &&
-                ( $this->is_premium() && false === $this->_storage->skip_license_activation ) ||
+                ( $this->is_premium() && true === $this->_storage->require_license_activation ) ||
                 (
                     ( ! $this->is_registered() ||
                       ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
@@ -2402,7 +2402,7 @@
                 return false;
             }
 
-            if ( $this->is_network_anonymous() && false !== $this->_storage->skip_license_activation ) {
+            if ( $this->is_network_anonymous() && true !== $this->_storage->require_license_activation ) {
                 // Super-admin skipped the connection network wide -> not activation mode.
                 return false;
             }
@@ -6263,7 +6263,7 @@
             if ( ! $this->is_addon() &&
                  ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
                  (
-                     ( false === $this->_storage->skip_license_activation ) ||
+                     ( true === $this->_storage->require_license_activation ) ||
                      // Not registered nor anonymous.
                      ( ! $this->is_registered() && ! $this->is_anonymous() ) ||
                      // OR, network level and in network upgrade mode.
@@ -6289,8 +6289,8 @@
                                 return;
                             }
 
-                            if ( false === $this->_storage->skip_license_activation ) {
-                                $this->_storage->skip_license_activation = true;
+                            if ( true === $this->_storage->require_license_activation ) {
+                                $this->_storage->require_license_activation = false;
                             }
                         }
 
@@ -6860,7 +6860,7 @@
                     ( $this->is_registered() && ! $this->has_features_enabled_license() )
                 )
             ) {
-                $this->_storage->skip_license_activation = false;
+                $this->_storage->require_license_activation = true;
             }
 
             if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
@@ -10903,8 +10903,8 @@
                 }
             }
 
-            if ( false === $error && false === $this->_storage->skip_license_activation ) {
-                $this->_storage->skip_license_activation = true;
+            if ( false === $error && true === $this->_storage->require_license_activation ) {
+                $this->_storage->require_license_activation = false;
             }
 
             $result = array(
@@ -13238,10 +13238,10 @@
                 }
             }
 
-            if ( false === $this->_storage->skip_license_activation &&
+            if ( true === $this->_storage->require_license_activation &&
                 ! fs_request_get_bool( 'require_license', true )
             ) {
-                $this->_storage->skip_license_activation = true;
+                $this->_storage->require_license_activation = false;
             }
 
             if ( $this->is_theme() ) {
