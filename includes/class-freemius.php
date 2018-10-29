@@ -18280,6 +18280,8 @@
 
                             if ( ! $is_network_action ) {
                                 fs_redirect( $this->get_activation_url() );
+                            } else if ( is_numeric( $blog_id ) ) {
+                                $this->switch_to_blog( $this->_storage->network_install_blog_id );
                             }
                         }
                     } else {
