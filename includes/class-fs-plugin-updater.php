@@ -153,10 +153,17 @@
 
             $license = $this->_fs->_get_license();
 
-            $subscription = $this->_fs->_get_subscription( $license->id );
+            $subscription = ( is_object( $license ) && ! $license->is_lifetime() ) ?
+                $this->_fs->_get_subscription( $license->id ) :
+                null;
 
             $contents = ob_get_clean();
 
+            /**
+             * Replace the plugin information dialog's "Install Update Now" button's text and URL. If there's a license,
+             * the text will be "Renew license" and will link to the checkout page with the license's billing cycle
+             * and quota. If there's no license, the text will be "Buy license" and will link to the pricing page.
+             */
             $contents = preg_replace(
                 '/(.+\<a.+)(id="plugin_update_from_iframe")(.+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
                 is_object( $license ) ?
@@ -246,6 +253,18 @@
             $r = $current->response[ $file ];
 
             if ( ! $this->_fs->has_any_active_valid_license() ) {
+                /**
+                 * Turn the "new version" text into a link that opens the plugin information dialog when clicked and
+                 * make the "View version x details" text link to the checkout page instead of opening the plugin
+                 * information dialog when clicked.
+                 *
+                 * Sample input:
+                 *      There is a new version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
+                 * Output:
+                 *      There is a <a href="...>new version</a> of Awesome Plugin available. <a href="...>Buy a license now</a> to access version x.y.z security & feature updates, and support.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
                 $plugin_update_row = preg_replace(
                     '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
                     (
