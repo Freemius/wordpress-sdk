@@ -38,13 +38,14 @@
 
     $message = sprintf(
         fs_text_inline( 'There is a new version of %s available.', 'new-version-available-message', $slug ) .
-        fs_text_inline( ' %s%s now%s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
+        fs_text_inline( ' %s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
         '<span id="plugin_name"></span>',
-        '<a id="pricing_url" href="">',
-        is_object( $license ) ?
-            fs_text_inline( 'Renew your license', 'renew-your-license', $slug ) :
-            fs_text_inline( 'Buy a license', 'buy-a-license', $slug ),
-        '</a>',
+        sprintf(
+            '<a id="pricing_url" href="">%s</a>',
+            is_object( $license ) ?
+                fs_text_inline( 'Renew your license now', 'renew-license-now', $slug ) :
+                fs_text_inline( 'Buy a license now', 'buy-license-now', $slug )
+        ),
         '<span id="new_version"></span>'
     );
 

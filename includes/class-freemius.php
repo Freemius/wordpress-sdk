@@ -1498,7 +1498,7 @@
                     add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
 
                     if ( $this->is_plugin() ) {
-                        add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_plugin_upgrade_notice_style' ) );
+                        add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_plugin_upgrade_notice_style' ) );
                     }
                 }
             }
@@ -1508,7 +1508,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.1.4
          */
-        function enqueue_plugin_upgrade_notice_style() {
+        function _enqueue_plugin_upgrade_notice_style() {
             fs_enqueue_local_style( 'fs_plugin_upgrade_notice', '/admin/plugin-upgrade-notice.css' );
         }
 
@@ -11390,7 +11390,7 @@
             if ( ! is_object( $this->_license ) ) {
                 $url = $this->pricing_url();
 
-                $purchase_license_text = $this->get_text_inline( 'Buy a license', 'buy-license' );
+                $purchase_license_text = $this->get_text_inline( 'Buy a license now', 'buy-license-now' );
             } else {
                 $subscription = $this->_get_subscription( $this->_license->id );
 
@@ -11406,8 +11406,8 @@
             }
 
             return sprintf(
-                $this->get_text_inline( '%s%s now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                '<a href="' . $url . '">', $purchase_license_text, '</a>',
+                $this->get_text_inline( '%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                sprintf( '<a href="%s">%s</a>', $url, $purchase_license_text ),
                 $new_version
             );
         }
