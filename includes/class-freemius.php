@@ -18306,7 +18306,11 @@
                             $this->_site = null;
                             $this->_user = null;
 
-                            fs_redirect( $this->get_activation_url() );
+                            if ( ! $is_network_action ) {
+                                fs_redirect( $this->get_activation_url() );
+                            } else if ( is_numeric( $blog_id ) ) {
+                                $this->switch_to_blog( $this->_storage->network_install_blog_id );
+                            }
                         }
                     } else {
                         if ( $this->is_addon_activated( $plugin_id ) ) {
@@ -19406,11 +19410,23 @@
 
             if ( ! $this->is_addon() || ! $this->has_free_plan() ) {
                 $first_time_path = $this->_menu->get_first_time_path();
-                $url             = $this->is_activation_mode() ?
-                    $this->get_activation_url() :
-                    ( empty( $first_time_path ) ?
-                        $this->_get_admin_page_url() :
-                        $first_time_path );
+
+                if ( $this->is_activation_mode() ) {
+                    $url = $this->get_activation_url();
+                } else if ( ! empty( $first_time_path ) ) {
+                    $url = $first_time_path;
+                } else {
+                    $page = '';
+                    if ( ! empty( $this->_dynamically_added_top_level_page_hook_name ) ) {
+                        if ( $this->is_network_registered() ) {
+                            $page = 'account';
+                        } else if ( $this->is_network_anonymous() ) {
+                            $this->maybe_set_slug_and_network_menu_exists_flag();
+                        }
+                    }
+
+                    $url = $this->_get_admin_page_url( $page );
+                }
             } else {
                 $plugin_fs = false;
 
