@@ -26,7 +26,7 @@
 		 * If the user changes the main plugin's file name, the file_exists()
 		 * will catch it.
 		 */
-		$all_plugins = fs_get_plugins( '', true );
+		$all_plugins = fs_get_plugins( true );
 
 		$file_real_path = fs_normalize_path( realpath( $file ) );
 

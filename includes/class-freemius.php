@@ -1701,7 +1701,7 @@
         private function get_caller_main_file_and_type() {
             self::require_plugin_essentials();
 
-            $all_plugins       = fs_get_plugins( '', true );
+            $all_plugins       = fs_get_plugins( true );
             $all_plugins_paths = array();
 
             // Get active plugin's main files real full names (might be symlinks).

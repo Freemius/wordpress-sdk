@@ -41,16 +41,17 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.2.1
          *
-         * @param string $plugin_folder
-         * @param bool   $delete_cache
+         * @param bool $delete_cache
          *
          * @return array
          */
-	    function fs_get_plugins( $plugin_folder = '', $delete_cache = false ) {
-            if ( ! $cached_plugins = wp_cache_get( 'plugins', 'plugins' ) ) {
+	    function fs_get_plugins( $delete_cache = false ) {
+            $cached_plugins = wp_cache_get( 'plugins', 'plugins' );
+            if ( ! is_array( $cached_plugins ) ) {
                 $cached_plugins = array();
             }
 
+            $plugin_folder = '';
             if ( isset( $cached_plugins[ $plugin_folder ] ) ) {
                 $plugins = $cached_plugins[ $plugin_folder ];
             } else {
@@ -60,7 +61,7 @@
 
                 $plugins = get_plugins();
 
-                if ( $delete_cache ) {
+                if ( $delete_cache && isset( $plugins['woocommerce/woocommerce.php'] ) ) {
                     wp_cache_delete( 'plugins', 'plugins' );
                 }
             }
@@ -306,7 +307,7 @@
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$all_plugins       = fs_get_plugins( '', true );
+		$all_plugins       = fs_get_plugins( true );
 		$all_plugins_paths = array();
 
 		// Get active plugin's main files real full names (might be symlinks).
