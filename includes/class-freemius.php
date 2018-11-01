@@ -381,7 +381,7 @@
             $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
-            $this->_free_plugin_basename  = ( $this->_slug . '/' . $this->_plugin_basename );
+            $this->_free_plugin_basename  = ( $this->_slug . '/' . basename( $this->_plugin_basename ) );
 
             $this->_is_multisite_integrated = (
                 defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
@@ -4739,6 +4739,14 @@
                 $this->_plugin :
                 new FS_Plugin();
 
+            /**
+             * Update the premium suffix first since `$this->get_plugin_name()` which is called below needs it.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.1
+             */
+            $plugin->update( 'premium_suffix', $this->get_option( $plugin_info, 'premium_suffix', '(Premium)' ) );
+
             $plugin->update( array(
                 'id'                   => $id,
                 'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type ),
@@ -4750,7 +4758,6 @@
                 'title'                => $this->get_plugin_name(),
                 'file'                 => $this->_plugin_basename,
                 'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
-                'premium_suffix'       => $this->get_bool_option( $plugin_info, 'premium_suffix', ' (Premium)' ),
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
             ) );
@@ -8413,6 +8420,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @return string
+         */
+        function get_premium_slug() {
+            return $this->get_plugin()->premium_slug;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.7
          *
@@ -8503,8 +8520,8 @@
                 // Get name.
                 $this->_plugin_name = $plugin_data['Name'];
 
-                // Check if plugin name contains " (Premium)" or custom suffix and remove it.
-                $suffix     = strtolower( $this->_plugin->premium_suffix );
+                // Check if plugin name contains " (premium)" or a custom suffix and remove it.
+                $suffix     = ( ' ' . strtolower( $this->_plugin->premium_suffix ) );
                 $suffix_len = strlen( $suffix );
 
                 if ( strlen( $plugin_data['Name'] ) > $suffix_len &&

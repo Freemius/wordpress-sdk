@@ -24,6 +24,8 @@
     $subscription_cancellation_context              = '';
     $subscription_cancellation_confirmation_message = '';
 
+    $prices_increase_text = '';
+
     $has_trial = false;
 
     $license = ( ! fs_is_network_admin() ) ?
@@ -254,7 +256,7 @@ HTML;
 		 * @since 1.2.2.7 Don't trigger the deactivation feedback form if activating the premium version of the theme.
 		 */
 		} else { ?>
-		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $slug ?>-premium]) .theme-actions .button.activate', function (evt) {
+		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $fs->get_premium_slug() ?>]) .theme-actions .button.activate', function (evt) {
 			evt.preventDefault();
 
 			redirectLink = $(this).attr('href');

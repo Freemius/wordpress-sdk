@@ -101,6 +101,18 @@
             $this->is_premium = false;
             $this->is_live    = true;
 
+            if (
+                ( ! isset( $this->premium_slug ) || empty( $this->premium_slug ) ) &&
+                isset( $plugin->slug ) &&
+                ! empty( $plugin->slug )
+            ) {
+                $this->premium_slug = "{$this->slug}-premium";
+            }
+
+            if ( ! isset( $this->premium_suffix ) || empty( $this->premium_suffix ) ) {
+                $this->premium_suffix = '(Premium)';
+            }
+
             if ( isset( $plugin->info ) && is_object( $plugin->info ) ) {
                 $this->info = new FS_Plugin_Info( $plugin->info );
             }

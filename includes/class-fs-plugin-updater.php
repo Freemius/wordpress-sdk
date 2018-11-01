@@ -573,7 +573,7 @@
 
             $plugin_basename = $this->_fs->get_plugin_basename();
             if ( 'themes' === $module_type ) {
-                $plugin_basename = str_replace( '-premium', '', $plugin_basename );
+                $plugin_basename = ( $slug . '/' . basename( $plugin_basename ) );
             }
 
             global $wp_version;
@@ -585,7 +585,7 @@
                         array(
                             "{$module_type}" => array(
                                 $plugin_basename => array(
-                                    'Name'   => trim( str_replace( trim( $this->_fs->get_plugin()->premium_suffix ), '', $plugin_data['Name'] ) ),
+                                    'Name'   => trim( str_replace( $this->_fs->get_plugin()->premium_suffix, '', $plugin_data['Name'] ) ),
                                     'Author' => $plugin_data['Author'],
                                 )
                             )
@@ -838,7 +838,7 @@ if ( !isset($info->error) ) {
                     $filename = basename( $basename );
 
                     $new_basename = plugin_basename(
-                        trailingslashit( $this->_fs->get_slug() . ( $this->_fs->is_premium() ? '-premium' : '' ) ) .
+                        trailingslashit( $this->_fs->is_premium() ? $this->_fs->get_premium_slug() : $this->_fs->get_slug() ) .
                         $filename
                     );
 
@@ -906,14 +906,16 @@ if ( !isset($info->error) ) {
                     );
                 }
 
-                $slug  = $addon->slug;
-                $title = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
+                $slug          = $addon->slug;
+                $premium_slug  = $addon->premium_slug;
+                $title         = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 
                 $is_addon = true;
             } else {
-                $slug  = $this->_fs->get_slug();
-                $title = $this->_fs->get_plugin_title() .
-                         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
+                $slug          = $this->_fs->get_slug();
+                $premium_slug  = $this->_fs->get_premium_slug();
+                $title         = $this->_fs->get_plugin_title() .
+                                 ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
             }
 
             if ( $this->is_premium_plugin_active( $plugin_id ) ) {
@@ -927,7 +929,7 @@ if ( !isset($info->error) ) {
             }
 
             $latest_version = $this->get_latest_download_details( $plugin_id );
-            $target_folder  = "{$slug}-premium";
+            $target_folder  = $premium_slug;
 
             // Prep variables for Plugin_Installer_Skin class.
             $extra         = array();
