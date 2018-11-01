@@ -36,6 +36,39 @@
 		}
 	}
 
+	if ( ! function_exists( 'fs_get_plugins' ) ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param string $plugin_folder
+         * @param bool   $delete_cache
+         *
+         * @return array
+         */
+	    function fs_get_plugins( $plugin_folder = '', $delete_cache = false ) {
+            if ( ! $cached_plugins = wp_cache_get( 'plugins', 'plugins' ) ) {
+                $cached_plugins = array();
+            }
+
+            if ( isset( $cached_plugins[ $plugin_folder ] ) ) {
+                $plugins = $cached_plugins[ $plugin_folder ];
+            } else {
+                if ( ! function_exists( 'get_plugins' ) ) {
+                    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+                }
+
+                $plugins = get_plugins();
+
+                if ( $delete_cache ) {
+                    wp_cache_delete( 'plugins', 'plugins' );
+                }
+            }
+
+            return $plugins;
+        }
+	}
+
 	#region Core Redirect (copied from BuddyPress) -----------------------------------------
 
 	if ( ! function_exists( 'fs_redirect' ) ) {
@@ -273,7 +306,7 @@
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		$all_plugins       = get_plugins();
+		$all_plugins       = fs_get_plugins( '', true );
 		$all_plugins_paths = array();
 
 		// Get active plugin's main files real full names (might be symlinks).

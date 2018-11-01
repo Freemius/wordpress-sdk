@@ -1701,7 +1701,7 @@
         private function get_caller_main_file_and_type() {
             self::require_plugin_essentials();
 
-            $all_plugins       = get_plugins();
+            $all_plugins       = fs_get_plugins( '', true );
             $all_plugins_paths = array();
 
             // Get active plugin's main files real full names (might be symlinks).
@@ -2523,7 +2523,7 @@
             self::require_plugin_essentials();
 
             $active_plugin            = array();
-            $all_plugins              = get_plugins();
+            $all_plugins              = fs_get_plugins();
             $active_plugins_basenames = self::get_active_plugins_basenames( $blog_id );
 
             foreach ( $active_plugins_basenames as $plugin_basename ) {
@@ -2573,7 +2573,7 @@
         private static function get_all_plugins( $blog_id = 0 ) {
             self::require_plugin_essentials();
 
-            $all_plugins = get_plugins();
+            $all_plugins = fs_get_plugins();
 
             $active_plugins_basenames = self::get_active_plugins_basenames( $blog_id );
 
@@ -2605,7 +2605,7 @@
         private static function get_network_plugins() {
             self::require_plugin_essentials();
 
-            $all_plugins = get_plugins();
+            $all_plugins = fs_get_plugins();
 
             $network_active_basenames = is_multisite() ?
                 get_site_option( 'active_sitewide_plugins' ) :
