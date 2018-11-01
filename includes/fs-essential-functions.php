@@ -61,7 +61,7 @@
 
                 $plugins = get_plugins();
 
-                if ( $delete_cache && isset( $plugins['woocommerce/woocommerce.php'] ) ) {
+                if ( $delete_cache && is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
                     wp_cache_delete( 'plugins', 'plugins' );
                 }
             }
