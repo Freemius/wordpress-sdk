@@ -1270,10 +1270,7 @@
                         array( &$this, '_activate_plugin_event_hook' )
                     );
 
-                    register_activation_hook(
-                        $plugin_dir . $this->premium_plugin_basename(),
-                        array( &$this, '_activate_plugin_event_hook' )
-                    );
+                    $this->register_premium_activation_hook();
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
@@ -1422,6 +1419,17 @@
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         */
+        private function register_premium_activation_hook() {
+            register_activation_hook(
+                dirname( $this->_plugin_dir_path ) . '/' . $this->premium_plugin_basename(),
+                array( &$this, '_activate_plugin_event_hook' )
+            );
         }
 
         /**
@@ -4739,33 +4747,42 @@
                 $this->_plugin :
                 new FS_Plugin();
 
-            /**
-             * Update the premium suffix first since `$this->get_plugin_name()` which is called below needs it.
-             *
-             * @author Leo Fajardo (@leorw)
-             * @since 2.2.1
-             */
-            $plugin->update( 'premium_suffix', $this->get_option( $plugin_info, 'premium_suffix', '(Premium)' ) );
+            $premium_slug   = $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" );
+            $premium_suffix = $this->get_option( $plugin_info, 'premium_suffix', '(Premium)' );
 
             $plugin->update( array(
                 'id'                   => $id,
                 'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type ),
                 'public_key'           => $public_key,
                 'slug'                 => $this->_slug,
-                'premium_slug'         => $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" ),
+                'premium_slug'         => $premium_slug,
                 'parent_plugin_id'     => $parent_id,
                 'version'              => $this->get_plugin_version(),
-                'title'                => $this->get_plugin_name(),
+                'title'                => $this->get_plugin_name( $premium_suffix ),
                 'file'                 => $this->_plugin_basename,
                 'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+                'premium_suffix'       => $premium_suffix,
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
             ) );
 
             if ( $plugin->is_updated() ) {
+                $register_activation_hook = ( ! is_object( $this->_plugin ) || $this->_plugin->premium_slug !== $premium_slug );
+
                 // Update plugin details.
                 $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
+
+                if ( $register_activation_hook ) {
+                    /**
+                     * Register an activation hook with the correct premium plugin basename.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.1
+                     */
+                    $this->register_premium_activation_hook();
+                }
             }
+
             // Set the secret key after storing the plugin, we don't want to store the key in the storage.
             $this->_plugin->secret_key = $secret_key;
 
@@ -8281,7 +8298,7 @@
          * @return string
          */
         function premium_plugin_basename() {
-            return "{$this->_plugin->premium_slug}/" . basename( $this->_free_plugin_basename );
+            return "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
         }
 
         /**
@@ -8426,7 +8443,9 @@
          * @return string
          */
         function get_premium_slug() {
-            return $this->get_plugin()->premium_slug;
+            return is_object( $this->_plugin ) ?
+                $this->_plugin->premium_slug :
+                "{$this->_slug}-premium";
         }
 
         /**
@@ -8509,19 +8528,27 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
+         * @param string|bool $premium_suffix
+         *
          * @return string
          */
-        function get_plugin_name() {
+        function get_plugin_name( $premium_suffix = false ) {
             $this->_logger->entrance();
 
-            if ( ! isset( $this->_plugin_name ) ) {
+            if (
+                ! isset( $this->_plugin_name ) ||
+                (
+                    false !== $premium_suffix &&
+                    ( ! is_object( $this->_plugin ) || $this->_plugin->premium_suffix !== $premium_suffix )
+                )
+            ) {
                 $plugin_data = $this->get_plugin_data();
 
                 // Get name.
                 $this->_plugin_name = $plugin_data['Name'];
 
                 // Check if plugin name contains " (premium)" or a custom suffix and remove it.
-                $suffix     = ( ' ' . strtolower( $this->_plugin->premium_suffix ) );
+                $suffix     = ( ' ' . strtolower( $premium_suffix ) );
                 $suffix_len = strlen( $suffix );
 
                 if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
