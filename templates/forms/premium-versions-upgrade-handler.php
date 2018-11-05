@@ -38,7 +38,7 @@
 
     $message = sprintf(
         fs_text_inline( 'There is a new version of %s available.', 'new-version-available-message', $slug ) .
-        fs_text_inline( ' %s to access version %s security & feature updates, and support.', 'renew-license-now', $slug ),
+        fs_text_inline( ' %s to access version %s security & feature updates, and support.', 'x-for-updates-and-support', $slug ),
         '<span id="plugin_name"></span>',
         sprintf(
             '<a id="pricing_url" href="">%s</a>',

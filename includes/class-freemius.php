@@ -11402,11 +11402,11 @@
                     array( 'licenses' => $this->_license->quota )
                 );
 
-                $purchase_license_text = $this->get_text_inline( 'Renew your license', 'renew-your-license' );
+                $purchase_license_text = $this->get_text_inline( 'Renew your license now', 'renew-license-now' );
             }
 
             return sprintf(
-                $this->get_text_inline( '%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
+                $this->get_text_inline( '%s to access version %s security & feature updates, and support.', 'x-for-updates-and-support' ),
                 sprintf( '<a href="%s">%s</a>', $url, $purchase_license_text ),
                 $new_version
             );
