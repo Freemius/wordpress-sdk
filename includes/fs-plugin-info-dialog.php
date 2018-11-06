@@ -172,8 +172,15 @@
             } else {
                 $data->wp_org_missing = false;
 
+                $fs_addon = $this->_fs->get_addon_instance( $selected_addon->id );
+
                 // Fetch latest version from Freemius.
-                $latest = $this->_fs->_fetch_latest_version( $selected_addon->id );
+                $latest = $this->_fs->_fetch_latest_version(
+                    $selected_addon->id,
+                    true,
+                    WP_FS__TIME_24_HOURS_IN_SEC,
+                    $fs_addon->get_plugin_version()
+                );
 
                 if ( $has_paid_plan ) {
                     $data->checkout_link = $this->_fs->checkout_url();

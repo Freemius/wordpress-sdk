@@ -407,7 +407,8 @@
                 $new_version = $this->_fs->get_update(
                     false,
                     fs_request_get_bool( 'force-check' ),
-                    WP_FS__TIME_24_HOURS_IN_SEC / 24
+                    WP_FS__TIME_24_HOURS_IN_SEC / 24,
+                    $this->_fs->get_plugin_version()
                 );
 
                 $this->_update_details = false;
@@ -864,11 +865,13 @@ if ( !isset($info->error) ) {
 }*/
             }
 
+            $plugin_version = $this->_fs->get_plugin_version();
+
             // Get plugin's newest update.
-            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
+            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
-                $data->version = $this->_fs->get_plugin_version();
+                $data->version = $plugin_version;
             } else {
                 if ( $is_addon ) {
                     $data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
@@ -941,11 +944,13 @@ if ( !isset($info->error) ) {
          * @since  1.2.1.7
          *
          * @param number|bool $addon_id
+         * @param bool|string $newer_than Since 2.2.1
+         * @param bool|string $readme     Since 2.2.1
          *
          * @return object
          */
-        private function get_latest_download_details( $addon_id = false ) {
-            return $this->_fs->_fetch_latest_version( $addon_id );
+        private function get_latest_download_details( $addon_id = false, $newer_than = false, $readme = true ) {
+            return $this->_fs->_fetch_latest_version( $addon_id, true, WP_FS__TIME_24_HOURS_IN_SEC, $newer_than, $readme );
         }
 
         /**
@@ -1088,7 +1093,7 @@ if ( !isset($info->error) ) {
                 );
             }
 
-            $latest_version = $this->get_latest_download_details( $plugin_id );
+            $latest_version = $this->get_latest_download_details( $plugin_id, false, false );
             $target_folder  = "{$slug}-premium";
 
             // Prep variables for Plugin_Installer_Skin class.

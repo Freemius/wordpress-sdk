@@ -16323,11 +16323,12 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          *
          * @return object|false New plugin tag info if exist.
          */
-        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
-            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration );
+        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
+            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than );
 
             if ( ! is_object( $latest_tag ) ) {
                 return false;
@@ -16352,17 +16353,18 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          *
          * @return bool|FS_Plugin_Tag
          */
-        function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+        function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
             $this->_logger->entrance();
 
             if ( ! is_numeric( $plugin_id ) ) {
                 $plugin_id = $this->_plugin->id;
             }
 
-            $this->check_updates( true, $plugin_id, $flush, $expiration );
+            $this->check_updates( true, $plugin_id, $flush, $expiration, $newer_than );
             $updates = $this->get_all_updates();
 
             return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -17472,13 +17474,7 @@
 
             // If add-on and not yet activated, try to fetch based on server licensing.
             if ( is_bool( $is_premium ) ) {
-                $endpoint = add_query_arg(
-                    array(
-                        'is_premium' => json_encode( $is_premium ),
-                        'readme'     => json_encode( $is_premium )
-                    ),
-                    $endpoint
-                );
+                $endpoint = add_query_arg( 'is_premium', json_encode( $is_premium ), $endpoint );
             }
 
             if ( $this->has_secret_key() ) {
@@ -17495,13 +17491,17 @@
          * @param bool|number $addon_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
+         * @param bool|string $readme     Since 2.2.1
          *
          * @return object|false Plugin latest tag info.
          */
         function _fetch_latest_version(
             $addon_id = false,
             $flush = true,
-            $expiration = WP_FS__TIME_24_HOURS_IN_SEC
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false,
+            $readme = true
         ) {
             $this->_logger->entrance();
 
@@ -17552,8 +17552,18 @@
                 $this->switch_to_blog( $switch_to_blog_id );
             }
 
+            $latest_version_endpoint = $this->_get_latest_version_endpoint( $addon_id, 'json' );
+
+            if ( ! empty( $newer_than ) ) {
+                $latest_version_endpoint = add_query_arg( 'newer_than', $newer_than, $latest_version_endpoint );
+            }
+
+            if ( true === $readme ) {
+                $latest_version_endpoint = add_query_arg( 'readme', 'true', $latest_version_endpoint );
+            }
+
             $tag = $this->get_api_site_or_plugin_scope()->get(
-                $this->_get_latest_version_endpoint( $addon_id, 'json' ),
+                $latest_version_endpoint,
                 $flush,
                 $expiration
             );
@@ -17689,17 +17699,19 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          */
         private function check_updates(
             $background = false,
             $plugin_id = false,
             $flush = true,
-            $expiration = WP_FS__TIME_24_HOURS_IN_SEC
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false
         ) {
             $this->_logger->entrance();
 
             // Check if there's a newer version for download.
-            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration );
+            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration, $newer_than );
 
             $update = null;
             if ( is_object( $new_version ) ) {
