@@ -17489,10 +17489,10 @@
          * @since  1.0.4
          *
          * @param bool|number $addon_id
-         * @param bool        $flush      Since 1.1.7.3
-         * @param int         $expiration Since 1.2.2.7
-         * @param bool|string $newer_than Since 2.2.1
-         * @param bool|string $readme     Since 2.2.1
+         * @param bool        $flush        Since 1.1.7.3
+         * @param int         $expiration   Since 1.2.2.7
+         * @param bool|string $newer_than   Since 2.2.1
+         * @param bool|string $fetch_readme Since 2.2.1
          *
          * @return object|false Plugin latest tag info.
          */
@@ -17501,7 +17501,7 @@
             $flush = true,
             $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
             $newer_than = false,
-            $readme = true
+            $fetch_readme = true
         ) {
             $this->_logger->entrance();
 
@@ -17558,7 +17558,7 @@
                 $latest_version_endpoint = add_query_arg( 'newer_than', $newer_than, $latest_version_endpoint );
             }
 
-            if ( true === $readme ) {
+            if ( true === $fetch_readme ) {
                 $latest_version_endpoint = add_query_arg( 'readme', 'true', $latest_version_endpoint );
             }
 

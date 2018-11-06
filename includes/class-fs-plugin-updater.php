@@ -944,13 +944,13 @@ if ( !isset($info->error) ) {
          * @since  1.2.1.7
          *
          * @param number|bool $addon_id
-         * @param bool|string $newer_than Since 2.2.1
-         * @param bool|string $readme     Since 2.2.1
+         * @param bool|string $newer_than   Since 2.2.1
+         * @param bool|string $fetch_readme Since 2.2.1
          *
          * @return object
          */
-        private function get_latest_download_details( $addon_id = false, $newer_than = false, $readme = true ) {
-            return $this->_fs->_fetch_latest_version( $addon_id, true, WP_FS__TIME_24_HOURS_IN_SEC, $newer_than, $readme );
+        private function get_latest_download_details( $addon_id = false, $newer_than = false, $fetch_readme = true ) {
+            return $this->_fs->_fetch_latest_version( $addon_id, true, WP_FS__TIME_24_HOURS_IN_SEC, $newer_than, $fetch_readme );
         }
 
         /**
