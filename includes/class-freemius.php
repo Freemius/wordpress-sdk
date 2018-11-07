@@ -1517,8 +1517,20 @@
                      ( $this->is_theme() && self::is_themes_page() )
                 ) {
                     add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+
+                    if ( $this->is_plugin() ) {
+                        add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_plugin_upgrade_notice_style' ) );
+                    }
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         */
+        function _enqueue_plugin_upgrade_notice_style() {
+            fs_enqueue_local_style( 'fs_plugin_upgrade_notice', '/admin/plugin-upgrade-notice.css' );
         }
 
         /**
@@ -4142,14 +4154,15 @@
              * @author Vova Feldman (@svovaf)
              */
             if ( $this->is_user_in_admin() &&
-                 ! $this->is_addon() &&
-                 $this->has_addons() &&
-                 'plugin-information' === fs_request_get( 'tab', false ) &&
-                 $this->get_id() == fs_request_get( 'parent_plugin_id', false )
+                'plugin-information' === fs_request_get( 'tab', false ) &&
+                 (
+                     ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
+                     ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
+                 )
             ) {
                 require_once WP_FS__DIR_INCLUDES . '/fs-plugin-info-dialog.php';
 
-                new FS_Plugin_Info_Dialog( $this );
+                new FS_Plugin_Info_Dialog( $this->is_addon() ? $this->get_parent_instance() : $this );
             }
 
             // Check if Freemius is on for the current plugin.
@@ -11460,6 +11473,40 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         *
+         * @param string $new_version
+         *
+         * @return string
+         */
+        function version_upgrade_checkout_link( $new_version ) {
+            if ( ! is_object( $this->_license ) ) {
+                $url = $this->pricing_url();
+
+                $purchase_license_text = $this->get_text_inline( 'Buy a license now', 'buy-license-now' );
+            } else {
+                $subscription = $this->_get_subscription( $this->_license->id );
+
+                $url = $this->checkout_url(
+                    is_object( $subscription ) ?
+                        ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                        WP_FS__PERIOD_LIFETIME,
+                    false,
+                    array( 'licenses' => $this->_license->quota )
+                );
+
+                $purchase_license_text = $this->get_text_inline( 'Renew your license now', 'renew-license-now' );
+            }
+
+            return sprintf(
+                $this->get_text_inline( '%s to access version %s security & feature updates, and support.', 'x-for-updates-and-support' ),
+                sprintf( '<a href="%s">%s</a>', $url, $purchase_license_text ),
+                $new_version
+            );
+        }
+
+        /**
          * Plugin's pricing URL.
          *
          * @author Vova Feldman (@svovaf)
@@ -16376,11 +16423,12 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          *
          * @return object|false New plugin tag info if exist.
          */
-        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
-            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration );
+        private function _fetch_newer_version( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
+            $latest_tag = $this->_fetch_latest_version( $plugin_id, $flush, $expiration, $newer_than );
 
             if ( ! is_object( $latest_tag ) ) {
                 return false;
@@ -16405,17 +16453,18 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          *
          * @return bool|FS_Plugin_Tag
          */
-        function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
+        function get_update( $plugin_id = false, $flush = true, $expiration = WP_FS__TIME_24_HOURS_IN_SEC, $newer_than = false ) {
             $this->_logger->entrance();
 
             if ( ! is_numeric( $plugin_id ) ) {
                 $plugin_id = $this->_plugin->id;
             }
 
-            $this->check_updates( true, $plugin_id, $flush, $expiration );
+            $this->check_updates( true, $plugin_id, $flush, $expiration, $newer_than );
             $updates = $this->get_all_updates();
 
             return isset( $updates[ $plugin_id ] ) && is_object( $updates[ $plugin_id ] ) ? $updates[ $plugin_id ] : false;
@@ -17543,15 +17592,19 @@
          * @since  1.0.4
          *
          * @param bool|number $addon_id
-         * @param bool        $flush      Since 1.1.7.3
-         * @param int         $expiration Since 1.2.2.7
+         * @param bool        $flush        Since 1.1.7.3
+         * @param int         $expiration   Since 1.2.2.7
+         * @param bool|string $newer_than   Since 2.2.1
+         * @param bool|string $fetch_readme Since 2.2.1
          *
          * @return object|false Plugin latest tag info.
          */
         function _fetch_latest_version(
             $addon_id = false,
             $flush = true,
-            $expiration = WP_FS__TIME_24_HOURS_IN_SEC
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false,
+            $fetch_readme = true
         ) {
             $this->_logger->entrance();
 
@@ -17602,8 +17655,18 @@
                 $this->switch_to_blog( $switch_to_blog_id );
             }
 
+            $latest_version_endpoint = $this->_get_latest_version_endpoint( $addon_id, 'json' );
+
+            if ( ! empty( $newer_than ) ) {
+                $latest_version_endpoint = add_query_arg( 'newer_than', $newer_than, $latest_version_endpoint );
+            }
+
+            if ( true === $fetch_readme ) {
+                $latest_version_endpoint = add_query_arg( 'readme', 'true', $latest_version_endpoint );
+            }
+
             $tag = $this->get_api_site_or_plugin_scope()->get(
-                $this->_get_latest_version_endpoint( $addon_id, 'json' ),
+                $latest_version_endpoint,
                 $flush,
                 $expiration
             );
@@ -17739,17 +17802,19 @@
          * @param bool|number $plugin_id
          * @param bool        $flush      Since 1.1.7.3
          * @param int         $expiration Since 1.2.2.7
+         * @param bool|string $newer_than Since 2.2.1
          */
         private function check_updates(
             $background = false,
             $plugin_id = false,
             $flush = true,
-            $expiration = WP_FS__TIME_24_HOURS_IN_SEC
+            $expiration = WP_FS__TIME_24_HOURS_IN_SEC,
+            $newer_than = false
         ) {
             $this->_logger->entrance();
 
             // Check if there's a newer version for download.
-            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration );
+            $new_version = $this->_fetch_newer_version( $plugin_id, $flush, $expiration, $newer_than );
 
             $update = null;
             if ( is_object( $new_version ) ) {

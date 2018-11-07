@@ -64,7 +64,7 @@
         function _get_addon_info_filter( $data, $action = '', $args = null ) {
             $this->_logger->entrance();
 
-            $parent_plugin_id = fs_request_get( 'parent_plugin_id', false );
+            $parent_plugin_id = fs_request_get( 'parent_plugin_id', $this->_fs->get_id() );
 
             if ( $this->_fs->get_id() != $parent_plugin_id ||
                  ( 'plugin_information' !== $action ) ||
@@ -142,6 +142,8 @@
                 }
             }
 
+            $latest = null;
+
             if ( ! $has_paid_plan && $selected_addon->is_wp_org_compliant ) {
                 $repo_data = FS_Plugin_Updater::_fetch_plugin_info_from_repository(
                     'plugin_information', (object) array(
@@ -170,8 +172,15 @@
             } else {
                 $data->wp_org_missing = false;
 
+                $fs_addon = $this->_fs->get_addon_instance( $selected_addon->id );
+
                 // Fetch latest version from Freemius.
-                $latest = $this->_fs->_fetch_latest_version( $selected_addon->id );
+                $latest = $this->_fs->_fetch_latest_version(
+                    $selected_addon->id,
+                    true,
+                    WP_FS__TIME_24_HOURS_IN_SEC,
+                    $fs_addon->get_plugin_version()
+                );
 
                 if ( $has_paid_plan ) {
                     $data->checkout_link = $this->_fs->checkout_url();
@@ -214,11 +223,19 @@
                 }
             }
 
-            $data->name     = $selected_addon->title;
-            $view_vars      = array( 'plugin' => $selected_addon );
-            $data->sections = array(
-                'description' => fs_get_template( '/plugin-info/description.php', $view_vars ),
-            );
+            $data->name = $selected_addon->title;
+            $view_vars  = array( 'plugin' => $selected_addon );
+
+            if ( is_object( $latest ) && isset( $latest->readme ) && is_object( $latest->readme ) ) {
+                $latest_version_readme_data = $latest->readme;
+                if ( isset( $latest_version_readme_data->sections ) ) {
+                    $data->sections = (array) $latest_version_readme_data->sections;
+                } else {
+                    $data->sections = array();
+                }
+            }
+
+            $data->sections['description'] = fs_get_template( '/plugin-info/description.php', $view_vars );
 
             if ( $has_pricing ) {
                 // Add plans to data.

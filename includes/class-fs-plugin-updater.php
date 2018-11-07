@@ -82,25 +82,25 @@
 
             $this->add_transient_filters();
 
-            if ( ! $this->_fs->has_any_active_valid_license() ) {
-                /**
-                 * If user has the premium plugin's code but do NOT have an active license,
-                 * encourage him to upgrade by showing that there's a new release, but instead
-                 * of showing an update link, show upgrade link to the pricing page.
-                 *
-                 * @since 1.1.6
-                 *
-                 */
-                // WP 2.9+
-                add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                    &$this,
-                    'catch_plugin_update_row'
-                ), 9 );
-                add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                    &$this,
-                    'edit_and_echo_plugin_update_row'
-                ), 11, 2 );
-            }
+            /**
+             * If user has the premium plugin's code but do NOT have an active license,
+             * encourage him to upgrade by showing that there's a new release, but instead
+             * of showing an update link, show upgrade link to the pricing page.
+             *
+             * @since 1.1.6
+             *
+             */
+            // WP 2.9+
+            add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+                &$this,
+                'catch_plugin_update_row'
+            ), 9 );
+            add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
+                &$this,
+                'edit_and_echo_plugin_update_row'
+            ), 11, 2 );
+
+            add_action( 'admin_head', array( &$this, 'catch_plugin_information_dialog_contents' ) );
 
             if ( ! WP_FS__IS_PRODUCTION_MODE ) {
                 add_filter( 'http_request_host_is_external', array(
@@ -118,6 +118,75 @@
                     add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         */
+        function catch_plugin_information_dialog_contents() {
+            if (
+                'plugin-information' !== fs_request_get( 'tab', false ) ||
+                $this->_fs->get_slug() !== fs_request_get( 'plugin', false )
+            ) {
+                return;
+            }
+
+            add_action( 'admin_footer', array( &$this, 'edit_and_echo_plugin_information_dialog_contents' ), 0, 1 );
+
+            ob_start();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.1.4
+         *
+         * @param string $hook_suffix
+         */
+        function edit_and_echo_plugin_information_dialog_contents( $hook_suffix ) {
+            if (
+                'plugin-information' !== fs_request_get( 'tab', false ) ||
+                $this->_fs->get_slug() !== fs_request_get( 'plugin', false )
+            ) {
+                return;
+            }
+
+            $license = $this->_fs->_get_license();
+
+            $subscription = ( is_object( $license ) && ! $license->is_lifetime() ) ?
+                $this->_fs->_get_subscription( $license->id ) :
+                null;
+
+            $contents = ob_get_clean();
+
+            /**
+             * Replace the plugin information dialog's "Install Update Now" button's text and URL. If there's a license,
+             * the text will be "Renew license" and will link to the checkout page with the license's billing cycle
+             * and quota. If there's no license, the text will be "Buy license" and will link to the pricing page.
+             */
+            $contents = preg_replace(
+                '/(.+\<a.+)(id="plugin_update_from_iframe")(.+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
+                is_object( $license ) ?
+                    sprintf(
+                        '$1$3%s$5%s$7',
+                        $this->_fs->checkout_url(
+                            is_object( $subscription ) ?
+                                ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                                WP_FS__PERIOD_LIFETIME,
+                            false,
+                            array( 'licenses' => $license->quota )
+                        ),
+                        fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
+                    ) :
+                    sprintf(
+                        '$1$3%s$5%s$7',
+                        $this->_fs->pricing_url(),
+                        fs_text_inline( 'Buy license', 'buy-license', $this->_fs->get_slug() )
+                    ),
+                $contents
+            );
+
+            echo $contents;
         }
 
         /**
@@ -183,15 +252,53 @@
 
             $r = $current->response[ $file ];
 
-            $plugin_update_row = preg_replace(
-                '/(\<div.+>)(.+)(\<a.+\<a.+)\<\/div\>/is',
-                '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $r->new_version ) .
-                '$4',
-                $plugin_update_row
-            );
+            if ( ! $this->_fs->has_any_active_valid_license() ) {
+                /**
+                 * Turn the "new version" text into a link that opens the plugin information dialog when clicked and
+                 * make the "View version x details" text link to the checkout page instead of opening the plugin
+                 * information dialog when clicked.
+                 *
+                 * Sample input:
+                 *      There is a new version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
+                 * Output:
+                 *      There is a <a href="...>new version</a> of Awesome Plugin available. <a href="...>Buy a license now</a> to access version x.y.z security & feature updates, and support.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $plugin_update_row = preg_replace(
+                    '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
+                    (
+                        '$1' .
+                        sprintf(
+                            fs_text_inline( 'There is a %s of %s available.', 'new-version-available', $this->_fs->get_slug() ),
+                            sprintf(
+                                '<a href="$4"%s>%s</a>',
+                                '$5',
+                                fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() )
+                            ),
+                            $this->_fs->get_plugin_title()
+                        ) .
+                        ' ' .
+                        $this->_fs->version_upgrade_checkout_link( $r->new_version ) .
+                        '$6'
+                    ),
+                    $plugin_update_row
+                );
+            }
+
+            if (
+                $this->_fs->is_plugin() &&
+                isset( $r->upgrade_notice ) &&
+                strlen( trim( $r->upgrade_notice ) ) > 0
+            ) {
+                $upgrade_notice_html = sprintf(
+                    '<p class="notice upgrade-notice"><strong>%s</strong> %s</p>',
+                    fs_text_inline( 'Important Upgrade Notice:', 'upgrade_notice', $this->_fs->get_slug() ),
+                    esc_html( $r->upgrade_notice )
+                );
+
+                $plugin_update_row = str_replace( '</div>', '</div>' . $upgrade_notice_html, $plugin_update_row );
+            }
 
             echo $plugin_update_row;
         }
@@ -220,10 +327,7 @@
 
             $prepared_themes[ $theme_basename ]['update'] = preg_replace(
                 '/(\<p.+>)(.+)(\<a.+\<a.+)\.(.+\<\/p\>)/is',
-                '$1 $2 ' . sprintf(
-                    $this->_fs->get_text_inline( '%sRenew your license now%s to access version %s security & feature updates, and support.', 'renew-license-now' ),
-                    '<a href="' . $this->_fs->pricing_url() . '">', '</a>',
-                    $themes_update->response[ $theme_basename ]['new_version'] ) .
+                '$1 $2 ' . $this->_fs->version_upgrade_checkout_link( $themes_update->response[ $theme_basename ]['new_version'] ) .
                 '$4',
                 $prepared_themes[ $theme_basename ]['update']
             );
@@ -303,7 +407,8 @@
                 $new_version = $this->_fs->get_update(
                     false,
                     fs_request_get_bool( 'force-check' ),
-                    WP_FS__TIME_24_HOURS_IN_SEC / 24
+                    WP_FS__TIME_24_HOURS_IN_SEC / 24,
+                    $this->_fs->get_plugin_version()
                 );
 
                 $this->_update_details = false;
@@ -399,6 +504,18 @@
 //                    '2x'      => $icon,
                     'default' => $icon,
                 );
+            }
+
+            if ( $this->_fs->is_premium() ) {
+                $latest_tag = $this->_fs->_fetch_latest_version( $this->_fs->get_id(), false );
+
+                if (
+                    isset( $latest_tag->readme ) &&
+                    isset( $latest_tag->readme->upgrade_notice ) &&
+                    ! empty( $latest_tag->readme->upgrade_notice )
+                ) {
+                    $update->upgrade_notice = $latest_tag->readme->upgrade_notice;
+                }
             }
 
             $update->{$this->_fs->get_module_type()} = $this->_fs->get_plugin_basename();
@@ -748,11 +865,13 @@ if ( !isset($info->error) ) {
 }*/
             }
 
+            $plugin_version = $this->_fs->get_plugin_version();
+
             // Get plugin's newest update.
-            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
+            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
-                $data->version = $this->_fs->get_plugin_version();
+                $data->version = $plugin_version;
             } else {
                 if ( $is_addon ) {
                     $data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
@@ -769,6 +888,52 @@ if ( !isset($info->error) ) {
 
                 $data->version       = $new_version->version;
                 $data->download_link = $new_version->url;
+
+                if ( isset( $new_version->readme ) && is_object( $new_version->readme ) ) {
+                    $new_version_readme_data = $new_version->readme;
+                    if ( isset( $new_version_readme_data->sections ) ) {
+                        $new_version_readme_data->sections = (array) $new_version_readme_data->sections;
+                    } else {
+                        $new_version_readme_data->sections = array();
+                    }
+
+                    if ( isset( $data->sections ) ) {
+                        if ( isset( $data->sections['screenshots'] ) ) {
+                            $new_version_readme_data->sections['screenshots'] = $data->sections['screenshots'];
+                        }
+
+                        if ( isset( $data->sections['reviews'] ) ) {
+                            $new_version_readme_data->sections['reviews'] = $data->sections['reviews'];
+                        }
+                    }
+
+                    if ( isset( $new_version_readme_data->banners ) ) {
+                        $new_version_readme_data->banners = (array) $new_version_readme_data->banners;
+                    } else if ( isset( $data->banners ) ) {
+                        $new_version_readme_data->banners = $data->banners;
+                    }
+
+                    $wp_org_sections = array(
+                        'author',
+                        'author_profile',
+                        'rating',
+                        'ratings',
+                        'num_ratings',
+                        'support_threads',
+                        'support_threads_resolved',
+                        'active_installs',
+                        'added',
+                        'homepage'
+                    );
+
+                    foreach ( $wp_org_sections as $wp_org_section ) {
+                        if ( isset( $data->{$wp_org_section} ) ) {
+                            $new_version_readme_data->{$wp_org_section} = $data->{$wp_org_section};
+                        }
+                    }
+
+                    $data = $new_version_readme_data;
+                }
             }
 
             return $data;
@@ -779,11 +944,13 @@ if ( !isset($info->error) ) {
          * @since  1.2.1.7
          *
          * @param number|bool $addon_id
+         * @param bool|string $newer_than   Since 2.2.1
+         * @param bool|string $fetch_readme Since 2.2.1
          *
          * @return object
          */
-        private function get_latest_download_details( $addon_id = false ) {
-            return $this->_fs->_fetch_latest_version( $addon_id );
+        private function get_latest_download_details( $addon_id = false, $newer_than = false, $fetch_readme = true ) {
+            return $this->_fs->_fetch_latest_version( $addon_id, true, WP_FS__TIME_24_HOURS_IN_SEC, $newer_than, $fetch_readme );
         }
 
         /**
@@ -926,7 +1093,7 @@ if ( !isset($info->error) ) {
                 );
             }
 
-            $latest_version = $this->get_latest_download_details( $plugin_id );
+            $latest_version = $this->get_latest_download_details( $plugin_id, false, false );
             $target_folder  = "{$slug}-premium";
 
             // Prep variables for Plugin_Installer_Skin class.
