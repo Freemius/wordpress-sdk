@@ -12140,7 +12140,13 @@
              * @author Vova Feldman (@svovaf)
              */
             $args = array(
-                'public'   => 1,
+                /**
+                 * Commented out in order to handle the migration of site options whether the site is public or not.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                // 'public'   => 1,
                 'archived' => 0,
                 'mature'   => 0,
                 'spam'     => 0,
