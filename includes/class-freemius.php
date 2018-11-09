@@ -381,7 +381,7 @@
             $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
-            $this->_free_plugin_basename  = ( $this->_slug . '/' . basename( $this->_plugin_basename ) );
+            $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
 
             $this->_is_multisite_integrated = (
                 defined( "WP_FS__PRODUCT_{$module_id}_MULTISITE" ) &&
@@ -1257,20 +1257,7 @@
                 add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
-                    $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
-
-                    /**
-                     * @since 1.2.2
-                     *
-                     * Hook to both free and premium version activations to support
-                     * auto deactivation on the other version activation.
-                     */
-                    register_activation_hook(
-                        $plugin_dir . $this->_free_plugin_basename,
-                        array( &$this, '_activate_plugin_event_hook' )
-                    );
-
-                    $this->register_premium_activation_hook();
+                    $this->register_activation_hooks();
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
@@ -1425,9 +1412,22 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.2.1
          */
-        private function register_premium_activation_hook() {
+        private function register_activation_hooks() {
+            $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+            /**
+             * @since 1.2.2
+             *
+             * Hook to both free and premium version activations to support
+             * auto deactivation on the other version activation.
+             */
             register_activation_hook(
-                dirname( $this->_plugin_dir_path ) . '/' . $this->premium_plugin_basename(),
+                $plugin_dir . $this->_free_plugin_basename,
+                array( &$this, '_activate_plugin_event_hook' )
+            );
+
+            register_activation_hook(
+                $plugin_dir . $this->premium_plugin_basename(),
                 array( &$this, '_activate_plugin_event_hook' )
             );
         }
@@ -4767,19 +4767,30 @@
             ) );
 
             if ( $plugin->is_updated() ) {
-                $register_activation_hook = ( ! is_object( $this->_plugin ) || $this->_plugin->premium_slug !== $premium_slug );
+                if ( ! $plugin->is_premium ) {
+                    $this->_free_plugin_basename = $this->_plugin_basename;
+                }
+
+                $register_activation_hook = (
+                    ( WP_FS__MODULE_TYPE_PLUGIN === $plugin->type ) &&
+                    (
+                        ! is_object( $this->_plugin ) ||
+                        $this->_plugin->premium_slug !== $premium_slug ||
+                        $this->_plugin->is_premium !== $plugin->is_premium
+                    )
+                );
 
                 // Update plugin details.
                 $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
 
                 if ( $register_activation_hook ) {
                     /**
-                     * Register an activation hook with the correct premium plugin basename.
+                     * Register activation hooks with the correct plugin basenames.
                      *
                      * @author Leo Fajardo (@leorw)
                      * @since 2.2.1
                      */
-                    $this->register_premium_activation_hook();
+                    $this->register_activation_hooks();
                 }
             }
 
@@ -8298,7 +8309,9 @@
          * @return string
          */
         function premium_plugin_basename() {
-            return "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
+            return ( ! $this->is_premium() ) ?
+                $this->_plugin_basename :
+                "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
         }
 
         /**
