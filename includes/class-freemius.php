@@ -8309,7 +8309,7 @@
          * @return string
          */
         function premium_plugin_basename() {
-            return ( ! $this->is_premium() ) ?
+            return ( $this->is_premium() ) ?
                 $this->_plugin_basename :
                 "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
         }
