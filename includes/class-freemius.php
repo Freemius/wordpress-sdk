@@ -34,6 +34,12 @@
          */
         private $_plugin_basename;
         /**
+         * @since 2.2.1
+         *
+         * @var string
+         */
+        private $_premium_plugin_basename;
+        /**
          * @since 1.0.0
          *
          * @var string
@@ -1257,7 +1263,23 @@
                 add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
-                    $this->register_activation_hooks();
+                    $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+                    /**
+                     * @since 1.2.2
+                     *
+                     * Hook to both free and premium version activations to support
+                     * auto deactivation on the other version activation.
+                     */
+                    register_activation_hook(
+                        $plugin_dir . $this->_free_plugin_basename,
+                        array( &$this, '_activate_plugin_event_hook' )
+                    );
+
+                    register_activation_hook(
+                        $plugin_dir . $this->premium_plugin_basename(),
+                        array( &$this, '_activate_plugin_event_hook' )
+                    );
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
@@ -1406,30 +1428,6 @@
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
             }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.1
-         */
-        private function register_activation_hooks() {
-            $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
-
-            /**
-             * @since 1.2.2
-             *
-             * Hook to both free and premium version activations to support
-             * auto deactivation on the other version activation.
-             */
-            register_activation_hook(
-                $plugin_dir . $this->_free_plugin_basename,
-                array( &$this, '_activate_plugin_event_hook' )
-            );
-
-            register_activation_hook(
-                $plugin_dir . $this->premium_plugin_basename(),
-                array( &$this, '_activate_plugin_event_hook' )
-            );
         }
 
         /**
@@ -4767,33 +4765,9 @@
             ) );
 
             if ( $plugin->is_updated() ) {
-                if ( ! $plugin->is_premium ) {
-                    $this->_free_plugin_basename = $this->_plugin_basename;
-                }
-
-                $register_activation_hook = (
-                    ( WP_FS__MODULE_TYPE_PLUGIN === $plugin->type ) &&
-                    (
-                        ! is_object( $this->_plugin ) ||
-                        $this->_plugin->premium_slug !== $premium_slug ||
-                        $this->_plugin->is_premium !== $plugin->is_premium
-                    )
-                );
-
                 // Update plugin details.
                 $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->store( $plugin );
-
-                if ( $register_activation_hook ) {
-                    /**
-                     * Register activation hooks with the correct plugin basenames.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.1
-                     */
-                    $this->register_activation_hooks();
-                }
             }
-
             // Set the secret key after storing the plugin, we don't want to store the key in the storage.
             $this->_plugin->secret_key = $secret_key;
 
@@ -8304,14 +8278,55 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  2.2.1
+         *
+         * @param string $is_premium
+         * @param string $caller
+         *
+         * @return string
+         */
+        function set_basename( $is_premium, $caller ) {
+            $basename = plugin_basename( $caller );
+
+            $current_basename = $is_premium ?
+                $this->_premium_plugin_basename :
+                $this->_free_plugin_basename;
+
+            if ( $current_basename == $basename ) {
+                // Basename value set correctly.
+                return;
+            }
+
+            if ( $is_premium ) {
+                $this->_premium_plugin_basename = $basename;
+            } else {
+                $this->_free_plugin_basename = $basename;
+            }
+
+            $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+            register_activation_hook(
+                $plugin_dir . $basename,
+                array( &$this, '_activate_plugin_event_hook' )
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
          * @return string
          */
         function premium_plugin_basename() {
-            return ( $this->is_premium() ) ?
-                $this->_plugin_basename :
-                "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
+            if ( isset( $this->_premium_plugin_basename ) ) {
+                return $this->_premium_plugin_basename;
+            }
+
+            if ( $this->is_premium() ) {
+                return $this->_plugin_basename;
+            }
+
+            return "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
         }
 
         /**
