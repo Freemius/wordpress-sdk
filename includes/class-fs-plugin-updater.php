@@ -114,10 +114,40 @@
                     add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
                 }
 
+                /**
+                 * Detach the methods that are attached to some filters and hooks after the upgrade process to prevent
+                 * a case when a file from the previous folder name (in case the folder name was changed) is loaded which
+                 * causes a fatal error in case the previous folder no longer exists.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                add_action(
+                    'upgrader_process_complete',
+                    array( &$this, '_remove_filters_and_hooks' ),
+                    // Ensure that `_remove_filters_and_hooks` will be executed before the relevant WP core logic.
+                    8,
+                    0
+                );
+
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
                     add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
                 }
             }
+        }
+
+        /**
+         * Detaches the methods that are attached to some filters and hooks after the upgrade process to prevent
+         * a case when a file from the previous folder name (in case the folder name was changed) is loaded which
+         * causes a fatal error in case the previous folder no longer exists.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         */
+        function _remove_filters_and_hooks() {
+            $this->remove_transient_filters();
+
+            remove_action( 'admin_footer', array( 'FS_Admin_Notice_Manager', '_add_sticky_dismiss_javascript' ) );
         }
 
         /**
