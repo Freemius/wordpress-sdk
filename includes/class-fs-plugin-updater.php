@@ -123,11 +123,19 @@
                  * @since 2.2.1
                  */
                 add_action(
+                    'upgrader_post_install',
+                    array( &$this, '_store_renamed_plugins_data_locally'),
+                    // Ensure that `_store_renamed_plugins_data_locally` will be executed before the relevant WP core logic.
+                    9,
+                    3
+                );
+
+                add_action(
                     'upgrader_process_complete',
-                    array( &$this, '_remove_filters_and_hooks' ),
-                    // Ensure that `_remove_filters_and_hooks` will be executed before the relevant WP core logic.
+                    array( &$this, '_remove_hooks_and_handle_plugins_reactivation'),
+                    // Ensure that `_remove_hooks_and_handle_plugins_reactivation` will be executed before the relevant WP core logic.
                     8,
-                    0
+                    2
                 );
 
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
@@ -143,11 +151,71 @@
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.2.1
+         *
+         * @param bool         $response
+         * @param array        $hook_extra
+         * @param array|string $result
+         *
+         * @return array
          */
-        function _remove_filters_and_hooks() {
-            $this->remove_transient_filters();
+        function _store_renamed_plugins_data_locally( $response, $hook_extra, $result ) {
+            $plugin_basename = $hook_extra['plugin'];
 
+            if (
+                is_wp_error( $result ) ||
+                dirname( $plugin_basename ) === $result['destination_name'] ||
+                file_exists( trailingslashit( $result['local_destination'] ) . $plugin_basename )
+            ) {
+                return $result;
+            }
+
+            $fs = Freemius::get_instance_by_file( $plugin_basename );
+            if ( ! is_object( $fs ) ) {
+                // Not Freemius-powered plugin.
+                return $result;
+            }
+
+            FS_Plugin_Updater::instance( $fs )->remove_transient_filters();
+
+            $renamed_plugin_path = $result['destination'] . basename( $plugin_basename );
+
+            if ( ! isset( $this->renamed_plugin_paths ) ) {
+                $this->renamed_plugin_paths = array();
+            }
+
+            $this->renamed_plugin_paths[ plugin_basename( $renamed_plugin_path ) ] = $renamed_plugin_path;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param WP_Upgrader $wp_ugrader   WP_Upgrader instance.
+         * @param array       $upgrade_data
+         */
+        function _remove_hooks_and_handle_plugins_reactivation( $wp_ugrader, $upgrade_data ) {
             remove_action( 'admin_footer', array( 'FS_Admin_Notice_Manager', '_add_sticky_dismiss_javascript' ) );
+
+            if ( ! isset( $wp_ugrader->bulk ) || ! $wp_ugrader->bulk || ! isset( $this->renamed_plugin_paths ) ) {
+                return;
+            }
+
+            $cached_plugins = wp_cache_get( 'plugins', 'plugins' );
+
+            foreach ( $this->renamed_plugin_paths as $key => $renamed_plugin_path ) {
+                $cached_plugins[''][ plugin_basename( $renamed_plugin_path ) ] = get_plugin_data( $renamed_plugin_path, false, false );
+            }
+
+            if ( ! empty( $this->renamed_plugin_paths ) ) {
+                return;
+            }
+
+            wp_cache_set( 'plugins', $cached_plugins, 'plugins' );
+
+            foreach ( $this->renamed_plugin_paths as $prev_basename => $renamed_plugin_path ) {
+                $updater = FS_Plugin_Updater::instance( Freemius::get_instance_by_file( $prev_basename ) );
+                $updater->try_activate_plugin( $renamed_plugin_path );
+            }
         }
 
         /**
