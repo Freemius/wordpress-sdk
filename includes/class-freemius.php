@@ -8690,7 +8690,7 @@
          *
          * @return false|string
          */
-        private static function find_slug_by_basename( $plugin_base_name ) {
+        static function find_slug_by_basename( $plugin_base_name ) {
             $file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
 
             if ( ! array( $file_slug_map ) || ! isset( $file_slug_map[ $plugin_base_name ] ) ) {
