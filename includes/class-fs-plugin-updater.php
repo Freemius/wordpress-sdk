@@ -116,15 +116,7 @@
                     add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
                 }
 
-                /**
-                 * Stores the renamed plugin's data locally when the plugin is part of a bulk upgrade so that it can be reactivated
-                 * after the upgrade process.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.1
-                 */
-
-                add_filter( 'upgrader_pre_install', array( 'FS_Plugin_Updater', '_upgrader_pre_install' ), 1, 2 );
+                add_filter( 'upgrader_pre_install', array( 'FS_Plugin_Updater', '_store_basename_for_source_adjustment' ), 1, 2 );
                 add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
@@ -1076,6 +1068,8 @@ if ( !isset($info->error) ) {
         }
 
         /**
+         * Store the basename since it's not always available in the `_maybe_adjust_source_dir` method below.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.2.1
          *
@@ -1084,7 +1078,7 @@ if ( !isset($info->error) ) {
          *
          * @return bool|WP_Error
          */
-        static function _upgrader_pre_install( $response, $hook_extra ) {
+        static function _store_basename_for_source_adjustment( $response, $hook_extra ) {
             if ( isset( $hook_extra['plugin'] ) ) {
                 self::$_upgrade_basename = $hook_extra['plugin'];
             } else if ( $hook_extra['theme'] ) {
@@ -1131,6 +1125,7 @@ if ( !isset($info->error) ) {
 
             // Figure out what the slug is supposed to be.
             $desired_slug = ( isset( $options['extra'] ) ) ?
+                // Set by the auto-install logic.
                 $options['extra']['slug'] :
                 (
                     false !== strpos( fs_normalize_path( $basename ), '/' ) ?
@@ -1171,6 +1166,7 @@ if ( !isset($info->error) ) {
                     return trailingslashit( $to_path );
                 } else {
                     if ( ! is_object( $fs ) ) {
+                        // Fall back to the newest SDK FS instance so that it can be used in the call below.
                         global $fs_active_plugins;
 
                         $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
