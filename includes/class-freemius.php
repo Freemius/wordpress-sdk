@@ -2193,6 +2193,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @return Freemius[]
+         */
+        static function instances() {
+            return self::$_instances;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *

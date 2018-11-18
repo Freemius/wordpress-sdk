@@ -35,13 +35,7 @@
          */
         private $_translation_updates;
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.1
-         *
-         * @var array $_renamed_plugin_paths
-         */
-        private static $_renamed_plugin_paths;
+        private static $_upgrade_basename;
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -129,119 +123,13 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.1
                  */
-                add_action(
-                    'upgrader_post_install',
-                    array( 'FS_Plugin_Updater', '_store_renamed_plugin_data_locally_after_install' ),
-                    // Ensure that `_store_renamed_plugins_data_locally` will be executed before the relevant WP core logic.
-                    9,
-                    3
-                );
 
-                add_action(
-                    'upgrader_process_complete',
-                    array( 'FS_Plugin_Updater', '_remove_filters_and_handle_plugins_reactivation'),
-                    // Ensure that `_remove_hooks_and_handle_plugins_reactivation` will be executed before the relevant WP core logic.
-                    8,
-                    2
-                );
+                add_filter( 'upgrader_pre_install', array( 'FS_Plugin_Updater', '_upgrader_pre_install' ), 1, 2 );
+                add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
                     add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
                 }
-            }
-        }
-
-        /**
-         * Stores the renamed plugin's data locally when the plugin is part of a bulk upgrade so that it can be reactivated
-         * after the upgrade process.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.1
-         *
-         * @param bool  $response   Installation response.
-         * @param array $hook_extra Plugin basename.
-         * @param array $result     Source and destination information.
-         *
-         * @return array
-         */
-        static function _store_renamed_plugin_data_locally_after_install( $response, $hook_extra, $result ) {
-            $plugin_basename = isset( $hook_extra['plugin'] ) ?
-                $hook_extra['plugin'] :
-                null;
-
-            if (
-                empty( $plugin_basename ) ||
-                is_wp_error( $result ) ||
-                // Folder not renamed.
-                dirname( $plugin_basename ) === $result['destination_name'] ||
-                // Folder still exists.
-                file_exists( trailingslashit( $result['local_destination'] ) . $plugin_basename )
-            ) {
-                return $result;
-            }
-
-            if ( ! isset( self::$_renamed_plugin_paths ) ) {
-                self::$_renamed_plugin_paths = array();
-            }
-
-            self::$_renamed_plugin_paths[ $plugin_basename ] = ( $result['destination'] . basename( $plugin_basename ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.1
-         *
-         * @param WP_Upgrader $wp_ugrader   WP_Upgrader instance.
-         * @param array       $upgrade_data
-         */
-        static function _remove_filters_and_handle_plugins_reactivation( $wp_ugrader, $upgrade_data ) {
-            $updater_instances = array();
-            if ( ! empty( self::$_renamed_plugin_paths ) ) {
-                foreach ( self::$_renamed_plugin_paths as $prev_basename => $renamed_plugin_path ) {
-                    $fs = Freemius::get_instance_by_file( $prev_basename );
-                    if ( ! is_object( $fs ) ) {
-                        // Either not Freemius-powered plugin or just not active.
-                        continue;
-                    }
-
-                    $updater_instances[ $prev_basename ] = FS_Plugin_Updater::instance( $fs );
-                }
-            }
-
-            if ( ! file_exists( WP_FS__DIR_SDK ) ) {
-                remove_action( 'admin_footer', array( 'FS_Admin_Notice_Manager', '_add_sticky_dismiss_javascript' ) );
-
-                foreach ( $updater_instances as $updater_instance ) {
-                    $updater_instance->remove_transient_filters();
-                }
-            }
-
-            if (
-                empty( $updater_instances ) ||
-                ! isset( $wp_ugrader->bulk ) ||
-                ! $wp_ugrader->bulk ||
-                ! isset( self::$_renamed_plugin_paths )
-            ) {
-                // Previously active plugins are not automatically reactivated only when doing bulk upgrade.
-                return;
-            }
-
-            // Update the cache or the reactivation will fail since the plugins are not yet added to the installed plugins cache.
-            $cached_plugins = wp_cache_get( 'plugins', 'plugins' );
-            foreach ( array_keys( $updater_instances ) as $prev_basename ) {
-                $renamed_plugin_path = self::$_renamed_plugin_paths[ $prev_basename ];
-                $cached_plugins[''][ plugin_basename( $renamed_plugin_path ) ] = get_plugin_data( $renamed_plugin_path, false, false );
-            }
-
-            wp_cache_set( 'plugins', $cached_plugins, 'plugins' );
-
-            $is_multisite = is_multisite();
-
-            foreach ( $updater_instances as $prev_basename => $updater_instance ) {
-                $updater_instance->try_activate_plugin(
-                    self::$_renamed_plugin_paths[ $prev_basename ],
-                    $is_multisite ? is_plugin_active_for_network( $prev_basename ) : null
-                );
             }
         }
 
@@ -1093,11 +981,11 @@ if ( !isset($info->error) ) {
             $upgrader = new Plugin_Upgrader( $skin );
 
             // Perform the action and install the plugin from the $source urldecode().
-            add_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1, 3 );
+            add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
             $install_result = $upgrader->install( $source );
 
-            remove_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1 );
+            remove_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1 );
 
             if ( is_wp_error( $install_result ) ) {
                 return array(
@@ -1156,18 +1044,13 @@ if ( !isset($info->error) ) {
          * @author Vova Feldman
          * @since  1.2.1.7
          *
-         * @param string    $file_path          Path within wp-plugins/ to main plugin file.
-         *                                      This determines the styling of the output messages.
-         * @param bool|null $is_network_active.
+         * @param string $file_path Path within wp-plugins/ to main plugin file.
+         *                          This determines the styling of the output messages.
          *
          * @return bool|WP_Error
          */
-        protected function try_activate_plugin( $file_path, $is_network_active = null ) {
-            if ( is_null( $is_network_active ) ) {
-                $is_network_active = $this->_fs->is_network_active();
-            }
-
-            $activate = activate_plugin( $file_path, '', $is_network_active );
+        protected function try_activate_plugin( $file_path ) {
+            $activate = activate_plugin( $file_path, '', $this->_fs->is_network_active() );
 
             return is_wp_error( $activate ) ?
                 $activate :
@@ -1193,6 +1076,27 @@ if ( !isset($info->error) ) {
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param bool|WP_Error $response   Response.
+         * @param array         $hook_extra Extra arguments passed to hooked filters.
+         *
+         * @return bool|WP_Error
+         */
+        static function _upgrader_pre_install( $response, $hook_extra ) {
+            if ( isset( $hook_extra['plugin'] ) ) {
+                self::$_upgrade_basename = $hook_extra['plugin'];
+            } else if ( $hook_extra['theme'] ) {
+                self::$_upgrade_basename = $hook_extra['theme'];
+            } else {
+                self::$_upgrade_basename = null;
+            }
+
+            return $response;
+        }
+
+        /**
          * Adjust the plugin directory name if necessary.
          * Assumes plugin has a folder (not a single file plugin).
          *
@@ -1210,13 +1114,52 @@ if ( !isset($info->error) ) {
          *
          * @return string|WP_Error
          */
-        function _maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
+        static function _maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
             if ( ! is_object( $GLOBALS['wp_filesystem'] ) ) {
                 return $source;
             }
 
+            $options = $upgrader->skin->options;
+
+            $basename = ( isset( $options['extra'] ) ) ?
+                $options['plugin'] :
+                isset( self::$_upgrade_basename ) ? self::$_upgrade_basename : null;
+
+            if ( empty( $basename ) ) {
+                return $source;
+            }
+
             // Figure out what the slug is supposed to be.
-            $desired_slug = $upgrader->skin->options['extra']['slug'];
+            $desired_slug = ( isset( $options['extra'] ) ) ?
+                $options['extra']['slug'] :
+                (
+                    false !== strpos( fs_normalize_path( $basename ), '/' ) ?
+                        dirname( $basename ) :
+                        $basename
+                );
+
+            if ( empty( $desired_slug ) ) {
+                return $source;
+            }
+
+            $fs = null;
+            foreach ( Freemius::instances() as $instance ) {
+                if ( $basename === $instance->get_plugin_basename() ) {
+                    $fs = $instance;
+                    break;
+                }
+            }
+
+            if ( ! is_object( $fs ) && ! is_multisite() ) {
+                /**
+                 * The following logic is relevant only to Freemius-powered modules that are active in a single site or
+                 * installed in a multisite network.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                return $source;
+            }
 
             $subdir_name = untrailingslashit( str_replace( trailingslashit( $remote_source ), '', $source ) );
 
@@ -1227,9 +1170,16 @@ if ( !isset($info->error) ) {
                 if ( true === $GLOBALS['wp_filesystem']->move( $from_path, $to_path ) ) {
                     return trailingslashit( $to_path );
                 } else {
+                    if ( ! is_object( $fs ) ) {
+                        global $fs_active_plugins;
+
+                        $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
+                        $fs = Freemius::get_instance_by_file( $fs_newest_sdk->plugin_path );
+                    }
+
                     return new WP_Error(
                         'rename_failed',
-                        $this->_fs->get_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
+                        $fs->get_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
                         array(
                             'found'    => $subdir_name,
                             'expected' => $desired_slug
