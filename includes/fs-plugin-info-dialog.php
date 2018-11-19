@@ -172,14 +172,27 @@
             } else {
                 $data->wp_org_missing = false;
 
-                $fs_addon = $this->_fs->get_addon_instance( $selected_addon->id );
+                $current_addon_version = false;
+                if ( $this->_fs->is_addon_activated( $selected_addon->id ) ) {
+                    $current_addon_version = $this->_fs->get_addon_instance( $selected_addon->id )->get_plugin_version();
+                } else if ( $this->_fs->is_addon_installed( $selected_addon->id ) ) {
+                    $addon_plugin_data = get_plugin_data(
+                        ( WP_PLUGIN_DIR . '/' . $this->_fs->get_addon_basename( $selected_addon->id ) ),
+                        false,
+                        false
+                    );
+
+                    if ( ! empty( $addon_plugin_data ) ) {
+                        $current_addon_version = $addon_plugin_data['Version'];
+                    }
+                }
 
                 // Fetch latest version from Freemius.
                 $latest = $this->_fs->_fetch_latest_version(
                     $selected_addon->id,
                     true,
                     WP_FS__TIME_24_HOURS_IN_SEC,
-                    $fs_addon->get_plugin_version()
+                    $current_addon_version
                 );
 
                 if ( $has_paid_plan ) {
