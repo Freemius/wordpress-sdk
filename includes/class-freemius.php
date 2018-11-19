@@ -17329,25 +17329,19 @@
                 )
             );
 
-            if (
-                ! $deactivate_license ||
-                // If the license is not yet expired and remains associated with the install, the deactivation has failed.
-                ( FS_Plugin_License::is_valid_id( $site->license_id ) && ! $this->_license->is_expired() )
+            // Store site updates.
+            $this->_store_site();
+
+            if ( $deactivate_license &&
+                 ! FS_Plugin_License::is_valid_id( $site->license_id )
             ) {
-                /**
-                 * Store site updates in case a non-expired license was not successfully deactivated (in case the
-                 * license is already expired, it will remain associated with the install in the API level). On the
-                 * other hand, updates storing will be taken care of by the license deactivation handler logic.
-                 */
-                $this->_store_site();
-            } else {
                 if ( $this->_site->is_localhost() ) {
                     $this->_license->activated_local = max( 0, $this->_license->activated_local - 1 );
                 } else {
                     $this->_license->activated = max( 0, $this->_license->activated - 1 );
                 }
 
-                // Handle successful license deactivation result and store site updates.
+                // Handle successful license deactivation result.
                 $this->handle_license_deactivation_result( $this->_license );
             }
 
