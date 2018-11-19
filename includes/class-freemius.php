@@ -10618,9 +10618,12 @@
          * @since  2.2.1
          */
         function _maybe_add_subscription_cancellation_dialog_box() {
-            $license = ( ! fs_is_network_admin() ) ?
-                $this->_get_license() :
-                null;
+            if ( fs_is_network_admin() ) {
+                // Subscription cancellation dialog box is currently not supported for multisite networks.
+                return;
+            }
+
+            $license = $this->_get_license();
 
             /**
              * If the installation is associated with a non-lifetime license, which is either a single-site or only activated on a single production site (or zero), and connected to an active subscription, suggest the customer to cancel the subscription upon deactivation.
@@ -17223,10 +17226,10 @@
          * @since 2.2.1
          *
          * @param FS_Plugin_License $license
-         * @param string            $hmm_text
+         * @param bool|string       $hmm_text
          * @param bool              $show_notice
          */
-        private function handle_license_deactivation_result( $license, $hmm_text, $show_notice = true ) {
+        private function handle_license_deactivation_result( $license, $hmm_text = false, $show_notice = true ) {
             if ( isset( $license->error ) ) {
                 $this->_admin_notices->add(
                     $this->get_text_inline( 'It looks like the license deactivation failed.', 'license-deactivation-failed-message' ) . '<br> ' .
@@ -17247,7 +17250,7 @@
                 }
             }
 
-            // Updated site plan to default.
+            // Update site plan to default.
             $this->_sync_plans();
             $this->_site->plan_id = $this->_plans[0]->id;
             // Unlink license from site.
@@ -17302,7 +17305,10 @@
                                    ( is_object( $subscription ) && ! isset( $subscription->error ) && ! $subscription->is_active() );
             } else {
                 // handle different error cases.
-
+                $this->handle_license_deactivation_result(
+                    $site,
+                    $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...'
+                );
             }
 
             if ( ! $plan_downgraded ) {
@@ -17323,20 +17329,26 @@
                 )
             );
 
-            if ( $deactivate_license ) {
-                $result = $api->get( "/licenses/{$this->_license->id}.json?license_key=" . urlencode( $this->_license->secret_key ), true );
-
-                if ( $this->is_api_result_entity( $result ) ) {
-                    $this->handle_license_deactivation_result(
-                        new FS_Plugin_License( $result ),
-                        $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...'
-                    );
-                }
-            }
-
-            if ( ! $deactivate_license || ! $this->is_api_result_entity( $result ) ) {
-                // Store site updates.
+            if (
+                ! $deactivate_license ||
+                // If the license is not yet expired and remains associated with the install, the deactivation has failed.
+                ( FS_Plugin_License::is_valid_id( $site->license_id ) && ! $this->_license->is_expired() )
+            ) {
+                /**
+                 * Store site updates in case a non-expired license was not successfully deactivated (in case the
+                 * license is already expired, it will remain associated with the install in the API level). On the
+                 * other hand, updates storing will be taken care of by the license deactivation handler logic.
+                 */
                 $this->_store_site();
+            } else {
+                if ( $this->_site->is_localhost() ) {
+                    $this->_license->activated_local = max( 0, $this->_license->activated_local - 1 );
+                } else {
+                    $this->_license->activated = max( 0, $this->_license->activated - 1 );
+                }
+
+                // Handle successful license deactivation result and store site updates.
+                $this->handle_license_deactivation_result( $this->_license );
             }
 
             return $site;
