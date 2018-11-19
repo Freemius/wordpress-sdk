@@ -1117,11 +1117,11 @@ if ( !isset($info->error) ) {
 
             $basename = ( isset( $options['extra'] ) ) ?
                 $options['plugin'] :
-                isset( self::$_upgrade_basename ) ? self::$_upgrade_basename : null;
-
-            if ( empty( $basename ) ) {
-                return $source;
-            }
+                (
+                    isset( self::$_upgrade_basename ) ?
+                        self::$_upgrade_basename :
+                        null
+                );
 
             // Figure out what the slug is supposed to be.
             $desired_slug = ( isset( $options['extra'] ) ) ?
@@ -1133,13 +1133,16 @@ if ( !isset($info->error) ) {
                         $basename
                 );
 
-            if ( empty( $desired_slug ) ) {
+            if ( empty( $desired_slug ) && empty( $basename ) ) {
                 return $source;
             }
 
             $fs = null;
             foreach ( Freemius::instances() as $instance ) {
-                if ( $basename === $instance->get_plugin_basename() ) {
+                if (
+                    ( ! empty( $basename ) && $basename === $instance->get_plugin_basename() ) ||
+                    ( $instance->is_plugin() && $desired_slug === $instance->get_slug() )
+                ) {
                     $fs = $instance;
                     break;
                 }
