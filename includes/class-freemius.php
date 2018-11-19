@@ -2116,9 +2116,9 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.1.4
          *
-         * @return object
-         *
          * @param number $plugin_id
+         *
+         * @return object
          */
         private function cancel_subscription_or_trial( $plugin_id ) {
             $fs = null;
@@ -10637,6 +10637,53 @@
         }
 
         /**
+         * Displays a subscription cancellation dialog box when the user clicks on the "Deactivate License"
+         * link on the "Account" page or deactivates a plugin and there's an active subscription that is
+         * either associated with a non-lifetime single-site license or non-lifetime multisite license that
+         * is only activated on a single production site.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.1
+         */
+        function _maybe_add_subscription_cancellation_dialog_box() {
+            if ( fs_is_network_admin() ) {
+                // Subscription cancellation dialog box is currently not supported for multisite networks.
+                return;
+            }
+
+            $license = $this->_get_license();
+
+            /**
+             * If the installation is associated with a non-lifetime license, which is either a single-site or only activated on a single production site (or zero), and connected to an active subscription, suggest the customer to cancel the subscription upon deactivation.
+             *
+             * @author Leo Fajardo (@leorw) (Comment added by Vova Feldman @svovaf)
+             * @since 2.2.1
+             */
+            if ( ! is_object( $license ) ||
+                $license->is_lifetime() ||
+                ( ! $license->is_single_site() && $license->activated > 1 )
+            ) {
+                return;
+            }
+
+            /**
+             * @var FS_Subscription $subscription
+             */
+            $subscription = $this->_get_subscription( $license->id );
+            if ( ! is_object( $subscription ) || ! $subscription->is_active() ) {
+                return;
+            }
+
+            $vars = array(
+                'id'        => $this->_module_id,
+                'license'   => $license,
+                'has_trial' => $this->is_paid_trial()
+            );
+
+            fs_require_template( 'forms/subscription-cancellation.php', $vars );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.0.2
          */
@@ -17274,6 +17321,18 @@
             $api     = $this->get_api_site_scope();
             $license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
 
+            $this->handle_license_deactivation_result( $license, $hmm_text, $show_notice );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param FS_Plugin_License $license
+         * @param bool|string       $hmm_text
+         * @param bool              $show_notice
+         */
+        private function handle_license_deactivation_result( $license, $hmm_text = false, $show_notice = true ) {
             if ( isset( $license->error ) ) {
                 $this->_admin_notices->add(
                     $this->get_text_inline( 'It looks like the license deactivation failed.', 'license-deactivation-failed-message' ) . '<br> ' .
@@ -17294,7 +17353,7 @@
                 }
             }
 
-            // Updated site plan to default.
+            // Update site plan to default.
             $this->_sync_plans();
             $this->_site->plan_id = $this->_plans[0]->id;
             // Unlink license from site.
@@ -17328,8 +17387,10 @@
         private function _downgrade_site() {
             $this->_logger->entrance();
 
+            $deactivate_license = fs_request_get_bool( 'deactivate_license' );
+
             $api  = $this->get_api_site_scope();
-            $site = $api->call( 'downgrade.json', 'put' );
+            $site = $api->call( 'downgrade.json', 'put', array( 'deactivate_license' => $deactivate_license ) );
 
             $plan_downgraded = false;
             $plan            = false;
@@ -17347,7 +17408,10 @@
                                    ( is_object( $subscription ) && ! isset( $subscription->error ) && ! $subscription->is_active() );
             } else {
                 // handle different error cases.
-
+                $this->handle_license_deactivation_result(
+                    $site,
+                    $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...'
+                );
             }
 
             if ( ! $plan_downgraded ) {
@@ -17370,6 +17434,19 @@
 
             // Store site updates.
             $this->_store_site();
+
+            if ( $deactivate_license &&
+                 ! FS_Plugin_License::is_valid_id( $site->license_id )
+            ) {
+                if ( $this->_site->is_localhost() ) {
+                    $this->_license->activated_local = max( 0, $this->_license->activated_local - 1 );
+                } else {
+                    $this->_license->activated = max( 0, $this->_license->activated - 1 );
+                }
+
+                // Handle successful license deactivation result.
+                $this->handle_license_deactivation_result( $this->_license );
+            }
 
             return $site;
         }
