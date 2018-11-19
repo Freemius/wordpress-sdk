@@ -317,7 +317,7 @@
                                     <input type="hidden" name="module_id" value="<?php echo $fs->get_id() ?>">
                                     <?php wp_nonce_field( 'simulate_trial' ) ?>
 
-                                    <button type="submit" class="button button-primary simulate-trial"><?php fs_esc_html_echo_inline( 'Simulate Trial' ) ?></button>
+                                    <button type="submit" class="button button-primary simulate-trial"><?php fs_esc_html_echo_inline( 'Simulate Trial Promotion' ) ?></button>
                                 </form>
                             <?php endif ?>
                             <?php if ( $fs->is_registered() ) : ?>
