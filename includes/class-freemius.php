@@ -7817,14 +7817,13 @@
                 }
             }
 
-            return array_merge( array(
+            $versions = $this->get_versions();
+
+            return array_merge( $versions, array(
                 'version'                      => $this->get_plugin_version(),
                 'is_premium'                   => $this->is_premium(),
                 'language'                     => get_bloginfo( 'language' ),
                 'charset'                      => get_bloginfo( 'charset' ),
-                'platform_version'             => get_bloginfo( 'version' ),
-                'sdk_version'                  => $this->version,
-                'programming_language_version' => phpversion(),
                 'title'                        => get_bloginfo( 'name' ),
                 'url'                          => get_site_url(),
                 // Special params.
@@ -7875,12 +7874,10 @@
 //            }
 
             // Common properties.
-            $common = array_merge( array(
-                'version'                      => $this->get_plugin_version(),
-                'is_premium'                   => $this->is_premium(),
-                'sdk_version'                  => $this->version,
-                'programming_language_version' => phpversion(),
-                'platform_version'             => get_bloginfo( 'version' ),
+            $versions = $this->get_versions();
+            $common   = array_merge( $versions, array(
+                'version'    => $this->get_plugin_version(),
+                'is_premium' => $this->is_premium(),
             ), $override );
 
 
@@ -13363,6 +13360,30 @@
         }
 
         /**
+         * Get a sanitized array with the WordPress version, SDK version, and PHP version.
+         * Each version is trimmed after the 16th char.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.1
+         *
+         * @return array
+         */
+        private function get_versions() {
+            $versions = array();
+            $versions['platform_version']             = get_bloginfo( 'version' );
+            $versions['sdk_version']                  = $this->version;
+            $versions['programming_language_version'] = phpversion();
+
+            foreach ( $versions as $k => $version ) {
+                if ( is_string( $versions[ $k ] ) && ! empty( $versions[ $k ] ) ) {
+                    $versions[ $k ] = substr( $versions[ $k ], 0, 16 );
+                }
+            }
+
+            return $versions;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
@@ -13383,7 +13404,9 @@
                 // Return to the module's main page.
                 $this->get_after_activation_url( 'after_connect_url', array( 'fs_action' => $activation_action ) );
 
-            $params = array(
+            $versions = $this->get_versions();
+
+            $params = array_merge( $versions, array(
                 'user_firstname'               => $current_user->user_firstname,
                 'user_lastname'                => $current_user->user_lastname,
                 'user_nickname'                => $current_user->user_nicename,
@@ -13398,13 +13421,10 @@
                     'account',
                     array( 'fs_action' => 'sync_user' )
                 ), 'sync_user' ),
-                'platform_version'             => get_bloginfo( 'version' ),
-                'sdk_version'                  => $this->version,
-                'programming_language_version' => phpversion(),
                 'is_premium'                   => $this->is_premium(),
                 'is_active'                    => true,
                 'is_uninstalled'               => false,
-            );
+            ) );
 
             if ( true === $network_level_or_blog_id ) {
                 if ( ! isset( $override_with['sites'] ) ) {
