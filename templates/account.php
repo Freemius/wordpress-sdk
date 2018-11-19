@@ -611,7 +611,7 @@
 			</div>
 		</div>
 	</div>
-    <?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
+    <?php $fs->_maybe_add_subscription_cancellation_dialog_box( true ) ?>
     <script type="text/javascript">
         (function ($) {
             var setLoading = function ($this, label) {

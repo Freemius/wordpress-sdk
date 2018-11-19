@@ -10644,8 +10644,10 @@
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.2.1
+         *
+         * @param bool $is_license_deactivation
          */
-        function _maybe_add_subscription_cancellation_dialog_box() {
+        function _maybe_add_subscription_cancellation_dialog_box( $is_license_deactivation = false ) {
             if ( fs_is_network_admin() ) {
                 // Subscription cancellation dialog box is currently not supported for multisite networks.
                 return;
@@ -10675,9 +10677,10 @@
             }
 
             $vars = array(
-                'id'        => $this->_module_id,
-                'license'   => $license,
-                'has_trial' => $this->is_paid_trial()
+                'id'                      => $this->_module_id,
+                'license'                 => $license,
+                'has_trial'               => $this->is_paid_trial(),
+                'is_license_deactivation' => $is_license_deactivation,
             );
 
             fs_require_template( 'forms/subscription-cancellation.php', $vars );

@@ -30,18 +30,27 @@ $subscription_cancellation_context = $has_trial ?
 $plan         = $fs->get_plan();
 $module_label = $fs->get_module_label( true );
 
-$subscription_cancellation_html = sprintf(
-    '<div class="notice notice-error inline"><p></p></div><p>%s</p>',
-    esc_html( sprintf(
+if ( $VARS['is_license_deactivation'] ) {
+    $subscription_cancellation_text = '';
+} else {
+    $subscription_cancellation_text = sprintf(
         fs_text_inline(
-            "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site. In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?",
+            "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site.",
             'deactivation-or-uninstall-message',
             $slug
         ),
-        $module_label,
-        $module_label,
-        $subscription_cancellation_context
-    ) )
+        $module_label
+    ) . ' ';
+}
+
+    $subscription_cancellation_text .= sprintf(
+    fs_text_inline(
+        'In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?',
+        'cancel-subscription-message',
+        $slug
+    ),
+    ( $VARS['is_license_deactivation'] ? fs_text_inline( 'license', 'license', $slug ) : $module_label ),
+    $subscription_cancellation_context
 );
 
 $cancel_subscription_action_label = sprintf(
@@ -64,7 +73,10 @@ $keep_subscription_active_action_label = esc_html( sprintf(
     $subscription_cancellation_context
 ) );
 
-$subscription_cancellation_html .= <<< HTML
+$subscription_cancellation_text = esc_html( $subscription_cancellation_text );
+
+$subscription_cancellation_html = <<< HTML
+    <div class="notice notice-error inline"><p></p></div><p>{$subscription_cancellation_text}</p>
     <ul class="subscription-actions">
         <li>
             <label>
