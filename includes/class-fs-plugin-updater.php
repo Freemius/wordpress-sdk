@@ -1107,14 +1107,12 @@ if ( !isset($info->error) ) {
                 return $source;
             }
 
-            $options = $upgrader->skin->options;
-
             $basename = self::$_upgrade_basename;
 
             // Figure out what the slug is supposed to be.
-            if ( isset( $options['extra'] ) ) {
+            if ( isset( $upgrader->skin->options['extra'] ) ) {
                 // Set by the auto-install logic.
-                $desired_slug = $options['extra']['slug'];
+                $desired_slug = $upgrader->skin->options['extra']['slug'];
             } else if ( ! empty( $basename ) && false !== strpos( fs_normalize_path( $basename ), '/' ) ) {
                 $desired_slug = dirname( $basename );
             } else {
