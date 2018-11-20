@@ -1112,16 +1112,13 @@ if ( !isset($info->error) ) {
             $basename = self::$_upgrade_basename;
 
             // Figure out what the slug is supposed to be.
-            $desired_slug = ( isset( $options['extra'] ) ) ?
+            if ( isset( $options['extra'] ) ) {
                 // Set by the auto-install logic.
-                $options['extra']['slug'] :
-                (
-                    false !== strpos( fs_normalize_path( $basename ), '/' ) ?
-                        dirname( $basename ) :
-                        $basename
-                );
-
-            if ( empty( $desired_slug ) && empty( $basename ) ) {
+                $desired_slug = $options['extra']['slug'];
+            } else if ( ! empty( $basename ) && false !== strpos( fs_normalize_path( $basename ), '/' ) ) {
+                $desired_slug = dirname( $basename );
+            } else {
+                // Can't figure out the desired slug, stop the execution.
                 return $source;
             }
 
