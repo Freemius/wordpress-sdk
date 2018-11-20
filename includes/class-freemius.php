@@ -8277,6 +8277,8 @@
         }
 
         /**
+         * Set the basename of the current product and hook _activate_plugin_event_hook() to the activation action.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  2.2.1
          *
@@ -8477,6 +8479,8 @@
         }
 
         /**
+         * Retrieve the desired folder name for the product.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.7
          *
