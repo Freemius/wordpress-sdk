@@ -4745,7 +4745,6 @@
                 $this->_plugin :
                 new FS_Plugin();
 
-            $premium_slug   = $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" );
             $premium_suffix = $this->get_option( $plugin_info, 'premium_suffix', '(Premium)' );
 
             $plugin->update( array(
@@ -4753,7 +4752,7 @@
                 'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type ),
                 'public_key'           => $public_key,
                 'slug'                 => $this->_slug,
-                'premium_slug'         => $premium_slug,
+                'premium_slug'         => $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" ),
                 'parent_plugin_id'     => $parent_id,
                 'version'              => $this->get_plugin_version(),
                 'title'                => $this->get_plugin_name( $premium_suffix ),
