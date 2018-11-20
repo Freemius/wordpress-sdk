@@ -1095,6 +1095,7 @@ if ( !isset($info->error) ) {
          *
          * @author Vova Feldman
          * @since  1.2.1.7
+         * @since  2.2.1 The method was converted to static since when the admin update bulk products via the Updates section, the logic applies the `upgrader_source_selection` filter for every product that is being updated.
          *
          * @param string       $source        Path to upgrade/zip-file-name.tmp/subdirectory/.
          * @param string       $remote_source Path to upgrade/zip-file-name.tmp.
