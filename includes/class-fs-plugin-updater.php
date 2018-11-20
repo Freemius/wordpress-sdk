@@ -1122,25 +1122,36 @@ if ( !isset($info->error) ) {
                 return $source;
             }
 
-            $fs = null;
-            
-            if ( ! empty( $basename ) ) {
-                $fs = Freemius::get_instance_by_file( $basename );
-            }
-
-            if ( empty( $fs ) ) {
-                $fs = Freemius::instance( $desired_slug );
-            }
-
-            if ( ! is_object( $fs ) && ! is_multisite() ) {
+            if ( is_multisite() ) {
                 /**
-                 * The following logic is relevant only to Freemius-powered modules that are active in a single site or
-                 * installed in a multisite network.
+                 * If we are running in a multisite environment and the product is not network activated,
+                 * the instance will not exist anyway. Therefore, try to update the source if necessary
+                 * regardless if the Freemius instance of the product exists or not.
                  *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.1
+                 * @author Vova Feldman
                  */
-                return $source;
+            } else {
+                $fs = null;
+
+                if ( ! empty( $basename ) ) {
+                    $fs = Freemius::get_instance_by_file( $basename );
+                }
+
+                if ( empty( $fs ) ) {
+                    $fs = Freemius::instance( $desired_slug );
+                }
+
+                if ( ! is_object( $fs ) ) {
+                    /**
+                     * If the Freemius instance does not exist on a non-multisite network environment, it means that:
+                     *  1. The product is not powered by Freemius; OR
+                     *  2. The product is not activated, therefore, we don't mind if after the update the folder name will change.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since  2.2.1
+                     */
+                    return $source;
+                }
             }
 
             $subdir_name = untrailingslashit( str_replace( trailingslashit( $remote_source ), '', $source ) );
