@@ -1138,14 +1138,13 @@ if ( !isset($info->error) ) {
             }
 
             $fs = null;
-            foreach ( Freemius::instances() as $instance ) {
-                if (
-                    ( ! empty( $basename ) && $basename === $instance->get_plugin_basename() ) ||
-                    ( $instance->is_plugin() && $desired_slug === $instance->get_slug() )
-                ) {
-                    $fs = $instance;
-                    break;
-                }
+            
+            if ( ! empty( $basename ) ) {
+                $fs = Freemius::get_instance_by_file( $basename );
+            }
+
+            if ( empty( $fs ) ) {
+                $fs = Freemius::instance( $desired_slug );
             }
 
             if ( ! is_object( $fs ) && ! is_multisite() ) {
