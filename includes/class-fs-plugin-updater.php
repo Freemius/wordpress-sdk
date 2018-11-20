@@ -35,7 +35,7 @@
          */
         private $_translation_updates;
 
-        private static $_upgrade_basename;
+        private static $_upgrade_basename = null;
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -1109,13 +1109,7 @@ if ( !isset($info->error) ) {
 
             $options = $upgrader->skin->options;
 
-            $basename = ( isset( $options['extra'] ) ) ?
-                $options['plugin'] :
-                (
-                    isset( self::$_upgrade_basename ) ?
-                        self::$_upgrade_basename :
-                        null
-                );
+            $basename = self::$_upgrade_basename;
 
             // Figure out what the slug is supposed to be.
             $desired_slug = ( isset( $options['extra'] ) ) ?
