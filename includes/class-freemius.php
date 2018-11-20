@@ -8563,32 +8563,56 @@
         function get_plugin_name( $premium_suffix = false ) {
             $this->_logger->entrance();
 
-            if (
-                ! isset( $this->_plugin_name ) ||
-                (
-                    false !== $premium_suffix &&
-                    ( ! is_object( $this->_plugin ) || $this->_plugin->premium_suffix !== $premium_suffix )
-                )
+            /**
+             * This `if-else` can be squeezed into a single `if` but I intentionally split it for code readability.
+             *
+             * @author Vova Feldman
+             */
+            if ( ! isset( $this->_plugin_name ) ) {
+                // Name is not yet set.
+                $this->set_name( $premium_suffix );
+            } else if (
+                ! empty( $premium_suffix ) &&
+                ( ! is_object( $this->_plugin ) || $this->_plugin->premium_suffix !== $premium_suffix )
             ) {
-                $plugin_data = $this->get_plugin_data();
-
-                // Get name.
-                $this->_plugin_name = $plugin_data['Name'];
-
-                // Check if plugin name contains " (premium)" or a custom suffix and remove it.
-                $suffix     = ( ' ' . strtolower( $premium_suffix ) );
-                $suffix_len = strlen( $suffix );
-
-                if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
-                     $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
-                ) {
-                    $this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
-                }
-
-                $this->_logger->departure( 'Name = ' . $this->_plugin_name );
+                // Name is already set, but there's a change in the premium suffix.
+                $this->set_name( $premium_suffix );
             }
 
             return $this->_plugin_name;
+        }
+
+        /**
+         * Calculates and stores the product's name. This helper function was created specifically for get_plugin_name() just to make the code clearer.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.1
+         *
+         * @param string $premium_suffix
+         */
+        private function set_name( $premium_suffix = '' ) {
+            $plugin_data = $this->get_plugin_data();
+
+            // Get name.
+            $this->_plugin_name = $plugin_data['Name'];
+
+            if ( is_string( $premium_suffix ) ) {
+                $premium_suffix = trim( $premium_suffix );
+
+                if ( ! empty( $premium_suffix ) ) {
+                    // Check if plugin name contains " (premium)" or a custom suffix and remove it.
+                    $suffix     = ( ' ' . strtolower( $premium_suffix ) );
+                    $suffix_len = strlen( $suffix );
+
+                    if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
+                         $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
+                    ) {
+                        $this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
+                    }
+                }
+            }
+
+            $this->_logger->departure( 'Name = ' . $this->_plugin_name );
         }
 
         /**
