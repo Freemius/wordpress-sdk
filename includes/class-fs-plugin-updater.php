@@ -1166,23 +1166,16 @@ if ( !isset($info->error) ) {
 
                 if ( true === $GLOBALS['wp_filesystem']->move( $from_path, $to_path ) ) {
                     return trailingslashit( $to_path );
-                } else {
-                    if ( ! is_object( $fs ) ) {
-                        // Fall back to the newest SDK FS instance so that it can be used in the call below.
-                        global $fs_active_plugins;
-
-                        $fs_newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
-                        $fs = Freemius::get_instance_by_file( $fs_newest_sdk->plugin_path );
-                    }
-
-                    return new WP_Error(
-                        'rename_failed',
-                        $fs->get_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
-                        array(
-                            'found'    => $subdir_name,
-                            'expected' => $desired_slug
-                        ) );
                 }
+
+                return new WP_Error(
+                    'rename_failed',
+                    fs_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
+                    array(
+                        'found'    => $subdir_name,
+                        'expected' => $desired_slug
+                    )
+                );
             }
 
             return $source;
