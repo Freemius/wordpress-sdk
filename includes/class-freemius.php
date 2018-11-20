@@ -8314,19 +8314,19 @@
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
+         * @since  2.2.1 If the context product is in its premium version, use the current module's basename, even if it was renamed.
          *
          * @return string
          */
         function premium_plugin_basename() {
-            if ( isset( $this->_premium_plugin_basename ) ) {
-                return $this->_premium_plugin_basename;
+            if ( ! isset( $this->_premium_plugin_basename ) ) {
+                $this->_premium_plugin_basename = $this->is_premium() ?
+                    // The product is premium, so use the current basename.
+                    $this->_plugin_basename :
+                    $this->get_premium_slug() . '/' . basename( $this->_free_plugin_basename );
             }
 
-            if ( $this->is_premium() ) {
-                return $this->_plugin_basename;
-            }
-
-            return "{$this->get_premium_slug()}/" . basename( $this->_free_plugin_basename );
+            return $this->_premium_plugin_basename;
         }
 
         /**
