@@ -112,7 +112,7 @@
             }
 
             if ( $this->_fs->is_premium() ) {
-                if ( $this->is_correct_folder_name() ) {
+                if ( ! $this->is_correct_folder_name() ) {
                     add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
                 }
 
@@ -798,16 +798,10 @@ if ( !isset($info->error) ) {
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.6
          *
-         * @param string $basename Current plugin's basename.
-         *
          * @return bool
          */
-        private function is_correct_folder_name( $basename = '' ) {
-            if ( empty( $basename ) ) {
-                $basename = $this->_fs->get_plugin_basename();
-            }
-
-            return ( $this->_fs->get_target_folder_name() != trim( dirname( $basename ), '/\\' ) );
+        private function is_correct_folder_name() {
+            return ( $this->_fs->get_target_folder_name() == trim( dirname( $this->_fs->get_plugin_basename() ), '/\\' ) );
         }
 
         /**
