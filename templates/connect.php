@@ -40,10 +40,12 @@
 
 	$freemius_site_www = 'https://freemius.com';
 
-	$freemius_site_url = $freemius_site_www . '/' . ( $fs->is_premium() ?
-			'wordpress/' :
-			// Insights platform information.
-			'wordpress/usage-tracking/' . $fs->get_id() . "/{$slug}/" );
+	$freemius_usage_tracking_url = $freemius_site_www . '/wordpress/usage-tracking/' . $fs->get_id() . "/{$slug}/";
+	$freemius_plugin_terms_url   = $freemius_site_www . '/terms/' . $fs->get_id() . "/{$slug}/";
+
+	$freemius_site_url = $fs->is_premium() ?
+		$freemius_site_www :
+		$freemius_usage_tracking_url;
 
 	if ( $fs->is_premium() ) {
 		$freemius_site_url .= '?' . http_build_query( array(
@@ -425,7 +427,7 @@
 			<a href="https://freemius.com/privacy/" target="_blank"
 			   tabindex="1"><?php fs_esc_html_echo_inline( 'Privacy Policy', 'privacy-policy', $slug ) ?></a>
 			&nbsp;&nbsp;-&nbsp;&nbsp;
-			<a href="<?php echo $freemius_site_www ?>/terms/" target="_blank" tabindex="1"><?php fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
+			<a href="<?php echo $require_license_key ? $freemius_plugin_terms_url : $freemius_usage_tracking_url ?>" target="_blank" tabindex="1"><?php $require_license_key ? fs_echo_inline( 'License Agreement', 'license-agreement', $slug ) : fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
 		</div>
 	</div>
 	<?php
