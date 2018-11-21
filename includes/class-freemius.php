@@ -677,11 +677,12 @@
                  version_compare( $sdk_version, '1.2.3', '>=' )
             ) {
                 /**
-                 * Starting from version 1.2.3, paths are stored as relative paths and not absolute paths; so when upgrading to 1.2.3, make paths relative.
+                 * Starting from version 1.2.3, paths are stored as relative instead of absolute and some of them can be
+                 * invalid.
                  *
                  * @author Leo Fajardo (@leorw)
                  */
-                $this->make_paths_relative();
+                $this->remove_invalid_paths();
             }
 
             if ( version_compare( $sdk_prev_version, '1.1.5', '<' ) &&
@@ -704,6 +705,25 @@
                     }
 
                 }
+            }
+
+            if (
+                version_compare( $sdk_prev_version, '2.2.1', '<' ) &&
+                version_compare( $sdk_version, '2.2.1', '>=' )
+            ) {
+                /**
+                 * Clear the file cache without storing the previous path since it could be a wrong path. For example,
+                 * in the versions of the SDK lower than 2.2.1, it's possible for the path of an add-on to be the same
+                 * as the parent plugin's when the add-on was auto-installed since the relevant method names were not
+                 * skipped in the logic that determines the right path in the `get_caller_main_file_and_type` method
+                 * (e.g. `try_activate_plugin`). Since it was an auto-installation, the caller was the parent plugin
+                 * and so its path was used. In case the stored path is wrong, clearing the cache will resolve issues
+                 * related to data mix-up between plugins (e.g. titles and versions of an add-on and its parent plugin).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                $this->clear_module_main_file_cache( false );
             }
         }
 
@@ -830,30 +850,12 @@
         }
 
         /**
-         * Makes paths relative.
+         * Remove invalid paths.
          *
          * @author Leo Fajardo (@leorw)
          * @since  1.2.3
          */
-        private function make_paths_relative() {
-            $id_slug_type_path_map = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
-
-            if ( isset( $id_slug_type_path_map[ $this->_module_id ]['path'] ) ) {
-                $id_slug_type_path_map[ $this->_module_id ]['path'] = $this->get_relative_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
-
-                self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
-            }
-
-            if ( isset( $this->_storage->plugin_main_file ) ) {
-                $plugin_main_file = $this->_storage->plugin_main_file;
-
-                if ( isset( $plugin_main_file->path ) ) {
-                    $this->_storage->plugin_main_file->path = $this->get_relative_path( $this->_storage->plugin_main_file->path );
-                } else if ( isset( $plugin_main_file->prev_path ) ) {
-                    $this->_storage->plugin_main_file->prev_path = $this->get_relative_path( $this->_storage->plugin_main_file->prev_path );
-                }
-            }
-
+        private function remove_invalid_paths() {
             // Remove invalid path that is still associated with the current slug if there's any.
             $file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
             foreach ( $file_slug_map as $plugin_basename => $slug ) {
@@ -1450,23 +1452,37 @@
 
         /**
          * @since 1.2.0 Invalidate module's main file cache, otherwise, FS_Plugin_Updater will not fetch updates.
+         *
+         * @param bool $store_prev_path
          */
-        private function clear_module_main_file_cache() {
+        private function clear_module_main_file_cache( $store_prev_path = true ) {
             if ( ! isset( $this->_storage->plugin_main_file ) ||
-                 empty( $this->_storage->plugin_main_file->path )
+                empty( $this->_storage->plugin_main_file->path )
             ) {
                 return;
             }
 
-            $plugin_main_file = clone $this->_storage->plugin_main_file;
+            if ( ! $store_prev_path ) {
+                /**
+                 * Storing the previous path is not needed when clearing the cache after an SDK version update since
+                 * the main purpose of the cache clearing in that event is to correct a wrong plugin main file path
+                 * which causes data mix-up between plugins (e.g. titles and versions of an add-on and its parent plugin).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                unset( $this->_storage->plugin_main_file->path );
+            } else {
+                $plugin_main_file = clone $this->_storage->plugin_main_file;
 
-            // Store cached path (2nd layer cache).
-            $plugin_main_file->prev_path = $plugin_main_file->path;
+                // Store cached path (2nd layer cache).
+                $plugin_main_file->prev_path = $plugin_main_file->path;
 
-            // Clear cached path.
-            unset( $plugin_main_file->path );
+                // Clear cached path.
+                unset( $plugin_main_file->path );
 
-            $this->_storage->plugin_main_file = $plugin_main_file;
+                $this->_storage->plugin_main_file = $plugin_main_file;
+            }
 
             /**
              * Clear global cached path.
