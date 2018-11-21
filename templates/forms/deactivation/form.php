@@ -186,7 +186,7 @@ HTML;
 		 * @since 1.2.2.7 Don't trigger the deactivation feedback form if activating the premium version of the theme.
 		 */
 		?>
-		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $slug ?>-premium]) .theme-actions .button.activate', function (evt) {
+		$('body').on('click', '.theme-browser .theme:not([data-slug=<?php echo $fs->get_premium_slug() ?>]) .theme-actions .button.activate', function (evt) {
 			evt.preventDefault();
 
 			redirectLink = $(this).attr('href');

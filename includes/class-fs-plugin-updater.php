@@ -35,6 +35,8 @@
          */
         private $_translation_updates;
 
+        private static $_upgrade_basename = null;
+
         #--------------------------------------------------------------------------------
         #region Singleton
         #--------------------------------------------------------------------------------
@@ -110,9 +112,12 @@
             }
 
             if ( $this->_fs->is_premium() ) {
-                if ( $this->is_correct_folder_name() ) {
+                if ( ! $this->is_correct_folder_name() ) {
                     add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
                 }
+
+                add_filter( 'upgrader_pre_install', array( 'FS_Plugin_Updater', '_store_basename_for_source_adjustment' ), 1, 2 );
+                add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
                     add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
@@ -690,7 +695,7 @@
 
             $plugin_basename = $this->_fs->get_plugin_basename();
             if ( 'themes' === $module_type ) {
-                $plugin_basename = str_replace( '-premium', '', $plugin_basename );
+                $plugin_basename = $slug;
             }
 
             global $wp_version;
@@ -702,7 +707,7 @@
                         array(
                             "{$module_type}" => array(
                                 $plugin_basename => array(
-                                    'Name'   => trim( str_replace( '(Premium)', '', $plugin_data['Name'] ) ),
+                                    'Name'   => trim( str_replace( $this->_fs->get_plugin()->premium_suffix, '', $plugin_data['Name'] ) ),
                                     'Author' => $plugin_data['Author'],
                                 )
                             )
@@ -960,16 +965,10 @@ if ( !isset($info->error) ) {
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.6
          *
-         * @param string $basename Current plugin's basename.
-         *
          * @return bool
          */
-        private function is_correct_folder_name( $basename = '' ) {
-            if ( empty( $basename ) ) {
-                $basename = $this->_fs->get_plugin_basename();
-            }
-
-            return ( $this->_fs->get_target_folder_name() != trim( dirname( $basename ), '/\\' ) );
+        private function is_correct_folder_name() {
+            return ( $this->_fs->get_target_folder_name() == trim( dirname( $this->_fs->get_plugin_basename() ), '/\\' ) );
         }
 
         /**
@@ -1005,7 +1004,7 @@ if ( !isset($info->error) ) {
                     $filename = basename( $basename );
 
                     $new_basename = plugin_basename(
-                        trailingslashit( $this->_fs->get_slug() . ( $this->_fs->is_premium() ? '-premium' : '' ) ) .
+                        trailingslashit( $this->_fs->is_premium() ? $this->_fs->get_premium_slug() : $this->_fs->get_slug() ) .
                         $filename
                     );
 
@@ -1073,14 +1072,16 @@ if ( !isset($info->error) ) {
                     );
                 }
 
-                $slug  = $addon->slug;
-                $title = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
+                $slug          = $addon->slug;
+                $premium_slug  = $addon->premium_slug;
+                $title         = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
 
                 $is_addon = true;
             } else {
-                $slug  = $this->_fs->get_slug();
-                $title = $this->_fs->get_plugin_title() .
-                         ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
+                $slug          = $this->_fs->get_slug();
+                $premium_slug  = $this->_fs->get_premium_slug();
+                $title         = $this->_fs->get_plugin_title() .
+                                 ( $this->_fs->is_addon() ? ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' ) : '' );
             }
 
             if ( $this->is_premium_plugin_active( $plugin_id ) ) {
@@ -1094,7 +1095,7 @@ if ( !isset($info->error) ) {
             }
 
             $latest_version = $this->get_latest_download_details( $plugin_id, false, false );
-            $target_folder  = "{$slug}-premium";
+            $target_folder  = $premium_slug;
 
             // Prep variables for Plugin_Installer_Skin class.
             $extra         = array();
@@ -1133,11 +1134,11 @@ if ( !isset($info->error) ) {
             $upgrader = new Plugin_Upgrader( $skin );
 
             // Perform the action and install the plugin from the $source urldecode().
-            add_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1, 3 );
+            add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
             $install_result = $upgrader->install( $source );
 
-            remove_filter( 'upgrader_source_selection', array( &$this, '_maybe_adjust_source_dir' ), 1 );
+            remove_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1 );
 
             if ( is_wp_error( $install_result ) ) {
                 return array(
@@ -1228,6 +1229,29 @@ if ( !isset($info->error) ) {
         }
 
         /**
+         * Store the basename since it's not always available in the `_maybe_adjust_source_dir` method below.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @param bool|WP_Error $response   Response.
+         * @param array         $hook_extra Extra arguments passed to hooked filters.
+         *
+         * @return bool|WP_Error
+         */
+        static function _store_basename_for_source_adjustment( $response, $hook_extra ) {
+            if ( isset( $hook_extra['plugin'] ) ) {
+                self::$_upgrade_basename = $hook_extra['plugin'];
+            } else if ( $hook_extra['theme'] ) {
+                self::$_upgrade_basename = $hook_extra['theme'];
+            } else {
+                self::$_upgrade_basename = null;
+            }
+
+            return $response;
+        }
+
+        /**
          * Adjust the plugin directory name if necessary.
          * Assumes plugin has a folder (not a single file plugin).
          *
@@ -1238,6 +1262,7 @@ if ( !isset($info->error) ) {
          *
          * @author Vova Feldman
          * @since  1.2.1.7
+         * @since  2.2.1 The method was converted to static since when the admin update bulk products via the Updates section, the logic applies the `upgrader_source_selection` filter for every product that is being updated.
          *
          * @param string       $source        Path to upgrade/zip-file-name.tmp/subdirectory/.
          * @param string       $remote_source Path to upgrade/zip-file-name.tmp.
@@ -1245,13 +1270,55 @@ if ( !isset($info->error) ) {
          *
          * @return string|WP_Error
          */
-        function _maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
+        static function _maybe_adjust_source_dir( $source, $remote_source, $upgrader ) {
             if ( ! is_object( $GLOBALS['wp_filesystem'] ) ) {
                 return $source;
             }
 
+            $basename = self::$_upgrade_basename;
+
             // Figure out what the slug is supposed to be.
-            $desired_slug = $upgrader->skin->options['extra']['slug'];
+            if ( isset( $upgrader->skin->options['extra'] ) ) {
+                // Set by the auto-install logic.
+                $desired_slug = $upgrader->skin->options['extra']['slug'];
+            } else if ( ! empty( $basename ) && false !== strpos( fs_normalize_path( $basename ), '/' ) ) {
+                $desired_slug = dirname( $basename );
+            } else {
+                // Can't figure out the desired slug, stop the execution.
+                return $source;
+            }
+
+            if ( is_multisite() ) {
+                /**
+                 * If we are running in a multisite environment and the product is not network activated,
+                 * the instance will not exist anyway. Therefore, try to update the source if necessary
+                 * regardless if the Freemius instance of the product exists or not.
+                 *
+                 * @author Vova Feldman
+                 */
+            } else {
+                $fs = null;
+
+                if ( ! empty( $basename ) ) {
+                    $fs = Freemius::get_instance_by_file( $basename );
+                }
+
+                if ( empty( $fs ) ) {
+                    $fs = Freemius::instance( $desired_slug );
+                }
+
+                if ( ! is_object( $fs ) ) {
+                    /**
+                     * If the Freemius instance does not exist on a non-multisite network environment, it means that:
+                     *  1. The product is not powered by Freemius; OR
+                     *  2. The product is not activated, therefore, we don't mind if after the update the folder name will change.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since  2.2.1
+                     */
+                    return $source;
+                }
+            }
 
             $subdir_name = untrailingslashit( str_replace( trailingslashit( $remote_source ), '', $source ) );
 
@@ -1261,15 +1328,16 @@ if ( !isset($info->error) ) {
 
                 if ( true === $GLOBALS['wp_filesystem']->move( $from_path, $to_path ) ) {
                     return trailingslashit( $to_path );
-                } else {
-                    return new WP_Error(
-                        'rename_failed',
-                        $this->_fs->get_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
-                        array(
-                            'found'    => $subdir_name,
-                            'expected' => $desired_slug
-                        ) );
                 }
+
+                return new WP_Error(
+                    'rename_failed',
+                    fs_text_inline( 'The remote plugin package does not contain a folder with the desired slug and renaming did not work.', 'module-package-rename-failure' ),
+                    array(
+                        'found'    => $subdir_name,
+                        'expected' => $desired_slug
+                    )
+                );
             }
 
             return $source;

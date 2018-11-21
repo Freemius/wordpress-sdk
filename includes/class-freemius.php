@@ -34,6 +34,12 @@
          */
         private $_plugin_basename;
         /**
+         * @since 2.2.1
+         *
+         * @var string
+         */
+        private $_premium_plugin_basename;
+        /**
          * @since 1.0.0
          *
          * @var string
@@ -4755,16 +4761,20 @@
                 $this->_plugin :
                 new FS_Plugin();
 
+            $premium_suffix = $this->get_option( $plugin_info, 'premium_suffix', '(Premium)' );
+
             $plugin->update( array(
                 'id'                   => $id,
                 'type'                 => $this->get_option( $plugin_info, 'type', $this->_module_type ),
                 'public_key'           => $public_key,
                 'slug'                 => $this->_slug,
+                'premium_slug'         => $this->get_option( $plugin_info, 'premium_slug', "{$this->_slug}-premium" ),
                 'parent_plugin_id'     => $parent_id,
                 'version'              => $this->get_plugin_version(),
-                'title'                => $this->get_plugin_name(),
+                'title'                => $this->get_plugin_name( $premium_suffix ),
                 'file'                 => $this->_plugin_basename,
                 'is_premium'           => $this->get_bool_option( $plugin_info, 'is_premium', true ),
+                'premium_suffix'       => $premium_suffix,
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
             ) );
@@ -5145,7 +5155,7 @@
             }
 
             $addon            = $this->get_addon( $addon_id );
-            $premium_basename = "{$addon->slug}-premium/{$addon->slug}.php";
+            $premium_basename = "{$addon->premium_slug}/{$addon->slug}.php";
 
             if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_basename ) ) ) {
                 return $premium_basename;
@@ -5155,7 +5165,7 @@
 
             foreach ( $all_plugins as $basename => $data ) {
                 if ( $addon->slug === $data['slug'] ||
-                     $addon->slug . '-premium' === $data['slug']
+                     $addon->premium_slug === $data['slug']
                 ) {
                     return $basename;
                 }
@@ -8294,13 +8304,58 @@
         }
 
         /**
+         * Set the basename of the current product and hook _activate_plugin_event_hook() to the activation action.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.1
+         *
+         * @param string $is_premium
+         * @param string $caller
+         *
+         * @return string
+         */
+        function set_basename( $is_premium, $caller ) {
+            $basename = plugin_basename( $caller );
+
+            $current_basename = $is_premium ?
+                $this->_premium_plugin_basename :
+                $this->_free_plugin_basename;
+
+            if ( $current_basename == $basename ) {
+                // Basename value set correctly.
+                return;
+            }
+
+            if ( $is_premium ) {
+                $this->_premium_plugin_basename = $basename;
+            } else {
+                $this->_free_plugin_basename = $basename;
+            }
+
+            $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
+
+            register_activation_hook(
+                $plugin_dir . $basename,
+                array( &$this, '_activate_plugin_event_hook' )
+            );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
+         * @since  2.2.1 If the context product is in its premium version, use the current module's basename, even if it was renamed.
          *
          * @return string
          */
         function premium_plugin_basename() {
-            return "{$this->_slug}-premium/" . basename( $this->_free_plugin_basename );
+            if ( ! isset( $this->_premium_plugin_basename ) ) {
+                $this->_premium_plugin_basename = $this->is_premium() ?
+                    // The product is premium, so use the current basename.
+                    $this->_plugin_basename :
+                    $this->get_premium_slug() . '/' . basename( $this->_free_plugin_basename );
+            }
+
+            return $this->_premium_plugin_basename;
         }
 
         /**
@@ -8439,13 +8494,29 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         *
+         * @return string
+         */
+        function get_premium_slug() {
+            return is_object( $this->_plugin ) ?
+                $this->_plugin->premium_slug :
+                "{$this->_slug}-premium";
+        }
+
+        /**
+         * Retrieve the desired folder name for the product.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.7
          *
          * @return string Plugin slug.
          */
         function get_target_folder_name() {
-            return $this->_slug . ( $this->can_use_premium_code() ? '-premium' : '' );
+            return $this->can_use_premium_code() ?
+                $this->_plugin->premium_slug :
+                $this->_slug;
         }
 
         /**
@@ -8516,31 +8587,63 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
+         * @param string|bool $premium_suffix
+         *
          * @return string
          */
-        function get_plugin_name() {
+        function get_plugin_name( $premium_suffix = false ) {
             $this->_logger->entrance();
 
+            /**
+             * This `if-else` can be squeezed into a single `if` but I intentionally split it for code readability.
+             *
+             * @author Vova Feldman
+             */
             if ( ! isset( $this->_plugin_name ) ) {
-                $plugin_data = $this->get_plugin_data();
-
-                // Get name.
-                $this->_plugin_name = $plugin_data['Name'];
-
-                // Check if plugin name contains "(Premium)" suffix and remove it.
-                $suffix     = ' (premium)';
-                $suffix_len = strlen( $suffix );
-
-                if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
-                     $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
-                ) {
-                    $this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
-                }
-
-                $this->_logger->departure( 'Name = ' . $this->_plugin_name );
+                // Name is not yet set.
+                $this->set_name( $premium_suffix );
+            } else if (
+                ! empty( $premium_suffix ) &&
+                ( ! is_object( $this->_plugin ) || $this->_plugin->premium_suffix !== $premium_suffix )
+            ) {
+                // Name is already set, but there's a change in the premium suffix.
+                $this->set_name( $premium_suffix );
             }
 
             return $this->_plugin_name;
+        }
+
+        /**
+         * Calculates and stores the product's name. This helper function was created specifically for get_plugin_name() just to make the code clearer.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.1
+         *
+         * @param string $premium_suffix
+         */
+        private function set_name( $premium_suffix = '' ) {
+            $plugin_data = $this->get_plugin_data();
+
+            // Get name.
+            $this->_plugin_name = $plugin_data['Name'];
+
+            if ( is_string( $premium_suffix ) ) {
+                $premium_suffix = trim( $premium_suffix );
+
+                if ( ! empty( $premium_suffix ) ) {
+                    // Check if plugin name contains " (premium)" or a custom suffix and remove it.
+                    $suffix     = ( ' ' . strtolower( $premium_suffix ) );
+                    $suffix_len = strlen( $suffix );
+
+                    if ( strlen( $plugin_data['Name'] ) > $suffix_len &&
+                         $suffix === substr( strtolower( $plugin_data['Name'] ), - $suffix_len )
+                    ) {
+                        $this->_plugin_name = substr( $plugin_data['Name'], 0, - $suffix_len );
+                    }
+                }
+            }
+
+            $this->_logger->departure( 'Name = ' . $this->_plugin_name );
         }
 
         /**
