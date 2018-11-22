@@ -2237,16 +2237,18 @@
          * @since  1.2.2
          *
          * @param  string|number $id_or_slug
+         * @param  string        $module_type
          *
          * @return number|false
          */
-        private static function get_module_id( $id_or_slug ) {
+        private static function get_module_id( $id_or_slug, $module_type = WP_FS__MODULE_TYPE_PLUGIN ) {
             if ( is_numeric( $id_or_slug ) ) {
                 return $id_or_slug;
             }
 
             foreach ( self::$_instances as $instance ) {
-                if ( $instance->is_plugin() && ( $id_or_slug === $instance->get_slug() ) ) {
+                // Also check the module type since there can be a plugin and a theme with the same slug.
+                if ( ( $module_type === $instance->get_module_type() ) && ( $id_or_slug === $instance->get_slug() ) ) {
                     return $instance->get_id();
                 }
             }
@@ -2273,15 +2275,16 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
-         * @param $plugin_file
+         * @param string $plugin_file
+         * @param string $module_type
          *
          * @return false|Freemius
          */
-        static function get_instance_by_file( $plugin_file ) {
+        static function get_instance_by_file( $plugin_file, $module_type = WP_FS__MODULE_TYPE_PLUGIN ) {
             $slug = self::find_slug_by_basename( $plugin_file );
 
             return ( false !== $slug ) ?
-                self::instance( self::get_module_id( $slug ) ) :
+                self::instance( self::get_module_id( $slug, $module_type ) ) :
                 false;
         }
 

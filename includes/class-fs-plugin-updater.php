@@ -1276,13 +1276,25 @@ if ( !isset($info->error) ) {
             }
 
             $basename = self::$_upgrade_basename;
+            $is_theme = false;
 
             // Figure out what the slug is supposed to be.
             if ( isset( $upgrader->skin->options['extra'] ) ) {
                 // Set by the auto-install logic.
                 $desired_slug = $upgrader->skin->options['extra']['slug'];
-            } else if ( ! empty( $basename ) && false !== strpos( fs_normalize_path( $basename ), '/' ) ) {
-                $desired_slug = dirname( $basename );
+            } else if ( ! empty( $basename ) ) {
+                /**
+                 * If it doesn't end with ".php", it's a theme.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                $is_theme = ( ! fs_ends_with( $basename, '.php' ) );
+
+                $desired_slug = ( ! $is_theme ) ?
+                    dirname( $basename ) :
+                    // Theme slug
+                    $basename;
             } else {
                 // Can't figure out the desired slug, stop the execution.
                 return $source;
@@ -1296,16 +1308,13 @@ if ( !isset($info->error) ) {
                  *
                  * @author Vova Feldman
                  */
-            } else {
-                $fs = null;
-
-                if ( ! empty( $basename ) ) {
-                    $fs = Freemius::get_instance_by_file( $basename );
-                }
-
-                if ( empty( $fs ) ) {
-                    $fs = Freemius::instance( $desired_slug );
-                }
+            } else if ( ! empty( $basename ) ) {
+                $fs = Freemius::get_instance_by_file(
+                    $basename,
+                    $is_theme ?
+                        WP_FS__MODULE_TYPE_THEME :
+                        WP_FS__MODULE_TYPE_PLUGIN
+                );
 
                 if ( ! is_object( $fs ) ) {
                     /**
