@@ -6899,7 +6899,11 @@
                 $is_premium_version_activation &&
                 (
                     $this->is_anonymous() ||
-                    ( $this->is_registered() && ! $this->has_features_enabled_license() )
+                    (
+                        $this->is_registered() &&
+                        ! $this->is_trial() &&
+                        ! $this->has_features_enabled_license()
+                    )
                 )
             ) {
                 $this->_storage->require_license_activation = true;
@@ -15287,15 +15291,25 @@
                 }
             }
 
-            if ( 0 < count( $this->_menu_items ) ) {
-                if ( ! $this->_menu->is_top_level() ) {
-                    fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+            if ( ! $is_activation_mode || ( true !== $this->_storage->require_license_activation ) ) {
+                /**
+                 * Add the other menu items if there are any when not in activation mode or license activation is not
+                 * required (license activation is required for registered or anonymous users after activating the
+                 * premium version when the site is not in trial mode or there's no active valid license).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.1
+                 */
+                if ( 0 < count( $this->_menu_items ) ) {
+                    if ( ! $this->_menu->is_top_level() ) {
+                        fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
-                    // Append submenu items right after the plugin's submenu item.
-                    $this->order_sub_submenu_items();
-                } else {
-                    // Append submenu items.
-                    $this->embed_submenu_items();
+                        // Append submenu items right after the plugin's submenu item.
+                        $this->order_sub_submenu_items();
+                    } else {
+                        // Append submenu items.
+                        $this->embed_submenu_items();
+                    }
                 }
             }
         }
