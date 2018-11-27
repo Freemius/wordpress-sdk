@@ -164,6 +164,8 @@
                 fs_ends_with( $subdomain, '.myftpupload.com' ) ||
                 // ngrok tunneling.
                 fs_ends_with( $subdomain, '.ngrok.io' ) ||
+                // wpsandbox.
+                fs_ends_with( $subdomain, '.wpsandbox.pro' ) ||
                 // SiteGround staging.
                 fs_starts_with( $subdomain, 'staging' ) ||
                 // WPEngine staging.

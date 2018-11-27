@@ -94,7 +94,7 @@
 		'activate-x-now'                => _fs_x( 'Complete "%s" Activation Now',
 			'%s - plugin name. As complete "Jetpack" activation now' ),
 		'few-plugin-tweaks'             => _fs_text( 'We made a few tweaks to the %s, %s' ),
-		'optin-x-now'                   => _fs_text( 'Opt in to make "%s" Better!' ),
+		'optin-x-now'                   => _fs_text( 'Opt in to make "%s" better!' ),
 		'error'                         => _fs_text( 'Error' ),
 		'failed-finding-main-path'      => _fs_text( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.' ),
         'learn-more'                    => _fs_text( 'Learn more' ),
@@ -215,7 +215,7 @@
 		'delete-account-confirm'       => _fs_text( 'Deletion is not temporary. Only delete if you no longer want to use this %s anymore. Are you sure you would like to continue with the deletion?' ),
 		'downgrade-x-confirm'          => _fs_text( 'Downgrading your plan will immediately stop all future recurring payments and your %s plan license will expire in %s.' ),
 		'cancel-trial-confirm'         => _fs_text( 'Cancelling the trial will immediately block access to all premium features. Are you sure?' ),
-		'after-downgrade-non-blocking' => _fs_text( 'You can still enjoy all %s features but you will not have access to %s updates and support.' ),
+		'after-downgrade-non-blocking' => _fs_text( 'You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support.' ),
 		'after-downgrade-blocking'     => _fs_text( 'Once your license expires you can still use the Free version but you will NOT have access to the %s features.' ),
 		'proceed-confirmation'         => _fs_text( 'Are you sure you want to proceed?' ),
 		#endregion Account

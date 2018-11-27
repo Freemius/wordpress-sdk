@@ -226,6 +226,49 @@
                     }
                 }
 
+                /**
+                 * Added a filter to control the visibility of admin notices.
+                 *
+                 * Usage example:
+                 *
+                 *     /**
+                 *      * @param bool  $show
+                 *      * @param array $msg {
+                 *      *     @var string $message The actual message.
+                 *      *     @var string $title An optional message title.
+                 *      *     @var string $type The type of the message ('success', 'update', 'warning', 'promotion').
+                 *      *     @var string $id The unique identifier of the message.
+                 *      *     @var string $manager_id The unique identifier of the notices manager. For plugins it would be the plugin's slug, for themes - `<slug>-theme`.
+                 *      *     @var string $plugin The product's title.
+                 *      *     @var string $wp_user_id An optional WP user ID that this admin notice is for.
+                 *      * }
+                 *      *
+                 *      * @return bool
+                 *      *\/
+                 *      function my_custom_show_admin_notice( $show, $msg ) {
+                 *          if ('trial_promotion' != $msg['id']) {
+                 *              return false;
+                 *          }
+                 *
+                 *          return $show;
+                 *      }
+                 *
+                 *      my_fs()->add_filter( 'show_admin_notice', 'my_custom_show_admin_notice', 10, 2 );
+                 *
+                 * @author Vova Feldman
+                 * @since 2.2.0
+                 */
+                $show_notice = call_user_func_array( 'fs_apply_filter', array(
+                    $this->_module_unique_affix,
+                    'show_admin_notice',
+                    true,
+                    $msg
+                ) );
+
+                if ( true !== $show_notice ) {
+                    continue;
+                }
+
                 fs_require_template( 'admin-notice.php', $msg );
 
                 if ( $msg['sticky'] ) {

@@ -14,6 +14,22 @@
      * @var Freemius $fs
      */
     $fs = freemius( $VARS['id'] );
+
+    $license = $fs->_get_license();
+
+    if ( ! is_object( $license ) ) {
+        $purchase_url = $fs->pricing_url();
+    } else {
+        $subscription = $fs->_get_subscription( $license->id );
+
+        $purchase_url = $fs->checkout_url(
+            is_object( $subscription ) ?
+                ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                WP_FS__PERIOD_LIFETIME,
+            false,
+            array( 'licenses' => $license->quota )
+        );
+    }
 ?>
 <script type="text/javascript">
 (function( $ ) {
@@ -22,7 +38,7 @@
 
         $premiumVersionCheckbox.addClass( 'license-expired' );
         $premiumVersionCheckbox.data( 'plugin-name', <?php echo json_encode( $fs->get_plugin_data()['Name'] ) ?> );
-        $premiumVersionCheckbox.data( 'pricing-url', <?php echo json_encode( $fs->pricing_url() ) ?> );
+        $premiumVersionCheckbox.data( 'pricing-url', <?php echo json_encode( $purchase_url ) ?> );
         $premiumVersionCheckbox.data( 'new-version', <?php echo json_encode( $VARS['new_version'] ) ?> );
     });
 })( jQuery );

@@ -26,16 +26,12 @@
 		 * If the user changes the main plugin's file name, the file_exists()
 		 * will catch it.
 		 */
-		if ( ! function_exists( 'get_plugins' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		$all_plugins = get_plugins();
+		$all_plugins = fs_get_plugins( true );
 
 		$file_real_path = fs_normalize_path( realpath( $file ) );
 
 		// Get active plugin's main files real full names (might be symlinks).
-		foreach ( $all_plugins as $relative_path => &$data ) {
+		foreach ( $all_plugins as $relative_path => $data ) {
 			if ( 0 === strpos( $file_real_path, fs_normalize_path( dirname( realpath( WP_PLUGIN_DIR . '/' . $relative_path ) ) ) ) ) {
 				if ( '.' !== dirname( trailingslashit( $relative_path ) ) ) {
 	                return $relative_path;
