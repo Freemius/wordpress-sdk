@@ -5616,6 +5616,18 @@
         }
 
         /**
+         * Sets the keepalive time to now.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.2
+         */
+        private function set_install_keepalive_timestamp() {
+            $this->_logger->entrance();
+
+            $this->_storage->store( 'install_keepalive_timestamp', time() );
+        }
+
+        /**
          * Check if cron was executed in the last $period of seconds.
          *
          * @author Vova Feldman (@svovaf)
@@ -8064,28 +8076,35 @@
                 $params = $this->get_install_diff_for_api( $check_properties, $this->_site, $override );
             }
 
-            if ( 0 < count( $params ) ) {
+            $keepalive_only_update = false;
+            if ( empty( $params ) ) {
+                $keepalive_only_update = $this->should_send_keepalive_update();
+
+                if ( ! $keepalive_only_update ) {
+                    return false;
+                }
+            }
+
+            if ( ! $keepalive_only_update ) {
                 if ( ! is_multisite() ) {
                     // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
                 }
 
                 $params['uid'] = $this->get_anonymous_id();
-
-                // Send updated values to FS.
-                $site = $this->get_api_site_scope()->call( '/', 'put', $params );
-
-                if ( $this->is_api_result_entity( $site ) ) {
-                    if ( ! is_multisite() ) {
-                        // I successfully sent install update, clear scheduled sync if exist.
-                        $this->clear_install_sync_cron();
-                    }
-                }
-
-                return $site;
             }
 
-            return false;
+            // Send updated values to FS.
+            $site = $this->get_api_site_scope()->call( '/', 'put', $params );
+
+            if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+                if ( ! is_multisite() ) {
+                    // I successfully sent install update, clear scheduled sync if exist.
+                    $this->clear_install_sync_cron();
+                }
+            }
+
+            return $site;
         }
 
         /**
@@ -8104,22 +8123,46 @@
 
             $installs_data = $this->get_installs_data_for_api( $override, ! $flush );
 
+            $keepalive_only_update = false;
             if ( empty( $installs_data ) ) {
-                return false;
+                $keepalive_only_update = $this->should_send_keepalive_update();
+
+                if ( ! $keepalive_only_update ) {
+                    return false;
+                }
             }
 
-            // Update last install sync timestamp.
-            $this->set_cron_execution_timestamp( 'install_sync' );
+            if ( ! $keepalive_only_update ) {
+                // Update last install sync timestamp.
+                $this->set_cron_execution_timestamp( 'install_sync' );
+            }
+
+            $this->set_install_keepalive_timestamp();
 
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
-            if ( $this->is_api_result_object( $result, 'installs' ) ) {
+            if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
                 // I successfully sent installs update, clear scheduled sync if exist.
                 $this->clear_install_sync_cron();
             }
 
             return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @return bool
+         */
+        private function should_send_keepalive_update() {
+            if ( $this->_storage->install_keepalive_timestamp < ( time() - WP_FS__TIME_WEEK_IN_SEC ) ) {
+                // If updated more than 7 days ago, trigger a keepalive and update the time it was triggered.
+                return true;
+            } else {
+                // If updated 7 days ago or less, "flip a coin", if the value is 7 trigger a keepalive and update the last time it was triggered.
+                return ( 7 == rand( 1, 7 ) );
+            }
         }
 
         /**
