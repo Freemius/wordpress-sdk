@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.2.1';
+	$this_sdk_version = '2.2.2';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -118,6 +118,10 @@
 
 	if ( ! function_exists( 'fs_find_direct_caller_plugin_file' ) ) {
 		require_once dirname( __FILE__ ) . '/includes/supplements/fs-essential-functions-1.1.7.1.php';
+	}
+
+	if ( ! function_exists( 'fs_get_plugins' ) ) {
+		require_once dirname( __FILE__ ) . '/includes/supplements/fs-essential-functions-2.2.1.php';
 	}
 
 	// Update current SDK info based on the SDK path.
