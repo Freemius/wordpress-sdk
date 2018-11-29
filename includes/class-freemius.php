@@ -5619,7 +5619,7 @@
          * Sets the keepalive time to now.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.2
+         * @since  2.2.3
          */
         private function set_install_keepalive_timestamp() {
             $this->_logger->entrance();
@@ -5641,7 +5641,7 @@
         private function is_cron_executed( $name, $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
             $this->_logger->entrance( $name );
 
-            $last_execution = $this->set_cron_execution_timestamp( $name );
+            $last_execution = $this->cron_last_execution( $name );
 
             if ( ! is_numeric( $last_execution ) ) {
                 return false;
@@ -8081,11 +8081,24 @@
                 $keepalive_only_update = $this->should_send_keepalive_update();
 
                 if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
                     return false;
                 }
             }
 
             if ( ! $keepalive_only_update ) {
+                /**
+                 * Do not update the last install sync timestamp after a keepalive-only call since there were no actual
+                 * updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
                 if ( ! is_multisite() ) {
                     // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
@@ -8094,10 +8107,18 @@
                 $params['uid'] = $this->get_anonymous_id();
             }
 
+            $this->set_install_keepalive_timestamp();
+
             // Send updated values to FS.
             $site = $this->get_api_site_scope()->call( '/', 'put', $params );
 
             if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+                /**
+                 * Do not clear scheduled sync after a keepalive-only call since there were no actual updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
                 if ( ! is_multisite() ) {
                     // I successfully sent install update, clear scheduled sync if exist.
                     $this->clear_install_sync_cron();
@@ -8128,12 +8149,18 @@
                 $keepalive_only_update = $this->should_send_keepalive_update();
 
                 if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
                     return false;
                 }
             }
 
             if ( ! $keepalive_only_update ) {
-                // Update last install sync timestamp.
+                // Update last install sync timestamp if there were actual updates sent (i.e., not a keepalive-only call).
                 $this->set_cron_execution_timestamp( 'install_sync' );
             }
 
@@ -8143,7 +8170,7 @@
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
             if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
-                // I successfully sent installs update, clear scheduled sync if exist.
+                // I successfully sent installs update (there was an actual update sent and it's not just a keepalive-only call), clear scheduled sync if exist.
                 $this->clear_install_sync_cron();
             }
 
