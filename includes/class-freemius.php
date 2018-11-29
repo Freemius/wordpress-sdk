@@ -8183,7 +8183,9 @@
          * @return bool
          */
         private function should_send_keepalive_update() {
-            if ( $this->_storage->install_keepalive_timestamp < ( time() - WP_FS__TIME_WEEK_IN_SEC ) ) {
+            $install_keepalive_timestamp = $this->_storage->get( 'install_keepalive_timestamp', 0 );
+
+            if ( $install_keepalive_timestamp < ( time() - WP_FS__TIME_WEEK_IN_SEC ) ) {
                 // If updated more than 7 days ago, trigger a keepalive and update the time it was triggered.
                 return true;
             } else {

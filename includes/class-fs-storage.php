@@ -341,7 +341,6 @@
                 'connectivity_test'           => 0,
                 'handle_gdpr_admin_notice'    => 0,
                 'has_trial_plan'              => 0,
-                'install_keepalive_timestamp' => 0,
                 'install_sync_timestamp'      => 0,
                 'install_sync_cron'           => 0,
                 'is_anonymous_ms'             => 0,
@@ -373,6 +372,7 @@
                 'is_network_activation'       => 0,
 
                 // When network activated, then network level.
+                'install_keepalive_timestamp' => 1,
                 'install_timestamp'           => 1,
                 'prev_is_premium'             => 1,
                 'require_license_activation'  => 1,
