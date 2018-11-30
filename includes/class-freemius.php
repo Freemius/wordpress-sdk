@@ -1265,6 +1265,10 @@
                 add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
+                    if ( 'plugin-install.php' === self::get_current_page() ) {
+                        add_action( 'plugin_install_action_links', array( 'Freemius', '_plugin_install_action_links' ), 10, 2 );
+                    }
+
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
                     /**
@@ -1430,6 +1434,66 @@
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
             }
+        }
+
+        /**
+         * Prepends the `fs_allow_updater_and_dialog` param to the action URL to disallow FS' updater and custom dialog
+         * when installing a plugin or viewing its details on the `plugin-install.php` page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @param array $action_links An array of plugin action hyperlinks. Defaults are links to Details and Install Now.
+         * @param array $plugin       The plugin currently being listed.
+         * 
+         * @return array
+         */
+        static function _plugin_install_action_links( $action_links, $plugin ) {
+            foreach ( $action_links as $key => $action_link ) {
+                if (
+                    false === strpos( $action_link, 'update.php?' ) &&
+                    false === strpos( $action_link, 'plugin-install.php?' )
+                ) {
+                    continue;
+                }
+
+                $action_link = preg_replace_callback(
+                    '/(\<a.+href=")([^\s]+)(".+\>.+\<\/a\>)/is',
+                    array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param'),
+                    $action_link,
+                    -1,
+                    $count
+                );
+
+                if ( 1 === $count ) {
+                    $action_links[ $key ] = $action_link;
+                }
+            }
+
+            return $action_links;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @param $matches
+         *
+         * @return string
+         */
+        static function _prepend_fs_allow_updater_and_dialog_flag_url_param( $matches ) {
+            $url_parts = explode( '?', html_entity_decode( $matches[2] ) );
+            if ( 2 === count( $url_parts ) ) {
+                // Escape the URL again (it was escaped in the WordPress core logic).
+                $matches[2] = esc_url(
+                    $url_parts[0] .
+                    // Prepend instead of appending since the core WordPress JS logic removes the `TB_iframe` param and everything after it.
+                    '?fs_allow_updater_and_dialog=false&' .
+                    $url_parts[1]
+                );
+            }
+
+            return ( $matches[1] . $matches[2] . $matches[3] );
         }
 
         /**
@@ -4180,6 +4244,7 @@
              */
             if ( $this->is_user_in_admin() &&
                 'plugin-information' === fs_request_get( 'tab', false ) &&
+                 $this->allow_updater_and_dialog() &&
                  (
                      ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
                      ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
@@ -4301,7 +4366,11 @@
              * @author Vova Feldman
              * @since  1.2.1.6
              */
-            if ( $this->is_premium() && $this->has_release_on_freemius() ) {
+            if (
+                $this->allow_updater_and_dialog() &&
+                $this->is_premium() &&
+                $this->has_release_on_freemius()
+            ) {
                 FS_Plugin_Updater::instance( $this );
             }
 
@@ -4344,6 +4413,20 @@
             }
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         * 
+         * @return bool
+         */
+        private function allow_updater_and_dialog() {
+            return (
+                ( true === fs_request_get_bool( 'fs_allow_updater_and_dialog', true ) ) &&
+                // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
+                ( 'install-plugin' !== fs_request_get( 'action' ) )
+            );
+        }
+        
         /**
          * @author Leo Fajardo (@leorw)
          *
