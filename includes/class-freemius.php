@@ -6898,7 +6898,7 @@
             if (
                 $is_premium_version_activation &&
                 (
-                    $this->is_anonymous() ||
+                    ( ! $this->is_registered() && $this->is_anonymous() ) ||
                     (
                         $this->is_registered() &&
                         ! $this->is_trial() &&
