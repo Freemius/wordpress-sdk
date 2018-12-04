@@ -1265,8 +1265,24 @@
                 add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
-                    if ( 'plugin-install.php' === self::get_current_page() ) {
-                        add_action( 'plugin_install_action_links', array( 'Freemius', '_plugin_install_action_links' ), 10, 2 );
+                    if ( self::is_plugin_install_page() && true !== fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) {
+                        /**
+                         * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, make
+                         * Freemius-related updates unavailable on the "Add Plugins" admin page (/plugin-install.php)
+                         * so that they won't interfere with the .org plugins' functionalities on that page (e.g.
+                         * updating of a .org plugin).
+                         */
+                        add_filter( 'site_transient_update_plugins', array( 'Freemius', '_remove_fs_updates_from_plugin_install_page' ), 10, 2 );
+                    } else if ( self::is_plugins_page() || self::is_updates_page() ) {
+                        /**
+                         * On the "Plugins" and "Updates" admin pages, if there are premium or non–org-compliant
+                         * plugins, modify their details dialog URLs (add a Freemius-specific param) so that the SDK can
+                         * determine if the plugin information dialog should show information from Freemius.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.2.3
+                         */
+                        add_action( 'in_admin_header', array( 'Freemius', '_register_plugin_install_urls_hooks' ) );
                     }
 
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
@@ -1437,63 +1453,178 @@
         }
 
         /**
-         * Prepends the `fs_allow_updater_and_dialog` param to the action URL to disallow FS' updater and custom dialog
-         * when installing a plugin or viewing its details on the `plugin-install.php` page.
+         * Makes Freemius-related updates unavailable on the "Add Plugins" admin page (/plugin-install.php) so that
+         * they won't interfere with the .org plugins' functionalities on that page (e.g. updating of a .org plugin).
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
          *
-         * @param array $action_links An array of plugin action hyperlinks. Defaults are links to Details and Install Now.
-         * @param array $plugin       The plugin currently being listed.
-         * 
-         * @return array
+         * @param object      $updates
+         * @param string|null $transient
+         *
+         * @return object
          */
-        static function _plugin_install_action_links( $action_links, $plugin ) {
-            foreach ( $action_links as $key => $action_link ) {
-                if (
-                    false === strpos( $action_link, 'update.php?' ) &&
-                    false === strpos( $action_link, 'plugin-install.php?' )
-                ) {
-                    continue;
-                }
-
-                $action_link = preg_replace_callback(
-                    '/(\<a.+href=")([^\s]+)(".+\>.+\<\/a\>)/is',
-                    array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param'),
-                    $action_link,
-                    -1,
-                    $count
-                );
-
-                if ( 1 === $count ) {
-                    $action_links[ $key ] = $action_link;
+        static function _remove_fs_updates_from_plugin_install_page( $updates, $transient = null ) {
+            if ( is_object( $updates ) && isset( $updates->response ) ) {
+                foreach ( $updates->response as $file => $plugin ) {
+                    if ( false !== strpos( $plugin->package, 'api.freemius' ) ) {
+                        unset( $updates->response[ $file ] );
+                    }
                 }
             }
 
-            return $action_links;
+            return $updates;
         }
+
+        /**
+         * The following variables are used to keep track of the plugins that are being handled one at time on the
+         * "Plugins" and "Updates" admin pages in order to determine which plugin details URLs should be modified so
+         * that when the plugin information dialog is shown, it will show data from Freemius if necessary.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @var array $_plugin_files
+         * @var array $_plugin_fs_instances
+         * @var int   $_plugin_fs_instances_current_index
+         */
+        private static $_plugin_files                      = array();
+        private static $_plugin_fs_instances               = array();
+        private static $_plugin_fs_instances_current_index = -1;
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
+         */
+        static function _register_plugin_install_urls_hooks() {
+            if ( self::is_updates_page() ) {
+                $plugins = get_plugin_updates();
+            } else {
+                global $wp_list_table;
+                $plugins = $wp_list_table->items;
+            }
+
+            if ( empty( $plugins ) ) {
+                return;
+            }
+
+            $has_any_instance    = false;
+            self::$_plugin_files = array();
+
+            foreach ( $plugins as $plugin_file => $plugin_data ) {
+                if ( self::is_plugins_page() && ! isset( $plugin_data['slug'] ) ) {
+                    // In the core WordPress logic, the details link is shown on the "Plugins" page only when the slug is set.
+                    continue;
+                }
+
+                self::$_plugin_files[]        = $plugin_file;
+                $fs                           = self::get_instance_by_file( $plugin_file );
+                self::$_plugin_fs_instances[] = $fs;
+
+                if ( is_object( $fs ) ) {
+                    $has_any_instance = true;
+                }
+            }
+
+            if ( ! $has_any_instance ) {
+                return;
+            }
+
+            add_filter( 'admin_url', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ), 10, 3 );
+            add_filter( 'network_admin_url', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ), 10, 3 );
+        }
+
+        /**
+         * Prepends the `fs_allow_updater_and_dialog` param to the plugin information URLs to tell the SDK to handle
+         * the information that is shown on the plugin details dialog that is shown when the relevant link is clicked.
          *
-         * @param $matches
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @param string   $url     The complete admin area URL including scheme and path.
+         * @param string   $path    Path relative to the admin area URL. Blank string if no path is specified.
+         * @param int|null $blog_id Site ID, or null for the current site.
          *
          * @return string
          */
-        static function _prepend_fs_allow_updater_and_dialog_flag_url_param( $matches ) {
-            $url_parts = explode( '?', html_entity_decode( $matches[2] ) );
-            if ( 2 === count( $url_parts ) ) {
-                // Escape the URL again (it was escaped in the WordPress core logic).
-                $matches[2] = esc_url(
-                    $url_parts[0] .
-                    // Prepend instead of appending since the core WordPress JS logic removes the `TB_iframe` param and everything after it.
-                    '?fs_allow_updater_and_dialog=false&' .
-                    $url_parts[1]
-                );
+        static function _prepend_fs_allow_updater_and_dialog_flag_url_param( $url, $path = '', $blog_id = null ) {
+            global $wp_current_filter;
+
+            if (
+                false === strpos( $url, 'plugin-install.php?' ) ||
+                (
+                    /**
+                     * Handle the URL only if the admin URL filter was triggered directly or triggered from the
+                     * `after_plugin_row` action (WordPress hooks on to this action to display information about latest
+                     * update information including a version details link).
+                     */
+                    ! fs_starts_with( $wp_current_filter[0], 'after_plugin_row' ) &&
+                    ! fs_ends_with( $wp_current_filter[0], 'admin_url' )
+                )
+            ) {
+                return $url;
             }
 
-            return ( $matches[1] . $matches[2] . $matches[3] );
+            $url_parts = explode( '?', html_entity_decode( $url ) );
+            if ( 2 !== count( $url_parts ) ) {
+                return $url;
+            }
+
+            if ( 1 === count( $wp_current_filter ) ) {
+                // Increment the index only if the admin URL filter is not triggered by any other filter.
+                self::$_plugin_fs_instances_current_index ++;
+            }
+
+            $slug = null;
+
+            parse_str( $url_parts[1], $url_params );
+            foreach ( $url_params as $name => $value ) {
+                if ( 'plugin' === $name ) {
+                    $slug = $value;
+                    break;
+                }
+            }
+
+            if ( empty( $slug ) ) {
+                return $url;
+            }
+
+            /**
+             * Try to get a Freemius instance for the plugin (it could be for the free or premium version).
+             *
+             * @var Freemius $fs
+             */
+            $fs = self::$_plugin_fs_instances[ self::$_plugin_fs_instances_current_index ];
+
+            if (
+                ! is_object( $fs ) ||
+                $fs->get_slug() !== $slug
+            ) {
+                // No active plugin versions so don't modify the URL.
+                return $url;
+            } else {
+                $is_active = ( $fs->get_plugin_basename() === self::$_plugin_files[ self::$_plugin_fs_instances_current_index ] );
+
+                if (
+                    ( $fs->is_premium() && ! $is_active ) ||
+                    ( ! $fs->is_premium() && $fs->is_org_repo_compliant() && $is_active )
+                ) {
+                    // The current URL is for the free org-compliant version, so don't modify it.
+                    return $url;
+                }
+            }
+
+            $url = (
+                $url_parts[0] .
+                /**
+                 * Prepend instead of appending since the core WordPress JS logic removes the `TB_iframe` param
+                 * and everything after it before setting the URL as the iframe source.
+                 */
+                '?fs_allow_updater_and_dialog=true&' .
+                $url_parts[1]
+            );
+
+            return $url;
         }
 
         /**
@@ -4368,7 +4499,17 @@
              */
             if (
                 $this->allow_updater_and_dialog() &&
-                $this->is_premium() &&
+                (
+                    $this->is_premium() ||
+                    /**
+                     * If not premium but the premium version is installed, also instantiate the updater so that the
+                     * plugin information dialog of the premium version will have the information from the server.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->premium_plugin_basename() ) ) )
+                ) &&
                 $this->has_release_on_freemius()
             ) {
                 FS_Plugin_Updater::instance( $this );
@@ -4416,17 +4557,23 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
-         * 
+         *
          * @return bool
          */
         private function allow_updater_and_dialog() {
             return (
-                ( true === fs_request_get_bool( 'fs_allow_updater_and_dialog', true ) ) &&
+                /**
+                 * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, disallow updater
+                 * and dialog on the "Add Plugins" admin page (/plugin-install.php) so that they won't interfere with
+                 * the .org plugins' functionalities on that page (e.g. installation and viewing plugin details from
+                 * .org).
+                 */
+                ( ! self::is_plugin_install_page() || true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) &&
                 // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
                 ( 'install-plugin' !== fs_request_get( 'action' ) )
             );
         }
-        
+
         /**
          * @author Leo Fajardo (@leorw)
          *
@@ -11430,6 +11577,33 @@
         static function get_current_page() {
             if ( ! isset( self::$_pagenow ) ) {
                 global $pagenow;
+                if ( empty( $pagenow ) && is_multisite() ) {
+                    /**
+                     * It appears that `$pagenow` is not yet initialized in some network admin pages when this method
+                     * is called, so initialize it here using some pieces of code from `wp-includes/vars.php`.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    if ( is_network_admin() )
+                        preg_match( '#/wp-admin/network/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    elseif ( is_user_admin() )
+                        preg_match( '#/wp-admin/user/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    else
+                        preg_match( '#/wp-admin/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+
+                    $pagenow = $self_matches[1];
+                    $pagenow = trim( $pagenow, '/' );
+                    $pagenow = preg_replace( '#\?.*?$#', '', $pagenow );
+                    if ( '' === $pagenow || 'index' === $pagenow || 'index.php' === $pagenow ) {
+                        $pagenow = 'index.php';
+                    } else {
+                        preg_match( '#(.*?)(/|$)#', $pagenow, $self_matches );
+                        $pagenow = strtolower( $self_matches[1] );
+                        if ( '.php' !== substr($pagenow, -4, 4) )
+                            $pagenow .= '.php'; // for Options +Multiviews: /wp-admin/themes/index.php (themes.php is queried)
+                    }
+                }
 
                 self::$_pagenow = $pagenow;
 
@@ -11459,6 +11633,16 @@
          */
         static function is_plugins_page() {
             return ( 'plugins.php' === self::get_current_page() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.3
+         *
+         * @return bool
+         */
+        static function is_plugin_install_page() {
+            return ( 'plugin-install.php' === self::get_current_page() );
         }
 
         /**
