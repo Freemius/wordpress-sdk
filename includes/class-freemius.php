@@ -11577,7 +11577,7 @@
         static function get_current_page() {
             if ( ! isset( self::$_pagenow ) ) {
                 global $pagenow;
-                if ( empty( $pagenow ) && is_multisite() ) {
+                if ( empty( $pagenow ) && is_admin() && is_multisite() ) {
                     /**
                      * It appears that `$pagenow` is not yet initialized in some network admin pages when this method
                      * is called, so initialize it here using some pieces of code from `wp-includes/vars.php`.
