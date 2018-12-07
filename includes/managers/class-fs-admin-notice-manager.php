@@ -218,6 +218,13 @@
                 // Only show messages to admins.
                 return;
             }
+            // only show on screens not excluded
+	        $display_not_on = array(
+		        'post'
+	        );
+	        if ( in_array( get_current_screen()->base, apply_filters('hide_fs_notices',$display_not_on )) ) {
+		        return;
+	        }
 
             foreach ( $this->_notices as $id => $msg ) {
                 if ( isset( $msg['wp_user_id'] ) && is_numeric( $msg['wp_user_id'] ) ) {
