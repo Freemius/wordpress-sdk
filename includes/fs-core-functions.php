@@ -86,9 +86,25 @@
     function fs_asset_url( $asset_abs_path ) {
         $wp_content_dir = fs_normalize_path( WP_CONTENT_DIR );
         $asset_abs_path = fs_normalize_path( $asset_abs_path );
-        $asset_rel_path = str_replace( $wp_content_dir, '', $asset_abs_path );
 
-        $asset_url = content_url( fs_normalize_path( $asset_rel_path ) );
+        if ( 0 === strpos( $asset_abs_path, $wp_content_dir ) ) {
+            // Handle both theme and plugin assets located in the standard directories.
+            $asset_rel_path = str_replace( $wp_content_dir, '', $asset_abs_path );
+            $asset_url      = content_url( fs_normalize_path( $asset_rel_path ) );
+        } else {
+            $wp_plugins_dir = fs_normalize_path( WP_PLUGIN_DIR );
+            if ( 0 === strpos( $asset_abs_path, $wp_plugins_dir ) ) {
+                // Try to handle plugin assets that may be located in a non-standard plugins directory.
+                $asset_rel_path = str_replace( $wp_plugins_dir, '', $asset_abs_path );
+                $asset_url      = plugins_url( fs_normalize_path( $asset_rel_path ) );
+            } else {
+                // Try to handle theme assets that may be located in a non-standard themes directory.
+                $active_theme_stylesheet = get_stylesheet();
+                $wp_themes_dir           = fs_normalize_path( trailingslashit( get_theme_root( $active_theme_stylesheet ) ) );
+                $asset_rel_path          = str_replace( $wp_themes_dir, '', fs_normalize_path( $asset_abs_path ) );
+                $asset_url               = trailingslashit( get_theme_root_uri( $active_theme_stylesheet ) ) . fs_normalize_path( $asset_rel_path );
+            }
+        }
 
         return $asset_url;
     }
