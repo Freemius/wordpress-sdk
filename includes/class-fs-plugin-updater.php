@@ -1242,7 +1242,7 @@ if ( !isset($info->error) ) {
         static function _store_basename_for_source_adjustment( $response, $hook_extra ) {
             if ( isset( $hook_extra['plugin'] ) ) {
                 self::$_upgrade_basename = $hook_extra['plugin'];
-            } else if ( $hook_extra['theme'] ) {
+            } else if ( isset( $hook_extra['theme'] ) ) {
                 self::$_upgrade_basename = $hook_extra['theme'];
             } else {
                 self::$_upgrade_basename = null;
