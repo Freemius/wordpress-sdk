@@ -20727,7 +20727,13 @@
                         if ( $data->plugin_path == $this->get_plugin_basename() ) {
                             $img_dir = $plugin_or_theme_img_dir
                                        . '/'
-                                       . str_replace( '../themes/', '', $sdk_path )
+                                       /**
+                                        * The basename will be `themes` or the basename of a custom themes directory.
+                                        *
+                                        * @author Leo Fajardo (@leorw)
+                                        * @since 2.2.3
+                                        */
+                                       . str_replace( '../' . basename( $plugin_or_theme_img_dir ) . '/', '', $sdk_path )
                                        . '/assets/img';
 
                             break;
