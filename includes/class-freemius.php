@@ -1670,7 +1670,7 @@
 
             return fs_normalize_path( trailingslashit( $is_plugin ?
                 WP_PLUGIN_DIR :
-                get_theme_root() ) );
+                get_theme_root( get_stylesheet() ) ) );
         }
 
         /**
@@ -1757,7 +1757,7 @@
             $caller_file_candidate = false;
             $caller_map            = array();
             $module_type           = WP_FS__MODULE_TYPE_PLUGIN;
-            $themes_dir            = fs_normalize_path( get_theme_root() );
+            $themes_dir            = fs_normalize_path( get_theme_root( get_stylesheet() ) );
 
             for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
                 if ( empty( $bt[ $i ]['file'] ) ) {
@@ -20721,7 +20721,7 @@
 
                 // Locate the main assets folder.
                 if ( 1 < count( $fs_active_plugins->plugins ) ) {
-                    $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root() );
+                    $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
 
                     foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
                         if ( $data->plugin_path == $this->get_plugin_basename() ) {
