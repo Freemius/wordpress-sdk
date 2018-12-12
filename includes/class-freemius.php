@@ -9372,7 +9372,16 @@
          * @return bool
          */
         function is_premium() {
-            return $this->_plugin->is_premium;
+            /**
+             * `$this->_plugin` will be `false` when `is_activation_mode` calls this method directly from the
+             * `_register_hooks` method.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            return is_object( $this->_plugin ) ?
+                $this->_plugin->is_premium :
+                false;
         }
 
         /**
