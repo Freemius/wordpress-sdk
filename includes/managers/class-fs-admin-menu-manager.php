@@ -181,11 +181,6 @@
 
                     // @deprecated
                     $this->_type = $this->get_option( $menu, 'type', 'page' );
-
-                    $this->_first_time_path = $this->get_option( $menu, 'first-path', false );
-                    if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
-                        $this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
-                    }
                 }
 
 				$this->_is_override_exact = $this->get_bool_option( $menu, 'override_exact' );
@@ -208,6 +203,11 @@
 //						'page'
 //					) );
 				}
+
+                $this->_first_time_path = $this->get_option( $menu, 'first-path', false );
+                if ( ! empty( $this->_first_time_path ) && is_string( $this->_first_time_path ) ) {
+                    $this->_first_time_path = admin_url( $this->_first_time_path, 'admin' );
+                }
 			}
 		}
 
