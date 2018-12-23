@@ -1539,20 +1539,8 @@
                      ( $this->is_theme() && self::is_themes_page() )
                 ) {
                     add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
-
-                    if ( $this->is_plugin() ) {
-                        add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_plugin_upgrade_notice_style' ) );
-                    }
                 }
             }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.4
-         */
-        function _enqueue_plugin_upgrade_notice_style() {
-            fs_enqueue_local_style( 'fs_plugin_upgrade_notice', '/admin/plugin-upgrade-notice.css' );
         }
 
         /**
