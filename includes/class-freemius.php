@@ -18409,7 +18409,9 @@
          */
         function get_after_activation_url( $filter, $params = array(), $network = null ) {
             if ( $this->is_free_wp_org_theme() &&
-                 fs_request_has( 'pending_activation' )
+                 ( fs_request_has( 'pending_activation' ) ||
+                   // For cases when the first time path is set, even though it's a WP.org theme.
+                   fs_request_get_bool( $this->get_unique_affix() . '_show_optin' ) )
             ) {
                 $first_time_path = '';
             } else {
