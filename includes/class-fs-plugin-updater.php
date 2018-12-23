@@ -296,9 +296,13 @@
                 isset( $r->upgrade_notice ) &&
                 strlen( trim( $r->upgrade_notice ) ) > 0
             ) {
+                $slug = $this->_fs->get_slug();
+
                 $upgrade_notice_html = sprintf(
-                    '<p class="notice upgrade-notice"><strong>%s</strong> %s</p>',
-                    fs_text_inline( 'Important Upgrade Notice:', 'upgrade_notice', $this->_fs->get_slug() ),
+                    '<p class="notice fs-upgrade-notice fs-slug-%1s fs-type-%2s" data-slug="%1s" data-type="%2s"><strong>%3s</strong> %4s</p>',
+                    $slug,
+                    $this->_fs->get_module_type(),
+                    fs_text_inline( 'Important Upgrade Notice:', 'upgrade_notice', $slug ),
                     esc_html( $r->upgrade_notice )
                 );
 
