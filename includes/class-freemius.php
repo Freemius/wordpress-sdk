@@ -1386,6 +1386,8 @@
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
+            add_action( 'admin_init', array( &$this, 'maybe_fix_child_themes_parent' ), 9 );
+
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
 
@@ -1429,6 +1431,53 @@
                  $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.1
+         */
+        function maybe_fix_child_themes_parent() {
+            global $pagenow;
+            if ( 'themes.php' !== $pagenow ) {
+                return;
+            }
+
+            $theme_directories = search_theme_directories();
+
+            $themes = array();
+            foreach ( $theme_directories as $stylesheet => $theme_root ) {
+                $theme = new WP_Theme( $stylesheet, $theme_root['theme_root'] );
+                if ( empty( $theme->errors() ) && $theme->parent() ) {
+                    continue;
+                }
+
+                $themes[ $stylesheet ] = $theme;
+            }
+
+            foreach ( $themes as $stylesheet => $theme ) {
+                if (
+                    $theme->get_template() === $stylesheet ||
+                    fs_ends_with( $theme->get_template(), '-premium' ) ||
+                    ! isset( $themes[ $theme->get_template() . '-premium' ] )
+                ) {
+                    continue;
+                }
+
+                $cache_hash = ( 'theme-' . md5( $theme->get_theme_root() . '/' . $stylesheet ) );
+                $cache      = wp_cache_get( $cache_hash, 'themes' );
+
+                unset( $cache['errors'] );
+                $cache['template']            = ( $theme->get_template() . '-premium' );
+                $cache['headers']['Template'] = $cache['template'];
+
+                wp_cache_set(
+                    $cache_hash,
+                    $cache,
+                    'themes',
+                    1800
+                );
             }
         }
 
