@@ -1282,7 +1282,7 @@
                          * @author Leo Fajardo (@leorw)
                          * @since 2.2.3
                          */
-                        add_action( 'in_admin_header', array( 'Freemius', '_register_plugin_install_urls_hooks' ) );
+                        add_action( 'admin_footer', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ) );
                     }
 
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
@@ -1477,154 +1477,57 @@
         }
 
         /**
-         * The following variables are used to keep track of the plugins that are being handled one at time on the
-         * "Plugins" and "Updates" admin pages in order to determine which plugin details URLs should be modified so
-         * that when the plugin information dialog is shown, it will show data from Freemius if necessary.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.3
-         *
-         * @var array $_plugin_files
-         * @var array $_plugin_fs_instances
-         * @var int   $_plugin_fs_instances_current_index
-         */
-        private static $_plugin_files                      = array();
-        private static $_plugin_fs_instances               = array();
-        private static $_plugin_fs_instances_current_index = -1;
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.2.3
-         */
-        static function _register_plugin_install_urls_hooks() {
-            if ( self::is_updates_page() ) {
-                $plugins = get_plugin_updates();
-            } else {
-                global $wp_list_table;
-                $plugins = $wp_list_table->items;
-            }
-
-            if ( empty( $plugins ) ) {
-                return;
-            }
-
-            $has_any_instance    = false;
-            self::$_plugin_files = array();
-
-            foreach ( $plugins as $plugin_file => $plugin_data ) {
-                if ( self::is_plugins_page() && ! isset( $plugin_data['slug'] ) ) {
-                    // In the core WordPress logic, the details link is shown on the "Plugins" page only when the slug is set.
-                    continue;
-                }
-
-                self::$_plugin_files[]        = $plugin_file;
-                $fs                           = self::get_instance_by_file( $plugin_file );
-                self::$_plugin_fs_instances[] = $fs;
-
-                if ( is_object( $fs ) ) {
-                    $has_any_instance = true;
-                }
-            }
-
-            if ( ! $has_any_instance ) {
-                return;
-            }
-
-            add_filter( 'admin_url', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ), 10, 3 );
-            add_filter( 'network_admin_url', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ), 10, 3 );
-        }
-
-        /**
          * Prepends the `fs_allow_updater_and_dialog` param to the plugin information URLs to tell the SDK to handle
          * the information that is shown on the plugin details dialog that is shown when the relevant link is clicked.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
          *
-         * @param string   $url     The complete admin area URL including scheme and path.
-         * @param string   $path    Path relative to the admin area URL. Blank string if no path is specified.
-         * @param int|null $blog_id Site ID, or null for the current site.
-         *
          * @return string
          */
-        static function _prepend_fs_allow_updater_and_dialog_flag_url_param( $url, $path = '', $blog_id = null ) {
-            global $wp_current_filter;
-
-            if (
-                false === strpos( $url, 'plugin-install.php?' ) ||
-                (
-                    /**
-                     * Handle the URL only if the admin URL filter was triggered directly or triggered from the
-                     * `after_plugin_row` action (WordPress hooks on to this action to display information about latest
-                     * update information including a version details link).
-                     */
-                    ! fs_starts_with( $wp_current_filter[0], 'after_plugin_row' ) &&
-                    ! fs_ends_with( $wp_current_filter[0], 'admin_url' )
-                )
-            ) {
-                return $url;
-            }
-
-            $url_parts = explode( '?', html_entity_decode( $url ) );
-            if ( 2 !== count( $url_parts ) ) {
-                return $url;
-            }
-
-            if ( 1 === count( $wp_current_filter ) ) {
-                // Increment the index only if the admin URL filter is not triggered by any other filter.
-                self::$_plugin_fs_instances_current_index ++;
-            }
-
-            $slug = null;
-
-            parse_str( $url_parts[1], $url_params );
-            foreach ( $url_params as $name => $value ) {
-                if ( 'plugin' === $name ) {
-                    $slug = $value;
-                    break;
+        static function _prepend_fs_allow_updater_and_dialog_flag_url_param() {
+            $slug_basename_map = array();
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_plugin() ) {
+                    continue;
                 }
+
+                $slug_basename_map[ $instance->get_slug() ] = $instance->premium_plugin_basename();
             }
+            ?>
+            <script type="text/javascript">
+            (function( $ ) {
+                var slugBasenameMap = <?php echo json_encode( $slug_basename_map ) ?>;
+                for ( var slug in slugBasenameMap ) {
+                    var basename = slugBasenameMap[ slug ];
 
-            if ( empty( $slug ) ) {
-                return $url;
-            }
+                    // Try to get the plugin rows if on the "Plugins" page.
+                    var $pluginRows = $( '.wp-list-table.plugins tr[data-plugin="' + basename + '"]');
 
-            /**
-             * Try to get a Freemius instance for the plugin (it could be for the free or premium version).
-             *
-             * @var Freemius $fs
-             */
-            $fs = self::$_plugin_fs_instances[ self::$_plugin_fs_instances_current_index ];
+                    if ( 0 === $pluginRows.length ) {
+                        // Try to get the plugin rows if on the "Updates" page.
+                        var $pluginCheckbox = $( '#update-plugins-table input[type="checkbox"][value="' + basename + '"]' );
+                        if ( 0 !== $pluginCheckbox.length ) {
+                            $pluginRows = $pluginCheckbox.parents( 'tr:first' );
+                        }
+                    }
 
-            if (
-                ! is_object( $fs ) ||
-                $fs->get_slug() !== $slug
-            ) {
-                // No active plugin versions so don't modify the URL.
-                return $url;
-            } else {
-                $is_active = ( $fs->get_plugin_basename() === self::$_plugin_files[ self::$_plugin_fs_instances_current_index ] );
+                    if ( 0 === $pluginRows.length ) {
+                        // No plugin rows found.
+                        continue;
+                    }
 
-                if (
-                    ( $fs->is_premium() && ! $is_active ) ||
-                    ( ! $fs->is_premium() && $fs->is_org_repo_compliant() && $is_active )
-                ) {
-                    // The current URL is for the free org-compliant version, so don't modify it.
-                    return $url;
+                    // Find the "View details" links and add the `fs_allow_updater_and_dialog` param to the URL.
+                    $pluginRows.find( 'a[href*="plugin-install.php?tab=plugin-information"]' ).each(function() {
+                        var $this = $( this ),
+                            href  = $this.attr( 'href' ).replace( '?tab=', '?fs_allow_updater_and_dialog=true&tab=');
+
+                        $this.attr( 'href', href );
+                    });
                 }
-            }
-
-            $url = (
-                $url_parts[0] .
-                /**
-                 * Prepend instead of appending since the core WordPress JS logic removes the `TB_iframe` param
-                 * and everything after it before setting the URL as the iframe source.
-                 */
-                '?fs_allow_updater_and_dialog=true&' .
-                $url_parts[1]
-            );
-
-            return $url;
+            })( jQuery );
+            </script>
+            <?php
         }
 
         /**
@@ -4375,7 +4278,7 @@
              */
             if ( $this->is_user_in_admin() &&
                 'plugin-information' === fs_request_get( 'tab', false ) &&
-                 $this->allow_updater_and_dialog() &&
+                 $this->should_use_freemius_updater_and_dialog() &&
                  (
                      ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
                      ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
@@ -4498,7 +4401,7 @@
              * @since  1.2.1.6
              */
             if (
-                $this->allow_updater_and_dialog() &&
+                $this->should_use_freemius_updater_and_dialog() &&
                 (
                     $this->is_premium() ||
                     /**
@@ -4560,7 +4463,7 @@
          *
          * @return bool
          */
-        private function allow_updater_and_dialog() {
+        private function should_use_freemius_updater_and_dialog() {
             return (
                 /**
                  * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, disallow updater
@@ -11585,12 +11488,13 @@
                      * @author Leo Fajardo (@leorw)
                      * @since 2.2.3
                      */
-                    if ( is_network_admin() )
+                    if ( is_network_admin() ) {
                         preg_match( '#/wp-admin/network/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
-                    elseif ( is_user_admin() )
+                    } else if ( is_user_admin() ) {
                         preg_match( '#/wp-admin/user/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
-                    else
+                    } else {
                         preg_match( '#/wp-admin/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    }
 
                     $pagenow = $self_matches[1];
                     $pagenow = trim( $pagenow, '/' );
