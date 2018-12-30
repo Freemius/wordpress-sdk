@@ -5604,6 +5604,20 @@
         }
 
         /**
+         * Sets the keepalive time to now.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.3
+         *
+         * @param bool|null $use_network_level_storage
+         */
+        private function set_keepalive_timestamp( $use_network_level_storage = null ) {
+            $this->_logger->entrance();
+
+            $this->_storage->store( 'keepalive_timestamp', time(), $use_network_level_storage );
+        }
+
+        /**
          * Check if cron was executed in the last $period of seconds.
          *
          * @author Vova Feldman (@svovaf)
@@ -5617,7 +5631,7 @@
         private function is_cron_executed( $name, $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
             $this->_logger->entrance( $name );
 
-            $last_execution = $this->set_cron_execution_timestamp( $name );
+            $last_execution = $this->cron_last_execution( $name );
 
             if ( ! is_numeric( $last_execution ) ) {
                 return false;
@@ -5885,7 +5899,7 @@
                     $this->switch_to_blog( $blog_ids[0] );
                 }
 
-                call_user_func_array( $callable, array( $blog_ids ) );
+                call_user_func_array( $callable, array( $blog_ids, ( is_multisite() ? $current_blog_id : null ) ) );
 
                 foreach ( $blog_ids as $blog_id ) {
                     $this->do_action( "after_{$name}_cron", $blog_id );
@@ -5966,13 +5980,16 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int[] $blog_ids
+         * @param int[]    $blog_ids
+         * @param int|null $current_blog_id @since 2.2.3. This is passed from the `execute_cron` method and used by the
+         *                                  `_sync_plugin_license` method in order to switch to the previous blog when sending
+         *                                  updates for a single site in case `execute_cron` has switched to a different blog.
          */
-        function _sync_cron_method( array $blog_ids ) {
+        function _sync_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
-                    $this->_sync_license( true );
+                    $this->_sync_license( true, false, $current_blog_id );
 
                     if ( $this->is_paying() ) {
                         // Check for premium plugin updates.
@@ -6187,9 +6204,10 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int[] $blog_ids
+         * @param int[]    $blog_ids
+         * @param int|null $current_blog_id
          */
-        function _sync_install_cron_method( array $blog_ids ) {
+        function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -8052,28 +8070,56 @@
                 $params = $this->get_install_diff_for_api( $check_properties, $this->_site, $override );
             }
 
-            if ( 0 < count( $params ) ) {
+            $keepalive_only_update = false;
+            if ( empty( $params ) ) {
+                $keepalive_only_update = $this->should_send_keepalive_update();
+
+                if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    return false;
+                }
+            }
+
+            if ( ! $keepalive_only_update ) {
+                /**
+                 * Do not update the last install sync timestamp after a keepalive-only call since there were no actual
+                 * updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
                 if ( ! is_multisite() ) {
                     // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
                 }
 
                 $params['uid'] = $this->get_anonymous_id();
-
-                // Send updated values to FS.
-                $site = $this->get_api_site_scope()->call( '/', 'put', $params );
-
-                if ( $this->is_api_result_entity( $site ) ) {
-                    if ( ! is_multisite() ) {
-                        // I successfully sent install update, clear scheduled sync if exist.
-                        $this->clear_install_sync_cron();
-                    }
-                }
-
-                return $site;
             }
 
-            return false;
+            $this->set_keepalive_timestamp();
+
+            // Send updated values to FS.
+            $site = $this->get_api_site_scope()->call( '/', 'put', $params );
+
+            if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+                /**
+                 * Do not clear scheduled sync after a keepalive-only call since there were no actual updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
+                if ( ! is_multisite() ) {
+                    // I successfully sent install update, clear scheduled sync if exist.
+                    $this->clear_install_sync_cron();
+                }
+            }
+
+            return $site;
         }
 
         /**
@@ -8092,22 +8138,68 @@
 
             $installs_data = $this->get_installs_data_for_api( $override, ! $flush );
 
+            $keepalive_only_update = false;
             if ( empty( $installs_data ) ) {
-                return false;
+                /**
+                 * Pass `true` to use the network level storage since the update is for many installs.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
+                $keepalive_only_update = $this->should_send_keepalive_update( true );
+
+                if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    return false;
+                }
             }
 
-            // Update last install sync timestamp.
-            $this->set_cron_execution_timestamp( 'install_sync' );
+            if ( ! $keepalive_only_update ) {
+                // Update last install sync timestamp if there were actual updates sent (i.e., not a keepalive-only call).
+                $this->set_cron_execution_timestamp( 'install_sync' );
+            }
+
+            /**
+             * Pass `true` to use the network level storage since the update is for many installs.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            $this->set_keepalive_timestamp( true );
 
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
-            if ( $this->is_api_result_object( $result, 'installs' ) ) {
-                // I successfully sent installs update, clear scheduled sync if exist.
+            if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
+                // I successfully sent installs update (there was an actual update sent and it's not just a keepalive-only call), clear scheduled sync if exist.
                 $this->clear_install_sync_cron();
             }
 
             return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param bool|null $use_network_level_storage
+         *
+         * @return bool
+         */
+        private function should_send_keepalive_update( $use_network_level_storage = null ) {
+            $keepalive_timestamp = $this->_storage->get( 'keepalive_timestamp', 0, $use_network_level_storage );
+
+            if ( $keepalive_timestamp < ( time() - WP_FS__TIME_WEEK_IN_SEC ) ) {
+                // If updated more than 7 days ago, trigger a keepalive and update the time it was triggered.
+                return true;
+            } else {
+                // If updated 7 days ago or less, "flip a coin", if the value is 7 trigger a keepalive and update the last time it was triggered.
+                return ( 7 == rand( 1, 7 ) );
+            }
         }
 
         /**
@@ -12512,7 +12604,7 @@
 
             self::$_accounts->set_site_blog_context( $blog_id );
             $this->_storage->set_site_blog_context( $blog_id );
-            $this->_storage->set_network_active( true, $this->is_delegated_connection( $blog_id ) );
+            $this->_storage->set_network_active( $this->_is_network_active, $this->is_delegated_connection( $blog_id ) );
 
             $this->_site = is_object( $install ) ?
                 $install :
@@ -16826,8 +16918,11 @@
          *                                     the admin.
          * @param bool $is_context_single_site @since 2.0.0. This is used when syncing a license for a single install from the
          *                                     network-level "Account" page.
+         * @param int|null $current_blog_id    @since 2.2.3. This is passed from the `execute_cron` method and used by the
+         *                                     `_sync_plugin_license` method in order to switch to the previous blog when sending
+         *                                      updates for a single site in case `execute_cron` has switched to a different blog.
          */
-        private function _sync_license( $background = false, $is_context_single_site = false ) {
+        private function _sync_license( $background = false, $is_context_single_site = false, $current_blog_id = null ) {
             $this->_logger->entrance();
 
             $plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
@@ -16837,7 +16932,7 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license( $background, true, $is_context_single_site );
+                $this->_sync_plugin_license( $background, true, $is_context_single_site, $current_blog_id );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
@@ -16927,11 +17022,15 @@
          * @param bool $is_context_single_site Since 2.0.0. This is used when sending an update for a single install and
          *                                     syncing its license from the network-level "Account" page (e.g.: after
          *                                     activating a license only for the single install).
+         * @param int|null $current_blog_id    Since 2.2.3. This is passed from the `execute_cron` method so that it
+         *                                     can be used here to switch to the previous blog in case `execute_cron`
+         *                                     has switched to a different blog.
          */
         private function _sync_plugin_license(
             $background = false,
             $send_installs_update = true,
-            $is_context_single_site = false
+            $is_context_single_site = false,
+            $current_blog_id = null
         ) {
             $this->_logger->entrance();
 
@@ -16948,6 +17047,16 @@
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
                 if ( $is_site_level_sync ) {
+                    /**
+                     * Switch to the previous blog since `execute_cron` may have switched to a different blog.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    if ( is_numeric( $current_blog_id ) ) {
+                        $this->switch_to_blog( $current_blog_id );
+                    }
+
                     $result   = $this->send_install_update( array(), true );
                     $is_valid = $this->is_api_result_entity( $result );
                 } else {
