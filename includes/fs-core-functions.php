@@ -725,98 +725,7 @@
             return $key;
         }
 
-        /**
-         * Get a translatable text override if exists, or `false`.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.1.7
-         *
-         * @param string $text Translatable string.
-         * @param string $key  String key for overrides.
-         * @param string $slug Module slug for overrides.
-         *
-         * @return string|false
-         */
-        function fs_text_override( $text, $key, $slug ) {
-            global $fs_text_overrides;
-
-            /**
-             * Check if string is overridden.
-             */
-            if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
-                return false;
-            }
-
-            if ( empty( $key ) ) {
-                $key = strtolower( str_replace( ' ', '-', $text ) );
-            }
-
-            if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
-                return $fs_text_overrides[ $slug ][ $key ];
-            }
-
-            $lower_key = strtolower( $key );
-            if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
-                return $fs_text_overrides[ $slug ][ $lower_key ];
-            }
-
-            return false;
-        }
-
-        /**
-         * Get a translatable text and its text domain.
-         *
-         * When the text is overridden by the module, returns the overridden text and the text domain of the module. Otherwise, returns the original text and 'freemius' as the text domain.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.1.7
-         *
-         * @param string $text Translatable string.
-         * @param string $key  String key for overrides.
-         * @param string $slug Module slug for overrides.
-         *
-         * @return string[]
-         */
-        function fs_text_and_domain( $text, $key, $slug ) {
-            $override = fs_text_override( $text, $key, $slug );
-
-            if ( false === $override ) {
-                // No override, use FS text domain.
-                $text_domain = 'freemius';
-            } else {
-                // Found an override.
-                $text = $override;
-                // Use the module's text domain.
-                $text_domain = $slug;
-            }
-
-            return array( $text, $text_domain );
-        }
-
         #region Private
-
-        /**
-         * Retrieve an inline translated text by key.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.3
-         *
-         * @param string $text Translatable string.
-         * @param string $key  String key for overrides.
-         * @param string $slug Module slug for overrides.
-         *
-         * @return string
-         *
-         * @global       $fs_text_overrides
-         */
-        function _fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
-            list( $text, $text_domain ) = fs_text_and_domain( $text, $key, $slug );
-
-            // Avoid misleading Theme Check warning.
-            $fn = 'translate';
-
-            return $fn( $text, $text_domain );
-        }
 
         /**
          * Retrieve an inline translated text by key with a context.
@@ -843,24 +752,6 @@
         }
 
         #endregion
-
-        /**
-         * Retrieve an inline translated text by key.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.2.3
-         *
-         * @param string $text Translatable string.
-         * @param string $key  String key for overrides.
-         * @param string $slug Module slug for overrides.
-         *
-         * @return string
-         *
-         * @global       $fs_text_overrides
-         */
-        function fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
-            return _fs_text_inline( $text, $key, $slug );
-        }
 
         /**
          * Retrieve an inline translated text by key with a context.
@@ -921,6 +812,123 @@
          */
         function fs_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
             echo _fs_text_x_inline( $text, $context, $key, $slug );
+        }
+    }
+
+    if ( ! function_exists( 'fs_text_override' ) ) {
+        /**
+         * Get a translatable text override if exists, or `false`.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string|false
+         */
+        function fs_text_override( $text, $key, $slug ) {
+            global $fs_text_overrides;
+
+            /**
+             * Check if string is overridden.
+             */
+            if ( ! isset( $fs_text_overrides[ $slug ] ) ) {
+                return false;
+            }
+
+            if ( empty( $key ) ) {
+                $key = strtolower( str_replace( ' ', '-', $text ) );
+            }
+
+            if ( isset( $fs_text_overrides[ $slug ][ $key ] ) ) {
+                return $fs_text_overrides[ $slug ][ $key ];
+            }
+
+            $lower_key = strtolower( $key );
+            if ( isset( $fs_text_overrides[ $slug ][ $lower_key ] ) ) {
+                return $fs_text_overrides[ $slug ][ $lower_key ];
+            }
+
+            return false;
+        }
+    }
+
+    if ( ! function_exists( 'fs_text_and_domain' ) ) {
+        /**
+         * Get a translatable text and its text domain.
+         *
+         * When the text is overridden by the module, returns the overridden text and the text domain of the module. Otherwise, returns the original text and 'freemius' as the text domain.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.1.7
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string[]
+         */
+        function fs_text_and_domain( $text, $key, $slug ) {
+            $override = fs_text_override( $text, $key, $slug );
+
+            if ( false === $override ) {
+                // No override, use FS text domain.
+                $text_domain = 'freemius';
+            } else {
+                // Found an override.
+                $text = $override;
+                // Use the module's text domain.
+                $text_domain = $slug;
+            }
+
+            return array( $text, $text_domain );
+        }
+    }
+
+    if ( ! function_exists( '_fs_text_inline' ) ) {
+        /**
+         * Retrieve an inline translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         *
+         * @global       $fs_text_overrides
+         */
+        function _fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
+            list( $text, $text_domain ) = fs_text_and_domain( $text, $key, $slug );
+
+            // Avoid misleading Theme Check warning.
+            $fn = 'translate';
+
+            return $fn( $text, $text_domain );
+        }
+    }
+
+    if ( ! function_exists( 'fs_text_inline' ) ) {
+        /**
+         * Retrieve an inline translated text by key.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.3
+         *
+         * @param string $text Translatable string.
+         * @param string $key  String key for overrides.
+         * @param string $slug Module slug for overrides.
+         *
+         * @return string
+         *
+         * @global       $fs_text_overrides
+         */
+        function fs_text_inline( $text, $key = '', $slug = 'freemius' ) {
+            return _fs_text_inline( $text, $key, $slug );
         }
     }
 

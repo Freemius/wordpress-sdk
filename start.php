@@ -107,7 +107,7 @@
 			 */
 			$has_changes = false;
 			foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
-                if ( ! file_exists( ( 'theme' === $data->type ? $themes_directory : WP_PLUGIN_DIR ) . '/' . $sdk_path ) ) {
+                if ( ! file_exists( ( isset( $data->type ) && 'theme' === $data->type ? $themes_directory : WP_PLUGIN_DIR ) . '/' . $sdk_path ) ) {
 					unset( $fs_active_plugins->plugins[ $sdk_path ] );
 					$has_changes = true;
 				}
