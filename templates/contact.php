@@ -86,7 +86,7 @@
 	}
 ?>
 	<div id="fs_contact" class="wrap fs-section fs-full-size-wrapper">
-		<div id="frame"></div>
+		<div id="fs_frame"></div>
 		<script type="text/javascript">
 			(function ($) {
 				$(function () {
@@ -99,14 +99,14 @@
 
 					// Append the i-frame into the DOM.
 					frame = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent; width: 1px; min-width: 100%;"><\/i' + 'frame>')
-						.appendTo('#frame');
+						.appendTo('#fs_frame');
 
 					FS.PostMessage.init(base_url);
 					FS.PostMessage.receive('height', function (data) {
 						var h = data.height;
 						if (!isNaN(h) && h > 0 && h != frame_height) {
 							frame_height = h;
-							$('#frame i' + 'frame').height(frame_height + 'px');
+							$('#fs_frame i' + 'frame').height(frame_height + 'px');
 						}
 					});
 				});
