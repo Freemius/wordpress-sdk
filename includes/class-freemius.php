@@ -7970,38 +7970,43 @@
             $include_plugins = true,
             $include_themes = true
         ) {
-            /**
-             * @since 1.1.8 Also send plugin updates.
-             */
-            if ( $include_plugins && ! isset( $override['plugins'] ) ) {
-                $plugins = $this->get_plugins_data_for_api();
-                if ( ! empty( $plugins ) ) {
-                    $override['plugins'] = $plugins;
+            if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
+                /**
+                 * @since 1.1.8 Also send plugin updates.
+                 */
+                if ( $include_plugins && ! isset( $override['plugins'] ) ) {
+                    $plugins = $this->get_plugins_data_for_api();
+                    if ( ! empty( $plugins ) ) {
+                        $override['plugins'] = $plugins;
+                    }
                 }
             }
-            /**
-             * @since 1.1.8 Also send themes updates.
-             */
-            if ( $include_themes && ! isset( $override['themes'] ) ) {
-                $themes = $this->get_themes_data_for_api();
-                if ( ! empty( $themes ) ) {
-                    $override['themes'] = $themes;
+
+            if ( ! defined( 'WP_FS__TRACK_THEMES' ) || false !== WP_FS__TRACK_THEMES ) {
+                /**
+                 * @since 1.1.8 Also send themes updates.
+                 */
+                if ( $include_themes && ! isset( $override['themes'] ) ) {
+                    $themes = $this->get_themes_data_for_api();
+                    if ( ! empty( $themes ) ) {
+                        $override['themes'] = $themes;
+                    }
                 }
             }
 
             $versions = $this->get_versions();
 
             return array_merge( $versions, array(
-                'version'                      => $this->get_plugin_version(),
-                'is_premium'                   => $this->is_premium(),
-                'language'                     => get_bloginfo( 'language' ),
-                'charset'                      => get_bloginfo( 'charset' ),
-                'title'                        => get_bloginfo( 'name' ),
-                'url'                          => get_site_url(),
+                'version'         => $this->get_plugin_version(),
+                'is_premium'      => $this->is_premium(),
+                'language'        => get_bloginfo( 'language' ),
+                'charset'         => get_bloginfo( 'charset' ),
+                'title'           => get_bloginfo( 'name' ),
+                'url'             => get_site_url(),
                 // Special params.
-                'is_active'                    => true,
-                'is_disconnected'              => $this->is_tracking_prohibited(),
-                'is_uninstalled'               => false,
+                'is_active'       => true,
+                'is_disconnected' => $this->is_tracking_prohibited(),
+                'is_uninstalled'  => false,
             ), $override );
         }
 
