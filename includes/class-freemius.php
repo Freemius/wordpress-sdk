@@ -2672,6 +2672,11 @@
                 get_option( 'active_plugins' );
 
             $active = array();
+
+            if ( ! is_array( $active_basenames ) ) {
+                return $active;
+            }
+
             foreach ( $active_basenames as $basename ) {
                 $active[ $basename ] = array(
                     'is_active' => true,
