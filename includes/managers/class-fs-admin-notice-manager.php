@@ -219,6 +219,9 @@
                 return;
             }
 
+
+            $show_admin_notices = ( ! $this->is_gutenberg_page() );
+
             foreach ( $this->_notices as $id => $msg ) {
                 if ( isset( $msg['wp_user_id'] ) && is_numeric( $msg['wp_user_id'] ) ) {
                     if ( get_current_user_id() != $msg['wp_user_id'] ) {
@@ -261,7 +264,7 @@
                 $show_notice = call_user_func_array( 'fs_apply_filter', array(
                     $this->_module_unique_affix,
                     'show_admin_notice',
-                    true,
+                    $show_admin_notices,
                     $msg
                 ) );
 
@@ -285,6 +288,34 @@
          */
         function _enqueue_styles() {
             fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+        }
+
+        /**
+         * Check if the current page is the Gutenberg block editor.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.3
+         *
+         * @return bool
+         */
+        function is_gutenberg_page() {
+            if ( function_exists( 'is_gutenberg_page' ) &&
+                 is_gutenberg_page()
+            ) {
+                // The Gutenberg plugin is on.
+                return true;
+            }
+
+            $current_screen = get_current_screen();
+
+            if ( method_exists( $current_screen, 'is_block_editor' ) &&
+                 $current_screen->is_block_editor()
+            ) {
+                // Gutenberg page on 5+.
+                return true;
+            }
+
+            return false;
         }
 
         /**

@@ -1,7 +1,7 @@
 @import "../start";
 @import "themes";
 
-#iframe
+#fs_frame
 {
     line-height: 0;
     font-size:   0;
@@ -216,3 +216,5 @@ span.fs-submenu-item.fs-sub:before
         text-align: left;
     }
 }
+
+@import "plugin-upgrade-notice";

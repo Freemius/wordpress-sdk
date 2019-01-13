@@ -30,6 +30,10 @@
                     'support' :
                     $item['menu_slug'];
 
+                if ( 'pricing' === $submenu_name && ! $fs->is_pricing_page_visible() ) {
+                    continue;
+                }
+
                 if ( ! $is_free_wp_org_theme || ! $fs->is_submenu_item_visible( $submenu_name, true ) ) {
                     continue;
                 }

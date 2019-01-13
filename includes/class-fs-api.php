@@ -238,7 +238,7 @@
 				if ( ! is_object( $result ) || isset( $result->error ) ) {
 					// Api returned an error.
 					if ( is_object( $cached_result ) &&
-					     ! isset( $cached_result )
+					     ! isset( $cached_result->error )
 					) {
 						// If there was an error during a newer data fetch,
 						// fallback to older data version.
@@ -248,9 +248,19 @@
 							$this->_logger->warn( 'Fallback to cached API result: ' . var_export( $cached_result, true ) );
 						}
 					} else {
-						// If no older data version, return result without
-						// caching the error.
-						return $result;
+					    if ( is_object( $result ) && 404 == $result->error->http ) {
+                            /**
+                             * If the response code is 404, cache the result for half of the `$expiration`.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.3.1
+                             */
+					        $expiration /= 2;
+                        } else {
+                            // If no older data version and the response code is not 404, return result without
+                            // caching the error.
+                            return $result;
+                        }
 					}
 				}
 

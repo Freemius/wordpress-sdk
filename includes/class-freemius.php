@@ -1265,6 +1265,26 @@
                 add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
+                    if ( self::is_plugin_install_page() && true !== fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) {
+                        /**
+                         * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, make
+                         * Freemius-related updates unavailable on the "Add Plugins" admin page (/plugin-install.php)
+                         * so that they won't interfere with the .org plugins' functionalities on that page (e.g.
+                         * updating of a .org plugin).
+                         */
+                        add_filter( 'site_transient_update_plugins', array( 'Freemius', '_remove_fs_updates_from_plugin_install_page' ), 10, 2 );
+                    } else if ( self::is_plugins_page() || self::is_updates_page() ) {
+                        /**
+                         * On the "Plugins" and "Updates" admin pages, if there are premium or non–org-compliant
+                         * plugins, modify their details dialog URLs (add a Freemius-specific param) so that the SDK can
+                         * determine if the plugin information dialog should show information from Freemius.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.2.3
+                         */
+                        add_action( 'admin_footer', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ) );
+                    }
+
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
                     /**
@@ -1433,6 +1453,84 @@
         }
 
         /**
+         * Makes Freemius-related updates unavailable on the "Add Plugins" admin page (/plugin-install.php) so that
+         * they won't interfere with the .org plugins' functionalities on that page (e.g. updating of a .org plugin).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @param object      $updates
+         * @param string|null $transient
+         *
+         * @return object
+         */
+        static function _remove_fs_updates_from_plugin_install_page( $updates, $transient = null ) {
+            if ( is_object( $updates ) && isset( $updates->response ) ) {
+                foreach ( $updates->response as $file => $plugin ) {
+                    if ( false !== strpos( $plugin->package, 'api.freemius' ) ) {
+                        unset( $updates->response[ $file ] );
+                    }
+                }
+            }
+
+            return $updates;
+        }
+
+        /**
+         * Prepends the `fs_allow_updater_and_dialog` param to the plugin information URLs to tell the SDK to handle
+         * the information that is shown on the plugin details dialog that is shown when the relevant link is clicked.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @return string
+         */
+        static function _prepend_fs_allow_updater_and_dialog_flag_url_param() {
+            $slug_basename_map = array();
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_plugin() ) {
+                    continue;
+                }
+
+                $slug_basename_map[ $instance->get_slug() ] = $instance->premium_plugin_basename();
+            }
+            ?>
+            <script type="text/javascript">
+            (function( $ ) {
+                var slugBasenameMap = <?php echo json_encode( $slug_basename_map ) ?>;
+                for ( var slug in slugBasenameMap ) {
+                    var basename = slugBasenameMap[ slug ];
+
+                    // Try to get the plugin rows if on the "Plugins" page.
+                    var $pluginRows = $( '.wp-list-table.plugins tr[data-plugin="' + basename + '"]');
+
+                    if ( 0 === $pluginRows.length ) {
+                        // Try to get the plugin rows if on the "Updates" page.
+                        var $pluginCheckbox = $( '#update-plugins-table input[type="checkbox"][value="' + basename + '"]' );
+                        if ( 0 !== $pluginCheckbox.length ) {
+                            $pluginRows = $pluginCheckbox.parents( 'tr:first' );
+                        }
+                    }
+
+                    if ( 0 === $pluginRows.length ) {
+                        // No plugin rows found.
+                        continue;
+                    }
+
+                    // Find the "View details" links and add the `fs_allow_updater_and_dialog` param to the URL.
+                    $pluginRows.find( 'a[href*="plugin-install.php?tab=plugin-information"]' ).each(function() {
+                        var $this = $( this ),
+                            href  = $this.attr( 'href' ).replace( '?tab=', '?fs_allow_updater_and_dialog=true&tab=');
+
+                        $this.attr( 'href', href );
+                    });
+                }
+            })( jQuery );
+            </script>
+            <?php
+        }
+
+        /**
          * Keeping the uninstall hook registered for free or premium plugin version may result to a fatal error that
          * could happen when a user tries to uninstall either version while one of them is still active. Uninstalling a
          * plugin will trigger inclusion of the free or premium version and if one of them is active during the
@@ -1539,20 +1637,8 @@
                      ( $this->is_theme() && self::is_themes_page() )
                 ) {
                     add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
-
-                    if ( $this->is_plugin() ) {
-                        add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_plugin_upgrade_notice_style' ) );
-                    }
                 }
             }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.4
-         */
-        function _enqueue_plugin_upgrade_notice_style() {
-            fs_enqueue_local_style( 'fs_plugin_upgrade_notice', '/admin/plugin-upgrade-notice.css' );
         }
 
         /**
@@ -1670,7 +1756,7 @@
 
             return fs_normalize_path( trailingslashit( $is_plugin ?
                 WP_PLUGIN_DIR :
-                get_theme_root() ) );
+                get_theme_root( get_stylesheet() ) ) );
         }
 
         /**
@@ -1757,7 +1843,7 @@
             $caller_file_candidate = false;
             $caller_map            = array();
             $module_type           = WP_FS__MODULE_TYPE_PLUGIN;
-            $themes_dir            = fs_normalize_path( get_theme_root() );
+            $themes_dir            = fs_normalize_path( get_theme_root( get_stylesheet() ) );
 
             for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
                 if ( empty( $bt[ $i ]['file'] ) ) {
@@ -2586,6 +2672,11 @@
                 get_option( 'active_plugins' );
 
             $active = array();
+
+            if ( ! is_array( $active_basenames ) ) {
+                return $active;
+            }
+
             foreach ( $active_basenames as $basename ) {
                 $active[ $basename ] = array(
                     'is_active' => true,
@@ -4180,6 +4271,7 @@
              */
             if ( $this->is_user_in_admin() &&
                 'plugin-information' === fs_request_get( 'tab', false ) &&
+                 $this->should_use_freemius_updater_and_dialog() &&
                  (
                      ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
                      ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
@@ -4301,7 +4393,21 @@
              * @author Vova Feldman
              * @since  1.2.1.6
              */
-            if ( $this->is_premium() && $this->has_release_on_freemius() ) {
+            if (
+                $this->should_use_freemius_updater_and_dialog() &&
+                (
+                    $this->is_premium() ||
+                    /**
+                     * If not premium but the premium version is installed, also instantiate the updater so that the
+                     * plugin information dialog of the premium version will have the information from the server.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->premium_plugin_basename() ) ) )
+                ) &&
+                $this->has_release_on_freemius()
+            ) {
                 FS_Plugin_Updater::instance( $this );
             }
 
@@ -4342,6 +4448,26 @@
                     $this->do_action( 'after_init_addon_pending_activations' );
                 }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3
+         *
+         * @return bool
+         */
+        private function should_use_freemius_updater_and_dialog() {
+            return (
+                /**
+                 * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, disallow updater
+                 * and dialog on the "Add Plugins" admin page (/plugin-install.php) so that they won't interfere with
+                 * the .org plugins' functionalities on that page (e.g. installation and viewing plugin details from
+                 * .org).
+                 */
+                ( ! self::is_plugin_install_page() || true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) &&
+                // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
+                ( 'install-plugin' !== fs_request_get( 'action' ) )
+            );
         }
 
         /**
@@ -5616,6 +5742,20 @@
         }
 
         /**
+         * Sets the keepalive time to now.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.3
+         *
+         * @param bool|null $use_network_level_storage
+         */
+        private function set_keepalive_timestamp( $use_network_level_storage = null ) {
+            $this->_logger->entrance();
+
+            $this->_storage->store( 'keepalive_timestamp', time(), $use_network_level_storage );
+        }
+
+        /**
          * Check if cron was executed in the last $period of seconds.
          *
          * @author Vova Feldman (@svovaf)
@@ -5629,7 +5769,7 @@
         private function is_cron_executed( $name, $period = WP_FS__TIME_24_HOURS_IN_SEC ) {
             $this->_logger->entrance( $name );
 
-            $last_execution = $this->set_cron_execution_timestamp( $name );
+            $last_execution = $this->cron_last_execution( $name );
 
             if ( ! is_numeric( $last_execution ) ) {
                 return false;
@@ -5897,7 +6037,7 @@
                     $this->switch_to_blog( $blog_ids[0] );
                 }
 
-                call_user_func_array( $callable, array( $blog_ids ) );
+                call_user_func_array( $callable, array( $blog_ids, ( is_multisite() ? $current_blog_id : null ) ) );
 
                 foreach ( $blog_ids as $blog_id ) {
                     $this->do_action( "after_{$name}_cron", $blog_id );
@@ -5978,13 +6118,16 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int[] $blog_ids
+         * @param int[]    $blog_ids
+         * @param int|null $current_blog_id @since 2.2.3. This is passed from the `execute_cron` method and used by the
+         *                                  `_sync_plugin_license` method in order to switch to the previous blog when sending
+         *                                  updates for a single site in case `execute_cron` has switched to a different blog.
          */
-        function _sync_cron_method( array $blog_ids ) {
+        function _sync_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
-                    $this->_sync_license( true );
+                    $this->_sync_license( true, false, $current_blog_id );
 
                     if ( $this->is_paying() ) {
                         // Check for premium plugin updates.
@@ -6199,9 +6342,10 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int[] $blog_ids
+         * @param int[]    $blog_ids
+         * @param int|null $current_blog_id
          */
-        function _sync_install_cron_method( array $blog_ids ) {
+        function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -6898,7 +7042,7 @@
             if (
                 $is_premium_version_activation &&
                 (
-                    $this->is_anonymous() ||
+                    ( ! $this->is_registered() && $this->is_anonymous() ) ||
                     (
                         $this->is_registered() &&
                         ! $this->is_trial() &&
@@ -7831,38 +7975,43 @@
             $include_plugins = true,
             $include_themes = true
         ) {
-            /**
-             * @since 1.1.8 Also send plugin updates.
-             */
-            if ( $include_plugins && ! isset( $override['plugins'] ) ) {
-                $plugins = $this->get_plugins_data_for_api();
-                if ( ! empty( $plugins ) ) {
-                    $override['plugins'] = $plugins;
+            if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
+                /**
+                 * @since 1.1.8 Also send plugin updates.
+                 */
+                if ( $include_plugins && ! isset( $override['plugins'] ) ) {
+                    $plugins = $this->get_plugins_data_for_api();
+                    if ( ! empty( $plugins ) ) {
+                        $override['plugins'] = $plugins;
+                    }
                 }
             }
-            /**
-             * @since 1.1.8 Also send themes updates.
-             */
-            if ( $include_themes && ! isset( $override['themes'] ) ) {
-                $themes = $this->get_themes_data_for_api();
-                if ( ! empty( $themes ) ) {
-                    $override['themes'] = $themes;
+
+            if ( ! defined( 'WP_FS__TRACK_THEMES' ) || false !== WP_FS__TRACK_THEMES ) {
+                /**
+                 * @since 1.1.8 Also send themes updates.
+                 */
+                if ( $include_themes && ! isset( $override['themes'] ) ) {
+                    $themes = $this->get_themes_data_for_api();
+                    if ( ! empty( $themes ) ) {
+                        $override['themes'] = $themes;
+                    }
                 }
             }
 
             $versions = $this->get_versions();
 
             return array_merge( $versions, array(
-                'version'                      => $this->get_plugin_version(),
-                'is_premium'                   => $this->is_premium(),
-                'language'                     => get_bloginfo( 'language' ),
-                'charset'                      => get_bloginfo( 'charset' ),
-                'title'                        => get_bloginfo( 'name' ),
-                'url'                          => get_site_url(),
+                'version'         => $this->get_plugin_version(),
+                'is_premium'      => $this->is_premium(),
+                'language'        => get_bloginfo( 'language' ),
+                'charset'         => get_bloginfo( 'charset' ),
+                'title'           => get_bloginfo( 'name' ),
+                'url'             => get_site_url(),
                 // Special params.
-                'is_active'                    => true,
-                'is_disconnected'              => $this->is_tracking_prohibited(),
-                'is_uninstalled'               => false,
+                'is_active'       => true,
+                'is_disconnected' => $this->is_tracking_prohibited(),
+                'is_uninstalled'  => false,
             ), $override );
         }
 
@@ -8064,28 +8213,56 @@
                 $params = $this->get_install_diff_for_api( $check_properties, $this->_site, $override );
             }
 
-            if ( 0 < count( $params ) ) {
+            $keepalive_only_update = false;
+            if ( empty( $params ) ) {
+                $keepalive_only_update = $this->should_send_keepalive_update();
+
+                if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    return false;
+                }
+            }
+
+            if ( ! $keepalive_only_update ) {
+                /**
+                 * Do not update the last install sync timestamp after a keepalive-only call since there were no actual
+                 * updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
                 if ( ! is_multisite() ) {
                     // Update last install sync timestamp.
                     $this->set_cron_execution_timestamp( 'install_sync' );
                 }
 
                 $params['uid'] = $this->get_anonymous_id();
-
-                // Send updated values to FS.
-                $site = $this->get_api_site_scope()->call( '/', 'put', $params );
-
-                if ( $this->is_api_result_entity( $site ) ) {
-                    if ( ! is_multisite() ) {
-                        // I successfully sent install update, clear scheduled sync if exist.
-                        $this->clear_install_sync_cron();
-                    }
-                }
-
-                return $site;
             }
 
-            return false;
+            $this->set_keepalive_timestamp();
+
+            // Send updated values to FS.
+            $site = $this->get_api_site_scope()->call( '/', 'put', $params );
+
+            if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+                /**
+                 * Do not clear scheduled sync after a keepalive-only call since there were no actual updates sent.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
+                if ( ! is_multisite() ) {
+                    // I successfully sent install update, clear scheduled sync if exist.
+                    $this->clear_install_sync_cron();
+                }
+            }
+
+            return $site;
         }
 
         /**
@@ -8104,22 +8281,68 @@
 
             $installs_data = $this->get_installs_data_for_api( $override, ! $flush );
 
+            $keepalive_only_update = false;
             if ( empty( $installs_data ) ) {
-                return false;
+                /**
+                 * Pass `true` to use the network level storage since the update is for many installs.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3
+                 */
+                $keepalive_only_update = $this->should_send_keepalive_update( true );
+
+                if ( ! $keepalive_only_update ) {
+                    /**
+                     * There are no updates to send including keepalive.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    return false;
+                }
             }
 
-            // Update last install sync timestamp.
-            $this->set_cron_execution_timestamp( 'install_sync' );
+            if ( ! $keepalive_only_update ) {
+                // Update last install sync timestamp if there were actual updates sent (i.e., not a keepalive-only call).
+                $this->set_cron_execution_timestamp( 'install_sync' );
+            }
+
+            /**
+             * Pass `true` to use the network level storage since the update is for many installs.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            $this->set_keepalive_timestamp( true );
 
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
-            if ( $this->is_api_result_object( $result, 'installs' ) ) {
-                // I successfully sent installs update, clear scheduled sync if exist.
+            if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
+                // I successfully sent installs update (there was an actual update sent and it's not just a keepalive-only call), clear scheduled sync if exist.
                 $this->clear_install_sync_cron();
             }
 
             return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param bool|null $use_network_level_storage
+         *
+         * @return bool
+         */
+        private function should_send_keepalive_update( $use_network_level_storage = null ) {
+            $keepalive_timestamp = $this->_storage->get( 'keepalive_timestamp', 0, $use_network_level_storage );
+
+            if ( $keepalive_timestamp < ( time() - WP_FS__TIME_WEEK_IN_SEC ) ) {
+                // If updated more than 7 days ago, trigger a keepalive and update the time it was triggered.
+                return true;
+            } else {
+                // If updated 7 days ago or less, "flip a coin", if the value is 7 trigger a keepalive and update the last time it was triggered.
+                return ( 7 == rand( 1, 7 ) );
+            }
         }
 
         /**
@@ -9372,7 +9595,16 @@
          * @return bool
          */
         function is_premium() {
-            return $this->_plugin->is_premium;
+            /**
+             * `$this->_plugin` will be `false` when `is_activation_mode` calls this method directly from the
+             * `_register_hooks` method.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            return is_object( $this->_plugin ) ?
+                $this->_plugin->is_premium :
+                false;
         }
 
         /**
@@ -11347,6 +11579,34 @@
         static function get_current_page() {
             if ( ! isset( self::$_pagenow ) ) {
                 global $pagenow;
+                if ( empty( $pagenow ) && is_admin() && is_multisite() ) {
+                    /**
+                     * It appears that `$pagenow` is not yet initialized in some network admin pages when this method
+                     * is called, so initialize it here using some pieces of code from `wp-includes/vars.php`.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    if ( is_network_admin() ) {
+                        preg_match( '#/wp-admin/network/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    } else if ( is_user_admin() ) {
+                        preg_match( '#/wp-admin/user/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    } else {
+                        preg_match( '#/wp-admin/?(.*?)$#i', $_SERVER['PHP_SELF'], $self_matches );
+                    }
+
+                    $pagenow = $self_matches[1];
+                    $pagenow = trim( $pagenow, '/' );
+                    $pagenow = preg_replace( '#\?.*?$#', '', $pagenow );
+                    if ( '' === $pagenow || 'index' === $pagenow || 'index.php' === $pagenow ) {
+                        $pagenow = 'index.php';
+                    } else {
+                        preg_match( '#(.*?)(/|$)#', $pagenow, $self_matches );
+                        $pagenow = strtolower( $self_matches[1] );
+                        if ( '.php' !== substr($pagenow, -4, 4) )
+                            $pagenow .= '.php'; // for Options +Multiviews: /wp-admin/themes/index.php (themes.php is queried)
+                    }
+                }
 
                 self::$_pagenow = $pagenow;
 
@@ -11376,6 +11636,16 @@
          */
         static function is_plugins_page() {
             return ( 'plugins.php' === self::get_current_page() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.3
+         *
+         * @return bool
+         */
+        static function is_plugin_install_page() {
+            return ( 'plugin-install.php' === self::get_current_page() );
         }
 
         /**
@@ -12515,7 +12785,7 @@
 
             self::$_accounts->set_site_blog_context( $blog_id );
             $this->_storage->set_site_blog_context( $blog_id );
-            $this->_storage->set_network_active( true, $this->is_delegated_connection( $blog_id ) );
+            $this->_storage->set_network_active( $this->_is_network_active, $this->is_delegated_connection( $blog_id ) );
 
             $this->_site = is_object( $install ) ?
                 $install :
@@ -16829,8 +17099,11 @@
          *                                     the admin.
          * @param bool $is_context_single_site @since 2.0.0. This is used when syncing a license for a single install from the
          *                                     network-level "Account" page.
+         * @param int|null $current_blog_id    @since 2.2.3. This is passed from the `execute_cron` method and used by the
+         *                                     `_sync_plugin_license` method in order to switch to the previous blog when sending
+         *                                      updates for a single site in case `execute_cron` has switched to a different blog.
          */
-        private function _sync_license( $background = false, $is_context_single_site = false ) {
+        private function _sync_license( $background = false, $is_context_single_site = false, $current_blog_id = null ) {
             $this->_logger->entrance();
 
             $plugin_id = fs_request_get( 'plugin_id', $this->get_id() );
@@ -16840,7 +17113,7 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license( $background, true, $is_context_single_site );
+                $this->_sync_plugin_license( $background, true, $is_context_single_site, $current_blog_id );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
@@ -16930,11 +17203,15 @@
          * @param bool $is_context_single_site Since 2.0.0. This is used when sending an update for a single install and
          *                                     syncing its license from the network-level "Account" page (e.g.: after
          *                                     activating a license only for the single install).
+         * @param int|null $current_blog_id    Since 2.2.3. This is passed from the `execute_cron` method so that it
+         *                                     can be used here to switch to the previous blog in case `execute_cron`
+         *                                     has switched to a different blog.
          */
         private function _sync_plugin_license(
             $background = false,
             $send_installs_update = true,
-            $is_context_single_site = false
+            $is_context_single_site = false,
+            $current_blog_id = null
         ) {
             $this->_logger->entrance();
 
@@ -16951,6 +17228,16 @@
                  * @todo This line will execute install sync on a daily basis, even if running the free version (for opted-in users). The reason we want to keep it that way is for cases when the user was a paying customer, then there was a failure in subscription payment, and then after some time the payment was successful. This could be heavily optimized. For example, we can skip the $flush if the current install was never associated with a paid version.
                  */
                 if ( $is_site_level_sync ) {
+                    /**
+                     * Switch to the previous blog since `execute_cron` may have switched to a different blog.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3
+                     */
+                    if ( is_numeric( $current_blog_id ) ) {
+                        $this->switch_to_blog( $current_blog_id );
+                    }
+
                     $result   = $this->send_install_update( array(), true );
                     $is_valid = $this->is_api_result_entity( $result );
                 } else {
@@ -18412,7 +18699,9 @@
          */
         function get_after_activation_url( $filter, $params = array(), $network = null ) {
             if ( $this->is_free_wp_org_theme() &&
-                 fs_request_has( 'pending_activation' )
+                 ( fs_request_has( 'pending_activation' ) ||
+                   // For cases when the first time path is set, even though it's a WP.org theme.
+                   fs_request_get_bool( $this->get_unique_affix() . '_show_optin' ) )
             ) {
                 $first_time_path = '';
             } else {
@@ -20721,13 +21010,19 @@
 
                 // Locate the main assets folder.
                 if ( 1 < count( $fs_active_plugins->plugins ) ) {
-                    $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root() );
+                    $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
 
                     foreach ( $fs_active_plugins->plugins as $sdk_path => &$data ) {
                         if ( $data->plugin_path == $this->get_plugin_basename() ) {
                             $img_dir = $plugin_or_theme_img_dir
                                        . '/'
-                                       . str_replace( '../themes/', '', $sdk_path )
+                                       /**
+                                        * The basename will be `themes` or the basename of a custom themes directory.
+                                        *
+                                        * @author Leo Fajardo (@leorw)
+                                        * @since 2.2.3
+                                        */
+                                       . str_replace( '../' . basename( $plugin_or_theme_img_dir ) . '/', '', $sdk_path )
                                        . '/assets/img';
 
                             break;

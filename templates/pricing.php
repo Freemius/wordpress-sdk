@@ -105,7 +105,7 @@
 	}
 ?>
 	<div id="fs_pricing" class="wrap fs-section fs-full-size-wrapper">
-		<div id="frame"></div>
+		<div id="fs_frame"></div>
 		<form action="" method="POST">
 			<input type="hidden" name="user_id"/>
 			<input type="hidden" name="user_email"/>
@@ -128,7 +128,7 @@
 
 					// Append the I-frame into the DOM.
 					frame = $('<i' + 'frame " src="' + src + '" width="100%" height="' + frame_height + 'px" scrolling="no" frameborder="0" style="background: transparent; width: 1px; min-width: 100%;"><\/i' + 'frame>')
-						.appendTo('#frame');
+						.appendTo('#fs_frame');
 
 					FS.PostMessage.init(base_url, [frame[0]]);
 
