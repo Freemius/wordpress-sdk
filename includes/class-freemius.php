@@ -7069,8 +7069,17 @@
                 $this->_storage->is_plugin_new_install = empty( $this->_storage->plugin_last_version );
             }
 
+            /**
+             * Also flush when activating the premium version so that even if Freemius was off before, the API
+             * connectivity test can be run again.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3.1
+             */
+            $has_api_connectivity = $this->has_api_connectivity( WP_FS__DEV_MODE || $is_premium_version_activation );
+
             if ( ! $this->_anonymous_mode &&
-                 $this->has_api_connectivity( WP_FS__DEV_MODE ) &&
+                 $has_api_connectivity &&
                  ! $this->_isAutoInstall
             ) {
                 // Store hint that the plugin was just activated to enable auto-redirection to settings.
