@@ -14084,6 +14084,8 @@
                     'http'    => 402
                 );
 
+                $this->maybe_modify_api_curl_error_message( $result );
+
                 return $result;
             }
 
@@ -19455,6 +19457,43 @@
             return $this->is_registered() ?
                 $this->get_api_site_scope() :
                 $this->get_api_plugin_scope();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.1
+         *
+         * @param object $result
+         */
+        private function maybe_modify_api_curl_error_message( $result ) {
+            if (
+                'cUrlMissing' !== $result->error->type &&
+                ( 'CurlException' !== $result->error->type || CURLE_COULDNT_CONNECT != $result->error->code )  &&
+                ( 'HttpRequestFailed' !== $result->error->type || false === strpos( $result->error->message, 'cURL error ' . CURLE_COULDNT_CONNECT ) )
+            ) {
+                return;
+            }
+
+            $result->error->message = $this->esc_html_inline( 'We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server.', 'curl-missing-message' ) .
+                ' ' .
+                $this->esc_html_inline(
+                    sprintf(
+                        'Please contact your hosting provider and ask them to whitelist %s for external connection.',
+                        implode(
+                            ', ',
+                            $this->apply_filters( 'api_domains', array(
+                                'api.freemius.com',
+                                'wp.freemius.com'
+                            ) )
+                        )
+                    ),
+                    'connectivity-whitelist'
+                ) .
+                ' ' .
+                sprintf(
+                    $this->esc_html_inline( 'Once you are done, deactivate the %s and activate it again.', 'connectivity-reactivate-module' ),
+                    $this->get_module_type()
+                );
         }
 
         /**
