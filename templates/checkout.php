@@ -62,6 +62,11 @@
 		'trial'          => fs_request_get_bool( 'trial' ),
 	);
 
+    $bundle_id = $fs->get_bundle_id();
+    if ( ! is_null( $bundle_id ) ) {
+        $context_params['bundle_id'] = $bundle_id;
+    }
+
 	$plan_id = fs_request_get( 'plan_id' );
 	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
 		$context_params['plan_id'] = $plan_id;
