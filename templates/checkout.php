@@ -62,11 +62,6 @@
 		'trial'          => fs_request_get_bool( 'trial' ),
 	);
 
-    $bundle_id = $fs->get_bundle_id();
-    if ( ! is_null( $bundle_id ) ) {
-        $context_params['bundle_id'] = $bundle_id;
-    }
-
 	$plan_id = fs_request_get( 'plan_id' );
 	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
 		$context_params['plan_id'] = $plan_id;
@@ -84,7 +79,12 @@
 
 	if ( $plugin_id == $fs->get_id() ) {
 		$is_premium = $fs->is_premium();
-	} else {
+
+        $bundle_id = $fs->get_bundle_id();
+        if ( ! is_null( $bundle_id ) ) {
+            $context_params['bundle_id'] = $bundle_id;
+        }
+    } else {
 		// Identify the module code version of the checkout context module.
 		if ( $fs->is_addon_activated( $plugin_id ) ) {
 			$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
