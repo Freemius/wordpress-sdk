@@ -4922,7 +4922,7 @@
                 'premium_suffix'       => $premium_suffix,
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
-                'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id' ),
+                'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
