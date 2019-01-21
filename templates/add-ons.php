@@ -29,6 +29,19 @@
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 
+    $account_addon_ids = $fs->get_account_addons();
+    if ( ! is_array( $account_addon_ids ) ) {
+        $account_addon_ids = array();
+    }
+
+    $installed_addons     = $fs->get_installed_addons();
+    $installed_addons_ids = array();
+    foreach ( $installed_addons as $fs_addon ) {
+        $installed_addons_ids[] = $fs_addon->get_id();
+    }
+
+    $download_latest_text = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
+
 	$has_tabs = $fs->_add_tabs_before_content();
 ?>
 	<div id="fs_addons" class="wrap fs-section">
@@ -48,6 +61,14 @@
 				<?php if ( $has_addons ) : ?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
+                        $is_addon_activated = $fs->is_addon_activated( $addon->id );
+                        $is_addon_connected = $fs->is_addon_connected( $addon->id );
+                        $is_addon_installed = in_array( $addon->id, $installed_addons_ids );
+
+                        $fs_addon = $is_addon_connected ?
+                            freemius( $addon->id ) :
+                            null;
+
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
 						$price     = 0;
@@ -136,7 +157,20 @@
 											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
+                                    <?php if ( ! in_array( $addon->id, $account_addon_ids ) || $is_addon_installed ) : ?>
 									<li class="fs-cta"><a class="button"><?php fs_esc_html_echo_inline( 'View details', 'view-details', $slug ) ?></a></li>
+                                    <?php else : ?>
+                                    <li class="fs-cta">
+                                        <div class="button-group">
+                                            <?php if ( $fs->is_allowed_to_install( $addon->id ) ) : ?>
+                                            <a class="button button-primary"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></a>
+                                            <?php else : ?>
+                                            <a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url( $addon->id ) ?>"><?php echo esc_html( $download_latest_text ) ?></a>
+                                            <?php endif ?>
+                                            <a class="button button-primary"><span class="dropdown-arrow"></span></a>
+                                        </div>
+                                    </li>
+                                    <?php endif ?>
 								</ul>
 							</div>
 						</li>
@@ -176,7 +210,9 @@
 				.mouseover(function () {
 					$(this).find('.fs-cta .button').addClass('button-primary');
 				}).mouseout(function () {
-					$(this).find('.fs-cta .button').removeClass('button-primary');
+					$(this).find('.fs-cta .button').filter(function() {
+					    return $( this ).parent().is( ':not(.button-group)' );
+                    }).removeClass('button-primary');
 				});
 
 			<?php endif ?>

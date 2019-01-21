@@ -109,11 +109,27 @@
 
                 .fs-cta
                 {
-                    .button
+                    .button, .button-group
                     {
                         position: absolute;
                         top: 112px;
                         right: 10px;
+                    }
+
+                    .button-group {
+                        .button {
+                            position: relative;
+                            top: 0;
+                            right: 0;
+                        }
+
+                        .dropdown-arrow {
+                            border-top: 6px solid #fff;
+                            border-right: 4px solid transparent;
+                            border-left: 4px solid transparent;
+                            top: 12px;
+                            position: relative;
+                        }
                     }
                 }
             }
