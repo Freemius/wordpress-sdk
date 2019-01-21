@@ -87,6 +87,11 @@
          * @var bool
          */
         public $is_live;
+        /**
+         * @since 2.2.3
+         * @var null|number
+         */
+        public $bundle_id;
 
         const AFFILIATE_MODERATION_CUSTOMERS = 'customers';
 

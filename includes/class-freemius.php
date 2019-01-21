@@ -4922,6 +4922,7 @@
                 'premium_suffix'       => $premium_suffix,
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
+                'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
@@ -8773,6 +8774,18 @@
          */
         function get_id() {
             return $this->_plugin->id;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.3.2
+         *
+         * @return number|null Bundle ID.
+         */
+        function get_bundle_id() {
+            return ( isset( $this->_plugin->bundle_id ) && FS_Plugin::is_valid_id( $this->_plugin->bundle_id ) ) ?
+                $this->_plugin->bundle_id :
+                null;
         }
 
         /**
