@@ -41,6 +41,7 @@
     }
 
     $download_latest_text = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
+    $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );
 
 	$has_tabs = $fs->_add_tabs_before_content();
 ?>
@@ -68,6 +69,12 @@
                         $fs_addon = $is_addon_connected ?
                             freemius( $addon->id ) :
                             null;
+
+                        $is_allowed_to_install = is_object( $fs_addon ) ?
+                            $fs->is_allowed_to_install( $addon->id ) :
+                            false;
+
+                        $latest_download_local_url = $fs->_get_latest_download_local_url( $addon->id );
 
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
@@ -158,17 +165,23 @@
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
                                     <?php if ( ! in_array( $addon->id, $account_addon_ids ) || $is_addon_installed ) : ?>
-									<li class="fs-cta"><a class="button"><?php fs_esc_html_echo_inline( 'View details', 'view-details', $slug ) ?></a></li>
+									<li class="fs-cta"><a class="button"><?php echo esc_html( $view_details_text ) ?></a></li>
                                     <?php else : ?>
-                                    <li class="fs-cta">
+                                    <li class="fs-cta dropdown">
                                         <div class="button-group">
-                                            <?php if ( $fs->is_allowed_to_install( $addon->id ) ) : ?>
+                                            <?php if ( $is_allowed_to_install ) : ?>
                                             <a class="button button-primary"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></a>
                                             <?php else : ?>
-                                            <a target="_blank" class="button button-primary" href="<?php echo $fs->_get_latest_download_local_url( $addon->id ) ?>"><?php echo esc_html( $download_latest_text ) ?></a>
+                                            <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
                                             <?php endif ?>
-                                            <a class="button button-primary"><span class="dropdown-arrow"></span></a>
+                                            <a class="button button-primary button-dropdown-arrow"><span class="dropdown-arrow"></span></a>
                                         </div>
+                                        <ul class="dropdown-list" style="display: none">
+                                            <?php if ( $is_allowed_to_install ) : ?>
+                                                <li><a target="_blank" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a></li>
+                                            <?php endif ?>
+                                            <li><?php echo esc_html( $view_details_text ) ?></li>
+                                        </ul>
                                     </li>
                                     <?php endif ?>
 								</ul>
@@ -180,7 +193,7 @@
 		</div>
 	</div>
 	<script type="text/javascript">
-		(function ($) {
+		(function( $, undef ) {
 			<?php if ( $open_addon ) : ?>
 
 			var interval = setInterval(function () {
@@ -205,18 +218,68 @@
 
 			<?php else : ?>
 
-
 			$('.fs-card.fs-addon')
 				.mouseover(function () {
-					$(this).find('.fs-cta .button').addClass('button-primary');
-				}).mouseout(function () {
-					$(this).find('.fs-cta .button').filter(function() {
+				    var $this = $( this );
+
+					$this.find('.fs-cta .button').addClass('button-primary');
+
+                    if ( 0 === $this.find( '.button-dropdown-arrow.active' ).length ) {
+                        toggleDropdown();
+                    }
+				}).mouseout(function( evt ) {
+                    var $relatedTarget = $( evt.relatedTarget );
+
+                    if ( 0 !== $relatedTarget.parents( '.fs-addon' ).length ) {
+                        return true;
+                    }
+
+                    var $this = $( this );
+
+					$this.find('.fs-cta .button').filter(function() {
 					    return $( this ).parent().is( ':not(.button-group)' );
                     }).removeClass('button-primary');
-				});
+
+					toggleDropdown( $this.find( '.dropdown' ), false );
+				}).find( 'a.thickbox, .button:not(.button-dropdown-arrow)' ).click(function() {
+                    toggleDropdown();
+                });
 
 			<?php endif ?>
-		})(jQuery);
+
+            var $dropdowns = $( '.dropdown' );
+            if ( 0 !== $dropdowns.length ) {
+                $dropdowns.find( '.button-dropdown-arrow' ).click(function() {
+                    var $this     = $( this ),
+                        $dropdown = $this.parents( '.dropdown' );
+
+                    toggleDropdown( $dropdown, ! $dropdown.hasClass( 'active' ) );
+                });
+            }
+
+            /**
+             * Returns the default state of the dropdown arrow button and hides the dropdown list.
+             *
+             * @author Leo Fajardo
+             */
+            function toggleDropdown( $dropdown, state ) {
+                var $target = ( undef !== $dropdown ) ?
+                    $dropdown :
+                    $dropdowns;
+
+                if ( 0 === $target.length ) {
+                    return;
+                }
+
+                if ( undef === state ) {
+                    state = false;
+                }
+
+                $target.toggleClass( 'active', state );
+                $target.find( '.dropdown-list' ).toggle( state );
+                $target.find( '.button-dropdown-arrow' ).toggleClass( 'active', state );
+            }
+		})( jQuery );
 	</script>
 <?php
 	if ( $has_tabs ) {

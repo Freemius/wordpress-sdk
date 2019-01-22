@@ -116,19 +116,75 @@
                         right: 10px;
                     }
 
-                    .button-group {
-                        .button {
-                            position: relative;
-                            top: 0;
-                            right: 0;
+                    .dropdown {
+                        .button-group {
+                            .button {
+                                position: relative;
+                                top: 0;
+                                right: 0;
+
+                                &:focus {
+                                    z-index: 10;
+                                }
+                            }
+
+                            .dropdown-arrow {
+                                border-top: 6px solid #fff;
+                                border-right: 4px solid transparent;
+                                border-left: 4px solid transparent;
+                                top: 12px;
+                                position: relative;
+                            }
                         }
 
-                        .dropdown-arrow {
-                            border-top: 6px solid #fff;
-                            border-right: 4px solid transparent;
-                            border-left: 4px solid transparent;
-                            top: 12px;
-                            position: relative;
+                        &.active {
+                            .button:not(.button-dropdown-arrow) {
+                                border-bottom-left-radius: 0;
+                            }
+
+                            .button-dropdown-arrow {
+                                border-bottom-right-radius: 0;
+                            }
+                        }
+
+                        .dropdown-list {
+                            position: absolute;
+                            top: 140px;
+                            border: 1px solid #aaa;
+                            background-color: white;
+                            z-index: 10;
+                            margin-left: auto;
+                            right: 9px;
+                            width: 230px;
+                            font-size: 12px;
+                            border-radius: 3px 0 3px 3px;
+
+                            li {
+                                padding: 6px;
+                                margin: 0;
+                                height: 30px;
+
+                                a {
+                                    position: absolute;
+                                    display: inline-block;
+                                    width: 100%;
+                                    top: 0;
+                                    right: 0;
+                                    line-height: 30px;
+                                    text-indent: 6px;
+                                    text-decoration: none;
+                                    color: #444;
+                                }
+
+                                &:hover {
+                                    background-color: #0073aa;
+                                    color: white;
+
+                                    a {
+                                        color: white;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
