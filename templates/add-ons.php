@@ -125,12 +125,32 @@
 						?>
 						<li class="fs-card fs-addon" data-slug="<?php echo $addon->slug ?>">
 							<?php
-								echo sprintf( '<a href="%s" class="thickbox fs-overlay" aria-label="%s" data-title="%s"></a>',
+								$view_details_link = sprintf( '<a href="%s" aria-label="%s" data-title="%s"',
 									esc_url( network_admin_url( 'plugin-install.php?fs_allow_updater_and_dialog=true&tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
 									esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
-								);
+								) . ' class="thickbox%s">%s</a>';
+
+								echo sprintf(
+                                    $view_details_link,
+                                    /**
+                                     * Additional class.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.2.3.2
+                                     */
+                                    ' fs-overlay',
+                                    /**
+                                     * Set the view details link text to an empty string since it is an overlay that
+                                     * doesn't really need a text and whose purpose is to open the details dialog when
+                                     * the card is clicked.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.2.3.2
+                                     */
+                                    ''
+                                );
 							?>
 							<?php
 								if ( is_null( $addon->info ) ) {
@@ -180,7 +200,26 @@
                                             <?php if ( $is_allowed_to_install ) : ?>
                                                 <li><a target="_blank" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a></li>
                                             <?php endif ?>
-                                            <li><?php echo esc_html( $view_details_text ) ?></li>
+                                            <li><?php
+                                                echo sprintf(
+                                                    $view_details_link,
+                                                    /**
+                                                     * No additional class.
+                                                     *
+                                                     * @author Leo Fajardo (@leorw)
+                                                     * @since 2.2.3.2
+                                                     */
+                                                    '',
+                                                    /**
+                                                     * Set the view details link text to a non-empty string since it is an
+                                                     * item in the dropdown list.
+                                                     *
+                                                     * @author Leo Fajardo (@leorw)
+                                                     * @since 2.2.3.2
+                                                     */
+                                                    esc_html( $view_details_text )
+                                                );
+                                            ?></li>
                                         </ul>
                                     </li>
                                     <?php endif ?>

@@ -116,7 +116,7 @@
                         right: 10px;
                     }
 
-                    .dropdown {
+                    &.dropdown {
                         .button-group {
                             .button {
                                 position: relative;
@@ -149,7 +149,7 @@
 
                         .dropdown-list {
                             position: absolute;
-                            top: 140px;
+                            top: 141px;
                             border: 1px solid #aaa;
                             background-color: white;
                             z-index: 10;
@@ -160,6 +160,7 @@
                             border-radius: 3px 0 3px 3px;
 
                             li {
+                                position: relative;
                                 padding: 6px;
                                 margin: 0;
                                 height: 30px;
@@ -177,7 +178,7 @@
                                 }
 
                                 &:hover {
-                                    background-color: #0073aa;
+                                    background-color: $wp-selected-color;
                                     color: white;
 
                                     a {
