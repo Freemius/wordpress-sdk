@@ -66,6 +66,22 @@
                     background-repeat: repeat-x;
                     background-size:   100% 100%;
                     @include transition(all, 0.15s);
+
+                    .fs-installed-addon-badge {
+                        position:       absolute;
+                        top:            10px;
+                        right:          0;
+                        background:     $fs-logo-green-color;
+                        color:          #fff;
+                        text-transform: uppercase;
+                        padding:        5px 10px;
+                        @include border-radius(3px 0 0 3px);
+                        font-weight:    bold;
+                        border-right:   0;
+                        @include box-shadow(0 2px 1px -1px rgba(0, 0, 0, .3));
+                        font-size:      14.3px;
+                        line-height:    18.2px;
+                    }
                 }
 
                 .fs-title
