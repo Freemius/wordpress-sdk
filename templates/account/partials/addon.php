@@ -268,7 +268,7 @@
                 if ( $fs->is_allowed_to_install() ) {
                     $buttons[] = sprintf(
                         '<a class="button button-primary edit" href="%s">%s</a>',
-                        wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                        wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
                         fs_text_inline( 'Install Now', 'install-now', $slug )
                     );
                 } else {
@@ -319,7 +319,7 @@
             <?php else : ?>
                 <?php if ( $fs->is_allowed_to_install() ) : ?>
                     <a class="button button-primary"
-                       href="<?php echo wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ) ?>"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></a>
+                       href="<?php echo wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ) ?>"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></a>
                 <?php else : ?>
                     <a target="_blank" class="button button-primary"
                        href="<?php echo $fs->_get_latest_download_local_url( $addon_id ) ?>"><?php echo esc_html( $download_latest_text ) ?></a>

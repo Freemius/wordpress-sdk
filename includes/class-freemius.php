@@ -4464,9 +4464,12 @@
                  * the .org plugins' functionalities on that page (e.g. installation and viewing plugin details from
                  * .org).
                  */
-                ( ! self::is_plugin_install_page() || true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) &&
-                // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
-                ( 'install-plugin' !== fs_request_get( 'action' ) )
+                ( true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) ||
+                (
+                    ! self::is_plugin_install_page() &&
+                    // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
+                    ( 'install-plugin' !== fs_request_get( 'action' ) )
+                )
             );
         }
 

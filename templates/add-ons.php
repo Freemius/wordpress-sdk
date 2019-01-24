@@ -34,12 +34,6 @@
         $account_addon_ids = array();
     }
 
-    $installed_addons     = $fs->get_installed_addons();
-    $installed_addons_ids = array();
-    foreach ( $installed_addons as $fs_addon ) {
-        $installed_addons_ids[] = $fs_addon->get_id();
-    }
-
     $download_latest_text = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
     $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );
 
@@ -62,17 +56,9 @@
 				<?php if ( $has_addons ) : ?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
-                        $is_addon_activated = $fs->is_addon_activated( $addon->id );
-                        $is_addon_connected = $fs->is_addon_connected( $addon->id );
-                        $is_addon_installed = in_array( $addon->id, $installed_addons_ids );
-
-                        $fs_addon = $is_addon_connected ?
-                            freemius( $addon->id ) :
-                            null;
-
-                        $is_allowed_to_install = is_object( $fs_addon ) ?
-                            $fs->is_allowed_to_install( $addon->id ) :
-                            false;
+                        $is_addon_activated    = $fs->is_addon_activated( $addon->id );
+                        $is_addon_installed    = $fs->is_addon_installed( $addon->id );
+                        $is_allowed_to_install = $fs->is_allowed_to_install( $addon->id );
 
                         $latest_download_local_url = $fs->_get_latest_download_local_url( $addon->id );
 
@@ -200,7 +186,13 @@
                                     <li class="fs-cta dropdown">
                                         <div class="button-group">
                                             <?php if ( $is_allowed_to_install ) : ?>
-                                            <a class="button button-primary"><?php fs_esc_html_echo_inline( 'Install Now', 'install-now', $slug ) ?></a>
+                                            <?php
+                                                echo sprintf(
+                                                    '<a class="button button-primary" href="%s">%s</a>',
+                                                   wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                                                   fs_esc_html_inline( 'Install Now', 'install-now', $slug )
+                                               );
+                                            ?>
                                             <?php else : ?>
                                             <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
                                             <?php endif ?>

@@ -834,14 +834,29 @@
                 return $data;
             }
 
-            $addon    = false;
-            $is_addon = false;
+            $addon         = false;
+            $is_addon      = false;
+            $addon_version = false;
 
             if ( $this->_fs->get_slug() !== $args->slug ) {
                 $addon = $this->_fs->get_addon_by_slug( $args->slug );
 
                 if ( ! is_object( $addon ) ) {
                     return $data;
+                }
+
+                if ( $this->_fs->is_addon_activated( $addon->id ) ) {
+                    $addon_version = $this->_fs->get_addon_instance( $addon->id )->get_plugin_version();
+                } else if ( $this->_fs->is_addon_installed( $addon->id ) ) {
+                    $addon_plugin_data = get_plugin_data(
+                        ( WP_PLUGIN_DIR . '/' . $this->_fs->get_addon_basename( $addon->id ) ),
+                        false,
+                        false
+                    );
+
+                    if ( ! empty( $addon_plugin_data ) ) {
+                        $addon_version = $addon_plugin_data['Version'];
+                    }
                 }
 
                 $is_addon = true;
@@ -874,7 +889,9 @@ if ( !isset($info->error) ) {
 }*/
             }
 
-            $plugin_version = $this->_fs->get_plugin_version();
+            $plugin_version = $is_addon ?
+                $addon_version :
+                $this->_fs->get_plugin_version();
 
             // Get plugin's newest update.
             $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
