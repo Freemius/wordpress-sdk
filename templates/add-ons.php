@@ -29,10 +29,7 @@
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 
-    $account_addon_ids = $fs->get_account_addons();
-    if ( ! is_array( $account_addon_ids ) ) {
-        $account_addon_ids = array();
-    }
+    $account_addon_ids = $fs->update_and_get_account_addons();
 
     $download_latest_text = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
     $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );

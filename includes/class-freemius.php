@@ -11348,6 +11348,8 @@
             if ( false !== $error ) {
                 $result['error'] = $error;
             } else {
+                $this->purge_valid_user_licenses_cache();
+
                 $result['next_page'] = $next_page;
             }
 
@@ -16514,6 +16516,95 @@
             $all_addons                       = self::get_all_account_addons();
             $all_addons[ $this->_plugin->id ] = $addons;
             self::$_accounts->set_option( 'account_addons', $all_addons, $store );
+        }
+
+        /**
+         * Purges the cache for the valid user licenses API call so that when the `Account` or `Add-Ons` page is loaded,
+         * the valid user licenses will be fetched again and the account add-ons may be updated.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         */
+        private function purge_valid_user_licenses_cache() {
+            $user_licenses_endpoint = '/licenses.json?type=active' .
+                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
+
+            $this->get_api_user_scope()->purge_cache( $user_licenses_endpoint );
+        }
+
+        /**
+         * Fetches active licenses enriched with product type and if there's a context `bundle_id`, enriched with
+         * bundle product IDs. From the licenses, the `update_and_get_account_addons` method filters out
+         * non–add-on product IDs and stores the add-on IDs.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         *
+         * @return stdClass[] array
+         */
+        private function fetch_valid_user_licenses() {
+            $this->_logger->entrance();
+
+            $api = $this->get_api_user_scope();
+
+            $user_licenses_endpoint = '/licenses.json?type=active' .
+                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
+
+            $result = $api->get( $user_licenses_endpoint );
+
+            if ( ! $this->is_api_result_object( $result, 'licenses' ) ||
+                ! is_array( $result->licenses )
+            ) {
+                return array();
+            }
+
+            return $result->licenses;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         *
+         * @return number[] Account add-on IDs.
+         */
+        function update_and_get_account_addons() {
+            $addons = $this->get_addons();
+            if ( empty( $addons ) ) {
+                return array();
+            }
+
+            $account_addons = $this->get_account_addons();
+            if ( ! is_array( $account_addons ) ) {
+                $account_addons = array();
+            }
+
+            $user_licenses = $this->fetch_valid_user_licenses();
+            if ( empty( $user_licenses ) ) {
+                return $account_addons;
+            }
+
+            $addon_ids = array();
+            foreach ( $addons as $addon ) {
+                $addon_ids[] = $addon->id;
+            }
+
+            $license_product_ids = array();
+
+            foreach ( $user_licenses as $license ) {
+                if ( 'bundle' === $license->plugin_type ) {
+                    $license_product_ids = array_merge( $license_product_ids, $license->products );
+                } else {
+                    $license_product_ids[] = $license->plugin_id;
+                }
+            }
+
+            // Filter out non–add-on IDs.
+            $new_account_addons = array_intersect( $addon_ids, $license_product_ids );
+            if ( ! empty( array_diff( $new_account_addons, $account_addons ) ) ) {
+                $this->_store_account_addons( array_unique( $new_account_addons ) );
+            }
+
+            return $new_account_addons;
         }
 
         /**
