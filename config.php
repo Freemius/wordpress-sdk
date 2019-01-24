@@ -163,6 +163,7 @@
 
     if ( ! defined( 'WP_FS__IS_POST_REQUEST' ) ) {
         define( 'WP_FS__IS_POST_REQUEST', ( WP_FS__IS_HTTP_REQUEST &&
+                                            isset( $_SERVER['REQUEST_METHOD'] ) &&
                                             strtoupper( $_SERVER['REQUEST_METHOD'] ) == 'POST' ) );
     }
 
