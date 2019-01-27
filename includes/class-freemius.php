@@ -2621,6 +2621,10 @@
                 $active_basenames = get_option( 'active_plugins' );
             }
 
+            if ( ! is_array( $active_basenames ) ) {
+                $active_basenames = array();
+            }
+
             if ( is_multisite() ) {
                 $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
 
