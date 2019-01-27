@@ -135,7 +135,7 @@
                             }
 
                             .dropdown-arrow {
-                                border-top: 6px solid #fff;
+                                border-top: 6px solid white;
                                 border-right: 4px solid transparent;
                                 border-left: 4px solid transparent;
                                 top: 12px;
@@ -156,31 +156,31 @@
                         .dropdown-list {
                             position: absolute;
                             top: 141px;
-                            border: 1px solid #aaa;
+                            right: 9px;
+                            margin-left: auto;
+                            border: 1px solid lighten($darkest-color, 65%);
+                            @include border-radius(3px 0 3px 3px);
                             background-color: white;
                             z-index: 10;
-                            margin-left: auto;
-                            right: 9px;
                             width: 230px;
                             font-size: 12px;
-                            border-radius: 3px 0 3px 3px;
 
                             li {
                                 position: relative;
-                                padding: 6px;
                                 margin: 0;
+                                padding: 6px;
                                 height: 30px;
 
                                 a {
                                     position: absolute;
-                                    display: inline-block;
-                                    width: 100%;
                                     top: 0;
                                     right: 0;
+                                    display: inline-block;
+                                    width: 100%;
                                     line-height: 30px;
                                     text-indent: 6px;
                                     text-decoration: none;
-                                    color: #444;
+                                    color: black;
                                 }
 
                                 &:hover {
