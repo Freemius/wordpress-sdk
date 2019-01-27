@@ -17279,7 +17279,7 @@
                             if ( ! self::$_global_admin_notices->has_sticky( 'api_blocked' ) ) {
                                 self::$_global_admin_notices->add(
                                     sprintf(
-                                        $this->get_text_x_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1s synchronization. Please contact your host to whitelist %2s', '%1s - plugin title, %2s - API domain', 'server-blocking-access' ),
+                                        $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
                                         $this->get_plugin_name(),
                                         '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
                                     ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
@@ -18653,7 +18653,7 @@
             if ( ! isset( $result->error ) ) {
                 $this->_admin_notices->add( sprintf(
                     $this->get_text_inline( 'Verification mail was just sent to %s. If you can\'t find it after 5 min, please check your spam box.', 'verification-email-sent-message' ),
-                    sprintf( '<a href="mailto:%1s">%2s</a>', esc_url( $this->_user->email ), $this->_user->email )
+                    sprintf( '<a href="mailto:%1$s">%2$s</a>', esc_url( $this->_user->email ), $this->_user->email )
                 ) );
             } else {
                 // handle different error cases.
@@ -20206,8 +20206,8 @@
                 $premium_plugin_basename = $this->premium_plugin_basename();
 
                 return sprintf(
-                /* translators: %1s: Product title; %2s: Plan title */
-                    $this->get_text_inline( ' The paid version of %1s is already installed. Please activate it to start benefiting the %2s features. %3s', 'activate-premium-version' ),
+                /* translators: %1$s: Product title; %2$s: Plan title */
+                    $this->get_text_inline( ' The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s', 'activate-premium-version' ),
                     sprintf( '<em>%s</em>', esc_html( $this->get_plugin_title() ) ),
                     $plan_title,
                     sprintf(
