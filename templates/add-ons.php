@@ -152,7 +152,7 @@
                                         style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"><?php
                                         if ( $is_addon_activated || $is_addon_installed ) {
                                             echo sprintf(
-                                                '<span class="fs-installed-addon-badge">%s</span>',
+                                                '<span class="fs-badge fs-installed-addon-badge">%s</span>',
                                                 esc_html( $is_addon_activated ?
                                                     fs_text_x_inline( 'Active', 'active add-on', 'active-addon', $slug ) :
                                                     fs_text_x_inline( 'Installed', 'installed add-on', 'installed-addon', $slug )
