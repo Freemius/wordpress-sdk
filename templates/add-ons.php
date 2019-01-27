@@ -29,7 +29,7 @@
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 
-    $account_addon_ids = $fs->update_and_get_account_addons();
+    $account_addon_ids = $fs->get_updated_account_addons();
 
     $download_latest_text = fs_text_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $slug );
     $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );
@@ -211,7 +211,7 @@
                                                     '',
                                                     /**
                                                      * Set the view details link text to a non-empty string since it is an
-                                                     * item in the dropdown list.
+                                                     * item in the dropdown list and the text should be visible.
                                                      *
                                                      * @author Leo Fajardo (@leorw)
                                                      * @since 2.2.3.2
@@ -263,6 +263,12 @@
 					$this.find('.fs-cta .button').addClass('button-primary');
 
                     if ( 0 === $this.find( '.button-dropdown-arrow.active' ).length ) {
+                        /**
+                         * When hovering over a card, close the dropdown on any other card.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.2.3.2
+                         */
                         toggleDropdown();
                     }
 				}).mouseout(function( evt ) {
@@ -274,7 +280,20 @@
 
                     var $this = $( this );
 
-					$this.find('.fs-cta .button').filter(function() {
+                    /**
+                     * Set the color of the "View details" button to "secondary".
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3.2
+                     */
+					$this.find( '.fs-cta .button' ).filter(function() {
+                        /**
+                         * Keep the "primary" color of the dropdown arrow button, "Install Now" button, and
+                         * "Download Latest" button.
+
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.2.3.2
+                         */
 					    return $( this ).parent().is( ':not(.button-group)' );
                     }).removeClass('button-primary');
 
@@ -298,7 +317,11 @@
             /**
              * Returns the default state of the dropdown arrow button and hides the dropdown list.
              *
-             * @author Leo Fajardo
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3.2
+             *
+             * @param {(Object|undefined)}  [$dropdown]
+             * @param {(Boolean|undefined)} [state]
              */
             function toggleDropdown( $dropdown, state ) {
                 var $target = ( undef !== $dropdown ) ?

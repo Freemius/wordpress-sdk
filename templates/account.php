@@ -545,7 +545,7 @@
 						<?php endif ?>
 
 						<?php
-							$account_addons = $fs->update_and_get_account_addons();
+							$account_addons = $fs->get_updated_account_addons();
 
 							$installed_addons     = $fs->get_installed_addons();
 							$installed_addons_ids = array();

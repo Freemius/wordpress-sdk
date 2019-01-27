@@ -4459,10 +4459,11 @@
         private function should_use_freemius_updater_and_dialog() {
             return (
                 /**
-                 * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, disallow updater
-                 * and dialog on the "Add Plugins" admin page (/plugin-install.php) so that they won't interfere with
-                 * the .org plugins' functionalities on that page (e.g. installation and viewing plugin details from
-                 * .org).
+                 * Allow updater and dialog when the `fs_allow_updater_and_dialog` URL query param exists and has `true`
+                 * value, or when the current page is not the "Add Plugins" page (/plugin-install.php) and the `action`
+                 * URL query param doesn't exist or its value is not `install-plugin` so that there will be no conflicts
+                 * with the .org plugins' functionalities (e.g. installation from the "Add Plugins" page and viewing
+                 * plugin details from .org).
                  */
                 ( true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) ||
                 (
@@ -11348,7 +11349,17 @@
             if ( false !== $error ) {
                 $result['error'] = $error;
             } else {
-                $this->purge_valid_user_licenses_cache();
+                if ( $this->is_addon() || $this->has_addons() ) {
+                    /**
+                     * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                     * an updated valid user licenses collection will be fetched from the server which is used to also
+                     * update the account add-ons (add-ons the user has licenses for).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3.2
+                     */
+                    $this->purge_valid_user_licenses_cache();
+                }
 
                 $result['next_page'] = $next_page;
             }
@@ -16533,9 +16544,9 @@
         }
 
         /**
-         * Fetches active licenses enriched with product type and if there's a context `bundle_id`, enriched with
-         * bundle product IDs. From the licenses, the `update_and_get_account_addons` method filters out
-         * non–add-on product IDs and stores the add-on IDs.
+         * Fetches active licenses that are enriched with product type if there's a context `bundle_id` and bundle
+         * licenses enriched with product IDs if there are any. From the licenses, the `get_updated_account_addons`
+         * method filters out non–add-on product IDs and stores the add-on IDs.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3.2
@@ -16567,7 +16578,7 @@
          *
          * @return number[] Account add-on IDs.
          */
-        function update_and_get_account_addons() {
+        function get_updated_account_addons() {
             $addons = $this->get_addons();
             if ( empty( $addons ) ) {
                 return array();
