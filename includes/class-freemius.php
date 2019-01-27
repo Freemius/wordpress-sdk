@@ -17528,6 +17528,18 @@
                              */
                             $this->_update_site_license( $new_license );
 
+                            if ( $this->is_addon() || $this->has_addons() ) {
+                                /**
+                                 * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                                 * an updated valid user licenses collection will be fetched from the server which is used to also
+                                 * update the account add-ons (add-ons the user has licenses for).
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.2.3.2
+                                 */
+                                $this->purge_valid_user_licenses_cache();
+                            }
+
                             if ( ! $is_context_single_site &&
                                  fs_is_network_admin() &&
                                  $this->_is_network_active &&
@@ -17826,6 +17838,18 @@
             $this->_update_site_license( $premium_license );
 
             $this->_store_account();
+
+            if ( $this->is_addon() || $this->has_addons() ) {
+                /**
+                 * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                 * an updated valid user licenses collection will be fetched from the server which is used to also
+                 * update the account add-ons (add-ons the user has licenses for).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3.2
+                 */
+                $this->purge_valid_user_licenses_cache();
+            }
 
             if ( ! $background ) {
                 $this->_admin_notices->add_sticky(
