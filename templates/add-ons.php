@@ -53,11 +53,10 @@
 				<?php if ( $has_addons ) : ?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
-                        $is_addon_activated    = $fs->is_addon_activated( $addon->id );
-                        $is_addon_installed    = $fs->is_addon_installed( $addon->id );
-                        $is_allowed_to_install = $fs->is_allowed_to_install( $addon->id );
-
-                        $latest_download_local_url = $fs->_get_latest_download_local_url( $addon->id );
+                        $is_addon_installed = $fs->is_addon_installed( $addon->id );
+                        $is_addon_activated = $is_addon_installed ?
+                            $fs->is_addon_activated( $addon->id ) :
+                            false;
 
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
@@ -180,7 +179,12 @@
                                     <?php if ( ! in_array( $addon->id, $account_addon_ids ) || $is_addon_installed ) : ?>
 									<li class="fs-cta"><a class="button"><?php echo esc_html( $view_details_text ) ?></a></li>
                                     <?php else : ?>
-                                    <li class="fs-cta dropdown">
+                                        <?php
+                                            $latest_download_local_url = $fs->_get_latest_download_local_url( $addon->id );
+                                            $is_allowed_to_install     = $fs->is_allowed_to_install();
+                                        ?>
+
+                                        <li class="fs-cta dropdown">
                                         <div class="button-group">
                                             <?php if ( $is_allowed_to_install ) : ?>
                                             <?php
@@ -256,11 +260,11 @@
 
 			<?php else : ?>
 
-			$('.fs-card.fs-addon')
-				.mouseover(function () {
+			$( '.fs-card.fs-addon' )
+				.mouseover(function() {
 				    var $this = $( this );
 
-					$this.find('.fs-cta .button').addClass('button-primary');
+					$this.find( '.fs-cta .button' ).addClass( 'button-primary' );
 
                     if ( 0 === $this.find( '.button-dropdown-arrow.active' ).length ) {
                         /**
@@ -324,11 +328,14 @@
              * @param {(Boolean|undefined)} [state]
              */
             function toggleDropdown( $dropdown, state ) {
-                var $target = ( undef !== $dropdown ) ?
-                    $dropdown :
-                    $dropdowns;
+                if ( undef === $dropdown ) {
+                    var $activeDropdown = $dropdowns.find( '.active' );
+                    if ( 0 !== $activeDropdown.length ) {
+                        $dropdown = $activeDropdown;
+                    }
+                }
 
-                if ( 0 === $target.length ) {
+                if ( undef === $dropdown ) {
                     return;
                 }
 
@@ -336,9 +343,9 @@
                     state = false;
                 }
 
-                $target.toggleClass( 'active', state );
-                $target.find( '.dropdown-list' ).toggle( state );
-                $target.find( '.button-dropdown-arrow' ).toggleClass( 'active', state );
+                $dropdown.toggleClass( 'active', state );
+                $dropdown.find( '.dropdown-list' ).toggle( state );
+                $dropdown.find( '.button-dropdown-arrow' ).toggleClass( 'active', state );
             }
 		})( jQuery );
 	</script>
