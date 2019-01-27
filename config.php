@@ -204,7 +204,7 @@
     #--------------------------------------------------------------------------------
 
     if ( ! defined( 'WP_FS__API_ADDRESS_LOCALHOST' ) ) {
-        define( 'WP_FS__API_ADDRESS_LOCALHOST', 'http://api.freemius:8080' );
+        define( 'WP_FS__API_ADDRESS_LOCALHOST', 'http://api.freemius-local.com:8080' );
     }
     if ( ! defined( 'WP_FS__API_SANDBOX_ADDRESS_LOCALHOST' ) ) {
         define( 'WP_FS__API_SANDBOX_ADDRESS_LOCALHOST', 'http://sandbox-api.freemius:8080' );
