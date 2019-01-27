@@ -16602,7 +16602,7 @@
             $license_product_ids = array();
 
             foreach ( $user_licenses as $license ) {
-                if ( 'bundle' === $license->plugin_type ) {
+                if ( isset( $license->plugin_type ) && 'bundle' === $license->plugin_type ) {
                     $license_product_ids = array_merge( $license_product_ids, $license->products );
                 } else {
                     $license_product_ids[] = $license->plugin_id;
@@ -16611,7 +16611,7 @@
 
             // Filter out non–add-on IDs.
             $new_account_addons = array_intersect( $addon_ids, $license_product_ids );
-            if ( ! empty( array_diff( $new_account_addons, $account_addons ) ) ) {
+            if ( count( $new_account_addons ) !== count( $account_addons ) ) {
                 $this->_store_account_addons( array_unique( $new_account_addons ) );
             }
 
