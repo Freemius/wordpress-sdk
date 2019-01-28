@@ -1002,8 +1002,8 @@ if ( !isset($info->error) ) {
 
             $active_plugins_basenames = get_option( 'active_plugins' );
 
-            for ( $i = 0, $len = count( $active_plugins_basenames ); $i < $len; $i ++ ) {
-                if ( $basename === $active_plugins_basenames[ $i ] ) {
+            foreach ( $active_plugins_basenames as $key => $active_plugin_basename ) {
+                if ( $basename === $active_plugin_basename ) {
                     // Get filename including extension.
                     $filename = basename( $basename );
 
@@ -1015,7 +1015,7 @@ if ( !isset($info->error) ) {
                     // Verify that the expected correct path exists.
                     if ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $new_basename ) ) ) {
                         // Override active plugin name.
-                        $active_plugins_basenames[ $i ] = $new_basename;
+                        $active_plugins_basenames[ $key ] = $new_basename;
                         update_option( 'active_plugins', $active_plugins_basenames );
                     }
 
