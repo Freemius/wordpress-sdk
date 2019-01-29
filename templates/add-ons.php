@@ -184,7 +184,7 @@
                                             $is_allowed_to_install     = $fs->is_allowed_to_install();
                                         ?>
 
-                                        <li class="fs-cta dropdown">
+                                        <li class="fs-cta fs-dropdown">
                                         <div class="button-group">
                                             <?php if ( $is_allowed_to_install ) : ?>
                                             <?php
@@ -197,33 +197,32 @@
                                             <?php else : ?>
                                             <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
                                             <?php endif ?>
-                                            <a class="button button-primary button-dropdown-arrow"><span class="dropdown-arrow"></span></a>
+                                            <div class="button button-primary fs-dropdown-arrow-button"><span class="fs-dropdown-arrow"></span><ul class="fs-dropdown-list" style="display: none">
+		                                            <?php if ( $is_allowed_to_install ) : ?>
+			                                            <li><a target="_blank" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a></li>
+		                                            <?php endif ?>
+		                                            <li><?php
+				                                            echo sprintf(
+					                                            $view_details_link,
+					                                            /**
+					                                             * No additional class.
+					                                             *
+					                                             * @author Leo Fajardo (@leorw)
+					                                             * @since 2.2.3.2
+					                                             */
+					                                            '',
+					                                            /**
+					                                             * Set the view details link text to a non-empty string since it is an
+					                                             * item in the dropdown list and the text should be visible.
+					                                             *
+					                                             * @author Leo Fajardo (@leorw)
+					                                             * @since 2.2.3.2
+					                                             */
+					                                            esc_html( $view_details_text )
+				                                            );
+			                                            ?></li>
+	                                            </ul></div>
                                         </div>
-                                        <ul class="dropdown-list" style="display: none">
-                                            <?php if ( $is_allowed_to_install ) : ?>
-                                                <li><a target="_blank" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a></li>
-                                            <?php endif ?>
-                                            <li><?php
-                                                echo sprintf(
-                                                    $view_details_link,
-                                                    /**
-                                                     * No additional class.
-                                                     *
-                                                     * @author Leo Fajardo (@leorw)
-                                                     * @since 2.2.3.2
-                                                     */
-                                                    '',
-                                                    /**
-                                                     * Set the view details link text to a non-empty string since it is an
-                                                     * item in the dropdown list and the text should be visible.
-                                                     *
-                                                     * @author Leo Fajardo (@leorw)
-                                                     * @since 2.2.3.2
-                                                     */
-                                                    esc_html( $view_details_text )
-                                                );
-                                            ?></li>
-                                        </ul>
                                     </li>
                                     <?php endif ?>
 								</ul>
@@ -266,7 +265,7 @@
 
 					$this.find( '.fs-cta .button' ).addClass( 'button-primary' );
 
-                    if ( 0 === $this.find( '.button-dropdown-arrow.active' ).length ) {
+                    if ( 0 === $this.find( '.fs-dropdown-arrow-button.active' ).length ) {
                         /**
                          * When hovering over a card, close the dropdown on any other card.
                          *
@@ -301,18 +300,18 @@
 					    return $( this ).parent().is( ':not(.button-group)' );
                     }).removeClass('button-primary');
 
-					toggleDropdown( $this.find( '.dropdown' ), false );
-				}).find( 'a.thickbox, .button:not(.button-dropdown-arrow)' ).click(function() {
+					toggleDropdown( $this.find( '.fs-dropdown' ), false );
+				}).find( 'a.thickbox, .button:not(.fs-dropdown-arrow-button)' ).click(function() {
                     toggleDropdown();
                 });
 
 			<?php endif ?>
 
-            var $dropdowns = $( '.dropdown' );
+            var $dropdowns = $( '.fs-dropdown' );
             if ( 0 !== $dropdowns.length ) {
-                $dropdowns.find( '.button-dropdown-arrow' ).click(function() {
+                $dropdowns.find( '.fs-dropdown-arrow-button' ).click(function() {
                     var $this     = $( this ),
-                        $dropdown = $this.parents( '.dropdown' );
+                        $dropdown = $this.parents( '.fs-dropdown' );
 
                     toggleDropdown( $dropdown, ! $dropdown.hasClass( 'active' ) );
                 });
@@ -344,8 +343,8 @@
                 }
 
                 $dropdown.toggleClass( 'active', state );
-                $dropdown.find( '.dropdown-list' ).toggle( state );
-                $dropdown.find( '.button-dropdown-arrow' ).toggleClass( 'active', state );
+                $dropdown.find( '.fs-dropdown-list' ).toggle( state );
+                $dropdown.find( '.fs-dropdown-arrow-button' ).toggleClass( 'active', state );
             }
 		})( jQuery );
 	</script>

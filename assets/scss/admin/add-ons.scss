@@ -38,23 +38,23 @@
                 height:           100%;
                 position:         relative;
 
-                ul
+                & > ul
                 {
                     @include transition(all, 0.15s);
                     left:     0;
                     right:    0;
                     top:      0;
                     position: absolute;
-                }
 
-                li
-                {
-                    list-style:  none;
-                    line-height: 18px;
-                    padding:     0 15px;
-                    width:       100%;
-                    display:     block;
-                    @include box-sizing(border-box);
+                    & > li
+                    {
+                        list-style:  none;
+                        line-height: 18px;
+                        padding:     0 15px;
+                        width:       100%;
+                        display:     block;
+                        @include box-sizing(border-box);
+                    }
                 }
 
                 .fs-card-banner
@@ -122,7 +122,7 @@
                         right: 10px;
                     }
 
-                    &.dropdown {
+                    &.fs-dropdown {
                         .button-group {
                             .button {
                                 position: relative;
@@ -130,11 +130,11 @@
                                 right: 0;
 
                                 &:focus {
-                                    z-index: 10;
+                                    z-index: 1;
                                 }
                             }
 
-                            .dropdown-arrow {
+                            .fs-dropdown-arrow {
                                 border-top: 6px solid white;
                                 border-right: 4px solid transparent;
                                 border-left: 4px solid transparent;
@@ -144,51 +144,43 @@
                         }
 
                         &.active {
-                            .button:not(.button-dropdown-arrow) {
+                            .button:not(.fs-dropdown-arrow-button) {
                                 border-bottom-left-radius: 0;
                             }
 
-                            .button-dropdown-arrow {
+                            .fs-dropdown-arrow-button {
                                 border-bottom-right-radius: 0;
                             }
                         }
 
-                        .dropdown-list {
+                        .fs-dropdown-list {
                             position: absolute;
-                            top: 141px;
-                            right: 9px;
+                            right: -1px;
+                            top: 100%;
                             margin-left: auto;
-                            border: 1px solid lighten($darkest-color, 65%);
+                            padding: 3px 0;
+                            border: 1px solid lighten($darkest-color, 75%);
                             @include border-radius(3px 0 3px 3px);
-                            background-color: white;
-                            z-index: 10;
+                            background-color: #fff;
+                            z-index: 1;
                             width: 230px;
-                            font-size: 12px;
+                            @include box-shadow(0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12));
 
                             li {
-                                position: relative;
                                 margin: 0;
-                                padding: 6px;
-                                height: 30px;
 
                                 a {
-                                    position: absolute;
-                                    top: 0;
-                                    right: 0;
-                                    display: inline-block;
-                                    width: 100%;
-                                    line-height: 30px;
-                                    text-indent: 6px;
+                                    display: block;
+                                    padding: 5px 10px;
                                     text-decoration: none;
-                                    color: black;
                                 }
 
                                 &:hover {
                                     background-color: $wp-selected-color;
-                                    color: white;
+                                    color: #fff;
 
                                     a {
-                                        color: white;
+                                        color: #fff;
                                     }
                                 }
                             }
