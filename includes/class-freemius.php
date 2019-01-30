@@ -8786,7 +8786,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.3.2
+         * @since  2.2.4
          *
          * @return number|null Bundle ID.
          */
@@ -11360,7 +11360,7 @@
                      * update the account add-ons (add-ons the user has licenses for).
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.3.2
+                     * @since 2.2.4
                      */
                     $this->purge_valid_user_licenses_cache();
                 }
@@ -16538,7 +16538,7 @@
          * the valid user licenses will be fetched again and the account add-ons may be updated.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.3.2
+         * @since 2.2.4
          */
         private function purge_valid_user_licenses_cache() {
             $user_licenses_endpoint = '/licenses.json?type=active' .
@@ -16553,7 +16553,7 @@
          * method filters out non–add-on product IDs and stores the add-on IDs.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.3.2
+         * @since 2.2.4
          *
          * @return stdClass[] array
          */
@@ -16578,7 +16578,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.3.2
+         * @since 2.2.4
          *
          * @return number[] Account add-on IDs.
          */
@@ -17539,7 +17539,7 @@
                                  * update the account add-ons (add-ons the user has licenses for).
                                  *
                                  * @author Leo Fajardo (@leorw)
-                                 * @since 2.2.3.2
+                                 * @since 2.2.4
                                  */
                                 $this->purge_valid_user_licenses_cache();
                             }
@@ -17850,7 +17850,7 @@
                  * update the account add-ons (add-ons the user has licenses for).
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.3.2
+                 * @since 2.2.4
                  */
                 $this->purge_valid_user_licenses_cache();
             }

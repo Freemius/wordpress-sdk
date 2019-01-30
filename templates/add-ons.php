@@ -120,7 +120,7 @@
                                      * Additional class.
                                      *
                                      * @author Leo Fajardo (@leorw)
-                                     * @since 2.2.3.2
+                                     * @since 2.2.4
                                      */
                                     ' fs-overlay',
                                     /**
@@ -129,7 +129,7 @@
                                      * the card is clicked.
                                      *
                                      * @author Leo Fajardo (@leorw)
-                                     * @since 2.2.3.2
+                                     * @since 2.2.4
                                      */
                                     ''
                                 );
@@ -208,7 +208,7 @@
 					                                             * No additional class.
 					                                             *
 					                                             * @author Leo Fajardo (@leorw)
-					                                             * @since 2.2.3.2
+					                                             * @since 2.2.4
 					                                             */
 					                                            '',
 					                                            /**
@@ -216,7 +216,7 @@
 					                                             * item in the dropdown list and the text should be visible.
 					                                             *
 					                                             * @author Leo Fajardo (@leorw)
-					                                             * @since 2.2.3.2
+					                                             * @since 2.2.4
 					                                             */
 					                                            esc_html( $view_details_text )
 				                                            );
@@ -270,7 +270,7 @@
                          * When hovering over a card, close the dropdown on any other card.
                          *
                          * @author Leo Fajardo (@leorw)
-                         * @since 2.2.3.2
+                         * @since 2.2.4
                          */
                         toggleDropdown();
                     }
@@ -287,7 +287,7 @@
                      * Set the color of the "View details" button to "secondary".
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.3.2
+                     * @since 2.2.4
                      */
 					$this.find( '.fs-cta .button' ).filter(function() {
                         /**
@@ -295,7 +295,7 @@
                          * "Download Latest" button.
 
                          * @author Leo Fajardo (@leorw)
-                         * @since 2.2.3.2
+                         * @since 2.2.4
                          */
 					    return $( this ).parent().is( ':not(.button-group)' );
                     }).removeClass('button-primary');
@@ -321,7 +321,7 @@
              * Returns the default state of the dropdown arrow button and hides the dropdown list.
              *
              * @author Leo Fajardo (@leorw)
-             * @since 2.2.3.2
+             * @since 2.2.4
              *
              * @param {(Object|undefined)}  [$dropdown]
              * @param {(Boolean|undefined)} [state]

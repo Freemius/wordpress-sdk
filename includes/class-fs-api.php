@@ -253,7 +253,7 @@
                              * If the response code is 404, cache the result for half of the `$expiration`.
                              *
                              * @author Leo Fajardo (@leorw)
-                             * @since 2.2.3.1
+                             * @since 2.2.4
                              */
 					        $expiration /= 2;
                         } else {
