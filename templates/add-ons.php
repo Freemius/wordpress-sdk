@@ -51,6 +51,17 @@
 			<?php endif ?>
 			<ul class="fs-cards-list">
 				<?php if ( $has_addons ) : ?>
+					<?php
+					$result = $fs->get_api_plugin_scope()->get( $fs->add_show_pending( "/addons/pricing.json?type=visible" ) );
+
+					$plans_and_pricing_by_addon_id = array();
+					if ($fs->is_api_result_object( $result, 'addons')) {
+						foreach ( $result->addons as $addon ) {
+							$plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
+						}
+					}
+
+					?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
                         $is_addon_installed = $fs->is_addon_installed( $addon->id );
@@ -65,9 +76,8 @@
 						$has_free_plan = false;
 						$has_paid_plan = false;
 
-						$result    = $fs->get_api_plugin_scope()->get( $fs->add_show_pending( "/addons/{$addon->id}/pricing.json?type=visible" ) );
-						if ( ! isset( $result->error ) ) {
-							$plans = $result->plans;
+						if ( isset( $plans_and_pricing_by_addon_id[$addon->id] ) ) {
+							$plans = $plans_and_pricing_by_addon_id[$addon->id];
 
 							if ( is_array( $plans ) && 0 < count( $plans ) ) {
 								foreach ( $plans as $plan ) {
