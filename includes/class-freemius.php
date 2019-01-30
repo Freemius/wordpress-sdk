@@ -2621,6 +2621,10 @@
                 $active_basenames = get_option( 'active_plugins' );
             }
 
+            if ( ! is_array( $active_basenames ) ) {
+                $active_basenames = array();
+            }
+
             if ( is_multisite() ) {
                 $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
 
@@ -4459,14 +4463,18 @@
         private function should_use_freemius_updater_and_dialog() {
             return (
                 /**
-                 * Unless the `fs_allow_updater_and_dialog` URL param exists and its value is `true`, disallow updater
-                 * and dialog on the "Add Plugins" admin page (/plugin-install.php) so that they won't interfere with
-                 * the .org plugins' functionalities on that page (e.g. installation and viewing plugin details from
-                 * .org).
+                 * Allow updater and dialog when the `fs_allow_updater_and_dialog` URL query param exists and has `true`
+                 * value, or when the current page is not the "Add Plugins" page (/plugin-install.php) and the `action`
+                 * URL query param doesn't exist or its value is not `install-plugin` so that there will be no conflicts
+                 * with the .org plugins' functionalities (e.g. installation from the "Add Plugins" page and viewing
+                 * plugin details from .org).
                  */
-                ( ! self::is_plugin_install_page() || true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) &&
-                // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
-                ( 'install-plugin' !== fs_request_get( 'action' ) )
+                ( true === fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) ||
+                (
+                    ! self::is_plugin_install_page() &&
+                    // Disallow updater and dialog when installing a plugin, otherwise .org "add-on" plugins will be affected.
+                    ( 'install-plugin' !== fs_request_get( 'action' ) )
+                )
             );
         }
 
@@ -11345,6 +11353,18 @@
             if ( false !== $error ) {
                 $result['error'] = $error;
             } else {
+                if ( $this->is_addon() || $this->has_addons() ) {
+                    /**
+                     * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                     * an updated valid user licenses collection will be fetched from the server which is used to also
+                     * update the account add-ons (add-ons the user has licenses for).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.3.2
+                     */
+                    $this->purge_valid_user_licenses_cache();
+                }
+
                 $result['next_page'] = $next_page;
             }
 
@@ -16514,6 +16534,95 @@
         }
 
         /**
+         * Purges the cache for the valid user licenses API call so that when the `Account` or `Add-Ons` page is loaded,
+         * the valid user licenses will be fetched again and the account add-ons may be updated.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         */
+        private function purge_valid_user_licenses_cache() {
+            $user_licenses_endpoint = '/licenses.json?type=active' .
+                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
+
+            $this->get_api_user_scope()->purge_cache( $user_licenses_endpoint );
+        }
+
+        /**
+         * Fetches active licenses that are enriched with product type if there's a context `bundle_id` and bundle
+         * licenses enriched with product IDs if there are any. From the licenses, the `get_updated_account_addons`
+         * method filters out non–add-on product IDs and stores the add-on IDs.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         *
+         * @return stdClass[] array
+         */
+        private function fetch_valid_user_licenses() {
+            $this->_logger->entrance();
+
+            $api = $this->get_api_user_scope();
+
+            $user_licenses_endpoint = '/licenses.json?type=active' .
+                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
+
+            $result = $api->get( $user_licenses_endpoint );
+
+            if ( ! $this->is_api_result_object( $result, 'licenses' ) ||
+                ! is_array( $result->licenses )
+            ) {
+                return array();
+            }
+
+            return $result->licenses;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.3.2
+         *
+         * @return number[] Account add-on IDs.
+         */
+        function get_updated_account_addons() {
+            $addons = $this->get_addons();
+            if ( empty( $addons ) ) {
+                return array();
+            }
+
+            $account_addons = $this->get_account_addons();
+            if ( ! is_array( $account_addons ) ) {
+                $account_addons = array();
+            }
+
+            $user_licenses = $this->fetch_valid_user_licenses();
+            if ( empty( $user_licenses ) ) {
+                return $account_addons;
+            }
+
+            $addon_ids = array();
+            foreach ( $addons as $addon ) {
+                $addon_ids[] = $addon->id;
+            }
+
+            $license_product_ids = array();
+
+            foreach ( $user_licenses as $license ) {
+                if ( isset( $license->plugin_type ) && 'bundle' === $license->plugin_type ) {
+                    $license_product_ids = array_merge( $license_product_ids, $license->products );
+                } else {
+                    $license_product_ids[] = $license->plugin_id;
+                }
+            }
+
+            // Filter out non–add-on IDs.
+            $new_account_addons = array_intersect( $addon_ids, $license_product_ids );
+            if ( count( $new_account_addons ) !== count( $account_addons ) ) {
+                $this->_store_account_addons( array_unique( $new_account_addons ) );
+            }
+
+            return $new_account_addons;
+        }
+
+        /**
          * Store account params in the Database.
          *
          * @author Vova Feldman (@svovaf)
@@ -17423,6 +17532,18 @@
                              */
                             $this->_update_site_license( $new_license );
 
+                            if ( $this->is_addon() || $this->has_addons() ) {
+                                /**
+                                 * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                                 * an updated valid user licenses collection will be fetched from the server which is used to also
+                                 * update the account add-ons (add-ons the user has licenses for).
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.2.3.2
+                                 */
+                                $this->purge_valid_user_licenses_cache();
+                            }
+
                             if ( ! $is_context_single_site &&
                                  fs_is_network_admin() &&
                                  $this->_is_network_active &&
@@ -17721,6 +17842,18 @@
             $this->_update_site_license( $premium_license );
 
             $this->_store_account();
+
+            if ( $this->is_addon() || $this->has_addons() ) {
+                /**
+                 * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                 * an updated valid user licenses collection will be fetched from the server which is used to also
+                 * update the account add-ons (add-ons the user has licenses for).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.3.2
+                 */
+                $this->purge_valid_user_licenses_cache();
+            }
 
             if ( ! $background ) {
                 $this->_admin_notices->add_sticky(
