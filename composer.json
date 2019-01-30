@@ -1,7 +1,7 @@
 {
     "name": "freemius/wordpress-sdk",
     "description": "Freemius WordPress SDK",
-    "keywords": ["freemius", "wordpress", "plugin", "sdk"],
+    "keywords": ["freemius", "wordpress", "plugin", "wordpress-plugin", "theme", "wordpress-theme", "sdk"],
     "homepage": "https://freemius.com",
     "license": "GPL-3.0-only",
     "require": {
