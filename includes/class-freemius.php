@@ -10901,7 +10901,7 @@
                 return true;
             }
 
-            return ( 1 === count( $this->_plans ) );
+            return ( 1 === ( count( $this->_plans ) - ( $this->has_free_plan() ? 1 : 0 ) ) );
         }
 
         /**
