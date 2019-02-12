@@ -20002,7 +20002,9 @@
                 );
             }
 
-            if ( $this->has_addons() ) {
+            if ( $this->has_addons() &&
+                 $this->is_submenu_item_visible( 'addons' )
+            ) {
                 $this->add_plugin_action_link(
                     $this->get_text_inline( 'Add-Ons', 'add-ons' ),
                     $this->_get_admin_page_url( 'addons' ),
