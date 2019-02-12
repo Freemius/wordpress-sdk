@@ -19990,7 +19990,9 @@
         function _add_upgrade_action_link() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_paying() && $this->has_paid_plan() ) {
+            if ( $this->is_pricing_page_visible() &&
+                 $this->is_submenu_item_visible( 'pricing' )
+            ) {
                 $this->add_plugin_action_link(
                     $this->get_text_inline( 'Upgrade', 'upgrade' ),
                     $this->get_upgrade_url(),
