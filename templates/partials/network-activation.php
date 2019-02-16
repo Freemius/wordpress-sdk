@@ -9,6 +9,8 @@
 
     $sites               = $VARS['sites'];
     $require_license_key = $VARS['require_license_key'];
+
+    $show_delegation_option = $fs->apply_filters( 'show_delegation_option', true );
 ?>
 <?php $separator      = '<td>|</td>' ?>
 <div id="multisite_options_container" class="apply-on-all-sites">
@@ -35,7 +37,9 @@
             <?php if ( ! $require_license_key ) : ?>
                 <td><a class="action action-allow" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                 <?php echo $separator ?>
+                <?php if ( $show_delegation_option ) : ?>
                 <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                <?php endif ?>
                 <?php if ( $fs->is_enable_anonymous() ) : ?>
                     <?php echo $separator ?>
                     <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
@@ -67,7 +71,9 @@
                     <?php if ( ! $require_license_key ) : ?>
                         <td><a class="action action-allow selected" data-action-type="allow" href="#"><?php fs_esc_html_echo_inline( 'allow', 'allow', $slug ) ?></a></td>
                         <?php echo $separator ?>
+                        <?php if ( $show_delegation_option ) : ?>
                         <td><a class="action action-delegate" data-action-type="delegate" href="#"><?php fs_esc_html_echo_inline( 'delegate', 'delegate', $slug ) ?></a></td>
+                        <?php endif ?>
                         <?php if ( $fs->is_enable_anonymous() ) : ?>
                             <?php echo $separator ?>
                             <td><a class="action action-skip" data-action-type="skip" href="#"><?php echo strtolower( fs_esc_html_inline( 'skip', 'skip', $slug ) ) ?></a></td>
