@@ -68,8 +68,11 @@ HTML;
 	$activate_x_text = fs_text_inline( 'Activate %s', 'activate-x', $slug );
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
+
+	if ( $fs->apply_filters( 'show_deactivation_subscription_cancellation', true ) ) {
+		$fs->_maybe_add_subscription_cancellation_dialog_box();
+	}
 ?>
-<?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
 <script type="text/javascript">
 (function ($) {
 	var reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
