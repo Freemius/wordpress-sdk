@@ -10,10 +10,12 @@
     $sites               = $VARS['sites'];
     $require_license_key = $VARS['require_license_key'];
 
-    $show_delegation_option = $fs->apply_filters( 'show_delegation_option', true );
+    $show_delegation_option     = $fs->apply_filters( 'show_delegation_option', true );
+    $enable_per_site_activation = $fs->apply_filters( 'enable_per_site_activation', true );
 ?>
 <?php $separator      = '<td>|</td>' ?>
-<div id="multisite_options_container" class="apply-on-all-sites">
+<div id="multisite_options_container" class="apply-on-all-sites"<?php if ( ! $enable_per_site_activation )
+    echo ' style="display: none;"' ?>>
     <table id="all_sites_options">
         <tbody>
         <tr>
