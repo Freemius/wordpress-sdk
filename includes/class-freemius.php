@@ -14124,7 +14124,7 @@
 
                 $result->error = (object) array(
                     'type'    => $error_type,
-                    'message' => $response->get_error_message(),
+                    'message' => $this->add_filter( 'opt_in_error_message', $response->get_error_message() ),
                     'code'    => $error_code,
                     'http'    => 402
                 );
