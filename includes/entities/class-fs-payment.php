@@ -43,6 +43,13 @@
          */
         public $gross;
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.3
+         *
+         * @var string One of the following: `usd`, `gbp`, `eur`.
+         */
+        public $currency;
+        /**
          * @var number
          */
         public $bound_payment_id;
@@ -75,6 +82,10 @@
 
         #endregion Properties
 
+        const CURRENCY_USD = 'usd';
+        const CURRENCY_GBP = 'gbp';
+        const CURRENCY_EUR = 'eur';
+
         /**
          * @param object|bool $payment
          */
@@ -106,5 +117,43 @@
          */
         function is_migrated() {
             return ( 0 != $this->source );
+        }
+
+        /**
+         * Returns the gross in this format:
+         *  `{symbol}{amount | 2 decimal digits} {currency | uppercase}`
+         *
+         * Examples: £9.99 GBP, -£9.99 GBP.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.3
+         *
+         * @return string
+         */
+        function formatted_gross()
+        {
+            return (
+                ( $this->gross < 0 ? '-' : '' ) .
+                $this->get_symbol() .
+                number_format( abs( $this->gross ), 2, '.', ',' ) . ' ' .
+                strtoupper( $this->currency )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.3
+         *
+         * @return string
+         */
+        private function get_symbol()
+        {
+            $currency_2_symbol = array(
+                self::CURRENCY_USD => '$',
+                self::CURRENCY_GBP => '£',
+                self::CURRENCY_EUR => '€',
+            );
+
+            return $currency_2_symbol[$this->currency];
         }
     }
