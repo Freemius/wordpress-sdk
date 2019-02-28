@@ -1844,6 +1844,7 @@
             $caller_map            = array();
             $module_type           = WP_FS__MODULE_TYPE_PLUGIN;
             $themes_dir            = fs_normalize_path( get_theme_root( get_stylesheet() ) );
+            $plugin_dir_to_skip    = false;
 
             for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
                 if ( empty( $bt[ $i ]['file'] ) ) {
@@ -1869,11 +1870,45 @@
                         'activate_plugin'
                     ) )
                 ) {
+                    if ( 'activate_plugin' === $bt[ $i ]['function'] ) {
+                        /**
+                         * Store the directory of the activator plugin so that any other file that starts with it
+                         * cannot be mistakenly chosen as a candidate caller file.
+                         *
+                         * @author Leo Fajardo
+                         *
+                         * @since 2.2.4.2
+                         */
+                        $caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
+
+                        foreach ( $all_plugins_paths as $plugin_path ) {
+                            $plugin_dir = fs_normalize_path( dirname( $plugin_path ) . '/' );
+                            if ( false !== strpos( $caller_file_path, $plugin_dir ) ) {
+                                $plugin_dir_to_skip = $plugin_dir;
+
+                                break;
+                            }
+                        }
+                    }
+
                     // Ignore call stack hooks and files inclusion.
                     continue;
                 }
 
                 $caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
+
+                if ( ! empty( $plugin_dir_to_skip ) ) {
+                    /**
+                     * Skip if it's an activator plugin file to avoid mistakenly choosing it as a candidate caller file.
+                     *
+                     * @author Leo Fajardo
+                     *
+                     * @since 2.2.4.2
+                     */
+                    if ( 0 === strpos( $caller_file_path, $plugin_dir_to_skip ) ) {
+                        continue;
+                    }
+                }
 
                 if ( 'functions.php' === basename( $caller_file_path ) ) {
                     /**
