@@ -1844,7 +1844,7 @@
             $caller_map            = array();
             $module_type           = WP_FS__MODULE_TYPE_PLUGIN;
             $themes_dir            = fs_normalize_path( get_theme_root( get_stylesheet() ) );
-            $plugin_dir_to_skip    = array();
+            $plugin_dir_to_skip    = false;
 
             for ( $i = 1, $bt = debug_backtrace(), $len = count( $bt ); $i < $len; $i ++ ) {
                 if ( empty( $bt[ $i ]['file'] ) ) {
