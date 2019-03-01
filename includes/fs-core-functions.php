@@ -142,13 +142,13 @@
 
             switch ( $type ) {
                 case 'post':
-                    $value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
+                    $value = isset( $_POST[ $key ] ) ? sanitize_text_field( $_POST[ $key ] ) : $def;
                     break;
                 case 'get':
-                    $value = isset( $_GET[ $key ] ) ? $_GET[ $key ] : $def;
+                    $value = isset( $_GET[ $key ] ) ? sanitize_text_field( $_GET[ $key ] ) : $def;
                     break;
                 default:
-                    $value = isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $def;
+                    $value = isset( $_REQUEST[ $key ] ) ? sanitize_text_field( $_REQUEST[ $key ] ) : $def;
                     break;
             }
 
@@ -202,7 +202,7 @@
                 $action_key = 'fs_action';
 
                 if ( ! empty( $_REQUEST[ $action_key ] ) && is_string( $_REQUEST[ $action_key ] ) ) {
-                    return strtolower( $_REQUEST[ $action_key ] );
+                    return strtolower( sanitize_text_field( $_REQUEST[ $action_key ] ) );
                 }
             }
 
