@@ -422,7 +422,7 @@
 
                 $this->_update_details = false;
 
-                if ( is_object( $new_version ) ) {
+                if ( is_object( $new_version ) && $this->is_new_version_premium( $new_version ) ) {
                     $this->_logger->log( 'Found newer plugin version ' . $new_version->version );
 
                     /**
@@ -437,10 +437,22 @@
             }
 
             if ( is_object( $this->_update_details ) ) {
+                if ( ! isset( $transient_data->response ) ) {
+                    $transient_data->response = array();
+                }
+
                 // Add plugin to transient data.
-                $transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_fs->is_plugin() ?
+                $transient_data->response[ $this->_fs->premium_plugin_basename() ] = $this->_fs->is_plugin() ?
                     $this->_update_details :
                     (array) $this->_update_details;
+            } else if ( isset( $transient_data->response ) ) {
+                /**
+                 * Ensure that there's no update data for the plugin to prevent upgrading the premium version to the latest free version.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.3
+                 */
+                unset( $transient_data->response[ $this->_fs->premium_plugin_basename() ] );
             }
 
             $slug = $this->_fs->get_slug();
@@ -533,6 +545,25 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.3
+         *
+         * @param FS_Plugin_Tag $new_version
+         *
+         * @return bool
+         */
+        private function is_new_version_premium( FS_Plugin_Tag $new_version ) {
+            $query_str = parse_url( $new_version->url, PHP_URL_QUERY );
+            if ( empty( $query_str ) ) {
+                return false;
+            }
+
+            parse_str( $query_str, $params );
+
+            return ( isset( $params['is_premium'] ) && 'true' == $params['is_premium'] );
+        }
+
+        /**
          * Update the updates transient with the module's update information.
          *
          * This method is required for multisite environment.
@@ -549,6 +580,10 @@
          */
         function set_update_data( FS_Plugin_Tag $new_version ) {
             $this->_logger->entrance();
+
+            if ( ! $this->is_new_version_premium( $new_version ) ) {
+                return;
+            }
 
             $transient_key = "update_{$this->_fs->get_module_type()}s";
 
