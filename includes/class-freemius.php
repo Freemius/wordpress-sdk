@@ -1467,7 +1467,7 @@
         static function _remove_fs_updates_from_plugin_install_page( $updates, $transient = null ) {
             if ( is_object( $updates ) && isset( $updates->response ) ) {
                 foreach ( $updates->response as $file => $plugin ) {
-                    if ( false !== strpos( $plugin->package, 'api.freemius' ) ) {
+                    if ( isset( $plugin->package ) && false !== strpos( $plugin->package, 'api.freemius' ) ) {
                         unset( $updates->response[ $file ] );
                     }
                 }
