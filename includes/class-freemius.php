@@ -18469,9 +18469,16 @@
         function _get_invoice_api_url( $payment_id = false ) {
             $this->_logger->entrance();
 
-            return $this->get_api_user_scope()->get_signed_url(
+            $url = $this->get_api_user_scope()->get_signed_url(
                 "/payments/{$payment_id}/invoice.pdf"
             );
+
+            if ( ! fs_starts_with( $url, 'https://' ) ) {
+                // Always use HTTPS for invoices.
+                $url = 'https' . substr( $url, 4 );
+            }
+
+            return $url;
         }
 
         /**
