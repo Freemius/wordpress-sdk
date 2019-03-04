@@ -437,10 +437,22 @@
             }
 
             if ( is_object( $this->_update_details ) ) {
+                if ( ! isset( $transient_data->response ) ) {
+                    $transient_data->response = array();
+                }
+
                 // Add plugin to transient data.
                 $transient_data->response[ $this->_fs->get_plugin_basename() ] = $this->_fs->is_plugin() ?
                     $this->_update_details :
                     (array) $this->_update_details;
+            } else if ( isset( $transient_data->response ) && $this->_fs->is_premium() ) {
+                /**
+                 * Ensure that there's no update data for the plugin to prevent upgrading the premium version to the latest free version.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.3
+                 */
+                unset( $transient_data->response[ $this->_fs->get_plugin_basename() ] );
             }
 
             $slug = $this->_fs->get_slug();
