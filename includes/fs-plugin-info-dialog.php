@@ -1136,7 +1136,96 @@
             }
 
             echo "</div>\n";
+            ?>
+            <script type="text/javascript">
+                ( function( $, undef ) {
+                    var $dropdowns = $( '.fs-dropdown' );
 
+                    $( '#plugin-information' )
+                        .click( function( evt ) {
+                            var $target = $( evt.target );
+
+                            if (
+                                $target.hasClass( 'fs-dropdown-arrow-button' ) ||
+                                ( 0 !== $target.parents( '.fs-dropdown-arrow-button' ).length )
+                            ) {
+                                var $dropdown = $target.parents( '.fs-dropdown' ),
+                                    isActive  = $dropdown.hasClass( 'active' );
+
+                                if ( ! isActive ) {
+                                    /**
+                                     * Close the other dropdown if it's active.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.2.4.4
+                                     */
+                                    $( '.fs-dropdown.active' ).each( function() {
+                                        toggleDropdown( $( this ), false );
+                                    } );
+                                }
+
+                                /**
+                                 * Toggle the current dropdown.
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.2.4.4
+                                 */
+                                toggleDropdown( $dropdown, ! isActive );
+
+                                return true;
+                            }
+
+                            /**
+                             * Close all dropdowns.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.4
+                             */
+                            toggleDropdown( $( this ).find( '.fs-dropdown' ), false );
+                        });
+
+                    if ( 0 !== $dropdowns.length ) {
+                        /**
+                         * Add the `up` class so that the bottom dropdown's content will be shown above its buttons.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.2.4.4
+                         */
+                        $( '#plugin-information-footer' ).find( '.fs-dropdown' ).addClass( 'up' );
+                    }
+
+                    /**
+                     * Returns the default state of the dropdown arrow button and hides the dropdown list.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.4
+                     *
+                     * @param {Object}  [$dropdown]
+                     * @param {Boolean} [state]
+                     */
+                    function toggleDropdown( $dropdown, state ) {
+                        if ( undef === $dropdown ) {
+                            var $activeDropdown = $dropdowns.find( '.active' );
+                            if ( 0 !== $activeDropdown.length ) {
+                                $dropdown = $activeDropdown;
+                            }
+                        }
+
+                        if ( undef === $dropdown ) {
+                            return;
+                        }
+
+                        if ( undef === state ) {
+                            state = false;
+                        }
+
+                        $dropdown.toggleClass( 'active', state );
+                        $dropdown.find( '.fs-dropdown-list' ).toggle( state );
+                        $dropdown.find( '.fs-dropdown-arrow-button' ).toggleClass( 'active', state );
+                    }
+                } )( jQuery );
+            </script>
+            <?php
             iframe_footer();
             exit;
         }
