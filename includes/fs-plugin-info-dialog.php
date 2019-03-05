@@ -172,9 +172,11 @@
             } else {
                 $data->wp_org_missing = false;
 
+                $fs_addon              = null;
                 $current_addon_version = false;
                 if ( $this->_fs->is_addon_activated( $selected_addon->id ) ) {
-                    $current_addon_version = $this->_fs->get_addon_instance( $selected_addon->id )->get_plugin_version();
+                    $fs_addon              = $this->_fs->get_addon_instance( $selected_addon->id );
+                    $current_addon_version = $fs_addon->get_plugin_version();
                 } else if ( $this->_fs->is_addon_installed( $selected_addon->id ) ) {
                     $addon_plugin_data = get_plugin_data(
                         ( WP_PLUGIN_DIR . '/' . $this->_fs->get_addon_basename( $selected_addon->id ) ),
@@ -197,6 +199,15 @@
 
                 if ( $has_paid_plan ) {
                     $data->checkout_link = $this->_fs->checkout_url();
+
+                    if ( is_object( $fs_addon ) ) {
+                        $data->can_install_premium_version = $fs_addon->has_active_valid_license();
+                    } else {
+                        $account_addons = $this->_fs->get_account_addons();
+                        if ( ! empty( $account_addons ) && in_array( $selected_addon->id, $account_addons ) ) {
+                            $data->can_install_premium_version = true;
+                        }
+                    }
                 }
                 if ( $has_free_plan ) {
                     $data->download_link = $this->_fs->_get_latest_download_local_url( $selected_addon->id );
@@ -268,6 +279,10 @@
             $data->is_paid             = $has_paid_plan;
             $data->is_wp_org_compliant = $selected_addon->is_wp_org_compliant;
 
+            if ( ! isset( $data->can_install_premium_version ) ) {
+                $data->can_install_premium_version = false;
+            }
+
             return $data;
         }
 
@@ -333,6 +348,85 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.4.4
+         *
+         * @param object         $api
+         * @param FS_Plugin_Plan $plan
+         *
+         * @return string
+         */
+        private function get_ctas_dropdown( $api, $plan = null ) {
+            $status = install_plugin_install_status( $api );
+
+            $buttons = array();
+
+            $download_cta = $this->get_download_cta( $api, $status );
+            if ( ! empty( $download_cta ) ) {
+                $buttons[] = $download_cta;
+            }
+
+            $checkout_cta = $this->get_checkout_cta( $api, $plan = null );
+
+            if ( ! empty( $checkout_cta ) ) {
+                if ( $api->can_install_premium_version ) {
+                    $buttons[] = $checkout_cta;
+                } else {
+                    array_unshift( $buttons, $checkout_cta );
+                }
+            }
+
+            $addon_id = $api->plans[0]->plugin_id;
+
+            if (
+                ! empty( $status['status'] ) &&
+                'install' !== $status['status'] &&
+                ! $this->_fs->is_addon_activated( $addon_id )
+            ) {
+                $addon_file = $this->_fs->get_addon_basename( $addon_id );
+                $addon      = $this->_fs->get_addon( $addon_id );
+
+                array_unshift( $buttons, sprintf(
+                    '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
+                    wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ),
+                    fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $addon->slug ),
+                    fs_text_inline( 'Activate', 'activate', $addon->slug )
+                ));
+            }
+
+            if ( empty( $buttons ) ) {
+                return '';
+            }
+
+            $total_buttons = count( $buttons );
+            if ( 1 === $total_buttons ) {
+                return $buttons[0];
+            }
+
+            ob_start();
+            ?>
+            <div class="fs-cta fs-dropdown">
+                <div class="button-group">
+                    <?php echo $buttons[0] ?>
+                    <div class="button button-primary fs-dropdown-arrow-button">
+                        <span class="fs-dropdown-arrow"></span>
+                        <ul class="fs-dropdown-list" style="display: none">
+                            <?php
+                                for ( $i = 1; $i < $total_buttons; $i ++ ) {
+                                    ?>
+                                    <li><?php echo str_replace( 'button button-primary', '', $buttons[ $i ] ) ?></li>
+                                    <?php
+                                }
+                            ?>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <?php
+            return ob_get_clean();
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7
          *
@@ -381,18 +475,17 @@
          * @since  2.0.0
          *
          * @param object $api
+         * @param string $status
          * @param bool   $is_primary
          *
          * @return string
          */
-        private function get_download_cta( $api, $is_primary = true ) {
+        private function get_download_cta( $api, $status, $is_primary = true ) {
             if ( empty( $api->download_link ) ) {
                 return '';
             }
 
-            $status = install_plugin_install_status( $api );
-
-            $has_paid_version = $api->has_paid_plan;
+            $can_install_premium = $api->can_install_premium_version;
 
             // Hosted on WordPress.org.
             switch ( $status['status'] ) {
@@ -409,7 +502,7 @@
                          */
                         if ( $status['url'] ) {
                             return $this->get_cta(
-                                ( $has_paid_version ?
+                                ( ! $can_install_premium ?
                                     fs_esc_html_inline( 'Install Free Version Now', 'install-free-version-now', $api->slug ) :
                                     fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) ),
                                 $is_primary,
@@ -421,7 +514,7 @@
                     }
 
                     return $this->get_cta(
-                        ( $has_paid_version ?
+                        ( ! $can_install_premium ?
                             fs_esc_html_x_inline( 'Download Latest Free Version', 'as download latest version', 'download-latest-free-version', $api->slug ) :
                             fs_esc_html_x_inline( 'Download Latest', 'as download latest version', 'download-latest', $api->slug ) ),
                         $is_primary,
@@ -432,7 +525,7 @@
                 case 'update_available':
                     if ( $status['url'] ) {
                         return $this->get_cta(
-                            ( $has_paid_version ?
+                            ( ! $can_install_premium ?
                                 fs_esc_html_inline( 'Install Free Version Update Now', 'install-free-version-update-now', $api->slug ) :
                                 fs_esc_html_inline( 'Install Update Now', 'install-update-now', $api->slug ) ),
                             $is_primary,
@@ -444,7 +537,7 @@
                     break;
                 case 'newer_installed':
                     return $this->get_cta(
-                        ( $has_paid_version ?
+                        ( ! $can_install_premium ?
                             esc_html( sprintf( fs_text_inline( 'Newer Free Version (%s) Installed', 'newer-free-installed', $api->slug ), $status['version'] ) ) :
                             esc_html( sprintf( fs_text_inline( 'Newer Version (%s) Installed', 'newer-installed', $api->slug ), $status['version'] ) ) ),
                         $is_primary,
@@ -453,7 +546,7 @@
                     break;
                 case 'latest_installed':
                     return $this->get_cta(
-                        ( $has_paid_version ?
+                        ( ! $can_install_premium ?
                             fs_esc_html_inline( 'Latest Free Version Installed', 'latest-free-installed', $api->slug ) :
                             fs_esc_html_inline( 'Latest Version Installed', 'latest-installed', $api->slug ) ),
                         $is_primary,
@@ -815,7 +908,7 @@
                                                     }?>;
                                                 },
                                                 _updateCtaUrl           = function (plan, pricing, cycle) {
-                                                    $('.plugin-information-pricing .button, #plugin-information-footer .button.fs-checkout-button').attr('href', _checkoutUrl(plan, pricing, cycle));
+                                                    $('.plugin-information-pricing .fs-checkout-button, #plugin-information-footer .fs-checkout-button').attr('href', _checkoutUrl(plan, pricing, cycle));
                                                 };
 
                                             $(document).ready(function () {
@@ -902,7 +995,7 @@
                                     <?php endif ?>
                                     <ul class="fs-licenses">
                                     </ul>
-                                    <?php echo $this->get_checkout_cta( $api, $plan, false ) ?>
+                                    <?php echo $this->get_ctas_dropdown( $api, $plan ) ?>
                                     <div style="clear:both"></div>
                                     <?php if ( $plan->has_trial() ) : ?>
                                         <?php $trial_period = $this->get_trial_period( $plan ) ?>
@@ -1127,13 +1220,8 @@
             echo "</div>\n"; // #plugin-information-scrollable
             echo "<div id='$tab-footer'>\n";
 
-            if ( $api->has_paid_plan && ! empty( $api->checkout_link ) ) {
-                echo $this->get_checkout_cta( $api );
-            }
 
-            if ( ! empty( $api->download_link ) ) {
-                echo $this->get_download_cta( $api, empty( $api->checkout_link ) );
-            }
+            echo $this->get_ctas_dropdown( $api, null );
 
             echo "</div>\n";
             ?>
