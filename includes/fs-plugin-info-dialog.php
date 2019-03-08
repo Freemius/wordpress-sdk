@@ -537,7 +537,7 @@
                     if ( $has_installed_version ) {
                         if ( $is_update_available ) {
                             $can_install_free_version_update = true;
-                        } else if ( ! is_plugin_active( $status['file'] ) ) {
+                        } else if ( ! $is_premium_installed && ! is_plugin_active( $status['file'] ) ) {
                             $can_activate_free_version = true;
                         }
                     } else {
