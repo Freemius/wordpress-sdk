@@ -691,7 +691,7 @@
                 }
 
                 if ( $can_install_premium_version || $can_install_premium_version_update ) {
-                    if ( $can_download_premium_version ) {
+                    if ( $can_download_premium_version && ! empty( $download_latest_action ) ) {
                         $actions[] = $download_latest_action;
 
                         $download_latest_action = '';
