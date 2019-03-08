@@ -264,6 +264,8 @@
                     $data->last_updated = $latest->created;
                     $data->requires     = $latest->requires_platform_version;
                     $data->tested       = $latest->tested_up_to_version;
+                } else if ( ! empty( $current_addon_version ) ) {
+                    $data->version = $current_addon_version;
                 } else {
                     // Add dummy version.
                     $data->version = '1.0.0';
@@ -539,7 +541,10 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.4.4
                  */
-                $fs_addon = $this->_fs->get_addon_instance( $api->slug );
+                $fs_addon = $is_addon_activated ?
+                    $this->_fs->get_addon_instance( $api->slug ) :
+                    null;
+
                 if ( is_object( $fs_addon ) ) {
                     if ( $fs_addon->is_premium() ) {
                         $is_premium_installed = true;
@@ -592,17 +597,16 @@
                     }
                 }
             } else {
-                if ( ! is_object( $fs_addon ) ) {
+                if ( ! is_object( $fs_addon ) && $is_addon_activated ) {
                     $fs_addon = $this->_fs->get_addon_instance( $api->slug );
                 }
 
-                $is_addon_active              = is_object( $fs_addon );
                 $can_download_premium_version = true;
 
                 if ( $is_premium_installed ) {
-                    $can_activate_premium_version = ( ! $is_addon_active || ! $fs_addon->is_premium() );
+                    $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
                 } else if ( $is_free_installed ) {
-                    $can_activate_free_version = ( ! $is_addon_active );
+                    $can_activate_free_version = ( ! $is_addon_activated );
                 }
 
                 if ( $this->_fs->is_premium() || ! $this->_fs->is_org_repo_compliant() ) {
@@ -1367,6 +1371,30 @@
             echo "</div>\n";
             echo "</div>\n"; // #plugin-information-scrollable
             echo "<div id='$tab-footer'>\n";
+
+            if (
+                ! empty( $api->download_link ) &&
+                ! empty( $this->status ) &&
+                in_array( $this->status['status'], array( 'newer_installed', 'latest_installed' ) )
+            ) {
+                if ( 'newer_installed' === $this->status['status'] ) {
+                    echo $this->get_cta(
+                        ( $this->status['is_premium_installed'] ?
+                            esc_html( sprintf( fs_text_inline( 'Newer Version (%s) Installed', 'newer-installed', $api->slug ), $this->status['version'] ) ) :
+                            esc_html( sprintf( fs_text_inline( 'Newer Free Version (%s) Installed', 'newer-free-installed', $api->slug ), $this->status['version'] ) ) ),
+                        false,
+                        true
+                    );
+                } else {
+                    echo $this->get_cta(
+                        ( $this->status['is_premium_installed'] ?
+                            fs_esc_html_inline( 'Latest Version Installed', 'latest-installed', $api->slug ) :
+                            fs_esc_html_inline( 'Latest Free Version Installed', 'latest-free-installed', $api->slug ) ),
+                        false,
+                        true
+                    );
+                }
+            }
 
             echo $this->get_actions_dropdown( $api, null );
 
