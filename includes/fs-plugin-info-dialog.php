@@ -359,7 +359,7 @@
          *
          * @return string
          */
-        private function get_actions_dropdown($api, $plan = null ) {
+        private function get_actions_dropdown( $api, $plan = null ) {
             $actions = $this->get_actions( $api, $plan );
             if ( empty( $actions ) ) {
                 return '';
@@ -450,7 +450,7 @@
          *
          * @return string[]
          */
-        private function get_actions($api, $plan = null ) {
+        private function get_actions( $api, $plan = null ) {
             $actions = array();
 
             $checkout_cta = $this->get_checkout_cta( $api, $plan );
@@ -464,7 +464,10 @@
             }
 
             $status = install_plugin_install_status( $api );
-            if ( 'update_available' === empty( $status['url'] ) ) {
+
+            $is_update_available = ( 'update_available' === $status['status'] );
+
+            if ( $is_update_available && empty( $status['url'] ) ) {
                 return $actions;
             }
 
@@ -474,7 +477,6 @@
             $is_premium_installed = null;
 
             $has_installed_version = ( 'install' !== $status['status'] );
-            $is_update_available   = ( 'update_available' === $status['status'] );
 
             if ( ! $api->has_paid_plan ) {
                 /**
@@ -647,7 +649,7 @@
             if ( ! empty( $checkout_cta ) ) {
                 /**
                  * If there's no license yet, make the checkout button the main CTA. Otherwise, make it the last item in
-                 * actions dropdown.
+                 * the actions dropdown.
                  *
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.4.4
