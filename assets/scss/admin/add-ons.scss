@@ -581,7 +581,18 @@
 }
 
 #plugin-information-footer {
-  text-align: right;
+  > .button, .fs-dropdown {
+    position: relative;
+    top: 3px;
+
+    &.left {
+      float: left;
+    }
+  }
+
+  > .right, .fs-dropdown {
+    float: right;
+  }
 }
 
 @media screen and (max-width: 961px) {
