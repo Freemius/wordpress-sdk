@@ -574,6 +574,7 @@
     display: table-cell;
 
     &:not(.fs-dropdown-arrow-button) {
+      left: 1px;
       width: 100%;
     }
   }
