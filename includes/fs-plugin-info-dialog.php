@@ -31,6 +31,29 @@
          */
         private $_fs;
 
+        /**
+         * Collection of plugin installation, update, download, activation, and purchase actions. This is used in
+         * populating the actions dropdown list when there are at least 2 actions. If there's only 1 action, a button
+         * is used instead.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.4
+         *
+         * @var string[]
+         */
+        private $actions;
+
+        /**
+         * Contains plugin status information that is used to determine which actions should be part of the actions
+         * dropdown list.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.4
+         *
+         * @var string[]
+         */
+        private $status;
+
         function __construct( Freemius $fs ) {
             $this->_fs = $fs;
 
@@ -360,7 +383,28 @@
          * @return string
          */
         private function get_actions_dropdown( $api, $plan = null ) {
-            $actions = $this->get_actions( $api, $plan );
+            $this->actions = isset( $this->actions ) ?
+                $this->actions :
+                $this->get_plugin_actions( $api );
+
+            $actions = $this->actions;
+
+            $checkout_cta = $this->get_checkout_cta( $api, $plan );
+            if ( ! empty( $checkout_cta ) ) {
+                /**
+                 * If there's no license yet, make the checkout button the main CTA. Otherwise, make it the last item in
+                 * the actions dropdown.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.4
+                 */
+                if ( ! $api->has_purchased_license ) {
+                    array_unshift( $actions, $checkout_cta );
+                } else {
+                    $actions[] = $checkout_cta;
+                }
+            }
+
             if ( empty( $actions ) ) {
                 return '';
             }
@@ -445,38 +489,30 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.2.4.4
          *
-         * @param object         $api
-         * @param FS_Plugin_Plan $plan
+         * @param object $api
          *
          * @return string[]
          */
-        private function get_actions( $api, $plan = null ) {
+        private function get_plugin_actions( $api ) {
+            $this->status = isset( $this->status ) ?
+                $this->status :
+                install_plugin_install_status( $api );
+
+            $is_update_available = ( 'update_available' === $this->status['status'] );
+
+            if ( $is_update_available && empty( $this->status['url'] ) ) {
+                return array();
+            }
+
             $actions = array();
 
-            $checkout_cta = $this->get_checkout_cta( $api, $plan );
-
-            if ( empty( $api->download_link ) ) {
-                if ( ! empty( $checkout_cta ) ) {
-                    $actions[] = $checkout_cta;
-                }
-
-                return $actions;
-            }
-
-            $status = install_plugin_install_status( $api );
-
-            $is_update_available = ( 'update_available' === $status['status'] );
-
-            if ( $is_update_available && empty( $status['url'] ) ) {
-                return $actions;
-            }
-
-            $fs_addon = null;
+            $is_addon_activated = $this->_fs->is_addon_activated( $api->slug );
+            $fs_addon           = null;
 
             $is_free_installed    = null;
             $is_premium_installed = null;
 
-            $has_installed_version = ( 'install' !== $status['status'] );
+            $has_installed_version = ( 'install' !== $this->status['status'] );
 
             if ( ! $api->has_paid_plan ) {
                 /**
@@ -523,6 +559,9 @@
                 $has_installed_version = ( $is_free_installed || $is_premium_installed );
             }
 
+            $this->status['is_free_installed']    = $is_free_installed;
+            $this->status['is_premium_installed'] = $is_premium_installed;
+
             $can_install_free_version           = false;
             $can_install_free_version_update    = false;
             $can_download_free_version          = false;
@@ -537,7 +576,7 @@
                     if ( $has_installed_version ) {
                         if ( $is_update_available ) {
                             $can_install_free_version_update = true;
-                        } else if ( ! $is_premium_installed && ! is_plugin_active( $status['file'] ) ) {
+                        } else if ( ! $is_premium_installed && ! is_plugin_active( $this->status['file'] ) ) {
                             $can_activate_free_version = true;
                         }
                     } else {
@@ -586,7 +625,7 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.4.4
                  */
-                $status['url'] = str_replace( '?', '?fs_allow_updater_and_dialog=true&amp;', $status['url'] );
+                $this->status['url'] = str_replace( '?', '?fs_allow_updater_and_dialog=true&amp;', $this->status['url'] );
             }
 
             if ( $can_install_free_version_update || $can_install_premium_version_update ) {
@@ -596,7 +635,7 @@
                         fs_esc_html_inline( 'Install Update Now', 'install-update-now', $api->slug ) ),
                     true,
                     false,
-                    $status['url'],
+                    $this->status['url'],
                     '_parent'
                 );
             } else if ( $can_install_free_version || $can_install_premium_version ) {
@@ -606,13 +645,17 @@
                         fs_esc_html_inline( 'Install Now', 'install-now', $api->slug ) ),
                     true,
                     false,
-                    $status['url'],
+                    $this->status['url'],
                     '_parent'
                 );
             }
 
             $download_latest_action = '';
-            if ( $can_download_free_version || $can_download_premium_version ) {
+
+            if (
+                ! empty( $api->download_link ) &&
+                ( $can_download_free_version || $can_download_premium_version )
+            ) {
                 $download_latest_action = $this->get_cta(
                     ( $can_download_free_version ?
                         fs_esc_html_x_inline( 'Download Latest Free Version', 'as download latest version', 'download-latest-free-version', $api->slug ) :
@@ -630,7 +673,7 @@
             } else {
                 $activate_action = sprintf(
                     '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
-                    wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $status['file'], 'activate-plugin_' . $status['file'] ),
+                    wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $this->status['file'], 'activate-plugin_' . $this->status['file'] ),
                     fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $api->slug ),
                     $can_activate_free_version ?
                         fs_text_inline( 'Activate Free Version', 'activate-free', $api->slug ) :
@@ -657,21 +700,6 @@
 
                 if ( ! empty ($download_latest_action ) ) {
                     $actions[] = $download_latest_action;
-                }
-            }
-
-            if ( ! empty( $checkout_cta ) ) {
-                /**
-                 * If there's no license yet, make the checkout button the main CTA. Otherwise, make it the last item in
-                 * the actions dropdown.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.4.4
-                 */
-                if ( ! $api->has_purchased_license ) {
-                    array_unshift( $actions, $checkout_cta );
-                } else {
-                    $actions[] = $checkout_cta;
                 }
             }
 
