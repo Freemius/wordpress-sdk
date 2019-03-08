@@ -162,12 +162,20 @@
 {
     &, iframe
     {
-        width: 772px !important;
+        width: 821px !important;
     }
 }
 
 #plugin-information
 {
+    .fyi {
+        width: 266px !important;
+    }
+
+    #section-holder {
+        margin-right: 299px;
+    }
+
     #section-description
     {
         h2, h3, p, b, i, blockquote, li, ul, ol
@@ -537,7 +545,7 @@
 
       .button {
         float: none;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: normal;
         text-transform: none;
       }
@@ -557,8 +565,18 @@
   }
 }
 
-.fs-pricing-body .button-group {
+#plugin-information.wp-core-ui .fs-pricing-body .fs-dropdown .button-group {
   text-align: center;
+
+  display: table;
+
+  .button {
+    display: table-cell;
+
+    &:not(.fs-dropdown-arrow-button) {
+      width: 100%;
+    }
+  }
 }
 
 #plugin-information-footer {
