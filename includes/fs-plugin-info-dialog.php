@@ -575,6 +575,20 @@
                 }
             }
 
+            if (
+                $can_install_premium_version ||
+                $can_install_premium_version_update
+            ) {
+                /**
+                 * Add the `fs_allow_updater_and_dialog` param to the install/update URL so that the add-on can be
+                 * installed/updated.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.4
+                 */
+                $status['url'] = str_replace( '?', '?fs_allow_updater_and_dialog=true&amp;', $status['url'] );
+            }
+
             if ( $can_install_free_version_update || $can_install_premium_version_update ) {
                 $actions[] = $this->get_cta(
                     ( $can_install_free_version_update ?
