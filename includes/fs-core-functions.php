@@ -127,6 +127,9 @@
 
     if ( ! function_exists( 'fs_request_get' ) ) {
         /**
+         * A helper method to fetch GET/POST user input with an optional default value when the input is not set.
+         * @author Vova Feldman (@svovaf)
+         *
          * @param string      $key
          * @param mixed       $def
          * @param string|bool $type Since 1.2.1.7 - when set to 'get' will look for the value passed via querystring, when
@@ -140,6 +143,10 @@
                 $type = strtolower( $type );
             }
 
+            /**
+             * Note to WordPress.org Reviewers:
+             *  This is a helper method to fetch GET/POST user input with an optional default value when the input is not set. The actual sanitization is done in the scope of the function's usage.
+             */
             switch ( $type ) {
                 case 'post':
                     $value = isset( $_POST[ $key ] ) ? $_POST[ $key ] : $def;
@@ -184,18 +191,18 @@
                 return $val;
             } else if ( is_numeric( $val ) ) {
                 if ( 1 == $val ) {
-                return true;
+                    return true;
                 } else if ( 0 == $val ) {
                     return false;
-            }
+                }
             } else if ( is_string( $val ) ) {
                 $val = strtolower( $val );
 
                 if ( 'true' === $val ) {
                     return true;
                 } else if ( 'false' === $val ) {
-                return false;
-            }
+                    return false;
+                }
             }
 
             return $def;
