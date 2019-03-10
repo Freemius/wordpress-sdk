@@ -428,7 +428,7 @@
                         <span class="fs-dropdown-arrow"></span>
                         <ul class="fs-dropdown-list" style="display: none">
                             <?php for ( $i = 1; $i < $total_actions; $i ++ ) : ?>
-                                    <li><?php echo str_replace( 'button button-primary', '', $actions[ $i ] ) ?></li>
+                                <li><?php echo str_replace( 'button button-primary', '', $actions[ $i ] ) ?></li>
                             <?php endfor ?>
                         </ul>
                     </div>
@@ -472,7 +472,7 @@
                 $this->get_billing_cycle( $plan ),
                 $plan->has_trial()
             ) . '" target="_parent">' .
-                   ( ! $plan->has_trial() ?
+                   esc_html( ! $plan->has_trial() ?
                        (
                            $api->has_purchased_license ?
                                fs_text_inline( 'Purchase More', 'purchase-more', $api->slug ) :
