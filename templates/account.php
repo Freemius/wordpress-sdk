@@ -70,6 +70,11 @@
 		) );
 	}
 
+	$payments = $fs->_fetch_payments();
+
+	$show_billing = ( is_array( $payments ) && 0 < count( $payments ) );
+
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
@@ -169,6 +174,10 @@
 							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_esc_html_echo_inline( 'Account Details', 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
+									<?php if ( $show_billing ) : ?>
+										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
+										<li>&nbsp;&bull;&nbsp;</li>
+									<?php endif ?>
 									<?php if ( ! $is_paying ) : ?>
 										<li>
 											<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
