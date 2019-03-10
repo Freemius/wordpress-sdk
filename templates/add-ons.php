@@ -186,7 +186,28 @@
 											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
-                                    <?php if ( ! in_array( $addon->id, $account_addon_ids ) || $is_addon_installed ) : ?>
+                                    <?php
+                                        $show_premium_activation_or_installation_action = true;
+                                        $premium_plugin_basename                        = null;
+
+                                        if ( ! in_array( $addon->id, $account_addon_ids ) ) {
+                                            $show_premium_activation_or_installation_action = false;
+                                        } else if ( $is_addon_installed ) {
+                                            $fs_addon = $is_addon_activated ?
+                                                $fs->get_addon_instance( $addon->id ) :
+                                                null;
+
+                                            $premium_plugin_basename = is_object( $fs_addon ) ?
+                                                $fs_addon->premium_plugin_basename() :
+                                                "{$addon->premium_slug}/{$addon->slug}.php";
+
+                                            $show_premium_activation_or_installation_action = (
+                                                ( is_object( $fs_addon ) && ! $fs_addon->is_premium() ) ||
+                                                ( ! is_object( $fs_addon ) && file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_plugin_basename ) ) )
+                                            );
+                                        }
+                                    ?>
+                                    <?php if ( ! $show_premium_activation_or_installation_action ) : ?>
 									<li class="fs-cta"><a class="button"><?php echo esc_html( $view_details_text ) ?></a></li>
                                     <?php else : ?>
                                         <?php
@@ -198,11 +219,20 @@
                                         <div class="button-group">
                                             <?php if ( $is_allowed_to_install ) : ?>
                                             <?php
-                                                echo sprintf(
-                                                    '<a class="button button-primary" href="%s">%s</a>',
-                                                   wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
-                                                   fs_esc_html_inline( 'Install Now', 'install-now', $slug )
-                                               );
+                                                if ( ! $is_addon_installed ) {
+                                                    echo sprintf(
+                                                        '<a class="button button-primary" href="%s">%s</a>',
+                                                        wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                                                        fs_esc_html_inline( 'Install Now', 'install-now', $slug )
+                                                    );
+                                                } else {
+                                                    echo sprintf(
+                                                        '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
+                                                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
+                                                        fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $addon->slug ),
+                                                        fs_text_inline( 'Activate', 'activate', $addon->slug )
+                                                    );
+                                                }
                                             ?>
                                             <?php else : ?>
                                             <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
