@@ -417,25 +417,25 @@
             }
 
             ob_start();
+
             ?>
             <div class="fs-cta fs-dropdown">
                 <div class="button-group">
-                    <?php echo $actions[0] ?>
+                    <?php
+                        // This should NOT be sanitized as the $actions are HTML buttons already.
+                        echo $actions[0] ?>
                     <div class="button button-primary fs-dropdown-arrow-button">
                         <span class="fs-dropdown-arrow"></span>
                         <ul class="fs-dropdown-list" style="display: none">
-                            <?php
-                                for ( $i = 1; $i < $total_actions; $i ++ ) {
-                                    ?>
+                            <?php for ( $i = 1; $i < $total_actions; $i ++ ) : ?>
                                     <li><?php echo str_replace( 'button button-primary', '', $actions[ $i ] ) ?></li>
-                                    <?php
-                                }
-                            ?>
+                            <?php endfor ?>
                         </ul>
                     </div>
                 </div>
             </div>
             <?php
+
             return ob_get_clean();
         }
 
