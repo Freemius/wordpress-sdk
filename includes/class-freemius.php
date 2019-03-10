@@ -17024,7 +17024,15 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", $flush );
+            $include_bundles = (
+                is_object( $this->_plugin ) &&
+                FS_Plugin::is_valid_id( $this->_plugin->bundle_id )
+            );
+
+            $result = $api->get(
+                "/plugins/{$plugin_id}/payments.json?include_addons=true" . ($include_bundles ? '&include_bundles=true' : ''),
+                $flush
+            );
 
             if ( ! isset( $result->error ) ) {
                 for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
