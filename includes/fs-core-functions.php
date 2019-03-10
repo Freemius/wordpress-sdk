@@ -163,17 +163,39 @@
     }
 
     if ( ! function_exists( 'fs_request_get_bool' ) ) {
+        /**
+         * A helper method to fetch GET/POST user boolean input with an optional default value when the input is not set.
+         *
+         * @author Vova Feldman (@svovaf)
+         *
+         * @param string $key
+         * @param bool $def
+         *
+         * @return bool|mixed
+         */
         function fs_request_get_bool( $key, $def = false ) {
-            if ( ! isset( $_REQUEST[ $key ] ) ) {
+            $val = fs_request_get( $key, null );
+
+            if ( is_null( $val ) ) {
                 return $def;
             }
 
-            if ( 1 == $_REQUEST[ $key ] || 'true' === strtolower( $_REQUEST[ $key ] ) ) {
+            if ( is_bool( $val ) ) {
+                return $val;
+            } else if ( is_numeric( $val ) ) {
+                if ( 1 == $val ) {
                 return true;
+                } else if ( 0 == $val ) {
+                    return false;
             }
+            } else if ( is_string( $val ) ) {
+                $val = strtolower( $val );
 
-            if ( 0 == $_REQUEST[ $key ] || 'false' === strtolower( $_REQUEST[ $key ] ) ) {
+                if ( 'true' === $val ) {
+                    return true;
+                } else if ( 'false' === $val ) {
                 return false;
+            }
             }
 
             return $def;
