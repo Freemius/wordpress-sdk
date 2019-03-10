@@ -608,9 +608,11 @@
 						<?php $fs->do_action( 'after_account_details' ) ?>
 
 						<?php
-							$view_params = array( 'id' => $VARS['id'] );
-							fs_require_once_template( 'account/billing.php', $view_params );
-							fs_require_once_template( 'account/payments.php', $view_params );
+							if ( $show_billing ) {
+								$view_params = array( 'id' => $VARS['id'] );
+								fs_require_once_template( 'account/billing.php', $view_params );
+								fs_require_once_template( 'account/payments.php', $view_params );
+							}
 						?>
 					</div>
 				</div>
