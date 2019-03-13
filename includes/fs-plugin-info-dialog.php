@@ -633,7 +633,7 @@
                      * @author Leo Fajardo (@leorw)
                      * @since 2.2.4.5
                      */
-                    $this->status['url'] = $this->get_blog_status_url( $blog_id, $this->status['url'], $this->status['status'] );
+                    $this->status['url'] = self::get_blog_status_url( $blog_id, $this->status['url'], $this->status['status'] );
                 }
 
                 /**
@@ -736,7 +736,7 @@
          *
          * @return string
          */
-        private function get_blog_status_url( $blog_id, $network_status_url, $status ) {
+        private static function get_blog_status_url( $blog_id, $network_status_url, $status ) {
             if ( ! in_array( $status, array( 'install', 'update_available' ) ) ) {
                 return $network_status_url;
             }
