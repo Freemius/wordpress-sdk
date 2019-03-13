@@ -622,6 +622,20 @@
                 $can_install_premium_version ||
                 $can_install_premium_version_update
             ) {
+                $blog_id = fs_request_get( 'fs_blog_id' );
+
+                if ( is_numeric( $blog_id ) ) {
+                    /**
+                     * Replace the network status URL with a blog admin–based status URL if the `Add-Ons` page is loaded
+                     * from a specific blog admin page (when `fs_blog_id` is valid) in order for plugin installation/update
+                     * to work.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.5
+                     */
+                    $this->status['url'] = $this->get_blog_status_url( $blog_id, $this->status['url'], $this->status['status'] );
+                }
+
                 /**
                  * Add the `fs_allow_updater_and_dialog` param to the install/update URL so that the add-on can be
                  * installed/updated.
@@ -708,6 +722,42 @@
             }
 
             return $actions;
+        }
+
+        /**
+         * Rebuilds the status URL based on the admin URL.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.5
+         *
+         * @param int    $blog_id
+         * @param string $network_status_url
+         * @param string $status
+         *
+         * @return string
+         */
+        private function get_blog_status_url( $blog_id, $network_status_url, $status ) {
+            if ( ! in_array( $status, array( 'install', 'update_available' ) ) ) {
+                return $network_status_url;
+            }
+
+            $action = ( 'install' === $status ) ?
+                'install-plugin' :
+                'upgrade-plugin';
+
+            $query = parse_url( $network_status_url, PHP_URL_QUERY );
+            if ( empty( $query ) ) {
+                return $network_status_url;
+            }
+
+            parse_str( html_entity_decode( $query ), $url_params );
+            if ( empty( $url_params ) || ! isset( $url_params['plugin'] ) ) {
+                return $network_status_url;
+            }
+
+            $plugin = $url_params['plugin'];
+
+            return wp_nonce_url( get_admin_url( $blog_id,"update.php?action={$action}&plugin={$plugin}"), "{$action}_{$plugin}");
         }
 
         /**

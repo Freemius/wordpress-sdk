@@ -35,6 +35,10 @@
     $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );
 
 	$has_tabs = $fs->_add_tabs_before_content();
+
+    $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
+        get_current_blog_id() :
+        null;
 ?>
 	<div id="fs_addons" class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
@@ -118,7 +122,7 @@
 						<li class="fs-card fs-addon" data-slug="<?php echo $addon->slug ?>">
 							<?php
 								$view_details_link = sprintf( '<a href="%s" aria-label="%s" data-title="%s"',
-									esc_url( network_admin_url( 'plugin-install.php?fs_allow_updater_and_dialog=true&tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
+									esc_url( network_admin_url( 'plugin-install.php?fs_allow_updater_and_dialog=true' . ( ! empty( $fs_blog_id ) ? '&fs_blog_id=' . $fs_blog_id : '' ) . '&tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
 									esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
