@@ -68,7 +68,9 @@
 					?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
-                        $is_addon_installed = $fs->is_addon_installed( $addon->id );
+                        $basename = $fs->get_addon_basename( $addon->id );
+
+                        $is_addon_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $basename ) );
                         $is_addon_activated = $is_addon_installed ?
                             $fs->is_addon_activated( $addon->id ) :
                             false;
@@ -192,11 +194,18 @@
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
                                     <?php
                                         $show_premium_activation_or_installation_action = true;
-                                        $premium_plugin_basename                        = null;
 
                                         if ( ! in_array( $addon->id, $account_addon_ids ) ) {
                                             $show_premium_activation_or_installation_action = false;
                                         } else if ( $is_addon_installed ) {
+                                            /**
+                                             * If any add-on's version (free or premium) is installed, check if the
+                                             * premium version can be activated and show the relevant action. Otherwise,
+                                             * show the relevant action for the free version.
+                                             *
+                                             * @author Leo Fajardo (@leorw)
+                                             * @since 2.4.5
+                                             */
                                             $fs_addon = $is_addon_activated ?
                                                 $fs->get_addon_instance( $addon->id ) :
                                                 null;
@@ -205,9 +214,23 @@
                                                 $fs_addon->premium_plugin_basename() :
                                                 "{$addon->premium_slug}/{$addon->slug}.php";
 
+                                            if (
+                                                ( $is_addon_activated && $fs_addon->is_premium() ) ||
+                                                file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_plugin_basename ) )
+                                            ) {
+                                                $basename = $premium_plugin_basename;
+                                            }
+
                                             $show_premium_activation_or_installation_action = (
-                                                ( is_object( $fs_addon ) && ! $fs_addon->is_premium() ) ||
-                                                ( ! is_object( $fs_addon ) && file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_plugin_basename ) ) )
+                                                ( ! $is_addon_activated || ! $fs_addon->is_premium() ) &&
+                                                /**
+                                                 * This check is needed for cases when an active add-on doesn't have an
+                                                 * associated Freemius instance.
+                                                 *
+                                                 * @author Leo Fajardo (@leorw)
+                                                 * @since 2.4.5
+                                                 */
+                                                ( ! is_plugin_active( $basename ) )
                                             );
                                         }
                                     ?>
@@ -232,7 +255,7 @@
                                                 } else {
                                                     echo sprintf(
                                                         '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
-                                                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
+                                                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $basename, 'activate-plugin_' . $basename ),
                                                         fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $addon->slug ),
                                                         fs_text_inline( 'Activate', 'activate', $addon->slug )
                                                     );

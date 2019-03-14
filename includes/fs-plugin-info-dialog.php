@@ -603,10 +603,12 @@
 
                 $can_download_premium_version = true;
 
-                if ( $is_premium_installed ) {
-                    $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
-                } else if ( $is_free_installed ) {
-                    $can_activate_free_version = ( ! $is_addon_activated );
+                if ( ! is_plugin_active( $this->status['file'] ) ) {
+                    if ( $is_premium_installed ) {
+                        $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
+                    } else if ( $is_free_installed ) {
+                        $can_activate_free_version = ( ! $is_addon_activated );
+                    }
                 }
 
                 if ( $this->_fs->is_premium() || ! $this->_fs->is_org_repo_compliant() ) {
