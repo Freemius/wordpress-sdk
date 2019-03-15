@@ -306,6 +306,7 @@
             $data->is_paid             = $has_paid_plan;
             $data->is_wp_org_compliant = $selected_addon->is_wp_org_compliant;
             $data->premium_slug        = $selected_addon->premium_slug;
+            $data->addon_id            = $selected_addon->id;
 
             if ( ! isset( $data->has_purchased_license ) ) {
                 $data->has_purchased_license = false;
@@ -545,24 +546,49 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.4.4
                  */
-                $fs_addon = $is_addon_activated ?
-                    $this->_fs->get_addon_instance( $api->slug ) :
-                    null;
+                if ( ! $has_installed_version ) {
+                    $is_free_installed    = false;
+                    $is_premium_installed = false;
+                } else {
+                    $fs_addon = $is_addon_activated ?
+                        $this->_fs->get_addon_instance( $api->slug ) :
+                        null;
 
-                if ( is_object( $fs_addon ) ) {
-                    if ( $fs_addon->is_premium() ) {
-                        $is_premium_installed = true;
-                    } else {
-                        $is_free_installed    = true;
+                    if ( is_object( $fs_addon ) ) {
+                        if ( $fs_addon->is_premium() ) {
+                            $is_premium_installed = true;
+                        } else {
+                            $is_free_installed = true;
+                        }
                     }
-                }
 
-                if ( is_null( $is_free_installed ) ) {
-                    $is_free_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->slug}/{$api->slug}.php" ) );
-                }
+                    if ( is_null( $is_free_installed ) ) {
+                        $is_free_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->slug}/{$api->slug}.php" ) );
+                        if ( ! $is_free_installed ) {
+                            /**
+                             * Check if there's a plugin installed in a directory named `$api->slug`.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.5
+                             */
+                            $installed_plugins = get_plugins( '/' . $api->slug );
+                            $is_free_installed = ( ! empty( $installed_plugins ) );
+                        }
+                    }
 
-                if ( is_null( $is_premium_installed ) ) {
-                    $is_premium_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->premium_slug}/{$api->slug}.php" ) );
+                    if ( is_null( $is_premium_installed ) ) {
+                        $is_premium_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->premium_slug}/{$api->slug}.php" ) );
+                        if ( ! $is_premium_installed ) {
+                            /**
+                             * Check if there's a plugin installed in a directory named `$api->premium_slug`.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.5
+                             */
+                            $installed_plugins    = get_plugins( '/' . $api->premium_slug );
+                            $is_premium_installed = ( ! empty( $installed_plugins ) );
+                        }
+                    }
                 }
 
                 $has_installed_version = ( $is_free_installed || $is_premium_installed );
@@ -571,6 +597,7 @@
             $this->status['is_free_installed']    = $is_free_installed;
             $this->status['is_premium_installed'] = $is_premium_installed;
 
+            $can_install_any_version            = ( ! $has_installed_version || empty( $this->status['file'] ) );
             $can_install_free_version           = false;
             $can_install_free_version_update    = false;
             $can_download_free_version          = false;
@@ -590,9 +617,12 @@
                         }
                     } else {
                         if (
-                            $this->_fs->is_premium() ||
-                            ! $this->_fs->is_org_repo_compliant() ||
-                            $api->is_wp_org_compliant
+                            $can_install_any_version &&
+                            (
+                                $this->_fs->is_premium() ||
+                                ! $this->_fs->is_org_repo_compliant() ||
+                                $api->is_wp_org_compliant
+                            )
                         ) {
                             $can_install_free_version  = true;
                         } else {
@@ -618,7 +648,7 @@
                 if ( $this->_fs->is_premium() || ! $this->_fs->is_org_repo_compliant() ) {
                     if ( $is_update_available ) {
                         $can_install_premium_version_update = true;
-                    } else if ( ! $is_premium_installed ) {
+                    } else if ( ! $is_premium_installed && $can_install_any_version ) {
                         $can_install_premium_version = true;
                     }
                 }
