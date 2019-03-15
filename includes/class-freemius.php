@@ -2664,7 +2664,7 @@
                 $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
 
                 if ( is_array( $network_active_basenames ) && ! empty( $network_active_basenames ) ) {
-                    $active_basenames = array_merge( $active_basenames, $network_active_basenames );
+                    $active_basenames = array_merge( $active_basenames, array_keys( $network_active_basenames ) );
                 }
             }
 
