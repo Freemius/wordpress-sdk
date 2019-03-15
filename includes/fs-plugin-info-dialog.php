@@ -506,6 +506,10 @@
                 return array();
             }
 
+            $blog_id = fs_request_get( 'fs_blog_id' );
+
+            $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $blog_id );
+
             $actions = array();
 
             $is_addon_activated = $this->_fs->is_addon_activated( $api->slug );
@@ -581,7 +585,7 @@
                     if ( $has_installed_version ) {
                         if ( $is_update_available ) {
                             $can_install_free_version_update = true;
-                        } else if ( ! $is_premium_installed && ! is_plugin_active( $this->status['file'] ) ) {
+                        } else if ( ! $is_premium_installed && ! isset( $active_plugins_directories_map[ dirname( $this->status['file'] ) ] ) ) {
                             $can_activate_free_version = true;
                         }
                     } else {
@@ -603,7 +607,7 @@
 
                 $can_download_premium_version = true;
 
-                if ( ! is_plugin_active( $this->status['file'] ) ) {
+                if ( ! isset( $active_plugins_directories_map[ dirname( $this->status['file'] ) ] ) ) {
                     if ( $is_premium_installed ) {
                         $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
                     } else if ( $is_free_installed ) {
@@ -624,8 +628,6 @@
                 $can_install_premium_version ||
                 $can_install_premium_version_update
             ) {
-                $blog_id = fs_request_get( 'fs_blog_id' );
-
                 if ( is_numeric( $blog_id ) ) {
                     /**
                      * Replace the network status URL with a blog admin–based status URL if the `Add-Ons` page is loaded
@@ -693,7 +695,7 @@
             } else {
                 $activate_action = sprintf(
                     '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
-                    wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $this->status['file'], 'activate-plugin_' . $this->status['file'] ),
+                    wp_nonce_url( ( is_numeric( $blog_id ) ? trailingslashit( get_admin_url( $blog_id ) ) : '' ) . 'plugins.php?action=activate&amp;plugin=' . $this->status['file'], 'activate-plugin_' . $this->status['file'] ),
                     fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $api->slug ),
                     $can_activate_free_version ?
                         fs_text_inline( 'Activate Free Version', 'activate-free', $api->slug ) :

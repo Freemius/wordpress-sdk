@@ -38,7 +38,7 @@
 
     $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
         get_current_blog_id() :
-        null;
+        0;
 ?>
 	<div id="fs_addons" class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
@@ -65,6 +65,7 @@
 						}
 					}
 
+                    $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 					?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
@@ -74,6 +75,11 @@
                         $is_addon_activated = $is_addon_installed ?
                             $fs->is_addon_activated( $addon->id ) :
                             false;
+
+                        $is_plugin_active = (
+                            $is_addon_activated ||
+                            isset( $active_plugins_directories_map[ dirname( $basename ) ] )
+                        );
 
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
@@ -165,10 +171,10 @@
 								<ul>
 									<li class="fs-card-banner"
                                         style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"><?php
-                                        if ( $is_addon_activated || $is_addon_installed ) {
+                                        if ( $is_plugin_active || $is_addon_installed ) {
                                             echo sprintf(
                                                 '<span class="fs-badge fs-installed-addon-badge">%s</span>',
-                                                esc_html( $is_addon_activated ?
+                                                esc_html( $is_plugin_active ?
                                                     fs_text_x_inline( 'Active', 'active add-on', 'active-addon', $slug ) :
                                                     fs_text_x_inline( 'Installed', 'installed add-on', 'installed-addon', $slug )
                                                 )
@@ -230,7 +236,7 @@
                                                  * @author Leo Fajardo (@leorw)
                                                  * @since 2.4.5
                                                  */
-                                                ( ! is_plugin_active( $basename ) )
+                                                ( ! $is_plugin_active )
                                             );
                                         }
                                     ?>

@@ -10,6 +10,8 @@
 
     $fs_blog_id = $VARS['fs_blog_id'];
 
+    $active_plugins_directories_map = $VARS['active_plugins_directories_map'];
+
     $addon              = $fs->get_addon( $addon_id );
     $is_addon_activated = $fs->is_addon_activated( $addon_id );
     $is_addon_connected = $fs->is_addon_connected( $addon_id );
@@ -260,7 +262,7 @@
             if ( $fs->is_addon_installed( $addon_id ) ) {
                 $addon_file = $fs->get_addon_basename( $addon_id );
 
-                if ( ! is_plugin_active( $addon_file ) ) {
+                if ( ! isset( $active_plugins_directories_map[ dirname( $addon_file ) ] ) ) {
                     $buttons[]  = sprintf(
                         '<a class="button button-primary edit" href="%s" title="%s">%s</a>',
                         wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ),
@@ -316,7 +318,7 @@
         <td colspan="4">
             <?php if ( $fs->is_addon_installed( $addon_id ) ) : ?>
                 <?php $addon_file = $fs->get_addon_basename( $addon_id ) ?>
-                <?php if ( ! is_plugin_active( $addon_file ) ) : ?>
+                <?php if ( ! isset( $active_plugins_directories_map[ dirname( $addon_file ) ] ) ) : ?>
                 <a class="button button-primary"
                    href="<?php echo wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $addon_file, 'activate-plugin_' . $addon_file ) ?>"
                    title="<?php fs_esc_attr_echo_inline( 'Activate this add-on', 'activate-this-addon', $slug ) ?>"

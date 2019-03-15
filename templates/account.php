@@ -150,7 +150,9 @@
 
     $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
         get_current_blog_id() :
-        null;
+        0;
+
+    $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -591,10 +593,11 @@
 										<?php $odd = true;
 											foreach ( $addons_to_show as $addon_id ) {
 												$addon_view_params = array(
-													'parent_fs'  => $fs,
-													'addon_id'   => $addon_id,
-													'odd'        => $odd,
-                                                    'fs_blog_id' => $fs_blog_id
+													'parent_fs'                      => $fs,
+													'addon_id'                       => $addon_id,
+													'odd'                            => $odd,
+													'fs_blog_id'                     => $fs_blog_id,
+                                                    'active_plugins_directories_map' => $active_plugins_directories_map
 												);
 
 												fs_require_template(

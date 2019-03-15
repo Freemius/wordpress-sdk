@@ -2672,6 +2672,32 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.5
+         *
+         * @param int $blog_id
+         *
+         * @return array
+         */
+        static function get_active_plugins_directories_map( $blog_id = 0 ) {
+            $active_basenames = self::get_active_plugins_basenames( $blog_id );
+
+            $map = array();
+
+            foreach ( $active_basenames as $active_basename ) {
+                $active_basename = fs_normalize_path( $active_basename );
+
+                if ( false === strpos( $active_basename, '/' ) ) {
+                    continue;
+                }
+
+                $map[ dirname( $active_basename ) ] = true;
+            }
+
+            return $map;
+        }
+
+        /**
          * Get collection of all active plugins. Including network activated plugins.
          *
          * @author Vova Feldman (@svovaf)
