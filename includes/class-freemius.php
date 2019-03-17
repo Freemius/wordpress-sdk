@@ -1408,6 +1408,7 @@
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
+            add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -11243,6 +11244,56 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  2.2.4.6
+         */
+        function _add_beta_mode_update_handler() {
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            if ( ! $this->is_premium() ) {
+                return;
+            }
+
+            $this->add_ajax_action( 'set_beta_mode', array( &$this, '_set_beta_mode_ajax_handler' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.4.6
+         */
+        function _set_beta_mode_ajax_handler() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'set_beta_mode' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $is_beta = trim( fs_request_get( 'is_beta', '', 'post' ) );
+
+            if ( empty( $is_beta ) || ! in_array( $is_beta, array( 'true', 'false' ) ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $plugin_id = fs_request_get( 'module_id', '', 'post' );
+            $fs        = ( $plugin_id == $this->_module_id ) ?
+                $this :
+                $this->get_addon_instance( $plugin_id );
+
+            $fs->get_api_site_scope()->call(
+                "/users/{$fs->get_user()->id}.json",
+                'put',
+                array( 'is_beta' => ( 'true' == $is_beta ) )
+            );
+
+            self::shoot_ajax_response( array( 'success' => true ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          *
          * @since  1.1.9
          * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
@@ -18347,6 +18398,8 @@
 
             if ( $this->has_secret_key() ) {
                 $endpoint = add_query_arg( 'type', 'all', $endpoint );
+            } else if ( $this->_user->is_beta() ) {
+                $endpoint = add_query_arg( 'type', 'beta', $endpoint );
             }
 
             return $endpoint;
