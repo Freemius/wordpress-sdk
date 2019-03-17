@@ -597,7 +597,7 @@
 													'addon_id'                       => $addon_id,
 													'odd'                            => $odd,
 													'fs_blog_id'                     => $fs_blog_id,
-                                                    'active_plugins_directories_map' => $active_plugins_directories_map
+                                                    'active_plugins_directories_map' => &$active_plugins_directories_map
 												);
 
 												fs_require_template(
