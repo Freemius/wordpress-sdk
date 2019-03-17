@@ -306,6 +306,7 @@
             $data->is_paid             = $has_paid_plan;
             $data->is_wp_org_compliant = $selected_addon->is_wp_org_compliant;
             $data->premium_slug        = $selected_addon->premium_slug;
+            $data->addon_id            = $selected_addon->id;
 
             if ( ! isset( $data->has_purchased_license ) ) {
                 $data->has_purchased_license = false;
@@ -506,6 +507,10 @@
                 return array();
             }
 
+            $blog_id = fs_request_get( 'fs_blog_id' );
+
+            $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $blog_id );
+
             $actions = array();
 
             $is_addon_activated = $this->_fs->is_addon_activated( $api->slug );
@@ -541,24 +546,49 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.4.4
                  */
-                $fs_addon = $is_addon_activated ?
-                    $this->_fs->get_addon_instance( $api->slug ) :
-                    null;
+                if ( ! $has_installed_version ) {
+                    $is_free_installed    = false;
+                    $is_premium_installed = false;
+                } else {
+                    $fs_addon = $is_addon_activated ?
+                        $this->_fs->get_addon_instance( $api->slug ) :
+                        null;
 
-                if ( is_object( $fs_addon ) ) {
-                    if ( $fs_addon->is_premium() ) {
-                        $is_premium_installed = true;
-                    } else {
-                        $is_free_installed    = true;
+                    if ( is_object( $fs_addon ) ) {
+                        if ( $fs_addon->is_premium() ) {
+                            $is_premium_installed = true;
+                        } else {
+                            $is_free_installed = true;
+                        }
                     }
-                }
 
-                if ( is_null( $is_free_installed ) ) {
-                    $is_free_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->slug}/{$api->slug}.php" ) );
-                }
+                    if ( is_null( $is_free_installed ) ) {
+                        $is_free_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->slug}/{$api->slug}.php" ) );
+                        if ( ! $is_free_installed ) {
+                            /**
+                             * Check if there's a plugin installed in a directory named `$api->slug`.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.5
+                             */
+                            $installed_plugins = get_plugins( '/' . $api->slug );
+                            $is_free_installed = ( ! empty( $installed_plugins ) );
+                        }
+                    }
 
-                if ( is_null( $is_premium_installed ) ) {
-                    $is_premium_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->premium_slug}/{$api->slug}.php" ) );
+                    if ( is_null( $is_premium_installed ) ) {
+                        $is_premium_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . "/{$api->premium_slug}/{$api->slug}.php" ) );
+                        if ( ! $is_premium_installed ) {
+                            /**
+                             * Check if there's a plugin installed in a directory named `$api->premium_slug`.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.5
+                             */
+                            $installed_plugins    = get_plugins( '/' . $api->premium_slug );
+                            $is_premium_installed = ( ! empty( $installed_plugins ) );
+                        }
+                    }
                 }
 
                 $has_installed_version = ( $is_free_installed || $is_premium_installed );
@@ -581,7 +611,7 @@
                     if ( $has_installed_version ) {
                         if ( $is_update_available ) {
                             $can_install_free_version_update = true;
-                        } else if ( ! $is_premium_installed && ! is_plugin_active( $this->status['file'] ) ) {
+                        } else if ( ! $is_premium_installed && ! isset( $active_plugins_directories_map[ dirname( $this->status['file'] ) ] ) ) {
                             $can_activate_free_version = true;
                         }
                     } else {
@@ -603,10 +633,12 @@
 
                 $can_download_premium_version = true;
 
-                if ( $is_premium_installed ) {
-                    $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
-                } else if ( $is_free_installed ) {
-                    $can_activate_free_version = ( ! $is_addon_activated );
+                if ( ! isset( $active_plugins_directories_map[ dirname( $this->status['file'] ) ] ) ) {
+                    if ( $is_premium_installed ) {
+                        $can_activate_premium_version = ( ! $is_addon_activated || ! $fs_addon->is_premium() );
+                    } else if ( $is_free_installed ) {
+                        $can_activate_free_version = ( ! $is_addon_activated );
+                    }
                 }
 
                 if ( $this->_fs->is_premium() || ! $this->_fs->is_org_repo_compliant() ) {
@@ -622,6 +654,18 @@
                 $can_install_premium_version ||
                 $can_install_premium_version_update
             ) {
+                if ( is_numeric( $blog_id ) ) {
+                    /**
+                     * Replace the network status URL with a blog admin–based status URL if the `Add-Ons` page is loaded
+                     * from a specific blog admin page (when `fs_blog_id` is valid) in order for plugin installation/update
+                     * to work.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.5
+                     */
+                    $this->status['url'] = self::get_blog_status_url( $blog_id, $this->status['url'], $this->status['status'] );
+                }
+
                 /**
                  * Add the `fs_allow_updater_and_dialog` param to the install/update URL so that the add-on can be
                  * installed/updated.
@@ -677,7 +721,7 @@
             } else {
                 $activate_action = sprintf(
                     '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
-                    wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $this->status['file'], 'activate-plugin_' . $this->status['file'] ),
+                    wp_nonce_url( ( is_numeric( $blog_id ) ? trailingslashit( get_admin_url( $blog_id ) ) : '' ) . 'plugins.php?action=activate&amp;plugin=' . $this->status['file'], 'activate-plugin_' . $this->status['file'] ),
                     fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $api->slug ),
                     $can_activate_free_version ?
                         fs_text_inline( 'Activate Free Version', 'activate-free', $api->slug ) :
@@ -708,6 +752,42 @@
             }
 
             return $actions;
+        }
+
+        /**
+         * Rebuilds the status URL based on the admin URL.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.5
+         *
+         * @param int    $blog_id
+         * @param string $network_status_url
+         * @param string $status
+         *
+         * @return string
+         */
+        private static function get_blog_status_url( $blog_id, $network_status_url, $status ) {
+            if ( ! in_array( $status, array( 'install', 'update_available' ) ) ) {
+                return $network_status_url;
+            }
+
+            $action = ( 'install' === $status ) ?
+                'install-plugin' :
+                'upgrade-plugin';
+
+            $query = parse_url( $network_status_url, PHP_URL_QUERY );
+            if ( empty( $query ) ) {
+                return $network_status_url;
+            }
+
+            parse_str( html_entity_decode( $query ), $url_params );
+            if ( empty( $url_params ) || ! isset( $url_params['plugin'] ) ) {
+                return $network_status_url;
+            }
+
+            $plugin = $url_params['plugin'];
+
+            return wp_nonce_url( get_admin_url( $blog_id,"update.php?action={$action}&plugin={$plugin}"), "{$action}_{$plugin}");
         }
 
         /**

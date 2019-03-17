@@ -2664,11 +2664,37 @@
                 $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
 
                 if ( is_array( $network_active_basenames ) && ! empty( $network_active_basenames ) ) {
-                    $active_basenames = array_merge( $active_basenames, $network_active_basenames );
+                    $active_basenames = array_merge( $active_basenames, array_keys( $network_active_basenames ) );
                 }
             }
 
             return $active_basenames;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.5
+         *
+         * @param int $blog_id
+         *
+         * @return array
+         */
+        static function get_active_plugins_directories_map( $blog_id = 0 ) {
+            $active_basenames = self::get_active_plugins_basenames( $blog_id );
+
+            $map = array();
+
+            foreach ( $active_basenames as $active_basename ) {
+                $active_basename = fs_normalize_path( $active_basename );
+
+                if ( false === strpos( $active_basename, '/' ) ) {
+                    continue;
+                }
+
+                $map[ dirname( $active_basename ) ] = true;
+            }
+
+            return $map;
         }
 
         /**
