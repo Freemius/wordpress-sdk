@@ -597,7 +597,6 @@
             $this->status['is_free_installed']    = $is_free_installed;
             $this->status['is_premium_installed'] = $is_premium_installed;
 
-            $can_install_any_version            = ( ! $has_installed_version || empty( $this->status['file'] ) );
             $can_install_free_version           = false;
             $can_install_free_version_update    = false;
             $can_download_free_version          = false;
@@ -617,12 +616,9 @@
                         }
                     } else {
                         if (
-                            $can_install_any_version &&
-                            (
-                                $this->_fs->is_premium() ||
-                                ! $this->_fs->is_org_repo_compliant() ||
-                                $api->is_wp_org_compliant
-                            )
+                            $this->_fs->is_premium() ||
+                            ! $this->_fs->is_org_repo_compliant() ||
+                            $api->is_wp_org_compliant
                         ) {
                             $can_install_free_version  = true;
                         } else {
@@ -648,7 +644,7 @@
                 if ( $this->_fs->is_premium() || ! $this->_fs->is_org_repo_compliant() ) {
                     if ( $is_update_available ) {
                         $can_install_premium_version_update = true;
-                    } else if ( ! $is_premium_installed && $can_install_any_version ) {
+                    } else if ( ! $is_premium_installed ) {
                         $can_install_premium_version = true;
                     }
                 }
