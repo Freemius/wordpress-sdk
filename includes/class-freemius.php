@@ -1655,7 +1655,7 @@
             // Try to load the cached value of the file path.
             if ( isset( $this->_storage->plugin_main_file ) ) {
                 $plugin_main_file = $this->_storage->plugin_main_file;
-                if ( isset( $plugin_main_file->path ) ) {
+                if ( ! empty( $plugin_main_file->path ) ) {
                     $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
                     if ( file_exists( $absolute_path ) ) {
                         return $absolute_path;
@@ -1676,7 +1676,7 @@
             if ( ! $is_init ) {
                 // Fetch prev path cache.
                 if ( isset( $this->_storage->plugin_main_file ) &&
-                     isset( $this->_storage->plugin_main_file->prev_path )
+                     ! empty( $this->_storage->plugin_main_file->prev_path )
                 ) {
                     $absolute_path = $this->get_absolute_path( $this->_storage->plugin_main_file->prev_path );
                     if ( file_exists( $absolute_path ) ) {
@@ -1780,7 +1780,7 @@
                 $store_option = true;
             }
 
-            if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ||
+            if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
                  /**
                   * This verification is for cases when suddenly the same module
                   * is installed but with a different folder name.
