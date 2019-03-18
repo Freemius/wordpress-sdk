@@ -1285,6 +1285,10 @@
                         add_action( 'admin_footer', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ) );
                     }
 
+                    if ( self::is_plugins_page() ) {
+                        add_action( 'admin_footer', array( 'Freemius', '_maybe_add_beta_label_to_plugin_titles' ) );
+                    }
+
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
                     /**
@@ -1529,6 +1533,51 @@
             })( jQuery );
             </script>
             <?php
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.6
+         */
+        static function _maybe_add_beta_label_to_plugin_titles() {
+            $slug_basename_map = array();
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_plugin() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_beta() ) {
+                    continue;
+                }
+
+                $slug_basename_map[ $instance->get_slug() ] = $instance->premium_plugin_basename();
+            }
+
+            if ( empty( $slug_basename_map ) ) {
+                return;
+            }
+            ?>
+            <script type="text/javascript">
+                (function( $ ) {
+                    var slugBasenameMap = <?php echo json_encode( $slug_basename_map ) ?>;
+                    for ( var slug in slugBasenameMap ) {
+                        if ( ! slugBasenameMap.hasOwnProperty( slug ) ) {
+                            continue;
+                        }
+
+                        var basename   = slugBasenameMap[ slug ],
+                            $pluginRow = $( '.wp-list-table.plugins tr[data-plugin="' + basename + '"]' );
+
+                        if ( 0 === $pluginRow.length ) {
+                            continue;
+                        }
+
+                        $pluginRow.find( '.plugin-title > strong:first-child').append( '<span class="fs-tag fs-info"><?php fs_esc_js_echo_inline( 'Beta', 'beta' ) ?></span>' );
+                    }
+                })( jQuery );
+            </script>
+            <?php
+            fs_enqueue_local_style( 'fs_plugins', '/admin/plugins.css' );
         }
 
         /**
