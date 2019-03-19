@@ -257,7 +257,41 @@
 
             $r = $current->response[ $file ];
 
-            if ( ! $this->_fs->has_any_active_valid_license() ) {
+            $update          = $this->_fs->get_update( $this->_fs->get_id(), false );
+            $has_beta_update = ( is_object( $update ) && $update->is_beta() );
+
+            if ( $this->_fs->has_any_active_valid_license() ) {
+                if ( $has_beta_update ) {
+                    /**
+                     * Turn the "new version" text into "new Beta version".
+                     *
+                     * Sample input:
+                     *      There is a new version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
+                     * Output:
+                     *      There is a new Beta version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.7
+                     */
+                    $plugin_update_row = preg_replace(
+                        '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
+                        (
+                            '$1' .
+                            sprintf(
+                                fs_text_inline( 'There is a %s of %s available.', 'new-version-available', $this->_fs->get_slug() ),
+                                $has_beta_update ?
+                                    fs_text_inline( 'new Beta version', 'new-beta-version', $this->_fs->get_slug() ) :
+                                    fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() ),
+                                $this->_fs->get_plugin_title()
+                            ) .
+                            ' ' .
+                            '$3' .
+                            '$6'
+                        ),
+                        $plugin_update_row
+                    );
+                }
+            } else {
                 /**
                  * Turn the "new version" text into a link that opens the plugin information dialog when clicked and
                  * make the "View version x details" text link to the checkout page instead of opening the plugin
@@ -267,6 +301,8 @@
                  *      There is a new version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
                  * Output:
                  *      There is a <a href="...>new version</a> of Awesome Plugin available. <a href="...>Buy a license now</a> to access version x.y.z security & feature updates, and support.
+                 *      OR
+                 *      There is a <a href="...>new Beta version</a> of Awesome Plugin available. <a href="...>Buy a license now</a> to access version x.y.z security & feature updates, and support.
                  *
                  * @author Leo Fajardo (@leorw)
                  */
@@ -279,7 +315,9 @@
                             sprintf(
                                 '<a href="$4"%s>%s</a>',
                                 '$5',
-                                fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() )
+                                $has_beta_update ?
+                                    fs_text_inline( 'new Beta version', 'new-beta-version', $this->_fs->get_slug() ) :
+                                    fs_text_inline( 'new version', 'new-version', $this->_fs->get_slug() )
                             ),
                             $this->_fs->get_plugin_title()
                         ) .
