@@ -529,7 +529,7 @@
                                                      * the same as the version info row.
                                                      *
                                                      * @author Leo Fajardo (@leorw)
-                                                     * @since 2.2.4.6
+                                                     * @since 2.2.4.7
                                                      */
                                                     continue;
                                                 }

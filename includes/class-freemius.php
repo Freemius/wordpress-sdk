@@ -1597,7 +1597,6 @@
                 })( jQuery );
             </script>
             <?php
-            fs_enqueue_local_style( 'fs_plugins', '/admin/plugins.css' );
         }
 
         /**
@@ -11313,7 +11312,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.4.6
+         * @since  2.2.4.7
          */
         function _add_beta_mode_update_handler() {
             if ( ! $this->is_user_admin() ) {
@@ -11347,16 +11346,11 @@
                 self::shoot_ajax_failure();
             }
 
-            $plugin_id = fs_request_get( 'module_id', '', 'post' );
-            $fs        = ( $plugin_id == $this->_module_id ) ?
-                $this :
-                $this->get_addon_instance( $plugin_id );
-
-            $user = $fs->get_api_user_scope()->call(
+            $user = $this->get_api_user_scope()->call(
                 '',
                 'put',
                 array(
-                    'plugin_id' => $fs->get_id(),
+                    'plugin_id' => $this->get_id(),
                     'is_beta'   => ( 'true' == $is_beta ),
                     'fields'    => 'is_beta'
                 )
@@ -11366,7 +11360,7 @@
                 self::shoot_ajax_failure(
                     FS_Api::is_api_error_object( $user ) ?
                         $user->error->message :
-                        fs_text_inline( "An unknown error has occurred while trying to set the user's beta mode.", 'unknown-error-occurred', $fs->get_slug() )
+                        fs_text_inline( "An unknown error has occurred while trying to set the user's beta mode.", 'unknown-error-occurred', $this->get_slug() )
                 );
             }
 
