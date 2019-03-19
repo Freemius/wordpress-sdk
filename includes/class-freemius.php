@@ -1337,6 +1337,8 @@
                 }
 
                 if ( self::is_plugins_page() || self::is_themes_page() ) {
+                    add_action( 'admin_print_footer_scripts', array( 'Freemius', '_maybe_add_beta_label_styles' ), 9 );
+
                     /**
                      * Specifically use this hook so that the JS event handlers will work properly on the "Themes"
                      * page.
@@ -1544,12 +1546,23 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.4.6
+         * @since 2.2.4.7
          */
-        static function _maybe_add_beta_label_to_plugin_titles() {
-            $slug_basename_map = array();
+        static function _maybe_add_beta_label_styles() {
+            $has_any_beta_version = false;
+
             foreach ( self::$_instances as $instance ) {
-                if ( ! $instance->is_plugin() ) {
+                if ( $instance->is_beta() ) {
+                    $has_any_beta_version = true;
+                    break;
+                }
+            }
+
+            if ( $has_any_beta_version ) {
+                fs_enqueue_local_style( 'fs_plugins', '/admin/plugins.css' );
+            }
+        }
+
                     continue;
                 }
 
