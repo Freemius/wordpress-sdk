@@ -11329,7 +11329,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.4.6
+         * @since  2.2.4.7
          */
         function _set_beta_mode_ajax_handler() {
             $this->_logger->entrance();
@@ -11352,11 +11352,26 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $fs->get_api_site_scope()->call(
-                "/users/{$fs->get_user()->id}.json",
+            $user = $fs->get_api_user_scope()->call(
+                '',
                 'put',
-                array( 'is_beta' => ( 'true' == $is_beta ) )
+                array(
+                    'plugin_id' => $fs->get_id(),
+                    'is_beta'   => ( 'true' == $is_beta ),
+                    'fields'    => 'is_beta'
+                )
             );
+
+            if ( ! $this->is_api_result_entity( $user ) ) {
+                self::shoot_ajax_failure(
+                    FS_Api::is_api_error_object( $user ) ?
+                        $user->error->message :
+                        fs_text_inline( "An unknown error has occurred while trying to set the user's beta mode.", 'unknown-error-occurred', $fs->get_slug() )
+                );
+            }
+
+            $this->_user->is_beta = $user->is_beta;
+            $this->_store_user();
 
             self::shoot_ajax_response( array( 'success' => true ) );
         }
