@@ -1285,10 +1285,6 @@
                         add_action( 'admin_footer', array( 'Freemius', '_prepend_fs_allow_updater_and_dialog_flag_url_param' ) );
                     }
 
-                    if ( self::is_plugins_page() ) {
-                        add_action( 'admin_footer', array( 'Freemius', '_maybe_add_beta_label_to_plugin_titles' ) );
-                    }
-
                     $plugin_dir = dirname( $this->_plugin_dir_path ) . '/';
 
                     /**
@@ -1338,6 +1334,17 @@
                     );
 
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
+                }
+
+                if ( self::is_plugins_page() || self::is_themes_page() ) {
+                    /**
+                     * Specifically use this hook so that the JS event handlers will work properly on the "Themes"
+                     * page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.7
+                     */
+                    add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_module_titles' ) );
                 }
 
                 /**
