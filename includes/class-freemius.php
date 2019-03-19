@@ -885,6 +885,14 @@
                 $this->_cache->expire( 'tabs' );
                 $this->_cache->expire( 'tabs_stylesheets' );
             }
+
+            if (
+                ! empty( $this->_storage->plugin_beta_version ) &&
+                $this->_storage->plugin_beta_version === $plugin_version
+            ) {
+                $this->_storage->is_beta = true;
+            }
+
         }
 
         /**
@@ -14074,6 +14082,19 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         *
+         * @return bool
+         */
+        function is_beta() {
+            return (
+                isset( $this->_storage->is_beta ) &&
+                ( true === $this->_storage->is_beta )
+            );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
@@ -17257,14 +17278,26 @@
                 return false;
             }
 
+            $plugin_version = $this->get_plugin_version();
+
             // Check if version is actually newer.
             $has_new_version =
                 // If it's an non-installed add-on then always return latest.
                 ( $this->_is_addon_id( $plugin_id ) && ! $this->is_addon_activated( $plugin_id ) ) ||
                 // Compare versions.
-                version_compare( $this->get_plugin_version(), $latest_tag->version, '<' );
+                version_compare( $plugin_version, $latest_tag->version, '<' );
 
             $this->_logger->departure( $has_new_version ? 'Found newer plugin version ' . $latest_tag->version : 'No new version' );
+
+            $is_latest_version_beta = ( 'beta' === $latest_tag->release_mode );
+
+            $this->_storage->plugin_beta_version = $is_latest_version_beta ?
+                $latest_tag->version :
+                null;
+
+            if ( $latest_tag->version == $plugin_version ) {
+                $this->_storage->is_beta = $is_latest_version_beta;
+            }
 
             return $has_new_version ? $latest_tag : false;
         }
