@@ -709,7 +709,7 @@
                 $confirmation_message = sprintf(
                     '%s %s',
                     sprintf( fs_esc_attr_inline( 'Get updates for bleeding edge Beta versions of %s.', 'get-beta-versions', $slug ), $plugin_title ),
-                    sprintf( fs_esc_attr_inline( 'An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned.', 'beta-version-caution', $slug ), $plugin_title )
+                    sprintf( fs_esc_attr_inline( 'An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned.', 'beta-version-update-caution', $slug ), $plugin_title )
                 );
             ?>
 

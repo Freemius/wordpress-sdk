@@ -1354,7 +1354,7 @@
                      * @author Leo Fajardo (@leorw)
                      * @since 2.2.4.7
                      */
-                    add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_module_titles' ) );
+                    add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_plugins_and_handle_confirmation') );
                 }
 
                 /**
@@ -1571,38 +1571,100 @@
             }
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        static function _maybe_add_beta_label_to_plugins_and_handle_confirmation() {
+            $beta_data = array();
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_premium() ) {
                     continue;
                 }
 
-                if ( ! $instance->is_beta() ) {
+                /**
+                 * If there's an available beta version update, a confirmation message will be shown when the
+                 * "Update now" link on the "Plugins" or "Themes" page is clicked.
+                 */
+                $update          = $instance->get_update( $instance->get_id(), false );
+                $has_beta_update = ( is_object( $update ) && $update->is_beta() );
+
+                $is_beta = (
+                    // The "Beta" label is added separately for themes.
+                    $instance->is_plugin() &&
+                    $instance->is_beta()
+                );
+
+                if ( ! $is_beta && ! $has_beta_update ) {
                     continue;
                 }
 
-                $slug_basename_map[ $instance->get_slug() ] = $instance->premium_plugin_basename();
+                $beta_data[ $instance->get_plugin_basename() ] = array( 'is_installed_version_beta' => $is_beta );
+
+                if ( ! $has_beta_update ) {
+                    continue;
+                }
+
+                $beta_data[ $instance->get_plugin_basename() ]['beta_version_update_confirmation_message'] = sprintf(
+                    '%s %s',
+                    sprintf(
+                        fs_esc_attr_inline(
+                            'An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned.',
+                            'beta-version-update-caution',
+                            $instance->get_slug()
+                        ),
+                        $instance->get_plugin_title()
+                    ),
+                    fs_esc_attr_inline( 'Would you like to proceed with the update?', 'update-confirmation', $instance->get_slug() )
+                );
             }
 
-            if ( empty( $slug_basename_map ) ) {
+            if ( empty( $beta_data ) ) {
                 return;
             }
             ?>
             <script type="text/javascript">
-                (function( $ ) {
-                    var slugBasenameMap = <?php echo json_encode( $slug_basename_map ) ?>;
-                    for ( var slug in slugBasenameMap ) {
-                        if ( ! slugBasenameMap.hasOwnProperty( slug ) ) {
+                ( function( $ ) {
+                    var betaData = <?php echo json_encode( $beta_data ) ?>;
+
+                    for ( var pluginBasename in betaData ) {
+                        if ( ! betaData.hasOwnProperty( pluginBasename ) ) {
                             continue;
                         }
 
-                        var basename   = slugBasenameMap[ slug ],
-                            $pluginRow = $( '.wp-list-table.plugins tr[data-plugin="' + basename + '"]' );
-
-                        if ( 0 === $pluginRow.length ) {
+                        if ( ! betaData[ pluginBasename ].is_installed_version_beta ) {
                             continue;
                         }
 
-                        $pluginRow.find( '.plugin-title > strong:first-child').append( '<span class="fs-tag fs-info"><?php fs_esc_js_echo_inline( 'Beta', 'beta' ) ?></span>' );
+                        var $parentContainer = $( '.wp-list-table.plugins tr[data-plugin="' + pluginBasename + '"]' );
+                        if ( 0 === $parentContainer.length ) {
+                            continue;
+                        }
+
+                        $parentContainer.find( '.plugin-title > strong:first-child').append(
+                            '<span class="fs-tag fs-info"><?php fs_esc_js_echo_inline( 'Beta', 'beta' ) ?></span>'
+                        );
                     }
-                })( jQuery );
+
+                    setTimeout( function() {
+                        // Wait a little bit before adding the event handler, otherwise, it will be overridden by the core WP logic.
+                        $( '.plugins .update-message .update-link, .themes .theme .update-message' ).on( 'click', function() {
+                            var $parentContainer = $( this ).parents( 'tr:first' );
+                            pluginBasename   = ( 0 !== $parentContainer.length ) ?
+                                $parentContainer.data( 'plugin' ) :
+                                $( this ).parents( '.theme:first' ).data( 'slug' );
+
+                            if (
+                                betaData[ pluginBasename ] &&
+                                betaData[ pluginBasename ].beta_version_update_confirmation_message &&
+                                ! confirm( betaData[ pluginBasename ].beta_version_update_confirmation_message )
+                            ) {
+                                return false;
+                            }
+                        } );
+                    }, 20 );
+                } )( jQuery );
             </script>
             <?php
         }
