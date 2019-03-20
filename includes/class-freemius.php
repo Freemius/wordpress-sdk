@@ -885,14 +885,6 @@
                 $this->_cache->expire( 'tabs' );
                 $this->_cache->expire( 'tabs_stylesheets' );
             }
-
-            if (
-                ! empty( $this->_storage->plugin_beta_version ) &&
-                $this->_storage->plugin_beta_version === $plugin_version
-            ) {
-                $this->_storage->is_beta = true;
-            }
-
         }
 
         /**
@@ -14153,8 +14145,9 @@
          */
         function is_beta() {
             return (
-                isset( $this->_storage->is_beta ) &&
-                ( true === $this->_storage->is_beta )
+                ! empty( $this->_storage->beta_data ) &&
+                ( $this->get_plugin_version() === $this->_storage->beta_data['version'] ) &&
+                ( true === $this->_storage->beta_data['is_beta'] )
             );
         }
 
@@ -17368,13 +17361,10 @@
 
             $is_latest_version_beta = ( 'beta' === $latest_tag->release_mode );
 
-            $this->_storage->plugin_beta_version = $is_latest_version_beta ?
-                $latest_tag->version :
-                null;
-
-            if ( $latest_tag->version == $plugin_version ) {
-                $this->_storage->is_beta = $is_latest_version_beta;
-            }
+            $this->_storage->beta_data = array(
+                'is_beta' => $is_latest_version_beta,
+                'version' => $latest_tag->version
+            );
 
             return $has_new_version ? $latest_tag : false;
         }
