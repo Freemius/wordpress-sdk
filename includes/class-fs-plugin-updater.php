@@ -512,7 +512,9 @@
             $update              = new stdClass();
             $update->slug        = $this->_fs->get_slug();
             $update->new_version = $new_version->version;
-            $update->url         = WP_FS__ADDRESS;
+            $update->url         = ( $this->_fs->is_theme() && $this->_fs->is_premium() ) ?
+                admin_url( "theme-install.php?fs_allow_updater_and_dialog=true&tab=fs-theme-information&theme={$this->_fs->get_slug()}&section=changelog&TB_iframe=true&width=600&height=800" ) :
+                WP_FS__ADDRESS;
             $update->package     = $new_version->url;
             $update->tested      = $new_version->tested_up_to_version;
             $update->requires    = $new_version->requires_platform_version;
@@ -686,7 +688,13 @@
          * @return bool|mixed
          */
         static function _fetch_plugin_info_from_repository( $action, $args ) {
-            $url = $http_url = 'http://api.wordpress.org/plugins/info/1.0/';
+            $is_theme = ( 'fs-theme-information' === $action );
+
+            if ( $is_theme ) {
+                $action = 'theme_information';
+            }
+
+            $url = $http_url = ( 'http://api.wordpress.org/' . ( $is_theme ? 'themes' : 'plugins' ) . '/info/1.0/' );
             if ( $ssl = wp_http_supports( array( 'ssl' ) ) ) {
                 $url = set_url_scheme( $url, 'https' );
             }
@@ -863,8 +871,8 @@
         function plugins_api_filter( $data, $action = '', $args = null ) {
             $this->_logger->entrance();
 
-            if ( ( 'plugin_information' !== $action ) ||
-                 ! isset( $args->slug )
+            if ( ! in_array( $action, array( 'plugin_information', 'fs-theme-information' ) ) ||
+                ! isset( $args->slug )
             ) {
                 return $data;
             }

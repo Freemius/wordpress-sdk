@@ -4356,9 +4356,10 @@
              * @author Vova Feldman (@svovaf)
              */
             if ( $this->is_user_in_admin() &&
-                'plugin-information' === fs_request_get( 'tab', false ) &&
+                 in_array( fs_request_get( 'tab', false ), array( 'plugin-information', 'fs-theme-information' ) ) &&
                  $this->should_use_freemius_updater_and_dialog() &&
                  (
+                     $this->is_theme() ||
                      ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
                      ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
                  )
