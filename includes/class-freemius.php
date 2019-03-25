@@ -19700,6 +19700,10 @@
          * @param FS_Plugin_Plan[] $plans
          */
         function _check_for_trial_plans( $plans ) {
+            if ( ! $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
+                $plans = array();
+            }
+
             /**
              * For some reason core's do_action() flattens arrays when it has a single object item. Therefore, we need to restructure the array as expected.
              *
