@@ -513,7 +513,9 @@
             $update->slug        = $this->_fs->get_slug();
             $update->new_version = $new_version->version;
             $update->url         = ( $this->_fs->is_theme() && $this->_fs->is_premium() ) ?
-                admin_url( "theme-install.php?fs_allow_updater_and_dialog=true&tab=fs-theme-information&theme={$this->_fs->get_slug()}&section=changelog&TB_iframe=true&width=600&height=800" ) :
+                ( is_multisite() ?
+                    network_admin_url( 'themes.php' ) :
+                    admin_url( "theme-install.php?fs_allow_updater_and_dialog=true&tab=fs-theme-information&theme={$this->_fs->get_slug()}&section=changelog" ) ) :
                 WP_FS__ADDRESS;
             $update->package     = $new_version->url;
             $update->tested      = $new_version->tested_up_to_version;
