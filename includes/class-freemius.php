@@ -7144,6 +7144,10 @@
                 $this->_storage->require_license_activation = true;
             }
 
+            if ( $this->is_addon() && $this->is_premium() ) {
+                $this->maybe_activate_addon_license();
+            }
+
             if ( ! isset( $this->_storage->is_plugin_new_install ) ) {
                 /**
                  * If no previous version of plugin's version exist, it means that it's either
@@ -7177,6 +7181,75 @@
              * @since  1.1.9
              */
             $this->_storage->was_plugin_loaded = true;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        private function maybe_activate_addon_license() {
+            $parent_fs = $this->get_parent_instance();
+            if ( ! is_object( $parent_fs ) ) {
+                return;
+            }
+
+            if ( ! $parent_fs->is_registered() ) {
+                return;
+            }
+
+            $result = $parent_fs->get_api_user_scope()->get( "/plugins/{$this->get_id()}/licenses.json?latest_active_child=true", true );
+
+            if (
+                ! $this->is_api_result_object( $result, 'licenses' ) ||
+                ! is_array( $result->licenses ) ||
+                empty( $result->licenses )
+            ) {
+                return;
+            }
+
+            $license = new FS_Plugin_License( $result->licenses[ 0 ] );
+
+            if ( $this->is_network_active() ) {
+                $sites    = array();
+                $wp_sites = self::get_sites();
+
+                foreach ( $wp_sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+                    if ( ! $this->is_site_delegated_connection( $blog_id ) &&
+                        ! $this->is_installed_on_site( $blog_id )
+                    ) {
+                        $sites[] = $this->get_site_info( $site );
+                    }
+                }
+
+                if ( count( $sites ) > $license->left() ) {
+                    return;
+                }
+            }
+
+            if ( $this->is_registered() ) {
+                $install = $this->get_api_site_scope()->call(
+                    '/',
+                    'put',
+                    array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
+                );
+
+                if ( ! FS_Api::is_api_error( $install ) ) {
+                    $this->_sync_addon_license( $this->get_id(), true );
+                }
+            } else {
+                $this->opt_in(
+                    $parent_fs->get_user()->email,
+                    false,
+                    false,
+                    $license->secret_key,
+                    false,
+                    false,
+                    false,
+                    null,
+                    $this->is_network_active() ? $sites : array()
+                );
+            }
         }
 
         /**
