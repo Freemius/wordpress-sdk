@@ -62,8 +62,9 @@
             // Remove default plugin information action.
             remove_all_actions( 'install_plugins_pre_plugin-information' );
 
-            // Override action with custom plugins function for add-ons.
+            // Override action with custom plugins function for add-ons and premium themes.
             add_action( 'install_plugins_pre_plugin-information', array( &$this, 'install_plugin_information' ) );
+            add_action( 'install_themes_pre_fs-theme-information', array( &$this, 'install_plugin_information' ) );
 
             // Override request for plugin information for Add-ons.
             add_filter(
@@ -864,12 +865,17 @@
         function install_plugin_information() {
             global $tab;
 
-            if ( empty( $_REQUEST['plugin'] ) ) {
+            if ( empty( $_REQUEST['plugin'] ) && empty( $_REQUEST['theme'] ) ) {
                 return;
             }
 
+            $is_theme = isset( $_REQUEST['theme'] );
+            $slug     = $is_theme ?
+                $_REQUEST['theme'] :
+                $_REQUEST['plugin'];
+
             $args = array(
-                'slug'   => wp_unslash( $_REQUEST['plugin'] ),
+                'slug'   => wp_unslash( $slug ),
                 'is_ssl' => is_ssl(),
                 'fields' => array(
                     'banners'         => true,
@@ -891,7 +897,28 @@
                 $args->locale = get_locale();
             }
 
-            $api = apply_filters( 'fs_plugins_api', false, 'plugin_information', $args );
+            $api = $is_theme ?
+                apply_filters( 'plugins_api', false, 'fs-theme-information', $args ) :
+                apply_filters( 'fs_plugins_api', false, 'plugin_information', $args );
+
+            if ( $is_theme ) {
+                /**
+                 * Change the "id" of the `<body>` tag to `plugin-information` in order for the styles to be applied
+                 * properly.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.7
+                 */
+                $GLOBALS['body_id'] = 'plugin-information';
+
+                /**
+                 * This is needed in order for the tab switching to work.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.7
+                 */
+                wp_enqueue_script( 'plugin-install' );
+            }
 
             if ( is_wp_error( $api ) ) {
                 wp_die( $api );
@@ -955,10 +982,15 @@
                 }
             }
 
-            // Add after $api->slug is ready.
-            $plugins_section_titles['features'] = fs_text_x_inline( 'Features & Pricing', 'Plugin installer section title', 'features-and-pricing', $api->slug );
+            if ( ! $is_theme ) {
+                // Add after $api->slug is ready.
+                $plugins_section_titles['features'] = fs_text_x_inline( 'Features & Pricing', 'Plugin installer section title', 'features-and-pricing', $api->slug );
+            }
 
-            $_tab = esc_attr( $tab );
+            $_tab = esc_attr( $is_theme ?
+                'plugin-information' :
+                $tab
+            );
 
             $section = isset( $_REQUEST['section'] ) ? wp_unslash( $_REQUEST['section'] ) : 'description'; // Default to the Description tab, Do not translate, API returns English.
             if ( empty( $section ) || ! isset( $api->sections[ $section ] ) ) {
@@ -966,7 +998,11 @@
                 $section        = array_shift( $section_titles );
             }
 
-            iframe_header( fs_text_inline( 'Plugin Install', 'plugin-install', $api->slug ) );
+            iframe_header(
+                $is_theme ?
+                    fs_text_inline( 'Plugin Install', 'plugin-install', $api->slug ) :
+                    fs_text_inline( 'Theme Install', 'theme-install', $api->slug )
+            );
 
             $_with_banner = '';
 
@@ -1311,7 +1347,13 @@
                             if ( ! empty( $api->slug ) && true == $api->is_wp_org_compliant ) {
                                 ?>
                                 <li><a target="_blank"
-                                       href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?>
+                                       href="https://wordpress.org/<?php echo $is_theme ? 'themes' : 'plugins' ?>/<?php echo $api->slug; ?>/"><?php
+                                            if ( $is_theme ) {
+                                                fs_esc_html_echo_inline( 'WordPress.org Theme Page', 'wp-org-theme-page', $api->slug );
+                                            } else {
+                                                fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug );
+                                            }
+                                        ?>
                                         &#187;</a>
                                 </li>
                                 <?php
@@ -1319,7 +1361,13 @@
                             if ( ! empty( $api->homepage ) ) {
                                 ?>
                                 <li><a target="_blank"
-                                       href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?>
+                                       href="<?php echo esc_url( $api->homepage ); ?>"><?php
+                                            if ( $is_theme ) {
+                                                fs_esc_html_echo_inline( 'Theme Homepage', 'theme-homepage', $api->slug );
+                                            } else {
+                                                fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug );
+                                            }
+                                        ?>
                                         &#187;</a>
                                 </li>
                                 <?php
@@ -1327,7 +1375,13 @@
                             if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
                                 ?>
                                 <li><a target="_blank"
-                                       href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
+                                       href="<?php echo esc_url( $api->donate_link ); ?>"><?php
+                                            if ( $is_theme ) {
+                                                fs_esc_html_echo_inline( 'Donate to this theme', 'donate-to-theme', $api->slug );
+                                            } else {
+                                                fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug );
+                                            }
+                                        ?>
                                         &#187;</a>
                                 </li>
                             <?php } ?>
@@ -1437,8 +1491,11 @@
                     $missing_notice = array(
                         'type'    => 'error',
                         'id'      => md5( microtime() ),
-                        'message' => $api->is_paid ?
-                            fs_text_inline( 'Paid add-on must be deployed to Freemius.', 'paid-addon-not-deployed', $api->slug ) :
+                        'message' => ( $is_theme || $api->is_paid ) ?
+                            ( $is_theme ?
+                                fs_text_inline( 'Paid theme must be deployed to Freemius.', 'paid-theme-not-deployed', $api->slug ) :
+                                fs_text_inline( 'Paid add-on must be deployed to Freemius.', 'paid-addon-not-deployed', $api->slug )
+                            ) :
                             fs_text_inline( 'Add-on must be deployed to WordPress.org or Freemius.', 'free-addon-not-deployed', $api->slug ),
                     );
                     fs_require_template( 'admin-notice.php', $missing_notice );
@@ -1450,7 +1507,7 @@
             echo "</div>\n";
             echo "</div>\n";
             echo "</div>\n"; // #plugin-information-scrollable
-            echo "<div id='$tab-footer'>\n";
+            echo "<div id='$_tab-footer'>\n";
 
             if (
                 ! empty( $api->download_link ) &&
@@ -1476,10 +1533,19 @@
                 }
             }
 
-            echo $this->get_actions_dropdown( $api, null );
+            if ( ! $is_theme ) {
+                /**
+                 * The actions dropdown is relevant only to add-ons.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.7
+                 */
+                echo $this->get_actions_dropdown( $api, null );
+            }
 
             echo "</div>\n";
             ?>
+            <?php if ( ! $is_theme ) : ?>
             <script type="text/javascript">
                 ( function( $, undef ) {
                     var $dropdowns = $( '.fs-dropdown' );
@@ -1568,6 +1634,7 @@
                     }
                 } )( jQuery );
             </script>
+            <?php endif ?>
             <?php
             iframe_footer();
             exit;

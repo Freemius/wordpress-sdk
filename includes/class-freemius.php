@@ -4348,6 +4348,8 @@
                 }
             }
 
+            $tab = fs_request_get( 'tab', false );
+
             /**
              * This should be executed even if Freemius is off for the core module,
              * otherwise, the add-ons dialogbox won't work properly. This is esepcially
@@ -4356,9 +4358,10 @@
              * @author Vova Feldman (@svovaf)
              */
             if ( $this->is_user_in_admin() &&
-                'plugin-information' === fs_request_get( 'tab', false ) &&
+                 in_array( $tab, array( 'plugin-information', 'fs-theme-information' ) ) &&
                  $this->should_use_freemius_updater_and_dialog() &&
                  (
+                     ( $this->is_theme() && 'fs-theme-information' === $tab ) ||
                      ( $this->is_addon() && $this->get_slug() == fs_request_get( 'plugin', false ) ) ||
                      ( $this->has_addons() && $this->get_id() == fs_request_get( 'parent_plugin_id', false ) )
                  )
