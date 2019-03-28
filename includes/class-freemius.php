@@ -7322,7 +7322,7 @@
          * @return FS_Plugin_License
          */
         private function get_active_child_addon_license() {
-            $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json", true );
+            $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json?filter=active", true );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
