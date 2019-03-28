@@ -7209,7 +7209,7 @@
                 return;
             }
 
-            $license = $this->get_active_child_addon_license();
+            $license = $this->get_addon_active_parent_license();
             if ( ! is_object( $license ) ) {
                 return;
             }
@@ -7248,7 +7248,7 @@
                 return;
             }
 
-            $license = $this->get_active_child_addon_license();
+            $license = $this->get_addon_active_parent_license();
             if ( ! is_object( $license ) ) {
                 return;
             }
@@ -7321,7 +7321,7 @@
          *
          * @return FS_Plugin_License
          */
-        private function get_active_child_addon_license() {
+        private function get_addon_active_parent_license() {
             $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json?filter=active", true );
 
             if (
