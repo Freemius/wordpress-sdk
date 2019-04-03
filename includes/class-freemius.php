@@ -3540,7 +3540,10 @@
                 $key = fs_strip_url_protocol( get_site_url( $blog_id ) );
 
                 $secure_auth = SECURE_AUTH_KEY;
-                if ( empty( $secure_auth ) || false !== strpos( $secure_auth, ' ' ) ) {
+                if ( empty( $secure_auth ) ||
+                     false !== strpos( $secure_auth, ' ' ) ||
+                     'put your unique phrase here' === $secure_auth
+                ) {
                     // Protect against default auth key.
                     $secure_auth = md5( microtime() );
                 }
