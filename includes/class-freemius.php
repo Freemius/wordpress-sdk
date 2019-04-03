@@ -7133,14 +7133,29 @@
                 }
             }
 
+            $is_trial_or_has_features_enabled_license = ( $this->is_trial() || $this->has_features_enabled_license() );
+
+            if ( $this->is_addon() && ! $is_trial_or_has_features_enabled_license ) {
+                /**
+                 * When activating an add-on, try to also activate a license.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.7
+                 */
+                if ( ! $this->_is_network_active ) {
+                    $this->maybe_activate_addon_license();
+                } else {
+                    $this->maybe_network_activate_addon_license();
+                }
+            }
+
             if (
                 $is_premium_version_activation &&
                 (
                     ( ! $this->is_registered() && $this->is_anonymous() ) ||
                     (
                         $this->is_registered() &&
-                        ! $this->is_trial() &&
-                        ! $this->has_features_enabled_license()
+                        ! $is_trial_or_has_features_enabled_license
                     )
                 )
             ) {
@@ -7180,6 +7195,172 @@
              * @since  1.1.9
              */
             $this->_storage->was_plugin_loaded = true;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        private function maybe_activate_addon_license() {
+            $parent_fs = $this->get_parent_instance();
+
+            if (
+                ! is_object( $parent_fs ) ||
+                ( ! $parent_fs->is_registered() && ! $parent_fs->is_network_registered() )
+            ) {
+                // Try to activate a license only if the parent plugin is active and has a valid `install`.
+                return;
+            }
+
+            $license = $this->get_addon_active_parent_license();
+            if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if ( ! $this->is_registered() ) {
+                // Opt in with a license key.
+                $this->opt_in(
+                    $parent_fs->get_current_or_network_user()->email,
+                    false,
+                    false,
+                    $license->secret_key
+                );
+            } else {
+                // Activate the license.
+                $install = $this->get_api_site_scope()->call(
+                    '/',
+                    'put',
+                    array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
+                );
+
+                if ( ! FS_Api::is_api_error( $install ) ) {
+                    $this->_sync_addon_license( $this->get_id(), true );
+                }
+            }
+        }
+
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        private function maybe_network_activate_addon_license() {
+            $parent_fs = $this->get_parent_instance();
+            if ( ! is_object( $parent_fs ) || ( ! $parent_fs->is_registered() && ! $parent_fs->is_network_registered() ) ) {
+                // Try to activate a license only if the parent plugin is active and has a valid `install`.
+                return;
+            }
+
+            $license = $this->get_addon_active_parent_license();
+            if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if ( ! $this->is_network_registered() ) {
+                $sites = $this->get_sites_for_network_level_optin();
+
+                if ( count( $sites ) > $license->left() ) {
+                    // If the add-on is network active, try to activate the license only if it can be activated on all sites.
+                    return;
+                }
+
+                // Opt in with a license key.
+                $this->opt_in(
+                    $parent_fs->get_user()->email,
+                    false,
+                    false,
+                    $license->secret_key,
+                    false,
+                    false,
+                    false,
+                    null,
+                    $sites
+                );
+            } else {
+                $blog_2_install_map = array();
+                $site_ids           = array();
+
+                $all_sites = Freemius::get_sites();
+
+                foreach ( $all_sites as $site ) {
+                    $blog_id = Freemius::get_site_blog_id( $site );
+                    $install = $this->get_install_by_blog_id( $blog_id );
+
+                    if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                        // Skip license activation for installs that are already associated with a license.
+                        continue;
+                    }
+
+                    if ( is_object( $install ) ) {
+                        $blog_2_install_map[ $blog_id ] = $install;
+                    } else {
+                        $site_ids[] = $blog_id;
+                    }
+                }
+
+                if ( ( count( $blog_2_install_map ) + count( $site_ids ) ) > $license->left() ) {
+                    return;
+                }
+
+                $user = $this->get_current_or_network_user();
+
+                if ( ! empty( $blog_2_install_map ) ) {
+                    $result = $this->activate_license_on_many_installs( $user, $license->secret_key, $blog_2_install_map );
+
+                    if ( true !== $result ) {
+                        return;
+                    }
+                }
+
+                if ( ! empty( $site_ids ) ) {
+                    $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         *
+         * @return FS_Plugin_License
+         */
+        private function get_addon_active_parent_license() {
+            $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json?filter=active", true );
+
+            if (
+                ! $this->is_api_result_object( $result, 'licenses' ) ||
+                ! is_array( $result->licenses ) ||
+                empty( $result->licenses )
+            ) {
+                return null;
+            }
+
+            $license = new FS_Plugin_License( $result->licenses[ 0 ] );
+
+            return $license;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         *
+         * @return array
+         */
+        private function get_sites_for_network_level_optin() {
+            $sites     = array();
+            $all_sites = self::get_sites();
+
+            foreach ( $all_sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+
+                if ( ! $this->is_site_delegated_connection( $blog_id ) &&
+                    ! $this->is_installed_on_site( $blog_id )
+                ) {
+                    $sites[] = $this->get_site_info( $site );
+                }
+            }
+
+            return $sites;
         }
 
         /**
@@ -13992,18 +14173,7 @@
 
             if ( true === $network_level_or_blog_id ) {
                 if ( ! isset( $override_with['sites'] ) ) {
-                    $params['sites'] = array();
-
-                    $sites = self::get_sites();
-
-                    foreach ( $sites as $site ) {
-                        $blog_id = self::get_site_blog_id( $site );
-                        if ( ! $this->is_site_delegated_connection( $blog_id ) &&
-                             ! $this->is_installed_on_site( $blog_id )
-                        ) {
-                            $params['sites'][] = $this->get_site_info( $site );
-                        }
-                    }
+                    $params['sites'] = $this->get_sites_for_network_level_optin();
                 }
             } else {
                 $site = is_numeric( $network_level_or_blog_id ) ?
