@@ -141,19 +141,28 @@
         }
 
         /**
+         * A map between supported currencies with their symbols.
+         *
+         * @var array<string,string>
+         */
+        static $CURRENCY_2_SYMBOL;
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.4.3
          *
          * @return string
          */
-        private function get_symbol()
-        {
-            $currency_2_symbol = array(
-                self::CURRENCY_USD => '$',
-                self::CURRENCY_GBP => '£',
-                self::CURRENCY_EUR => '€',
-            );
+        private function get_symbol() {
+            if ( ! isset( self::$CURRENCY_2_SYMBOL ) ) {
+                // Lazy load.
+                self::$CURRENCY_2_SYMBOL = array(
+                    self::CURRENCY_USD => '$',
+                    self::CURRENCY_GBP => '£',
+                    self::CURRENCY_EUR => '€',
+                );
+            }
 
-            return $currency_2_symbol[$this->currency];
+            return self::$CURRENCY_2_SYMBOL[ $this->currency ];
         }
     }
