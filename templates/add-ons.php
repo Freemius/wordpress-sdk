@@ -45,6 +45,8 @@
 		<h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons for %s', 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ) ?></h2>
 		<?php endif ?>
 
+		<?php $fs->do_action( 'addons/after_title' ) ?>
+
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
 				<h3><?php echo esc_html( sprintf(
@@ -305,6 +307,8 @@
 				<?php endif ?>
 			</ul>
 		</div>
+
+		<?php $fs->do_action( 'addons/after_addons' ) ?>
 	</div>
 	<script type="text/javascript">
 		(function( $, undef ) {
