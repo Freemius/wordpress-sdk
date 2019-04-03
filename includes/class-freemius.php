@@ -1467,7 +1467,7 @@
         static function _remove_fs_updates_from_plugin_install_page( $updates, $transient = null ) {
             if ( is_object( $updates ) && isset( $updates->response ) ) {
                 foreach ( $updates->response as $file => $plugin ) {
-                    if ( false !== strpos( $plugin->package, 'api.freemius' ) ) {
+                    if ( isset( $plugin->package ) && false !== strpos( $plugin->package, 'api.freemius' ) ) {
                         unset( $updates->response[ $file ] );
                     }
                 }
@@ -1655,7 +1655,7 @@
             // Try to load the cached value of the file path.
             if ( isset( $this->_storage->plugin_main_file ) ) {
                 $plugin_main_file = $this->_storage->plugin_main_file;
-                if ( isset( $plugin_main_file->path ) ) {
+                if ( ! empty( $plugin_main_file->path ) ) {
                     $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
                     if ( file_exists( $absolute_path ) ) {
                         return $absolute_path;
@@ -1676,7 +1676,7 @@
             if ( ! $is_init ) {
                 // Fetch prev path cache.
                 if ( isset( $this->_storage->plugin_main_file ) &&
-                     isset( $this->_storage->plugin_main_file->prev_path )
+                     ! empty( $this->_storage->plugin_main_file->prev_path )
                 ) {
                     $absolute_path = $this->get_absolute_path( $this->_storage->plugin_main_file->prev_path );
                     if ( file_exists( $absolute_path ) ) {
@@ -1780,7 +1780,7 @@
                 $store_option = true;
             }
 
-            if ( ! isset( $id_slug_type_path_map[ $module_id ]['path'] ) ||
+            if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
                  /**
                   * This verification is for cases when suddenly the same module
                   * is installed but with a different folder name.
@@ -2664,11 +2664,37 @@
                 $network_active_basenames = get_site_option( 'active_sitewide_plugins' );
 
                 if ( is_array( $network_active_basenames ) && ! empty( $network_active_basenames ) ) {
-                    $active_basenames = array_merge( $active_basenames, $network_active_basenames );
+                    $active_basenames = array_merge( $active_basenames, array_keys( $network_active_basenames ) );
                 }
             }
 
             return $active_basenames;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.5
+         *
+         * @param int $blog_id
+         *
+         * @return array
+         */
+        static function get_active_plugins_directories_map( $blog_id = 0 ) {
+            $active_basenames = self::get_active_plugins_basenames( $blog_id );
+
+            $map = array();
+
+            foreach ( $active_basenames as $active_basename ) {
+                $active_basename = fs_normalize_path( $active_basename );
+
+                if ( false === strpos( $active_basename, '/' ) ) {
+                    continue;
+                }
+
+                $map[ dirname( $active_basename ) ] = true;
+            }
+
+            return $map;
         }
 
         /**
@@ -3514,7 +3540,10 @@
                 $key = fs_strip_url_protocol( get_site_url( $blog_id ) );
 
                 $secure_auth = SECURE_AUTH_KEY;
-                if ( empty( $secure_auth ) || false !== strpos( $secure_auth, ' ' ) ) {
+                if ( empty( $secure_auth ) ||
+                     false !== strpos( $secure_auth, ' ' ) ||
+                     'put your unique phrase here' === $secure_auth
+                ) {
                     // Protect against default auth key.
                     $secure_auth = md5( microtime() );
                 }
@@ -11407,7 +11436,7 @@
             );
 
             if ( false !== $error ) {
-                $result['error'] = $error;
+                $result['error'] = $this->apply_filters( 'opt_in_error_message', $error );
             } else {
                 if ( $this->is_addon() || $this->has_addons() ) {
                     /**
@@ -14159,7 +14188,7 @@
 
                 $result->error = (object) array(
                     'type'    => $error_type,
-                    'message' => $this->add_filter( 'opt_in_error_message', $response->get_error_message() ),
+                    'message' => $response->get_error_message(),
                     'code'    => $error_code,
                     'http'    => 402
                 );
@@ -17024,7 +17053,15 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $result = $api->get( "/plugins/{$plugin_id}/payments.json?include_addons=true", $flush );
+            $include_bundles = (
+                is_object( $this->_plugin ) &&
+                FS_Plugin::is_valid_id( $this->_plugin->bundle_id )
+            );
+
+            $result = $api->get(
+                "/plugins/{$plugin_id}/payments.json?include_addons=true" . ($include_bundles ? '&include_bundles=true' : ''),
+                $flush
+            );
 
             if ( ! isset( $result->error ) ) {
                 for ( $i = 0, $len = count( $result->payments ); $i < $len; $i ++ ) {
@@ -18469,9 +18506,16 @@
         function _get_invoice_api_url( $payment_id = false ) {
             $this->_logger->entrance();
 
-            return $this->get_api_user_scope()->get_signed_url(
+            $url = $this->get_api_user_scope()->get_signed_url(
                 "/payments/{$payment_id}/invoice.pdf"
             );
+
+            if ( ! fs_starts_with( $url, 'https://' ) ) {
+                // Always use HTTPS for invoices.
+                $url = 'https' . substr( $url, 4 );
+            }
+
+            return $url;
         }
 
         /**
@@ -19659,6 +19703,10 @@
          * @param FS_Plugin_Plan[] $plans
          */
         function _check_for_trial_plans( $plans ) {
+            if ( ! $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
+                $plans = array();
+            }
+
             /**
              * For some reason core's do_action() flattens arrays when it has a single object item. Therefore, we need to restructure the array as expected.
              *

@@ -35,11 +35,17 @@
     $view_details_text    = fs_text_inline( 'View details', 'view-details', $slug );
 
 	$has_tabs = $fs->_add_tabs_before_content();
+
+    $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
+        get_current_blog_id() :
+        0;
 ?>
 	<div id="fs_addons" class="wrap fs-section">
 		<?php if ( ! $has_tabs ) : ?>
 		<h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons for %s', 'add-ons-for-x', $slug ), $fs->get_plugin_name() ) ) ?></h2>
 		<?php endif ?>
+
+		<?php $fs->do_action( 'addons/after_title' ) ?>
 
 		<div id="poststuff">
 			<?php if ( ! $has_addons ) : ?>
@@ -61,13 +67,21 @@
 						}
 					}
 
+                    $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 					?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
-                        $is_addon_installed = $fs->is_addon_installed( $addon->id );
+                        $basename = $fs->get_addon_basename( $addon->id );
+
+                        $is_addon_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $basename ) );
                         $is_addon_activated = $is_addon_installed ?
                             $fs->is_addon_activated( $addon->id ) :
                             false;
+
+                        $is_plugin_active = (
+                            $is_addon_activated ||
+                            isset( $active_plugins_directories_map[ dirname( $basename ) ] )
+                        );
 
 						$open_addon = ( $open_addon || ( $open_addon_slug === $addon->slug ) );
 
@@ -118,7 +132,7 @@
 						<li class="fs-card fs-addon" data-slug="<?php echo $addon->slug ?>">
 							<?php
 								$view_details_link = sprintf( '<a href="%s" aria-label="%s" data-title="%s"',
-									esc_url( network_admin_url( 'plugin-install.php?fs_allow_updater_and_dialog=true&tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
+									esc_url( network_admin_url( 'plugin-install.php?fs_allow_updater_and_dialog=true' . ( ! empty( $fs_blog_id ) ? '&fs_blog_id=' . $fs_blog_id : '' ) . '&tab=plugin-information&parent_plugin_id=' . $fs->get_id() . '&plugin=' . $addon->slug .
 									                            '&TB_iframe=true&width=600&height=550' ) ),
 									esc_attr( sprintf( fs_text_inline( 'More information about %s', 'more-information-about-x', $slug ), $addon->title ) ),
 									esc_attr( $addon->title )
@@ -159,10 +173,10 @@
 								<ul>
 									<li class="fs-card-banner"
                                         style="background-image: url('<?php echo $addon->info->card_banner_url ?>');"><?php
-                                        if ( $is_addon_activated || $is_addon_installed ) {
+                                        if ( $is_plugin_active || $is_addon_installed ) {
                                             echo sprintf(
                                                 '<span class="fs-badge fs-installed-addon-badge">%s</span>',
-                                                esc_html( $is_addon_activated ?
+                                                esc_html( $is_plugin_active ?
                                                     fs_text_x_inline( 'Active', 'active add-on', 'active-addon', $slug ) :
                                                     fs_text_x_inline( 'Installed', 'installed add-on', 'installed-addon', $slug )
                                                 )
@@ -186,7 +200,49 @@
 											echo implode(' - ', $descriptors) ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
-                                    <?php if ( ! in_array( $addon->id, $account_addon_ids ) || $is_addon_installed ) : ?>
+                                    <?php
+                                        $show_premium_activation_or_installation_action = true;
+
+                                        if ( ! in_array( $addon->id, $account_addon_ids ) ) {
+                                            $show_premium_activation_or_installation_action = false;
+                                        } else if ( $is_addon_installed ) {
+                                            /**
+                                             * If any add-on's version (free or premium) is installed, check if the
+                                             * premium version can be activated and show the relevant action. Otherwise,
+                                             * show the relevant action for the free version.
+                                             *
+                                             * @author Leo Fajardo (@leorw)
+                                             * @since 2.4.5
+                                             */
+                                            $fs_addon = $is_addon_activated ?
+                                                $fs->get_addon_instance( $addon->id ) :
+                                                null;
+
+                                            $premium_plugin_basename = is_object( $fs_addon ) ?
+                                                $fs_addon->premium_plugin_basename() :
+                                                "{$addon->premium_slug}/{$addon->slug}.php";
+
+                                            if (
+                                                ( $is_addon_activated && $fs_addon->is_premium() ) ||
+                                                file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_plugin_basename ) )
+                                            ) {
+                                                $basename = $premium_plugin_basename;
+                                            }
+
+                                            $show_premium_activation_or_installation_action = (
+                                                ( ! $is_addon_activated || ! $fs_addon->is_premium() ) &&
+                                                /**
+                                                 * This check is needed for cases when an active add-on doesn't have an
+                                                 * associated Freemius instance.
+                                                 *
+                                                 * @author Leo Fajardo (@leorw)
+                                                 * @since 2.4.5
+                                                 */
+                                                ( ! $is_plugin_active )
+                                            );
+                                        }
+                                    ?>
+                                    <?php if ( ! $show_premium_activation_or_installation_action ) : ?>
 									<li class="fs-cta"><a class="button"><?php echo esc_html( $view_details_text ) ?></a></li>
                                     <?php else : ?>
                                         <?php
@@ -198,11 +254,20 @@
                                         <div class="button-group">
                                             <?php if ( $is_allowed_to_install ) : ?>
                                             <?php
-                                                echo sprintf(
-                                                    '<a class="button button-primary" href="%s">%s</a>',
-                                                   wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
-                                                   fs_esc_html_inline( 'Install Now', 'install-now', $slug )
-                                               );
+                                                if ( ! $is_addon_installed ) {
+                                                    echo sprintf(
+                                                        '<a class="button button-primary" href="%s">%s</a>',
+                                                        wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                                                        fs_esc_html_inline( 'Install Now', 'install-now', $slug )
+                                                    );
+                                                } else {
+                                                    echo sprintf(
+                                                        '<a class="button button-primary edit" href="%s" title="%s" target="_parent">%s</a>',
+                                                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $basename, 'activate-plugin_' . $basename ),
+                                                        fs_esc_attr_inline( 'Activate this add-on', 'activate-this-addon', $addon->slug ),
+                                                        fs_text_inline( 'Activate', 'activate', $addon->slug )
+                                                    );
+                                                }
                                             ?>
                                             <?php else : ?>
                                             <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
@@ -242,6 +307,8 @@
 				<?php endif ?>
 			</ul>
 		</div>
+
+		<?php $fs->do_action( 'addons/after_addons' ) ?>
 	</div>
 	<script type="text/javascript">
 		(function( $, undef ) {

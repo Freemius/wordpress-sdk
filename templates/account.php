@@ -70,6 +70,11 @@
 		) );
 	}
 
+	$payments = $fs->_fetch_payments();
+
+	$show_billing = ( is_array( $payments ) && 0 < count( $payments ) );
+
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
@@ -142,6 +147,12 @@
             }
         }
     }
+
+    $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
+        get_current_blog_id() :
+        0;
+
+    $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -169,6 +180,10 @@
 							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_esc_html_echo_inline( 'Account Details', 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
+									<?php if ( $show_billing ) : ?>
+										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
+										<li>&nbsp;&bull;&nbsp;</li>
+									<?php endif ?>
 									<?php if ( ! $is_paying ) : ?>
 										<li>
 											<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
@@ -578,9 +593,11 @@
 										<?php $odd = true;
 											foreach ( $addons_to_show as $addon_id ) {
 												$addon_view_params = array(
-													'parent_fs' => $fs,
-													'addon_id'  => $addon_id,
-													'odd'       => $odd,
+													'parent_fs'                      => $fs,
+													'addon_id'                       => $addon_id,
+													'odd'                            => $odd,
+													'fs_blog_id'                     => $fs_blog_id,
+                                                    'active_plugins_directories_map' => &$active_plugins_directories_map
 												);
 
 												fs_require_template(
@@ -599,9 +616,11 @@
 						<?php $fs->do_action( 'after_account_details' ) ?>
 
 						<?php
-							$view_params = array( 'id' => $VARS['id'] );
-							fs_require_once_template( 'account/billing.php', $view_params );
-							fs_require_once_template( 'account/payments.php', $view_params );
+							if ( $show_billing ) {
+								$view_params = array( 'id' => $VARS['id'] );
+								fs_require_once_template( 'account/billing.php', $view_params );
+								fs_require_once_template( 'account/payments.php', $view_params );
+							}
 						?>
 					</div>
 				</div>
