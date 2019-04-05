@@ -52,11 +52,15 @@
     // Defaults.
     $plan                   = null;
     $is_paid_trial          = false;
+    /**
+     * @var FS_Plugin_License $license
+     */
     $license                = null;
     $site                   = null;
     $is_active_subscription = false;
     $subscription           = null;
     $is_paying              = false;
+    $show_upgrade           = false;
 
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
@@ -75,9 +79,15 @@
     } else if ( $is_addon_connected ) {
         $addon_info = $VARS['addon_info'];
 
-        if ( empty( $addon_info ) ) {
+        if (
+            empty( $addon_info ) ||
+            ! isset( $addon_info['site'] )
+        ) {
             $is_addon_connected = false;
         } else {
+            /**
+             * @var FS_Site $site
+             */
             $site    = $addon_info['site'];
             $version = $addon_info['version'];
 
@@ -95,9 +105,7 @@
 
             if ( isset( $addon_info['subscription'] ) ) {
                 $subscription = $addon_info['subscription'];
-    }
-
-            $is_trial = $site->is_trial();
+            }
 
             $has_valid_and_active_license = (
                 is_object( $license ) &&
@@ -105,14 +113,8 @@
                 $license->is_valid()
             );
 
-            $is_paying = (
-                ! $is_trial &&
-                'free' !== $plan_name &&
-                $has_valid_and_active_license
-            );
-
             $is_paid_trial = (
-                $is_trial &&
+                $site->is_trial() &&
                 $has_valid_and_active_license &&
                 ( $site->trial_plan_id == $license->plan_id )
             );
@@ -219,13 +221,13 @@
                 $downgrade_confirmation_message    = sprintf(
                     $downgrade_x_confirm_text,
                     ( $fs_addon->is_only_premium() ? $cancelling_subscription_text : $downgrading_plan_text ),
-                    $plan_title,
+                    $plan->title,
                     $human_readable_license_expiration
                 );
 
                 $after_downgrade_message = ! $license->is_block_features ?
-                    sprintf( $after_downgrade_non_blocking_text, $plan_title, $fs_addon->get_module_label( true ) ) :
-                    sprintf( $after_downgrade_blocking_text, $plan_title );
+                    sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs_addon->get_module_label( true ) ) :
+                    sprintf( $after_downgrade_blocking_text, $plan->title );
 
                 if ( ! $license->is_lifetime() && $is_active_subscription ) {
                     $buttons[] = fs_ui_get_action_button(
