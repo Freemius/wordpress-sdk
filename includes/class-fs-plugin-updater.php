@@ -299,7 +299,7 @@
                 $slug = $this->_fs->get_slug();
 
                 $upgrade_notice_html = sprintf(
-                    '<p class="notice fs-upgrade-notice fs-slug-%1$s fs-type-%2$s" data-slug="%1$s" data-type="%2s"><strong>%3$s</strong> %4$s</p>',
+                    '<p class="notice fs-upgrade-notice fs-slug-%1$s fs-type-%2$s" data-slug="%1$s" data-type="%2$s"><strong>%3$s</strong> %4$s</p>',
                     $slug,
                     $this->_fs->get_module_type(),
                     fs_text_inline( 'Important Upgrade Notice:', 'upgrade_notice', $slug ),
