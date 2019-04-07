@@ -1969,50 +1969,84 @@
          *
          * @author Vova Feldman (@svovaf)
          * @author Leo Fajardo (@leorw)
+         *
          * @since  1.1.2
          */
         function _add_deactivation_feedback_dialog_box() {
-            /* Check the type of user:
-			 * 1. Long-term (long-term)
-			 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
-			 * 3. Short-term (short-term)
-			 */
-            $is_long_term_user = true;
-
-            // Check if the site is at least 2 days old.
-            $time_installed = $this->_storage->install_timestamp;
-
-            // Difference in seconds.
-            $date_diff = time() - $time_installed;
-
-            // Convert seconds to days.
-            $date_diff_days = floor( $date_diff / ( 60 * 60 * 24 ) );
-
-            if ( $date_diff_days < 2 ) {
-                $is_long_term_user = false;
-            }
-
-            $is_long_term_user = $this->apply_filters( 'is_long_term_user', $is_long_term_user );
-
-            if ( $is_long_term_user ) {
-                $user_type = 'long-term';
-            } else {
-                if ( ! $this->is_registered() && ! $this->is_anonymous() ) {
-                    $user_type = 'non-registered-and-non-anonymous-short-term';
-                } else {
-                    $user_type = 'short-term';
-                }
-            }
-
-            $uninstall_reasons = $this->_get_uninstall_reasons( $user_type );
-
-            // Load the HTML template for the deactivation feedback dialog box.
-            $vars = array(
-                'reasons' => $uninstall_reasons,
-                'id'      => $this->_module_id
-            );
+            $show_subscription_cancellation = $this->apply_filters( 'show_deactivation_subscription_cancellation', true );
 
             /**
+             * @since 2.2.4.9 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
+             */
+            $show_deactivation_feedback_form = true;
+            if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
+                $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
+            } else if ( $this->is_addon() ) {
+                /**
+                 * If the add-on's 'show_deactivation_feedback_form' is not set, try to inherit the value from the parent.
+                 */
+                $show_deactivation_feedback_form = $this->get_parent_instance()->apply_filters( 'show_deactivation_feedback_form', true );
+            }
+
+            $uninstall_confirmation_message = $this->apply_filters( 'uninstall_confirmation_message', '' );
+
+            if (
+                ! $show_subscription_cancellation &&
+                ! $show_deactivation_feedback_form &&
+                empty( $uninstall_confirmation_message )
+            ) {
+                return;
+            }
+
+            $vars = array( 'id' => $this->_module_id );
+
+            if ( $show_deactivation_feedback_form ) {
+                /* Check the type of user:
+                 * 1. Long-term (long-term)
+                 * 2. Non-registered and non-anonymous short-term (non-registered-and-non-anonymous-short-term).
+                 * 3. Short-term (short-term)
+                 */
+                $is_long_term_user = true;
+
+                // Check if the site is at least 2 days old.
+                $time_installed = $this->_storage->install_timestamp;
+
+                // Difference in seconds.
+                $date_diff = time() - $time_installed;
+
+                // Convert seconds to days.
+                $date_diff_days = floor( $date_diff / ( 60 * 60 * 24 ) );
+
+                if ( $date_diff_days < 2 ) {
+                    $is_long_term_user = false;
+                }
+
+                $is_long_term_user = $this->apply_filters( 'is_long_term_user', $is_long_term_user );
+
+                if ( $is_long_term_user ) {
+                    $user_type = 'long-term';
+                } else {
+                    if ( ! $this->is_registered() && ! $this->is_anonymous() ) {
+                        $user_type = 'non-registered-and-non-anonymous-short-term';
+                    } else {
+                        $user_type = 'short-term';
+                    }
+                }
+
+                $uninstall_reasons = $this->_get_uninstall_reasons( $user_type );
+
+                $vars['reasons'] = $uninstall_reasons;
+            }
+
+            $vars['subscription_cancellation_dialog_box_template_params'] = $show_deactivation_feedback_form ?
+                $this->_get_subscription_cancellation_dialog_box_template_params() :
+                array();
+            $vars['show_deactivation_feedback_form']                      = $show_deactivation_feedback_form;
+            $vars['uninstall_confirmation_message']                       = $uninstall_confirmation_message;
+
+            /**
+             * Load the HTML template for the deactivation feedback dialog box.
+             *
              * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
              */
             fs_require_template( 'forms/deactivation/form.php', $vars );
@@ -11291,11 +11325,13 @@
          * @since  2.2.1
          *
          * @param bool $is_license_deactivation
+         *
+         * @return array
          */
-        function _maybe_add_subscription_cancellation_dialog_box( $is_license_deactivation = false ) {
+        function _get_subscription_cancellation_dialog_box_template_params( $is_license_deactivation = false ) {
             if ( fs_is_network_admin() ) {
                 // Subscription cancellation dialog box is currently not supported for multisite networks.
-                return;
+                return array();
             }
 
             $license = $this->_get_license();
@@ -11310,7 +11346,7 @@
                 $license->is_lifetime() ||
                 ( ! $license->is_single_site() && $license->activated > 1 )
             ) {
-                return;
+                return array();
             }
 
             /**
@@ -11318,17 +11354,15 @@
              */
             $subscription = $this->_get_subscription( $license->id );
             if ( ! is_object( $subscription ) || ! $subscription->is_active() ) {
-                return;
+                return array();
             }
 
-            $vars = array(
+            return array(
                 'id'                      => $this->_module_id,
                 'license'                 => $license,
                 'has_trial'               => $this->is_paid_trial(),
                 'is_license_deactivation' => $is_license_deactivation,
             );
-
-            fs_require_template( 'forms/subscription-cancellation.php', $vars );
         }
 
         /**
@@ -20303,7 +20337,7 @@
                 add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
             }
 
-            $link_text = $this->is_free_plan() ?
+            $link_text = $this->is_free_plan() ?s
                 $this->get_text_inline( 'Activate License', 'activate-license' ) :
                 $this->get_text_inline( 'Change License', 'change-license' );
 

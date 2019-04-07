@@ -627,7 +627,12 @@
 			</div>
 		</div>
 	</div>
-    <?php $fs->_maybe_add_subscription_cancellation_dialog_box( true ) ?>
+    <?php
+        $subscription_cancellation_dialog_box_template_params = $fs->_get_subscription_cancellation_dialog_box_template_params( true );
+        if ( ! empty( $subscription_cancellation_dialog_box_template_params ) ) {
+            fs_require_template( 'forms/subscription-cancellation.php', $subscription_cancellation_dialog_box_template_params );
+        }
+    ?>
     <script type="text/javascript">
         (function ($) {
             var setLoading = function ($this, label) {
