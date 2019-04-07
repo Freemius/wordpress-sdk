@@ -870,6 +870,7 @@
             }
 
             $is_theme = isset( $_REQUEST['theme'] );
+            $is_addon = ( ! $is_theme );
             $slug     = $is_theme ?
                 $_REQUEST['theme'] :
                 $_REQUEST['plugin'];
@@ -901,6 +902,14 @@
                 apply_filters( 'plugins_api', false, 'fs-theme-information', $args ) :
                 apply_filters( 'fs_plugins_api', false, 'plugin_information', $args );
 
+            if ( false === $api ) {
+                return;
+            }
+
+            if ( is_wp_error( $api ) ) {
+                wp_die( $api );
+            }
+
             if ( $is_theme ) {
                 /**
                  * Change the "id" of the `<body>` tag to `plugin-information` in order for the styles to be applied
@@ -918,10 +927,6 @@
                  * @since 2.2.4.7
                  */
                 wp_enqueue_script( 'plugin-install' );
-            }
-
-            if ( is_wp_error( $api ) ) {
-                wp_die( $api );
             }
 
             $plugins_allowedtags = array(
@@ -982,7 +987,7 @@
                 }
             }
 
-            if ( ! $is_theme ) {
+            if ( $is_addon ) {
                 // Add after $api->slug is ready.
                 $plugins_section_titles['features'] = fs_text_x_inline( 'Features & Pricing', 'Plugin installer section title', 'features-and-pricing', $api->slug );
             }
@@ -1000,8 +1005,8 @@
 
             iframe_header(
                 $is_theme ?
-                    fs_text_inline( 'Plugin Install', 'plugin-install', $api->slug ) :
-                    fs_text_inline( 'Theme Install', 'theme-install', $api->slug )
+                    fs_text_inline( 'Theme Install', 'theme-install', $api->slug ) :
+                    fs_text_inline( 'Plugin Install', 'plugin-install', $api->slug )
             );
 
             $_with_banner = '';
@@ -1056,7 +1061,7 @@
             ?>
         <div id="<?php echo $_tab; ?>-content" class='<?php echo $_with_banner; ?>'>
             <div class="fyi">
-                <?php if ( $api->is_paid ) : ?>
+                <?php if ( ! $is_theme && $api->is_paid ) : ?>
                     <?php if ( isset( $api->plans ) ) : ?>
                         <div class="plugin-information-pricing">
                         <?php foreach ( $api->plans as $plan ) : ?>
@@ -1484,18 +1489,19 @@
 
                 $display = ( $section_name === $section ) ? 'block' : 'none';
 
-                if ( 'description' === $section_name &&
-                     ( ( $api->is_wp_org_compliant && $api->wp_org_missing ) ||
-                       ( ! $api->is_wp_org_compliant && $api->fs_missing ) )
+                if (
+                    $is_addon &&
+                    'description' === $section_name &&
+                    (
+                        ( $api->is_wp_org_compliant && $api->wp_org_missing ) ||
+                        ( ! $api->is_wp_org_compliant && $api->fs_missing )
+                    )
                 ) {
                     $missing_notice = array(
                         'type'    => 'error',
                         'id'      => md5( microtime() ),
-                        'message' => ( $is_theme || $api->is_paid ) ?
-                            ( $is_theme ?
-                                fs_text_inline( 'Paid theme must be deployed to Freemius.', 'paid-theme-not-deployed', $api->slug ) :
-                                fs_text_inline( 'Paid add-on must be deployed to Freemius.', 'paid-addon-not-deployed', $api->slug )
-                            ) :
+                        'message' => $api->is_paid ?
+                            fs_text_inline( 'Paid add-on must be deployed to Freemius.', 'paid-addon-not-deployed', $api->slug ) :
                             fs_text_inline( 'Add-on must be deployed to WordPress.org or Freemius.', 'free-addon-not-deployed', $api->slug ),
                     );
                     fs_require_template( 'admin-notice.php', $missing_notice );
@@ -1507,7 +1513,7 @@
             echo "</div>\n";
             echo "</div>\n";
             echo "</div>\n"; // #plugin-information-scrollable
-            echo "<div id='$_tab-footer'>\n";
+            echo "<div id='{$_tab}-footer'>\n";
 
             if (
                 ! empty( $api->download_link ) &&
@@ -1533,7 +1539,7 @@
                 }
             }
 
-            if ( ! $is_theme ) {
+            if ( $is_addon ) {
                 /**
                  * The actions dropdown is relevant only to add-ons.
                  *
@@ -1545,7 +1551,7 @@
 
             echo "</div>\n";
             ?>
-            <?php if ( ! $is_theme ) : ?>
+            <?php if ( $is_addon ) : ?>
             <script type="text/javascript">
                 ( function( $, undef ) {
                     var $dropdowns = $( '.fs-dropdown' );

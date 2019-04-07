@@ -1007,6 +1007,10 @@ if ( !isset($info->error) ) {
                 }
             }
 
+            if ( $plugin_in_repo ) {
+                $data->is_wp_org_compliant = true;
+            }
+
             return $data;
         }
 
