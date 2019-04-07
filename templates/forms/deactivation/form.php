@@ -529,6 +529,8 @@ HTML;
 
     /**
      * @author Leo Fajardo (@leorw)
+     *
+     * @since 2.2.4.9
      */
 	function deactivateModule() {
 	    window.location.href = redirectLink;
