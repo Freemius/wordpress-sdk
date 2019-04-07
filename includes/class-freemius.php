@@ -20337,7 +20337,7 @@
                 add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
             }
 
-            $link_text = $this->is_free_plan() ?s
+            $link_text = $this->is_free_plan() ?
                 $this->get_text_inline( 'Activate License', 'activate-license' ) :
                 $this->get_text_inline( 'Change License', 'change-license' );
 
