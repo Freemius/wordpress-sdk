@@ -2553,12 +2553,14 @@
         function is_site_activation_mode( $and_on = true ) {
             return (
                 ( $this->is_on() || ! $and_on ) &&
-                ( $this->is_premium() && true === $this->_storage->require_license_activation ) ||
                 (
-                    ( ! $this->is_registered() ||
-                      ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
-                    ( ! $this->is_enable_anonymous() ||
-                      ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
+                    ( $this->is_premium() && true === $this->_storage->require_license_activation ) ||
+                    (
+                        ( ! $this->is_registered() ||
+                            ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
+                        ( ! $this->is_enable_anonymous() ||
+                            ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
+                    )
                 )
             );
         }
@@ -7809,7 +7811,7 @@
                  get_current_blog_id() == $network_or_blog_id ||
                  ( true === $network_or_blog_id && fs_is_network_admin() )
             ) {
-                unset( $this->_is_anonymous );
+                $this->_is_anonymous = null;
             }
         }
 
@@ -20417,7 +20419,8 @@
                 return;
             }
 
-            $url = '#';
+            $link_text_id = '';
+            $url          = '#';
 
             if ( $this->is_registered() ) {
                 if ( $this->is_tracking_allowed() ) {
@@ -20427,7 +20430,10 @@
                 }
 
                 add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
-            } else {
+            } else if ( $this->is_anonymous() || $this->is_activation_mode() ) {
+                /**
+                 * Show opt-in link only if skipped or in activation mode.
+                 */
                 $link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );
 
                 $params = ! $this->is_anonymous() ?
@@ -20440,7 +20446,7 @@
                 $url = $this->get_activation_url( $params );
             }
 
-            if ( $this->is_plugin() && self::is_plugins_page() ) {
+            if ( ! empty( $link_text_id ) && $this->is_plugin() && self::is_plugins_page() ) {
                 $this->add_plugin_action_link(
                     $link_text_id,
                     $url,
