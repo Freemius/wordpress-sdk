@@ -1969,6 +1969,7 @@
          *
          * @author Vova Feldman (@svovaf)
          * @author Leo Fajardo (@leorw)
+         *
          * @since  1.1.2
          */
         function _add_deactivation_feedback_dialog_box() {
@@ -11327,7 +11328,7 @@
          *
          * @return array
          */
-        function get_subscription_cancellation_dialog_box_template_params( $is_license_deactivation = false ) {
+        function _get_subscription_cancellation_dialog_box_template_params( $is_license_deactivation = false ) {
             if ( fs_is_network_admin() ) {
                 // Subscription cancellation dialog box is currently not supported for multisite networks.
                 return array();
@@ -20336,7 +20337,7 @@
                 add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
             }
 
-            $link_text = $this->is_free_plan() ?
+            $link_text = $this->is_free_plan() ?s
                 $this->get_text_inline( 'Activate License', 'activate-license' ) :
                 $this->get_text_inline( 'Change License', 'change-license' );
 
