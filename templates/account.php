@@ -595,85 +595,8 @@
 
                                             $installed_addons_ids_map = array_flip( $installed_addons_ids );
 
-                                            $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
-
-                                            $sites = $fs_options->get_option( 'sites', array() );
-
-                                            $plugins_data = null;
-                                            $all_plans    = null;
-                                            $licenses     = null;
-
 											foreach ( $addons_to_show as $addon_id ) {
-                                                $addon              = $fs->get_addon( $addon_id );
-                                                $slug               = $addon->slug;
-											    $is_addon_connected = false;
-											    $addon_info         = array();
-
-                                                if ( isset( $sites[ $slug ] ) ) {
-                                                    $site   = $sites[ $slug ];
-                                                    $plugin = FS_Plugin_Manager::instance( $addon_id )->get();
-
-                                                    $is_addon_connected = (
-                                                        is_object( $plugin ) &&
-                                                        ( $plugin->parent_plugin_id == $fs->get_id() ) &&
-                                                        is_object( $site ) &&
-                                                        FS_Site::is_valid_id( $site->id ) &&
-                                                        FS_User::is_valid_id( $site->user_id ) &&
-                                                        FS_Plugin_Plan::is_valid_id( $site->plan_id )
-                                                    );
-
-                                                    if ( $is_addon_connected && ! isset( $installed_addons_ids_map[ $addon_id ] ) ) {
-                                                        $addon_info['site'] = $site;
-
-                                                        if ( is_null( $plugins_data ) ) {
-                                                            $plugins_data = $fs_options->get_option( WP_FS__MODULE_TYPE_PLUGIN . 's', array() );
-                                                            $all_plans    = $fs_options->get_option( 'plans', array() );
-                                                            $licenses     = $fs_options->get_option( 'all_licenses', array() );
-                                                        }
-
-                                                        if ( isset( $plugins_data[ $slug ] ) ) {
-                                                            $plugin_data = $plugins_data[ $slug ];
-
-                                                            $addon_info['version'] = $plugin_data->version;
-                                                        }
-
-                                                        if ( isset( $all_plans[ $slug ] ) ) {
-                                                            $plans = $all_plans[ $slug ];
-
-                                                            foreach ( $plans as $plan ) {
-                                                                if ( $site->plan_id == Freemius::_decrypt( $plan->id ) ) {
-                                                                    $addon_info['plan_name']  = Freemius::_decrypt( $plan->name );
-                                                                    $addon_info['plan_title'] = Freemius::_decrypt( $plan->title );
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        if ( is_array( $licenses ) && isset( $licenses[ $addon_id ] ) ) {
-                                                            foreach ( $licenses[ $addon_id ] as $license ) {
-                                                                if ( $license->id == $site->license_id ) {
-                                                                    $addon_info['license'] = $license;
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-
-                                                        if ( isset( $addon_info['license'] ) ) {
-                                                            $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
-
-                                                            if ( isset( $addon_storage->subscriptions ) &&
-                                                                ! empty( $addon_storage->subscriptions )
-                                                            ) {
-                                                                foreach ( $addon_storage->subscriptions as $subscription ) {
-                                                                    if ( $subscription->license_id == $site->license_id ) {
-                                                                        $addon_info['subscription'] = $subscription;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+											    $is_addon_installed = isset( $installed_addons_ids_map[ $addon_id ] );
 
 												$addon_view_params = array(
 													'parent_fs'                      => $fs,
@@ -681,9 +604,8 @@
 													'odd'                            => $odd,
 													'fs_blog_id'                     => $fs_blog_id,
                                                     'active_plugins_directories_map' => &$active_plugins_directories_map,
-                                                    'is_addon_connected'             => $is_addon_connected,
-                                                    'is_addon_installed'             => isset( $installed_addons_ids_map[ $addon_id ] ),
-                                                    'addon_info'                     => $addon_info
+                                                    'is_addon_installed'             => $is_addon_installed,
+                                                    'addon_info'                     => $fs->get_addon_info( $addon_id, $is_addon_installed )
 												);
 
 												fs_require_template(
