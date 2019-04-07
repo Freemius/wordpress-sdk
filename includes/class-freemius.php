@@ -20224,6 +20224,9 @@
 
                 add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
             } else if ( $this->is_anonymous() || $this->is_activation_mode() ) {
+                /**
+                 * Show opt-in link only if skipped or in activation mode.
+                 */
                 $link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );
 
                 $params = ! $this->is_anonymous() ?
