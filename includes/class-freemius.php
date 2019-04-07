@@ -1972,20 +1972,25 @@
          * @since  1.1.2
          */
         function _add_deactivation_feedback_dialog_box() {
-            $subscription_cancellation_dialog_box_template_params = $this->apply_filters( 'show_deactivation_subscription_cancellation', true ) ?
-                $this->get_subscription_cancellation_dialog_box_template_params() :
-                array();
+            $show_subscription_cancellation = $this->apply_filters( 'show_deactivation_subscription_cancellation', true );
+
+            /**
+             * @since 2.2.4.9 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
+             */
+            $show_deactivation_feedback_form = true;
+            if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
+                $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
+            } else if ( $this->is_addon() ) {
+                /**
+                 * If the add-on's 'show_deactivation_feedback_form' is not set, try to inherit the value from the parent.
+                 */
+                $show_deactivation_feedback_form = $this->get_parent_instance()->apply_filters( 'show_deactivation_feedback_form', true );
+            }
 
             $uninstall_confirmation_message = $this->apply_filters( 'uninstall_confirmation_message', '' );
 
-            $deactivation_feedback_filter_fs = ( ! $this->is_addon() || $this->has_filter( 'show_deactivation_feedback_form' ) ) ?
-                $this :
-                $this->get_parent_instance();
-
-            $show_deactivation_feedback_form = $deactivation_feedback_filter_fs->apply_filters( 'show_deactivation_feedback_form', true );
-
             if (
-                empty( $subscription_cancellation_dialog_box_template_params ) &&
+                ! $show_subscription_cancellation &&
                 ! $show_deactivation_feedback_form &&
                 empty( $uninstall_confirmation_message )
             ) {
@@ -2032,7 +2037,9 @@
                 $vars['reasons'] = $uninstall_reasons;
             }
 
-            $vars['subscription_cancellation_dialog_box_template_params'] = &$subscription_cancellation_dialog_box_template_params;
+            $vars['subscription_cancellation_dialog_box_template_params'] = $show_deactivation_feedback_form ?
+                $this->_get_subscription_cancellation_dialog_box_template_params() :
+                array();
             $vars['show_deactivation_feedback_form']                      = $show_deactivation_feedback_form;
             $vars['uninstall_confirmation_message']                       = $uninstall_confirmation_message;
 
