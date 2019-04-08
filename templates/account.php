@@ -605,7 +605,7 @@
 													'fs_blog_id'                     => $fs_blog_id,
                                                     'active_plugins_directories_map' => &$active_plugins_directories_map,
                                                     'is_addon_installed'             => $is_addon_installed,
-                                                    'addon_info'                     => $fs->get_addon_info( $addon_id, $is_addon_installed )
+                                                    'addon_info'                     => $fs->_get_addon_info( $addon_id, $is_addon_installed )
 												);
 
 												fs_require_template(

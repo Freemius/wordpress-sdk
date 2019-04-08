@@ -9814,7 +9814,7 @@
          *
          * @return array
          */
-        function get_addon_info( $addon_id, $is_installed ) {
+        function _get_addon_info( $addon_id, $is_installed ) {
             static $fs_options   = null;
             static $sites        = null;
             static $plugins_data = null;
