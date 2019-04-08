@@ -590,14 +590,22 @@
 										</tr>
 										</thead>
 										<tbody>
-										<?php $odd = true;
+										<?php
+                                            $odd = true;
+
+                                            $installed_addons_ids_map = array_flip( $installed_addons_ids );
+
 											foreach ( $addons_to_show as $addon_id ) {
+											    $is_addon_installed = isset( $installed_addons_ids_map[ $addon_id ] );
+
 												$addon_view_params = array(
 													'parent_fs'                      => $fs,
 													'addon_id'                       => $addon_id,
 													'odd'                            => $odd,
 													'fs_blog_id'                     => $fs_blog_id,
-                                                    'active_plugins_directories_map' => &$active_plugins_directories_map
+                                                    'active_plugins_directories_map' => &$active_plugins_directories_map,
+                                                    'is_addon_installed'             => $is_addon_installed,
+                                                    'addon_info'                     => $fs->_get_addon_info( $addon_id, $is_addon_installed )
 												);
 
 												fs_require_template(
