@@ -9843,6 +9843,25 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since 2.2.5.1
+         *
+         * @return array
+         */
+        function _get_plans_and_pricing_by_addon_id() {
+            $result = $this->get_api_plugin_scope()->get( $this->add_show_pending( "/addons/pricing.json?type=visible" ) );
+
+            $plans_and_pricing_by_addon_id = array();
+            if ( $this->is_api_result_object( $result, 'addons' ) ) {
+                foreach ( $result->addons as $addon ) {
+                    $plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
+                }
+            }
+
+            return $plans_and_pricing_by_addon_id;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          * @since 2.2.4.8
          *
          * @param number $addon_id
@@ -9851,16 +9870,21 @@
          * @return array
          */
         function _get_addon_info( $addon_id, $is_installed ) {
-            static $fs_options   = null;
-            static $sites        = null;
-            static $plugins_data = null;
-            static $all_plans    = null;
-            static $licenses     = null;
+            static $fs_options                    = null;
+            static $sites                         = null;
+            static $plugins_data                  = null;
+            static $all_plans                     = null;
+            static $licenses                      = null;
+            static $plans_and_pricing_by_addon_id = null;
 
             if ( is_null( $fs_options ) ) {
                 $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
 
                 $sites = $fs_options->get_option( 'sites', array() );
+            }
+
+            if ( ! $is_installed && is_null( $plans_and_pricing_by_addon_id ) ) {
+                $plans_and_pricing_by_addon_id = $this->_get_plans_and_pricing_by_addon_id();
             }
 
             $addon      = $this->get_addon( $addon_id );
@@ -9870,6 +9894,25 @@
                 'slug'         => $slug,
                 'title'        => $addon->title
             );
+
+            if ( ! $is_installed && isset( $plans_and_pricing_by_addon_id[ $addon_id ] ) ) {
+                $has_paid_plan = false;
+                $plans         = $plans_and_pricing_by_addon_id[ $addon_id ];
+
+                if ( is_array( $plans ) && count( $plans ) > 0 ) {
+                    foreach ( $plans as $plan ) {
+                        if ( isset( $plan->pricing ) &&
+                            is_array( $plan->pricing ) &&
+                            count( $plan->pricing ) > 0
+                        ) {
+                            $has_paid_plan = true;
+                            break;
+                        }
+                    }
+                }
+
+                $addon_info['has_paid_plan'] = $has_paid_plan;
+            }
 
             if ( ! isset( $sites[ $slug ] ) ) {
                 return $addon_info;
@@ -18957,7 +19000,9 @@
             if ( ! $flush && $api->is_cached( $path ) ) {
                 $addons = self::get_all_addons();
 
-                return $addons[ $this->_plugin->id ];
+                return isset( $addons[ $this->_plugin->id ] ) ?
+                    $addons[ $this->_plugin->id ] :
+                    array();
             }
 
             $result = $api->get( $path, $flush );
