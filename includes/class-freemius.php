@@ -12421,16 +12421,18 @@
          * @author   Vova Feldman (@svovaf)
          * @since    1.0.6
          *
-         * @param string $billing_cycle Billing cycle
-         * @param bool   $is_trial
-         * @param array  $extra         (optional) Extra parameters, override other query params.
+         * @param string    $billing_cycle Billing cycle
+         * @param bool      $is_trial
+         * @param array     $extra         (optional) Extra parameters, override other query params.
+         * @param bool|null $network
          *
          * @return string
          */
         function checkout_url(
             $billing_cycle = WP_FS__PERIOD_ANNUALLY,
             $is_trial = false,
-            $extra = array()
+            $extra = array(),
+            $network = null
         ) {
             $this->_logger->entrance();
 
@@ -12448,7 +12450,7 @@
              */
             $params = array_merge( $params, $extra );
 
-            return $this->_get_admin_page_url( 'pricing', $params );
+            return $this->_get_admin_page_url( 'pricing', $params, $network );
         }
 
         /**
@@ -12457,10 +12459,11 @@
          * @author   Vova Feldman (@svovaf)
          * @since    1.1.7
          *
-         * @param number $addon_id
-         * @param number $pricing_id
-         * @param string $billing_cycle
-         * @param bool   $is_trial
+         * @param number    $addon_id
+         * @param number    $pricing_id
+         * @param string    $billing_cycle
+         * @param bool      $is_trial
+         * @param bool|null $network
          *
          * @return string
          */
@@ -12468,12 +12471,13 @@
             $addon_id,
             $pricing_id,
             $billing_cycle = WP_FS__PERIOD_ANNUALLY,
-            $is_trial = false
+            $is_trial = false,
+            $network = null
         ) {
             return $this->checkout_url( $billing_cycle, $is_trial, array(
                 'plugin_id'  => $addon_id,
                 'pricing_id' => $pricing_id,
-            ) );
+            ), $network );
         }
 
         #endregion
