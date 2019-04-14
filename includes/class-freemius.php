@@ -15842,6 +15842,44 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.11
+         *
+         * @param bool $is_activation_mode
+         *
+         * @return bool
+         */
+        private function should_add_submenu_or_action_links( $is_activation_mode ) {
+            if ( $this->is_addon() ) {
+                // No submenu items or action links for add-ons.
+                return false;
+            }
+
+            if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
+                // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
+                return true;
+            }
+
+            if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
+                return false;
+            }
+
+            if ( fs_is_network_admin() ) {
+                /**
+                 * Add submenu items or action links to network level when plugin was network activated and the super
+                 * admin did NOT delegate the connection of all sites to site admins.
+                 */
+                return (
+                    $this->_is_network_active &&
+                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
+                        ! $this->is_network_delegated_connection() )
+                );
+            }
+
+            return ( ! $this->_is_network_active || $this->is_delegated_connection() );
+        }
+
+        /**
          * Add default Freemius menu items.
          *
          * @author Vova Feldman (@svovaf)
@@ -15853,28 +15891,7 @@
 
             $is_activation_mode = $this->is_activation_mode();
 
-            if ( $this->is_addon() ) {
-                // No submenu items for add-ons.
-                $add_submenu_items = false;
-            } else if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
-                // Also add submenu items when running in a free .org theme so the tabs will be visible.
-                $add_submenu_items = true;
-            } else if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
-                $add_submenu_items = false;
-            } else if ( fs_is_network_admin() ) {
-                /**
-                 * Add submenu items to network level when plugin was network
-                 * activated and the super-admin did NOT delegated the connection
-                 * of all sites to site admins.
-                 */
-                $add_submenu_items = (
-                    $this->_is_network_active &&
-                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
-                      ! $this->is_network_delegated_connection() )
-                );
-            } else {
-                $add_submenu_items = ( ! $this->_is_network_active || $this->is_delegated_connection() );
-            }
+            $add_submenu_items = $this->should_add_submenu_or_action_links( $is_activation_mode );
 
             if ( $add_submenu_items ) {
                 if ( $this->has_affiliate_program() ) {
@@ -20406,29 +20423,15 @@
 
             $is_activation_mode = $this->is_activation_mode();
 
+            $add_action_links = $this->should_add_submenu_or_action_links( $is_activation_mode );
+
             /**
              * The following logic is based on the logic in `add_submenu_items()` method that decides when the "Upgrade"
              * and "Add-Ons" menus should be added.
              *
              * @author Leo Fajardo (@leorw)
-             * @since 2.2.5.0
+             * @since 2.2.4.11
              */
-            if ( $this->is_addon() ) {
-                $add_action_links = false;
-            } else if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
-                $add_action_links = true;
-            } else if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
-                $add_action_links = false;
-            } else if ( fs_is_network_admin() ) {
-                $add_action_links = (
-                    $this->_is_network_active &&
-                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
-                        ! $this->is_network_delegated_connection() )
-                );
-            } else {
-                $add_action_links = ( ! $this->_is_network_active || $this->is_delegated_connection() );
-            }
-
             $add_upgrade_link = (
                 $add_action_links ||
                 ( $is_activation_mode && $this->is_only_premium() )
