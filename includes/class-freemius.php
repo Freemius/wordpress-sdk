@@ -15889,6 +15889,44 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.11
+         *
+         * @param bool $is_activation_mode
+         *
+         * @return bool
+         */
+        private function should_add_submenu_or_action_links( $is_activation_mode ) {
+            if ( $this->is_addon() ) {
+                // No submenu items or action links for add-ons.
+                return false;
+            }
+
+            if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
+                // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
+                return true;
+            }
+
+            if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
+                return false;
+            }
+
+            if ( fs_is_network_admin() ) {
+                /**
+                 * Add submenu items or action links to network level when plugin was network activated and the super
+                 * admin did NOT delegate the connection of all sites to site admins.
+                 */
+                return (
+                    $this->_is_network_active &&
+                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
+                        ! $this->is_network_delegated_connection() )
+                );
+            }
+
+            return ( ! $this->_is_network_active || $this->is_delegated_connection() );
+        }
+
+        /**
          * Add default Freemius menu items.
          *
          * @author Vova Feldman (@svovaf)
@@ -15900,28 +15938,7 @@
 
             $is_activation_mode = $this->is_activation_mode();
 
-            if ( $this->is_addon() ) {
-                // No submenu items for add-ons.
-                $add_submenu_items = false;
-            } else if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
-                // Also add submenu items when running in a free .org theme so the tabs will be visible.
-                $add_submenu_items = true;
-            } else if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
-                $add_submenu_items = false;
-            } else if ( fs_is_network_admin() ) {
-                /**
-                 * Add submenu items to network level when plugin was network
-                 * activated and the super-admin did NOT delegated the connection
-                 * of all sites to site admins.
-                 */
-                $add_submenu_items = (
-                    $this->_is_network_active &&
-                    ( WP_FS__SHOW_NETWORK_EVEN_WHEN_DELEGATED ||
-                      ! $this->is_network_delegated_connection() )
-                );
-            } else {
-                $add_submenu_items = ( ! $this->_is_network_active || $this->is_delegated_connection() );
-            }
+            $add_submenu_items = $this->should_add_submenu_or_action_links( $is_activation_mode );
 
             if ( $add_submenu_items ) {
                 if ( $this->has_affiliate_program() ) {
@@ -17032,7 +17049,10 @@
                 $account_addons = array();
             }
 
-            $user_licenses = $this->fetch_valid_user_licenses();
+            $user_licenses = $this->is_registered() ?
+                $this->fetch_valid_user_licenses() :
+                array();
+
             if ( empty( $user_licenses ) ) {
                 return $account_addons;
             }
@@ -20450,8 +20470,32 @@
         function _add_upgrade_action_link() {
             $this->_logger->entrance();
 
-            if ( $this->is_pricing_page_visible() &&
-                 $this->is_submenu_item_visible( 'pricing' )
+            $is_activation_mode = $this->is_activation_mode();
+
+            $add_action_links = $this->should_add_submenu_or_action_links( $is_activation_mode );
+
+            /**
+             * The following logic is based on the logic in `add_submenu_items()` method that decides when the "Upgrade"
+             * and "Add-Ons" menus should be added.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.4.11
+             */
+            $add_upgrade_link = (
+                $add_action_links ||
+                ( $is_activation_mode && $this->is_only_premium() )
+            ) && ! WP_FS__DEMO_MODE;
+
+            $add_addons_link = ( $add_action_links && $this->has_addons() );
+
+            if ( ! $add_upgrade_link && ! $add_addons_link ) {
+                return;
+            }
+
+            if (
+                $add_upgrade_link &&
+                $this->is_pricing_page_visible() &&
+                $this->is_submenu_item_visible( 'pricing' )
             ) {
                 $this->add_plugin_action_link(
                     $this->get_text_inline( 'Upgrade', 'upgrade' ),
@@ -20462,8 +20506,10 @@
                 );
             }
 
-            if ( $this->has_addons() &&
-                 $this->is_submenu_item_visible( 'addons' )
+            if (
+                $add_addons_link &&
+                $this->has_addons() &&
+                $this->is_submenu_item_visible( 'addons' )
             ) {
                 $this->add_plugin_action_link(
                     $this->get_text_inline( 'Add-Ons', 'add-ons' ),
