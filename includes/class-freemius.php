@@ -9843,6 +9843,25 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since 2.2.5.1
+         *
+         * @return array
+         */
+        function _get_addons_plans_and_pricing_map_by_id() {
+            $result = $this->get_api_plugin_scope()->get( $this->add_show_pending( "/addons/pricing.json?type=visible" ) );
+
+            $plans_and_pricing_by_addon_id = array();
+            if ( $this->is_api_result_object( $result, 'addons' ) ) {
+                foreach ( $result->addons as $addon ) {
+                    $plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
+                }
+            }
+
+            return $plans_and_pricing_by_addon_id;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          * @since 2.2.4.8
          *
          * @param number $addon_id
@@ -9851,16 +9870,21 @@
          * @return array
          */
         function _get_addon_info( $addon_id, $is_installed ) {
-            static $fs_options   = null;
-            static $sites        = null;
-            static $plugins_data = null;
-            static $all_plans    = null;
-            static $licenses     = null;
+            static $fs_options                    = null;
+            static $sites                         = null;
+            static $plugins_data                  = null;
+            static $all_plans                     = null;
+            static $licenses                      = null;
+            static $plans_and_pricing_by_addon_id = null;
 
             if ( is_null( $fs_options ) ) {
                 $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
 
                 $sites = $fs_options->get_option( 'sites', array() );
+            }
+
+            if ( ! $is_installed && is_null( $plans_and_pricing_by_addon_id ) ) {
+                $plans_and_pricing_by_addon_id = $this->_get_addons_plans_and_pricing_map_by_id();
             }
 
             $addon      = $this->get_addon( $addon_id );
@@ -9870,6 +9894,25 @@
                 'slug'         => $slug,
                 'title'        => $addon->title
             );
+
+            if ( ! $is_installed && isset( $plans_and_pricing_by_addon_id[ $addon_id ] ) ) {
+                $has_paid_plan = false;
+                $plans         = $plans_and_pricing_by_addon_id[ $addon_id ];
+
+                if ( is_array( $plans ) && count( $plans ) > 0 ) {
+                    foreach ( $plans as $plan ) {
+                        if ( isset( $plan->pricing ) &&
+                            is_array( $plan->pricing ) &&
+                            count( $plan->pricing ) > 0
+                        ) {
+                            $has_paid_plan = true;
+                            break;
+                        }
+                    }
+                }
+
+                $addon_info['has_paid_plan'] = $has_paid_plan;
+            }
 
             if ( ! isset( $sites[ $slug ] ) ) {
                 return $addon_info;
@@ -12421,16 +12464,18 @@
          * @author   Vova Feldman (@svovaf)
          * @since    1.0.6
          *
-         * @param string $billing_cycle Billing cycle
-         * @param bool   $is_trial
-         * @param array  $extra         (optional) Extra parameters, override other query params.
+         * @param string    $billing_cycle Billing cycle
+         * @param bool      $is_trial
+         * @param array     $extra         (optional) Extra parameters, override other query params.
+         * @param bool|null $network
          *
          * @return string
          */
         function checkout_url(
             $billing_cycle = WP_FS__PERIOD_ANNUALLY,
             $is_trial = false,
-            $extra = array()
+            $extra = array(),
+            $network = null
         ) {
             $this->_logger->entrance();
 
@@ -12448,7 +12493,7 @@
              */
             $params = array_merge( $params, $extra );
 
-            return $this->_get_admin_page_url( 'pricing', $params );
+            return $this->_get_admin_page_url( 'pricing', $params, $network );
         }
 
         /**
@@ -12457,10 +12502,11 @@
          * @author   Vova Feldman (@svovaf)
          * @since    1.1.7
          *
-         * @param number $addon_id
-         * @param number $pricing_id
-         * @param string $billing_cycle
-         * @param bool   $is_trial
+         * @param number    $addon_id
+         * @param number    $pricing_id
+         * @param string    $billing_cycle
+         * @param bool      $is_trial
+         * @param bool|null $network
          *
          * @return string
          */
@@ -12468,12 +12514,13 @@
             $addon_id,
             $pricing_id,
             $billing_cycle = WP_FS__PERIOD_ANNUALLY,
-            $is_trial = false
+            $is_trial = false,
+            $network = null
         ) {
             return $this->checkout_url( $billing_cycle, $is_trial, array(
                 'plugin_id'  => $addon_id,
                 'pricing_id' => $pricing_id,
-            ) );
+            ), $network );
         }
 
         #endregion
@@ -18977,7 +19024,9 @@
             if ( ! $flush && $api->is_cached( $path ) ) {
                 $addons = self::get_all_addons();
 
-                return $addons[ $this->_plugin->id ];
+                return isset( $addons[ $this->_plugin->id ] ) ?
+                    $addons[ $this->_plugin->id ] :
+                    array();
             }
 
             $result = $api->get( $path, $flush );

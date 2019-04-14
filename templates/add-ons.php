@@ -58,14 +58,7 @@
 			<ul class="fs-cards-list">
 				<?php if ( $has_addons ) : ?>
 					<?php
-					$result = $fs->get_api_plugin_scope()->get( $fs->add_show_pending( "/addons/pricing.json?type=visible" ) );
-
-					$plans_and_pricing_by_addon_id = array();
-					if ($fs->is_api_result_object( $result, 'addons')) {
-						foreach ( $result->addons as $addon ) {
-							$plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
-						}
-					}
+                    $plans_and_pricing_by_addon_id = $fs->_get_addons_plans_and_pricing_map_by_id();
 
                     $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 					?>
@@ -257,7 +250,7 @@
                                                 if ( ! $is_addon_installed ) {
                                                     echo sprintf(
                                                         '<a class="button button-primary" href="%s">%s</a>',
-                                                        wp_nonce_url( self_admin_url( 'update.php?fs_allow_updater_and_dialog=true&action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                                                        wp_nonce_url( self_admin_url( 'update.php?' . ( $has_paid_plan ? 'fs_allow_updater_and_dialog=true&' : '' ) . 'action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
                                                         fs_esc_html_inline( 'Install Now', 'install-now', $slug )
                                                     );
                                                 } else {

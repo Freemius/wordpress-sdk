@@ -222,7 +222,23 @@
                 );
 
                 if ( $has_paid_plan ) {
-                    $data->checkout_link = $this->_fs->checkout_url();
+                    $blog_id           = fs_request_get( 'fs_blog_id' );
+                    $has_valid_blog_id = is_numeric( $blog_id );
+
+                    if ( $has_valid_blog_id ) {
+                        switch_to_blog( $blog_id );
+                    }
+
+                    $data->checkout_link = $this->_fs->checkout_url(
+                        WP_FS__PERIOD_ANNUALLY,
+                        false,
+                        array(),
+                        ( $has_valid_blog_id ? false : null )
+                    );
+
+                    if ( $has_valid_blog_id ) {
+                        restore_current_blog();
+                    }
 
                     if ( is_object( $fs_addon ) ) {
                         $data->has_purchased_license = $fs_addon->has_active_valid_license();
@@ -467,12 +483,26 @@
                 }
             }
 
-            return '<a class="button button-primary fs-checkout-button right" href="' . $this->_fs->addon_checkout_url(
+            $blog_id           = fs_request_get( 'fs_blog_id' );
+            $has_valid_blog_id = is_numeric( $blog_id );
+
+            if ( $has_valid_blog_id ) {
+                switch_to_blog( $blog_id );
+            }
+
+            $addon_checkout_url = $this->_fs->addon_checkout_url(
                 $plan->plugin_id,
                 $plan->pricing[0]->id,
                 $this->get_billing_cycle( $plan ),
-                $plan->has_trial()
-            ) . '" target="_parent">' .
+                $plan->has_trial(),
+                ( $has_valid_blog_id ? false : null )
+            );
+
+            if ( $has_valid_blog_id ) {
+                restore_current_blog();
+            }
+
+            return '<a class="button button-primary fs-checkout-button right" href="' . $addon_checkout_url . '" target="_parent">' .
                    esc_html( ! $plan->has_trial() ?
                        (
                            $api->has_purchased_license ?
