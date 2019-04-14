@@ -9847,7 +9847,7 @@
          *
          * @return array
          */
-        function _get_plans_and_pricing_by_addon_id() {
+        function _get_addons_plans_and_pricing_map_by_id() {
             $result = $this->get_api_plugin_scope()->get( $this->add_show_pending( "/addons/pricing.json?type=visible" ) );
 
             $plans_and_pricing_by_addon_id = array();
@@ -9884,7 +9884,7 @@
             }
 
             if ( ! $is_installed && is_null( $plans_and_pricing_by_addon_id ) ) {
-                $plans_and_pricing_by_addon_id = $this->_get_plans_and_pricing_by_addon_id();
+                $plans_and_pricing_by_addon_id = $this->_get_addons_plans_and_pricing_map_by_id();
             }
 
             $addon      = $this->get_addon( $addon_id );

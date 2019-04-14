@@ -58,7 +58,7 @@
 			<ul class="fs-cards-list">
 				<?php if ( $has_addons ) : ?>
 					<?php
-                    $plans_and_pricing_by_addon_id = $fs->_get_plans_and_pricing_by_addon_id();
+                    $plans_and_pricing_by_addon_id = $fs->_get_addons_plans_and_pricing_map_by_id();
 
                     $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 					?>
