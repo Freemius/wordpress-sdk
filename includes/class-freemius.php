@@ -4476,9 +4476,15 @@
 
                         return;
                     } else {
-                        if ( $this->_parent->is_registered() && ! $this->is_registered() ) {
+                        if (
+                            $this->_parent->is_registered() &&
+                            (
+                                ( $this->is_network_active() && ! $this->is_network_registered() ) ||
+                                ( ! $this->is_network_active() && ! fs_is_network_admin() && ! $this->is_registered() )
+                            )
+                        ) {
                             // If parent plugin activated, automatically install add-on for the user.
-                            $this->_activate_addon_account( $this->_parent );
+                            $this->_activate_addon_account( $this->_parent, $this->is_network_active() ? true : get_current_blog_id() );
                         } else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
                             // If add-on activated and parent not, automatically install parent for the user.
                             $this->activate_parent_account( $this->_parent );
@@ -15438,27 +15444,48 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param Freemius $parent_fs
+         * @param Freemius      $parent_fs
+         * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
          */
-        private function _activate_addon_account( Freemius $parent_fs ) {
+        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
             }
 
+            $params = $this->get_install_data_for_api( array(
+                'uid' => $this->get_anonymous_id(),
+            ), false, false );
+
+            if ( true === $network_level_or_blog_id ) {
+                $params['sites'] = $parent_fs->get_sites_for_network_level_optin();
+            } else {
+                $site = is_numeric( $network_level_or_blog_id ) ?
+                    array( 'blog_id' => $network_level_or_blog_id ) :
+                    null;
+
+                $site = $parent_fs->get_site_info( $site );
+
+                $params = array_merge( $params, array(
+                    'site_uid'  => $site['uid'],
+                    'site_url'  => $site['url'],
+                    'site_name' => $site['title'],
+                    'language'  => $site['language'],
+                    'charset'   => $site['charset'],
+                ) );
+            }
+
             // Activate add-on with parent plugin credentials.
-            $addon_install = $parent_fs->get_api_site_scope()->call(
+            $addon_installs = $parent_fs->get_api_site_scope()->call(
                 "/addons/{$this->_plugin->id}/installs.json",
                 'post',
-                $this->get_install_data_for_api( array(
-                    'uid' => $this->get_anonymous_id(),
-                ), false, false )
+                $params
             );
 
-            if ( isset( $addon_install->error ) ) {
+            if ( isset( $addon_installs->error ) ) {
                 $this->_admin_notices->add(
                     sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_install->error->message . '</b>',
+                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_installs->error->message . '</b>',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                     'error'
                 );
@@ -15471,7 +15498,7 @@
 
             // First of all, set site and user info - otherwise we won't
             // be able to invoke API calls.
-            $this->_site = new FS_Site( $addon_install );
+            $this->_site = new FS_Site( $addon_installs->installs[0] );
             $this->_user = $user;
 
             // Sync add-on plans.
