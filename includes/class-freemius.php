@@ -7183,6 +7183,18 @@
                 } else {
                     $this->maybe_network_activate_addon_license();
                 }
+
+                /**
+                 * Avoid redirecting to the license activation screen after automatically activating an add-on license.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.12
+                 */
+                $is_trial_or_has_features_enabled_license = ( $this->is_trial() || $this->has_features_enabled_license() );
+
+                if ( $is_trial_or_has_features_enabled_license && true === $this->_storage->require_license_activation ) {
+                    $this->_storage->require_license_activation = false;
+                }
             }
 
             if (
