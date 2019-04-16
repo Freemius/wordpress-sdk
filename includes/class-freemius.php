@@ -18032,7 +18032,7 @@
                             $this->_store_licenses();
 
                             $plan_change = $is_free ?
-                                'upgraded' :
+                                ( $this->is_only_premium() ? 'activated' : 'upgraded' ) :
                                 ( is_object( $new_license ) ?
                                     'changed' :
                                     'downgraded' );
@@ -18093,11 +18093,12 @@
                         }
                         break;
                     case 'upgraded':
+                    case 'activated':
                         $this->_admin_notices->add_sticky(
-                            sprintf(
-                                $this->get_text_inline( 'Your plan was successfully upgraded.', 'plan-upgraded-message' ),
-                                '<i>' . $this->get_plugin_name() . '</i>'
-                            ) . $this->get_complete_upgrade_instructions(),
+                            ( 'activated' === $plan_change ) ?
+                                $this->get_text_inline( 'Your plan was successfully activated.', 'plan-activated-message' ) :
+                                $this->get_text_inline( 'Your plan was successfully upgraded.', 'plan-upgraded-message' ) .
+                            $this->get_complete_upgrade_instructions(),
                             'plan_upgraded',
                             $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
                         );
