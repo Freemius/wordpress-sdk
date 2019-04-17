@@ -7297,15 +7297,20 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.4.7
+         *
+         * @param FS_Plugin_License $license
          */
-        private function maybe_network_activate_addon_license() {
+        private function maybe_network_activate_addon_license( $license = null ) {
             $parent_fs = $this->get_parent_instance();
             if ( ! is_object( $parent_fs ) || ( ! $parent_fs->is_registered() && ! $parent_fs->is_network_registered() ) ) {
                 // Try to activate a license only if the parent plugin is active and has a valid `install`.
                 return;
             }
 
-            $license = $this->get_addon_active_parent_license();
+            $license = ( ! is_null( $license ) ) ?
+                $license :
+                $this->get_addon_active_parent_license();
+
             if ( ! is_object( $license ) ) {
                 return;
             }
@@ -15476,16 +15481,20 @@
             }
 
             // Activate add-on with parent plugin credentials.
-            $addon_installs = $parent_fs->get_api_site_scope()->call(
+            $result = $parent_fs->get_api_site_scope()->call(
                 "/addons/{$this->_plugin->id}/installs.json",
                 'post',
                 $params
             );
 
-            if ( isset( $addon_installs->error ) ) {
+            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
+                $error_message = FS_Api::is_api_error_object( $result ) ?
+                    $result->error->message :
+                    $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
+
                 $this->_admin_notices->add(
                     sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $addon_installs->error->message . '</b>',
+                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                     'error'
                 );
@@ -15493,27 +15502,108 @@
                 return;
             }
 
+            $addon_installs = $result->installs;
+            $first_install  = new FS_Site( $addon_installs[0] );
+
             // Get user information based on parent's plugin.
             $user = $parent_fs->get_user();
 
             // First of all, set site and user info - otherwise we won't
             // be able to invoke API calls.
-            $this->_site = new FS_Site( $addon_installs->installs[0] );
+            $this->_site = $first_install;
             $this->_user = $user;
 
             // Sync add-on plans.
             $this->_sync_plans();
 
+            if ( ! fs_is_network_admin() ) {
+                $this->_set_account( $user, $this->_site );
+
+                $this->do_action( 'after_account_connection', $user, $first_install );
+            } else {
+                $this->_store_user();
+
+                // Map site addresses to their blog IDs.
+                $address_to_blog_map = $this->get_address_to_blog_map();
+
+                $first_blog_id      = null;
+                $blog_2_install_map = array();
+                foreach ( $addon_installs as $install ) {
+                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                    $blog_id = $address_to_blog_map[ $address ];
+
+                    $this->_store_site( true, $blog_id, $install );
+
+                    if ( is_null( $first_blog_id ) ) {
+                        $first_blog_id = $blog_id;
+                    }
+
+                    $blog_2_install_map[ $blog_id ] = $install;
+                }
+
+                if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
+                    ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
+                ) {
+                    // Store network user.
+                    $this->_storage->network_user_id = $this->_user->id;
+                }
+
+                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
+                    $this->_storage->network_install_blog_id = $first_blog_id;
+                }
+
+                if ( count( $addon_installs ) === count( $address_to_blog_map ) ) {
+                    // Super-admin opted-in for all sites in the network.
+                    $this->_storage->is_network_connected = true;
+                }
+
+                $this->_store_licenses( false );
+
+                self::$_accounts->store();
+
+                $this->send_installs_update();
+
+                $current_blog = get_current_blog_id();
+
+                foreach ( $blog_2_install_map as $blog_id => $install ) {
+                    $this->switch_to_blog( $blog_id );
+
+                    $this->do_action( 'after_account_connection', $user, $install );
+                }
+
+                $this->switch_to_blog( $current_blog );
+
+                $this->do_action( 'after_network_account_connection', $user, $blog_2_install_map );
+            }
+
             // Get site's current plan.
             //$this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
-
-            $this->_set_account( $user, $this->_site );
 
             // Sync licenses.
             $this->_sync_licenses();
 
-            // Try to activate premium license.
-            $this->_activate_license( true );
+            if ( ! fs_is_network_admin() ) {
+                // Try to activate premium license.
+                $this->_activate_license( true );
+            } else {
+                $license_id = fs_request_get( 'license_id' );
+
+                if ( is_object( $this->_site ) &&
+                    FS_Plugin_License::is_valid_id( $license_id ) &&
+                    $license_id == $this->_site->license_id
+                ) {
+                    // License is already activated.
+                    return;
+                }
+
+                $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+                    $this->_get_license_by_id( $license_id ) :
+                    $this->_get_available_premium_license();
+
+                if ( is_object( $premium_license ) ) {
+                    $this->maybe_network_activate_addon_license( $premium_license );
+                }
+            }
         }
 
         /**
@@ -18252,22 +18342,24 @@
          *
          * @param bool $background
          */
-        protected function _activate_license( $background = false ) {
+        protected function _activate_license( $background = false, $premium_license = null ) {
             $this->_logger->entrance();
 
-            $license_id = fs_request_get( 'license_id' );
+            if ( is_null( $premium_license ) ) {
+                $license_id = fs_request_get( 'license_id' );
 
-            if ( is_object( $this->_site ) &&
-                 FS_Plugin_License::is_valid_id( $license_id ) &&
-                 $license_id == $this->_site->license_id
-            ) {
-                // License is already activated.
-                return;
+                if ( is_object( $this->_site ) &&
+                    FS_Plugin_License::is_valid_id( $license_id ) &&
+                    $license_id == $this->_site->license_id
+                ) {
+                    // License is already activated.
+                    return;
+                }
+
+                $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+                    $this->_get_license_by_id( $license_id ) :
+                    $this->_get_available_premium_license();
             }
-
-            $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
-                $this->_get_license_by_id( $license_id ) :
-                $this->_get_available_premium_license();
 
             if ( ! is_object( $premium_license ) ) {
                 return;
