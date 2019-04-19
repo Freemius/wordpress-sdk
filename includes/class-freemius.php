@@ -4476,15 +4476,31 @@
 
                         return;
                     } else {
+                        $is_network_admin = fs_is_network_admin();
+
                         if (
                             $this->_parent->is_registered() &&
-                            (
-                                ( $this->is_network_active() && ! $this->is_network_registered() ) ||
-                                ( ! $this->is_network_active() && ! fs_is_network_admin() && ! $this->is_registered() )
-                            )
+                            ! $this->is_registered() &&
+                            /**
+                             * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
+                             * * Network active and in network admin         - network activate add-on account.
+                             * * Network active and not in network admin     - activate add-on account for the current blog.
+                             * * Not network active and not in network admin - activate add-on account for the current blog.
+                             *
+                             * If not registered for add-on, not network active, and in network admin, do not handle the add-on activation.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.2.4.13
+                             */
+                            ( $this->is_network_active() || ! $is_network_admin )
                         ) {
                             // If parent plugin activated, automatically install add-on for the user.
-                            $this->_activate_addon_account( $this->_parent, $this->is_network_active() ? true : get_current_blog_id() );
+                            $this->_activate_addon_account(
+                                $this->_parent,
+                                ( $this->is_network_active() && $is_network_admin ) ?
+                                    true :
+                                    get_current_blog_id()
+                            );
                         } else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
                             // If add-on activated and parent not, automatically install parent for the user.
                             $this->activate_parent_account( $this->_parent );
@@ -8298,16 +8314,18 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.2
          *
-         * @param string[] string           $override
-         * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
-         * @param bool     $include_themes  Since 1.1.8 by default include plugin changes.
+         * @param string[] $override
+         * @param bool     $include_plugins   Since 1.1.8 by default include plugin changes.
+         * @param bool     $include_themes    Since 1.1.8 by default include plugin changes.
+         * @param bool     $include_blog_data Since 2.2.4.13 by default include the current blog's data (language, charset, title, and URL).
          *
          * @return array
          */
         private function get_install_data_for_api(
             array $override,
             $include_plugins = true,
-            $include_themes = true
+            $include_themes = true,
+            $include_blog_data = true
         ) {
             if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
                 /**
@@ -8335,13 +8353,18 @@
 
             $versions = $this->get_versions();
 
-            return array_merge( $versions, array(
+            $blog_data = $include_blog_data ?
+                array(
+                    'language' => get_bloginfo( 'language' ),
+                    'charset'  => get_bloginfo( 'charset' ),
+                    'title'    => get_bloginfo( 'name' ),
+                    'url'      => get_site_url(),
+                ) :
+                array();
+
+            return array_merge( $versions, $blog_data, array(
                 'version'         => $this->get_plugin_version(),
                 'is_premium'      => $this->is_premium(),
-                'language'        => get_bloginfo( 'language' ),
-                'charset'         => get_bloginfo( 'charset' ),
-                'title'           => get_bloginfo( 'name' ),
-                'url'             => get_site_url(),
                 // Special params.
                 'is_active'       => true,
                 'is_disconnected' => $this->is_tracking_prohibited(),
@@ -15458,26 +15481,37 @@
                 return;
             }
 
-            $params = $this->get_install_data_for_api( array(
-                'uid' => $this->get_anonymous_id(),
-            ), false, false );
+            /**
+             * Do not override the `uid` if network-level opt-in since the call to `get_sites_for_network_level_optin()`
+             * already returns the data for the current blog.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.4.13
+             */
+            $uid_param_to_override = ( true === $network_level_or_blog_id ) ?
+                array() :
+                array( 'uid' => $this->get_anonymous_id() );
+
+            $params = $this->get_install_data_for_api(
+                $uid_param_to_override,
+                false,
+                false,
+                /**
+                 * Do not include the data for the current blog if network-level opt-in since the call to `get_sites_for_network_level_optin`
+                 * already includes the data for it.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.4.13
+                 */
+                ( true !== $network_level_or_blog_id )
+            );
 
             if ( true === $network_level_or_blog_id ) {
-                $params['sites'] = $parent_fs->get_sites_for_network_level_optin();
-            } else {
-                $site = is_numeric( $network_level_or_blog_id ) ?
-                    array( 'blog_id' => $network_level_or_blog_id ) :
-                    null;
+                $params['sites'] = $this->get_sites_for_network_level_optin();
 
-                $site = $parent_fs->get_site_info( $site );
-
-                $params = array_merge( $params, array(
-                    'site_uid'  => $site['uid'],
-                    'site_url'  => $site['url'],
-                    'site_name' => $site['title'],
-                    'language'  => $site['language'],
-                    'charset'   => $site['charset'],
-                ) );
+                if ( empty( $params['sites'] ) ) {
+                    return;
+                }
             }
 
             // Activate add-on with parent plugin credentials.
@@ -15529,6 +15563,7 @@
                 $first_blog_id      = null;
                 $blog_2_install_map = array();
                 foreach ( $addon_installs as $install ) {
+                    $install = new FS_Site( $install );
                     $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
                     $blog_id = $address_to_blog_map[ $address ];
 
