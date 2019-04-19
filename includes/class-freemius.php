@@ -14763,71 +14763,10 @@
             // If Freemius was OFF before, turn it on.
             $this->turn_on();
 
-            if ( ! $this->_is_network_active || ! $is_network_level_opt_in ) {
-                $this->_set_account( $user, $first_install );
-
-                $this->do_action( 'after_account_connection', $user, $first_install );
-            } else {
-                $this->_store_user();
-
-                // Map site addresses to their blog IDs.
-                $address_to_blog_map = $this->get_address_to_blog_map();
-
-                $first_blog_id      = null;
-                $blog_2_install_map = array();
-                foreach ( $installs as $install ) {
-                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
-                    $blog_id = $address_to_blog_map[ $address ];
-
-                    $this->_store_site( true, $blog_id, $install );
-
-                    if ( is_null( $first_blog_id ) ) {
-                        $first_blog_id = $blog_id;
-                    }
-
-                    $blog_2_install_map[ $blog_id ] = $install;
-                }
-
-                if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
-                     ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
-                ) {
-                    // Store network user.
-                    $this->_storage->network_user_id = $this->_user->id;
-                }
-
-                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
-                    $this->_storage->network_install_blog_id = $first_blog_id;
-                }
-
-                if ( count( $installs ) === count( $address_to_blog_map ) ) {
-                    // Super-admin opted-in for all sites in the network.
-                    $this->_storage->is_network_connected = true;
-                }
-
-                $this->_store_licenses( false );
-
-                self::$_accounts->store();
-
-                // Don't sync the installs data on network upgrade
-                if ( ! $this->network_upgrade_mode_completed() ) {
-                    $this->send_installs_update();
-                }
-
-                // Switch install context back to the first install.
-                $this->_site = $first_install;
-
-                $current_blog = get_current_blog_id();
-
-                foreach ( $blog_2_install_map as $blog_id => $install ) {
-                    $this->switch_to_blog( $blog_id );
-
-                    $this->do_action( 'after_account_connection', $user, $install );
-                }
-
-                $this->switch_to_blog( $current_blog );
-
-                $this->do_action( 'after_network_account_connection', $user, $blog_2_install_map );
-            }
+            $this->handle_account_connection(
+                $installs,
+                ( ! $this->_is_network_active || ! $is_network_level_opt_in )
+            );
 
             if ( is_numeric( $first_install->license_id ) ) {
                 $this->_license = $this->_get_license_by_id( $first_install->license_id );
@@ -15537,7 +15476,11 @@
             }
 
             $addon_installs = $result->installs;
-            $first_install  = new FS_Site( $addon_installs[0] );
+            foreach ( $addon_installs as $key => $addon_install ) {
+                $addon_installs[ $key ] = new FS_Site( $addon_install );
+            }
+
+            $first_install = $addon_installs[0];
 
             // Get user information based on parent's plugin.
             $user = $parent_fs->get_user();
@@ -15550,66 +15493,7 @@
             // Sync add-on plans.
             $this->_sync_plans();
 
-            if ( ! fs_is_network_admin() ) {
-                $this->_set_account( $user, $this->_site );
-
-                $this->do_action( 'after_account_connection', $user, $first_install );
-            } else {
-                $this->_store_user();
-
-                // Map site addresses to their blog IDs.
-                $address_to_blog_map = $this->get_address_to_blog_map();
-
-                $first_blog_id      = null;
-                $blog_2_install_map = array();
-                foreach ( $addon_installs as $install ) {
-                    $install = new FS_Site( $install );
-                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
-                    $blog_id = $address_to_blog_map[ $address ];
-
-                    $this->_store_site( true, $blog_id, $install );
-
-                    if ( is_null( $first_blog_id ) ) {
-                        $first_blog_id = $blog_id;
-                    }
-
-                    $blog_2_install_map[ $blog_id ] = $install;
-                }
-
-                if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
-                    ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
-                ) {
-                    // Store network user.
-                    $this->_storage->network_user_id = $this->_user->id;
-                }
-
-                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
-                    $this->_storage->network_install_blog_id = $first_blog_id;
-                }
-
-                if ( count( $addon_installs ) === count( $address_to_blog_map ) ) {
-                    // Super-admin opted-in for all sites in the network.
-                    $this->_storage->is_network_connected = true;
-                }
-
-                $this->_store_licenses( false );
-
-                self::$_accounts->store();
-
-                $this->send_installs_update();
-
-                $current_blog = get_current_blog_id();
-
-                foreach ( $blog_2_install_map as $blog_id => $install ) {
-                    $this->switch_to_blog( $blog_id );
-
-                    $this->do_action( 'after_account_connection', $user, $install );
-                }
-
-                $this->switch_to_blog( $current_blog );
-
-                $this->do_action( 'after_network_account_connection', $user, $blog_2_install_map );
-            }
+            $this->handle_account_connection( $addon_installs, ! fs_is_network_admin() );
 
             // Get site's current plan.
             //$this->_site->plan = $this->_get_plan_by_id( $this->_site->plan->id );
@@ -15638,6 +15522,83 @@
                 if ( is_object( $premium_license ) ) {
                     $this->maybe_network_activate_addon_license( $premium_license );
                 }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.13
+         *
+         * @param FS_Site[] $installs
+         * @param bool      $is_site_level
+         */
+        private function handle_account_connection( $installs, $is_site_level ) {
+            $first_install = $installs[0];
+
+            if ( $is_site_level ) {
+                $this->_set_account( $this->_user, $first_install );
+
+                $this->do_action( 'after_account_connection', $this->_user, $first_install );
+            } else {
+                $this->_store_user();
+
+                // Map site addresses to their blog IDs.
+                $address_to_blog_map = $this->get_address_to_blog_map();
+
+                $first_blog_id      = null;
+                $blog_2_install_map = array();
+                foreach ( $installs as $install ) {
+                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                    $blog_id = $address_to_blog_map[ $address ];
+
+                    $this->_store_site( true, $blog_id, $install );
+
+                    if ( is_null( $first_blog_id ) ) {
+                        $first_blog_id = $blog_id;
+                    }
+
+                    $blog_2_install_map[ $blog_id ] = $install;
+                }
+
+                if ( ! FS_User::is_valid_id( $this->_storage->network_user_id ) ||
+                    ! is_object( self::_get_user_by_id( $this->_storage->network_user_id ) )
+                ) {
+                    // Store network user.
+                    $this->_storage->network_user_id = $this->_user->id;
+                }
+
+                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
+                    $this->_storage->network_install_blog_id = $first_blog_id;
+                }
+
+                if ( count( $installs ) === count( $address_to_blog_map ) ) {
+                    // Super admin opted in for all sites in the network.
+                    $this->_storage->is_network_connected = true;
+                }
+
+                $this->_store_licenses( false );
+
+                self::$_accounts->store();
+
+                // Don't sync the installs data on network upgrade
+                if ( ! $this->network_upgrade_mode_completed() ) {
+                    $this->send_installs_update();
+                }
+
+                // Switch install context back to the first install.
+                $this->_site = $first_install;
+
+                $current_blog = get_current_blog_id();
+
+                foreach ( $blog_2_install_map as $blog_id => $install ) {
+                    $this->switch_to_blog( $blog_id );
+
+                    $this->do_action( 'after_account_connection', $this->_user, $install );
+                }
+
+                $this->switch_to_blog( $current_blog );
+
+                $this->do_action( 'after_network_account_connection', $this->_user, $blog_2_install_map );
             }
         }
 
