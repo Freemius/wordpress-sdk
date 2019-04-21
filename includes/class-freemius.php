@@ -7082,44 +7082,48 @@
             // Clear API cache on activation.
             FS_Api::clear_cache();
 
-            $is_premium_version_activation = ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) );
+            $is_premium_version_activation = $this->is_plugin() ?
+                ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) ) :
+                $this->is_premium();
 
             $this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
-            // 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
-            // 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
-            $other_version_basename = $is_premium_version_activation ?
-                $this->_free_plugin_basename :
-                $this->premium_plugin_basename();
+            if ( $this->is_plugin() ) {
+                // This logic is relevant only to plugins since both the free and premium versions of a plugin can be active at the same time.
+                // 1. If running in the activation of the FREE module, get the basename of the PREMIUM.
+                // 2. If running in the activation of the PREMIUM module, get the basename of the FREE.
+                $other_version_basename = $is_premium_version_activation ?
+                    $this->_free_plugin_basename :
+                    $this->premium_plugin_basename();
 
-            if ( ! $this->_is_network_active ) {
+                if ( ! $this->_is_network_active ) {
+                    /**
+                     * Themes are always network activated, but the ACTUAL activation is per site.
+                     *
+                     * During the activation, the plugin isn't yet active, therefore,
+                     * _is_network_active will be set to false even if it's a network level
+                     * activation. So we need to fix that by looking at the is_network_admin() value.
+                     *
+                     * @author Vova Feldman
+                     */
+                    $this->_is_network_active = (
+                        $this->_is_multisite_integrated &&
+                        fs_is_network_admin()
+                    );
+                }
+
                 /**
-                 * During the activation, the plugin isn't yet active, therefore,
-                 * _is_network_active will be set to false even if it's a network level
-                 * activation. So we need to fix that by looking at the is_network_admin() value.
+                 * If the other module version is active, deactivate it.
                  *
-                 * @author Vova Feldman
+                 * is_plugin_active() checks if the plugin is active on the site or the network level and
+                 * deactivate_plugins() deactivates the plugin whether it's activated on the site or network level.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since  1.2.2
                  */
-                $this->_is_network_active = (
-                    $this->_is_multisite_integrated &&
-                    // Themes are always network activated, but the ACTUAL activation is per site.
-                    $this->is_plugin() &&
-                    fs_is_network_admin()
-                );
-            }
-
-            /**
-             * If the other module version is activate, deactivate it.
-             *
-             * is_plugin_active() checks if the plugin active on the site or the network level
-             * and deactivate_plugins() deactivates the plugin whether its activated on the site
-             * or network level.
-             *
-             * @author Leo Fajardo (@leorw)
-             * @since  1.2.2
-             */
-            if ( is_plugin_active( $other_version_basename ) ) {
-                deactivate_plugins( $other_version_basename );
+                if ( is_plugin_active( $other_version_basename ) ) {
+                    deactivate_plugins( $other_version_basename );
+                }
             }
 
             if ( $this->is_registered() ) {
