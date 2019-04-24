@@ -20100,7 +20100,8 @@
                 $user->id,
                 $user->public_key,
                 ! $this->is_live(),
-                $user->secret_key
+                $user->secret_key,
+                $this->get_sdk_version()
             );
         }
 
@@ -20128,7 +20129,8 @@
                 $user->id,
                 $user->public_key,
                 ! $this->is_live(),
-                $user->secret_key
+                $user->secret_key,
+                $this->get_sdk_version()
             );
 
             return $this->_user_api;
@@ -20153,7 +20155,8 @@
                     $this->_site->id,
                     $this->_site->public_key,
                     ! $this->is_live(),
-                    $this->_site->secret_key
+                    $this->_site->secret_key,
+                    $this->get_sdk_version()
                 );
             }
 
@@ -20177,7 +20180,9 @@
                     'plugin',
                     $this->_plugin->id,
                     $this->_plugin->public_key,
-                    ! $this->is_live()
+                    ! $this->is_live(),
+                    false,
+                    $this->get_sdk_version()
                 );
             }
 
@@ -21995,7 +22000,9 @@
                             'plugin',
                             $user_plugin->id,
                             $user_plugin->public_key,
-                            ! $user_plugin->is_live
+                            ! $user_plugin->is_live,
+                            false,
+                            $this->get_sdk_version()
                         );
 
                         $addons_result = $plugin_api->get( '/addons.json?enriched=true', true );

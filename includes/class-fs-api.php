@@ -56,23 +56,32 @@
 		 */
 		private $_logger;
 
-		/**
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.13
+         *
+         * @var string
+         */
+        private $_sdk_version;
+
+        /**
 		 * @param string      $slug
 		 * @param string      $scope      'app', 'developer', 'user' or 'install'.
 		 * @param number      $id         Element's id.
 		 * @param string      $public_key Public key.
 		 * @param bool        $is_sandbox
 		 * @param bool|string $secret_key Element's secret key.
+		 * @param null|string $sdk_version
 		 *
 		 * @return FS_Api
 		 */
-		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false ) {
+		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false, $sdk_version = null ) {
 			$identifier = md5( $slug . $scope . $id . $public_key . ( is_string( $secret_key ) ? $secret_key : '' ) . json_encode( $is_sandbox ) );
 
 			if ( ! isset( self::$_instances[ $identifier ] ) ) {
 				self::_init();
 
-				self::$_instances[ $identifier ] = new FS_Api( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox );
+				self::$_instances[ $identifier ] = new FS_Api( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox, $sdk_version );
 			}
 
 			return self::$_instances[ $identifier ];
@@ -105,12 +114,14 @@
 		 * @param string      $public_key Public key.
 		 * @param bool|string $secret_key Element's secret key.
 		 * @param bool        $is_sandbox
+		 * @param null|string $sdk_version
 		 */
-		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox ) {
+		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox, $sdk_version ) {
 			$this->_api = new Freemius_Api_WordPress( $scope, $id, $public_key, $secret_key, $is_sandbox );
 
-			$this->_slug   = $slug;
-			$this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+			$this->_slug        = $slug;
+			$this->_sdk_version = $sdk_version;
+			$this->_logger      = FS_Logger::get_logger( WP_FS__SLUG . '_' . $slug . '_api', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 		}
 
 		/**
@@ -159,6 +170,14 @@
 			if ( self::is_temporary_down() ) {
 				$result = $this->get_temporary_unavailable_error();
 			} else {
+			    if ( ! empty( $this->_sdk_version ) ) {
+			        if ( 'GET' === $method ) {
+			            $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
+                    } else {
+                        $params['sdk_version'] = $this->_sdk_version;
+                    }
+                }
+
 				$result = $this->_api->Api( $path, $method, $params );
 
 				if ( null !== $result &&
