@@ -170,12 +170,19 @@
 			if ( self::is_temporary_down() ) {
 				$result = $this->get_temporary_unavailable_error();
 			} else {
+                /**
+                 * @since 2.2.4.13 Include the SDK version with all API requests that going through the API manager. IMPORTANT: Only pass the SDK version if the caller didn't include it yet.
+                 */
 			    if ( ! empty( $this->_sdk_version ) ) {
+                    if ( false === strpos( $path, 'sdk_version=' ) ) {
+                        $method = strtoupper( $method );
+
 			        if ( 'GET' === $method ) {
 			            $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
-                    } else {
+                        } else if ( ! isset( $params['sdk_version'] ) ) {
                         $params['sdk_version'] = $this->_sdk_version;
                     }
+                }
                 }
 
 				$result = $this->_api->Api( $path, $method, $params );
