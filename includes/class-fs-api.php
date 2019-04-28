@@ -75,7 +75,15 @@
 		 *
 		 * @return FS_Api
 		 */
-		static function instance( $slug, $scope, $id, $public_key, $is_sandbox, $secret_key = false, $sdk_version = null ) {
+		static function instance(
+		    $slug,
+            $scope,
+            $id,
+            $public_key,
+            $is_sandbox,
+            $secret_key = false,
+            $sdk_version = null
+        ) {
 			$identifier = md5( $slug . $scope . $id . $public_key . ( is_string( $secret_key ) ? $secret_key : '' ) . json_encode( $is_sandbox ) );
 
 			if ( ! isset( self::$_instances[ $identifier ] ) ) {
@@ -116,7 +124,15 @@
 		 * @param bool        $is_sandbox
 		 * @param null|string $sdk_version
 		 */
-		private function __construct( $slug, $scope, $id, $public_key, $secret_key, $is_sandbox, $sdk_version ) {
+		private function __construct(
+		    $slug,
+            $scope,
+            $id,
+            $public_key,
+            $secret_key,
+            $is_sandbox,
+            $sdk_version
+        ) {
 			$this->_api = new Freemius_Api_WordPress( $scope, $id, $public_key, $secret_key, $is_sandbox );
 
 			$this->_slug        = $slug;
@@ -165,54 +181,54 @@
 		 * @return array|mixed|string|void
 		 */
 		private function _call( $path, $method = 'GET', $params = array(), $retry = false ) {
-			$this->_logger->entrance( $method . ':' . $path );
+            $this->_logger->entrance( $method . ':' . $path );
 
-			if ( self::is_temporary_down() ) {
-				$result = $this->get_temporary_unavailable_error();
-			} else {
+            if ( self::is_temporary_down() ) {
+                $result = $this->get_temporary_unavailable_error();
+            } else {
                 /**
                  * @since 2.2.4.13 Include the SDK version with all API requests that going through the API manager. IMPORTANT: Only pass the SDK version if the caller didn't include it yet.
                  */
-			    if ( ! empty( $this->_sdk_version ) ) {
+                if ( ! empty( $this->_sdk_version ) ) {
                     if ( false === strpos( $path, 'sdk_version=' ) ) {
                         $method = strtoupper( $method );
 
-			        if ( 'GET' === $method ) {
-			            $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
+                        if ( 'GET' === $method ) {
+                            $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
                         } else if ( ! isset( $params['sdk_version'] ) ) {
-                        $params['sdk_version'] = $this->_sdk_version;
+                            $params['sdk_version'] = $this->_sdk_version;
+                        }
                     }
                 }
+
+                $result = $this->_api->Api( $path, $method, $params );
+
+                if ( null !== $result &&
+                     isset( $result->error ) &&
+                     isset( $result->error->code ) &&
+                     'request_expired' === $result->error->code
+                ) {
+                    if ( ! $retry ) {
+                        $diff = isset( $result->error->timestamp ) ?
+                            ( time() - strtotime( $result->error->timestamp ) ) :
+                            false;
+
+                        // Try to sync clock diff.
+                        if ( false !== $this->_sync_clock_diff( $diff ) ) {
+                            // Retry call with new synced clock.
+                            return $this->_call( $path, $method, $params, true );
+                        }
+                    }
                 }
+            }
 
-				$result = $this->_api->Api( $path, $method, $params );
+            if ( $this->_logger->is_on() && self::is_api_error( $result ) ) {
+                // Log API errors.
+                $this->_logger->api_error( $result );
+            }
 
-				if ( null !== $result &&
-				     isset( $result->error ) &&
-				     isset( $result->error->code ) &&
-				     'request_expired' === $result->error->code
-				) {
-					if ( ! $retry ) {
-						$diff = isset( $result->error->timestamp ) ?
-							( time() - strtotime( $result->error->timestamp ) ) :
-							false;
-
-						// Try to sync clock diff.
-						if ( false !== $this->_sync_clock_diff( $diff ) ) {
-							// Retry call with new synced clock.
-							return $this->_call( $path, $method, $params, true );
-						}
-					}
-				}
-			}
-
-			if ( $this->_logger->is_on() && self::is_api_error( $result ) ) {
-				// Log API errors.
-				$this->_logger->api_error( $result );
-			}
-
-			return $result;
-		}
+            return $result;
+        }
 
 		/**
 		 * Override API call to wrap it in servers' clock sync method.
