@@ -153,6 +153,8 @@
         0;
 
     $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
+
+    $is_premium = $fs->is_premium();
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -322,6 +324,14 @@
 											'value' => $fs->get_plugin_version()
 										);
 
+										if ( $is_premium ) {
+										    $profile[] = array(
+                                                'id'    => 'beta_program',
+                                                'title' => '',
+                                                'value' => $user->is_beta
+                                            );
+                                        }
+
 										if ( $has_paid_plan ) {
 											if ( $fs->is_trial() ) {
 											    if ( $show_plan_row ) {
@@ -368,13 +378,18 @@
 											?>
 											<tr class="fs-field-<?php echo $p['id'] ?><?php if ( $odd ) : ?> alternate<?php endif ?>">
 												<td>
-													<nobr><?php echo $p['title'] ?>:</nobr>
+													<nobr><?php echo $p['title'] ?><?php echo ( ! empty( $p['title'] ) ) ? ':' : '' ?></nobr>
 												</td>
 												<td<?php if ( 'plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
 													<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 														<code><?php echo htmlspecialchars( substr( $p['value'], 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $p['value'], - 3 ) ) ?></code>
 														<input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
 														       readonly/>
+                                                    <?php elseif ( 'beta_program' === $p['id'] ) : ?>
+                                                        <label>
+                                                            <input type="checkbox" class="fs-toggle-beta-mode" <?php checked( true, $p['value'] ) ?>/><span><?php
+                                                                fs_esc_html_echo_inline( 'Join the Beta program', 'join-beta', $slug )
+                                                        ?></span></label>
 													<?php else : ?>
 														<code><?php echo htmlspecialchars( $p['value'] ) ?></code>
 													<?php endif ?>
@@ -417,7 +432,7 @@
 															<?php else : ?>
 																<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>"
 																      method="POST" class="button-group">
-																	<?php if ( $show_upgrade && $fs->is_premium() ) : ?>
+																	<?php if ( $show_upgrade && $is_premium ) : ?>
 																		<a class="button activate-license-trigger <?php echo $fs->get_unique_affix() ?>" href="#"><?php fs_esc_html_echo_inline( 'Activate License', 'activate-license', $slug ) ?></a>
 																	<?php endif ?>
 																	<input type="submit" class="button"
@@ -438,7 +453,7 @@
 														</div>
 													<?php elseif ( 'version' === $p['id'] && $has_paid_plan ) : ?>
 														<?php if ( $fs->has_premium_version() ) : ?>
-															<?php if ( $fs->is_premium() ) : ?>
+															<?php if ( $is_premium ) : ?>
 																<label
 																	class="fs-tag fs-<?php echo $fs->can_use_premium_code() ? 'success' : 'warn' ?>"><?php fs_esc_html_echo_inline( 'Premium version', 'premium-version', $slug ) ?></label>
 															<?php elseif ( $fs->can_use_premium_code() ) : ?>
@@ -507,8 +522,20 @@
 													</td>
 												<?php endif ?>
 											</tr>
-											<?php $odd = ! $odd;
-										endforeach ?>
+											<?php
+                                                if ( 'version' === $p['id'] && $is_premium ) {
+                                                    /**
+                                                     * If there's a row for the beta program, keep its background color
+                                                     * the same as the version info row.
+                                                     *
+                                                     * @author Leo Fajardo (@leorw)
+                                                     * @since 2.2.4.7
+                                                     */
+                                                    continue;
+                                                }
+
+                                                $odd = ! $odd;
+                                        endforeach ?>
 								</table>
 							</div>
 						</div>
@@ -517,7 +544,7 @@
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
                                 <?php $has_license = is_object( $license ) ?>
-                                <?php if ( $has_license || ( $show_upgrade && $fs->is_premium() ) ) : ?>
+                                <?php if ( $has_license || ( $show_upgrade && $is_premium ) ) : ?>
                                     <?php
                                         $activate_license_button_text = $has_license ?
                                             fs_esc_html_inline( 'Change License', 'change-license', $slug ) :
@@ -687,6 +714,46 @@
 		                '<?php fs_esc_js_echo_inline('Opting out', 'opting-out' ) ?>') +
 		                '...'
                 );
+            });
+
+            <?php
+                $plugin_title         = $fs->get_plugin_title();
+                $processing_text      = fs_esc_js_inline( 'Processing', 'processing' );
+                $confirmation_message = sprintf(
+                    '%s %s',
+                    sprintf( fs_esc_attr_inline( 'Get updates for bleeding edge Beta versions of %s.', 'get-beta-versions', $slug ), $plugin_title ),
+                    sprintf( fs_esc_attr_inline( 'An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned.', 'beta-version-update-caution', $slug ), $plugin_title )
+                );
+            ?>
+
+            $( '.fs-toggle-beta-mode' ).click( function () {
+                var $checkbox = $( this ),
+                    isChecked = $checkbox.is( ':checked' );
+
+                if ( ! isChecked || confirm( '<?php echo $confirmation_message ?>' ) ) {
+                    $.ajax( {
+                        url   : ajaxurl,
+                        method: 'POST',
+                        data  : {
+                            action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode' ) ?>',
+                            security : '<?php echo $fs->get_ajax_security( 'set_beta_mode' ) ?>',
+                            is_beta  : isChecked,
+                            module_id: <?php echo $fs->get_id() ?>
+                        },
+                        beforeSend: function () {
+                            $checkbox.prop( 'disabled', true );
+                            $checkbox.parent().find( 'span' ).text( '<?php echo $processing_text ?>' + '...' );
+                        },
+                        complete: function () {
+                            $checkbox.prop( 'disabled', false );
+                            $checkbox.parent().find( 'span' ).text( '<?php fs_esc_js_echo_inline( 'Join the Beta Program', 'join-beta', $slug ) ?>' );
+                        }
+                    } );
+
+                    return true;
+                }
+
+                return false;
             });
 
 	        $('.fs-opt-in').click(function () {

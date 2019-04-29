@@ -337,6 +337,7 @@
             self::$_NETWORK_OPTIONS_MAP = array(
                 // Network level options.
                 'affiliate_application_data' => 0,
+                'beta_data'                  => 0,
                 'connectivity_test'          => 0,
                 'handle_gdpr_admin_notice'   => 0,
                 'has_trial_plan'             => 0,

@@ -1336,6 +1336,19 @@
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
                 }
 
+                if ( self::is_plugins_page() || self::is_themes_page() ) {
+                    add_action( 'admin_print_footer_scripts', array( 'Freemius', '_maybe_add_beta_label_styles' ), 9 );
+
+                    /**
+                     * Specifically use this hook so that the JS event handlers will work properly on the "Themes"
+                     * page.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4.7
+                     */
+                    add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_plugins_and_handle_confirmation') );
+                }
+
                 /**
                  * Part of the mechanism to identify new plugin install vs. plugin update.
                  *
@@ -1408,6 +1421,7 @@
 
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
+            add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -1526,6 +1540,123 @@
                     });
                 }
             })( jQuery );
+            </script>
+            <?php
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        static function _maybe_add_beta_label_styles() {
+            $has_any_beta_version = false;
+
+            foreach ( self::$_instances as $instance ) {
+                if ( $instance->is_beta() ) {
+                    $has_any_beta_version = true;
+                    break;
+                }
+            }
+
+            if ( $has_any_beta_version ) {
+                fs_enqueue_local_style( 'fs_plugins', '/admin/plugins.css' );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        static function _maybe_add_beta_label_to_plugins_and_handle_confirmation() {
+            $beta_data = array();
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_premium() ) {
+                    continue;
+                }
+
+                /**
+                 * If there's an available beta version update, a confirmation message will be shown when the
+                 * "Update now" link on the "Plugins" or "Themes" page is clicked.
+                 */
+                $update          = $instance->get_update( $instance->get_id(), false );
+                $has_beta_update = ( is_object( $update ) && $update->is_beta() );
+
+                $is_beta = (
+                    // The "Beta" label is added separately for themes.
+                    $instance->is_plugin() &&
+                    $instance->is_beta()
+                );
+
+                if ( ! $is_beta && ! $has_beta_update ) {
+                    continue;
+                }
+
+                $beta_data[ $instance->get_plugin_basename() ] = array( 'is_installed_version_beta' => $is_beta );
+
+                if ( ! $has_beta_update ) {
+                    continue;
+                }
+
+                $beta_data[ $instance->get_plugin_basename() ]['beta_version_update_confirmation_message'] = sprintf(
+                    '%s %s',
+                    sprintf(
+                        fs_esc_attr_inline(
+                            'An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned.',
+                            'beta-version-update-caution',
+                            $instance->get_slug()
+                        ),
+                        $instance->get_plugin_title()
+                    ),
+                    fs_esc_attr_inline( 'Would you like to proceed with the update?', 'update-confirmation', $instance->get_slug() )
+                );
+            }
+
+            if ( empty( $beta_data ) ) {
+                return;
+            }
+            ?>
+            <script type="text/javascript">
+                ( function( $ ) {
+                    var betaData = <?php echo json_encode( $beta_data ) ?>;
+
+                    for ( var pluginBasename in betaData ) {
+                        if ( ! betaData.hasOwnProperty( pluginBasename ) ) {
+                            continue;
+                        }
+
+                        if ( ! betaData[ pluginBasename ].is_installed_version_beta ) {
+                            continue;
+                        }
+
+                        var $parentContainer = $( '.wp-list-table.plugins tr[data-plugin="' + pluginBasename + '"]' );
+                        if ( 0 === $parentContainer.length ) {
+                            continue;
+                        }
+
+                        $parentContainer.find( '.plugin-title > strong:first-child').append(
+                            '<span class="fs-tag fs-info"><?php fs_esc_js_echo_inline( 'Beta', 'beta' ) ?></span>'
+                        );
+                    }
+
+                    setTimeout( function() {
+                        // Wait a little bit before adding the event handler, otherwise, it will be overridden by the core WP logic.
+                        $( '.plugins .update-message .update-link, .themes .theme .update-message' ).on( 'click', function() {
+                            var $parentContainer = $( this ).parents( 'tr:first' );
+                            pluginBasename   = ( 0 !== $parentContainer.length ) ?
+                                $parentContainer.data( 'plugin' ) :
+                                $( this ).parents( '.theme:first' ).data( 'slug' );
+
+                            if (
+                                betaData[ pluginBasename ] &&
+                                betaData[ pluginBasename ].beta_version_update_confirmation_message &&
+                                ! confirm( betaData[ pluginBasename ].beta_version_update_confirmation_message )
+                            ) {
+                                return false;
+                            }
+                        } );
+                    }, 20 );
+                } )( jQuery );
             </script>
             <?php
         }
@@ -6277,6 +6408,8 @@
          */
         function _sync_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
+                $this->sync_user_beta_mode();
+
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
                     $this->_sync_license( true, false, $current_blog_id );
@@ -11657,6 +11790,66 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  2.2.4.7
+         */
+        function _add_beta_mode_update_handler() {
+            if ( ! $this->is_user_admin() ) {
+                return;
+            }
+
+            if ( ! $this->is_premium() ) {
+                return;
+            }
+
+            $this->add_ajax_action( 'set_beta_mode', array( &$this, '_set_beta_mode_ajax_handler' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.2.4.7
+         */
+        function _set_beta_mode_ajax_handler() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'set_beta_mode' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $is_beta = trim( fs_request_get( 'is_beta', '', 'post' ) );
+
+            if ( empty( $is_beta ) || ! in_array( $is_beta, array( 'true', 'false' ) ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $user = $this->get_api_user_scope()->call(
+                '',
+                'put',
+                array(
+                    'plugin_id' => $this->get_id(),
+                    'is_beta'   => ( 'true' == $is_beta ),
+                    'fields'    => 'is_beta'
+                )
+            );
+
+            if ( ! $this->is_api_result_entity( $user ) ) {
+                self::shoot_ajax_failure(
+                    FS_Api::is_api_error_object( $user ) ?
+                        $user->error->message :
+                        fs_text_inline( "An unknown error has occurred while trying to set the user's beta mode.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            $this->_user->is_beta = $user->is_beta;
+            $this->_store_user();
+
+            self::shoot_ajax_response( array( 'success' => true ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          *
          * @since  1.1.9
          * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
@@ -14360,6 +14553,33 @@
             }
 
             return $versions;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         *
+         * @return bool
+         */
+        function is_beta() {
+            return (
+                ! empty( $this->_storage->beta_data ) &&
+                ( $this->get_plugin_version() === $this->_storage->beta_data['version'] ) &&
+                ( true === $this->_storage->beta_data['is_beta'] )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4.7
+         */
+        private function sync_user_beta_mode() {
+            $user = $this->get_api_user_scope()->get( '/?plugin_id=' . $this->get_id() . '&fields=is_beta' );
+
+            if ( $this->is_api_result_entity( $user ) ) {
+                $this->_user->is_beta = $user->is_beta;
+                $this->_store_user();
+            }
         }
 
         /**
@@ -17634,14 +17854,23 @@
                 return false;
             }
 
+            $plugin_version = $this->get_plugin_version();
+
             // Check if version is actually newer.
             $has_new_version =
                 // If it's an non-installed add-on then always return latest.
                 ( $this->_is_addon_id( $plugin_id ) && ! $this->is_addon_activated( $plugin_id ) ) ||
                 // Compare versions.
-                version_compare( $this->get_plugin_version(), $latest_tag->version, '<' );
+                version_compare( $plugin_version, $latest_tag->version, '<' );
 
             $this->_logger->departure( $has_new_version ? 'Found newer plugin version ' . $latest_tag->version : 'No new version' );
+
+            $is_latest_version_beta = ( 'beta' === $latest_tag->release_mode );
+
+            $this->_storage->beta_data = array(
+                'is_beta' => $is_latest_version_beta,
+                'version' => $latest_tag->version
+            );
 
             return $has_new_version ? $latest_tag : false;
         }
@@ -18856,6 +19085,8 @@
 
             if ( $this->has_secret_key() ) {
                 $endpoint = add_query_arg( 'type', 'all', $endpoint );
+            } else if ( $this->_user->is_beta() ) {
+                $endpoint = add_query_arg( 'type', 'beta', $endpoint );
             }
 
             return $endpoint;
