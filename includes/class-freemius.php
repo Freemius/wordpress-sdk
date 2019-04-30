@@ -10541,10 +10541,12 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          *
+         * @param array $plan_ids IDs of additional plans to retrieve.
+         *
          * @return FS_Plugin_Plan[]|object
          */
-        function _sync_plans() {
-            $plans = $this->_fetch_plugin_plans();
+        function _sync_plans( $plan_ids = array() ) {
+            $plans = $this->_fetch_plugin_plans( $plan_ids );
 
             if ( $this->is_array_instanceof( $plans, 'FS_Plugin_Plan' ) ) {
                 $plans_map = array();
@@ -10716,20 +10718,26 @@
          * @since  1.0.5
          *
          * @param number $id
+         * @param bool   $is_bundle_plan
+         * @param bool   $flush
          *
          * @return FS_Plugin_Plan|false
          */
-        function _get_plan_by_id( $id ) {
+        function _get_plan_by_id( $id, $is_bundle_plan = false, $flush = false ) {
             $this->_logger->entrance();
 
-            if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
-                $this->_sync_plans();
+            if ( $flush || ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
+                $this->_sync_plans( array( $id ) );
             }
 
             foreach ( $this->_plans as $plan ) {
                 if ( $id == $plan->id ) {
                     return $plan;
                 }
+            }
+
+            if ( ! $flush && $is_bundle_plan ) {
+                return $this->_get_plan_by_id( $id, true, true );
             }
 
             return false;
@@ -17564,16 +17572,18 @@
          * @since  1.0.5
          * @uses   FS_Api
          *
+         * @param array $plan_ids IDs of additional plans to retrieve.
+         *
          * @return FS_Plugin_Plan[]|object
          */
-        private function _fetch_plugin_plans() {
+        private function _fetch_plugin_plans( $plan_ids = array() ) {
             $this->_logger->entrance();
             $api = $this->get_current_or_network_user_api_scope();
 
             /**
              * @since 1.2.3 When running in DEV mode, retrieve pending plans as well.
              */
-            $result = $api->get( $this->add_show_pending( "/plugins/{$this->_module_id}/plans.json" ), true );
+            $result = $api->get( $this->add_show_pending( "/plugins/{$this->_module_id}/plans.json" . ( ! empty( $plan_ids ) ? '?+plan_ids=' . implode( ',', $plan_ids ) : '' ) ), true );
 
             if ( $this->is_api_result_object( $result, 'plans' ) && is_array( $result->plans ) ) {
                 for ( $i = 0, $len = count( $result->plans ); $i < $len; $i ++ ) {
@@ -17631,7 +17641,7 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json";
+            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json?is_enriched=true";
             if ( ! empty ( $foreign_licenses ) ) {
                 $foreign_licenses = array(
                     // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.

@@ -48,6 +48,7 @@
                                   $fs->_get_subscription( $license->id ) :
                                   null );
     $plan                   = $fs->get_plan();
+    $bundle_plan            = null;
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
     $has_paid_plan          = $fs->has_paid_plan();
@@ -108,6 +109,7 @@
 	$free_text         = fs_text_inline( 'Free', 'free', $slug );
 	$activate_text     = fs_text_inline( 'Activate', 'activate', $slug );
 	$plan_text         = fs_text_x_inline( 'Plan', 'as product pricing plan', 'plan', $slug );
+	$bundle_plan_text  = fs_text_inline( 'Bundle Plan', 'bundle-plan', $slug );
 
     $show_plan_row    = true;
     $show_license_row = is_object( $license );
@@ -146,6 +148,14 @@
                 $show_license_row = false;
             }
         }
+    }
+
+    if (
+        $show_plan_row &&
+        is_object( $license ) &&
+        FS_Plugin_Plan::is_valid_id( $license->parent_plan_id )
+    ) {
+        $bundle_plan = $fs->_get_plan_by_id( $license->parent_plan_id, true );
     }
 
     $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
@@ -353,6 +363,17 @@
                                                             strtoupper( $free_text )
                                                         )
                                                     );
+
+                                                    if ( is_object( $bundle_plan ) ) {
+                                                        $profile[] = array(
+                                                            'id'    => 'bundle_plan',
+                                                            'title' => $bundle_plan_text,
+                                                            'value' => strtoupper( is_string( $bundle_plan->name ) ?
+                                                                $bundle_plan->title :
+                                                                strtoupper( $free_text )
+                                                            )
+                                                        );
+                                                    }
                                                 }
 
 												if ( is_object( $license ) ) {
