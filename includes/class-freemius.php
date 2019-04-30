@@ -10054,24 +10054,62 @@
          */
         function _get_addon_info( $addon_id, $is_installed ) {
             static $fs_options                    = null;
-            static $sites                         = null;
+            static $all_sites                     = null;
+            static $network_level_sites           = null;
             static $plugins_data                  = null;
             static $all_plans                     = null;
             static $licenses                      = null;
             static $plans_and_pricing_by_addon_id = null;
 
+            $addon         = null;
+            $addon_storage = null;
+
+            $network_level_or_blog_id = null;
+            $is_network_admin         = fs_is_network_admin();
+            $is_addon_network_active  = false;
+
+            if ( $is_network_admin ) {
+                $addon = $this->get_addon( $addon_id );
+                $slug  = $addon->slug;
+
+                if ( $this->is_addon_activated( $addon_id ) && $this->get_addon_instance( $addon_id )->is_network_active() ) {
+                    $is_addon_network_active = true;
+
+                    $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+
+                    $network_level_or_blog_id = $addon_storage->network_install_blog_id;
+                }
+            }
+
             if ( is_null( $fs_options ) ) {
                 $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
-
-                $sites = $fs_options->get_option( 'sites', array() );
             }
+
+            if ( ! $is_network_admin ) {
+                if ( ! is_array( $all_sites ) ) {
+                    $all_sites = $fs_options->get_option( 'sites', array() );
+                }
+            } else if ( ! is_array( $network_level_sites ) && FS_Site::is_valid_id( $network_level_or_blog_id ) ) {
+                $network_level_sites = $fs_options->get_option(
+                    'sites',
+                    array(),
+                    $network_level_or_blog_id
+                );
+            }
+
+            $sites = $is_network_admin ?
+                ( $is_addon_network_active ? $network_level_sites : null ) :
+                $all_sites;
 
             if ( ! $is_installed && is_null( $plans_and_pricing_by_addon_id ) ) {
                 $plans_and_pricing_by_addon_id = $this->_get_addons_plans_and_pricing_map_by_id();
             }
 
-            $addon      = $this->get_addon( $addon_id );
-            $slug       = $addon->slug;
+            if ( ! is_object( $addon ) ) {
+                $addon = $this->get_addon( $addon_id );
+                $slug  = $addon->slug;
+            }
+
             $addon_info = array(
                 'is_connected' => false,
                 'slug'         => $slug,
@@ -10097,7 +10135,7 @@
                 $addon_info['has_paid_plan'] = $has_paid_plan;
             }
 
-            if ( ! isset( $sites[ $slug ] ) ) {
+            if ( ! is_array( $sites ) || ! isset( $sites[ $slug ] ) ) {
                 return $addon_info;
             }
 
@@ -10151,7 +10189,9 @@
             }
 
             if ( isset( $addon_info['license'] ) ) {
-                $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+                if ( ! is_object( $addon_storage ) ) {
+                    $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+                }
 
                 if ( isset( $addon_storage->subscriptions ) &&
                     ! empty( $addon_storage->subscriptions )
@@ -14375,8 +14415,9 @@
                 $this->get_install_by_blog_id();
 
             if ( fs_is_network_admin() &&
-                 ! is_object( $site ) &&
-                 FS_Site::is_valid_id( $this->_storage->network_install_blog_id )
+                $this->is_network_active() &&
+                ! is_object( $site ) &&
+                FS_Site::is_valid_id( $this->_storage->network_install_blog_id )
             ) {
                 $first_install = $this->find_first_install();
 
