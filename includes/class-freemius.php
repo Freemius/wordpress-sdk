@@ -18240,7 +18240,10 @@
                                     sprintf(
                                         $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
                                         $this->get_plugin_name(),
-                                        '<a href="' . $api->get_url() . '" target="_blank">' . $api->get_url() . '</a>'
+                                        '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
+                                            'api.freemius.com',
+                                            'wp.freemius.com'
+                                        ) ) ) . '</b>'
                                     ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
                                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
                                     'error',
