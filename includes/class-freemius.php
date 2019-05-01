@@ -10025,22 +10025,37 @@
         }
 
         /**
+         * @var array<number,object[]> {
+         *      @key number   Add-on ID.
+         *      @val object[] The add-on's plans and prices object.
+         * }
+         */
+        private $plans_and_pricing_by_addon_id;
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.5.1
          *
-         * @return array
+         * @return array<number,object[]> {
+         *      @key number   Add-on ID.
+         *      @val object[] The add-on's plans and prices object.
+         * }
          */
         function _get_addons_plans_and_pricing_map_by_id() {
-            $result = $this->get_api_plugin_scope()->get( $this->add_show_pending( "/addons/pricing.json?type=visible" ) );
+            if ( ! isset( $this->plans_and_pricing_by_addon_id ) ) {
+                $result = $this->get_api_plugin_scope()->get( $this->add_show_pending( "/addons/pricing.json?type=visible" ) );
 
-            $plans_and_pricing_by_addon_id = array();
-            if ( $this->is_api_result_object( $result, 'addons' ) ) {
-                foreach ( $result->addons as $addon ) {
-                    $plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
+                $plans_and_pricing_by_addon_id = array();
+                if ( $this->is_api_result_object( $result, 'addons' ) ) {
+                    foreach ( $result->addons as $addon ) {
+                        $plans_and_pricing_by_addon_id[ $addon->id ] = $addon->plans;
+                    }
                 }
+
+                $this->plans_and_pricing_by_addon_id = $plans_and_pricing_by_addon_id;
             }
 
-            return $plans_and_pricing_by_addon_id;
+            return $this->plans_and_pricing_by_addon_id;
         }
 
         /**
@@ -10053,61 +10068,35 @@
          * @return array
          */
         function _get_addon_info( $addon_id, $is_installed ) {
-            static $fs_options                    = null;
-            static $all_sites                     = null;
-            static $network_level_sites           = null;
-            static $plugins_data                  = null;
-            static $all_plans                     = null;
-            static $licenses                      = null;
-            static $plans_and_pricing_by_addon_id = null;
-
-            $addon         = null;
-            $addon_storage = null;
-
-            $network_level_or_blog_id = null;
-            $is_network_admin         = fs_is_network_admin();
-            $is_addon_network_active  = false;
-
-            if ( $is_network_admin ) {
-                $addon = $this->get_addon( $addon_id );
-                $slug  = $addon->slug;
-
-                if ( $this->is_addon_activated( $addon_id ) && $this->get_addon_instance( $addon_id )->is_network_active() ) {
-                    $is_addon_network_active = true;
-
-                    $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
-
-                    $network_level_or_blog_id = $addon_storage->network_install_blog_id;
-                }
-            }
-
-            if ( is_null( $fs_options ) ) {
-                $fs_options = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
-            }
-
-            if ( ! $is_network_admin ) {
-                if ( ! is_array( $all_sites ) ) {
-                    $all_sites = $fs_options->get_option( 'sites', array() );
-                }
-            } else if ( ! is_array( $network_level_sites ) && FS_Site::is_valid_id( $network_level_or_blog_id ) ) {
-                $network_level_sites = $fs_options->get_option(
-                    'sites',
-                    array(),
-                    $network_level_or_blog_id
-                );
-            }
-
-            $sites = $is_network_admin ?
-                ( $is_addon_network_active ? $network_level_sites : null ) :
-                $all_sites;
-
-            if ( ! $is_installed && is_null( $plans_and_pricing_by_addon_id ) ) {
-                $plans_and_pricing_by_addon_id = $this->_get_addons_plans_and_pricing_map_by_id();
-            }
+            $addon = $this->get_addon( $addon_id );
 
             if ( ! is_object( $addon ) ) {
-                $addon = $this->get_addon( $addon_id );
-                $slug  = $addon->slug;
+                // Unexpected call.
+                return array();
+            }
+
+            $slug = $addon->slug;
+
+            $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
+
+            if ( ! fs_is_network_admin() ) {
+                // Get blog-level activated installations.
+                $sites = self::$_accounts->get_option( 'sites', array() );
+            } else {
+                $sites = null;
+
+                if ( $this->is_addon_activated( $addon_id ) &&
+                     $this->get_addon_instance( $addon_id )->is_network_active()
+                ) {
+                    if ( FS_Site::is_valid_id( $addon_storage->network_install_blog_id ) ) {
+                        // Get network-level activated installations.
+                        $sites = self::$_accounts->get_option(
+                            'sites',
+                            array(),
+                            $addon_storage->network_install_blog_id
+                        );
+                    }
+                }
             }
 
             $addon_info = array(
@@ -10116,23 +10105,27 @@
                 'title'        => $addon->title
             );
 
-            if ( ! $is_installed && isset( $plans_and_pricing_by_addon_id[ $addon_id ] ) ) {
-                $has_paid_plan = false;
-                $plans         = $plans_and_pricing_by_addon_id[ $addon_id ];
+            if ( ! $is_installed ) {
+                $plans_and_pricing_by_addon_id = $this->_get_addons_plans_and_pricing_map_by_id();
 
-                if ( is_array( $plans ) && count( $plans ) > 0 ) {
-                    foreach ( $plans as $plan ) {
-                        if ( isset( $plan->pricing ) &&
-                            is_array( $plan->pricing ) &&
-                            count( $plan->pricing ) > 0
-                        ) {
-                            $has_paid_plan = true;
-                            break;
+                if ( isset( $plans_and_pricing_by_addon_id[ $addon_id ] ) ) {
+                    $has_paid_plan = false;
+                    $plans         = $plans_and_pricing_by_addon_id[ $addon_id ];
+
+                    if ( is_array( $plans ) && count( $plans ) > 0 ) {
+                        foreach ( $plans as $plan ) {
+                            if ( isset( $plan->pricing ) &&
+                                 is_array( $plan->pricing ) &&
+                                 count( $plan->pricing ) > 0
+                            ) {
+                                $has_paid_plan = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                $addon_info['has_paid_plan'] = $has_paid_plan;
+                    $addon_info['has_paid_plan'] = $has_paid_plan;
+                }
             }
 
             if ( ! is_array( $sites ) || ! isset( $sites[ $slug ] ) ) {
@@ -10155,18 +10148,14 @@
 
             $addon_info['site'] = $site;
 
-            if ( is_null( $plugins_data ) ) {
-                $plugins_data = $fs_options->get_option( WP_FS__MODULE_TYPE_PLUGIN . 's', array() );
-                $all_plans    = $fs_options->get_option( 'plans', array() );
-                $licenses     = $fs_options->get_option( 'all_licenses', array() );
-            }
-
+            $plugins_data = self::$_accounts->get_option( WP_FS__MODULE_TYPE_PLUGIN . 's', array() );
             if ( isset( $plugins_data[ $slug ] ) ) {
                 $plugin_data = $plugins_data[ $slug ];
 
                 $addon_info['version'] = $plugin_data->version;
             }
 
+            $all_plans = self::$_accounts->get_option( 'plans', array() );
             if ( isset( $all_plans[ $slug ] ) ) {
                 $plans = $all_plans[ $slug ];
 
@@ -10179,6 +10168,7 @@
                 }
             }
 
+            $licenses = self::$_accounts->get_option( 'all_licenses', array() );
             if ( is_array( $licenses ) && isset( $licenses[ $addon_id ] ) ) {
                 foreach ( $licenses[ $addon_id ] as $license ) {
                     if ( $license->id == $site->license_id ) {
@@ -10189,12 +10179,8 @@
             }
 
             if ( isset( $addon_info['license'] ) ) {
-                if ( ! is_object( $addon_storage ) ) {
-                    $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $slug );
-                }
-
                 if ( isset( $addon_storage->subscriptions ) &&
-                    ! empty( $addon_storage->subscriptions )
+                     ! empty( $addon_storage->subscriptions )
                 ) {
                     foreach ( $addon_storage->subscriptions as $subscription ) {
                         if ( $subscription->license_id == $site->license_id ) {
