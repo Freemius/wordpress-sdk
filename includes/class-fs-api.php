@@ -190,14 +190,11 @@
                  * @since 2.2.5 Include the SDK version with all API requests that going through the API manager. IMPORTANT: Only pass the SDK version if the caller didn't include it yet.
                  */
                 if ( ! empty( $this->_sdk_version ) ) {
-                    if ( false === strpos( $path, 'sdk_version=' ) ) {
-                        $method = strtoupper( $method );
-
-                        if ( 'GET' === $method ) {
-                            $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
-                        } else if ( ! isset( $params['sdk_version'] ) ) {
-                            $params['sdk_version'] = $this->_sdk_version;
-                        }
+                    if ( false === strpos( $path, 'sdk_version=' ) &&
+                         ! isset( $params['sdk_version'] )
+                    ) {
+                        // Always add the sdk_version param in the querystring. DO NOT INCLUDE IT IN THE BODY PARAMS, OTHERWISE, IT MAY LEAD TO AN UNEXPECTED PARAMS PARSING IN CASES WHERE THE $params IS A REGULAR NON-ASSOCIATIVE ARRAY.
+                        $path = add_query_arg( 'sdk_version', $this->_sdk_version, $path );
                     }
                 }
 
