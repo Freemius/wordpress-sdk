@@ -19326,7 +19326,7 @@
                 $this->get_parent_instance() :
                 $this;
 
-            return $fs->get_account_url( 'download_latest', $params );
+            return $this->apply_filters( 'download_latest_url', $fs->get_account_url( 'download_latest', $params ) );
         }
 
         #endregion Download Plugin ------------------------------------------------------------------
