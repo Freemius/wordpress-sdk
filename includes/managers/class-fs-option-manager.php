@@ -153,7 +153,7 @@
 
                 $cached = true;
 
-                if ( empty( $this->_options ) ) {
+                if ( false === $this->_options ) {
                     if ( $this->_is_network_storage ) {
                         $this->_options = get_site_option( $option_name );
                     } else if ( $this->_blog_id > 0 ) {
