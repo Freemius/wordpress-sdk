@@ -50,7 +50,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.4.7
+         * @since 2.2.5
          *
          * @return bool
          */

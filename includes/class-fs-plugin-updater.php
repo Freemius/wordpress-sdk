@@ -271,7 +271,7 @@
                      *      There is a new Beta version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.4.7
+                     * @since 2.2.5
                      */
                     $plugin_update_row = preg_replace(
                         '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
@@ -488,7 +488,7 @@
                  * Ensure that there's no update data for the plugin to prevent upgrading the premium version to the latest free version.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.4.3
+                 * @since 2.2.5
                  */
                 unset( $transient_data->response[ $this->_fs->premium_plugin_basename() ] );
             }
@@ -584,7 +584,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.4.3
+         * @since 2.2.5
          *
          * @param FS_Plugin_Tag $new_version
          *
