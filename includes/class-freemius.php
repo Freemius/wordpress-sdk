@@ -21280,7 +21280,7 @@
                     ) ),
                     $deactivation_step,
                     $this->get_text_inline( 'Upload and activate the downloaded version', 'upload-and-activate' ),
-                    '//bit.ly/upload-wp-' . $this->_module_type . 's',
+                    $this->apply_filters( 'upload_and_install_video_url', '//bit.ly/upload-wp-' . $this->_module_type . 's' ),
                     $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
                 );
             }
