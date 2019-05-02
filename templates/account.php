@@ -48,7 +48,6 @@
                                   $fs->_get_subscription( $license->id ) :
                                   null );
     $plan                   = $fs->get_plan();
-    $bundle_plan            = null;
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
     $has_paid_plan          = $fs->has_paid_plan();
@@ -150,13 +149,18 @@
         }
     }
 
+    $is_child_license    = ( is_object( $license ) && FS_Plugin_License::is_valid_id( $license->parent_license_id ) );
+    $bundle_subscription = null;
+
     if (
         $show_plan_row &&
         is_object( $license ) &&
-        FS_Plugin_Plan::is_valid_id( $license->parent_plan_id )
+        FS_Plugin_License::is_valid_id( $license->parent_license_id )
     ) {
-        $bundle_plan = $fs->_get_plan_by_id( $license->parent_plan_id, true );
+        $bundle_subscription = $fs->_get_subscription( $license->parent_license_id );
     }
+
+    $is_active_bundle_subscription = ( is_object( $bundle_subscription ) && $bundle_subscription->is_active() );
 
     $fs_blog_id = ( is_multisite() && ! is_network_admin() ) ?
         get_current_blog_id() :
@@ -357,21 +361,18 @@
                                                 if ( $show_plan_row ) {
                                                     $profile[] = array(
                                                         'id'    => 'plan',
-                                                        'title' => $plan_text,
+                                                        'title' => ( $is_child_license ? ucfirst( $fs->get_module_type() ) . ' ' : '' ) . $plan_text,
                                                         'value' => strtoupper( is_string( $plan->name ) ?
                                                             $plan->title :
                                                             strtoupper( $free_text )
                                                         )
                                                     );
 
-                                                    if ( is_object( $bundle_plan ) ) {
+                                                    if ( $is_child_license ) {
                                                         $profile[] = array(
                                                             'id'    => 'bundle_plan',
                                                             'title' => $bundle_plan_text,
-                                                            'value' => strtoupper( is_string( $bundle_plan->name ) ?
-                                                                $bundle_plan->title :
-                                                                strtoupper( $free_text )
-                                                            )
+                                                            'value' => strtoupper( $license->parent_plan_title )
                                                         );
                                                     }
                                                 }
@@ -401,7 +402,7 @@
 												<td>
 													<nobr><?php echo $p['title'] ?><?php echo ( ! empty( $p['title'] ) ) ? ':' : '' ?></nobr>
 												</td>
-												<td<?php if ( 'plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
+												<td<?php if ( 'plan' === $p['id'] || 'bundle_plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
 													<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 														<code><?php echo htmlspecialchars( substr( $p['value'], 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $p['value'], - 3 ) ) ?></code>
 														<input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
@@ -422,7 +423,7 @@
 															<label class="fs-tag fs-success"><?php echo esc_html( $trial_text ) ?></label>
 														<?php endif ?>
 														<?php if ( is_object( $license ) && ! $license->is_lifetime() ) : ?>
-															<?php if ( ! $is_active_subscription && ! $license->is_first_payment_pending() ) : ?>
+															<?php if ( ! $is_active_subscription && ! $is_active_bundle_subscription && ! $license->is_first_payment_pending() ) : ?>
                                                                 <?php $is_license_expired = $license->is_expired() ?>
                                                                 <?php $expired_ago_text   = ( fs_text_inline( 'Expired', 'expired', $slug ) . ' ' . fs_text_x_inline( '%s ago', 'x-ago', $slug ) ) ?>
 																<label
@@ -472,6 +473,12 @@
 																</form>
 															<?php endif ?>
 														</div>
+													<?php elseif ( 'bundle_plan' === $p['id'] ) : ?>
+														<?php if ( is_object( $bundle_subscription ) ) : ?>
+															<?php if ( $is_active_bundle_subscription && ! $license->is_first_payment_pending() ) : ?>
+																<label class="fs-tag fs-success"><?php echo esc_html( sprintf( $renews_in_text, human_time_diff( time(), strtotime( $bundle_subscription->next_payment ) ) ) ) ?></label>
+															<?php endif ?>
+                                                        <?php endif ?>
 													<?php elseif ( 'version' === $p['id'] && $has_paid_plan ) : ?>
 														<?php if ( $fs->has_premium_version() ) : ?>
 															<?php if ( $is_premium ) : ?>
@@ -483,7 +490,7 @@
 														<?php endif ?>
 													<?php endif ?>
 												</td>
-												<?php if ( 'plan' !== $p['id'] ) : ?>
+                                                <?php if ( 'plan' !== $p['id'] && 'bundle_plan' !== $p['id'] ) : ?>
 													<td class="fs-right">
 														<?php if ( 'email' === $p['id'] && ! $user->is_verified() ) : ?>
 															<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
