@@ -30,6 +30,27 @@
          */
         public $plan_id;
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @var string
+         */
+        public $parent_plan_name;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @var string
+         */
+        public $parent_plan_title;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @var number
+         */
+        public $parent_license_id;
+        /**
          * @var number
          */
         public $pricing_id;

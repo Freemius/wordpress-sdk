@@ -17549,7 +17549,9 @@
             $api = $this->get_api_site_scope();
 
             if ( ! is_numeric( $license_id ) ) {
-                $license_id = $this->_license->id;
+                $license_id = FS_Plugin_License::is_valid_id( $this->_license->parent_license_id ) ?
+                    $this->_license->parent_license_id :
+                    $this->_license->id;
             }
 
             $result = $api->get( "/licenses/{$license_id}/subscriptions.json", true );
@@ -17656,7 +17658,7 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json";
+            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json?is_enriched=true";
             if ( ! empty ( $foreign_licenses ) ) {
                 $foreign_licenses = array(
                     // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
@@ -18665,7 +18667,7 @@
             }
 
             $api     = $this->get_api_site_scope();
-            $license = $api->call( "/licenses/{$premium_license->id}.json", 'put', $api_request_params );
+            $license = $api->call( "/licenses/{$premium_license->id}.json?is_enriched=true", 'put', $api_request_params );
 
             if ( ! $this->is_api_result_entity( $license ) ) {
                 if ( ! $background ) {
