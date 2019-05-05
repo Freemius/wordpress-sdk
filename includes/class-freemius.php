@@ -17633,7 +17633,7 @@
                 $plugin_id = $this->_plugin->id;
             }
 
-            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json?include_parent_plan=true";
+            $user_licenses_endpoint = "/plugins/{$plugin_id}/licenses.json?is_enriched=true";
             if ( ! empty ( $foreign_licenses ) ) {
                 $foreign_licenses = array(
                     // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
