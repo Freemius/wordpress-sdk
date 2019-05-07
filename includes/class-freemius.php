@@ -10805,7 +10805,7 @@
                 $all_licenses = $this->get_user_licenses( $this->_user->id );
             }
 
-            $foreign_licenses = $this->get_foreign_licenses_info( $all_licenses, $blog_id, $site_license_id );
+            $foreign_licenses = $this->get_foreign_licenses_info( $all_licenses, $site_license_id );
 
             $all_licenses_map = array();
             foreach ( $all_licenses as $license ) {
@@ -17368,22 +17368,13 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.2.5
          *
-         * @param array|null  $all_licenses
-         * @param int|null    $blog_id
+         * @param array       $all_licenses
          * @param number|null $site_license_id
          * @param bool        $include_parent_licenses
          *
          * @return array
          */
-        private function get_foreign_licenses_info( $all_licenses = null, $blog_id = null, $site_license_id = null, $include_parent_licenses = false ) {
-            if ( is_null( $all_licenses ) ) {
-                if ( fs_is_network_admin() && is_null( $blog_id ) ) {
-                    $all_licenses = self::get_all_licenses( $this->_module_id );
-                } else {
-                    $all_licenses = $this->get_user_licenses( $this->_user->id );
-                }
-            }
-
+        private function get_foreign_licenses_info( $all_licenses, $site_license_id = null, $include_parent_licenses = false ) {
             $foreign_licenses = array(
                 'ids'          => array(),
                 'license_keys' => array()
@@ -17440,7 +17431,7 @@
             $user_licenses_endpoint = '/licenses.json?type=active' .
                 ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
 
-            $foreign_licenses = $this->get_foreign_licenses_info( self::get_all_licenses( $this->_module_id ), null, null, true );
+            $foreign_licenses = $this->get_foreign_licenses_info( self::get_all_licenses( $this->_module_id ), null, true );
 
             if ( ! empty ( $foreign_licenses ) ) {
                 $foreign_licenses = array(
