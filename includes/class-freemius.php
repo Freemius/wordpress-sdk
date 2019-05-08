@@ -17358,10 +17358,7 @@
          * @since 2.2.4
          */
         private function purge_valid_user_licenses_cache() {
-            $user_licenses_endpoint = '/licenses.json?type=active' .
-                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
-
-            $this->get_api_user_scope()->purge_cache( $user_licenses_endpoint );
+            $this->get_api_user_scope()->purge_cache( $this->get_valid_user_licenses_endpoint() );
         }
 
         /**
@@ -17414,20 +17411,12 @@
         }
 
         /**
-         * Fetches active licenses that are enriched with product type if there's a context `bundle_id` and bundle
-         * licenses enriched with product IDs if there are any. From the licenses, the `get_updated_account_addons`
-         * method filters out non–add-on product IDs and stores the add-on IDs.
-         *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.4
+         * @since 2.2.5
          *
-         * @return stdClass[] array
+         * @return string
          */
-        private function fetch_valid_user_licenses() {
-            $this->_logger->entrance();
-
-            $api = $this->get_api_user_scope();
-
+        private function get_valid_user_licenses_endpoint() {
             $user_licenses_endpoint = '/licenses.json?type=active' .
                 ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
 
@@ -17442,8 +17431,24 @@
 
                 $user_licenses_endpoint = add_query_arg( $foreign_licenses, $user_licenses_endpoint );
             }
-            
-            $result = $api->get( $user_licenses_endpoint );
+
+            return $user_licenses_endpoint;
+        }
+
+        /**
+         * Fetches active licenses that are enriched with product type if there's a context `bundle_id` and bundle
+         * licenses enriched with product IDs if there are any. From the licenses, the `get_updated_account_addons`
+         * method filters out non–add-on product IDs and stores the add-on IDs.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.4
+         *
+         * @return stdClass[] array
+         */
+        private function fetch_valid_user_licenses() {
+            $this->_logger->entrance();
+
+            $result = $this->get_api_user_scope()->get( $this->get_valid_user_licenses_endpoint() );
 
             if ( ! $this->is_api_result_object( $result, 'licenses' ) ||
                 ! is_array( $result->licenses )
