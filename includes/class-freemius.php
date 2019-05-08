@@ -17389,6 +17389,7 @@
 
                 if (
                     $include_parent_licenses &&
+                    is_object( $this->_license ) &&
                     FS_Plugin_License::is_valid_id( $this->_license->parent_license_id ) &&
                     ! isset( $parent_license_ids_map[ $this->_license->parent_license_id ] )
                 ) {
