@@ -116,7 +116,7 @@ HTML;
                     "%s-Site %s License - %s",
                      ( 1 == $license->quota ?
                          'Single' :
-                         $license->quota
+                         ( $license->is_unlimited() ? 'Unlimited' : $license->quota )
                      ),
                      $fs->_get_plan_by_id( $license->plan_id )->title,
                      ( htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) .

@@ -10805,24 +10805,11 @@
                 $all_licenses = $this->get_user_licenses( $this->_user->id );
             }
 
-            $foreign_licenses = array(
-                'ids'          => array(),
-                'license_keys' => array()
-            );
+            $foreign_licenses = $this->get_foreign_licenses_info( $all_licenses, $site_license_id );
 
             $all_licenses_map = array();
             foreach ( $all_licenses as $license ) {
                 $all_licenses_map[ $license->id ] = true;
-                if ( $license->user_id == $this->_user->id || $license->id == $site_license_id ) {
-                    continue;
-                }
-
-                $foreign_licenses['ids'][]          = $license->id;
-                $foreign_licenses['license_keys'][] = $license->secret_key;
-            }
-
-            if ( empty( $foreign_licenses['ids'] ) ) {
-                $foreign_licenses = array();
             }
 
             $licenses = $this->_fetch_licenses( false, $site_license_id, $foreign_licenses, $blog_id );
@@ -17371,10 +17358,82 @@
          * @since 2.2.4
          */
         private function purge_valid_user_licenses_cache() {
+            $this->get_api_user_scope()->purge_cache( $this->get_valid_user_licenses_endpoint() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @param array       $all_licenses
+         * @param number|null $site_license_id
+         * @param bool        $include_parent_licenses
+         *
+         * @return array
+         */
+        private function get_foreign_licenses_info( $all_licenses, $site_license_id = null, $include_parent_licenses = false ) {
+            $foreign_licenses = array(
+                'ids'          => array(),
+                'license_keys' => array()
+            );
+
+            $parent_license_ids_map = array();
+
+            foreach ( $all_licenses as $license ) {
+                if ( $license->user_id == $this->_user->id || $license->id == $site_license_id ) {
+                    continue;
+                }
+
+                $foreign_licenses['ids'][]          = $license->id;
+                $foreign_licenses['license_keys'][] = $license->secret_key;
+
+                if (
+                    $include_parent_licenses &&
+                    is_object( $this->_license ) &&
+                    FS_Plugin_License::is_valid_id( $this->_license->parent_license_id ) &&
+                    ! isset( $parent_license_ids_map[ $this->_license->parent_license_id ] )
+                ) {
+                    /**
+                     * Include the parent license's info only if it has not been included before since child licenses
+                     * can have the same parent license.
+                     */
+                    $foreign_licenses['ids'][]          = $this->_license->parent_license_id;
+                    $foreign_licenses['license_keys'][] = $license->secret_key;
+
+                    $parent_license_ids_map[ $this->_license->parent_license_id ] = true;
+                }
+            }
+
+            if ( empty( $foreign_licenses['ids'] ) ) {
+                $foreign_licenses = array();
+            }
+
+            return $foreign_licenses;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @return string
+         */
+        private function get_valid_user_licenses_endpoint() {
             $user_licenses_endpoint = '/licenses.json?type=active' .
                 ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
 
-            $this->get_api_user_scope()->purge_cache( $user_licenses_endpoint );
+            $foreign_licenses = $this->get_foreign_licenses_info( self::get_all_licenses( $this->_module_id ), null, true );
+
+            if ( ! empty ( $foreign_licenses ) ) {
+                $foreign_licenses = array(
+                    // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
+                    'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                    'license_keys' => implode( ',', array_map( 'urlencode', $foreign_licenses['license_keys'] ) )
+                );
+
+                $user_licenses_endpoint = add_query_arg( $foreign_licenses, $user_licenses_endpoint );
+            }
+
+            return $user_licenses_endpoint;
         }
 
         /**
@@ -17390,12 +17449,7 @@
         private function fetch_valid_user_licenses() {
             $this->_logger->entrance();
 
-            $api = $this->get_api_user_scope();
-
-            $user_licenses_endpoint = '/licenses.json?type=active' .
-                ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? '&is_enriched=true' : '' );
-
-            $result = $api->get( $user_licenses_endpoint );
+            $result = $this->get_api_user_scope()->get( $this->get_valid_user_licenses_endpoint() );
 
             if ( ! $this->is_api_result_object( $result, 'licenses' ) ||
                 ! is_array( $result->licenses )
@@ -17707,7 +17761,7 @@
 
                 if ( is_numeric( $site_license_id ) ) {
                     // Try to retrieve a foreign license that is linked to the install.
-                    $api_result = $api->call( '/licenses.json' );
+                    $api_result = $api->call( '/licenses.json?is_enriched=true' );
 
                     if ( $this->is_api_result_object( $api_result, 'licenses' ) &&
                          is_array( $api_result->licenses )
@@ -17734,7 +17788,7 @@
                     if ( ! $is_license_in_result ) {
                         // Fetch foreign license by ID and license key.
                         $license = $api->get( "/licenses/{$this->_license->id}.json?license_key=" .
-                                              urlencode( $this->_license->secret_key ) );
+                                              urlencode( $this->_license->secret_key ) . '&is_enriched=true' );
 
                         if ( $this->is_api_result_entity( $license ) ) {
                             $result[] = new FS_Plugin_License( $license );
@@ -18387,18 +18441,6 @@
                              */
                             $this->_update_site_license( $new_license );
 
-                            if ( $this->is_addon() || $this->has_addons() ) {
-                                /**
-                                 * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
-                                 * an updated valid user licenses collection will be fetched from the server which is used to also
-                                 * update the account add-ons (add-ons the user has licenses for).
-                                 *
-                                 * @author Leo Fajardo (@leorw)
-                                 * @since 2.2.4
-                                 */
-                                $this->purge_valid_user_licenses_cache();
-                            }
-
                             if ( ! $is_context_single_site &&
                                  fs_is_network_admin() &&
                                  $this->_is_network_active &&
@@ -18447,6 +18489,18 @@
                     if ( is_numeric( $site->license_id ) && is_object( $this->_license ) ) {
                         $this->_sync_site_subscription( $this->_license );
                     }
+                }
+
+                if ( $this->is_addon() || $this->has_addons() ) {
+                    /**
+                     * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
+                     * an updated valid user licenses collection will be fetched from the server which is used to also
+                     * update the account add-ons (add-ons the user has licenses for).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.4
+                     */
+                    $this->purge_valid_user_licenses_cache();
                 }
             }
 
