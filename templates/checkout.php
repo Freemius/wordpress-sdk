@@ -101,8 +101,11 @@
 
 		if ( $plugin_id != $fs->get_id() ) {
 			if ( $fs->is_addon_activated( $plugin_id ) ) {
-				$fs_addon = Freemius::get_instance_by_id( $plugin_id );
-				$site     = $fs_addon->get_site();
+                $fs_addon   = Freemius::get_instance_by_id( $plugin_id );
+                $addon_site = $fs_addon->get_site();
+                if ( is_object( $addon_site ) ) {
+                    $site = $addon_site;
+                }
 			}
 		}
 

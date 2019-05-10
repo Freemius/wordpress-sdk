@@ -17774,7 +17774,17 @@
                     } else {
                         $api_errors[] = $api_result;
                     }
-                } else if ( is_object( $this->_license ) ) {
+                } else if (
+                    is_object( $this->_license ) &&
+                    /**
+                     * Sync only if the license belongs to the context plugin. `$plugin_id` can be an add-on ID while
+                     * the FS instance that does the syncing is the parent FS instance.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.5
+                     */
+                    $this->_license->plugin_id == $plugin_id
+                ) {
                     $is_license_in_result = false;
                     if ( ! empty( $result ) ) {
                         foreach ( $result as $license ) {
@@ -18163,9 +18173,12 @@
             if ( $this->is_addon_activated( $addon_id ) ) {
                 // If already installed, use add-on sync.
                 $fs_addon = self::get_instance_by_id( $addon_id );
-                $fs_addon->_sync_license( $background );
 
-                return;
+                if ( $fs_addon->is_network_active() || ! fs_is_network_admin() ) {
+                    $fs_addon->_sync_license( $background );
+
+                    return;
+                }
             }
 
             // Validate add-on exists.
