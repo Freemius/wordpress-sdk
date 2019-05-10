@@ -377,7 +377,7 @@ HTML;
 			if (_parent.hasClass('has-input')) {
 				var inputType = _parent.data('input-type'),
 				    inputPlaceholder = _parent.data('input-placeholder'),
-				    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" />' : '<textarea rows="5"></textarea>' ) + '</div>';
+				    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" maxlength="128" />' : '<textarea rows="5" maxlength="128"></textarea>' ) + '</div>';
 
 				_parent.append($(reasonInputHtml));
 				_parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();
