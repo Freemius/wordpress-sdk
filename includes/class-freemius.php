@@ -18174,7 +18174,14 @@
                 // If already installed, use add-on sync.
                 $fs_addon = self::get_instance_by_id( $addon_id );
 
-                if ( $fs_addon->is_network_active() || ! fs_is_network_admin() ) {
+                if (
+                    // Add-on is network activated and network integrated.
+                    $fs_addon->is_network_active() ||
+                    // Background sync cron.
+                    self::is_cron() ||
+                    // Add-on is not network activated or not network integrated.
+                    ! fs_is_network_admin()
+                ) {
                     $fs_addon->_sync_license( $background );
 
                     return;
