@@ -1334,19 +1334,6 @@
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
                 }
 
-                if ( self::is_plugins_page() || self::is_themes_page() ) {
-                    add_action( 'admin_print_footer_scripts', array( 'Freemius', '_maybe_add_beta_label_styles' ), 9 );
-
-                    /**
-                     * Specifically use this hook so that the JS event handlers will work properly on the "Themes"
-                     * page.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
-                     */
-                    add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_plugins_and_handle_confirmation') );
-                }
-
                 /**
                  * Part of the mechanism to identify new plugin install vs. plugin update.
                  *
@@ -3108,6 +3095,18 @@
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
             add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
 
+            if ( self::is_plugins_page() || self::is_themes_page() ) {
+                add_action( 'admin_print_footer_scripts', array( 'Freemius', '_maybe_add_beta_label_styles' ), 9 );
+
+                /**
+                 * Specifically use this hook so that the JS event handlers will work properly on the "Themes"
+                 * page.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.5
+                 */
+                add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_plugins_and_handle_confirmation') );
+            }
 
             self::$_statics_loaded = true;
         }
