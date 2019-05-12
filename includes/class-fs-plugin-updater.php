@@ -257,8 +257,7 @@
 
             $r = $current->response[ $file ];
 
-            $update          = $this->_fs->get_update( $this->_fs->get_id(), false );
-            $has_beta_update = ( is_object( $update ) && $update->is_beta() );
+            $has_beta_update = $this->_fs->has_beta_update();
 
             if ( $this->_fs->has_any_active_valid_license() ) {
                 if ( $has_beta_update ) {

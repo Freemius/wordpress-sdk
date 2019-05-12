@@ -1577,8 +1577,7 @@
                  * If there's an available beta version update, a confirmation message will be shown when the
                  * "Update now" link on the "Plugins" or "Themes" page is clicked.
                  */
-                $update          = $instance->get_update( $instance->get_id(), false );
-                $has_beta_update = ( is_object( $update ) && $update->is_beta() );
+                $has_beta_update = $instance->has_beta_update();
 
                 $is_beta = (
                     // The "Beta" label is added separately for themes.
@@ -14573,11 +14572,25 @@
          *
          * @return bool
          */
+        function has_beta_update() {
+            return (
+                ! empty( $this->_storage->beta_data ) &&
+                ( true === $this->_storage->beta_data['is_beta'] ) &&
+                version_compare( $this->_storage->beta_data['version'], $this->get_plugin_version(), '>' )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @return bool
+         */
         function is_beta() {
             return (
                 ! empty( $this->_storage->beta_data ) &&
-                ( $this->get_plugin_version() === $this->_storage->beta_data['version'] ) &&
-                ( true === $this->_storage->beta_data['is_beta'] )
+                ( true === $this->_storage->beta_data['is_beta'] ) &&
+                ( $this->get_plugin_version() === $this->_storage->beta_data['version'] )
             );
         }
 
