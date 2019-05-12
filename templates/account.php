@@ -307,6 +307,22 @@
 											);
 										}
 
+										$profile[] = array(
+											'id'    => 'product',
+											'title' => ( $fs->is_plugin() ?
+												fs_text_inline( 'Plugin', 'plugin', $slug ) :
+												fs_text_inline( 'Theme', 'theme', $slug ) ),
+											'value' => $fs->get_plugin_title()
+										);
+
+										$profile[] = array(
+											'id'    => 'product_id',
+											'title' => ( $fs->is_plugin() ?
+												fs_text_inline( 'Plugin', 'plugin', $slug ) :
+												fs_text_inline( 'Theme', 'theme', $slug ) ) . ' ' . fs_text_inline( 'ID', 'id', $slug ),
+											'value' => $fs->get_id()
+										);
+
 										if ( ! fs_is_network_admin()) {
                                             $profile[] = array(
                                                 'id'    => 'site_id',
