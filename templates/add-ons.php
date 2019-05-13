@@ -198,7 +198,7 @@
 
                                         $is_allowed_to_install = (
                                             $fs->is_allowed_to_install() ||
-                                            ( $fs->is_org_repo_compliant() && $is_free_only_wp_org_compliant )
+                                            $is_free_only_wp_org_compliant
                                         );
 
                                         $show_premium_activation_or_installation_action = true;
