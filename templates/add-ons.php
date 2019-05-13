@@ -194,6 +194,13 @@
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
                                     <?php
+                                        $is_free_only_wp_org_compliant = ( ! $has_paid_plan && $addon->is_wp_org_compliant );
+
+                                        $is_allowed_to_install = (
+                                            $fs->is_allowed_to_install() ||
+                                            $is_free_only_wp_org_compliant
+                                        );
+
                                         $show_premium_activation_or_installation_action = true;
 
                                         if ( ! in_array( $addon->id, $account_addon_ids ) ) {
@@ -239,8 +246,9 @@
 									<li class="fs-cta"><a class="button"><?php echo esc_html( $view_details_text ) ?></a></li>
                                     <?php else : ?>
                                         <?php
-                                            $latest_download_local_url = $fs->_get_latest_download_local_url( $addon->id );
-                                            $is_allowed_to_install     = $fs->is_allowed_to_install();
+                                            $latest_download_local_url = $is_free_only_wp_org_compliant ?
+                                                null :
+                                                $fs->_get_latest_download_local_url( $addon->id );
                                         ?>
 
                                         <li class="fs-cta fs-dropdown">
@@ -250,7 +258,7 @@
                                                 if ( ! $is_addon_installed ) {
                                                     echo sprintf(
                                                         '<a class="button button-primary" href="%s">%s</a>',
-                                                        wp_nonce_url( self_admin_url( 'update.php?' . ( $has_paid_plan ? 'fs_allow_updater_and_dialog=true&' : '' ) . 'action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
+                                                        wp_nonce_url( self_admin_url( 'update.php?' . ( ( $has_paid_plan || ! $addon->is_wp_org_compliant ) ? 'fs_allow_updater_and_dialog=true&' : '' ) . 'action=install-plugin&plugin=' . $addon->slug ), 'install-plugin_' . $addon->slug ),
                                                         fs_esc_html_inline( 'Install Now', 'install-now', $slug )
                                                     );
                                                 } else {
@@ -266,7 +274,7 @@
                                             <a target="_blank" class="button button-primary" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a>
                                             <?php endif ?>
                                             <div class="button button-primary fs-dropdown-arrow-button"><span class="fs-dropdown-arrow"></span><ul class="fs-dropdown-list" style="display: none">
-		                                            <?php if ( $is_allowed_to_install ) : ?>
+		                                            <?php if ( $is_allowed_to_install && ! empty( $latest_download_local_url ) ) : ?>
 			                                            <li><a target="_blank" href="<?php echo $latest_download_local_url ?>"><?php echo esc_html( $download_latest_text ) ?></a></li>
 		                                            <?php endif ?>
 		                                            <li><?php
