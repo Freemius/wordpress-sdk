@@ -16170,12 +16170,18 @@
             }
 
             if ( ! $this->_menu->has_menu() || $this->_menu->is_top_level() ) {
+
+                if ( $this->_menu->has_menu() ||
+                     ! $this->is_addon() ||
+                     $this->is_activation_mode()
+                ) {
                 $this->_dynamically_added_top_level_page_hook_name = $this->_menu->add_page_and_update(
                     $this->get_plugin_name(),
                     $this->get_plugin_name(),
                     'manage_options',
                     $this->_menu->has_menu() ? $this->_menu->get_slug() : $this->_slug
                 );
+                }
             } else {
                 $this->_menu->add_subpage_and_update(
                     $this->_menu->get_parent_slug(),
