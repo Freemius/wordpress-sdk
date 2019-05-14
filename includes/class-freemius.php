@@ -6761,10 +6761,10 @@
                          * @author Leo Fajardo (@leorw)
                          * @since  1.2.2
                          */
-                        if ( $this->is_theme()
-                             && ! $this->has_settings_menu()
-                             && ! isset( $_REQUEST['fs_action'] )
-                             && $this->can_activate_previous_theme()
+                        if ( $this->is_theme() &&
+                             ! $this->has_settings_menu()  &&
+                             ! isset( $_REQUEST['fs_action'] )  &&
+                             $this->can_activate_previous_theme()
                         ) {
                             if ( $this->is_only_premium() ) {
                                 $this->activate_previous_theme();
@@ -16190,12 +16190,12 @@
                      ! $this->is_addon() ||
                      $this->is_activation_mode()
                 ) {
-                $this->_dynamically_added_top_level_page_hook_name = $this->_menu->add_page_and_update(
-                    $this->get_plugin_name(),
-                    $this->get_plugin_name(),
-                    'manage_options',
-                    $this->_menu->has_menu() ? $this->_menu->get_slug() : $this->_slug
-                );
+                    $this->_dynamically_added_top_level_page_hook_name = $this->_menu->add_page_and_update(
+                        $this->get_plugin_name(),
+                        $this->get_plugin_name(),
+                        'manage_options',
+                        $this->_menu->has_menu() ? $this->_menu->get_slug() : $this->_slug
+                    );
                 }
             } else {
                 $this->_menu->add_subpage_and_update(
