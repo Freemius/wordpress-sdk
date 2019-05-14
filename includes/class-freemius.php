@@ -5210,6 +5210,21 @@
             // Set the secret key after storing the plugin, we don't want to store the key in the storage.
             $this->_plugin->secret_key = $secret_key;
 
+            /**
+             * If the product is network integrated and activated and the current view is in the network level Admin dashboard, if the product's network-level menu located differently from the sub-site level, then use the network menu details (when set).
+             *
+             * @author Vova Feldman
+             * @since  2.4.5
+             */
+            if ( $this->is_network_active() && fs_is_network_admin() ) {
+                if ( isset( $plugin_info['menu_network'] ) &&
+                     is_array( $plugin_info['menu_network'] ) &&
+                     ! empty( $plugin_info['menu_network'] )
+                ) {
+                    $plugin_info['menu'] = $plugin_info['menu_network'];
+                }
+            }
+
             if ( ! isset( $plugin_info['menu'] ) ) {
                 $plugin_info['menu'] = array();
 
