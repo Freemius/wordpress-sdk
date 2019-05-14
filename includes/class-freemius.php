@@ -19806,7 +19806,9 @@
             ) {
                 $first_time_path = '';
             } else {
-                $first_time_path = $this->_menu->get_first_time_path();
+                $first_time_path = $this->_menu->get_first_time_path(
+                    fs_is_network_admin() && $this->_is_network_active
+                );
             }
 
             if ( $this->_is_network_active &&
@@ -21149,7 +21151,9 @@
             $url = false;
 
             if ( ! $this->is_addon() || ! $this->has_free_plan() ) {
-                $first_time_path = $this->_menu->get_first_time_path();
+                $first_time_path = $this->_menu->get_first_time_path(
+                    fs_is_network_admin() && $this->_is_network_active
+                );
 
                 if ( $this->is_activation_mode() ) {
                     $url = $this->get_activation_url();
