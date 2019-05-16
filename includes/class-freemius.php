@@ -21087,12 +21087,22 @@
 
             $this->_logger->entrance();
 
+            $is_network_admin = fs_is_network_admin();
+
             /**
              * If the activation has been delegated to site admins, no tracking-related actions for now.
              *
              * @author Leo Fajardo (@leorw)
              */
-            if ( $this->_is_network_active && $this->is_network_delegated_connection() ) {
+            if ( $this->_is_network_active && $is_network_admin && $this->is_network_delegated_connection() ) {
+                return;
+            }
+
+            if ( $is_network_admin && ! $this->_is_network_active ) {
+                return;
+            }
+
+            if ( ! $is_network_admin && $this->_is_network_active && ! $this->is_delegated_connection() ) {
                 return;
             }
 
