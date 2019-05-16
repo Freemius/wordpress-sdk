@@ -11786,11 +11786,11 @@
                     $is_network_admin && $this->is_network_active() ||
                     ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() )
                 ) {
-                /**
-                 * @since 1.2.0 Add license action link only on plugins page.
-                 */
-                $this->_add_license_action_link();
-            }
+                    /**
+                     * @since 1.2.0 Add license action link only on plugins page.
+                     */
+                    $this->_add_license_action_link();
+                }
             }
 
             // Add license activation AJAX callback.
@@ -21075,7 +21075,7 @@
         }
 
         /**
-         * Adds "Opt in" or "Opt out" link to the main "Plugins" page link actions collection.
+         * Adds "Opt In" or "Opt Out" link to the main "Plugins" page link actions collection.
          *
          * @author Leo Fajardo (@leorw)
          * @since  1.2.1.5
@@ -21121,14 +21121,16 @@
                 return;
             }
 
-            if ( ! $this->is_enable_anonymous() ) {
-                // Don't allow to opt-out if anonymous mode is disabled.
-                return;
-            }
+            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                if ( ! $this->is_enable_anonymous() ) {
+                    // If opted in and tracking is allowed, don't allow to opt out if anonymous mode is disabled.
+                    return;
+                }
 
-            if ( ! $this->is_free_plan() ) {
-                // Don't allow to opt-out if running in paid plan.
-                return;
+                if ( ! $this->is_free_plan() ) {
+                    // Don't allow to opt out if running in paid plan.
+                    return;
+                }
             }
 
             if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
