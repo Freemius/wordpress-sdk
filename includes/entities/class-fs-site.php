@@ -177,7 +177,9 @@
                 // Cloudways
                 fs_ends_with( $subdomain, '.cloudwaysapps.com' ) ||
                 // Kinsta
-                (fs_ends_with($subdomain, '.kinsta.com') && fs_starts_with($subdomain, 'staging-'))
+                (fs_ends_with($subdomain, '.kinsta.com') && fs_starts_with($subdomain, 'staging-')) ||
+                // DesktopServer
+                fs_ends_with( $subdomain, '.dev.cc' )
             );
         }
 
