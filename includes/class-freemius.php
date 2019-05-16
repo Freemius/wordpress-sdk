@@ -11780,10 +11780,17 @@
 
             // Add license activation link and AJAX request handler.
             if ( self::is_plugins_page() ) {
+                $is_network_admin = fs_is_network_admin();
+
+                if (
+                    $is_network_admin && $this->is_network_active() ||
+                    ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() )
+                ) {
                 /**
                  * @since 1.2.0 Add license action link only on plugins page.
                  */
                 $this->_add_license_action_link();
+            }
             }
 
             // Add license activation AJAX callback.
