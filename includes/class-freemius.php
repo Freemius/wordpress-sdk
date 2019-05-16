@@ -11873,10 +11873,12 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
+         * License activation WP AJAX handler.
          *
+         * @author Leo Fajardo (@leorw)
          * @since  1.1.9
-         * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
+         *
+         * @uses Freemius::activate_license()
          */
         function _activate_license_ajax_action() {
             $this->_logger->entrance();
@@ -11889,19 +11891,91 @@
                 exit;
             }
 
-            $plugin_id = fs_request_get( 'module_id', '', 'post' );
-            $fs        = ( $plugin_id == $this->_module_id ) ?
+            $result = $this->activate_license(
+                $license_key,
+                fs_is_network_admin() ?
+                    fs_request_get( 'sites', array(), 'post' ) :
+                    array(),
+                fs_request_get_bool( 'is_marketing_allowed', null ),
+                fs_request_get( 'blog_id', null ),
+                fs_request_get( 'module_id', null, 'post' )
+            );
+
+            echo json_encode( $result );
+
+            exit;
+        }
+
+        /**
+         * @param string      $license_key
+         * @param null|bool   $is_marketing_allowed
+         * @param null|number $plugin_id
+         *
+         * @return array {
+         *      @var bool   $success
+         *      @var string $error
+         *      @var string $next_page
+         * }
+         *
+         * @uses Freemius::activate_license()
+         */
+        function activate_migrated_license(
+            $license_key,
+            $is_marketing_allowed = null,
+            $plugin_id = null
+        ) {
+            return $this->activate_license(
+                $license_key,
+                ( fs_is_network_admin() && $this->is_network_active() ) ?
+                    $this->get_sites_for_network_level_optin() :
+                    array(),
+                $is_marketing_allowed,
+                null,
+                $plugin_id
+            );
+        }
+
+        /**
+         * The implementation of this method was previously in `_activate_license_ajax_action()`.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.4
+         * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
+         * @param string      $license_key
+         * @param array       $sites
+         * @param null|bool   $is_marketing_allowed
+         * @param null|int    $blog_id
+         * @param null|number $plugin_id
+         *
+         * @return array {
+         *      @var bool   $success
+         *      @var string $error
+         *      @var string $next_page
+         * }
+         */
+        private function activate_license(
+            $license_key,
+            $sites = array(),
+            $is_marketing_allowed = null,
+            $blog_id = null,
+            $plugin_id = null
+        ) {
+            $this->_logger->entrance();
+
+            $license_key = trim( $license_key );
+
+            if ( ! fs_is_network_admin() ) {
+                // If the license activation is executed outside the context of a network admin, ignore the sites collection.
+                $sites = array();
+            }
+
+            $fs = ( empty($plugin_id) || $plugin_id == $this->_module_id ) ?
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
             $error     = false;
             $next_page = false;
 
-            $sites = fs_is_network_admin() ?
-                fs_request_get( 'sites', array(), 'post' ) :
-                array();
-
-            $blog_id           = fs_request_get( 'blog_id' );
             $has_valid_blog_id = is_numeric( $blog_id );
 
             if ( $fs->is_registered() ) {
@@ -11991,7 +12065,7 @@
                     false,
                     false,
                     false,
-                    fs_request_get_bool( 'is_marketing_allowed', null ),
+                    $is_marketing_allowed,
                     $sites
                 );
 
@@ -12081,9 +12155,7 @@
                 $result['next_page'] = $next_page;
             }
 
-            echo json_encode( $result );
-
-            exit;
+            return $result;
         }
 
         /**
