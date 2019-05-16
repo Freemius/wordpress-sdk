@@ -12147,7 +12147,7 @@
                      * update the account add-ons (add-ons the user has licenses for).
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.4
+                     * @since  2.2.4
                      */
                     $this->purge_valid_user_licenses_cache();
                 }
@@ -14244,6 +14244,18 @@
             return $this->_get_admin_page_url( 'addons', array(
                 'slug' => $slug
             ) );
+        }
+
+        /**
+         * Add-ons URL.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return string
+         */
+        function get_addons_url() {
+            return $this->_get_admin_page_url( 'addons' );
         }
 
         /* Logger
