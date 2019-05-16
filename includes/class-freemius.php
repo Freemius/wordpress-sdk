@@ -21087,23 +21087,19 @@
 
             $this->_logger->entrance();
 
-            $is_network_admin = fs_is_network_admin();
-
-            /**
-             * If the activation has been delegated to site admins, no tracking-related actions for now.
-             *
-             * @author Leo Fajardo (@leorw)
-             */
-            if ( $this->_is_network_active && $is_network_admin && $this->is_network_delegated_connection() ) {
-                return;
-            }
-
-            if ( $is_network_admin && ! $this->_is_network_active ) {
-                return;
-            }
-
-            if ( ! $is_network_admin && $this->_is_network_active && ! $this->is_delegated_connection() ) {
-                return;
+            if ( fs_is_network_admin() ) {
+                if ( ! $this->_is_network_active ) {
+                    // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
+                    return;
+                } else if ( $this->is_network_delegated_connection() ) {
+                    // Don't add tracking links when browsing the network WP Admin and the activation has been delegated to site admins.
+                    return;
+                }
+            } else {
+                if ( $this->_is_network_active && ! $this->is_delegated_connection() ) {
+                    // Don't add tracking links when browsing the sub-site WP Admin, the plugin is network active, and the connection was not delegated.
+                    return;
+                }
             }
 
             if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
