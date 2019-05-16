@@ -11780,10 +11780,17 @@
 
             // Add license activation link and AJAX request handler.
             if ( self::is_plugins_page() ) {
-                /**
-                 * @since 1.2.0 Add license action link only on plugins page.
-                 */
-                $this->_add_license_action_link();
+                $is_network_admin = fs_is_network_admin();
+
+                if (
+                    ( $is_network_admin && $this->is_network_active() ) ||
+                    ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
+                ) {
+                    /**
+                     * @since 1.2.0 Add license action link only on plugins page.
+                     */
+                    $this->_add_license_action_link();
+                }
             }
 
             // Add license activation AJAX callback.
@@ -12119,7 +12126,7 @@
                         }
 
                         if ( ! empty( $pending_sites ) ) {
-                            if ( $this->is_freemium() ) {
+                            if ( $this->is_freemium() && $this->is_enable_anonymous() ) {
                                 $this->skip_connection( $pending_sites );
                             } else {
                                 $this->delegate_connection( $pending_sites );
@@ -21152,7 +21159,7 @@
         }
 
         /**
-         * Adds "Opt in" or "Opt out" link to the main "Plugins" page link actions collection.
+         * Adds "Opt In" or "Opt Out" link to the main "Plugins" page link actions collection.
          *
          * @author Leo Fajardo (@leorw)
          * @since  1.2.1.5
@@ -21164,13 +21171,19 @@
 
             $this->_logger->entrance();
 
-            /**
-             * If the activation has been delegated to site admins, no tracking-related actions for now.
-             *
-             * @author Leo Fajardo (@leorw)
-             */
-            if ( $this->_is_network_active && $this->is_network_delegated_connection() ) {
-                return;
+            if ( fs_is_network_admin() ) {
+                if ( ! $this->_is_network_active ) {
+                    // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
+                    return;
+                } else if ( $this->is_network_delegated_connection() ) {
+                    // Don't add tracking links when browsing the network WP Admin and the activation has been delegated to site admins.
+                    return;
+                }
+            } else {
+                if ( $this->_is_network_active && ! $this->is_delegated_connection() ) {
+                    // Don't add tracking links when browsing the sub-site WP Admin, the plugin is network active, and the connection was not delegated.
+                    return;
+                }
             }
 
             if ( fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' ) ) {
@@ -21188,14 +21201,16 @@
                 return;
             }
 
-            if ( ! $this->is_enable_anonymous() ) {
-                // Don't allow to opt-out if anonymous mode is disabled.
-                return;
-            }
+            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                if ( ! $this->is_enable_anonymous() ) {
+                    // If opted in and tracking is allowed, don't allow to opt out if anonymous mode is disabled.
+                    return;
+                }
 
-            if ( ! $this->is_free_plan() ) {
-                // Don't allow to opt-out if running in paid plan.
-                return;
+                if ( ! $this->is_free_plan() ) {
+                    // Don't allow to opt out if running in paid plan.
+                    return;
+                }
             }
 
             if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
