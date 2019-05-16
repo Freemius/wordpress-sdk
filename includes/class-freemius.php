@@ -12052,7 +12052,7 @@
                         }
 
                         if ( ! empty( $pending_sites ) ) {
-                            if ( $this->is_freemium() ) {
+                            if ( $this->is_freemium() && $this->is_enable_anonymous() ) {
                                 $this->skip_connection( $pending_sites );
                             } else {
                                 $this->delegate_connection( $pending_sites );
