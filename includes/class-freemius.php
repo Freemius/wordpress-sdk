@@ -7548,7 +7548,22 @@
          * @return FS_Plugin_License
          */
         private function get_addon_active_parent_license() {
-            $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json?filter=active", true );
+            $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=active";
+            $parent_instance          = $this->get_parent_instance();
+
+            $foreign_licenses = $parent_instance->get_foreign_licenses_info( self::get_all_licenses( $this->get_parent_id() ) );
+
+            if ( ! empty ( $foreign_licenses ) ) {
+                $foreign_licenses = array(
+                    // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
+                    'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                    'license_keys' => implode( ',', array_map( 'urlencode', $foreign_licenses['license_keys'] ) )
+                );
+
+                $parent_licenses_endpoint = add_query_arg( $foreign_licenses, $parent_licenses_endpoint );
+            }
+
+            $result = $parent_instance->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, true );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
