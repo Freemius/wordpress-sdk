@@ -505,10 +505,10 @@
 
 		if ( isNetworkActive ) {
 			var
-				$multisiteOptionsContainer  = $( '#multisite_options_container' ),
-				$allSitesOptions            = $( '#all_sites_options' ),
-				$applyOnAllSites            = $( '#apply_on_all_sites' ),
-				$sitesListContainer         = $( '#sites_list_container' ),
+				$multisiteOptionsContainer  = $( '.fs-multisite-options-container' ),
+				$allSitesOptions            = $( '.fs-all-sites-options' ),
+				$applyOnAllSites            = $( '.fs-apply-on-all-sites-checkbox' ),
+				$sitesListContainer         = $( '.fs-sites-list-container' ),
 				totalSites                  = <?php echo count( $sites ) ?>,
 				maxSitesListHeight          = null,
 				$skipActivationButton       = $( '#skip_activation' ),
@@ -528,7 +528,7 @@
 
 				$delegateToSiteAdminsButton.toggle();
 
-				$multisiteOptionsContainer.toggleClass( 'apply-on-all-sites', isChecked );
+				$multisiteOptionsContainer.toggleClass( 'fs-apply-on-all-sites', isChecked );
 
 				$sitesListContainer.toggle( ! isChecked );
 				if ( ! isChecked && null === maxSitesListHeight ) {
