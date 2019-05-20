@@ -7548,7 +7548,7 @@
          * @return FS_Plugin_License
          */
         private function get_addon_active_parent_license() {
-            $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=active";
+            $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
             $parent_instance          = $this->get_parent_instance();
 
             $foreign_licenses = $parent_instance->get_foreign_licenses_info( self::get_all_licenses( $this->get_parent_id() ) );
