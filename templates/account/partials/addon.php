@@ -119,8 +119,7 @@
         }
     }
 
-    $is_current_license_expired = ( is_object( $license ) && $license->is_expired() );
-    $is_active_subscription     = ( is_object( $subscription ) && $subscription->is_active() );
+    $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
 ?>
 <tr<?php if ( $odd ) {
     echo ' class="alternate"';
