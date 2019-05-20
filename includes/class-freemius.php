@@ -165,6 +165,15 @@
         private $_has_addons;
 
         /**
+         * @since 2.4.5
+         * @var string Navigation type: 'menu' or 'tabs'.
+         */
+        private $_navigation;
+
+        const NAVIGATION_MENU = 'menu';
+        const NAVIGATION_TABS = 'tabs';
+
+        /**
          * @since 1.1.6
          * @var string[]bool.
          */
@@ -508,6 +517,52 @@
         }
 
         /**
+         * If `true` the opt-in should be shown as a modal dialog box on the themes.php page. WordPress.org themes guidelines prohibit from redirecting the user from the themes.php page after activating a theme.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         */
+        function show_opt_in_on_themes_page() {
+            if ( ! $this->is_free_wp_org_theme() ) {
+                return false;
+            }
+
+            if ( ! $this->has_settings_menu() ) {
+                return true;
+            }
+
+            return $this->show_settings_with_tabs();
+        }
+
+        /**
+         * If `true` the opt-in should be shown on the product's main setting page.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         *
+         * @uses show_opt_in_on_themes_page();
+         */
+        function show_opt_in_on_setting_page() {
+            return ! $this->show_opt_in_on_themes_page();
+        }
+
+        /**
+         * If `true` the settings should be shown using tabs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         */
+        function show_settings_with_tabs() {
+            return ( self::NAVIGATION_TABS === $this->_navigation );
+        }
+
+        /**
          * Check if the context module is free wp.org theme.
          *
          * This method is helpful because:
@@ -559,7 +614,7 @@
                 return false;
             }
 
-            if ( ! $ignore_free_wp_org_theme_context && $this->is_free_wp_org_theme() ) {
+            if ( ! $ignore_free_wp_org_theme_context && $this->show_opt_in_on_themes_page() ) {
                 /**
                  * wp.org themes are limited to a single submenu item, and
                  * sub-submenu items are most likely not allowed (never verified).
@@ -5272,6 +5327,14 @@
 
                 $this->_is_trial_require_payment = $this->get_bool_option( $plugin_info['trial'], 'is_require_payment', false );
             }
+
+            $this->_navigation = $this->get_option(
+                $plugin_info,
+                'navigation',
+                $this->is_theme() ?
+                    self::NAVIGATION_TABS :
+                    self::NAVIGATION_MENU
+            );
         }
 
         /**
@@ -13175,9 +13238,8 @@
             $page_param = $this->_menu->get_slug( $page );
 
             if ( empty( $page ) &&
-                 $this->is_theme() &&
                  // Show the opt-in as an overlay for free wp.org themes or themes without any settings page.
-                 ( $this->is_free_wp_org_theme() || ! $this->has_settings_menu() )
+                 $this->show_opt_in_on_themes_page()
             ) {
                 $params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
@@ -16099,7 +16161,7 @@
          */
         private function add_menu_action() {
             if ( $this->is_activation_mode() ) {
-                if ( $this->is_plugin() || ( $this->has_settings_menu() && ! $this->is_free_wp_org_theme() ) ) {
+                if ( $this->show_opt_in_on_setting_page() ) {
                     $this->override_plugin_menu_with_activation();
                 } else {
                     /**
@@ -16121,7 +16183,7 @@
                     }
                 } else if (
                     fs_request_is_action( 'sync_user' ) &&
-                    ( ! $this->has_settings_menu() || $this->is_free_wp_org_theme() )
+                    ( ! $this->has_settings_menu() || $this->show_opt_in_on_themes_page() )
                 ) {
                     $this->_handle_account_user_sync();
                 }
@@ -16387,12 +16449,12 @@
                 return false;
             }
 
-            if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
+            if ( $this->show_settings_with_tabs() && ! fs_is_network_admin() ) {
                 // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
                 return true;
             }
 
-            if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
+            if ( $is_activation_mode && ! $this->show_settings_with_tabs() ) {
                 return false;
             }
 
@@ -19911,7 +19973,7 @@
          * @return string
          */
         function get_after_activation_url( $filter, $params = array(), $network = null ) {
-            if ( $this->is_free_wp_org_theme() &&
+            if ( $this->show_opt_in_on_themes_page() &&
                  ( fs_request_has( 'pending_activation' ) ||
                    // For cases when the first time path is set, even though it's a WP.org theme.
                    fs_request_get_bool( $this->get_unique_affix() . '_show_optin' ) )
@@ -22066,7 +22128,7 @@
                 return false;
             }
 
-            if ( ! $this->is_theme() ) {
+            if ( self::NAVIGATION_TABS !== $this->_navigation ) {
                 // Only add tabs to themes for now.
                 return false;
             }
