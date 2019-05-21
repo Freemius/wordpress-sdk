@@ -16087,7 +16087,7 @@
                 ! $this->is_registered()
             );
 
-            $should_hide_site_admin_settings = $this->apply_filter( 'should_hide_site_admin_settings_on_network_activation_mode', $should_hide_site_admin_settings );
+            $should_hide_site_admin_settings = $this->apply_filters( 'should_hide_site_admin_settings_on_network_activation_mode', $should_hide_site_admin_settings );
 
             if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
                  $should_hide_site_admin_settings
