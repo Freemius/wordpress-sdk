@@ -272,7 +272,7 @@ HTML;
 			var _this = $(this);
 
 			if (_this.hasClass('allow-deactivate')) {
-				var $radio = $('input[type="radio"]:checked');
+				var $radio = $modal.find('input[type="radio"]:checked');
 
 				if (0 === $radio.length) {
 				    if ( ! deleteThemeUpdateData ) {

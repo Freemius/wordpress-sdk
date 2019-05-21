@@ -14,9 +14,9 @@
     $enable_per_site_activation = $fs->apply_filters( 'enable_per_site_activation', true );
 ?>
 <?php $separator      = '<td>|</td>' ?>
-<div id="multisite_options_container" class="apply-on-all-sites"<?php if ( ! $enable_per_site_activation )
+<div class="fs-multisite-options-container fs-apply-on-all-sites"<?php if ( ! $enable_per_site_activation )
     echo ' style="display: none;"' ?>>
-    <table id="all_sites_options">
+    <table class="fs-all-sites-options">
         <tbody>
         <tr>
             <td width="600">
@@ -33,7 +33,7 @@
 
                         }
                     ?>
-                    <input id="apply_on_all_sites" type="checkbox" value="true" checked><span><?php echo esc_html( $apply_checkbox_label ) ?></span>
+                    <input class="fs-apply-on-all-sites-checkbox" type="checkbox" value="true" checked><span><?php echo esc_html( $apply_checkbox_label ) ?></span>
                 </label>
             </td>
             <?php if ( ! $require_license_key ) : ?>
@@ -50,7 +50,7 @@
         </tr>
         </tbody>
     </table>
-    <div id="sites_list_container">
+    <div class="fs-sites-list-container">
         <table cellspacing="0">
             <tbody>
             <?php $site_props = array('uid', 'url', 'title', 'charset', 'language') ?>

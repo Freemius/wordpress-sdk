@@ -1,4 +1,4 @@
-#multisite_options_container {
+.fs-multisite-options-container {
     margin-top: 10px;
     border: 1px solid #ccc;
     padding: 5px;
@@ -15,11 +15,11 @@
         }
     }
 
-    &.apply-on-all-sites {
+    &.fs-apply-on-all-sites {
         border: 0 none;
         padding: 0;
 
-        #all_sites_options {
+        .fs-all-sites-options {
             border-spacing: 0;
 
             td:not(:first-child) {
@@ -28,7 +28,7 @@
         }
     }
 
-    #sites_list_container {
+    .fs-sites-list-container {
         display: none;
         overflow: auto;
 
