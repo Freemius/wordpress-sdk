@@ -399,9 +399,11 @@
                 $this->_is_multisite_integrated &&
                 // Themes are always network activated, but the ACTUAL activation is per site.
                 $this->is_plugin() &&
-                ( is_plugin_active_for_network( $this->_plugin_basename ) ||
-                  // Plugin network level activation or uninstall.
-                  is_plugin_inactive( $this->_plugin_basename ) )
+                (
+                    is_plugin_active_for_network( $this->_plugin_basename ) ||
+                    // Plugin network level activation or uninstall.
+                    ( fs_is_network_admin() && is_plugin_inactive( $this->_plugin_basename ) )
+                )
             );
 
             $this->_storage->set_network_active(
@@ -450,7 +452,17 @@
 
             // Store plugin's initial install timestamp.
             if ( ! isset( $this->_storage->install_timestamp ) ) {
-                $this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
+                if ( $this->_is_multisite_integrated && self::is_user_in_admin() ) {
+                    /**
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.5
+                     */
+                    $this->maybe_adjust_storage();
+                }
+
+                if ( ! isset( $this->_storage->install_timestamp ) ) {
+                    $this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
+                }
             }
 
             if ( ! is_object( $this->_plugin ) ) {
@@ -491,6 +503,164 @@
             $this->_load_account();
 
             $this->_version_updates_handler();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         */
+        private function maybe_adjust_storage() {
+            $install_timestamp = null;
+            $prev_is_premium   = null;
+
+            $options_to_update = array();
+
+            $is_network_admin = fs_is_network_admin();
+
+            if ( ! $is_network_admin ) {
+                $network_install_timestamp = $this->_storage->get( 'install_timestamp', false, true );
+
+                if ( false === $network_install_timestamp ) {
+                    // Plugin was not network-activated before.
+                    return;
+                }
+
+                /**
+                 * If not in network admin, set the values of the site-level `install_timestamp` and `prev_is_premium`
+                 * options based on the network-level values.
+                 */
+                $install_timestamp = $network_install_timestamp;
+                $prev_is_premium   = $this->_storage->get( 'prev_is_premium', null, true );
+            } else {
+                $current_wp_user = self::_get_current_wp_user();
+
+                $delegations_count     = 0;
+                $skips_count           = 0;
+                $first_install_blog_id = null;
+                $network_user          = null;
+
+                $sites = self::get_sites();
+
+                $is_first_blog = true;
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    $blog_install_timestamp = $this->_storage->get( 'install_timestamp', null, $blog_id );
+
+                    if ( $is_first_blog || ! is_null( $prev_is_premium ) ) {
+                        $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
+                    }
+
+                    if ( $is_first_blog ) {
+                        $prev_is_premium = $site_prev_is_premium;
+                    } else if ( ! is_null( $prev_is_premium ) ) {
+                        if ( is_null( $site_prev_is_premium ) || $prev_is_premium !== $site_prev_is_premium ) {
+                            // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
+                            $prev_is_premium = null;
+                        }
+                    }
+
+                    $is_first_blog = false;
+
+                    $install      = $this->get_install_by_blog_id( $blog_id );
+                    $is_delegated = null;
+
+                    if ( ! is_object( $install ) ) {
+                        if ( $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
+                            $skips_count ++;
+                        }
+                    } else {
+                        // Find the relevant FS user by ID.
+                        $user = self::_get_user_by_id( $install->user_id );
+
+                        if ( $user->email !== $current_wp_user->user_email ) {
+                            $is_delegated = true;
+                        } else {
+                            $network_user = $user;
+                            $is_delegated = false;
+                        }
+
+                        if ( is_null( $first_install_blog_id ) ) {
+                            $first_install_blog_id = $blog_id;
+                        }
+                    }
+
+                    if ( is_null( $is_delegated ) ) {
+                        $is_delegated = $this->_storage->get( 'is_delegated_connection', false, $blog_id );
+                    }
+
+                    if ( $is_delegated ) {
+                        $delegations_count ++;
+
+                        // Set to `null` since `$first_install_blog_id` is based on it and it should be set only if the `install` is owned by the current user.
+                        $install = null;
+                    }
+
+                    if ( is_null( $install_timestamp ) ) {
+                        $install_timestamp = $blog_install_timestamp;
+                    } else if ( ! is_null( $blog_install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
+                        // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
+                        $install_timestamp = $blog_install_timestamp;
+
+                        if ( is_object( $install ) ) {
+                            $first_install_blog_id = $blog_id;
+                        }
+                    }
+                }
+
+                if ( ! is_null( $first_install_blog_id ) ) {
+                    $options_to_update['network_install_blog_id'] = $first_install_blog_id;
+                    $options_to_update['network_user_id']         = $network_user->id;
+                }
+
+                if (
+                    0 === $delegations_count &&
+                    ! is_object( $network_user ) &&
+                    $skips_count > 0
+                ) {
+                    /**
+                     * Assume network-level skipping as the intended action if the actions identified so far were only
+                     * skipping of the connection (i.e., no opt-ins and delegated connections so far).
+                     */
+                    $options_to_update['is_anonymous_ms'] = true;
+                } else if (
+                    0 === $skips_count &&
+                    ! is_object( $network_user ) &&
+                    $delegations_count > 0
+                ) {
+                    /**
+                     * Assume network-level delegation as the intended action if the actions identified so far were
+                     * only delegating of the connection (i.e., no opt-ins and skipping of the connections so far).
+                     */
+                    $options_to_update['is_delegated_connection'] = true;
+                }
+            }
+
+            if ( ! is_null( $install_timestamp ) ) {
+                $options_to_update['install_timestamp'] = $install_timestamp;
+            }
+
+            if ( ! is_null( $prev_is_premium ) ) {
+                $options_to_update['prev_is_premium'] = $prev_is_premium;
+            }
+
+            if ( ! empty( $options_to_update ) ) {
+                $this->adjust_storage( $options_to_update, $is_network_admin );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @param array $options
+         * @param bool  $is_network_admin
+         */
+        private function adjust_storage( $options, $is_network_admin ) {
+            foreach ( $options as $name => $value ) {
+                $this->_storage->store( $name, $value, $is_network_admin ? true : null );
+            }
         }
 
         /**
@@ -6339,7 +6509,7 @@
             }
 
             if ( is_multisite() ) {
-                $this->switch_to_blog( $current_blog_id );
+                $this->switch_to_blog( $current_blog_id, fs_is_network_admin() ? $this->get_network_install() : null );
 
                 $this->do_action( "after_{$name}_cron_multisite" );
             }
