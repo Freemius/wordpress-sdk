@@ -558,7 +558,7 @@
                     }
 
                     $install      = $this->get_install_by_blog_id( $blog_id );
-                    $is_delegated = null;
+                    $is_delegated = false;
 
                     if ( ! is_object( $install ) ) {
                         if ( $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
@@ -578,10 +578,6 @@
                                 $first_install_blog_id = $blog_id;
                             }
                         }
-                    }
-
-                    if ( is_null( $is_delegated ) ) {
-                        $is_delegated = $this->_storage->get( 'is_delegated_connection', false, $blog_id );
                     }
 
                     if ( $is_delegated ) {
