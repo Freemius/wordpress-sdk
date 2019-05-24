@@ -11971,7 +11971,7 @@
                 $is_network_admin = fs_is_network_admin();
 
                 if (
-                    ( $is_network_admin && $this->is_network_active() ) ||
+                    ( $is_network_admin && $this->is_network_active() && ! $this->is_network_delegated_connection() ) ||
                     ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
                 ) {
                     /**
