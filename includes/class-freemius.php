@@ -11931,6 +11931,11 @@
         }
 
         /**
+         * A helper method to activate migrated licenses. If the product is network activated and integrated, the method will network activate the license.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.5
+         *         
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
@@ -11950,7 +11955,7 @@
         ) {
             return $this->activate_license(
                 $license_key,
-                ( fs_is_network_admin() && $this->is_network_active() ) ?
+                $this->is_network_active() ?
                     $this->get_sites_for_network_level_optin() :
                     array(),
                 $is_marketing_allowed,
