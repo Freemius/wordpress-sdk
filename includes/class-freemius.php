@@ -541,27 +541,15 @@
 
                 $sites = self::get_sites();
 
-                $is_first_blog = true;
-
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
 
                     $blog_install_timestamp = $this->_storage->get( 'install_timestamp', null, $blog_id );
 
-                    if ( $is_first_blog || ! is_null( $prev_is_premium ) ) {
-                        $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
+                    if ( is_null( $blog_install_timestamp ) ) {
+                        // Plugin has not been installed on this blog.
+                        continue;
                     }
-
-                    if ( $is_first_blog ) {
-                        $prev_is_premium = $site_prev_is_premium;
-                    } else if ( ! is_null( $prev_is_premium ) ) {
-                        if ( is_null( $site_prev_is_premium ) || $prev_is_premium !== $site_prev_is_premium ) {
-                            // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
-                            $prev_is_premium = null;
-                        }
-                    }
-
-                    $is_first_blog = false;
 
                     $install      = $this->get_install_by_blog_id( $blog_id );
                     $is_delegated = null;
@@ -597,14 +585,25 @@
                         $install = null;
                     }
 
-                    if ( is_null( $install_timestamp ) ) {
-                        $install_timestamp = $blog_install_timestamp;
-                    } else if ( ! is_null( $blog_install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
-                        // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
-                        $install_timestamp = $blog_install_timestamp;
+                    $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
 
-                        if ( is_object( $install ) ) {
-                            $first_install_blog_id = $blog_id;
+                    if ( is_null( $install_timestamp ) ) {
+                        $prev_is_premium = $site_prev_is_premium;
+
+                        $install_timestamp = $blog_install_timestamp;
+                    } else {
+                        if ( ! is_null( $prev_is_premium ) && $prev_is_premium !== $site_prev_is_premium ) {
+                            // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
+                            $prev_is_premium = null;
+                        }
+
+                        if ( $blog_install_timestamp < $install_timestamp ) {
+                            // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
+                            $install_timestamp = $blog_install_timestamp;
+
+                            if ( is_object( $install ) ) {
+                                $first_install_blog_id = $blog_id;
+                            }
                         }
                     }
                 }
