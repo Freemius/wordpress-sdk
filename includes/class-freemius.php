@@ -414,6 +414,18 @@
             #region Migration
 
             if ( is_multisite() ) {
+                if (
+                    ! isset( $this->_storage->install_timestamp ) &&
+                    $this->_is_multisite_integrated &&
+                    self::is_user_in_admin()
+                ) {
+                    /**
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.5
+                     */
+                    $this->maybe_adjust_storage();
+                }
+
                 /**
                  * If the install_timestamp exists on the site level but doesn't exist on the
                  * network level storage, it means that we need to process the storage with migration.
@@ -452,17 +464,7 @@
 
             // Store plugin's initial install timestamp.
             if ( ! isset( $this->_storage->install_timestamp ) ) {
-                if ( $this->_is_multisite_integrated && self::is_user_in_admin() ) {
-                    /**
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
-                     */
-                    $this->maybe_adjust_storage();
-                }
-
-                if ( ! isset( $this->_storage->install_timestamp ) ) {
-                    $this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
-                }
+                $this->_storage->install_timestamp = WP_FS__SCRIPT_START_TIME;
             }
 
             if ( ! is_object( $this->_plugin ) ) {
@@ -541,12 +543,16 @@
 
                 $sites = self::get_sites();
 
+                $has_skipped_blog = false;
+
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
 
                     $blog_install_timestamp = $this->_storage->get( 'install_timestamp', null, $blog_id );
 
                     if ( is_null( $blog_install_timestamp ) ) {
+                        $has_skipped_blog = true;
+
                         // Plugin has not been installed on this blog.
                         continue;
                     }
@@ -613,26 +619,26 @@
                     $options_to_update['network_user_id']         = $network_user->id;
                 }
 
-                if (
-                    0 === $delegations_count &&
-                    ! is_object( $network_user ) &&
-                    $skips_count > 0
-                ) {
-                    /**
-                     * Assume network-level skipping as the intended action if the actions identified so far were only
-                     * skipping of the connection (i.e., no opt-ins and delegated connections so far).
-                     */
-                    $options_to_update['is_anonymous_ms'] = true;
-                } else if (
-                    0 === $skips_count &&
-                    ! is_object( $network_user ) &&
-                    $delegations_count > 0
-                ) {
-                    /**
-                     * Assume network-level delegation as the intended action if the actions identified so far were
-                     * only delegating of the connection (i.e., no opt-ins and skipping of the connections so far).
-                     */
-                    $options_to_update['is_delegated_connection'] = true;
+                if ( ! $has_skipped_blog ) {
+                    if ( 0 === $delegations_count && ! is_object( $network_user ) && $skips_count > 0 ) {
+                        /**
+                         * Assume network-level skipping as the intended action if all actions identified were only
+                         * skipping of the connection (i.e., no opt-ins and delegated connections so far).
+                         */
+                        $options_to_update['is_anonymous_ms'] = true;
+                    } else if ( 0 === $skips_count && ! is_object( $network_user ) && $delegations_count > 0 ) {
+                        /**
+                         * Assume network-level delegation as the intended action if all actions identified were only
+                         * delegating of the connection (i.e., no opt-ins and skipping of the connections so far).
+                         */
+                        $options_to_update['is_delegated_connection'] = true;
+                    } else if ( 0 === $skips_count && 0 === $delegations_count && is_object( $network_user ) ) {
+                        /**
+                         * Assume network-level opt-in as the intended action if all actions identified were only opt-ins
+                         * (i.e., no delegation and skipping of the connections so far).
+                         */
+                        $options_to_update['is_network_connected'] = true;
+                    }
                 }
             }
 
