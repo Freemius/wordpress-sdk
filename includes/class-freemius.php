@@ -573,10 +573,10 @@
                         } else {
                             $network_user = $user;
                             $is_delegated = false;
-                        }
 
-                        if ( is_null( $first_install_blog_id ) ) {
-                            $first_install_blog_id = $blog_id;
+                            if ( is_null( $first_install_blog_id ) ) {
+                                $first_install_blog_id = $blog_id;
+                            }
                         }
                     }
 
