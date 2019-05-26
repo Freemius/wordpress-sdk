@@ -534,16 +534,15 @@
                 $install_timestamp = $network_install_timestamp;
                 $prev_is_premium   = $this->_storage->get( 'prev_is_premium', null, true );
             } else {
-                $current_wp_user = self::_get_current_wp_user();
+                $current_wp_user   = self::_get_current_wp_user();
+                $current_fs_user   = self::_get_user_by_email( $current_wp_user->user_email );
+                $network_user_info = array();
 
-                $delegations_count     = 0;
-                $skips_count           = 0;
-                $first_install_blog_id = null;
-                $network_user          = null;
+                $skips_count    = 0;
+                $installs_count = 0;
 
-                $sites = self::get_sites();
-
-                $has_skipped_blog = false;
+                $sites       = self::get_sites();
+                $sites_count = count( $sites );
 
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
@@ -551,40 +550,37 @@
                     $blog_install_timestamp = $this->_storage->get( 'install_timestamp', null, $blog_id );
 
                     if ( is_null( $blog_install_timestamp ) ) {
-                        $has_skipped_blog = true;
-
                         // Plugin has not been installed on this blog.
                         continue;
                     }
 
-                    $install      = $this->get_install_by_blog_id( $blog_id );
-                    $is_delegated = false;
+                    $install = $this->get_install_by_blog_id( $blog_id );
 
                     if ( ! is_object( $install ) ) {
-                        if ( $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
-                            $skips_count ++;
+                        if ( ! $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
+                            // The opt-in decision (whether to skip or opt in) is yet to be made.
+                            continue;
                         }
+
+                        $skips_count ++;
                     } else {
-                        // Find the relevant FS user by ID.
-                        $user = self::_get_user_by_id( $install->user_id );
+                        $installs_count ++;
 
-                        if ( $user->email !== $current_wp_user->user_email ) {
-                            $is_delegated = true;
-                        } else {
-                            $network_user = $user;
-                            $is_delegated = false;
-
-                            if ( is_null( $first_install_blog_id ) ) {
-                                $first_install_blog_id = $blog_id;
-                            }
+                        if (
+                            // By default, choose any user information whether or not it is for the current WP user.
+                            empty( $network_user_info ) ||
+                            (
+                                // If an install that is owned by the current WP user is found, use its user information instead.
+                                is_object( $current_fs_user ) &&
+                                $network_user_info['user_id'] != $current_fs_user->id &&
+                                $install->user_id == $current_fs_user->id
+                            )
+                        ) {
+                            $network_user_info = array(
+                                'user_id' => $install->user_id,
+                                'blog_id' => $blog_id
+                            );
                         }
-                    }
-
-                    if ( $is_delegated ) {
-                        $delegations_count ++;
-
-                        // Set to `null` since `$first_install_blog_id` is based on it and it should be set only if the `install` is owned by the current user.
-                        $install = null;
                     }
 
                     $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
@@ -603,32 +599,36 @@
                             // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
                             $install_timestamp = $blog_install_timestamp;
 
-                            if ( is_object( $install ) ) {
-                                $first_install_blog_id = $blog_id;
+                            if (
+                                is_object( $install ) &&
+                                ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
+                            ) {
+                                /**
+                                 * Update the install info if there's no install found so far that is owned by the
+                                 * current WP user or only if the found install is owned by the current WP user.
+                                 */
+                                $network_user_info = array(
+                                    'user_id' => $install->user_id,
+                                    'blog_id' => $blog_id
+                                );
                             }
                         }
                     }
                 }
 
-                if ( ! is_null( $first_install_blog_id ) ) {
-                    $options_to_update['network_install_blog_id'] = $first_install_blog_id;
-                    $options_to_update['network_user_id']         = $network_user->id;
-                }
+                if ( $sites_count === ( $installs_count + $skips_count ) ) {
+                    if ( ! empty( $network_user_info ) ) {
+                        $options_to_update['network_user_id']         = $network_user_info['user_id'];
+                        $options_to_update['network_install_blog_id'] = $network_user_info['blog_id'];
+                    }
 
-                if ( ! $has_skipped_blog ) {
-                    if ( 0 === $delegations_count && ! is_object( $network_user ) && $skips_count > 0 ) {
+                    if ( $sites_count === $skips_count ) {
                         /**
                          * Assume network-level skipping as the intended action if all actions identified were only
                          * skipping of the connection (i.e., no opt-ins and delegated connections so far).
                          */
                         $options_to_update['is_anonymous_ms'] = true;
-                    } else if ( 0 === $skips_count && ! is_object( $network_user ) && $delegations_count > 0 ) {
-                        /**
-                         * Assume network-level delegation as the intended action if all actions identified were only
-                         * delegating of the connection (i.e., no opt-ins and skipping of the connections so far).
-                         */
-                        $options_to_update['is_delegated_connection'] = true;
-                    } else if ( 0 === $skips_count && 0 === $delegations_count && is_object( $network_user ) ) {
+                    } else if ( $sites_count === $installs_count ) {
                         /**
                          * Assume network-level opt-in as the intended action if all actions identified were only opt-ins
                          * (i.e., no delegation and skipping of the connections so far).
