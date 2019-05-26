@@ -10871,7 +10871,7 @@
          * @return number[]
          */
         private function get_plans_ids_associated_with_installs() {
-            if ( ! $this->_is_network_active ) {
+            if ( ! is_multisite() ) {
                 if ( ! is_object( $this->_site ) ||
                      ! FS_Plugin_Plan::is_valid_id( $this->_site->plan_id )
                 ) {
