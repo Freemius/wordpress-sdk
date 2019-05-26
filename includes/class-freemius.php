@@ -7250,7 +7250,7 @@
                 foreach ( $plans_ids_to_keep as $plan_id ) {
                     $plan = self::_get_plan_by_id( $plan_id );
                     if ( is_object( $plan ) ) {
-                        $plans_to_keep[] = $plan;
+                        $plans_to_keep[] = self::_encrypt_entity( $plan );
                     }
                 }
             }
