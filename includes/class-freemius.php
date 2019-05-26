@@ -538,11 +538,12 @@
                 $current_fs_user   = self::_get_user_by_email( $current_wp_user->user_email );
                 $network_user_info = array();
 
-                $skips_count    = 0;
-                $installs_count = 0;
+                $skips_count = 0;
 
                 $sites       = self::get_sites();
                 $sites_count = count( $sites );
+
+                $blog_id_2_install_map = array();
 
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
@@ -564,7 +565,7 @@
 
                         $skips_count ++;
                     } else {
-                        $installs_count ++;
+                        $blog_id_2_install_map[ $blog_id ] = $install;
 
                         if (
                             // By default, choose any user information whether or not it is for the current WP user.
@@ -616,10 +617,20 @@
                     }
                 }
 
+                $installs_count = count( $blog_id_2_install_map );
+
                 if ( $sites_count === ( $installs_count + $skips_count ) ) {
                     if ( ! empty( $network_user_info ) ) {
                         $options_to_update['network_user_id']         = $network_user_info['user_id'];
                         $options_to_update['network_install_blog_id'] = $network_user_info['blog_id'];
+
+                        foreach ( $blog_id_2_install_map as $blog_id => $install ) {
+                            if ( $install->user_id == $network_user_info['user_id'] ) {
+                                continue;
+                            }
+
+                            $this->_storage->store( 'is_delegated_connection', true, $blog_id );
+                        }
                     }
 
                     if ( $sites_count === $skips_count ) {
@@ -7831,6 +7842,7 @@
 
             // Clear all storage data.
             $this->_storage->clear_all( true, array(
+                'is_delegated_connection',
                 'connectivity_test',
                 'is_on',
             ), false );
