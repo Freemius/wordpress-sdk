@@ -474,6 +474,7 @@
 		    $licenseSecret,
 		    $licenseKeyInput     = $('#fs_license_key'),
             pauseCtaLabelUpdate  = false,
+            isNetworkDelegate    = true,
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.1.0
@@ -512,7 +513,8 @@
 				totalSites                  = <?php echo count( $sites ) ?>,
 				maxSitesListHeight          = null,
 				$skipActivationButton       = $( '#skip_activation' ),
-				$delegateToSiteAdminsButton = $( '#delegate_to_site_admins' );
+				$delegateToSiteAdminsButton = $( '#delegate_to_site_admins' ),
+                hasAnyInstall               = <?php echo ! is_null( $fs->find_first_install() ) ? 'true' : 'false' ?>;
 
 			$applyOnAllSites.click(function() {
 				var isChecked = $( this ).is( ':checked' );
@@ -575,7 +577,7 @@
 				}
 			});
 
-            if (isNetworkUpgradeMode) {
+            if ( isNetworkUpgradeMode || hasAnyInstall ) {
                 $skipActivationButton.click(function(){
                     $delegateToSiteAdminsButton.hide();
 
@@ -598,12 +600,19 @@
 
                     pauseCtaLabelUpdate = true;
 
+                    isNetworkDelegate = true;
+
                     // Check all sites to be skipped.
-                    $allSitesOptions.find('.action.action-delegate').click();
+                    var $delegateActions = $allSitesOptions.find('.action.action-delegate');
+                    if ( 0 !== $delegateActions.length ) {
+                        $delegateActions.click();
+                    }
 
                     $form.submit();
 
                     pauseCtaLabelUpdate = false;
+
+                    isNetworkDelegate = false;
 
                     return false;
                 });
@@ -643,20 +652,30 @@
 			 */
 			if ( ajaxOptin ) {
 				if (!hasContextUser || isNetworkUpgradeMode) {
-					<?php $action = $require_license_key ? 'activate_license' : 'network_activate' ?>
+				    var action   = null,
+                        security = null;
+
+				    if ( requireLicenseKey && ! isNetworkDelegate ) {
+                        action   = '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>';
+                        security = '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>';
+                    } else {
+                        action   = '<?php echo $fs->get_ajax_action( 'network_activate' ) ?>';
+                        security = '<?php echo $fs->get_ajax_security( 'network_activate' ) ?>';
+                    }
 
 					$('.fs-error').remove();
 
 					var
                         licenseKey = $licenseKeyInput.val(),
                         data       = {
-                            action     : '<?php echo $fs->get_ajax_action( $action ) ?>',
-                            security   : '<?php echo $fs->get_ajax_security( $action ) ?>',
+                            action     : action,
+                            security   : security,
                             license_key: licenseKey,
                             module_id  : '<?php echo $fs->get_id() ?>'
                         };
 
 					if (requireLicenseKey &&
+                        ! isNetworkDelegate &&
                         isMarketingAllowedByLicense.hasOwnProperty(licenseKey)
                     ) {
                         var
@@ -706,12 +725,18 @@
 
 							if ( ! requireLicenseKey) {
                                 site.action = $this.find('.action.selected').data('action-type');
+                            } else if ( isNetworkDelegate ) {
+							    site.action = 'delegate';
                             }
 
 							sites.push( site );
 						});
 
 						data.sites = sites;
+
+						if ( hasAnyInstall ) {
+						    data.has_any_install = hasAnyInstall;
+                        }
 					}
 
 					/**

@@ -12402,8 +12402,12 @@
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
 
                 $next_page = '';
+
+                $has_any_install = fs_request_get_bool( 'has_any_install' );
+
                 if ( $total_sites === $total_sites_to_delegate &&
-                     ! $this->is_network_upgrade_mode()
+                    ! $this->is_network_upgrade_mode() &&
+                    ! $has_any_install
                 ) {
                     $this->delegate_connection();
                 } else {
@@ -12415,7 +12419,19 @@
                         $this->skip_connection( $sites_by_action['skip'] );
                     }
 
-                    if ( ! empty( $sites_by_action['allow'] ) ) {
+                    if ( empty( $sites_by_action['allow'] ) ) {
+                        if ( $has_any_install ) {
+                            $first_install = $fs->find_first_install();
+
+                            if ( ! is_null( $first_install ) ) {
+                                $fs->_site                             = $first_install['install'];
+                                $fs->_storage->network_install_blog_id = $first_install['blog_id'];
+
+                                $fs->_user                     = self::_get_user_by_id( $fs->_site->user_id );
+                                $fs->_storage->network_user_id = $fs->_user->id;
+                            }
+                        }
+                    } else {
                         if ( ! $fs->is_registered() || ! $this->_is_network_active ) {
                             $next_page = $fs->opt_in(
                                 false,
@@ -13782,7 +13798,7 @@
          *      'blog_id' => string The associated blog ID.
          * }
          */
-        private function find_first_install() {
+        function find_first_install() {
             $sites = self::get_sites();
 
             foreach ( $sites as $site ) {
