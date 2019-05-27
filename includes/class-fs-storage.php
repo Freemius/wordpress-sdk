@@ -344,6 +344,7 @@
                 'install_sync_timestamp'     => 0,
                 'install_sync_cron'          => 0,
                 'is_anonymous_ms'            => 0,
+                'is_network_activated'       => 0,
                 'is_on'                      => 0,
                 'is_plugin_new_install'      => 0,
                 'network_install_blog_id'    => 0,

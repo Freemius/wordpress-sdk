@@ -411,21 +411,20 @@
                 $this->is_delegated_connection()
             );
 
+            if ( ! isset( $this->_storage->is_network_activated ) ) {
+                $this->_storage->is_network_activated = $this->_is_network_active;
+            }
+
+            if ( $this->_storage->is_network_activated != $this->_is_network_active ) {
+                // Update last activation level.
+                $this->_storage->is_network_activated = $this->_is_network_active;
+
+                $this->maybe_adjust_storage();
+            }
+
             #region Migration
 
             if ( is_multisite() ) {
-                if (
-                    ! isset( $this->_storage->install_timestamp ) &&
-                    $this->_is_multisite_integrated &&
-                    self::is_user_in_admin()
-                ) {
-                    /**
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
-                     */
-                    $this->maybe_adjust_storage();
-                }
-
                 /**
                  * If the install_timestamp exists on the site level but doesn't exist on the
                  * network level storage, it means that we need to process the storage with migration.
