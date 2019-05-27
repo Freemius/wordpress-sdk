@@ -518,20 +518,20 @@
 
             $is_network_admin = fs_is_network_admin();
 
-            if ( ! $is_network_admin ) {
-                $network_install_timestamp = $this->_storage->get( 'install_timestamp', false, true );
+            $network_install_timestamp = $this->_storage->get( 'install_timestamp', null, true );
 
-                if ( false === $network_install_timestamp ) {
+            if ( ! $is_network_admin ) {
+                if ( is_null( $network_install_timestamp ) ) {
                     // Plugin was not network-activated before.
                     return;
                 }
 
-                /**
-                 * If not in network admin, set the values of the site-level `install_timestamp` and `prev_is_premium`
-                 * options based on the network-level values.
-                 */
-                $install_timestamp = $network_install_timestamp;
-                $prev_is_premium   = $this->_storage->get( 'prev_is_premium', null, true );
+                if ( is_null( $this->_storage->get( 'install_timestamp', null, false ) ) ) {
+                    // Set the `install_timestamp` only if it's not yet set.
+                    $install_timestamp = $network_install_timestamp;
+                }
+
+                $prev_is_premium = $this->_storage->get( 'prev_is_premium', null, true );
             } else {
                 $current_wp_user   = self::_get_current_wp_user();
                 $current_fs_user   = self::_get_user_by_email( $current_wp_user->user_email );
@@ -543,6 +543,8 @@
                 $sites_count = count( $sites );
 
                 $blog_id_2_install_map = array();
+
+                $is_first_non_ignored_blog = true;
 
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
@@ -585,17 +587,19 @@
 
                     $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
 
-                    if ( is_null( $install_timestamp ) ) {
+                    if ( $is_first_non_ignored_blog ) {
                         $prev_is_premium = $site_prev_is_premium;
 
-                        $install_timestamp = $blog_install_timestamp;
+                        if ( is_null( $network_install_timestamp ) ) {
+                            $install_timestamp = $blog_install_timestamp;
+                        }
                     } else {
                         if ( ! is_null( $prev_is_premium ) && $prev_is_premium !== $site_prev_is_premium ) {
                             // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
                             $prev_is_premium = null;
                         }
 
-                        if ( $blog_install_timestamp < $install_timestamp ) {
+                        if ( ! is_null( $install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
                             // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
                             $install_timestamp = $blog_install_timestamp;
 
@@ -614,6 +618,8 @@
                             }
                         }
                     }
+
+                    $is_first_non_ignored_blog = false;
                 }
 
                 $installs_count = count( $blog_id_2_install_map );
