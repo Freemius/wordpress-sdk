@@ -474,7 +474,7 @@
 		    $licenseSecret,
 		    $licenseKeyInput     = $('#fs_license_key'),
             pauseCtaLabelUpdate  = false,
-            isNetworkDelegate    = true,
+            isNetworkDelegation  = true,
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.1.0
@@ -600,7 +600,7 @@
 
                     pauseCtaLabelUpdate = true;
 
-                    isNetworkDelegate = true;
+                    isNetworkDelegation = true;
 
                     // Check all sites to be skipped.
                     var $delegateActions = $allSitesOptions.find('.action.action-delegate');
@@ -612,7 +612,7 @@
 
                     pauseCtaLabelUpdate = false;
 
-                    isNetworkDelegate = false;
+                    isNetworkDelegation = false;
 
                     return false;
                 });
@@ -655,7 +655,7 @@
 				    var action   = null,
                         security = null;
 
-				    if ( requireLicenseKey && ! isNetworkDelegate ) {
+				    if ( requireLicenseKey && ! isNetworkDelegation ) {
                         action   = '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>';
                         security = '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>';
                     } else {
@@ -674,8 +674,9 @@
                             module_id  : '<?php echo $fs->get_id() ?>'
                         };
 
-					if (requireLicenseKey &&
-                        ! isNetworkDelegate &&
+					if (
+                        requireLicenseKey &&
+                        ! isNetworkDelegation &&
                         isMarketingAllowedByLicense.hasOwnProperty(licenseKey)
                     ) {
                         var
@@ -725,7 +726,7 @@
 
 							if ( ! requireLicenseKey) {
                                 site.action = $this.find('.action.selected').data('action-type');
-                            } else if ( isNetworkDelegate ) {
+                            } else if ( isNetworkDelegation ) {
 							    site.action = 'delegate';
                             }
 
