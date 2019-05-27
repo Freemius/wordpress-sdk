@@ -474,7 +474,7 @@
 		    $licenseSecret,
 		    $licenseKeyInput     = $('#fs_license_key'),
             pauseCtaLabelUpdate  = false,
-            isNetworkDelegation  = true,
+            isNetworkDelegation  = false,
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.1.0
