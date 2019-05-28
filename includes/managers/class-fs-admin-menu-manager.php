@@ -248,6 +248,10 @@
          * @return string
          */
         function get_first_time_path( $is_network = false ) {
+            if ( empty ( $this->_first_time_path ) ) {
+                return $this->_first_time_path;
+            }
+
             if ( $is_network ) {
                 return network_admin_url( $this->_first_time_path );
             } else {
