@@ -351,8 +351,8 @@
      */
     if ( ! defined( 'WP_FS__IS_NETWORK_ADMIN' ) ) {
         define( 'WP_FS__IS_NETWORK_ADMIN',
-            is_network_admin() ||
-            ( is_multisite() &&
+            is_multisite() &&
+            ( is_network_admin() ||
               ( ( defined( 'DOING_AJAX' ) && DOING_AJAX &&
                   ( isset( $_REQUEST['_fs_network_admin'] ) /*||
                     ( ! empty( $_REQUEST['action'] ) && 'delete-plugin' === $_REQUEST['action'] )*/ )
