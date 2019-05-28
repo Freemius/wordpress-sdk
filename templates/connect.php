@@ -474,7 +474,7 @@
 		    $licenseSecret,
 		    $licenseKeyInput     = $('#fs_license_key'),
             pauseCtaLabelUpdate  = false,
-            isNetworkDelegation  = false,
+            isNetworkDelegating  = false,
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.1.0
@@ -600,7 +600,15 @@
 
                     pauseCtaLabelUpdate = true;
 
-                    isNetworkDelegation = true;
+                    /**
+                     * Set to true so that the form submission handler can differentiate delegation from license
+                     * activation and the proper AJAX action will be used (when delegating, the action should be
+                     * `network_activate` and not `activate_license`).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.5
+                     */
+                    isNetworkDelegating = true;
 
                     // Check all sites to be skipped.
                     var $delegateActions = $allSitesOptions.find('.action.action-delegate');
@@ -612,7 +620,15 @@
 
                     pauseCtaLabelUpdate = false;
 
-                    isNetworkDelegation = false;
+                    /**
+                     * Set to false so that in case the previous AJAX request has failed, the form submission handler
+                     * can differentiate license activation from delegation and the proper AJAX action will be used
+                     * (when activating a license, the action should be `activate_license` and not `network_activate`).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.2.5
+                     */
+                    isNetworkDelegating = false;
 
                     return false;
                 });
@@ -655,7 +671,7 @@
 				    var action   = null,
                         security = null;
 
-				    if ( requireLicenseKey && ! isNetworkDelegation ) {
+				    if ( requireLicenseKey && ! isNetworkDelegating ) {
                         action   = '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>';
                         security = '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>';
                     } else {
@@ -676,7 +692,7 @@
 
 					if (
                         requireLicenseKey &&
-                        ! isNetworkDelegation &&
+                        ! isNetworkDelegating &&
                         isMarketingAllowedByLicense.hasOwnProperty(licenseKey)
                     ) {
                         var
@@ -726,7 +742,7 @@
 
 							if ( ! requireLicenseKey) {
                                 site.action = $this.find('.action.selected').data('action-type');
-                            } else if ( isNetworkDelegation ) {
+                            } else if ( isNetworkDelegating ) {
 							    site.action = 'delegate';
                             }
 
