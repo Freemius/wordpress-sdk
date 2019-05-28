@@ -593,33 +593,35 @@
                         if ( is_null( $network_install_timestamp ) ) {
                             $install_timestamp = $blog_install_timestamp;
                         }
-                    } else {
-                        if ( ! is_null( $prev_is_premium ) && $prev_is_premium !== $site_prev_is_premium ) {
-                            // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
-                            $prev_is_premium = null;
-                        }
 
-                        if ( ! is_null( $install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
-                            // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
-                            $install_timestamp = $blog_install_timestamp;
+                        $is_first_non_ignored_blog = false;
 
-                            if (
-                                is_object( $install ) &&
-                                ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
-                            ) {
-                                /**
-                                 * Update the install info if there's no install found so far that is owned by the
-                                 * current WP user or only if the found install is owned by the current WP user.
-                                 */
-                                $network_user_info = array(
-                                    'user_id' => $install->user_id,
-                                    'blog_id' => $blog_id
-                                );
-                            }
-                        }
+                        continue;
                     }
 
-                    $is_first_non_ignored_blog = false;
+                    if ( ! is_null( $prev_is_premium ) && $prev_is_premium !== $site_prev_is_premium ) {
+                        // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
+                        $prev_is_premium = null;
+                    }
+
+                    if ( ! is_null( $install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
+                        // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
+                        $install_timestamp = $blog_install_timestamp;
+
+                        if (
+                            is_object( $install ) &&
+                            ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
+                        ) {
+                            /**
+                             * Update the install info if there's no install found so far that is owned by the
+                             * current WP user or only if the found install is owned by the current WP user.
+                             */
+                            $network_user_info = array(
+                                'user_id' => $install->user_id,
+                                'blog_id' => $blog_id
+                            );
+                        }
+                    }
                 }
 
                 $installs_count = count( $blog_id_2_install_map );
