@@ -556,7 +556,15 @@
                         continue;
                     }
 
+                    $is_earlier_install = (
+                        ! is_null( $install_timestamp ) &&
+                        ! is_null( $blog_install_timestamp ) &&
+                        $blog_install_timestamp < $install_timestamp
+                    );
+
                     $install = $this->get_install_by_blog_id( $blog_id );
+
+                    $update_network_user_info = false;
 
                     if ( ! is_object( $install ) ) {
                         if ( ! $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
@@ -568,21 +576,34 @@
                     } else {
                         $blog_id_2_install_map[ $blog_id ] = $install;
 
-                        if (
-                            // By default, choose any user information whether or not it is for the current WP user.
-                            empty( $network_user_info ) ||
-                            (
-                                // If an install that is owned by the current WP user is found, use its user information instead.
-                                is_object( $current_fs_user ) &&
-                                $network_user_info['user_id'] != $current_fs_user->id &&
-                                $install->user_id == $current_fs_user->id
-                            )
-                        ) {
-                            $network_user_info = array(
-                                'user_id' => $install->user_id,
-                                'blog_id' => $blog_id
-                            );
+                        if ( empty( $network_user_info ) ) {
+                            // Set the network user info for the 1st time. Choose any user information whether or not it is for the current WP user.
+                            $update_network_user_info = true;
                         }
+
+                        if ( ! $update_network_user_info &&
+                             is_object( $current_fs_user ) &&
+                             $network_user_info['user_id'] != $current_fs_user->id &&
+                             $install->user_id == $current_fs_user->id
+                        ) {
+                            // If an install that is owned by the current WP user is found, use its user information instead.
+                            $update_network_user_info = true;
+                        }
+
+                        if ( ! $update_network_user_info &&
+                             $is_earlier_install &&
+                             ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
+                        ) {
+                            // Update to the earliest install info if there's no install found so far that is owned by the current WP user; OR only if the found install is owned by the current WP user.
+                            $update_network_user_info = true;
+                        }
+                    }
+
+                    if ( $update_network_user_info ) {
+                        $network_user_info = array(
+                            'user_id' => $install->user_id,
+                            'blog_id' => $blog_id
+                        );
                     }
 
                     $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
@@ -604,23 +625,9 @@
                         $prev_is_premium = null;
                     }
 
-                    if ( ! is_null( $install_timestamp ) && $blog_install_timestamp < $install_timestamp ) {
-                        // If an earlier install timestamp is found, use it and also update the first install info if there's an install.
+                    if ( $is_earlier_install ) {
+                        // If an earlier install timestamp is found.
                         $install_timestamp = $blog_install_timestamp;
-
-                        if (
-                            is_object( $install ) &&
-                            ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
-                        ) {
-                            /**
-                             * Update the install info if there's no install found so far that is owned by the
-                             * current WP user or only if the found install is owned by the current WP user.
-                             */
-                            $network_user_info = array(
-                                'user_id' => $install->user_id,
-                                'blog_id' => $blog_id
-                            );
-                        }
                     }
                 }
 
