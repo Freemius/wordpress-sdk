@@ -611,10 +611,7 @@
                     isNetworkDelegating = true;
 
                     // Check all sites to be skipped.
-                    var $delegateActions = $allSitesOptions.find('.action.action-delegate');
-                    if ( 0 !== $delegateActions.length ) {
-                        $delegateActions.click();
-                    }
+                    $allSitesOptions.find('.action.action-delegate').click();
 
                     $form.submit();
 
