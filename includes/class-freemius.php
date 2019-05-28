@@ -558,7 +558,6 @@
 
                     $is_earlier_install = (
                         ! is_null( $install_timestamp ) &&
-                        ! is_null( $blog_install_timestamp ) &&
                         $blog_install_timestamp < $install_timestamp
                     );
 
