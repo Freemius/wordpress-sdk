@@ -13640,6 +13640,10 @@
          * @return array Active & public sites collection.
          */
         static function get_sites() {
+            if ( ! is_multisite() ) {
+                return array();
+            }
+
             /**
              * For consistency with get_blog_list() which only return active public sites.
              *
