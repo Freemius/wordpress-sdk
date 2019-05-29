@@ -170,7 +170,7 @@ fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
                     subscriptionCancellationActionEventName = <?php echo json_encode( $fs->get_action_tag( 'subscription_cancellation_action' ) ) ?>;
 
                 if ( _this.hasClass( 'button-primary' ) ) {
-                    if ( 'true' !== $( 'input[name="cancel-subscription"]:checked' ).val() ) {
+                    if ( 'true' !== $modal.find( 'input[name="cancel-subscription"]:checked' ).val() ) {
                         $modal.trigger( subscriptionCancellationActionEventName, false );
                     } else {
                         if ( confirm( <?php echo json_encode( $subscription_cancellation_confirmation_message ) ?> ) ) {

@@ -116,7 +116,7 @@
          * @return int
          */
         function left() {
-            if ( ! $this->is_active() || $this->is_expired() ) {
+            if ( ! $this->is_features_enabled() ) {
                 return 0;
             }
 

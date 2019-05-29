@@ -119,8 +119,7 @@
         }
     }
 
-    $is_current_license_expired = ( is_object( $license ) && $license->is_expired() );
-    $is_active_subscription     = ( is_object( $subscription ) && $subscription->is_active() );
+    $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
 ?>
 <tr<?php if ( $odd ) {
     echo ' class="alternate"';
@@ -256,7 +255,7 @@
                     $cancel_trial_confirm_text,
                     'POST'
                 );
-            } else {
+            } else if ( ! is_object( $license ) || ! $license->is_features_enabled() ) {
                 $premium_license = $fs_addon->_get_available_premium_license();
 
                 if ( is_object( $premium_license ) ) {

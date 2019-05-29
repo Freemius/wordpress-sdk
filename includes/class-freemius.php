@@ -408,15 +408,28 @@
                 $this->_is_multisite_integrated &&
                 // Themes are always network activated, but the ACTUAL activation is per site.
                 $this->is_plugin() &&
-                ( is_plugin_active_for_network( $this->_plugin_basename ) ||
-                  // Plugin network level activation or uninstall.
-                  is_plugin_inactive( $this->_plugin_basename ) )
+                (
+                    is_plugin_active_for_network( $this->_plugin_basename ) ||
+                    // Plugin network level activation or uninstall.
+                    ( fs_is_network_admin() && is_plugin_inactive( $this->_plugin_basename ) )
+                )
             );
 
             $this->_storage->set_network_active(
                 $this->_is_network_active,
                 $this->is_delegated_connection()
             );
+
+            if ( ! isset( $this->_storage->is_network_activated ) ) {
+                $this->_storage->is_network_activated = $this->_is_network_active;
+            }
+
+            if ( $this->_storage->is_network_activated != $this->_is_network_active ) {
+                // Update last activation level.
+                $this->_storage->is_network_activated = $this->_is_network_active;
+
+                $this->maybe_adjust_storage();
+            }
 
             #region Migration
 
@@ -500,6 +513,188 @@
             $this->_load_account();
 
             $this->_version_updates_handler();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         */
+        private function maybe_adjust_storage() {
+            $install_timestamp = null;
+            $prev_is_premium   = null;
+
+            $options_to_update = array();
+
+            $is_network_admin = fs_is_network_admin();
+
+            $network_install_timestamp = $this->_storage->get( 'install_timestamp', null, true );
+
+            if ( ! $is_network_admin ) {
+                if ( is_null( $network_install_timestamp ) ) {
+                    // Plugin was not network-activated before.
+                    return;
+                }
+
+                if ( is_null( $this->_storage->get( 'install_timestamp', null, false ) ) ) {
+                    // Set the `install_timestamp` only if it's not yet set.
+                    $install_timestamp = $network_install_timestamp;
+                }
+
+                $prev_is_premium = $this->_storage->get( 'prev_is_premium', null, true );
+            } else {
+                $current_wp_user   = self::_get_current_wp_user();
+                $current_fs_user   = self::_get_user_by_email( $current_wp_user->user_email );
+                $network_user_info = array();
+
+                $skips_count = 0;
+
+                $sites       = self::get_sites();
+                $sites_count = count( $sites );
+
+                $blog_id_2_install_map = array();
+
+                $is_first_non_ignored_blog = true;
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    $blog_install_timestamp = $this->_storage->get( 'install_timestamp', null, $blog_id );
+
+                    if ( is_null( $blog_install_timestamp ) ) {
+                        // Plugin has not been installed on this blog.
+                        continue;
+                    }
+
+                    $is_earlier_install = (
+                        ! is_null( $install_timestamp ) &&
+                        $blog_install_timestamp < $install_timestamp
+                    );
+
+                    $install = $this->get_install_by_blog_id( $blog_id );
+
+                    $update_network_user_info = false;
+
+                    if ( ! is_object( $install ) ) {
+                        if ( ! $this->_storage->get( 'is_anonymous', false, $blog_id ) ) {
+                            // The opt-in decision (whether to skip or opt in) is yet to be made.
+                            continue;
+                        }
+
+                        $skips_count ++;
+                    } else {
+                        $blog_id_2_install_map[ $blog_id ] = $install;
+
+                        if ( empty( $network_user_info ) ) {
+                            // Set the network user info for the 1st time. Choose any user information whether or not it is for the current WP user.
+                            $update_network_user_info = true;
+                        }
+
+                        if ( ! $update_network_user_info &&
+                             is_object( $current_fs_user ) &&
+                             $network_user_info['user_id'] != $current_fs_user->id &&
+                             $install->user_id == $current_fs_user->id
+                        ) {
+                            // If an install that is owned by the current WP user is found, use its user information instead.
+                            $update_network_user_info = true;
+                        }
+
+                        if ( ! $update_network_user_info &&
+                             $is_earlier_install &&
+                             ( ! is_object( $current_fs_user ) || $current_fs_user->id == $install->user_id )
+                        ) {
+                            // Update to the earliest install info if there's no install found so far that is owned by the current WP user; OR only if the found install is owned by the current WP user.
+                            $update_network_user_info = true;
+                        }
+                    }
+
+                    if ( $update_network_user_info ) {
+                        $network_user_info = array(
+                            'user_id' => $install->user_id,
+                            'blog_id' => $blog_id
+                        );
+                    }
+
+                    $site_prev_is_premium = $this->_storage->get( 'prev_is_premium', null, $blog_id );
+
+                    if ( $is_first_non_ignored_blog ) {
+                        $prev_is_premium = $site_prev_is_premium;
+
+                        if ( is_null( $network_install_timestamp ) ) {
+                            $install_timestamp = $blog_install_timestamp;
+                        }
+
+                        $is_first_non_ignored_blog = false;
+
+                        continue;
+                    }
+
+                    if ( ! is_null( $prev_is_premium ) && $prev_is_premium !== $site_prev_is_premium ) {
+                        // If a different `$site_prev_is_premium` value is found, do not include the option in the collection of options to update.
+                        $prev_is_premium = null;
+                    }
+
+                    if ( $is_earlier_install ) {
+                        // If an earlier install timestamp is found.
+                        $install_timestamp = $blog_install_timestamp;
+                    }
+                }
+
+                $installs_count = count( $blog_id_2_install_map );
+
+                if ( $sites_count === ( $installs_count + $skips_count ) ) {
+                    if ( ! empty( $network_user_info ) ) {
+                        $options_to_update['network_user_id']         = $network_user_info['user_id'];
+                        $options_to_update['network_install_blog_id'] = $network_user_info['blog_id'];
+
+                        foreach ( $blog_id_2_install_map as $blog_id => $install ) {
+                            if ( $install->user_id == $network_user_info['user_id'] ) {
+                                continue;
+                            }
+
+                            $this->_storage->store( 'is_delegated_connection', true, $blog_id );
+                        }
+                    }
+
+                    if ( $sites_count === $skips_count ) {
+                        /**
+                         * Assume network-level skipping as the intended action if all actions identified were only
+                         * skipping of the connection (i.e., no opt-ins and delegated connections so far).
+                         */
+                        $options_to_update['is_anonymous_ms'] = true;
+                    } else if ( $sites_count === $installs_count ) {
+                        /**
+                         * Assume network-level opt-in as the intended action if all actions identified were only opt-ins
+                         * (i.e., no delegation and skipping of the connections so far).
+                         */
+                        $options_to_update['is_network_connected'] = true;
+                    }
+                }
+            }
+
+            if ( ! is_null( $install_timestamp ) ) {
+                $options_to_update['install_timestamp'] = $install_timestamp;
+            }
+
+            if ( ! is_null( $prev_is_premium ) ) {
+                $options_to_update['prev_is_premium'] = $prev_is_premium;
+            }
+
+            if ( ! empty( $options_to_update ) ) {
+                $this->adjust_storage( $options_to_update, $is_network_admin );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @param array $options
+         * @param bool  $is_network_admin
+         */
+        private function adjust_storage( $options, $is_network_admin ) {
+            foreach ( $options as $name => $value ) {
+                $this->_storage->store( $name, $value, $is_network_admin ? true : null );
+            }
         }
 
         /**
@@ -6402,7 +6597,7 @@
             }
 
             if ( is_multisite() ) {
-                $this->switch_to_blog( $current_blog_id );
+                $this->switch_to_blog( $current_blog_id, fs_is_network_admin() ? $this->get_network_install() : null );
 
                 $this->do_action( "after_{$name}_cron_multisite" );
             }
@@ -7142,7 +7337,7 @@
                 foreach ( $plans_ids_to_keep as $plan_id ) {
                     $plan = self::_get_plan_by_id( $plan_id );
                     if ( is_object( $plan ) ) {
-                        $plans_to_keep[] = $plan;
+                        $plans_to_keep[] = self::_encrypt_entity( $plan );
                     }
                 }
             }
@@ -7611,7 +7806,24 @@
          * @return FS_Plugin_License
          */
         private function get_addon_active_parent_license() {
-            $result = $this->get_parent_instance()->get_current_or_network_user_api_scope()->get( "/plugins/{$this->get_id()}/parent_licenses.json?filter=active", true );
+            $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
+            $parent_instance          = $this->get_parent_instance();
+
+            $foreign_licenses = $parent_instance->get_foreign_licenses_info(
+                self::get_all_licenses( $this->get_parent_id() )
+            );
+
+            if ( ! empty ( $foreign_licenses ) ) {
+                $foreign_licenses = array(
+                    // Prefix with `+` to tell the server to include foreign licenses in the licenses collection.
+                    'ids'          => ( urlencode( '+' ) . implode( ',', $foreign_licenses['ids'] ) ),
+                    'license_keys' => implode( ',', array_map( 'urlencode', $foreign_licenses['license_keys'] ) )
+                );
+
+                $parent_licenses_endpoint = add_query_arg( $foreign_licenses, $parent_licenses_endpoint );
+            }
+
+            $result = $parent_instance->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, true );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
@@ -7706,6 +7918,7 @@
 
             // Clear all storage data.
             $this->_storage->clear_all( true, array(
+                'is_delegated_connection',
                 'connectivity_test',
                 'is_on',
             ), false );
@@ -10746,7 +10959,7 @@
          * @return number[]
          */
         private function get_plans_ids_associated_with_installs() {
-            if ( ! $this->_is_network_active ) {
+            if ( ! is_multisite() ) {
                 if ( ! is_object( $this->_site ) ||
                      ! FS_Plugin_Plan::is_valid_id( $this->_site->plan_id )
                 ) {
@@ -11846,7 +12059,7 @@
                 $is_network_admin = fs_is_network_admin();
 
                 if (
-                    ( $is_network_admin && $this->is_network_active() ) ||
+                    ( $is_network_admin && $this->is_network_active() && ! $this->is_network_delegated_connection() ) ||
                     ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
                 ) {
                     /**
@@ -11977,6 +12190,11 @@
         }
 
         /**
+         * A helper method to activate migrated licenses. If the product is network activated and integrated, the method will network activate the license.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.2.5
+         *         
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
@@ -11996,7 +12214,7 @@
         ) {
             return $this->activate_license(
                 $license_key,
-                ( fs_is_network_admin() && $this->is_network_active() ) ?
+                $this->is_network_active() ?
                     $this->get_sites_for_network_level_optin() :
                     array(),
                 $is_marketing_allowed,
@@ -12260,8 +12478,12 @@
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
 
                 $next_page = '';
+
+                $has_any_install = fs_request_get_bool( 'has_any_install' );
+
                 if ( $total_sites === $total_sites_to_delegate &&
-                     ! $this->is_network_upgrade_mode()
+                    ! $this->is_network_upgrade_mode() &&
+                    ! $has_any_install
                 ) {
                     $this->delegate_connection();
                 } else {
@@ -12273,7 +12495,19 @@
                         $this->skip_connection( $sites_by_action['skip'] );
                     }
 
-                    if ( ! empty( $sites_by_action['allow'] ) ) {
+                    if ( empty( $sites_by_action['allow'] ) ) {
+                        if ( $has_any_install ) {
+                            $first_install = $fs->find_first_install();
+
+                            if ( ! is_null( $first_install ) ) {
+                                $fs->_site                             = $first_install['install'];
+                                $fs->_storage->network_install_blog_id = $first_install['blog_id'];
+
+                                $fs->_user                     = self::_get_user_by_id( $fs->_site->user_id );
+                                $fs->_storage->network_user_id = $fs->_user->id;
+                            }
+                        }
+                    } else {
                         if ( ! $fs->is_registered() || ! $this->_is_network_active ) {
                             $next_page = $fs->opt_in(
                                 false,
@@ -13468,6 +13702,10 @@
          * @return array Active & public sites collection.
          */
         static function get_sites() {
+            if ( ! is_multisite() ) {
+                return array();
+            }
+
             /**
              * For consistency with get_blog_list() which only return active public sites.
              *
@@ -13639,7 +13877,7 @@
          *      'blog_id' => string The associated blog ID.
          * }
          */
-        private function find_first_install() {
+        function find_first_install() {
             $sites = self::get_sites();
 
             foreach ( $sites as $site ) {
@@ -16131,6 +16369,8 @@
                 ! $this->is_anonymous() &&
                 ! $this->is_registered()
             );
+
+            $should_hide_site_admin_settings = $this->apply_filters( 'should_hide_site_admin_settings_on_network_activation_mode', $should_hide_site_admin_settings );
 
             if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
                  $should_hide_site_admin_settings

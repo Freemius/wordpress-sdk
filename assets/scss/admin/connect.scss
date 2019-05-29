@@ -54,7 +54,7 @@ $form_width: 480px;
     }
 
     &.require-license-key {
-        #sites_list_container {
+        .fs-sites-list-container {
             td {
                 cursor: pointer;
             }
