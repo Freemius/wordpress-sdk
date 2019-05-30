@@ -259,7 +259,9 @@ HTML;
 
 				$('.theme-wrap .theme-actions .active-theme').append($actionLink);
 
-				registerActionLinkClick();
+				if ('' === href) {
+					registerActionLinkClick();
+				}
 			});
 			<?php endif ?>
 		});

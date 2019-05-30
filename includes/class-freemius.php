@@ -21540,8 +21540,6 @@
                 } else {
                     $link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );
                 }
-
-                add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
             } else if ( $this->is_anonymous() || $this->is_activation_mode() ) {
                 /**
                  * Show opt-in link only if skipped or in activation mode.
@@ -21557,6 +21555,8 @@
 
                 $url = $this->get_activation_url( $params );
             }
+
+            add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
 
             if ( ! empty( $link_text_id ) && $this->is_plugin() && self::is_plugins_page() ) {
                 $this->add_plugin_action_link(
