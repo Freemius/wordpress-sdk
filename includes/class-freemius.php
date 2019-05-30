@@ -15922,7 +15922,7 @@
          *
          * @return \FS_Site|object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install. If $setup_account is set to `false`, return the newly created install.
          */
-        private function install_with_user(
+        function install_with_user(
             FS_User $user,
             $license_key = false,
             $trial_plan_id = false,
