@@ -254,8 +254,13 @@
                     $data->download_link = $this->_fs->_get_latest_download_local_url( $selected_addon->id );
                 }
 
-                $data->fs_missing = ( false === $latest );
-
+                $data->fs_missing = (
+                    false === $latest &&
+                    (
+                        empty( $selected_addon->premium_releases_count ) ||
+                        ! ( $selected_addon->premium_releases_count > 0 )
+                    )
+                );
 
                 // Fetch as much as possible info from local files.
                 $plugin_local_data = $this->_fs->get_plugin_data();

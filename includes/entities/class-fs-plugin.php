@@ -49,6 +49,13 @@
          * @var bool Set to true if the free version of the module is hosted on WordPress.org. Defaults to true.
          */
         public $is_wp_org_compliant = true;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.2.5
+         *
+         * @var int
+         */
+        public $premium_releases_count;
 
         #region Install Specific Properties
 
