@@ -31,21 +31,21 @@
         public $plan_id;
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string
          */
         public $parent_plan_name;
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string
          */
         public $parent_plan_title;
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var number
          */

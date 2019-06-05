@@ -44,7 +44,7 @@
         public $gross;
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string One of the following: `usd`, `gbp`, `eur`.
          */
@@ -126,7 +126,7 @@
          * Examples: £9.99 GBP, -£9.99 GBP.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return string
          */
@@ -149,7 +149,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return string
          */

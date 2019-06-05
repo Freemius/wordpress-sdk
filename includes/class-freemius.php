@@ -508,7 +508,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          */
         private function maybe_adjust_storage() {
             $install_timestamp = null;
@@ -677,7 +677,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param array $options
          * @param bool  $is_network_admin
@@ -1726,7 +1726,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          */
         static function _maybe_add_beta_label_styles() {
             $has_any_beta_version = false;
@@ -1745,7 +1745,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          */
         static function _maybe_add_beta_label_to_plugins_and_handle_confirmation() {
             $beta_data = array();
@@ -2187,7 +2187,7 @@
                          *
                          * @author Leo Fajardo
                          *
-                         * @since 2.2.5
+                         * @since 2.3.0
                          */
                         $caller_file_path = fs_normalize_path( $bt[ $i ]['file'] );
 
@@ -2213,7 +2213,7 @@
                      *
                      * @author Leo Fajardo
                      *
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     if ( 0 === strpos( $caller_file_path, $plugin_dir_to_skip ) ) {
                         continue;
@@ -2288,7 +2288,7 @@
                 array();
 
             /**
-             * @since 2.2.5 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
+             * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
             $show_deactivation_feedback_form = true;
             if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
@@ -3019,7 +3019,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param int $blog_id
          *
@@ -3298,7 +3298,7 @@
                  * page.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 add_action( 'admin_footer-' . self::get_current_page(), array( 'Freemius', '_maybe_add_beta_label_to_plugins_and_handle_confirmation') );
             }
@@ -4812,7 +4812,7 @@
                              * If not registered for add-on, not network active, and in network admin, do not handle the add-on activation.
                              *
                              * @author Leo Fajardo (@leorw)
-                             * @since 2.2.5
+                             * @since 2.3.0
                              */
                             ( $this->is_network_active() || ! $is_network_admin )
                         ) {
@@ -7541,7 +7541,7 @@
                  * When activating an add-on, try to also activate a license.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 if ( ! $this->_is_network_active ) {
                     $this->maybe_activate_addon_license();
@@ -7553,7 +7553,7 @@
                  * Avoid redirecting to the license activation screen after automatically activating an add-on license.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 $is_trial_or_has_features_enabled_license = ( $this->is_trial() || $this->has_features_enabled_license() );
 
@@ -7612,7 +7612,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          */
         private function maybe_activate_addon_license() {
             $parent_fs = $this->get_parent_instance();
@@ -7655,7 +7655,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param FS_Plugin_License $license
          */
@@ -7738,7 +7738,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return FS_Plugin_License
          */
@@ -7777,7 +7777,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return array
          */
@@ -8678,7 +8678,7 @@
          * @param string[] $override
          * @param bool     $include_plugins   Since 1.1.8 by default include plugin changes.
          * @param bool     $include_themes    Since 1.1.8 by default include plugin changes.
-         * @param bool     $include_blog_data Since 2.2.5 by default include the current blog's data (language, charset, title, and URL).
+         * @param bool     $include_blog_data Since 2.3.0 by default include the current blog's data (language, charset, title, and URL).
          *
          * @return array
          */
@@ -10258,7 +10258,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5.1
+         * @since 2.3.0
          *
          * @return array<number,object[]> {
          *      @key number   Add-on ID.
@@ -10284,7 +10284,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param number $addon_id
          * @param bool   $is_installed
@@ -12034,7 +12034,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.5
+         * @since  2.3.0
          */
         function _add_beta_mode_update_handler() {
             if ( ! $this->is_user_admin() ) {
@@ -12050,7 +12050,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.5
+         * @since  2.3.0
          */
         function _set_beta_mode_ajax_handler() {
             $this->_logger->entrance();
@@ -12130,7 +12130,7 @@
          * A helper method to activate migrated licenses. If the product is network activated and integrated, the method will network activate the license.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  2.2.5
+         * @since  2.3.0
          *         
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
@@ -14911,7 +14911,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return bool
          */
@@ -14925,7 +14925,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return bool
          */
@@ -14939,7 +14939,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          */
         private function sync_user_beta_mode() {
             $user = $this->get_api_user_scope()->get( '/?plugin_id=' . $this->get_id() . '&fields=is_beta' );
@@ -16017,7 +16017,7 @@
              * already returns the data for the current blog.
              *
              * @author Leo Fajardo (@leorw)
-             * @since 2.2.5
+             * @since 2.3.0
              */
             $uid_param_to_override = ( true === $network_level_or_blog_id ) ?
                 array() :
@@ -16032,7 +16032,7 @@
                  * already includes the data for it.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 ( true !== $network_level_or_blog_id )
             );
@@ -16119,7 +16119,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param FS_Site[] $installs
          * @param bool      $is_site_level
@@ -16615,7 +16615,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param bool $is_activation_mode
          *
@@ -17727,7 +17727,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param array       $all_licenses
          * @param number|null $site_license_id
@@ -17777,7 +17777,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @return string
          */
@@ -18145,7 +18145,7 @@
                      * the FS instance that does the syncing is the parent FS instance.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     $this->_license->plugin_id == $plugin_id
                 ) {
@@ -21317,7 +21317,7 @@
              * and "Add-Ons" menus should be added.
              *
              * @author Leo Fajardo (@leorw)
-             * @since 2.2.5
+             * @since 2.3.0
              */
             $add_upgrade_link = (
                 $add_action_links ||
