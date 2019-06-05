@@ -1,4 +1,5 @@
 @import "../start";
+@import "tag";
 
 #fs_account
 {
@@ -130,6 +131,10 @@
         width: 100%;
         font-weight: bold;
     }
+}
+
+.fs-field-beta_program label {
+    margin-left: 7px;
 }
 
 label.fs-tag
