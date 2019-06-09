@@ -2250,6 +2250,10 @@
 
                 if ( ! isset( $caller_map[ $caller_file_hash ] ) ) {
                     foreach ( $all_plugins_paths as $plugin_path ) {
+                        if ( empty( $plugin_path ) ) {
+                            continue;
+                        }
+
                         if ( false !== strpos( $caller_file_path, fs_normalize_path( dirname( $plugin_path ) . '/' ) ) ) {
                             $caller_map[ $caller_file_hash ] = fs_normalize_path( $plugin_path );
                             break;
