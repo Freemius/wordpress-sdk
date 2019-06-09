@@ -17726,6 +17726,10 @@
          * @since 2.2.4
          */
         private function purge_valid_user_licenses_cache() {
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             $this->get_api_user_scope()->purge_cache( $this->get_valid_user_licenses_endpoint() );
         }
 
