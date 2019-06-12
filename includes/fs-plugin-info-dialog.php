@@ -37,7 +37,7 @@
          * is used instead.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string[]
          */
@@ -48,7 +48,7 @@
          * dropdown list.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string[]
          */
@@ -254,8 +254,13 @@
                     $data->download_link = $this->_fs->_get_latest_download_local_url( $selected_addon->id );
                 }
 
-                $data->fs_missing = ( false === $latest );
-
+                $data->fs_missing = (
+                    false === $latest &&
+                    (
+                        empty( $selected_addon->premium_releases_count ) ||
+                        ! ( $selected_addon->premium_releases_count > 0 )
+                    )
+                );
 
                 // Fetch as much as possible info from local files.
                 $plugin_local_data = $this->_fs->get_plugin_data();
@@ -394,7 +399,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.5
+         * @since  2.3.0
          *
          * @param object         $api
          * @param FS_Plugin_Plan $plan
@@ -415,7 +420,7 @@
                  * the actions dropdown.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 if ( ! $api->has_purchased_license ) {
                     array_unshift( $actions, $checkout_cta );
@@ -520,7 +525,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.2.5
+         * @since  2.3.0
          *
          * @param object $api
          *
@@ -556,7 +561,7 @@
                  * Free-only add-on.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 $is_free_installed    = $has_installed_version;
                 $is_premium_installed = false;
@@ -565,7 +570,7 @@
                  * Premium-only add-on.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 $is_free_installed    = false;
                 $is_premium_installed = $has_installed_version;
@@ -574,7 +579,7 @@
                  * Freemium add-on.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 if ( ! $has_installed_version ) {
                     $is_free_installed    = false;
@@ -599,7 +604,7 @@
                              * Check if there's a plugin installed in a directory named `$api->slug`.
                              *
                              * @author Leo Fajardo (@leorw)
-                             * @since 2.2.5
+                             * @since 2.3.0
                              */
                             $installed_plugins = get_plugins( '/' . $api->slug );
                             $is_free_installed = ( ! empty( $installed_plugins ) );
@@ -613,7 +618,7 @@
                              * Check if there's a plugin installed in a directory named `$api->premium_slug`.
                              *
                              * @author Leo Fajardo (@leorw)
-                             * @since 2.2.5
+                             * @since 2.3.0
                              */
                             $installed_plugins    = get_plugins( '/' . $api->premium_slug );
                             $is_premium_installed = ( ! empty( $installed_plugins ) );
@@ -691,7 +696,7 @@
                      * to work.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     $this->status['url'] = self::get_blog_status_url( $blog_id, $this->status['url'], $this->status['status'] );
                 }
@@ -701,7 +706,7 @@
                  * installed/updated.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 $this->status['url'] = str_replace( '?', '?fs_allow_updater_and_dialog=true&amp;', $this->status['url'] );
             }
@@ -788,7 +793,7 @@
          * Rebuilds the status URL based on the admin URL.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param int    $blog_id
          * @param string $network_status_url
@@ -1530,7 +1535,7 @@
                                      * Close the other dropdown if it's active.
                                      *
                                      * @author Leo Fajardo (@leorw)
-                                     * @since 2.2.5
+                                     * @since 2.3.0
                                      */
                                     $( '.fs-dropdown.active' ).each( function() {
                                         toggleDropdown( $( this ), false );
@@ -1541,7 +1546,7 @@
                                  * Toggle the current dropdown.
                                  *
                                  * @author Leo Fajardo (@leorw)
-                                 * @since 2.2.5
+                                 * @since 2.3.0
                                  */
                                 toggleDropdown( $dropdown, ! isActive );
 
@@ -1552,7 +1557,7 @@
                              * Close all dropdowns.
                              *
                              * @author Leo Fajardo (@leorw)
-                             * @since 2.2.5
+                             * @since 2.3.0
                              */
                             toggleDropdown( $( this ).find( '.fs-dropdown' ), false );
                         });
@@ -1562,7 +1567,7 @@
                          * Add the `up` class so that the bottom dropdown's content will be shown above its buttons.
                          *
                          * @author Leo Fajardo (@leorw)
-                         * @since 2.2.5
+                         * @since 2.3.0
                          */
                         $( '#plugin-information-footer' ).find( '.fs-dropdown' ).addClass( 'up' );
                     }
@@ -1571,7 +1576,7 @@
                      * Returns the default state of the dropdown arrow button and hides the dropdown list.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      *
                      * @param {Object}  [$dropdown]
                      * @param {Boolean} [state]

@@ -164,32 +164,71 @@
 
             $contents = ob_get_clean();
 
-            /**
-             * Replace the plugin information dialog's "Install Update Now" button's text and URL. If there's a license,
-             * the text will be "Renew license" and will link to the checkout page with the license's billing cycle
-             * and quota. If there's no license, the text will be "Buy license" and will link to the pricing page.
-             */
-            $contents = preg_replace(
-                '/(.+\<a.+)(id="plugin_update_from_iframe")(.+href=")([^\s]+)(".+\>)(.+)(\<\/a.+)/is',
-                is_object( $license ) ?
-                    sprintf(
-                        '$1$3%s$5%s$7',
-                        $this->_fs->checkout_url(
-                            is_object( $subscription ) ?
-                                ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
-                                WP_FS__PERIOD_LIFETIME,
-                            false,
-                            array( 'licenses' => $license->quota )
+            $update_button_id_attribute_pos = strpos( $contents, 'id="plugin_update_from_iframe"' );
+
+            if ( false !== $update_button_id_attribute_pos ) {
+                $update_button_start_pos = strrpos(
+                    substr( $contents, 0, $update_button_id_attribute_pos ),
+                    '<a'
+                );
+
+                $update_button_end_pos = ( strpos( $contents, '</a>', $update_button_id_attribute_pos ) + strlen( '</a>' ) );
+
+                /**
+                 * The part of the contents without the update button.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.5
+                 */
+                $modified_contents = substr( $contents, 0, $update_button_start_pos );
+
+                $update_button = substr( $contents, $update_button_start_pos, ( $update_button_end_pos - $update_button_start_pos ) );
+
+                /**
+                 * Replace the plugin information dialog's "Install Update Now" button's text and URL. If there's a license,
+                 * the text will be "Renew license" and will link to the checkout page with the license's billing cycle
+                 * and quota. If there's no license, the text will be "Buy license" and will link to the pricing page.
+                 */
+                $update_button = preg_replace(
+                    '/(\<a.+)(id="plugin_update_from_iframe")(.+href=")([^\s]+)(".*\>)(.+)(\<\/a>)/is',
+                    is_object( $license ) ?
+                        sprintf(
+                            '$1$3%s$5%s$7',
+                            $this->_fs->checkout_url(
+                                is_object( $subscription ) ?
+                                    ( 1 == $subscription->billing_cycle ? WP_FS__PERIOD_MONTHLY : WP_FS__PERIOD_ANNUALLY ) :
+                                    WP_FS__PERIOD_LIFETIME,
+                                false,
+                                array( 'licenses' => $license->quota )
+                            ),
+                            fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
+                        ) :
+                        sprintf(
+                            '$1$3%s$5%s$7',
+                            $this->_fs->pricing_url(),
+                            fs_text_inline( 'Buy license', 'buy-license', $this->_fs->get_slug() )
                         ),
-                        fs_text_inline( 'Renew license', 'renew-license', $this->_fs->get_slug() )
-                    ) :
-                    sprintf(
-                        '$1$3%s$5%s$7',
-                        $this->_fs->pricing_url(),
-                        fs_text_inline( 'Buy license', 'buy-license', $this->_fs->get_slug() )
-                    ),
-                $contents
-            );
+                    $update_button
+                );
+
+                /**
+                 * Append the modified button.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.5
+                 */
+                $modified_contents .= $update_button;
+
+                /**
+                 * Append the remaining part of the contents after the update button.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.2.5
+                 */
+                $modified_contents .= substr( $contents, $update_button_end_pos );
+
+                $contents = $modified_contents;
+            }
 
             echo $contents;
         }
@@ -270,7 +309,7 @@
                      *      There is a new Beta version of Awesome Plugin available. <a href="...>View version x.y.z details</a> or <a href="...>update now</a>.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     $plugin_update_row = preg_replace(
                         '/(\<div.+>)(.+)(\<a.+href="([^\s]+)"([^\<]+)\>.+\<a.+)(\<\/div\>)/is',
@@ -487,7 +526,7 @@
                  * Ensure that there's no update data for the plugin to prevent upgrading the premium version to the latest free version.
                  *
                  * @author Leo Fajardo (@leorw)
-                 * @since 2.2.5
+                 * @since 2.3.0
                  */
                 unset( $transient_data->response[ $this->_fs->premium_plugin_basename() ] );
             }
@@ -583,7 +622,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @param FS_Plugin_Tag $new_version
          *

@@ -606,7 +606,7 @@
                      * `network_activate` and not `activate_license`).
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     isNetworkDelegating = true;
 
@@ -623,7 +623,7 @@
                      * (when activating a license, the action should be `activate_license` and not `network_activate`).
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.2.5
+                     * @since 2.3.0
                      */
                     isNetworkDelegating = false;
 

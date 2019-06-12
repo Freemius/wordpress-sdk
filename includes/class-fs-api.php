@@ -58,7 +58,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.2.5
+         * @since 2.3.0
          *
          * @var string
          */
@@ -187,7 +187,7 @@
                 $result = $this->get_temporary_unavailable_error();
             } else {
                 /**
-                 * @since 2.2.5 Include the SDK version with all API requests that going through the API manager. IMPORTANT: Only pass the SDK version if the caller didn't include it yet.
+                 * @since 2.3.0 Include the SDK version with all API requests that going through the API manager. IMPORTANT: Only pass the SDK version if the caller didn't include it yet.
                  */
                 if ( ! empty( $this->_sdk_version ) ) {
                     if ( false === strpos( $path, 'sdk_version=' ) &&
