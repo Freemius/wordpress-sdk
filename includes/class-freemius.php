@@ -10733,10 +10733,26 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
          *
+         * @param bool $including_foreign
+         *
          * @return bool
          */
-        function has_any_license() {
-            return is_array( $this->_licenses ) && ( 0 < count( $this->_licenses ) );
+        function has_any_license( $including_foreign = true ) {
+            if ( ! is_array( $this->_licenses ) || 0 === count( $this->_licenses ) ) {
+                return false;
+            }
+
+            if ( $including_foreign ) {
+                return true;
+            }
+
+            foreach ( $this->_licenses as $license ) {
+                if ( $this->_user->id == $license->user_id ) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /**
