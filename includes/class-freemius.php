@@ -17134,6 +17134,24 @@
 
         #endregion ------------------------------------------------------------------
 
+        #--------------------------------------------------------------------------------
+        #region Admin Notices
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @param string|string[] $ids
+         * @param int|null        $network_level_or_blog_id
+         *
+         * @uses FS_Admin_Notices::remove_sticky()
+         */
+        function remove_sticky( $ids, $network_level_or_blog_id = null ) {
+            $this->_admin_notices->remove_sticky( $ids, $network_level_or_blog_id );
+        }
+
+        #endregion
 
         #--------------------------------------------------------------------------------
         #region Actions / Hooks / Filters
