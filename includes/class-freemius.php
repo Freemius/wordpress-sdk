@@ -12169,7 +12169,7 @@
             $is_marketing_allowed = null,
             $plugin_id = null
         ) {
-            return $this->activate_license(
+            $result = $this->activate_license(
                 $license_key,
                 $this->is_network_active() ?
                     $this->get_sites_for_network_level_optin() :
@@ -12178,6 +12178,11 @@
                 null,
                 $plugin_id
             );
+
+            // No need to show the sticky after license activation notice after migrating a license.
+            $this->_admin_notices->remove_sticky( 'plan_upgraded' );
+
+            return $result;
         }
 
         /**
