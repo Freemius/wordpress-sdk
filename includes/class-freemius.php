@@ -15113,9 +15113,12 @@
                 if ( ! $is_uninstall ) {
                     $fs_user = Freemius::_get_user_by_email( $email );
                     if ( is_object( $fs_user ) && ! $this->is_pending_activation() ) {
-                        return $this->install_with_current_user(
+                        return $this->install_with_user(
+                            $fs_user,
                             false,
                             $trial_plan_id,
+                            true,
+                            true,
                             $sites
                         );
                     }
