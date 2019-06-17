@@ -18916,7 +18916,17 @@
                             $this->_deactivate_license();
                             $plan_change = 'downgraded';
                         } else {
-                            $plan_change = 'expired';
+                            $last_time_expired_license_notice_was_shown = $this->_storage->get( 'expired_license_notice_shown', 0 );
+
+                            if ( time() - ( 14 * WP_FS__TIME_24_HOURS_IN_SEC ) >= $last_time_expired_license_notice_was_shown ) {
+                                /**
+                                 * Show the expired license notice every 14 days.
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.3.1
+                                 */
+                                $plan_change = 'expired';
+                            }
                         }
                     }
 
@@ -19033,6 +19043,9 @@
                             'license_expired',
                             $hmm_text
                         );
+
+                        $this->_storage->expired_license_notice_shown = WP_FS__SCRIPT_START_TIME;
+
                         $this->_admin_notices->remove_sticky( 'plan_upgraded' );
                         break;
                     case 'trial_started':
