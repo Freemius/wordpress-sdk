@@ -102,7 +102,9 @@
                 'edit_and_echo_plugin_update_row'
             ), 11, 2 );
 
-            add_action( 'admin_head', array( &$this, 'catch_plugin_information_dialog_contents' ) );
+            if ( ! $this->_fs->has_any_active_valid_license() ) {
+                add_action( 'admin_head', array( &$this, 'catch_plugin_information_dialog_contents' ) );
+            }
 
             if ( ! WP_FS__IS_PRODUCTION_MODE ) {
                 add_filter( 'http_request_host_is_external', array(
