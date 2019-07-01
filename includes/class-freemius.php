@@ -21290,7 +21290,7 @@
         function _show_theme_activation_optin_dialog() {
             fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
 
-            add_action( 'admin_footer-themes.php', array( &$this, '_add_fs_theme_activation_dialog' ) );
+            add_action( 'admin_footer', array( &$this, '_add_fs_theme_activation_dialog' ) );
         }
 
         /**
@@ -21298,6 +21298,12 @@
          * @since  1.2.2
          */
         function _add_fs_theme_activation_dialog() {
+            global $pagenow;
+
+            if ( 'themes.php' !== $pagenow ) {
+                return;
+            }
+
             $vars = array( 'id' => $this->_module_id );
             fs_require_once_template( 'connect.php', $vars );
         }
