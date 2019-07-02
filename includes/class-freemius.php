@@ -9401,10 +9401,12 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
+         * @param bool $reparse_plugin_metadata
+         *
          * @return array
          */
-        function get_plugin_data() {
-            if ( ! isset( $this->_plugin_data ) ) {
+        function get_plugin_data( $reparse_plugin_metadata = false ) {
+            if ( ! isset( $this->_plugin_data ) || $reparse_plugin_metadata ) {
                 self::require_plugin_essentials();
 
                 if ( $this->is_plugin() ) {
@@ -9630,12 +9632,14 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.0
          *
+         * @param bool $reparse_plugin_metadata
+         *
          * @return string
          */
-        function get_plugin_version() {
+        function get_plugin_version( $reparse_plugin_metadata = false ) {
             $this->_logger->entrance();
 
-            $plugin_data = $this->get_plugin_data();
+            $plugin_data = $this->get_plugin_data( $reparse_plugin_metadata );
 
             $this->_logger->departure( 'Version = ' . $plugin_data['Version'] );
 
