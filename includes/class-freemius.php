@@ -12010,8 +12010,8 @@
                 return;
             }
 
-            if ( ! $this->is_premium() ) {
-                // Only add license activation logic to the premium version.
+            if ( $this->has_premium_version() && ! $this->is_premium() ) {
+                // Only add license activation logic to the premium version, or in case of a serviceware plugin, also in the free version.
                 return;
             }
 
