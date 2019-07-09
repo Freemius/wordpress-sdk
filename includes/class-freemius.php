@@ -15071,6 +15071,13 @@
                 'is_uninstalled'               => false,
             ) );
 
+            if ( $this->is_addon() ) {
+                $parent_fs = $this->get_parent_instance();
+
+                $params['parent_plugin_slug'] = $parent_fs->_slug;
+                $params['parent_plugin_id']   = $parent_fs->get_id();
+            }
+
             if ( true === $network_level_or_blog_id ) {
                 if ( ! isset( $override_with['sites'] ) ) {
                     $params['sites'] = $this->get_sites_for_network_level_optin();
