@@ -16029,6 +16029,10 @@
 
             if ( ! empty( $license_key ) ) {
                 $extra_install_params['license_key'] = $this->apply_filters( 'license_key', $license_key );
+
+                if ( $silent ) {
+                    $extra_install_params['ignore_license_owner'] = true;
+                }
             } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
                 $extra_install_params['trial_plan_id'] = $trial_plan_id;
             }
