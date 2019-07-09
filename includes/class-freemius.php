@@ -11471,6 +11471,21 @@
          * Activate a given license on a collection of blogs/sites that are not yet opted-in.
          *
          * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @param \FS_User $user
+         * @param string   $license_key
+         *
+         * @return true|mixed True if successful, otherwise, the API result.
+         */
+        private function activate_license_on_site( FS_User $user, $license_key ) {
+            return $this->activate_license_on_many_sites( $user, $license_key );
+        }
+
+        /**
+         * Activate a given license on a collection of blogs/sites that are not yet opted-in.
+         *
+         * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
          * @param \FS_User $user
@@ -11482,7 +11497,7 @@
         private function activate_license_on_many_sites(
             FS_User $user,
             $license_key,
-            array $site_ids
+            array $site_ids = array()
         ) {
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -11506,6 +11521,18 @@
             }
 
             $installs = array();
+
+            if ( $this->is_api_result_entity( $result ) ) {
+                $install = new FS_Site( $result );
+
+                $this->_user = $user;
+
+                $this->_store_site( true, null, $install );
+
+                $this->_site = $install;
+
+                $this->reset_anonymous_mode();
+            } else {
             foreach ( $result->installs as $install ) {
                 $installs[] = new FS_Site( $install );
             }
@@ -11530,6 +11557,7 @@
 
             if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
                 $this->_storage->network_install_blog_id = $first_blog_id;
+            }
             }
 
             return true;
