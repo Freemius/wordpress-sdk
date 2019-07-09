@@ -12260,7 +12260,20 @@
 
             $has_valid_blog_id = is_numeric( $blog_id );
 
-            if ( $fs->is_registered() ) {
+            $user = null;
+
+            if ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) {
+                /**
+                 * When activating an add-on's license and the parent is opted-in, activate the license with the parent's opted-in user context.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 */
+                $user = $fs->get_parent_instance()->get_current_or_network_user();
+            } else if ( $fs->is_registered() ) {
+                $user = $fs->get_current_or_network_user();
+            }
+
+            if ( is_object( $user ) ) {
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
@@ -12271,7 +12284,7 @@
                             continue;
                         }
 
-                        $install = $this->get_install_by_blog_id( $site['blog_id'] );
+                        $install = $fs->get_install_by_blog_id( $site['blog_id'] );
 
                         if ( is_object( $install ) ) {
                             $blog_2_install_map[ $site['blog_id'] ] = $install;
@@ -12280,10 +12293,8 @@
                         }
                     }
 
-                    $user = $this->get_current_or_network_user();
-
                     if ( ! empty( $blog_2_install_map ) ) {
-                        $result = $this->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
+                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12293,7 +12304,7 @@
                     }
 
                     if ( empty( $error ) && ! empty( $site_ids ) ) {
-                        $result = $this->activate_license_on_many_sites( $user, $license_key, $site_ids );
+                        $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12309,14 +12320,15 @@
                          *
                          * @author Leo Fajardo (@leorw)
                          */
-                        $this->switch_to_blog( $blog_id );
+                        $fs->switch_to_blog( $blog_id );
                     }
 
-                    $api = $fs->get_api_site_scope();
-
+                    if ( $fs->is_registered() ) {
                     $params = array(
                         'license_key' => $fs->apply_filters( 'license_key', $license_key )
                     );
+
+                        $api = $fs->get_api_site_scope();
 
                     $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
 
@@ -12327,10 +12339,19 @@
                     } else {
                         $fs->reconnect_locally( $has_valid_blog_id );
                     }
+                    } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
+                        $result = $fs->activate_license_on_site( $user, $license_key );
+
+                        if ( true !== $result ) {
+                            $error = FS_Api::is_api_error_object( $result ) ?
+                                $result->error->message :
+                                var_export( $result, true );
+                        }
+                    }
                 }
 
                 if ( empty( $error ) ) {
-                    $this->network_upgrade_mode_completed();
+                    $fs->network_upgrade_mode_completed();
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -12382,17 +12403,17 @@
                                 continue;
                             }
 
-                            if ( $this->is_installed_on_site( $blog_id ) ) {
+                            if ( $fs->is_installed_on_site( $blog_id ) ) {
                                 // Site was already connected before.
                                 continue;
                             }
 
-                            if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                            if ( $fs->is_site_delegated_connection( $blog_id ) ) {
                                 // Site's connection was delegated.
                                 continue;
                             }
 
-                            if ( $this->is_anonymous_site( $blog_id ) ) {
+                            if ( $fs->is_anonymous_site( $blog_id ) ) {
                                 // Site connection was already skipped.
                                 continue;
                             }
@@ -12401,18 +12422,18 @@
                         }
 
                         if ( ! empty( $pending_sites ) ) {
-                            if ( $this->is_freemium() && $this->is_enable_anonymous() ) {
-                                $this->skip_connection( $pending_sites );
+                            if ( $fs->is_freemium() && $fs->is_enable_anonymous() ) {
+                                $fs->skip_connection( $pending_sites );
                             } else {
-                                $this->delegate_connection( $pending_sites );
+                                $fs->delegate_connection( $pending_sites );
                             }
                         }
                     }
                 }
             }
 
-            if ( false === $error && true === $this->_storage->require_license_activation ) {
-                $this->_storage->require_license_activation = false;
+            if ( false === $error && true === $fs->_storage->require_license_activation ) {
+                $fs->_storage->require_license_activation = false;
             }
 
             $result = array(
@@ -12420,9 +12441,9 @@
             );
 
             if ( false !== $error ) {
-                $result['error'] = $this->apply_filters( 'opt_in_error_message', $error );
+                $result['error'] = $fs->apply_filters( 'opt_in_error_message', $error );
             } else {
-                if ( $this->is_addon() || $this->has_addons() ) {
+                if ( $fs->is_addon() || $fs->has_addons() ) {
                     /**
                      * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
                      * an updated valid user licenses collection will be fetched from the server which is used to also
@@ -12431,7 +12452,7 @@
                      * @author Leo Fajardo (@leorw)
                      * @since  2.2.4
                      */
-                    $this->purge_valid_user_licenses_cache();
+                    $fs->purge_valid_user_licenses_cache();
                 }
 
                 $result['next_page'] = $next_page;
