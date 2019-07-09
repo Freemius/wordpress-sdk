@@ -16054,7 +16054,7 @@
                  ! $this->is_api_result_object( $result, 'installs' )
             ) {
                 if ( ! empty( $args['license_key'] ) ) {
-                    // Pass full the fully entered license key to the failure handler.
+                    // Pass the fully entered license key to the failure handler.
                     $args['license_key'] = $license_key;
                 }
 
