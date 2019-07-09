@@ -11533,31 +11533,31 @@
 
                 $this->reset_anonymous_mode();
             } else {
-            foreach ( $result->installs as $install ) {
-                $installs[] = new FS_Site( $install );
-            }
-
-            // Map site addresses to their blog IDs.
-            $address_to_blog_map = $this->get_address_to_blog_map();
-
-            $first_blog_id = null;
-
-            foreach ( $installs as $install ) {
-                $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
-                $blog_id = $address_to_blog_map[ $address ];
-
-                $this->_store_site( true, $blog_id, $install );
-
-                $this->reset_anonymous_mode( $blog_id );
-
-                if ( is_null( $first_blog_id ) ) {
-                    $first_blog_id = $blog_id;
+                foreach ( $result->installs as $install ) {
+                    $installs[] = new FS_Site( $install );
                 }
-            }
 
-            if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
-                $this->_storage->network_install_blog_id = $first_blog_id;
-            }
+                // Map site addresses to their blog IDs.
+                $address_to_blog_map = $this->get_address_to_blog_map();
+
+                $first_blog_id = null;
+
+                foreach ( $installs as $install ) {
+                    $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                    $blog_id = $address_to_blog_map[ $address ];
+
+                    $this->_store_site( true, $blog_id, $install );
+
+                    $this->reset_anonymous_mode( $blog_id );
+
+                    if ( is_null( $first_blog_id ) ) {
+                        $first_blog_id = $blog_id;
+                    }
+                }
+
+                if ( ! FS_Site::is_valid_id( $this->_storage->network_install_blog_id ) ) {
+                    $this->_storage->network_install_blog_id = $first_blog_id;
+                }
             }
 
             return true;
@@ -12324,21 +12324,21 @@
                     }
 
                     if ( $fs->is_registered() ) {
-                    $params = array(
-                        'license_key' => $fs->apply_filters( 'license_key', $license_key )
-                    );
+                        $params = array(
+                            'license_key' => $fs->apply_filters( 'license_key', $license_key )
+                        );
 
                         $api = $fs->get_api_site_scope();
 
-                    $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
+                        $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
 
-                    if ( FS_Api::is_api_error( $install ) ) {
-                        $error = FS_Api::is_api_error_object( $install ) ?
-                            $install->error->message :
-                            var_export( $install->error, true );
-                    } else {
-                        $fs->reconnect_locally( $has_valid_blog_id );
-                    }
+                        if ( FS_Api::is_api_error( $install ) ) {
+                            $error = FS_Api::is_api_error_object( $install ) ?
+                                $install->error->message :
+                                var_export( $install->error, true );
+                        } else {
+                            $fs->reconnect_locally( $has_valid_blog_id );
+                        }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
                         $result = $fs->activate_license_on_site( $user, $license_key );
 
@@ -17592,21 +17592,24 @@
         private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null ) {
             $this->_logger->entrance();
 
-            if ( empty( $this->_site->id ) ) {
+            if ( is_null( $site ) ) {
+                $site = $this->_site;
+            }
+
+            if ( !isset( $site ) || !is_object($site) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
             }
 
-            $site_clone     = is_object( $site ) ? $site : $this->_site;
-            $encrypted_site = clone $site_clone;
+            $site_clone = clone $site;
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
             $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
 
             if ( empty( $prev_stored_user_id ) &&
-                 $this->_user->id != $this->_site->user_id
+                 is_object($this->_user) && $this->_user->id != $site->user_id
             ) {
                 /**
                  * Store the current user ID as the previous user ID so that the previous user can be used
@@ -17622,7 +17625,7 @@
                 $this->_storage->store( 'prev_user_id', $sites[ $this->_slug ]->user_id, $network_level_or_blog_id );
             }
 
-            $sites[ $this->_slug ] = $encrypted_site;
+            $sites[ $this->_slug ] = $site_clone;
 
             $this->set_account_option( 'sites', $sites, $store, $network_level_or_blog_id );
         }
