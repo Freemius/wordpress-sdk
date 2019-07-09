@@ -7785,7 +7785,7 @@
          *
          * @return array
          */
-        private function get_sites_for_network_level_optin() {
+        function get_sites_for_network_level_optin() {
             $sites     = array();
             $all_sites = self::get_sites();
 
