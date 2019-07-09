@@ -352,7 +352,6 @@
 
     $is_multisite = is_multisite();
     $all_plans    = false;
-    $plans        = false;
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
         <h2><?php echo esc_html( sprintf(
@@ -402,11 +401,7 @@
                                         $all_plans = $fs_options->get_option( $option_name, array() );
                                     }
 
-                                    if ( false === $plans ) {
-                                        $plans = $all_plans[ $slug ];
-                                    }
-
-                                    foreach ( $plans as $plan ) {
+                                    foreach ( $all_plans[ $slug ] as $plan ) {
                                         $plan_id = Freemius::_decrypt( $plan->id );
 
                                         if ( $site->plan_id == $plan_id ) {
