@@ -40,8 +40,8 @@
 
 	$freemius_site_www = 'https://freemius.com';
 
-	$freemius_usage_tracking_url = $freemius_site_www . '/wordpress/usage-tracking/' . $fs->get_id() . "/{$slug}/";
-	$freemius_plugin_terms_url   = $freemius_site_www . '/terms/' . $fs->get_id() . "/{$slug}/";
+	$freemius_usage_tracking_url = $fs->get_usage_tracking_terms_url();
+	$freemius_plugin_terms_url   = $fs->get_eula_url();
 
 	$freemius_site_url = $fs->is_premium() ?
 		$freemius_site_www :

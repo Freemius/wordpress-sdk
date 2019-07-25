@@ -9535,6 +9535,32 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string
+         */
+        function get_usage_tracking_terms_url() {
+            return $this->apply_filters(
+                'usage_tracking_terms_url',
+                "https://freemius.com/wordpress/usage-tracking/{$this->_plugin->id}/{$this->_slug}/"
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string
+         */
+        function get_eula_url() {
+            return $this->apply_filters(
+                'eula_url',
+                "https://freemius.com/terms/{$this->_plugin->id}/{$this->_slug}/"
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
          * @return string Plugin public key.
