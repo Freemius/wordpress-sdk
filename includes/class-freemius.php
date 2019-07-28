@@ -352,6 +352,14 @@
         const REASON_DIDNT_WORK_AS_EXPECTED = 14;
         const REASON_TEMPORARY_DEACTIVATION = 15;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @var boolean|null
+         */
+        private $_use_external_pricing = null;
+
         #endregion
 
         /* Ctor
@@ -1564,6 +1572,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
+                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler') );
             }
 
             if ( $this->is_plugin() ) {
@@ -12244,6 +12253,32 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return string
+         */
+        function get_pricing_js_path() {
+            return $this->apply_filters( 'freemius_pricing_js_path', WP_FS__DIR_INCLUDES . '/freemius-pricing/freemius-pricing.js' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return bool
+         */
+        function should_use_external_pricing() {
+            if ( is_null( $this->_use_external_pricing ) ) {
+                $pricing_js_path = $this->get_pricing_js_path();
+
+                $this->_use_external_pricing = ( empty( $pricing_js_path ) || ! file_exists( $pricing_js_path ) );
+            }
+
+            return $this->_use_external_pricing;
+        }
+
+        /**
          * The implementation of this method was previously in `_activate_license_ajax_action()`.
          *
          * @author Vova Feldman (@svovaf)
@@ -20854,6 +20889,64 @@
             } else {
                 echo $this->apply_filters( 'templates/pricing.php', fs_get_template( 'pricing.php', $vars ) );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _maybe_add_pricing_ajax_handler() {
+            if ( ! $this->should_use_external_pricing() ) {
+                $this->add_ajax_action( 'pricing_ajax_action', array( &$this, '_fs_pricing_ajax_action_handler' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         */
+        function _fs_pricing_ajax_action_handler() {
+            $this->check_ajax_referer( 'pricing_ajax_action' );
+
+            $result         = null;
+            $pricing_action = fs_request_get( 'pricing_action' );
+
+            switch ( $pricing_action ) {
+                case 'fetch_pricing_data':
+                    $params = array(
+                        'is_enriched'  => true,
+                        'trial'        => fs_request_get_bool( 'trial' ),
+                        'sandbox'      => fs_request_get( 'sandbox' ),
+                        's_ctx_type'   => fs_request_get( 's_ctx_type' ),
+                        's_ctx_id'     => fs_request_get( 's_ctx_id' ),
+                        's_ctx_ts'     => fs_request_get( 's_ctx_ts' ),
+                        's_ctx_secure' => fs_request_get( 's_ctx_secure' ),
+                    );
+
+                    $result = $this->get_api_plugin_scope()->get( 'pricing.json?' . http_build_query( $params ) );
+                    break;
+                case 'start_trial':
+                    $result = $this->opt_in(
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        fs_request_get( 'plan_id' )
+                    );
+            }
+
+            if ( is_object( $result ) && $this->is_api_error( $result ) ) {
+                $this->_logger->api_error( $result );
+
+                self::shoot_ajax_failure(
+                    isset( $result->error ) ?
+                        ( is_string( $result->error ) ? $result->error : $result->error->message ) :
+                        var_export( $result, true )
+                );
+            }
+
+            $this->shoot_ajax_success( $result );
         }
 
         #----------------------------------------------------------------------------------
