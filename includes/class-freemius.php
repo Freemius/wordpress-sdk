@@ -14549,8 +14549,22 @@
          * @since  1.2.2.7
          *
          * @return bool
+         *
+         * @deprecated Please use is_product_settings_page() instead;
          */
         function is_theme_settings_page() {
+            return $this->is_product_settings_page();
+        }
+
+        /**
+         * Check if currently on the product's main setting page or on any of the Freemius added pages (via tabs).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.2.7
+         *
+         * @return bool
+         */
+        function is_product_settings_page() {
             return fs_starts_with(
                 fs_request_get( 'page', '', 'get' ),
                 $this->_menu->get_slug()
@@ -22414,7 +22428,7 @@
         function _tabs_capture() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_theme_settings_page() ||
+            if ( ! $this->is_product_settings_page() ||
                  ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
@@ -22469,7 +22483,7 @@
         function _store_tabs_styles() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_theme_settings_page() ||
+            if ( ! $this->is_product_settings_page() ||
                  ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
@@ -22553,8 +22567,8 @@
                 return false;
             }
 
-            if ( ! $this->is_theme_settings_page() ) {
-                // Only add tabs if browsing one of the theme's setting pages.
+            if ( ! $this->is_product_settings_page() ) {
+                // Only add tabs if browsing one of the product's setting pages.
                 return false;
             }
 
