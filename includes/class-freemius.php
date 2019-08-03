@@ -9598,6 +9598,32 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string
+         */
+        function get_usage_tracking_terms_url() {
+            return $this->apply_filters(
+                'usage_tracking_terms_url',
+                "https://freemius.com/wordpress/usage-tracking/{$this->_plugin->id}/{$this->_slug}/"
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string
+         */
+        function get_eula_url() {
+            return $this->apply_filters(
+                'eula_url',
+                "https://freemius.com/terms/{$this->_plugin->id}/{$this->_slug}/"
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
          * @return string Plugin public key.
@@ -10665,7 +10691,20 @@
                 return false;
             }
 
-            return $this->has_active_valid_license() && ( $this->_site->trial_plan_id == $this->_license->plan_id );
+            if ( ! $this->has_active_valid_license() ) {
+                return false;
+            }
+
+            if ( $this->_site->trial_plan_id != $this->_license->plan_id ) {
+                return false;
+            }
+
+            /**
+             * @var FS_Subscription $subscription
+             */
+            $subscription = $this->_get_subscription( $this->_license->id );
+
+            return ( is_object( $subscription ) && $subscription->is_active() );
         }
 
         /**
@@ -21419,7 +21458,7 @@
         function _show_theme_activation_optin_dialog() {
             fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
 
-            add_action( 'admin_footer-themes.php', array( &$this, '_add_fs_theme_activation_dialog' ) );
+            add_action( 'admin_footer', array( &$this, '_add_fs_theme_activation_dialog' ) );
         }
 
         /**
@@ -21427,6 +21466,12 @@
          * @since  1.2.2
          */
         function _add_fs_theme_activation_dialog() {
+            global $pagenow;
+
+            if ( 'themes.php' !== $pagenow ) {
+                return;
+            }
+
             $vars = array( 'id' => $this->_module_id );
             fs_require_once_template( 'connect.php', $vars );
         }

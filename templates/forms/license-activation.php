@@ -11,6 +11,8 @@
 	}
 
 	/**
+     * @var array $VARS
+     *
 	 * @var Freemius $fs
 	 */
 	$fs           = freemius( $VARS['id'] );
@@ -29,9 +31,9 @@
 		$activate_button_text = $header_title;
 	} else {
 		$freemius_site_url = $fs->has_paid_plan() ?
-			'https://freemius.com/wordpress/' :
+			'https://freemius.com/' :
 			// Insights platform information.
-			'https://freemius.com/wordpress/usage-tracking/';
+			$fs->get_usage_tracking_terms_url();
 
 		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
 
