@@ -1571,7 +1571,10 @@
                      *
                      * @author Vova Feldman (@svovaf)
                      */
-                    if ( $this->is_plugin() && $this->is_activation_mode( false ) ) {
+                    if ( $this->is_plugin() &&
+                         $this->is_activation_mode( false ) &&
+                         0 == did_action( 'plugins_loaded' )
+                    ) {
                         add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
                     } else {
                         // If was activated before, then it was already loaded before.
