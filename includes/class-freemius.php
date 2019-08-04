@@ -22573,6 +22573,11 @@
                 return false;
             }
 
+            if ( $this->is_activation_page() ) {
+                // Don't include tabs in the activation page.
+                return false;
+            }
+
             if ( $this->is_admin_page( 'pricing' ) && fs_request_get_bool( 'checkout' ) ) {
                 // Don't add tabs on checkout page, we want to reduce distractions
                 // as much as possible.
