@@ -2987,7 +2987,7 @@
          * @return bool
          */
         function is_activation_page() {
-            if ( $this->_menu->is_main_settings_page() ) {
+            if ( $this->_menu->is_activation_page( $this->is_free_wp_org_theme() ) ) {
                 return true;
             }
 
@@ -7015,7 +7015,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_main_settings_page() ) {
+                    if ( ! $this->_menu->is_activation_page( $this->is_free_wp_org_theme() ) ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
