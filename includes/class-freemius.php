@@ -1511,7 +1511,7 @@
             $this->_logger->entrance();
 
             if ( is_admin() ) {
-                add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
+                add_action( 'admin_init', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
                     if ( self::is_plugin_install_page() && true !== fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) {
@@ -1993,7 +1993,7 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
-            add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+            $this->_add_tracking_links();
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
