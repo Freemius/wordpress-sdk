@@ -5470,6 +5470,7 @@
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
                 'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
+                'bundle_public_key'    => $this->get_option( $plugin_info, 'bundle_public_key', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
@@ -9585,6 +9586,18 @@
         function get_bundle_id() {
             return ( isset( $this->_plugin->bundle_id ) && FS_Plugin::is_valid_id( $this->_plugin->bundle_id ) ) ?
                 $this->_plugin->bundle_id :
+                null;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string|null Bundle public key.
+         */
+        function get_bundle_public_key() {
+            return isset( $this->_plugin->bundle_public_key ) ?
+                $this->_plugin->bundle_public_key :
                 null;
         }
 
