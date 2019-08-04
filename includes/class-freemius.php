@@ -7019,8 +7019,7 @@
 
             $this->_add_upgrade_action_link();
 
-            if ( ! $this->is_addon() &&
-                 ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
+            if ( ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
                  (
                      ( true === $this->_storage->require_license_activation ) ||
                      // Not registered nor anonymous.
