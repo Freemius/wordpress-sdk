@@ -499,7 +499,7 @@
                 $this->_cache->clear();
             }
 
-            $this->_register_hooks();
+            $this->register_constructor_hooks();
 
             /**
              * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have `plan_id`
@@ -1508,7 +1508,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          */
-        private function _register_hooks() {
+        private function register_constructor_hooks() {
             $this->_logger->entrance();
 
             if ( is_admin() ) {
