@@ -772,16 +772,16 @@
 
             $( '.fs-toggle-beta-mode' ).click( function () {
                 var $checkbox = $( this ),
-                    isChecked = $checkbox.is( ':checked' );
+                    isBeta    = $checkbox.is( ':checked' );
 
-                if ( ! isChecked || confirm( '<?php echo $confirmation_message ?>' ) ) {
+                if ( ! isBeta || confirm( '<?php echo $confirmation_message ?>' ) ) {
                     $.ajax( {
                         url   : ajaxurl,
                         method: 'POST',
                         data  : {
-                            action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode' ) ?>',
-                            security : '<?php echo $fs->get_ajax_security( 'set_beta_mode' ) ?>',
-                            is_beta  : isChecked,
+                            action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode_and_maybe_check_for_update' ) ?>',
+                            security : '<?php echo $fs->get_ajax_security( 'set_beta_mode_and_maybe_check_for_update' ) ?>',
+                            is_beta  : isBeta,
                             module_id: <?php echo $fs->get_id() ?>
                         },
                         beforeSend: function () {
