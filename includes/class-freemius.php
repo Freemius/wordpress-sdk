@@ -16834,12 +16834,13 @@
                 return false;
             }
 
-            if ( $this->show_settings_with_tabs() && ! fs_is_network_admin() ) {
-                // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
-                return true;
-            }
-
-            if ( $is_activation_mode && ! $this->show_settings_with_tabs() ) {
+            if ( $this->is_free_wp_org_theme() ) {
+                if ( ! fs_is_network_admin() ) {
+                    // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
+                    return true;
+                }
+            } else if ( $is_activation_mode ) {
+                // Don't show submenu-items/tabs in activation mode, unless it's a wp.org theme.
                 return false;
             }
 
