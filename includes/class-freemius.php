@@ -5545,7 +5545,7 @@
             $this->_navigation = $this->get_option(
                 $plugin_info,
                 'navigation',
-                $this->is_theme() ?
+                $this->is_free_wp_org_theme() ?
                     self::NAVIGATION_TABS :
                     self::NAVIGATION_MENU
             );
