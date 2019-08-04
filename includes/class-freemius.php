@@ -21722,6 +21722,11 @@
 
             $this->_logger->entrance();
 
+            if ( $this->is_premium() ) {
+                // Don't add opt-in/out for premium code base.
+                return;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
