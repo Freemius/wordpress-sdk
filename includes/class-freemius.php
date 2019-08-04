@@ -1553,34 +1553,6 @@
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
-                    /**
-                     * Include the required hooks to capture the theme settings' page tabs
-                     * and cache them.
-                     *
-                     * @author Vova Feldman (@svovaf)
-                     * @since  1.2.2.7
-                     */
-                    if ( ! $this->_cache->has_valid( 'tabs' ) ) {
-                        add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
-                        // Add license activation AJAX callback.
-                        $this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
-
-                        add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
-                    }
-
-                    add_action(
-                        'admin_footer',
-                        array( &$this, '_add_freemius_tabs' ),
-                        /**
-                         * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
-                         * That's why the priority is 11 while the tabs capture logic is added
-                         * with priority 10.
-                         *
-                         * @author Vova Feldman (@svovaf)
-                         */
-                        11
-                    );
-
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
                 }
 
@@ -1698,6 +1670,65 @@
                  $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
+            }
+        }
+
+        /**
+         * Register the required hooks right after the settings parse is completed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         */
+        private function register_after_settings_parse_hooks() {
+            if ( is_admin() &&
+                 $this->is_theme() &&
+                 $this->is_premium() &&
+                 ! $this->has_active_valid_license()
+            ) {
+                $this->add_ajax_action(
+                    'delete_theme_update_data',
+                    array( &$this, '_delete_theme_update_data_action' )
+                );
+            }
+
+            if ( $this->show_settings_with_tabs() ) {
+                /**
+                 * Include the required hooks to capture the theme settings' page tabs
+                 * and cache them.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.2.2.7
+                 */
+                if ( ! $this->_cache->has_valid( 'tabs' ) ) {
+                    add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
+                    // Add license activation AJAX callback.
+                    $this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
+
+                    add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
+                }
+
+                add_action(
+                    'admin_footer',
+                    array( &$this, '_add_freemius_tabs' ),
+                    /**
+                     * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
+                     * That's why the priority is 11 while the tabs capture logic is added
+                     * with priority 10.
+                     *
+                     * @author Vova Feldman (@svovaf)
+                     */
+                    11
+                );
+            }
+
+            if ( ! self::is_ajax() ) {
+                if ( ! $this->is_addon() || $this->is_only_premium() ) {
+                    add_action(
+                        ( $this->_is_network_active && fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu',
+                        array( &$this, '_prepare_admin_menu' ),
+                        WP_FS__LOWEST_PRIORITY
+                    );
+                }
             }
         }
 
@@ -4689,22 +4720,7 @@
 
             $this->parse_settings( $plugin_info );
 
-            if ( is_admin() && $this->is_theme() && $this->is_premium() && ! $this->has_active_valid_license() ) {
-                $this->add_ajax_action(
-                    'delete_theme_update_data',
-                    array( &$this, '_delete_theme_update_data_action' )
-                );
-            }
-
-            if ( ! self::is_ajax() ) {
-                if ( ! $this->is_addon() || $this->is_only_premium() ) {
-                    add_action(
-                        ( $this->_is_network_active && fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu',
-                        array( &$this, '_prepare_admin_menu' ),
-                        WP_FS__LOWEST_PRIORITY
-                    );
-                }
-            }
+            $this->register_after_settings_parse_hooks();
 
             if ( $this->should_stop_execution() ) {
                 return;
