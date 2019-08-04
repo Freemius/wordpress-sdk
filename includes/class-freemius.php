@@ -22590,7 +22590,7 @@
                 return false;
             }
 
-            if ( ! $this->has_paid_plan() && ! $this->has_addons() ) {
+            if ( $this->is_theme() && ! $this->has_paid_plan() && ! $this->has_addons() ) {
                 // Only add tabs to monetizing themes.
                 return false;
             }
@@ -22600,7 +22600,7 @@
                 return false;
             }
 
-            if ( $this->is_activation_page() ) {
+            if ( $this->is_activation_mode() && $this->is_activation_page() ) {
                 // Don't include tabs in the activation page.
                 return false;
             }
