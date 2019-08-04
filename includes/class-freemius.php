@@ -12136,17 +12136,17 @@
                 return;
             }
 
-            $this->add_ajax_action( 'set_beta_mode_and_maybe_check_for_update', array( &$this, '_set_beta_mode_and_maybe_check_for_update_ajax_handler' ) );
+            $this->add_ajax_action( 'set_beta_mode_and_maybe_fetch_version_update', array( &$this, '_set_beta_mode_and_maybe_fetch_version_update_ajax_handler' ) );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.0
          */
-        function _set_beta_mode_and_maybe_check_for_update_ajax_handler() {
+        function _set_beta_mode_and_maybe_fetch_version_update_ajax_handler() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'set_beta_mode_and_maybe_check_for_update' );
+            $this->check_ajax_referer( 'set_beta_mode_and_maybe_fetch_version_update' );
 
             if ( ! $this->is_user_admin() ) {
                 // Only for admins.
