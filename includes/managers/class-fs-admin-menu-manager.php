@@ -436,14 +436,14 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.8
          *
-         * @param bool $is_free_wp_org_theme Since 2.3.1
+         * @param bool $show_opt_in_on_themes_page Since 2.3.1
          *
          * @return bool
          *
          * @deprecated Please use is_activation_page() instead.
          */
-        function is_main_settings_page( $is_free_wp_org_theme = false ) {
-            return $this->is_activation_page( $is_free_wp_org_theme );
+        function is_main_settings_page( $show_opt_in_on_themes_page = false ) {
+            return $this->is_activation_page( $show_opt_in_on_themes_page );
         }
 
         /**
@@ -452,12 +452,12 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.3.1
          *
-         * @param bool $is_free_wp_org_theme Since 2.3.1
+         * @param bool $show_opt_in_on_themes_page Since 2.3.1
          *
          * @return bool
          */
-        function is_activation_page( $is_free_wp_org_theme = false ) {
-            if ( $is_free_wp_org_theme ) {
+        function is_activation_page( $show_opt_in_on_themes_page = false ) {
+            if ( $show_opt_in_on_themes_page ) {
                 /**
                  * In activation only when show_optin query string param is given.
                  *
