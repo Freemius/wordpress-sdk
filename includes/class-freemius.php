@@ -14530,6 +14530,18 @@
         }
 
         /**
+         * Check if currently in the product's main admin page.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return bool
+         */
+        function is_main_admin_page() {
+            return $this->is_admin_page( '' );
+        }
+
+        /**
          * Get module's main admin setting page URL.
          *
          * @author Vova Feldman (@svovaf)
