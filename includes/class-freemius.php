@@ -7082,8 +7082,8 @@
                     }
                 }
 
-                if ( $this->is_theme() &&
-                     $this->_menu->is_main_settings_page()
+                if ( $this->show_opt_in_on_themes_page() &&
+                     $this->is_activation_page()
                 ) {
                     $this->_show_theme_activation_optin_dialog();
                 }
