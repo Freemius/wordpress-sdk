@@ -3017,7 +3017,7 @@
          * @return bool
          */
         function is_activation_page() {
-            if ( $this->_menu->is_activation_page( $this->is_free_wp_org_theme() ) ) {
+            if ( $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
                 return true;
             }
 
@@ -7030,7 +7030,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_activation_page( $this->is_free_wp_org_theme() ) ) {
+                    if ( ! $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
@@ -16861,7 +16861,7 @@
                 return false;
             }
 
-            if ( $this->is_free_wp_org_theme() ) {
+            if ( $this->show_opt_in_on_themes_page() ) {
                 if ( ! fs_is_network_admin() ) {
                     // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
                     return true;
