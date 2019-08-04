@@ -21180,6 +21180,26 @@
         }
 
         /**
+         * Get bundle public API scope.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return FS_Api
+         */
+        function get_api_bundle_scope() {
+            return FS_Api::instance(
+                $this->get_bundle_id(),
+                'plugin',
+                $this->get_bundle_id(),
+                $this->get_bundle_public_key(),
+                ! $this->is_live(),
+                false,
+                $this->get_sdk_version()
+            );
+        }
+
+        /**
          * Get site API scope object (fallback to public plugin scope when not registered).
          *
          * @author Vova Feldman (@svovaf)
