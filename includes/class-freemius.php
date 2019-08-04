@@ -10609,7 +10609,7 @@
         function is_premium() {
             /**
              * `$this->_plugin` will be `false` when `is_activation_mode` calls this method directly from the
-             * `_register_hooks` method.
+             * `register_constructor_hooks` method.
              *
              * @author Leo Fajardo (@leorw)
              * @since 2.2.3
