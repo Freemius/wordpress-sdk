@@ -4880,6 +4880,7 @@
                         if (
                             $this->_parent->is_registered() &&
                             ! $this->is_registered() &&
+                            $this->has_free_plan() &&
                             /**
                              * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
                              * * Network active and in network admin         - network activate add-on account.
