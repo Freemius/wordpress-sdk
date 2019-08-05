@@ -294,18 +294,19 @@
                     );
                 }
 
-                // Add sync license only if non of the other CTAs are visible.
-                $buttons[] = fs_ui_get_action_button(
-                    $fs->get_id(),
-                    'account',
-                    $fs->get_unique_affix() . '_sync_license',
-                    esc_html( $sync_license_text ),
-                    '',
-                    array( 'plugin_id' => $addon_id ),
-                    false,
-                    true
-                );
-
+                if ( $fs_addon->has_paid_plan() ) {
+                    // Add sync license only if non of the other CTAs are visible.
+                    $buttons[] = fs_ui_get_action_button(
+                        $fs->get_id(),
+                        'account',
+                        $fs->get_unique_affix() . '_sync_license',
+                        esc_html( $sync_license_text ),
+                        '',
+                        array( 'plugin_id' => $addon_id ),
+                        false,
+                        true
+                    );
+                }
             }
         } else if ( ! $show_upgrade ) {
             if ( $fs->is_addon_installed( $addon_id ) ) {
