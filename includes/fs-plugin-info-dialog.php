@@ -1047,7 +1047,7 @@
                 $href        = add_query_arg( array( 'tab' => $tab, 'section' => $section_name ) );
                 $href        = esc_url( $href );
                 $san_section = esc_attr( $section_name );
-                echo "\t<a name='$san_section' href='$href' $class>$title</a>\n";
+                echo "\t<a name='$san_section' href='$href' $class>" . esc_html( $title ) . "</a>\n";
             }
 
             echo "</div>\n";
@@ -1414,7 +1414,7 @@
                                 $stars_label
                             ) ) ?>"><?php echo $stars_label ?></a></span>
                                 <span class="counter-back">
-						<span class="counter-bar" style="width: <?php echo 92 * $_rating; ?>px;"></span>
+						<span class="counter-bar" style="width: <?php echo absint(92 * $_rating); ?>px;"></span>
 					</span>
                                 <span class="counter-count"><?php echo number_format_i18n( $ratecount ); ?></span>
                             </div>
