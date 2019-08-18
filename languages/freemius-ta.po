@@ -1,0 +1,2717 @@
+# Copyright (C) 2019 freemius
+# This file is distributed under the same license as the freemius package.
+# Translators:
+# Sankar Srinivasan <petra.srini@gmail.com>, 2019
+msgid ""
+msgstr ""
+"Project-Id-Version: WordPress SDK\n"
+"Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2019-08-18 05:04+0000\n"
+"Last-Translator: Sankar Srinivasan <petra.srini@gmail.com>\n"
+"Language-Team: Tamil (http://www.transifex.com/freemius/wordpress-sdk/language/ta/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ta\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: includes/class-freemius.php1783, templates/account.php:769
+msgid ""
+"An update to a Beta version will replace your installed version of %s with "
+"the latest Beta release - use with caution, and not on production sites. You"
+" have been warned."
+msgstr "எச்சரிக்கை: %sன் முன்னோட்ட Beta பதிப்பின் மேம்பட்ட வடிவம் பழைய பதிப்பின் மீது நிறுவப்படுகிறது. "
+
+#: includes/class-freemius.php:1790
+msgid "Would you like to proceed with the update?"
+msgstr "மேம்படுத்தப்பட்ட பதிப்பில் தொடர விரும்புகிறீர்களா?"
+
+#: includes/class-freemius.php:1998
+msgid ""
+"Freemius SDK couldn't find the plugin's main file. Please contact "
+"sdk@freemius.com with the current error."
+msgstr "ப்ளக்இன் முக்கிய கோப்பை Freemius SDKவால் கண்டறிய முடியவில்லை. தயவுசெய்து பின்வரும் செய்தியுடன் sdk@freemius.comக்கு மின்னஞ்சல் அனுப்பவும்"
+
+#: includes/class-freemius.php:2000
+msgid "Error"
+msgstr "தவறு"
+
+#: includes/class-freemius.php:2390
+msgid "I found a better %s"
+msgstr "எனக்கு வேறு ஒரு நல்ல %s கிடைத்துவிட்டது"
+
+#: includes/class-freemius.php:2392
+msgid "What's the %s's name?"
+msgstr "%sன் பெயர் என்ன?"
+
+#: includes/class-freemius.php:2398
+msgid "It's a temporary %s. I'm just debugging an issue."
+msgstr "இது தற்காலிக %s. தவறை சரிசெய்ய முயற்சிக்கிறேன்"
+
+#: includes/class-freemius.php:2400
+msgid "Deactivation"
+msgstr "செயல்நிறுத்து"
+
+#: includes/class-freemius.php:2401
+msgid "Theme Switch"
+msgstr "தீம் மாற்றம்"
+
+#: includes/class-freemius.php2410, templates/forms/resend-key.php:24
+msgid "Other"
+msgstr "மற்றவை"
+
+#: includes/class-freemius.php:2418
+msgid "I no longer need the %s"
+msgstr "இனி எனக்கு %s தேவையில்லை"
+
+#: includes/class-freemius.php:2425
+msgid "I only needed the %s for a short period"
+msgstr "குறுகிய காலத்திற்கு மட்டும் %s போதும்"
+
+#: includes/class-freemius.php:2431
+msgid "The %s broke my site"
+msgstr "%s எனது இணையதளத்தை செயலிழக்க வைத்துவிட்டது"
+
+#: includes/class-freemius.php:2438
+msgid "The %s suddenly stopped working"
+msgstr "%s திடீரென நின்றுவிட்டது"
+
+#: includes/class-freemius.php:2448
+msgid "I can't pay for it anymore"
+msgstr "இதற்குமேல் பணம் செலுத்தமாட்டேன்"
+
+#: includes/class-freemius.php:2450
+msgid "What price would you feel comfortable paying?"
+msgstr "என்ன விலை உங்களுக்கு வசதியாக இருக்கும்?"
+
+#: includes/class-freemius.php:2456
+msgid "I don't like to share my information with you"
+msgstr "என் தனிப்பட்ட தகவலை உங்களோடு பகிர விரும்பவில்லை."
+
+#: includes/class-freemius.php:2477
+msgid "The %s didn't work"
+msgstr "%s வேலை செய்யவில்லை"
+
+#: includes/class-freemius.php:2487
+msgid "I couldn't understand how to make it work"
+msgstr "இதை எப்படி உபயோகிப்பது என்று எனக்குப் புரியவில்லை"
+
+#: includes/class-freemius.php:2495
+msgid "The %s is great, but I need specific feature that you don't support"
+msgstr "%s நல்லதுதான். ஆனால், எனக்கு தேவைப்படும் வசதி இதில் இல்லை"
+
+#: includes/class-freemius.php:2497
+msgid "What feature?"
+msgstr "என்ன வசதி?"
+
+#: includes/class-freemius.php:2501
+msgid "The %s is not working"
+msgstr "%s சரிவர வேலை செய்யவில்லை"
+
+#: includes/class-freemius.php:2503
+msgid "Kindly share what didn't work so we can fix it for future users..."
+msgstr "என்ன வேலை செய்யவில்லை என்பதை விளக்கமாக சொன்னால், அதை நாங்கள் சரி செய்வோம்."
+
+#: includes/class-freemius.php:2507
+msgid "It's not what I was looking for"
+msgstr "நான் எதிர்பார்த்தது இதுவல்ல."
+
+#: includes/class-freemius.php:2509
+msgid "What you've been looking for?"
+msgstr "நீங்கள் என்ன எதிர்பார்க்கிறீர்கள்?"
+
+#: includes/class-freemius.php:2513
+msgid "The %s didn't work as expected"
+msgstr "%s நான் எதிர்பார்த்தது போல் இல்லை"
+
+#: includes/class-freemius.php:2515
+msgid "What did you expect?"
+msgstr "நீங்கள் என்ன எதிர்பார்த்தீர்கள்?"
+
+#: includes/class-freemius.php3370, templates/debug.php:20
+msgid "Freemius Debug"
+msgstr "Freemius தவறுநீக்கி Debug"
+
+#: includes/class-freemius.php:4122
+msgid "I don't know what is cURL or how to install it, help me!"
+msgstr "cURL பற்றியோ, அதை நிறுவுவது பற்றியோ எனக்குத் தெரியாது. உதவுங்கள்."
+
+#: includes/class-freemius.php:4124
+msgid ""
+"We'll make sure to contact your hosting company and resolve the issue. You "
+"will get a follow-up email to %s once we have an update."
+msgstr "இந்தப் பிரச்சினை சீராக உங்கள் hosting நிறுவனத்தை தொடர்பு கொள்கிறோம். பதில் வந்ததும் %sக்கு மின்னஞ்சல் வரும்."
+
+#: includes/class-freemius.php:4131
+msgid ""
+"Great, please install cURL and enable it in your php.ini file. In addition, "
+"search for the 'disable_functions' directive in your php.ini file and remove"
+" any disabled methods starting with 'curl_'. To make sure it was "
+"successfully activated, use 'phpinfo()'. Once activated, deactivate the %s "
+"and reactivate it back again."
+msgstr "அருமை, cURLஐ நிறுவி அதை php.ini கோப்பில் அழைக்கவும். அதோடு, disable_functionsஐ php.iniல் தேடி, 'curl'  என்று துவங்கும் செயல்படா மாறிகளை அழிக்கவும். வெற்றிகரமாக செயல்படுவதை உறுதிசெய்ய 'phpinfo()' பயன்படுத்தவும். செயல்பாடு துவங்கியதும் , %sன் செயல்பாட்டை ஒருமுறை நிறுத்தி, மீண்டும் செயல்படுத்தவும்."
+
+#: includes/class-freemius.php:4236
+msgid "Yes - do your thing"
+msgstr "ம்... கிளப்புங்கள்"
+
+#: includes/class-freemius.php:4241
+msgid "No - just deactivate"
+msgstr "வேணாம்பா... கண்ண கட்டுது"
+
+#: includes/class-freemius.php4286, includes/class-freemius.php4795,
+#: includes/class-freemius.php5936, includes/class-freemius.php12614,
+#: includes/class-freemius.php15975, includes/class-freemius.php16063,
+#: includes/class-freemius.php16229, includes/class-freemius.php18688,
+#: includes/class-freemius.php18698, includes/class-freemius.php19334,
+#: includes/class-freemius.php20207, includes/class-freemius.php20322,
+#: includes/class-freemius.php20466, templates/add-ons.php:54
+msgctxt "exclamation"
+msgid "Oops"
+msgstr "அரே ஓ சம்போ!"
+
+#: includes/class-freemius.php:4355
+msgid ""
+"Thank for giving us the chance to fix it! A message was just sent to our "
+"technical staff. We will get back to you as soon as we have an update to %s."
+" Appreciate your patience."
+msgstr "இதைச் சரிசெய்ய வாய்ப்பளித்ததற்கு நன்றி. எங்கள் தொழில்நுட்ப பணியாளருக்கு இதுகுறித்து செய்தி அனுப்பியுள்ளோம். %sக்கு தகவல் வந்ததும் தொடர்பு கொள்கிறோம். தங்கள் பொறுமைக்கு நன்றி."
+
+#: includes/class-freemius.php:4792
+msgctxt "addonX cannot run without pluginY"
+msgid "%s cannot run without %s."
+msgstr "%s இல்லாமல் %s இயங்காது"
+
+#: includes/class-freemius.php:4793
+msgctxt "addonX cannot run..."
+msgid "%s cannot run without the plugin."
+msgstr "ப்ளக்இன் இல்லாமல் %s இயங்காது"
+
+#: includes/class-freemius.php4965, includes/class-freemius.php4990,
+#: includes/class-freemius.php:19405
+msgid ""
+"Unexpected API error. Please contact the %s's author with the following "
+"error."
+msgstr "எதிர்பாரா API தவறு. பின்வரும் செய்தியோடு %sன் ஆக்கியோரைத் தொடர்பு கொள்ளவும்"
+
+#: includes/class-freemius.php:5624
+msgid "Premium %s version was successfully activated."
+msgstr "%s விலையுள்ள பதிப்பு வெற்றிகரமாக செயல்பாட்டுக்கு வந்தது."
+
+#: includes/class-freemius.php5636, includes/class-freemius.php:7504
+msgctxt ""
+"Used to express elation, enthusiasm, or triumph (especially in electronic "
+"communication)."
+msgid "W00t"
+msgstr "W00t"
+
+#: includes/class-freemius.php:5651
+msgid "You have a %s license."
+msgstr "உங்களிடம் %sன் உரிமம் உள்ளது"
+
+#: includes/class-freemius.php5655, includes/class-freemius.php15396,
+#: includes/class-freemius.php15407, includes/class-freemius.php18599,
+#: includes/class-freemius.php18929, includes/class-freemius.php18995,
+#: includes/class-freemius.php:19159
+msgctxt "interjection expressing joy or exuberance"
+msgid "Yee-haw"
+msgstr "Yee-haw"
+
+#: includes/class-freemius.php:5919
+msgid ""
+"%s free trial was successfully cancelled. Since the add-on is premium only "
+"it was automatically deactivated. If you like to use it in the future, "
+"you'll have to purchase a license."
+msgstr "ஆட் ஆன் விலையுள்ளது என்பதால் %sன் விலையில்லா முன்னோட்டம் ரத்தானது.  நீங்கள் உரிமம் வாங்கிப் பயன்பாட்டைத் தொடரலாம்."
+
+#: includes/class-freemius.php:5923
+msgid ""
+"%s is a premium only add-on. You have to purchase a license first before "
+"activating the plugin."
+msgstr "%s ஒரு விலையுள்ள ஆட்ஆன். ப்ளக்இன் செயல்பட நீங்கள் உரிமம் வாங்கவேண்டும்"
+
+#: includes/class-freemius.php5932, templates/add-ons.php130,
+#: templates/account/partials/addon.php:343
+msgid "More information about %s"
+msgstr "%s குறித்த மேலதிக தகவல்"
+
+#: includes/class-freemius.php:5933
+msgid "Purchase License"
+msgstr "உரிமம் வாங்குங்கள்"
+
+#: includes/class-freemius.php6868, templates/connect.php:163
+msgid ""
+"You should receive an activation email for %s to your mailbox at %s. Please "
+"make sure you click the activation button in that email to %s."
+msgstr "%s அஞ்சலகத்திற்கு %s குறித்த செயல்பாட்டு மின்னஞ்சல் வந்துசேரும். %sக்கு வந்துசேர மின்னஞ்சலின் ஆக்டிவேசன் பட்டனை அழுத்தவும்."
+
+#: includes/class-freemius.php:6872
+msgid "start the trial"
+msgstr "வெள்ளோட்டம் துவங்கலாம்"
+
+#: includes/class-freemius.php6873, templates/connect.php:167
+msgid "complete the install"
+msgstr "நிறுவுதலை முடிக்கவும்"
+
+#: includes/class-freemius.php:6986
+msgid "You are just one step away - %s"
+msgstr "இன்னும் ஒருபடி அருகில் - %s"
+
+#: includes/class-freemius.php:6989
+msgctxt "%s - plugin name. As complete \"PluginX\" activation now"
+msgid "Complete \"%s\" Activation Now"
+msgstr "\"%s\" செயல்படுத்தலை முடியுங்கள்"
+
+#: includes/class-freemius.php:7067
+msgid "We made a few tweaks to the %s, %s"
+msgstr "%s, %sக்கு சில சுவாரஸ்யங்களை உருவாக்கியிருக்கிறோம்"
+
+#: includes/class-freemius.php:7071
+msgid "Opt in to make \"%s\" better!"
+msgstr "\"%s\"ஐ சிறப்பானதாக்க தேர்வு செய்யுங்கள்"
+
+#: includes/class-freemius.php:7503
+msgid "The upgrade of %s was successfully completed."
+msgstr "%sன் மேம்படுத்தல் முடிந்தது"
+
+#: includes/class-freemius.php9665, includes/class-fs-plugin-updater.php1014,
+#: includes/class-fs-plugin-updater.php1209,
+#: includes/class-fs-plugin-updater.php1216,
+#: templates/auto-installation.php:32
+msgid "Add-On"
+msgstr "ஆட் ஆன்"
+
+#: includes/class-freemius.php9667, templates/account.php313,
+#: templates/account.php321, templates/debug.php361, templates/debug.php:522
+msgid "Plugin"
+msgstr "ப்ளக்இன்"
+
+#: includes/class-freemius.php9668, templates/account.php314,
+#: templates/account.php322, templates/debug.php361, templates/debug.php522,
+#: templates/forms/deactivation/form.php:71
+msgid "Theme"
+msgstr "தீம்"
+
+#: includes/class-freemius.php:12085
+msgid ""
+"An unknown error has occurred while trying to set the user's beta mode."
+msgstr "உபயோகிப்பாளரின் பீட்டாவை செயல்படுத்துகையில், புதிய தவறு உருவாகியுள்ளது."
+
+#: includes/class-freemius.php:12481
+msgid "Invalid site details collection."
+msgstr "தவறான தள விவர சேர்ப்பு"
+
+#: includes/class-freemius.php:12601
+msgid ""
+"We couldn't find your email address in the system, are you sure it's the "
+"right address?"
+msgstr "உங்கள் மின்னஞ்சல் முகவரியைக் காணவில்லை. நீங்கள் அளித்தது சரியானதா?. "
+
+#: includes/class-freemius.php:12603
+msgid ""
+"We can't see any active licenses associated with that email address, are you"
+" sure it's the right address?"
+msgstr "இந்த மின்னஞ்சலின் பதிவில் எந்த உரிமமும் இல்லை. தங்கள் மின்னஞ்சல் சரியானதா?"
+
+#: includes/class-freemius.php:12877
+msgid "Account is pending activation."
+msgstr "கணக்கு செயல்பாடு முடிவடையவில்லை."
+
+#: includes/class-freemius.php12989,
+#: templates/forms/premium-versions-upgrade-handler.php:47
+msgid "Buy a license now"
+msgstr "புது உரிமம் வாங்குங்கள்"
+
+#: includes/class-freemius.php13001,
+#: templates/forms/premium-versions-upgrade-handler.php:46
+msgid "Renew your license now"
+msgstr "உரிமத்தை புதுப்பியுங்கள்"
+
+#: includes/class-freemius.php:13005
+msgid "%s to access version %s security & feature updates, and support."
+msgstr "%s பாதுகாப்பு மேம்படுத்தல் மற்றும் உதவிக்கு %s"
+
+#: includes/class-freemius.php:15378
+msgid "%s activation was successfully completed."
+msgstr "%s செயல்படுத்தல் வெற்றிகரமாக முடிந்தது."
+
+#: includes/class-freemius.php:15392
+msgid "Your account was successfully activated with the %s plan."
+msgstr "%s திட்டத்தில் உங்கள் கணக்கின் செயல்பாடு துவங்கியது."
+
+#: includes/class-freemius.php15403, includes/class-freemius.php:18991
+msgid "Your trial has been successfully started."
+msgstr "உங்கள் வெள்ளோட்டம் துவங்கியது"
+
+#: includes/class-freemius.php15973, includes/class-freemius.php16061,
+#: includes/class-freemius.php:16227
+msgid "Couldn't activate %s."
+msgstr "%sஐ செயல்படுத்த முடியவில்லை."
+
+#: includes/class-freemius.php15974, includes/class-freemius.php16062,
+#: includes/class-freemius.php:16228
+msgid "Please contact us with the following message:"
+msgstr "பின்வரும் செய்தியோடு எங்களைத் தொடர்பு கொள்ளுங்கள்"
+
+#: includes/class-freemius.php:16058
+msgid "An unknown error has occurred."
+msgstr "என்னதென்றே தெரியாத ஒரு தவறு நேர்ந்துவிட்டது"
+
+#: includes/class-freemius.php16585, includes/class-freemius.php:21339
+msgid "Upgrade"
+msgstr "மேம்படுத்து"
+
+#: includes/class-freemius.php:16591
+msgid "Start Trial"
+msgstr "வெள்ளோட்டம் துவக்கு"
+
+#: includes/class-freemius.php:16593
+msgid "Pricing"
+msgstr "விலை விவரம்"
+
+#: includes/class-freemius.php16672, includes/class-freemius.php:16674
+msgid "Affiliation"
+msgstr "புரிந்துணர்வு"
+
+#: includes/class-freemius.php16702, includes/class-freemius.php16704,
+#: templates/account.php177, templates/debug.php:326
+msgid "Account"
+msgstr "கணக்கு"
+
+#: includes/class-freemius.php16717, includes/class-freemius.php16719,
+#: includes/customizer/class-fs-customizer-support-section.php:60
+msgid "Contact Us"
+msgstr "தொடர்பு கொள்ளுங்கள்"
+
+#: includes/class-freemius.php16729, includes/class-freemius.php16731,
+#: includes/class-freemius.php21353, templates/account.php105,
+#: templates/account/partials/addon.php:45
+msgid "Add-Ons"
+msgstr "ஆட்-ஆன்ஸ்"
+
+#: includes/class-freemius.php:16765
+msgctxt "ASCII arrow left icon"
+msgid "&#x2190;"
+msgstr "&#x2190;"
+
+#: includes/class-freemius.php:16765
+msgctxt "ASCII arrow right icon"
+msgid "&#x27a4;"
+msgstr "&#x27a4;"
+
+#: includes/class-freemius.php16767, templates/pricing.php:102
+msgctxt "noun"
+msgid "Pricing"
+msgstr "விலை விவரம்"
+
+#: includes/class-freemius.php16980,
+#: includes/customizer/class-fs-customizer-support-section.php:67
+msgid "Support Forum"
+msgstr "உதவி மையம்"
+
+#: includes/class-freemius.php:17925
+msgid "Your email has been successfully verified - you are AWESOME!"
+msgstr "உங்கள் மின்னஞ்சல் சரிபார்க்கப்பட்டது - நன்றி!"
+
+#: includes/class-freemius.php:17926
+msgctxt "a positive response"
+msgid "Right on"
+msgstr "Right on"
+
+#: includes/class-freemius.php:18590
+msgid "Your %s Add-on plan was successfully upgraded."
+msgstr "உங்கள் %s ஆட்-ஆன் திட்டம் மேம்படுத்தப்பட்டது."
+
+#: includes/class-freemius.php:18592
+msgid "%s Add-on was successfully purchased."
+msgstr "%s ஆட்-ஆனை வாங்கிவிட்டீர்கள்."
+
+#: includes/class-freemius.php:18595
+msgid "Download the latest version"
+msgstr "புதிய பதிப்பை பதிவிறக்கலாம்"
+
+#: includes/class-freemius.php:18681
+msgid ""
+"Your server is blocking the access to Freemius' API, which is crucial for "
+"%1$s synchronization. Please contact your host to whitelist %2$s"
+msgstr "%1$s சரியாகச் செயல்பட அவசியமான Freemius APIயை உங்கள் செர்வர் தடை செய்கிறது. %2$sயை செயல்பட வைக்க உங்கள் hosting நிறுவனத்தை அணுகவும்."
+
+#: includes/class-freemius.php18687, includes/class-freemius.php19118,
+#: includes/class-freemius.php:19207
+msgid "Error received from the server:"
+msgstr "செர்வரிடம் இருந்து தவறுச் செய்தி வந்திருக்கிறது."
+
+#: includes/class-freemius.php:18697
+msgid ""
+"It seems like one of the authentication parameters is wrong. Update your "
+"Public Key, Secret Key & User ID, and try again."
+msgstr "சரிபார்க்கும் வகையினங்களில் ஏதோ ஒன்று தவறுபோல் தெரிகிறது. உங்கள் Public Key, Secret Key & User ID ஆகியவற்றை சரிபார்த்து மீண்டும் முயற்சிக்கவும்."
+
+#: includes/class-freemius.php18891, includes/class-freemius.php19123,
+#: includes/class-freemius.php19178, includes/class-freemius.php:19281
+msgctxt ""
+"something somebody says when they are thinking about what you have just "
+"said."
+msgid "Hmm"
+msgstr "Hmm"
+
+#: includes/class-freemius.php:18904
+msgid ""
+"It looks like you are still on the %s plan. If you did upgrade or change "
+"your plan, it's probably an issue on our side - sorry."
+msgstr "நீங்கள் இன்னும் %s திட்டத்திலேயே இருப்பதாகத் தெரிகிறது. நீங்கள் திட்டத்தை மாற்றிய பின்னர் இப்படி இருந்தால், அது எங்கள் தவறு. மன்னிக்கவும். "
+
+#: includes/class-freemius.php18905, templates/account.php107,
+#: templates/add-ons.php191, templates/account/partials/addon.php:47
+msgctxt "trial period"
+msgid "Trial"
+msgstr "வெள்ளோட்டம்"
+
+#: includes/class-freemius.php:18910
+msgid ""
+"I have upgraded my account but when I try to Sync the License, the plan "
+"remains %s."
+msgstr "என் திட்டத்தை மேம்படுத்திய பின்னும், என் உரிமம் %s என்பதாகவே காட்டுகிறது."
+
+#: includes/class-freemius.php18914, includes/class-freemius.php:18973
+msgid "Please contact us here"
+msgstr "எங்களை இங்கு அணுகலாம்"
+
+#: includes/class-freemius.php:18925
+msgid "Your plan was successfully activated."
+msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் துவங்கியது."
+
+#: includes/class-freemius.php:18926
+msgid "Your plan was successfully upgraded."
+msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் மேம்படுத்தப்பட்டது."
+
+#: includes/class-freemius.php:18943
+msgid "Your plan was successfully changed to %s."
+msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் %sக்கு மாறியது."
+
+#: includes/class-freemius.php:18959
+msgid ""
+"Your license has expired. You can still continue using the free %s forever."
+msgstr "உங்கள் உரிமம் முடிந்தது. ஆனாலும் %sன் விலையில்லாப் பதிப்பை என்றும் தொடரலாம். "
+
+#: includes/class-freemius.php:18961
+msgid ""
+"Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s "
+"without interruptions."
+msgstr "உங்கள் உரிமம் முடிந்தது. %3$sஐ தொடர்ந்து பயன்படுத்த %1$s %2$s இவற்றை மேம்படுத்துங்கள்."
+
+#: includes/class-freemius.php:18969
+msgid ""
+"Your license has been cancelled. If you think it's a mistake, please contact"
+" support."
+msgstr "உங்கள் உரிமம் ரத்தானது. இதில் தவறேதும் உணர்ந்தால் உடனடியாக எங்கள் உதவியை அணுகவும்."
+
+#: includes/class-freemius.php:18982
+msgid ""
+"Your license has expired. You can still continue using all the %s features, "
+"but you'll need to renew your license to continue getting updates and "
+"support."
+msgstr "உங்கள் உரிமம் முடிந்தது. எனினும் நீங்கள் %sன் வசதிகளைத் தொடரலாம். எனினும், தொடர் மேம்படுத்தல் மற்றும் உதவிக்கு உங்கள் உரிமத்தைப் புதுப்பிக்கவும்."
+
+#: includes/class-freemius.php:19005
+msgid ""
+"Your free trial has expired. You can still continue using all our free "
+"features."
+msgstr "உங்கள் வெள்ளோட்டம் முடிந்தது. ஆனாலும் பிற  விலையில்லா சேவைகளைத் தொடரலாம்."
+
+#: includes/class-freemius.php:19007
+msgid ""
+"Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s "
+"without interruptions."
+msgstr "உங்கள் விலையில்லா வெள்ளோட்டம் முடிந்தது. %3$sஐ தொடர்ந்து பயன்படுத்த %1$s %2$sஇவற்றை மேம்படுத்துங்கள்."
+
+#: includes/class-freemius.php:19114
+msgid "It looks like the license could not be activated."
+msgstr "உங்கள் உரிமம் செயல்பாட்டுக்கு வரவில்லையென தோன்றுகிறது."
+
+#: includes/class-freemius.php:19156
+msgid "Your license was successfully activated."
+msgstr "உங்கள் உரிமம் செயல்படுத்தப்பட்டது."
+
+#: includes/class-freemius.php:19182
+msgid "It looks like your site currently doesn't have an active license."
+msgstr "உங்கள் தளத்திற்கு உரிமம் ஏதும் இல்லை என்பது போல் தெரிகிறது."
+
+#: includes/class-freemius.php:19206
+msgid "It looks like the license deactivation failed."
+msgstr "உரிமத்தின் செயல்நிறுத்தம் தோல்வி அடைந்ததுபோல் தெரிகிறது."
+
+#: includes/class-freemius.php:19234
+msgid ""
+"Your license was successfully deactivated, you are back to the %s plan."
+msgstr "உங்கள் உரிமம் செயல்நிறுத்தப்பட்டது, %s திட்டத்திற்கு மாற்றப்பட்டுள்ளீர்கள்."
+
+#: includes/class-freemius.php:19235
+msgid "O.K"
+msgstr "O.K"
+
+#: includes/class-freemius.php:19288
+msgid ""
+"Seems like we are having some temporary issue with your subscription "
+"cancellation. Please try again in few minutes."
+msgstr "உங்கள் சந்தா ரத்து செய்வதில் ஒரு தொழில்நுட்பக் கோளாறு. மீண்டும் முயற்சிக்கவும்."
+
+#: includes/class-freemius.php:19297
+msgid ""
+"Your subscription was successfully cancelled. Your %s plan license will "
+"expire in %s."
+msgstr "உங்கள் சந்தா ரத்து செய்யப்பட்டது. உங்கள் %s திட்டம் %s அன்று காலாவதியாகிறது."
+
+#: includes/class-freemius.php:19339
+msgid "You are already running the %s in a trial mode."
+msgstr "நீங்கள் %sஐ வெள்ளோட்ட நிலையில் உபயோகித்துக் கொண்டிருக்கிறீர்கள்."
+
+#: includes/class-freemius.php:19350
+msgid "You already utilized a trial before."
+msgstr "நீங்கள் ஏற்கனவே வெள்ளோட்டம் பார்த்துவிட்டீர்களே."
+
+#: includes/class-freemius.php:19364
+msgid "Plan %s do not exist, therefore, can't start a trial."
+msgstr "%s திட்டம் இல்லை. வெள்ளோட்டம் துவங்க இயலாது."
+
+#: includes/class-freemius.php:19375
+msgid "Plan %s does not support a trial period."
+msgstr "%s திட்டத்திற்கு வெள்ளோட்டம் கிடையாது."
+
+#: includes/class-freemius.php:19386
+msgid "None of the %s's plans supports a trial period."
+msgstr "%sன் எந்தத் திட்டங்களிலும் வெள்ளோட்டம் இல்லை."
+
+#: includes/class-freemius.php:19436
+msgid ""
+"It looks like you are not in trial mode anymore so there's nothing to cancel"
+" :)"
+msgstr "வெள்ளோட்டத்தில் நீங்கள் இல்லை என்பதால், அதை ரத்துசெய்யத் தேவையில்லை :)"
+
+#: includes/class-freemius.php:19472
+msgid ""
+"Seems like we are having some temporary issue with your trial cancellation. "
+"Please try again in few minutes."
+msgstr "94%match\nஉங்கள் வெள்ளோட்டம் ரத்து செய்வதில் ஒரு தொழில்நுட்பக் கோளாறு. மீண்டும் முயற்சிக்கவும்"
+
+#: includes/class-freemius.php:19491
+msgid "Your %s free trial was successfully cancelled."
+msgstr "உங்கள் %s விலையில்லா வெள்ளோட்டம் ரத்து செய்யப்பட்டது."
+
+#: includes/class-freemius.php:19807
+msgid "Version %s was released."
+msgstr "%s பதிப்பு வெளியாகிவிட்டது."
+
+#: includes/class-freemius.php:19807
+msgid "Please download %s."
+msgstr "%sஐ பதிவிறக்கலாம்."
+
+#: includes/class-freemius.php:19814
+msgid "the latest %s version here"
+msgstr "%sன் அண்மைய பதிப்பு இதோ"
+
+#: includes/class-freemius.php:19819
+msgid "New"
+msgstr "புதியது"
+
+#: includes/class-freemius.php:19824
+msgid "Seems like you got the latest release."
+msgstr "புதிய பதிப்பு உங்களுக்குக் கிடைத்துவிட்டது போல் தெரிகிறது."
+
+#: includes/class-freemius.php:19825
+msgid "You are all good!"
+msgstr "நல்லது... மகிழ்ச்சி"
+
+#: includes/class-freemius.php:20095
+msgid ""
+"Verification mail was just sent to %s. If you can't find it after 5 min, "
+"please check your spam box."
+msgstr "உறுதிப்படுத்தும் மின்னஞ்சல் %sக்கு அனுப்பப்பட்டுள்ளது. பார்க்கவும். 5 நிமிடத்தில் மின்னஞ்சல் வரவில்லை என்றால் Spamல் பார்க்கவும்."
+
+#: includes/class-freemius.php:20234
+msgid "Site successfully opted in."
+msgstr "தளம் தெரிவு செய்யப்பட்டது."
+
+#: includes/class-freemius.php20235, includes/class-freemius.php:21055
+msgid "Awesome"
+msgstr "அடி தூள்"
+
+#: includes/class-freemius.php20251, templates/forms/optout.php:32
+msgid ""
+"We appreciate your help in making the %s better by letting us track some "
+"usage data."
+msgstr "%s மேலும் தரமானதாக்க உங்கள் பயன்பாட்டுத் தரவுகளை நாங்கள் பின்தொடர உதவுங்கள்."
+
+#: includes/class-freemius.php:20252
+msgid "Thank you!"
+msgstr "நன்றி!"
+
+#: includes/class-freemius.php:20259
+msgid "We will no longer be sending any usage data of %s on %s to %s."
+msgstr "%sன் %s மீதான பயன்பாட்டுத் தரவுகளை %sக்கு நாங்கள் அனுப்ப மாட்டோம்."
+
+#: includes/class-freemius.php:20388
+msgid ""
+"Please check your mailbox, you should receive an email via %s to confirm the"
+" ownership change. From security reasons, you must confirm the change within"
+" the next 15 min. If you cannot find the email, please check your spam "
+"folder."
+msgstr "உரிமை மாற்றம் குறித்து உறுதிப்படுத்தும்  மின்னஞ்சல் %s வழியாக உங்களுக்கு வந்திருக்கும். பாதுகாப்பு காரங்களுக்காக அடுத்த 15 நிமிடங்களுக்குள் மின்னஞ்சலைத் திறந்து உறுதி செய்யவும். ஒருவேளை உள்பெட்டியில் மின்னஞ்சல் இல்லையென்றால் Spamல் பார்க்கவும்."
+
+#: includes/class-freemius.php:20394
+msgid ""
+"Thanks for confirming the ownership change. An email was just sent to %s for"
+" final approval."
+msgstr "உரிமை மாற்றத்தை உறுதிப்படுத்தியதற்கு நன்றி. இறுதி ஒப்புதலுக்காக %sக்கு இப்போது ஒரு மின்னஞ்சல் அனுப்பப்பட்டுள்ளது."
+
+#: includes/class-freemius.php:20399
+msgid "%s is the new owner of the account."
+msgstr "கணக்கின் புதிய உரிமையாளர் %s."
+
+#: includes/class-freemius.php:20401
+msgctxt "as congratulations"
+msgid "Congrats"
+msgstr "வாழ்த்துக்கள்"
+
+#: includes/class-freemius.php:20421
+msgid ""
+"Sorry, we could not complete the email update. Another user with the same "
+"email is already registered."
+msgstr "மன்னிக்கவும்... இன்னொரு பயனாளர் இதே மின்னஞ்சல் முகவரியுடன் ஏற்கனவே பதிவு செய்திருக்கிறார்."
+
+#: includes/class-freemius.php:20422
+msgid ""
+"If you would like to give up the ownership of the %s's account to %s click "
+"the Change Ownership button."
+msgstr "உங்கள் %s கணக்கின் உரிமையை %sக்கு மாற்றிட விரும்பினால் உரிமை மாற்றம் பட்டனை அழுத்தவும்."
+
+#: includes/class-freemius.php:20429
+msgid "Change Ownership"
+msgstr "உரிமை மாற்றம்"
+
+#: includes/class-freemius.php:20437
+msgid ""
+"Your email was successfully updated. You should receive an email with "
+"confirmation instructions in few moments."
+msgstr "உங்கள் மின்னஞ்சல் விவரம் மேம்படுத்தப்பட்டது. அதை உறுதிப்படுத்தும் மின்னஞ்சல் இன்னும் சில கணங்களில் தங்களுக்கு வந்துசேரும்."
+
+#: includes/class-freemius.php:20449
+msgid "Please provide your full name."
+msgstr "உங்கள் முழுப் பெயரைத் தரவும்."
+
+#: includes/class-freemius.php:20454
+msgid "Your name was successfully updated."
+msgstr "உங்கள் பெயர் ஏற்றப்பட்டது."
+
+#: includes/class-freemius.php:20515
+msgid "You have successfully updated your %s."
+msgstr "உங்கள் %s மேம்படுத்தப்பட்டது."
+
+#: includes/class-freemius.php:20655
+msgid ""
+"Just letting you know that the add-ons information of %s is being pulled "
+"from an external server."
+msgstr "%sன் ஆட்-ஆன் தகவலை வெளியிலுள்ள சர்வர் மூலம் எடுக்கிறோம் என்பதை அறியவும்."
+
+#: includes/class-freemius.php:20656
+msgctxt "advance notice of something that will need attention."
+msgid "Heads up"
+msgstr "Heads up"
+
+#: includes/class-freemius.php:21095
+msgctxt "exclamation"
+msgid "Hey"
+msgstr "Hey"
+
+#: includes/class-freemius.php:21095
+msgid ""
+"How do you like %s so far? Test all our %s premium features with a %d-day "
+"free trial."
+msgstr "%sஐ எந்தளவு விரும்புகிறீர்கள்? %d-நாள் விலையில்லா வெள்ளோட்டத்தில் %sன் விலையுள்ள வசதிகளை சோதித்துப் பாருங்கள்."
+
+#: includes/class-freemius.php:21103
+msgid "No commitment for %s days - cancel anytime!"
+msgstr "%s நாட்களுக்கு எந்தக் கடப்பாடும் இல்லை - எப்போதும் ரத்து செய்யலாம்!"
+
+#: includes/class-freemius.php:21104
+msgid "No credit card required"
+msgstr "கடன் அட்டை தேவையில்லை"
+
+#: includes/class-freemius.php21111, templates/forms/trial-start.php:53
+msgctxt "call to action"
+msgid "Start free trial"
+msgstr "விலையில்லா வெள்ளோட்டம் தொடங்கட்டும்... டும்"
+
+#: includes/class-freemius.php:21188
+msgid ""
+"Hey there, did you know that %s has an affiliate program? If you like the %s"
+" you can become our ambassador and earn some cash!"
+msgstr "வணக்கம். %sன் முகவர் திட்டம் குறித்து உங்களுக்குத் தெரியுமா? %sஐ நீங்கள் விரும்பினால், நீங்களும் முகவராகி பணம் ஈட்டலாம்!"
+
+#: includes/class-freemius.php:21197
+msgid "Learn more"
+msgstr "மேலும் அறிய"
+
+#: includes/class-freemius.php21377, templates/account.php474,
+#: templates/account.php595, templates/connect.php171,
+#: templates/connect.php421, templates/forms/license-activation.php25,
+#: templates/account/partials/addon.php:287
+msgid "Activate License"
+msgstr "உரிமம் செயல்படுத்த"
+
+#: includes/class-freemius.php21378, templates/account.php543,
+#: templates/account.php594, templates/account/partials/site.php:256
+msgid "Change License"
+msgstr "உரிமம் மாற்ற"
+
+#: includes/class-freemius.php21469, templates/account/partials/site.php:161
+msgid "Opt Out"
+msgstr "தெரிவை அகற்று"
+
+#: includes/class-freemius.php21471, includes/class-freemius.php21479,
+#: templates/account/partials/site.php43,
+#: templates/account/partials/site.php:161
+msgid "Opt In"
+msgstr "தெரிவு செய்"
+
+#: includes/class-freemius.php:21705
+msgid ""
+" The paid version of %1$s is already installed. Please activate it to start "
+"benefiting the %2$s features. %3$s"
+msgstr "%1$sன் விலையுள்ள பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது. %2$s வசதிகளை பயன்படுத்த அதை செயல்படுத்தவும். %3$s"
+
+#: includes/class-freemius.php:21713
+msgid "Activate %s features"
+msgstr "%s வசதிகளை செயல்படுத்த"
+
+#: includes/class-freemius.php:21726
+msgid "Please follow these steps to complete the upgrade"
+msgstr "மேம்படுத்தலை முடித்துவைக்க பின்வரும் வழிமுறையைப் பின்பற்றவும்"
+
+#: includes/class-freemius.php:21730
+msgid "Download the latest %s version"
+msgstr "%sன் அண்மைய பதிப்பைப் பதிவிறக்கலாம்"
+
+#: includes/class-freemius.php:21734
+msgid "Upload and activate the downloaded version"
+msgstr "பதிவிறக்கிய பதிப்பை பதிவேற்றி செயல்படுத்தலாம்"
+
+#: includes/class-freemius.php:21736
+msgid "How to upload and activate?"
+msgstr "பதிவேற்றுதல் மற்றும் செயல்படுத்துதல் எப்படி?"
+
+#: includes/class-freemius.php:21870
+msgid ""
+"%sClick here%s to choose the sites where you'd like to activate the license "
+"on."
+msgstr "உங்களுக்கு வேண்டிய தளங்களில் உரிமத்தை செயல்படுத்த %s கிளிக் செய்க %s"
+
+#: includes/class-freemius.php:22031
+msgid "Auto installation only works for opted-in users."
+msgstr "முன்னரே தெரிவு செய்திருந்தால் மட்டுமே தானியங்கி நிறுவுதல் நடைபெறும்."
+
+#: includes/class-freemius.php22041, includes/class-freemius.php22074,
+#: includes/class-fs-plugin-updater.php1188,
+#: includes/class-fs-plugin-updater.php:1202
+msgid "Invalid module ID."
+msgstr "module ID தவறானது."
+
+#: includes/class-freemius.php22050, includes/class-fs-plugin-updater.php:1224
+msgid "Premium version already active."
+msgstr "விலையுள்ள பதிப்பு ஏற்கனவே செயலில் உள்ளது."
+
+#: includes/class-freemius.php:22057
+msgid "You do not have a valid license to access the premium version."
+msgstr "விலையுள்ள பதிப்பை அணுக உங்களிடம் உரிமம் இல்லை."
+
+#: includes/class-freemius.php:22064
+msgid ""
+"Plugin is a \"Serviceware\" which means it does not have a premium code "
+"version."
+msgstr "விலையுள்ள நிரல் இல்லாததால் பிளக்இன் \"Serviceware\" எனப்படும்."
+
+#: includes/class-freemius.php22082, includes/class-fs-plugin-updater.php:1223
+msgid "Premium add-on version already installed."
+msgstr "விலையுள்ள ஆட்-ஆன் பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது."
+
+#: includes/class-freemius.php:22427
+msgid "View paid features"
+msgstr "விலையுள்ள வசதிகள் என்னவென்று காணுங்கள்"
+
+#: includes/class-freemius.php:22749
+msgid "Thank you so much for using %s and its add-ons!"
+msgstr "%s மற்றும் அதன் ஆட்-ஆன் பயன்படுத்துவதற்கு நன்றி!"
+
+#: includes/class-freemius.php:22750
+msgid "Thank you so much for using %s!"
+msgstr "%s பயன்படுத்துவதற்கு நன்றி!"
+
+#: includes/class-freemius.php:22756
+msgid ""
+"You've already opted-in to our usage-tracking, which helps us keep improving"
+" the %s."
+msgstr "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, %sஐ மேம்படுத்த உதவும்."
+
+#: includes/class-freemius.php:22760
+msgid "Thank you so much for using our products!"
+msgstr "எங்கள் உருவாக்கங்களைப் பயன்படுத்துவதற்கு நன்றி!"
+
+#: includes/class-freemius.php:22761
+msgid ""
+"You've already opted-in to our usage-tracking, which helps us keep improving"
+" them."
+msgstr "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, எங்கள் உருவாக்கத்தை மேம்படுத்த உதவும்."
+
+#: includes/class-freemius.php:22780
+msgid "%s and its add-ons"
+msgstr "%sம் அதன் ஆட்-ஆன்களும்"
+
+#: includes/class-freemius.php:22789
+msgid "Products"
+msgstr "தயாரிப்புகள்"
+
+#: includes/class-freemius.php22796, templates/connect.php:272
+msgid "Yes"
+msgstr "ஆம்"
+
+#: includes/class-freemius.php22797, templates/connect.php:273
+msgid "send me security & feature updates, educational content and offers."
+msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு அனுப்பவும்."
+
+#: includes/class-freemius.php22798, templates/connect.php:278
+msgid "No"
+msgstr "இல்லை"
+
+#: includes/class-freemius.php22800, templates/connect.php:280
+msgid ""
+"do %sNOT%s send me security & feature updates, educational content and "
+"offers."
+msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு அனுப்பவும். %s செய்க, %s தேவையில்லை"
+
+#: includes/class-freemius.php:22810
+msgid ""
+"Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance "
+"requirements it is required that you provide your explicit consent, again, "
+"confirming that you are onboard :-)"
+msgstr "புதிய %s EU GDPRன் படி %s மேற்பார்வை விதிகளால், ஆட்சேபகர தகவலுக்கு எதிரான உங்கள் நிலையை உறுதி செய்கிறீர்கள் :)"
+
+#: includes/class-freemius.php22812, templates/connect.php:287
+msgid ""
+"Please let us know if you'd like us to contact you for security & feature "
+"updates, educational content, and occasional offers:"
+msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை உங்களுக்கு நாங்கள் அனுப்ப விரும்பினால் எங்களைத் தொடர்பு கொள்ளுங்கள்."
+
+#: includes/class-freemius.php:23094
+msgid "License key is empty."
+msgstr "License key காலியாக உள்ளது."
+
+#: includes/class-fs-plugin-updater.php204,
+#: templates/forms/premium-versions-upgrade-handler.php:57
+msgid "Renew license"
+msgstr "உரிமத்தை புதுப்பியுங்கள்"
+
+#: includes/class-fs-plugin-updater.php209,
+#: templates/forms/premium-versions-upgrade-handler.php:58
+msgid "Buy license"
+msgstr "உரிமம் வாங்க"
+
+#: includes/class-fs-plugin-updater.php319,
+#: includes/class-fs-plugin-updater.php:352
+msgid "There is a %s of %s available."
+msgstr "%sன் %s கிடைக்கிறது."
+
+#: includes/class-fs-plugin-updater.php321,
+#: includes/class-fs-plugin-updater.php:357
+msgid "new Beta version"
+msgstr "புதிய பீட்டா பதிப்பு"
+
+#: includes/class-fs-plugin-updater.php322,
+#: includes/class-fs-plugin-updater.php:358
+msgid "new version"
+msgstr "புதிய பதிப்பு"
+
+#: includes/class-fs-plugin-updater.php:381
+msgid "Important Upgrade Notice:"
+msgstr "முக்கியமான மேம்படுத்தல் அறிவிப்பு"
+
+#: includes/class-fs-plugin-updater.php:1253
+msgid "Installing plugin: %s"
+msgstr "%s: பிளக்இன் நிறுவப்படுகிறது"
+
+#: includes/class-fs-plugin-updater.php:1294
+msgid "Unable to connect to the filesystem. Please confirm your credentials."
+msgstr "Filesystem அணுக இயலவில்லை. உங்கள் உள்ளீடு சரியா என சோதிக்கவும்."
+
+#: includes/class-fs-plugin-updater.php:1476
+msgid ""
+"The remote plugin package does not contain a folder with the desired slug "
+"and renaming did not work."
+msgstr "பெயர் மாற்றமுடியாது. Slug உடனான folder, பிளக்இன் பேக்கில் இல்லை."
+
+#: includes/fs-plugin-info-dialog.php:514
+msgid "Purchase More"
+msgstr "மேலும் வாங்குக"
+
+#: includes/fs-plugin-info-dialog.php515,
+#: templates/account/partials/addon.php:347
+msgctxt "verb"
+msgid "Purchase"
+msgstr "வாங்குக"
+
+#: includes/fs-plugin-info-dialog.php:519
+msgid "Start my free %s"
+msgstr "என் விலையில்லா %sஐ துவக்கவும்"
+
+#: includes/fs-plugin-info-dialog.php:717
+msgid "Install Free Version Update Now"
+msgstr "விலையில்லா பதிப்பின் மேம்படுத்தலை நிறுவலாம்"
+
+#: includes/fs-plugin-info-dialog.php718, templates/account.php:534
+msgid "Install Update Now"
+msgstr "மேம்படுத்தலை நிறுவலாம்"
+
+#: includes/fs-plugin-info-dialog.php:727
+msgid "Install Free Version Now"
+msgstr "விலையில்லா பதிப்பை நிறுவலாம்"
+
+#: includes/fs-plugin-info-dialog.php728, templates/add-ons.php262,
+#: templates/auto-installation.php111,
+#: templates/account/partials/addon.php327,
+#: templates/account/partials/addon.php:379
+msgid "Install Now"
+msgstr "நிறுவலாம்"
+
+#: includes/fs-plugin-info-dialog.php:744
+msgctxt "as download latest version"
+msgid "Download Latest Free Version"
+msgstr "அண்மைய விலையில்லா பதிப்பை பதிவிறக்க"
+
+#: includes/fs-plugin-info-dialog.php745, templates/account.php85,
+#: templates/add-ons.php34, templates/account/partials/addon.php:25
+msgctxt "as download latest version"
+msgid "Download Latest"
+msgstr "அண்மைய பதிப்பை பதிவிறக்க"
+
+#: includes/fs-plugin-info-dialog.php760, templates/add-ons.php268,
+#: templates/account/partials/addon.php318,
+#: templates/account/partials/addon.php:373
+msgid "Activate this add-on"
+msgstr "ஆட்-ஆன் செயல்படுத்த"
+
+#: includes/fs-plugin-info-dialog.php762, templates/connect.php:418
+msgid "Activate Free Version"
+msgstr "விலையில்லா பதிப்பை செயல்படுத்த"
+
+#: includes/fs-plugin-info-dialog.php763, templates/account.php109,
+#: templates/add-ons.php269, templates/account/partials/addon.php:49
+msgid "Activate"
+msgstr "செயல்படுத்து"
+
+#: includes/fs-plugin-info-dialog.php:973
+msgctxt "Plugin installer section title"
+msgid "Description"
+msgstr "விளக்கம்"
+
+#: includes/fs-plugin-info-dialog.php:974
+msgctxt "Plugin installer section title"
+msgid "Installation"
+msgstr "நிறுவுதல்"
+
+#: includes/fs-plugin-info-dialog.php:975
+msgctxt "Plugin installer section title"
+msgid "FAQ"
+msgstr "FAQ"
+
+#: includes/fs-plugin-info-dialog.php976,
+#: templates/plugin-info/description.php:55
+msgid "Screenshots"
+msgstr "திரை நகல்கள்"
+
+#: includes/fs-plugin-info-dialog.php:977
+msgctxt "Plugin installer section title"
+msgid "Changelog"
+msgstr "Changelog"
+
+#: includes/fs-plugin-info-dialog.php:978
+msgctxt "Plugin installer section title"
+msgid "Reviews"
+msgstr "கருத்துரைகள்"
+
+#: includes/fs-plugin-info-dialog.php:979
+msgctxt "Plugin installer section title"
+msgid "Other Notes"
+msgstr "பிற குறிப்புகள்"
+
+#: includes/fs-plugin-info-dialog.php:994
+msgctxt "Plugin installer section title"
+msgid "Features & Pricing"
+msgstr "வசதிகள் & விலை"
+
+#: includes/fs-plugin-info-dialog.php:1004
+msgid "Plugin Install"
+msgstr "பிளக்இன் நிறுவுதல்"
+
+#: includes/fs-plugin-info-dialog.php:1076
+msgctxt "e.g. Professional Plan"
+msgid "%s Plan"
+msgstr "%s திட்டம்"
+
+#: includes/fs-plugin-info-dialog.php:1102
+msgctxt "e.g. the best product"
+msgid "Best"
+msgstr "சிறப்பு"
+
+#: includes/fs-plugin-info-dialog.php1108,
+#: includes/fs-plugin-info-dialog.php:1128
+msgctxt "as every month"
+msgid "Monthly"
+msgstr "மாதாமாதம்"
+
+#: includes/fs-plugin-info-dialog.php:1111
+msgctxt "as once a year"
+msgid "Annual"
+msgstr "ஆண்டு"
+
+#: includes/fs-plugin-info-dialog.php:1114
+msgid "Lifetime"
+msgstr "வாழ்நாள்"
+
+#: includes/fs-plugin-info-dialog.php1128,
+#: includes/fs-plugin-info-dialog.php1130,
+#: includes/fs-plugin-info-dialog.php:1132
+msgctxt "e.g. billed monthly"
+msgid "Billed %s"
+msgstr "%s பில் எழுதப்பட்டது"
+
+#: includes/fs-plugin-info-dialog.php:1130
+msgctxt "as once a year"
+msgid "Annually"
+msgstr "ஆண்டுக்காண்டு"
+
+#: includes/fs-plugin-info-dialog.php:1132
+msgctxt "as once a year"
+msgid "Once"
+msgstr "ஒருமுறை"
+
+#: includes/fs-plugin-info-dialog.php:1138
+msgid "Single Site License"
+msgstr "ஒரு தள உரிமம்"
+
+#: includes/fs-plugin-info-dialog.php:1140
+msgid "Unlimited Licenses"
+msgstr "பல்தள உரிமம்"
+
+#: includes/fs-plugin-info-dialog.php:1142
+msgid "Up to %s Sites"
+msgstr "%s தளங்கள் வரை"
+
+#: includes/fs-plugin-info-dialog.php1152,
+#: templates/plugin-info/features.php:82
+msgctxt "as monthly period"
+msgid "mo"
+msgstr "மாதம்"
+
+#: includes/fs-plugin-info-dialog.php1159,
+#: templates/plugin-info/features.php:80
+msgctxt "as annual period"
+msgid "year"
+msgstr "வருடம்"
+
+#: includes/fs-plugin-info-dialog.php:1213
+msgctxt "noun"
+msgid "Price"
+msgstr "விலை"
+
+#: includes/fs-plugin-info-dialog.php:1261
+msgid "Save %s"
+msgstr "%s சேமிக்கலாம்"
+
+#: includes/fs-plugin-info-dialog.php:1271
+msgid "No commitment for %s - cancel anytime"
+msgstr "%sக்கு எந்தக் கடப்பாடும் இல்லை - எப்போதும் ரத்து செய்யலாம்!"
+
+#: includes/fs-plugin-info-dialog.php:1274
+msgid "After your free %s, pay as little as %s"
+msgstr "விலையில்லா %sக்குப் பிறகு, குறைந்தளவு %s செலுத்துங்கள்"
+
+#: includes/fs-plugin-info-dialog.php:1285
+msgid "Details"
+msgstr "விபரங்கள்"
+
+#: includes/fs-plugin-info-dialog.php1289, templates/account.php96,
+#: templates/debug.php203, templates/debug.php240, templates/debug.php454,
+#: templates/account/partials/addon.php:36
+msgctxt "product version"
+msgid "Version"
+msgstr "பதிப்பு"
+
+#: includes/fs-plugin-info-dialog.php:1296
+msgctxt "as the plugin author"
+msgid "Author"
+msgstr "உருவாக்கியவர்"
+
+#: includes/fs-plugin-info-dialog.php:1303
+msgid "Last Updated"
+msgstr "கடைசி மேம்படுத்தல்"
+
+#: includes/fs-plugin-info-dialog.php1308, templates/account.php:444
+msgctxt "x-ago"
+msgid "%s ago"
+msgstr "%s முன்பு"
+
+#: includes/fs-plugin-info-dialog.php:1317
+msgid "Requires WordPress Version"
+msgstr "WordPress பதிப்பை வேண்டுகிறது"
+
+#: includes/fs-plugin-info-dialog.php:1318
+msgid "%s or higher"
+msgstr "%s அல்லது அதிகமாக"
+
+#: includes/fs-plugin-info-dialog.php:1325
+msgid "Compatible up to"
+msgstr "ஒத்திசைவு உயர்நிலை"
+
+#: includes/fs-plugin-info-dialog.php:1333
+msgid "Downloaded"
+msgstr "பதிவிறக்கப்பட்டது"
+
+#: includes/fs-plugin-info-dialog.php:1337
+msgid "%s time"
+msgstr "%s முறை"
+
+#: includes/fs-plugin-info-dialog.php:1339
+msgid "%s times"
+msgstr "%s முறைகள்"
+
+#: includes/fs-plugin-info-dialog.php:1349
+msgid "WordPress.org Plugin Page"
+msgstr "WordPress.org பிளக்இன் பக்கம்"
+
+#: includes/fs-plugin-info-dialog.php:1357
+msgid "Plugin Homepage"
+msgstr "பிளக்இன் முகப்புப்பக்கம்"
+
+#: includes/fs-plugin-info-dialog.php1365,
+#: includes/fs-plugin-info-dialog.php:1447
+msgid "Donate to this plugin"
+msgstr "இந்த பிளக்இன்னுக்கு நன்கொடை தாருங்கள்"
+
+#: includes/fs-plugin-info-dialog.php:1372
+msgid "Average Rating"
+msgstr "உத்தேச மதிப்பீட்டெண்"
+
+#: includes/fs-plugin-info-dialog.php:1379
+msgid "based on %s"
+msgstr "%s அடிப்படையிலானது"
+
+#: includes/fs-plugin-info-dialog.php:1383
+msgid "%s rating"
+msgstr "%s மதிப்பீட்டெண்"
+
+#: includes/fs-plugin-info-dialog.php:1385
+msgid "%s ratings"
+msgstr "%s மதிப்பீட்டெண்கள்"
+
+#: includes/fs-plugin-info-dialog.php:1400
+msgid "%s star"
+msgstr "%s நட்சத்திரம்"
+
+#: includes/fs-plugin-info-dialog.php:1402
+msgid "%s stars"
+msgstr "%s நட்சத்திரங்கள்"
+
+#: includes/fs-plugin-info-dialog.php:1413
+msgid "Click to see reviews that provided a rating of %s"
+msgstr "%s குறித்த மதிப்பீடு & விமர்சனங்களை கிளிக் செய்து காண்க"
+
+#: includes/fs-plugin-info-dialog.php:1426
+msgid "Contributors"
+msgstr "பங்கெடுத்தோர்"
+
+#: includes/fs-plugin-info-dialog.php1455,
+#: includes/fs-plugin-info-dialog.php:1457
+msgid "Warning"
+msgstr "எச்சரிக்கை"
+
+#: includes/fs-plugin-info-dialog.php:1455
+msgid ""
+"This plugin has not been tested with your current version of WordPress."
+msgstr "இந்த பிளக்இன் உங்கள் தற்போதைய WordPress பதிப்புடன் சோதிக்கப்படவில்லை."
+
+#: includes/fs-plugin-info-dialog.php:1457
+msgid ""
+"This plugin has not been marked as compatible with your version of "
+"WordPress."
+msgstr "இந்த பிளக்இன் உங்கள் WordPress பதிப்புடன் ஒத்திசைவானது என்று குறிக்கப்படவில்லை."
+
+#: includes/fs-plugin-info-dialog.php:1476
+msgid "Paid add-on must be deployed to Freemius."
+msgstr "விலையுள்ள ஆட்ஆன் Freemiusல் வரிசைப்படுத்தப் பட்டிருக்க வேண்டும்."
+
+#: includes/fs-plugin-info-dialog.php:1477
+msgid "Add-on must be deployed to WordPress.org or Freemius."
+msgstr "ஆட்ஆன் WordPress.org அல்லது Freemius ஏதாவது ஒன்றில் வரிசைப்படுத்தப் பட்டிருக்க வேண்டும்."
+
+#: includes/fs-plugin-info-dialog.php:1498
+msgid "Newer Version (%s) Installed"
+msgstr "புதிய பதிப்பு (%s) நிறுவப்பட்டது"
+
+#: includes/fs-plugin-info-dialog.php:1499
+msgid "Newer Free Version (%s) Installed"
+msgstr "புதிய விலையில்லா பதிப்பு (%s) நிறுவப்பட்டது"
+
+#: includes/fs-plugin-info-dialog.php:1506
+msgid "Latest Version Installed"
+msgstr "சமீபத்திய பதிப்பு நிறுவப்பட்டது"
+
+#: includes/fs-plugin-info-dialog.php:1507
+msgid "Latest Free Version Installed"
+msgstr "சமீபத்திய விலையில்லா பதிப்பு நிறுவப்பட்டது"
+
+#: templates/account.php86, templates/forms/subscription-cancellation.php96,
+#: templates/account/partials/addon.php26,
+#: templates/account/partials/site.php:295
+msgid "Downgrading your plan"
+msgstr "உங்கள் திட்டம் கீழ்ப்படுத்தப்படுகிறது"
+
+#: templates/account.php87, templates/forms/subscription-cancellation.php97,
+#: templates/account/partials/addon.php27,
+#: templates/account/partials/site.php:296
+msgid "Cancelling the subscription"
+msgstr "சந்தா ரத்தாகிறது"
+
+#. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
+#. subscription'
+#: templates/account.php:89
+msgid ""
+"%1$s will immediately stop all future recurring payments and your %2$s plan "
+"license will expire in %3$s."
+msgstr "வருகின்ற அனைத்து பணம் செலுத்துதல்களையும் %1$s உடன் நிறுத்துகிறது, மற்றும் உங்கள் %2$s திட்ட உரிமம் %3$sல் காலாவதியாகிறது."
+
+#: templates/account.php90, templates/forms/subscription-cancellation.php100,
+#: templates/account/partials/addon.php30,
+#: templates/account/partials/site.php:299
+msgid ""
+"Please note that we will not be able to grandfather outdated pricing for "
+"renewals/new subscriptions after a cancellation. If you choose to renew the "
+"subscription manually in the future, after a price increase, which typically"
+" occurs once a year, you will be charged the updated price."
+msgstr "தயவுசெய்து கவனிக்கவும். ரத்துசெய்த பிறகு மீண்டும் புதிய சந்தா/புதுப்பித்தலுக்கு பழைய விலையை எங்களால் வசூலிக்க முடியாது. விலை ஆண்டுக்கொரு முறை உயரும். நீங்கள் இனி புதுப்பிக்க விரும்பினால் புதிய விலையை செலுத்தவேண்டும்."
+
+#: templates/account.php91, templates/forms/subscription-cancellation.php106,
+#: templates/account/partials/addon.php:31
+msgid ""
+"Cancelling the trial will immediately block access to all premium features. "
+"Are you sure?"
+msgstr "வெள்ளோட்டத்தை ரத்து செய்தால் அனைத்து விலையுள்ள வசதிகளும் நிறுத்தப்படும். சரியா?"
+
+#: templates/account.php92, templates/forms/subscription-cancellation.php101,
+#: templates/account/partials/addon.php32,
+#: templates/account/partials/site.php:300
+msgid ""
+"You can still enjoy all %s features but you will not have access to %s "
+"security & feature updates, nor support."
+msgstr "நீங்கள் %sன் வசதிகளை பயன்படுத்த முடியும். ஆனால் %s பாதுகாப்பு & மேம்படுத்தல் மற்றும் உதவியை அணுக இயலாது."
+
+#: templates/account.php93, templates/forms/subscription-cancellation.php102,
+#: templates/account/partials/addon.php33,
+#: templates/account/partials/site.php:301
+msgid ""
+"Once your license expires you can still use the Free version but you will "
+"NOT have access to the %s features."
+msgstr "உங்கள் உரிமம் முடிந்ததும் நீங்கள் அனைத்து விலையில்லா வசதிகளையும் பயன்படுத்திக் கொள்ள முடியும். ஆனால் %s வசதிகளை அணுக இயலாது."
+
+#. translators: %s: Plan title (e.g. "Professional")
+#: templates/account.php95,
+#: templates/account/partials/activate-license-button.php31,
+#: templates/account/partials/addon.php:35
+msgid "Activate %s Plan"
+msgstr "%s திட்டம் செயல்படுத்த"
+
+#. translators: %s: Time period (e.g. Auto renews in "2 months")
+#: templates/account.php98, templates/account/partials/addon.php38,
+#: templates/account/partials/site.php:275
+msgid "Auto renews in %s"
+msgstr "%sல் தானாக புதுப்பிக்கிறது"
+
+#. translators: %s: Time period (e.g. Expires in "2 months")
+#: templates/account.php100, templates/account/partials/addon.php40,
+#: templates/account/partials/site.php:277
+msgid "Expires in %s"
+msgstr "%sல் காலாவதியாகிறது"
+
+#: templates/account.php101, templates/account/partials/addon.php:41
+msgctxt "as synchronize license"
+msgid "Sync License"
+msgstr "Sync License"
+
+#: templates/account.php102, templates/account/partials/addon.php:42
+msgid "Cancel Trial"
+msgstr "வெள்ளோட்டம் ரத்து செய்க"
+
+#: templates/account.php103, templates/account/partials/addon.php:43
+msgid "Change Plan"
+msgstr "திட்டம் மாற்ற"
+
+#: templates/account.php104, templates/account/partials/addon.php:44
+msgctxt "verb"
+msgid "Upgrade"
+msgstr "மேம்படுத்து"
+
+#: templates/account.php106, templates/account/partials/addon.php46,
+#: templates/account/partials/site.php:302
+msgctxt "verb"
+msgid "Downgrade"
+msgstr "தரமிறக்கு"
+
+#: templates/account.php108, templates/add-ons.php187,
+#: templates/plugin-info/features.php72,
+#: templates/account/partials/addon.php48,
+#: templates/account/partials/site.php:31
+msgid "Free"
+msgstr "விலையில்லை"
+
+#: templates/account.php110, templates/debug.php373,
+#: includes/customizer/class-fs-customizer-upsell-control.php106,
+#: templates/account/partials/addon.php:50
+msgctxt "as product pricing plan"
+msgid "Plan"
+msgstr "திட்டம்"
+
+#: templates/account.php:111
+msgid "Bundle Plan"
+msgstr "கூட்டுத்திட்டம்"
+
+#: templates/account.php:185
+msgid "Free Trial"
+msgstr "விலையில்லா வெள்ளோட்டம்"
+
+#: templates/account.php:196
+msgid "Account Details"
+msgstr "கணக்கு விபரங்கள்"
+
+#: templates/account.php:200
+msgid "Billing & Invoices"
+msgstr "பில் & இன்வாய்ஸ்"
+
+#: templates/account.php:210
+msgid ""
+"Deleting the account will automatically deactivate your %s plan license so "
+"you can use it on other sites. If you want to terminate the recurring "
+"payments as well, click the \"Cancel\" button, and first \"Downgrade\" your "
+"account. Are you sure you would like to continue with the deletion?"
+msgstr "கணக்கை அழிப்பதானது உங்கள் %s உரிமத்தை உடனே செயல்நிறுத்தும் ஆனாலும் பிற தளங்களில் பயன்படுத்தலாம். இனிவரும் பணம் செலுத்துதல்களை நிறுத்த வேண்டுமானால் முதலில் கணக்கை தரமிறக்கி \"ரத்து செய்\" பட்டனை கிளிக் செய்யவும். கணக்கை அழிக்க விருப்பமா?"
+
+#: templates/account.php:212
+msgid ""
+"Deletion is not temporary. Only delete if you no longer want to use this %s "
+"anymore. Are you sure you would like to continue with the deletion?"
+msgstr "கணக்கை அழிப்பது தற்காலிகமானல்ல. இந்த %s இனி உங்களுக்குத் தேவையில்லை என்றால் மட்டும் அழிக்கவும். கணக்கை அழிக்க விருப்பமா?"
+
+#: templates/account.php:215
+msgid "Delete Account"
+msgstr "கணக்கை அழிக்க"
+
+#: templates/account.php227, templates/account/partials/addon.php211,
+#: templates/account/partials/deactivate-license-button.php:35
+msgid "Deactivate License"
+msgstr "உரிமத்தை செயல்நிறுத்த"
+
+#: templates/account.php250, templates/forms/subscription-cancellation.php:125
+msgid "Are you sure you want to proceed?"
+msgstr "மேலே தொடர விருப்பமா?"
+
+#: templates/account.php250, templates/account/partials/addon.php:234
+msgid "Cancel Subscription"
+msgstr "சந்தாவை ரத்து செய்"
+
+#: templates/account.php:278
+msgctxt "as synchronize"
+msgid "Sync"
+msgstr "Sync"
+
+#: templates/account.php292, templates/debug.php:489
+msgid "Name"
+msgstr "பெயர்"
+
+#: templates/account.php298, templates/debug.php:490
+msgid "Email"
+msgstr "மின்னஞ்சல்"
+
+#: templates/account.php305, templates/debug.php372, templates/debug.php:528
+msgid "User ID"
+msgstr "உபயோகிப்பாளர் ஐடி"
+
+#: templates/account.php322, templates/account.php608,
+#: templates/account.php653, templates/debug.php238, templates/debug.php366,
+#: templates/debug.php451, templates/debug.php488, templates/debug.php526,
+#: templates/debug.php599, templates/account/payments.php35,
+#: templates/debug/logger.php:21
+msgid "ID"
+msgstr "ஐடி"
+
+#: templates/account.php:329
+msgid "Site ID"
+msgstr "இணையதள ஐடி"
+
+#: templates/account.php:332
+msgid "No ID"
+msgstr "ஐடி இல்லை"
+
+#: templates/account.php337, templates/debug.php245, templates/debug.php374,
+#: templates/debug.php455, templates/debug.php492,
+#: templates/account/partials/site.php:219
+msgid "Public Key"
+msgstr "Public Key"
+
+#: templates/account.php343, templates/debug.php375, templates/debug.php456,
+#: templates/debug.php493, templates/account/partials/site.php:231
+msgid "Secret Key"
+msgstr "Secret Key"
+
+#: templates/account.php:346
+msgctxt "as secret encryption key missing"
+msgid "No Secret"
+msgstr "No Secret"
+
+#: templates/account.php373, templates/account/partials/site.php112,
+#: templates/account/partials/site.php:114
+msgid "Trial"
+msgstr "வெள்ளோட்டம்"
+
+#: templates/account.php400, templates/debug.php533,
+#: templates/account/partials/site.php:248
+msgid "License Key"
+msgstr "License Key"
+
+#: templates/account.php:429
+msgid "Join the Beta program"
+msgstr "பீட்டா பதிப்பு சோதனையில் சேரவும்"
+
+#: templates/account.php:435
+msgid "not verified"
+msgstr "உறுதிப்படுத்தப்படவில்லை"
+
+#: templates/account.php444, templates/account/partials/addon.php:172
+msgid "Expired"
+msgstr "காலாவதியானது"
+
+#: templates/account.php:502
+msgid "Premium version"
+msgstr "விலையுள்ள பதிப்பு"
+
+#: templates/account.php:504
+msgid "Free version"
+msgstr "விலையில்லா பதிப்பு"
+
+#: templates/account.php:516
+msgid "Verify Email"
+msgstr "மின்னஞ்சல் சரிபார்த்திடுங்கள்"
+
+#: templates/account.php:527
+msgid "Download %s Version"
+msgstr "%s பதிப்பை பதிவிறக்கலாம்"
+
+#: templates/account.php541, templates/account.php749,
+#: templates/account/partials/site.php237,
+#: templates/account/partials/site.php:255
+msgctxt "verb"
+msgid "Show"
+msgstr "காட்டு"
+
+#: templates/account.php:555
+msgid "What is your %s?"
+msgstr "உங்கள் %s என்ன?"
+
+#: templates/account.php563, templates/account/billing.php:21
+msgctxt "verb"
+msgid "Edit"
+msgstr "திருத்து"
+
+#: templates/account.php:588
+msgid "Sites"
+msgstr "தளங்கள்"
+
+#: templates/account.php:599
+msgid "Search by address"
+msgstr "முகவரி மூலம் தேட"
+
+#: templates/account.php609, templates/debug.php:369
+msgid "Address"
+msgstr "முகவரி"
+
+#: templates/account.php:610
+msgid "License"
+msgstr "உரிமம்"
+
+#: templates/account.php:611
+msgid "Plan"
+msgstr "திட்டம்"
+
+#: templates/account.php:656
+msgctxt "as software license"
+msgid "License"
+msgstr "உரிமம்"
+
+#: templates/account.php:743
+msgctxt "verb"
+msgid "Hide"
+msgstr "மறைத்திடு"
+
+#: templates/account.php:765
+msgid "Processing"
+msgstr "செயலில்"
+
+#: templates/account.php:768
+msgid "Get updates for bleeding edge Beta versions of %s."
+msgstr "%sன் பீட்டா பதிப்பு மேம்படுத்தலைப் பெறுங்கள்."
+
+#: templates/account.php:826
+msgid "Cancelling %s"
+msgstr "%s ரத்தாகிறது"
+
+#: templates/account.php826, templates/account.php843,
+#: templates/forms/subscription-cancellation.php27,
+#: templates/forms/deactivation/form.php:133
+msgid "trial"
+msgstr "வெள்ளோட்டம்"
+
+#: templates/account.php841, templates/forms/deactivation/form.php:150
+msgid "Cancelling %s..."
+msgstr "%s ரத்தாகிறது..."
+
+#: templates/account.php844, templates/forms/subscription-cancellation.php28,
+#: templates/forms/deactivation/form.php:134
+msgid "subscription"
+msgstr "சந்தா"
+
+#: templates/account.php:858
+msgid ""
+"Deactivating your license will block all premium features, but will enable "
+"activating the license on another site. Are you sure you want to proceed?"
+msgstr "உரிமத்தை செயல்நிறுத்துவதானது, அனைத்து விலையுள்ள வசதிகளையும் நிறுத்திவிடும். ஆனாலும் பிற தளங்களில் செயல்படுத்தலாம். தொடரலாமா?"
+
+#: templates/add-ons.php:35
+msgid "View details"
+msgstr "விபரங்களைப் பாருங்கள்"
+
+#: templates/add-ons.php:45
+msgid "Add Ons for %s"
+msgstr "%sக்கான ஆட்ஆன்கள்"
+
+#: templates/add-ons.php:55
+msgid ""
+"We could'nt load the add-ons list. It's probably an issue on our side, "
+"please try to come back in few minutes."
+msgstr "ஆட்ஆன்களை செயல்படுத்த முடியவில்லை. இது எங்கள் தவறு. சில நிமிடங்களில் மீண்டும் முயற்சிக்கவும்."
+
+#: templates/add-ons.php:173
+msgctxt "active add-on"
+msgid "Active"
+msgstr "செயல்பாட்டில்"
+
+#: templates/add-ons.php:174
+msgctxt "installed add-on"
+msgid "Installed"
+msgstr "நிறுவப்பட்டது"
+
+#: templates/admin-notice.php13, templates/forms/license-activation.php209,
+#: templates/forms/resend-key.php:77
+msgctxt "as close a window"
+msgid "Dismiss"
+msgstr "போய்த் தொலை"
+
+#: templates/auto-installation.php:45
+msgid "%s sec"
+msgstr "%s sec"
+
+#: templates/auto-installation.php:83
+msgid "Automatic Installation"
+msgstr "தானியங்கி நிறுவுதல்"
+
+#: templates/auto-installation.php:93
+msgid ""
+"An automated download and installation of %s (paid version) from %s will "
+"start in %s. If you would like to do it manually - click the cancellation "
+"button now."
+msgstr "%sலிருந்து %s (பணம் செலுத்திய) பதிப்பின் தானியங்கி பதிவிறக்கமும், நிறுவுதலும் %sல் ஆரம்பமாகும். இதை நீங்களே செய்ய விரும்பினால் ரத்து செய்யும் பட்டனை அழுத்தவும். "
+
+#: templates/auto-installation.php:104
+msgid ""
+"The installation process has started and may take a few minutes to complete."
+" Please wait until it is done - do not refresh this page."
+msgstr "நிறுவப்படுகிறது. சில நிமிடங்கள் காத்திருக்கவும். இந்தப் பக்கத்தை Refresh செய்யவேண்டாம்."
+
+#: templates/auto-installation.php:109
+msgid "Cancel Installation"
+msgstr "நிறுவுதலை ரத்துசெய்"
+
+#: templates/checkout.php:180
+msgid "Checkout"
+msgstr "Checkout"
+
+#: templates/checkout.php:180
+msgid "PCI compliant"
+msgstr "PCI compliant"
+
+#. translators: %s: name (e.g. Hey John,)
+#: templates/connect.php:112
+msgctxt "greeting"
+msgid "Hey %s,"
+msgstr "வணக்கம் %s,"
+
+#: templates/connect.php:154
+msgid "Allow & Continue"
+msgstr "அனுமதித்து தொடர்க"
+
+#: templates/connect.php:158
+msgid "Re-send activation email"
+msgstr "செயல்படுத்தும் மின்னஞ்சலை மீண்டும் அனுப்புக"
+
+#: templates/connect.php:162
+msgid "Thanks %s!"
+msgstr "நன்றி %s!"
+
+#: templates/connect.php172, templates/forms/license-activation.php:44
+msgid "Agree & Activate License"
+msgstr "ஒப்புக்கொண்டு உரிமத்தை செயல்படுத்துக"
+
+#: templates/connect.php:181
+msgid ""
+"Thanks for purchasing %s! To get started, please enter your license key:"
+msgstr "%s வாங்கியதற்கு நன்றி! License Key உள்ளிட்டு பயன்பாட்டைத் தொடர்க."
+
+#: templates/connect.php:188
+msgid ""
+"Never miss an important update - opt in to our security & feature updates "
+"notifications, educational content, offers, and non-sensitive diagnostic "
+"tracking with %4$s."
+msgstr "%4$s உடன் தொடர்தல், தள்ளுபடி, வசதி மேம்படுத்தல் அறிவிப்பு, பாதுகாப்பு மேம்படுத்தல் தொடர்பான அறிவிப்புகளைப் பெற தெரிந்தெடுங்கள்."
+
+#: templates/connect.php:189
+msgid ""
+"Never miss an important update - opt in to our security and feature updates "
+"notifications, and non-sensitive diagnostic tracking with %4$s."
+msgstr "%4$s உடன் தொடர்தல், தள்ளுபடி, வசதி மேம்படுத்தல் அறிவிப்பு, பாதுகாப்பு மேம்படுத்தல் தொடர்பான அறிவிப்புகளைப் பெற தெரிந்தெடுங்கள்."
+
+#: templates/connect.php:195
+msgid ""
+"Never miss an important update - opt in to our security & feature updates "
+"notifications, educational content, offers, and non-sensitive diagnostic "
+"tracking with %4$s. If you skip this, that's okay! %1$s will still work just"
+" fine."
+msgstr "%4$s உடன் தொடர்தல், தள்ளுபடி, வசதி மேம்படுத்தல் அறிவிப்பு, பாதுகாப்பு மேம்படுத்தல் தொடர்பான அறிவிப்புகளைப் பெற தெரிந்தெடுங்கள். தெரிந்தெடுக்காவிட்டாலும் %1$s நன்கு வேலை செய்யும்."
+
+#: templates/connect.php:196
+msgid ""
+"Never miss an important update - opt in to our security & feature updates "
+"notifications, and non-sensitive diagnostic tracking with %4$s. If you skip "
+"this, that's okay! %1$s will still work just fine."
+msgstr "%4$s உடன் தொடர்தல், தள்ளுபடி, வசதி மேம்படுத்தல் அறிவிப்பு, பாதுகாப்பு மேம்படுத்தல் தொடர்பான அறிவிப்புகளைப் பெற தெரிந்தெடுங்கள். தெரிந்தெடுக்காவிட்டாலும் %1$s நன்கு வேலை செய்யும்."
+
+#: templates/connect.php:230
+msgid "We're excited to introduce the Freemius network-level integration."
+msgstr "Freemius network-level integrationஐ அறிமுகம் செய்வதில் பேருவகை அடைகிறோம்."
+
+#: templates/connect.php:233
+msgid ""
+"During the update process we detected %d site(s) that are still pending "
+"license activation."
+msgstr "மேம்படுத்தல் நடைபெறும்போதே இன்னும் %d தளங்களில் உரிமம் செயல்பாட்டில் இல்லை என்று அறிகிறோம்."
+
+#: templates/connect.php:235
+msgid ""
+"If you'd like to use the %s on those sites, please enter your license key "
+"below and click the activation button."
+msgstr "அந்தத் தளங்களிலும் %sஐ உபயோகிக்க விரும்பினால், கீழே License Key உள்ளிட்டு செயல்படுத்தலை அழுத்தவும்."
+
+#: templates/connect.php:237
+msgid "%s's paid features"
+msgstr "%sன் விலையுள்ள வசதிகள்"
+
+#: templates/connect.php:242
+msgid ""
+"Alternatively, you can skip it for now and activate the license later, in "
+"your %s's network-level Account page."
+msgstr "இல்லாவிட்டால், Network-level கணக்குப் பக்கத்தில் எப்போது வேண்டுமானாலும் உரிமத்தை செயல்படுத்திக் கொள்ளலாம்."
+
+#: templates/connect.php:244
+msgid ""
+"During the update process we detected %s site(s) in the network that are "
+"still pending your attention."
+msgstr "மேம்படுத்தல் நடைபெறும்போதே Networkல்லுள்ள %s தளங்கள் உங்கள் கவனிப்பைக் கோருகின்றன என்றறிகிறோம்."
+
+#: templates/connect.php253, templates/forms/license-activation.php:47
+msgid "License key"
+msgstr "License key"
+
+#: templates/connect.php256, templates/forms/license-activation.php:20
+msgid "Can't find your license key?"
+msgstr "License Key காணவில்லையா?"
+
+#: templates/connect.php315, templates/connect.php652,
+#: templates/forms/deactivation/retry-skip.php:20
+msgctxt "verb"
+msgid "Skip"
+msgstr "கடந்திடு"
+
+#: templates/connect.php:318
+msgid "Delegate to Site Admins"
+msgstr "தள நிர்வாகிகளுக்கான சிறப்பாளர்"
+
+#: templates/connect.php:318
+msgid ""
+"If you click it, this decision will be delegated to the sites "
+"administrators."
+msgstr "இதை கிளிக் செய்தால், இந்த முடிவு தள நிர்வாகிகளுக்கு அனுப்பப்படும்."
+
+#: templates/connect.php:346
+msgid "Your Profile Overview"
+msgstr "உங்கள் சுயவிவர சுருக்கம்"
+
+#: templates/connect.php:347
+msgid "Name and email address"
+msgstr "பெயரும், மின்னஞ்சல் முகவரியும்"
+
+#: templates/connect.php:352
+msgid "Your Site Overview"
+msgstr "உங்கள் தளவிவர சுருக்கம்"
+
+#: templates/connect.php:353
+msgid "Site URL, WP version, PHP info, plugins & themes"
+msgstr "தள URL, WP பதிப்பு, PHP தகவல், பிளக்இன் & தீம் விவரங்கள்"
+
+#: templates/connect.php:358
+msgid "Admin Notices"
+msgstr "நிர்வாக அறிவிப்புகள்"
+
+#: templates/connect.php359, templates/connect.php:375
+msgid "Updates, announcements, marketing, no spam"
+msgstr "மேம்படுத்தல், அறிவிப்புகள், வணிக செய்திகள். Spam இல்லை"
+
+#: templates/connect.php:364
+msgid "Current %s Events"
+msgstr "நடப்பு %s நிகழ்வுகள்"
+
+#: templates/connect.php:365
+msgid "Activation, deactivation and uninstall"
+msgstr "செயல்படுத்தல், செயல்நிறுத்தல் மற்றும் அகற்றுதல்"
+
+#: templates/connect.php:374
+msgid "Newsletter"
+msgstr "செய்திக்கடிதம்"
+
+#: templates/connect.php391, templates/forms/license-activation.php:39
+msgid ""
+"The %1$s will be periodically sending data to %2$s to check for security and"
+" feature updates, and verify the validity of your license."
+msgstr "பாதுகாப்பு மற்றும் வசதி மேம்படுத்தலுக்காக %2$sக்கு %1$s தகவல் அனுப்பும், மற்றும் உங்கள் உரிமத்தின் செல்லுபடி காலத்தை சோதிக்கும்."
+
+#: templates/connect.php:396
+msgid "What permissions are being granted?"
+msgstr "என்னென்ன அனுமதிகள் கொடுக்கப்பட்டுள்ளது."
+
+#: templates/connect.php:417
+msgid "Don't have a license key?"
+msgstr "License Key இல்லையா?"
+
+#: templates/connect.php:420
+msgid "Have a license key?"
+msgstr "License key உள்ளதா?"
+
+#: templates/connect.php:428
+msgid "Privacy Policy"
+msgstr "தனியுரிமைக் கொள்கைகள்"
+
+#: templates/connect.php:430
+msgid "License Agreement"
+msgstr "உரிம ஒப்பந்தம்"
+
+#: templates/connect.php:430
+msgid "Terms of Service"
+msgstr "சேவை நிபந்தனைகள்"
+
+#: templates/connect.php:805
+msgctxt "as in the process of sending an email"
+msgid "Sending email"
+msgstr "மின்னஞ்சல் அனுப்பப்படுகிறது"
+
+#: templates/connect.php:806
+msgctxt "as activating plugin"
+msgid "Activating"
+msgstr "செயல்படுத்துகிறது"
+
+#: templates/contact.php:78
+msgid "Contact"
+msgstr "தொடர்பு"
+
+#: templates/debug.php:17
+msgctxt "as turned off"
+msgid "Off"
+msgstr "Off"
+
+#: templates/debug.php:18
+msgctxt "as turned on"
+msgid "On"
+msgstr "On"
+
+#: templates/debug.php:20
+msgid "SDK"
+msgstr "SDK"
+
+#: templates/debug.php:24
+msgctxt "as code debugging"
+msgid "Debugging"
+msgstr "தவறை சோதிக்கிறது"
+
+#: templates/debug.php54, templates/debug.php250, templates/debug.php376,
+#: templates/debug.php:494
+msgid "Actions"
+msgstr "செயல்கள்"
+
+#: templates/debug.php:64
+msgid "Are you sure you want to delete all Freemius data?"
+msgstr "அனைத்து Freemius தகவலையும் அழிக்க விருப்பமா?"
+
+#: templates/debug.php:64
+msgid "Delete All Accounts"
+msgstr "அனைத்து கணக்குகளையும் அழிக்க"
+
+#: templates/debug.php:71
+msgid "Clear API Cache"
+msgstr "API Cache நீக்க"
+
+#: templates/debug.php:79
+msgid "Clear Updates Transients"
+msgstr "Clear Updates Transients"
+
+#: templates/debug.php:86
+msgid "Sync Data From Server"
+msgstr "Sync Data From Server"
+
+#: templates/debug.php:95
+msgid "Migrate Options to Network"
+msgstr "Migrate Options to Network"
+
+#: templates/debug.php:100
+msgid "Load DB Option"
+msgstr "Load DB Option"
+
+#: templates/debug.php:103
+msgid "Set DB Option"
+msgstr "Set DB Option"
+
+#: templates/debug.php:182
+msgid "Key"
+msgstr "Key"
+
+#: templates/debug.php:183
+msgid "Value"
+msgstr "Value"
+
+#: templates/debug.php:199
+msgctxt "as software development kit versions"
+msgid "SDK Versions"
+msgstr "SDK பதிப்புகள்"
+
+#: templates/debug.php:204
+msgid "SDK Path"
+msgstr "SDK Path"
+
+#: templates/debug.php205, templates/debug.php:244
+msgid "Module Path"
+msgstr "Module Path"
+
+#: templates/debug.php:206
+msgid "Is Active"
+msgstr "Is Active"
+
+#: templates/debug.php234, templates/debug/plugins-themes-sync.php:35
+msgid "Plugins"
+msgstr "பிளக்இன்கள்"
+
+#: templates/debug.php234, templates/debug/plugins-themes-sync.php:56
+msgid "Themes"
+msgstr "தீம்கள்"
+
+#: templates/debug.php239, templates/debug.php371, templates/debug.php453,
+#: templates/debug/scheduled-crons.php:80
+msgid "Slug"
+msgstr "Slug"
+
+#: templates/debug.php241, templates/debug.php:452
+msgid "Title"
+msgstr "தலைப்பு"
+
+#: templates/debug.php:242
+msgctxt "as application program interface"
+msgid "API"
+msgstr "API"
+
+#: templates/debug.php:243
+msgid "Freemius State"
+msgstr "Freemius நிலை"
+
+#: templates/debug.php:247
+msgid "Network Blog"
+msgstr "Network Blog"
+
+#: templates/debug.php:248
+msgid "Network User"
+msgstr "Network பயனர்"
+
+#: templates/debug.php:285
+msgctxt "as connection was successful"
+msgid "Connected"
+msgstr "இணைக்கப்பட்டது"
+
+#: templates/debug.php:286
+msgctxt "as connection blocked"
+msgid "Blocked"
+msgstr "தடுக்கப்பட்டது"
+
+#: templates/debug.php:322
+msgid "Simulate Trial Promotion"
+msgstr "Simulate Trial Promotion"
+
+#: templates/debug.php:334
+msgid "Simulate Network Upgrade"
+msgstr "Simulate Network Upgrade"
+
+#: templates/debug.php:360
+msgid "%s Installs"
+msgstr "%s நிறுவுதல்கள்"
+
+#: templates/debug.php:362
+msgctxt "like websites"
+msgid "Sites"
+msgstr "தளங்கள்"
+
+#: templates/debug.php368, templates/account/partials/site.php:148
+msgid "Blog ID"
+msgstr "Blog ID"
+
+#: templates/debug.php433, templates/debug.php511,
+#: templates/account/partials/addon.php:396
+msgctxt "verb"
+msgid "Delete"
+msgstr "அழி"
+
+#: templates/debug.php:447
+msgid "Add Ons of module %s"
+msgstr "Module %sன் ஆட்ஆன்கள்"
+
+#: templates/debug.php:484
+msgid "Users"
+msgstr "பயனர்கள்"
+
+#: templates/debug.php:491
+msgid "Verified"
+msgstr "உறுதிசெய்யப்பட்டது"
+
+#: templates/debug.php:522
+msgid "%s Licenses"
+msgstr "%s உரிமங்கள்"
+
+#: templates/debug.php:527
+msgid "Plugin ID"
+msgstr "பிளக்இன் ID"
+
+#: templates/debug.php:529
+msgid "Plan ID"
+msgstr "திட்ட ID"
+
+#: templates/debug.php:530
+msgid "Quota"
+msgstr "ஒதுக்கீடு"
+
+#: templates/debug.php:531
+msgid "Activated"
+msgstr "செயல்படுத்தப்பட்டது"
+
+#: templates/debug.php:532
+msgid "Blocking"
+msgstr "தடுக்கப்படுகிறது"
+
+#: templates/debug.php:534
+msgctxt "as expiration date"
+msgid "Expiration"
+msgstr "காலாவதி"
+
+#: templates/debug.php:557
+msgid "Debug Log"
+msgstr "Debug Log"
+
+#: templates/debug.php:561
+msgid "All Types"
+msgstr "அனைத்து மாதிரிகள்"
+
+#: templates/debug.php:568
+msgid "All Requests"
+msgstr "அனைத்து வேண்டுகோள்கள்"
+
+#: templates/debug.php573, templates/debug.php602,
+#: templates/debug/logger.php:25
+msgid "File"
+msgstr "File"
+
+#: templates/debug.php574, templates/debug.php600,
+#: templates/debug/logger.php:23
+msgid "Function"
+msgstr "Function"
+
+#: templates/debug.php:575
+msgid "Process ID"
+msgstr "Process ID"
+
+#: templates/debug.php:576
+msgid "Logger"
+msgstr "Logger"
+
+#: templates/debug.php577, templates/debug.php601,
+#: templates/debug/logger.php:24
+msgid "Message"
+msgstr "செய்தி"
+
+#: templates/debug.php:579
+msgid "Filter"
+msgstr "Filter"
+
+#: templates/debug.php:587
+msgid "Download"
+msgstr "பதிவிறக்கு"
+
+#: templates/debug.php598, templates/debug/logger.php:22
+msgid "Type"
+msgstr "மாதிரி"
+
+#: templates/debug.php603, templates/debug/logger.php:26
+msgid "Timestamp"
+msgstr "நேர முத்திரை"
+
+#: templates/secure-https-header.php:28
+msgid "Secure HTTPS %s page, running from an external domain"
+msgstr "பாதுகாப்பான HTTPS %s பக்கம், வெளி முகவரியிலிருந்து இயங்குகிறது"
+
+#: includes/customizer/class-fs-customizer-support-section.php55,
+#: templates/plugin-info/features.php:43
+msgid "Support"
+msgstr "உதவி"
+
+#: includes/debug/class-fs-debug-bar-panel.php48,
+#: templates/debug/api-calls.php54, templates/debug/logger.php:62
+msgctxt "milliseconds"
+msgid "ms"
+msgstr "ms"
+
+#: includes/debug/debug-bar-start.php:41
+msgid "Freemius API"
+msgstr "Freemius API"
+
+#: includes/debug/debug-bar-start.php:42
+msgid "Requests"
+msgstr "வேண்டுகோள்கள்"
+
+#: templates/account/billing.php:22
+msgctxt "verb"
+msgid "Update"
+msgstr "மேம்படுத்து"
+
+#: templates/account/billing.php:33
+msgid "Billing"
+msgstr "வசூல்"
+
+#: templates/account/billing.php38, templates/account/billing.php:38
+msgid "Business name"
+msgstr "தொழிலின் பெயர்"
+
+#: templates/account/billing.php39, templates/account/billing.php:39
+msgid "Tax / VAT ID"
+msgstr "Tax / VAT ID"
+
+#: templates/account/billing.php42, templates/account/billing.php42,
+#: templates/account/billing.php43, templates/account/billing.php:43
+msgid "Address Line %d"
+msgstr "முகவரி வரி %d"
+
+#: templates/account/billing.php46, templates/account/billing.php:46
+msgid "City"
+msgstr "ஊர்"
+
+#: templates/account/billing.php46, templates/account/billing.php:46
+msgid "Town"
+msgstr "நகர்"
+
+#: templates/account/billing.php47, templates/account/billing.php:47
+msgid "ZIP / Postal Code"
+msgstr "ZIP / தபால் குறியீடு"
+
+#: templates/account/billing.php:302
+msgid "Country"
+msgstr "நாடு"
+
+#: templates/account/billing.php:304
+msgid "Select Country"
+msgstr "நாட்டைத் தேர்ந்தெடுக்க"
+
+#: templates/account/billing.php311, templates/account/billing.php:312
+msgid "State"
+msgstr "மாநிலம்"
+
+#: templates/account/billing.php311, templates/account/billing.php:312
+msgid "Province"
+msgstr "மாநிலப் பரப்பு"
+
+#: templates/account/payments.php:29
+msgid "Payments"
+msgstr "பணம் செலுத்தல்கள்"
+
+#: templates/account/payments.php:36
+msgid "Date"
+msgstr "தேதி"
+
+#: templates/account/payments.php:37
+msgid "Amount"
+msgstr "தொகை"
+
+#: templates/account/payments.php38, templates/account/payments.php:50
+msgid "Invoice"
+msgstr "இன்வாய்ஸ்"
+
+#: templates/debug/api-calls.php:56
+msgid "API"
+msgstr "API"
+
+#: templates/debug/api-calls.php:68
+msgid "Method"
+msgstr "வழிமுறை"
+
+#: templates/debug/api-calls.php:69
+msgid "Code"
+msgstr "Code"
+
+#: templates/debug/api-calls.php:70
+msgid "Length"
+msgstr "நீளம்"
+
+#: templates/debug/api-calls.php:71
+msgctxt "as file/folder path"
+msgid "Path"
+msgstr "வழி"
+
+#: templates/debug/api-calls.php:73
+msgid "Body"
+msgstr "அமைப்பு"
+
+#: templates/debug/api-calls.php:75
+msgid "Result"
+msgstr "முடிவு"
+
+#: templates/debug/api-calls.php:76
+msgid "Start"
+msgstr "துவக்கம்"
+
+#: templates/debug/api-calls.php:77
+msgid "End"
+msgstr "முடிவு"
+
+#: templates/debug/logger.php:15
+msgid "Log"
+msgstr "Log"
+
+#. translators: %s: time period (e.g. In "2 hours")
+#: templates/debug/plugins-themes-sync.php18,
+#: templates/debug/scheduled-crons.php:91
+msgid "In %s"
+msgstr "%sல்"
+
+#. translators: %s: time period (e.g. "2 hours" ago)
+#: templates/debug/plugins-themes-sync.php20,
+#: templates/debug/scheduled-crons.php:93
+msgid "%s ago"
+msgstr "%s முன்பு"
+
+#: templates/debug/plugins-themes-sync.php21,
+#: templates/debug/scheduled-crons.php:74
+msgctxt "seconds"
+msgid "sec"
+msgstr "sec"
+
+#: templates/debug/plugins-themes-sync.php:23
+msgid "Plugins & Themes Sync"
+msgstr "பிளக்இன் & தீம் Sync"
+
+#: templates/debug/plugins-themes-sync.php:28
+msgid "Total"
+msgstr "மொத்தம்"
+
+#: templates/debug/plugins-themes-sync.php29,
+#: templates/debug/scheduled-crons.php:84
+msgid "Last"
+msgstr "கடைசி"
+
+#: templates/debug/scheduled-crons.php:76
+msgid "Scheduled Crons"
+msgstr "பட்டியலிட்ட Crons"
+
+#: templates/debug/scheduled-crons.php:81
+msgid "Module"
+msgstr "Module"
+
+#: templates/debug/scheduled-crons.php:82
+msgid "Module Type"
+msgstr "Module மாதிரி"
+
+#: templates/debug/scheduled-crons.php:83
+msgid "Cron Type"
+msgstr "Cron மாதிரி"
+
+#: templates/debug/scheduled-crons.php:85
+msgid "Next"
+msgstr "அடுத்து"
+
+#: templates/forms/affiliation.php:82
+msgid "Non-expiring"
+msgstr "காலாவதியாகாதது"
+
+#: templates/forms/affiliation.php:85
+msgid "Apply to become an affiliate"
+msgstr "Affiliate ஆக விண்ணப்பியுங்கள்"
+
+#: templates/forms/affiliation.php:104
+msgid ""
+"Your affiliate application for %s has been accepted! Log in to your "
+"affiliate area at: %s."
+msgstr "%sக்கான உங்கள் Affiliate விண்ணப்பம் ஏற்கப்பட்டது. உள்நுழைந்து %sல் உங்கள் affiliate areaவை அணுகவும்."
+
+#: templates/forms/affiliation.php:119
+msgid ""
+"Thank you for applying for our affiliate program, we'll review your details "
+"during the next 14 days and will get back to you with further information."
+msgstr "எங்கள் affiliate திட்டத்திற்கு விண்ணப்பித்ததற்காக நன்றி. உங்கள் விவரங்களை பரிசீலித்து, 14 நாட்களில் மேலதிக தகவலோடு தொடர்பு கொள்கிறோம்."
+
+#: templates/forms/affiliation.php:122
+msgid "Your affiliation account was temporarily suspended."
+msgstr "உங்கள் affiliate கணக்கு தற்காலிகமாக இடைநிறுத்தப்பட்டுள்ளது."
+
+#: templates/forms/affiliation.php:125
+msgid ""
+"Thank you for applying for our affiliate program, unfortunately, we've "
+"decided at this point to reject your application. Please try again in 30 "
+"days."
+msgstr "எங்கள் affiliate திட்டத்திற்கு விண்ணப்பித்ததற்காக நன்றி. எதிர்பாரா விதமாக உங்கள் விண்ணப்பம் தள்ளுபடி செய்யப்பட்டது. 30 நாட்களில் மீண்டும் விண்ணப்பிக்கவும்."
+
+#: templates/forms/affiliation.php:128
+msgid ""
+"Due to violation of our affiliation terms, we decided to temporarily block "
+"your affiliation account. If you have any questions, please contact support."
+msgstr "எங்கள் affiliate திட்ட விதிமுறை மீறல் காரணமாக உங்கள் affiliate கணக்கை தற்காலிகமாக தடை செய்கிறோம். கேள்விகள் இருந்தால் உதவியை தொடர்பு கொள்ளவும்."
+
+#: templates/forms/affiliation.php:141
+msgid "Like the %s? Become our ambassador and earn cash ;-)"
+msgstr "%sஐ விரும்புகிறீர்களா? எங்கள் Ambassador ஆக பணியாற்றி பணம் பெறலாம் :-)"
+
+#: templates/forms/affiliation.php:142
+msgid ""
+"Refer new customers to our %s and earn %s commission on each successful sale"
+" you refer!"
+msgstr "எங்கள் %sக்கு புதிய வாடிக்கையாளர்களை பரிந்துரை செய்து, ஒவ்வொரு விற்பனைக்கும் %s லாபப் பங்கீடாகப் பெறலாம்."
+
+#: templates/forms/affiliation.php:145
+msgid "Program Summary"
+msgstr "திட்டத்தின் சுருக்கம்"
+
+#: templates/forms/affiliation.php:147
+msgid "%s commission when a customer purchases a new license."
+msgstr "ஒரு வாடிக்கையாளர் புது உரிமம் வாங்கும்போது %s லாபப் பங்கீடு."
+
+#: templates/forms/affiliation.php:149
+msgid "Get commission for automated subscription renewals."
+msgstr "தானியங்கி சந்தா புதுப்பித்தலுக்கும் லாபப் பங்கீடு பெறுங்கள்."
+
+#: templates/forms/affiliation.php:152
+msgid ""
+"%s tracking cookie after the first visit to maximize earnings potential."
+msgstr "வருமானம் அதிகரிக்க, முதல் தள வருகையில் %s tracking cookie."
+
+#: templates/forms/affiliation.php:155
+msgid "Unlimited commissions."
+msgstr "அளவில்லா லாபப் பங்கீடு."
+
+#: templates/forms/affiliation.php:157
+msgid "%s minimum payout amount."
+msgstr "%s குறைந்தபட்ச பணம் பெறுதல்."
+
+#: templates/forms/affiliation.php:158
+msgid "Payouts are in USD and processed monthly via PayPal."
+msgstr "பணம் பெறுதல் USDயில் மாதாமாதம் PayPal மூலம் பெறலாம்."
+
+#: templates/forms/affiliation.php:159
+msgid ""
+"As we reserve 30 days for potential refunds, we only pay commissions that "
+"are older than 30 days."
+msgstr "வாடிக்கையாளர் 30 நாட்களுக்கு பணம் திரும்பப் பெறலாம் Refund என்பதால் உங்களுக்கு லாபப் பங்கீடு 30 நாட்களுக்குப் பிறகே கிடைக்கும்."
+
+#: templates/forms/affiliation.php:162
+msgid "Affiliate"
+msgstr "Affiliate"
+
+#: templates/forms/affiliation.php165, templates/forms/resend-key.php:23
+msgid "Email address"
+msgstr "மின்னஞ்சல் முகவரி"
+
+#: templates/forms/affiliation.php:169
+msgid "Full name"
+msgstr "முழுப்பெயர்"
+
+#: templates/forms/affiliation.php:173
+msgid "PayPal account email address"
+msgstr "PayPal கணக்கின் மின்னஞ்சல் முகவரி"
+
+#: templates/forms/affiliation.php:177
+msgid "Where are you going to promote the %s?"
+msgstr "%sஐ எங்கு எப்படி முன்னிலைப் படுத்துவீர்கள்?"
+
+#: templates/forms/affiliation.php:179
+msgid ""
+"Enter the domain of your website or other websites from where you plan to "
+"promote the %s."
+msgstr "%sஐ எந்தெந்த தளங்களில் முன்னிலைப் படுத்துவீர்களோ அந்தத் தளங்களின் பெயர்களை உள்ளிடுங்கள்."
+
+#: templates/forms/affiliation.php:181
+msgid "Add another domain"
+msgstr "அடுத்த தளத்தைச் சேர்க்க"
+
+#: templates/forms/affiliation.php:185
+msgid "Extra Domains"
+msgstr "மேலதிக தளங்கள்"
+
+#: templates/forms/affiliation.php:186
+msgid "Extra domains where you will be marketing the product from."
+msgstr "தயாரிப்புகளை சந்தைப்படுத்தும் மேலதிக தளங்கள்."
+
+#: templates/forms/affiliation.php:196
+msgid "Promotion methods"
+msgstr "முன்னிலைப்படுத்தும் வழிமுறைகள்"
+
+#: templates/forms/affiliation.php:199
+msgid "Social media (Facebook, Twitter, etc.)"
+msgstr "சமூக ஊடகங்கள் (Facebook, Twitter etc.)"
+
+#: templates/forms/affiliation.php:203
+msgid "Mobile apps"
+msgstr "அலைபேசி செயலிகள்"
+
+#: templates/forms/affiliation.php:207
+msgid "Website, email, and social media statistics (optional)"
+msgstr "இணையதளம், மின்னஞ்சல் மற்றும் சமூக ஊடக புள்ளி விவரங்கள் (விரும்பினால் தரலாம்)"
+
+#: templates/forms/affiliation.php:210
+msgid ""
+"Please feel free to provide any relevant website or social media statistics,"
+" e.g. monthly unique site visits, number of email subscribers, followers, "
+"etc. (we will keep this information confidential)."
+msgstr "இணைய தள அல்லது சமூக ஊடக வருகையாளர் எண்ணிக்கை, மின்னஞ்சல் சந்தாதாரர்கள், பின்தொடர்வோர் போன்ற புள்ளிவிவரங்கள் தருக. (நாங்கள் ரகசியம் காப்போம்)"
+
+#: templates/forms/affiliation.php:214
+msgid "How will you promote us?"
+msgstr "எங்களை நீங்கள் எப்படி முன்னிலைப் படுத்துவீர்கள்?"
+
+#: templates/forms/affiliation.php:217
+msgid ""
+"Please provide details on how you intend to promote %s (please be as "
+"specific as possible)."
+msgstr "%sஐ எப்படி முன்னிலைப் படுத்துவீர்கள் என்ற விவரம் தரவும். (தயவுசெய்து குறிப்பிட்டுச் சொல்லவும்)"
+
+#: templates/forms/affiliation.php223, templates/forms/resend-key.php:22
+msgid "Cancel"
+msgstr "ரத்து"
+
+#: templates/forms/affiliation.php:225
+msgid "Become an affiliate"
+msgstr "Affiliate ஆகுங்கள்"
+
+#: templates/forms/license-activation.php:21
+msgid ""
+"Please enter the license key that you received in the email right after the "
+"purchase:"
+msgstr "உங்கள் மின்னஞ்சலுக்கு வந்த License Keyஐ உள்ளிடுங்கள்:"
+
+#: templates/forms/license-activation.php:26
+msgid "Update License"
+msgstr "உரிமம் மேம்படுத்த"
+
+#: templates/forms/optout.php:30
+msgctxt "verb"
+msgid "Opt Out"
+msgstr "தெரிவை அகற்று"
+
+#: templates/forms/optout.php:31
+msgctxt "verb"
+msgid "Opt In"
+msgstr "தெரிவு செய்"
+
+#: templates/forms/optout.php:33
+msgid ""
+"Usage tracking is done in the name of making %s better. Making a better user"
+" experience, prioritizing new features, and more good things. We'd really "
+"appreciate if you'll reconsider letting us continue with the tracking."
+msgstr "%sஐ மேம்பட்டதாக்க பயன்பாட்டைப் பின்தொடர்தல் நடைமுறைக்கு வந்தது. பயனர் அனுபவம் மேம்படுத்தல், புது வசதிகளைத் தருதல் மற்றும் பலவற்றுக்கு இது நன்மை தரும். இந்தப் பின்தொடர்தலை மேலும் நீட்டிக்க நீங்கள் அனுமதித்தால் மகிழ்ச்சி அடைவோம்."
+
+#: templates/forms/optout.php:35
+msgid ""
+"By clicking \"Opt Out\", we will no longer be sending any data from %s to "
+"%s."
+msgstr "தெரிவகற்று Optout செயல்படுத்தினால் இனி %sலிருந்து %sக்கு தகவல் ஏதும் அனுப்பமாட்டோம்."
+
+#: templates/forms/premium-versions-upgrade-handler.php:40
+msgid "There is a new version of %s available."
+msgstr "%sன் புதிய பதிப்பு இப்போது கிடைக்கிறது."
+
+#: templates/forms/premium-versions-upgrade-handler.php:41
+msgid " %s to access version %s security & feature updates, and support."
+msgstr "%s பதிப்பின் பாதுகாப்பு & வசதி மேம்படுத்தல் மற்றும் உதவிக்கு%s."
+
+#: templates/forms/premium-versions-upgrade-handler.php:54
+msgid "New Version Available"
+msgstr "புதிய பதிப்பு கிடைக்கிறது"
+
+#: templates/forms/premium-versions-upgrade-handler.php:75
+msgctxt "close a window"
+msgid "Dismiss"
+msgstr "போய்த் தொலை"
+
+#: templates/forms/resend-key.php:21
+msgid "Send License Key"
+msgstr "License key அனுப்புக"
+
+#: templates/forms/resend-key.php:57
+msgid ""
+"Enter the email address you've used for the upgrade below and we will resend"
+" you the license key."
+msgstr "தரம் உயர்த்துதலின் போது நீங்கள் உள்ளிட்ட மின்னஞ்சல் முகவரியைத் தந்தால், license keyஐ மீண்டும் அனுப்புகிறோம்."
+
+#: templates/forms/subscription-cancellation.php:37
+msgid ""
+"Deactivating or uninstalling the %s will automatically disable the license, "
+"which you'll be able to use on another site."
+msgstr "%sஐ செயல்நிறுத்தினாலோ, அகற்றினாலோ பிற தளங்களில் பயன்படுத்தும் வாய்ப்பிருந்தும்,  உரிமம் தானாகவே செயலிழக்கும்."
+
+#: templates/forms/subscription-cancellation.php:47
+msgid ""
+"In case you are NOT planning on using this %s on this site (or any other "
+"site) - would you like to cancel the %s as well?"
+msgstr "ஒருவேளை  %s இந்த தளத்திலோ அல்லது பிற தளத்திலோ உபயோகிக்கவில்லை என்றால் %sஐ ரத்து செய்ய விரும்புகிறீர்களா?"
+
+#: templates/forms/subscription-cancellation.php:52
+msgid "license"
+msgstr "உரிமம்"
+
+#: templates/forms/subscription-cancellation.php:57
+msgid ""
+"Cancel %s - I no longer need any security & feature updates, nor support for"
+" %s because I'm not planning to use the %s on this, or any other site."
+msgstr "நான் %sஐ இந்த தளத்திலோ அல்லது பிற தளத்திலோ உபயோகிக்க விரும்பவில்லை என்பதால் %sக்கு உதவியோ, பாதுகாப்பு மேம்படுத்தலோ தேவையில்லை. %sஐ ரத்து செய்யவும்."
+
+#: templates/forms/subscription-cancellation.php:68
+msgid ""
+"Don't cancel %s - I'm still interested in getting security & feature "
+"updates, as well as be able to contact support."
+msgstr "%s ரத்துசெய்ய வேண்டாம் - அதற்கு உதவியை அணுகவும், பாதுகாப்பு மேம்படுத்தல்களைப் பெறவும் விரும்புகிறேன்."
+
+#. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
+#. subscription'
+#: templates/forms/subscription-cancellation.php99,
+#: templates/account/partials/addon.php29,
+#: templates/account/partials/site.php:298
+msgid ""
+"%1$s will immediately stop all future recurring payments and your %s plan "
+"license will expire in %s."
+msgstr "%1$s உடனடியாக அனைத்து எதிர்வரும் பணம் செலுத்தல்களை நிறுத்தும் மற்றும் உங்கள் %s திட்ட உரிமம் %sல் காலாவதியாகும்."
+
+#: templates/forms/subscription-cancellation.php:103
+msgid ""
+"Once your license expires you will no longer be able to use the %s, unless "
+"you activate it again with a valid premium license."
+msgstr "மீண்டும் உரிமத்தை செயல்படுத்தினால் தவிர, உரிமம் காலாவதியானால் %s பயன்படுத்த முடியாது."
+
+#: templates/forms/subscription-cancellation.php:136
+msgid "Cancel %s?"
+msgstr "%s ரத்து செய்யவா?"
+
+#: templates/forms/subscription-cancellation.php:143
+msgid "Proceed"
+msgstr "தொடர்க"
+
+#: templates/forms/subscription-cancellation.php191,
+#: templates/forms/deactivation/form.php:171
+msgid "Cancel %s & Proceed"
+msgstr "%s ரத்து செய்க & தொடர்க"
+
+#: templates/forms/trial-start.php:22
+msgid ""
+"You are 1-click away from starting your %1$s-day free trial of the %2$s "
+"plan."
+msgstr "%2$s திட்டத்தின் %1$s-நாள் விலையில்லா வெள்ளோட்டத்தைத் துவக்க இன்னும் 1 கிளிக் மட்டுமே."
+
+#: templates/forms/trial-start.php:28
+msgid ""
+"For compliance with the WordPress.org guidelines, before we start the trial "
+"we ask that you opt in with your user and non-sensitive site information, "
+"allowing the %s to periodically send data to %s to check for version updates"
+" and to validate your trial."
+msgstr "Wordpress.orgயின் வழிகாட்டு நெறிமுறைகள்படி, உங்கள் வெள்ளோட்டம் துவங்கும்முன் நாங்கள் கேட்டுக் கொள்வதெல்லாம், உங்கள் பயன்பாட்டுத் தகவலை நாங்கள் பின்தொடர எங்களை அனுமதிக்கும் தெரிவை தெரிவு செய்யுங்கள் என்பதே. இது %sஐ அனுமதித்து தகவலை %sக்கு அனுப்பச்செய்து மேம்படுத்தலுக்கு உதவும். மற்றும் உங்கள் வெள்ளோட்டத்தை உறுதிசெய்யும்."
+
+#: templates/js/style-premium-theme.php:39
+msgid "Premium"
+msgstr "Premium"
+
+#: templates/js/style-premium-theme.php:42
+msgid "Beta"
+msgstr "பீட்டா"
+
+#: templates/partials/network-activation.php:27
+msgid "Activate license on all sites in the network."
+msgstr "வலைப்பின்னலில் உள்ள எல்லா தளங்களிலும் உரிமத்தை செயல்படுத்துக"
+
+#: templates/partials/network-activation.php:28
+msgid "Apply on all sites in the network."
+msgstr "வலைப்பின்னலின் அனைத்து தளங்களின் மீதும் பிரயோகிக்க"
+
+#: templates/partials/network-activation.php:31
+msgid "Activate license on all pending sites."
+msgstr "மீதமுள்ள எல்லா தளங்களிலும் உரிமத்தை செயல்படுத்துக"
+
+#: templates/partials/network-activation.php:32
+msgid "Apply on all pending sites."
+msgstr "மீதமுள்ள அனைத்து தளங்களின் மீதும் பிரயோகிக்க"
+
+#: templates/partials/network-activation.php40,
+#: templates/partials/network-activation.php:74
+msgid "allow"
+msgstr "அனுமதி"
+
+#: templates/partials/network-activation.php43,
+#: templates/partials/network-activation.php:77
+msgid "delegate"
+msgstr "delegate"
+
+#: templates/partials/network-activation.php47,
+#: templates/partials/network-activation.php:81
+msgid "skip"
+msgstr "கடந்திடு"
+
+#: templates/plugin-info/description.php72,
+#: templates/plugin-info/screenshots.php:31
+msgid "Click to view full-size screenshot %d"
+msgstr "கிளிக் செய்து %dன் முழுஅளவு திரைநகல் காண்க"
+
+#: templates/plugin-info/features.php:56
+msgid "Unlimited Updates"
+msgstr "அளவில்லா மேம்படுத்தல்கள்"
+
+#: templates/account/partials/activate-license-button.php:46
+msgid "Localhost"
+msgstr "Localhost"
+
+#: templates/account/partials/activate-license-button.php:50
+msgctxt "as 5 licenses left"
+msgid "%s left"
+msgstr "%s இருக்கிறது"
+
+#: templates/account/partials/activate-license-button.php:51
+msgid "Last license"
+msgstr "கடைசி உரிமம்"
+
+#: templates/account/partials/addon.php:167
+msgid "Cancelled"
+msgstr "ரத்தானது"
+
+#: templates/account/partials/addon.php:177
+msgid "No expiration"
+msgstr "காலாவதியாகாது"
+
+#: templates/account/partials/site.php:181
+msgid "Owner Name"
+msgstr "உரிமையாளர் பெயர்"
+
+#: templates/account/partials/site.php:193
+msgid "Owner Email"
+msgstr "உரிமையாளர் மின்னஞ்சல்"
+
+#: templates/account/partials/site.php:205
+msgid "Owner ID"
+msgstr "உரிமையாளர் ID"
+
+#: templates/account/partials/site.php:270
+msgid "Subscription"
+msgstr "சந்தா"
+
+#: templates/forms/deactivation/contact.php:19
+msgid ""
+"Sorry for the inconvenience and we are here to help if you give us a chance."
+msgstr "தவறுக்கு வருந்துகிறோம். எங்களுக்கு ஒரு வாய்ப்புத் தந்தால் உங்களுக்கு உதவக் காத்திருக்கிறோம்."
+
+#: templates/forms/deactivation/contact.php:22
+msgid "Contact Support"
+msgstr "உதவியை அணுகவும்"
+
+#: templates/forms/deactivation/form.php:64
+msgid "Anonymous feedback"
+msgstr "அனாமதேய பின்னூட்டம்"
+
+#: templates/forms/deactivation/form.php:70
+msgid "Deactivate"
+msgstr "செயல்நிறுத்து"
+
+#: templates/forms/deactivation/form.php:72
+msgid "Activate %s"
+msgstr "%s செயல்படுத்து"
+
+#: templates/forms/deactivation/form.php:87
+msgid "Quick Feedback"
+msgstr "உடனடி பின்னூட்டம்"
+
+#: templates/forms/deactivation/form.php:91
+msgid "If you have a moment, please let us know why you are %s"
+msgstr "ஏன் நீங்கள் %s என்பதை எங்களுக்குத் தெரிவியுங்கள்"
+
+#: templates/forms/deactivation/form.php:91
+msgid "deactivating"
+msgstr "செயல்நிறுத்தப்படுகிறது"
+
+#: templates/forms/deactivation/form.php:91
+msgid "switching"
+msgstr "switching"
+
+#: templates/forms/deactivation/form.php:365
+msgid "Submit & %s"
+msgstr "சமர்ப்பி & %s"
+
+#: templates/forms/deactivation/form.php:386
+msgid "Kindly tell us the reason so we can improve."
+msgstr "காரணம் எதுவென்று சொன்னால் எங்களை மேம்படுத்திக் கொள்வோம்."
+
+#: templates/forms/deactivation/form.php:511
+msgid "Yes - %s"
+msgstr "ஆம் - %s"
+
+#: templates/forms/deactivation/form.php:518
+msgid "Skip & %s"
+msgstr "கடந்திடு & %s"
+
+#: templates/forms/deactivation/retry-skip.php:21
+msgid "Click here to use the plugin anonymously"
+msgstr "பிளக்இன்னை அநாமதேயமாக பயன்படுத்த இங்கே கிளிக் செய்யவும்"
+
+#: templates/forms/deactivation/retry-skip.php:23
+msgid ""
+"You might have missed it, but you don't have to share any data and can just "
+"%s the opt-in."
+msgstr "விட்டுவிட்டீர்கள், ஆனாலும் நீங்கள் எந்த தகவலையும் பகிர வேண்டியதில்லை %sதெரிந்தெடுப்பு மட்டுமே"
