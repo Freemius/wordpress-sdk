@@ -94,7 +94,8 @@
     $use_external_pricing = $fs->should_use_external_pricing();
 
     if ( ! $use_external_pricing ) {
-        wp_enqueue_script( 'freemius-pricing', fs_asset_url( $fs->get_pricing_js_path() ) );
+        $pricing_js_url = fs_asset_url( $fs->get_pricing_js_path() );
+        wp_enqueue_script( 'freemius-pricing', $pricing_js_url );
     } else {
         if ( ! $fs->is_registered() ) {
             $template_data = array(
@@ -117,8 +118,8 @@
 	}
 ?>
 	<div id="fs_pricing" class="wrap fs-section fs-full-size-wrapper">
-		<div id="fs_frame"></div>
         <?php if ( ! $use_external_pricing ) : ?>
+        <div id="fs_pricing_wrapper" data-public-url="<?php echo trailingslashit( dirname( $pricing_js_url ) ) ?>"></div>
         <?php
         $pricing_config = array_merge( array(
             'contact_url'         => $fs->contact_url(),
@@ -134,13 +135,14 @@
                     'security'  => $fs->get_ajax_security( 'pricing_ajax_action' )
                 ) )
             ),
-            'selector'            => '#fs_frame',
+            'selector'            => '#fs_pricing_wrapper',
             'unique_affix'        => $fs->get_unique_affix(),
         ), $query_params );
 
         wp_add_inline_script( 'freemius-pricing', 'Freemius.pricing.new( ' . json_encode( $pricing_config ) . ' )' );
         ?>
         <?php else : ?>
+        <div id="fs_frame"></div>
 		<form action="" method="POST">
 			<input type="hidden" name="user_id"/>
 			<input type="hidden" name="user_email"/>
