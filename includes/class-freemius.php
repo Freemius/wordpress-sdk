@@ -165,6 +165,15 @@
         private $_has_addons;
 
         /**
+         * @since 2.4.5
+         * @var string Navigation type: 'menu' or 'tabs'.
+         */
+        private $_navigation;
+
+        const NAVIGATION_MENU = 'menu';
+        const NAVIGATION_TABS = 'tabs';
+
+        /**
          * @since 1.1.6
          * @var string[]bool.
          */
@@ -498,7 +507,7 @@
                 $this->_cache->clear();
             }
 
-            $this->_register_hooks();
+            $this->register_constructor_hooks();
 
             /**
              * Starting from version 2.0.0, `FS_Site` entities no longer have the `plan` property and have `plan_id`
@@ -711,6 +720,52 @@
         }
 
         /**
+         * If `true` the opt-in should be shown as a modal dialog box on the themes.php page. WordPress.org themes guidelines prohibit from redirecting the user from the themes.php page after activating a theme.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         */
+        function show_opt_in_on_themes_page() {
+            if ( ! $this->is_free_wp_org_theme() ) {
+                return false;
+            }
+
+            if ( ! $this->has_settings_menu() ) {
+                return true;
+            }
+
+            return $this->show_settings_with_tabs();
+        }
+
+        /**
+         * If `true` the opt-in should be shown on the product's main setting page.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         *
+         * @uses show_opt_in_on_themes_page();
+         */
+        function show_opt_in_on_setting_page() {
+            return ! $this->show_opt_in_on_themes_page();
+        }
+
+        /**
+         * If `true` the settings should be shown using tabs.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.5
+         *
+         * @return bool
+         */
+        function show_settings_with_tabs() {
+            return ( self::NAVIGATION_TABS === $this->_navigation );
+        }
+
+        /**
          * Check if the context module is free wp.org theme.
          *
          * This method is helpful because:
@@ -742,12 +797,11 @@
          * @since  1.2.2.7 Even if the menu item was specified to be hidden, when it is the context page, then show the submenu item so the user will have the right context page.
          *
          * @param string $slug
-         * @param bool   $ignore_free_wp_org_theme_context This is used to decide if the associated tab should be shown
-         *                                                 or hidden.
+         * @param bool   $is_tabs_visibility_check This is used to decide if the associated tab should be shown or hidden.
          *
          * @return bool
          */
-        function is_submenu_item_visible( $slug, $ignore_free_wp_org_theme_context = false ) {
+        function is_submenu_item_visible( $slug, $is_tabs_visibility_check = false ) {
             if ( $this->is_admin_page( $slug ) ) {
                 /**
                  * It is the current context page, so show the submenu item
@@ -762,7 +816,7 @@
                 return false;
             }
 
-            if ( ! $ignore_free_wp_org_theme_context && $this->is_free_wp_org_theme() ) {
+            if ( ! $is_tabs_visibility_check && $this->show_settings_with_tabs() ) {
                 /**
                  * wp.org themes are limited to a single submenu item, and
                  * sub-submenu items are most likely not allowed (never verified).
@@ -1461,11 +1515,11 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          */
-        private function _register_hooks() {
+        private function register_constructor_hooks() {
             $this->_logger->entrance();
 
             if ( is_admin() ) {
-                add_action( 'plugins_loaded', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
+                add_action( 'admin_init', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
                     if ( self::is_plugin_install_page() && true !== fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) {
@@ -1506,34 +1560,6 @@
                 } else {
                     add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
 
-                    /**
-                     * Include the required hooks to capture the theme settings' page tabs
-                     * and cache them.
-                     *
-                     * @author Vova Feldman (@svovaf)
-                     * @since  1.2.2.7
-                     */
-                    if ( ! $this->_cache->has_valid( 'tabs' ) ) {
-                        add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
-                        // Add license activation AJAX callback.
-                        $this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
-
-                        add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
-                    }
-
-                    add_action(
-                        'admin_footer',
-                        array( &$this, '_add_freemius_tabs' ),
-                        /**
-                         * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
-                         * That's why the priority is 11 while the tabs capture logic is added
-                         * with priority 10.
-                         *
-                         * @author Vova Feldman (@svovaf)
-                         */
-                        11
-                    );
-
                     add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
                 }
 
@@ -1553,7 +1579,10 @@
                      *
                      * @author Vova Feldman (@svovaf)
                      */
-                    if ( $this->is_plugin() && $this->is_activation_mode( false ) ) {
+                    if ( $this->is_plugin() &&
+                         $this->is_activation_mode( false ) &&
+                         0 == did_action( 'plugins_loaded' )
+                    ) {
                         add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
                     } else {
                         // If was activated before, then it was already loaded before.
@@ -1652,6 +1681,65 @@
                  $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
+            }
+        }
+
+        /**
+         * Register the required hooks right after the settings parse is completed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         */
+        private function register_after_settings_parse_hooks() {
+            if ( is_admin() &&
+                 $this->is_theme() &&
+                 $this->is_premium() &&
+                 ! $this->has_active_valid_license()
+            ) {
+                $this->add_ajax_action(
+                    'delete_theme_update_data',
+                    array( &$this, '_delete_theme_update_data_action' )
+                );
+            }
+
+            if ( $this->show_settings_with_tabs() ) {
+                /**
+                 * Include the required hooks to capture the theme settings' page tabs
+                 * and cache them.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.2.2.7
+                 */
+                if ( ! $this->_cache->has_valid( 'tabs' ) ) {
+                    add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
+                    // Add license activation AJAX callback.
+                    $this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
+
+                    add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
+                }
+
+                add_action(
+                    'admin_footer',
+                    array( &$this, '_add_freemius_tabs' ),
+                    /**
+                     * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
+                     * That's why the priority is 11 while the tabs capture logic is added
+                     * with priority 10.
+                     *
+                     * @author Vova Feldman (@svovaf)
+                     */
+                    11
+                );
+            }
+
+            if ( ! self::is_ajax() ) {
+                if ( ! $this->is_addon() || $this->is_only_premium() ) {
+                    add_action(
+                        ( $this->_is_network_active && fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu',
+                        array( &$this, '_prepare_admin_menu' ),
+                        WP_FS__LOWEST_PRIORITY
+                    );
+                }
             }
         }
 
@@ -1917,7 +2005,7 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
-            add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+            $this->_add_tracking_links();
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
@@ -2941,7 +3029,7 @@
          * @return bool
          */
         function is_activation_page() {
-            if ( $this->_menu->is_main_settings_page() ) {
+            if ( $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
                 return true;
             }
 
@@ -4643,22 +4731,7 @@
 
             $this->parse_settings( $plugin_info );
 
-            if ( is_admin() && $this->is_theme() && $this->is_premium() && ! $this->has_active_valid_license() ) {
-                $this->add_ajax_action(
-                    'delete_theme_update_data',
-                    array( &$this, '_delete_theme_update_data_action' )
-                );
-            }
-
-            if ( ! self::is_ajax() ) {
-                if ( ! $this->is_addon() || $this->is_only_premium() ) {
-                    add_action(
-                        ( $this->_is_network_active && fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu',
-                        array( &$this, '_prepare_admin_menu' ),
-                        WP_FS__LOWEST_PRIORITY
-                    );
-                }
-            }
+            $this->register_after_settings_parse_hooks();
 
             if ( $this->should_stop_execution() ) {
                 return;
@@ -4816,6 +4889,7 @@
                         if (
                             $this->_parent->is_registered() &&
                             ! $this->is_registered() &&
+                            $this->has_free_plan() &&
                             /**
                              * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
                              * * Network active and in network admin         - network activate add-on account.
@@ -5409,6 +5483,7 @@
                 'is_live'              => $this->get_bool_option( $plugin_info, 'is_live', true ),
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
                 'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
+                'bundle_public_key'    => $this->get_option( $plugin_info, 'bundle_public_key', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
@@ -5480,6 +5555,14 @@
 
                 $this->_is_trial_require_payment = $this->get_bool_option( $plugin_info['trial'], 'is_require_payment', false );
             }
+
+            $this->_navigation = $this->get_option(
+                $plugin_info,
+                'navigation',
+                $this->is_free_wp_org_theme() ?
+                    self::NAVIGATION_TABS :
+                    self::NAVIGATION_MENU
+            );
         }
 
         /**
@@ -6950,8 +7033,7 @@
 
             $this->_add_upgrade_action_link();
 
-            if ( ! $this->is_addon() &&
-                 ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
+            if ( ! ( ! $this->_is_network_active && fs_is_network_admin() ) &&
                  (
                      ( true === $this->_storage->require_license_activation ) ||
                      // Not registered nor anonymous.
@@ -6961,7 +7043,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_main_settings_page() ) {
+                    if ( ! $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
@@ -7028,8 +7110,8 @@
                     }
                 }
 
-                if ( $this->is_theme() &&
-                     $this->_menu->is_main_settings_page()
+                if ( $this->show_opt_in_on_themes_page() &&
+                     $this->is_activation_page()
                 ) {
                     $this->_show_theme_activation_optin_dialog();
                 }
@@ -9522,6 +9604,18 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return string|null Bundle public key.
+         */
+        function get_bundle_public_key() {
+            return isset( $this->_plugin->bundle_public_key ) ?
+                $this->_plugin->bundle_public_key :
+                null;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  1.2.1.5
          *
          * @return string Freemius SDK version
@@ -10540,7 +10634,7 @@
         function is_premium() {
             /**
              * `$this->_plugin` will be `false` when `is_activation_mode` calls this method directly from the
-             * `_register_hooks` method.
+             * `register_constructor_hooks` method.
              *
              * @author Leo Fajardo (@leorw)
              * @since 2.2.3
@@ -10637,7 +10731,20 @@
                 return false;
             }
 
-            return $this->has_active_valid_license() && ( $this->_site->trial_plan_id == $this->_license->plan_id );
+            if ( ! $this->has_active_valid_license() ) {
+                return false;
+            }
+
+            if ( $this->_site->trial_plan_id != $this->_license->plan_id ) {
+                return false;
+            }
+
+            /**
+             * @var FS_Subscription $subscription
+             */
+            $subscription = $this->_get_subscription( $this->_license->id );
+
+            return ( is_object( $subscription ) && $subscription->is_active() );
         }
 
         /**
@@ -13548,9 +13655,8 @@
             $page_param = $this->_menu->get_slug( $page );
 
             if ( empty( $page ) &&
-                 $this->is_theme() &&
                  // Show the opt-in as an overlay for free wp.org themes or themes without any settings page.
-                 ( $this->is_free_wp_org_theme() || ! $this->has_settings_menu() )
+                 $this->show_opt_in_on_themes_page()
             ) {
                 $params[ $this->get_unique_affix() . '_show_optin' ] = 'true';
 
@@ -14490,6 +14596,18 @@
         }
 
         /**
+         * Check if currently in the product's main admin page.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return bool
+         */
+        function is_main_admin_page() {
+            return $this->is_admin_page( '' );
+        }
+
+        /**
          * Get module's main admin setting page URL.
          *
          * @author Vova Feldman (@svovaf)
@@ -14509,8 +14627,22 @@
          * @since  1.2.2.7
          *
          * @return bool
+         *
+         * @deprecated Please use is_product_settings_page() instead;
          */
         function is_theme_settings_page() {
+            return $this->is_product_settings_page();
+        }
+
+        /**
+         * Check if currently on the product's main setting page or on any of the Freemius added pages (via tabs).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  1.2.2.7
+         *
+         * @return bool
+         */
+        function is_product_settings_page() {
             return fs_starts_with(
                 fs_request_get( 'page', '', 'get' ),
                 $this->_menu->get_slug()
@@ -16492,7 +16624,7 @@
          */
         private function add_menu_action() {
             if ( $this->is_activation_mode() ) {
-                if ( $this->is_plugin() || ( $this->has_settings_menu() && ! $this->is_free_wp_org_theme() ) ) {
+                if ( $this->show_opt_in_on_setting_page() ) {
                     $this->override_plugin_menu_with_activation();
                 } else {
                     /**
@@ -16514,7 +16646,7 @@
                     }
                 } else if (
                     fs_request_is_action( 'sync_user' ) &&
-                    ( ! $this->has_settings_menu() || $this->is_free_wp_org_theme() )
+                    ( ! $this->has_settings_menu() || $this->show_opt_in_on_themes_page() )
                 ) {
                     $this->_handle_account_user_sync();
                 }
@@ -16780,12 +16912,13 @@
                 return false;
             }
 
-            if ( $this->is_free_wp_org_theme() && ! fs_is_network_admin() ) {
-                // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
-                return true;
-            }
-
-            if ( $is_activation_mode && ! $this->is_free_wp_org_theme() ) {
+            if ( $this->show_opt_in_on_themes_page() ) {
+                if ( ! fs_is_network_admin() ) {
+                    // Also add action links or submenu items when running in a free .org theme so the tabs will be visible.
+                    return true;
+                }
+            } else if ( $is_activation_mode ) {
+                // Don't show submenu-items/tabs in activation mode, unless it's a wp.org theme.
                 return false;
             }
 
@@ -20342,7 +20475,7 @@
          * @return string
          */
         function get_after_activation_url( $filter, $params = array(), $network = null ) {
-            if ( $this->is_free_wp_org_theme() &&
+            if ( $this->show_opt_in_on_themes_page() &&
                  ( fs_request_has( 'pending_activation' ) ||
                    // For cases when the first time path is set, even though it's a WP.org theme.
                    fs_request_get_bool( $this->get_unique_affix() . '_show_optin' ) )
@@ -21144,6 +21277,26 @@
         }
 
         /**
+         * Get bundle public API scope.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @return FS_Api
+         */
+        function get_api_bundle_scope() {
+            return FS_Api::instance(
+                $this->get_bundle_id(),
+                'plugin',
+                $this->get_bundle_id(),
+                $this->get_bundle_public_key(),
+                ! $this->is_live(),
+                false,
+                $this->get_sdk_version()
+            );
+        }
+
+        /**
          * Get site API scope object (fallback to public plugin scope when not registered).
          *
          * @author Vova Feldman (@svovaf)
@@ -21665,6 +21818,11 @@
             }
 
             $this->_logger->entrance();
+
+            if ( $this->is_premium() ) {
+                // Don't add opt-in/out for premium code base.
+                return;
+            }
 
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
@@ -22432,7 +22590,7 @@
         function _tabs_capture() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_theme_settings_page() ||
+            if ( ! $this->is_product_settings_page() ||
                  ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
@@ -22487,7 +22645,7 @@
         function _store_tabs_styles() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_theme_settings_page() ||
+            if ( ! $this->is_product_settings_page() ||
                  ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
@@ -22561,18 +22719,23 @@
                 return false;
             }
 
-            if ( ! $this->is_theme() ) {
+            if ( self::NAVIGATION_TABS !== $this->_navigation ) {
                 // Only add tabs to themes for now.
                 return false;
             }
 
-            if ( ! $this->has_paid_plan() && ! $this->has_addons() ) {
+            if ( $this->is_theme() && ! $this->has_paid_plan() && ! $this->has_addons() ) {
                 // Only add tabs to monetizing themes.
                 return false;
             }
 
-            if ( ! $this->is_theme_settings_page() ) {
-                // Only add tabs if browsing one of the theme's setting pages.
+            if ( ! $this->is_product_settings_page() ) {
+                // Only add tabs if browsing one of the product's setting pages.
+                return false;
+            }
+
+            if ( $this->is_activation_mode() && $this->is_activation_page() ) {
+                // Don't include tabs in the activation page.
                 return false;
             }
 
