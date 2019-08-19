@@ -21056,7 +21056,29 @@
                         's_ctx_secure' => fs_request_get( 's_ctx_secure' ),
                     );
 
-                    $result = $this->get_api_plugin_scope()->get( 'pricing.json?' . http_build_query( $params ) );
+                    $bundle_id         = $this->get_bundle_id();
+                    $bundle_public_key = $this->get_bundle_public_key();
+
+                    $has_bundle_context = ( FS_Plugin::is_valid_id( $bundle_id ) && ! empty( $bundle_public_key ) );
+
+                    if ( ! $has_bundle_context ) {
+                        $api = $this->get_api_plugin_scope();
+                    } else {
+                        $api = FS_Api::instance(
+                            $bundle_id,
+                            'plugin',
+                            $bundle_id,
+                            $bundle_public_key,
+                            ! $this->is_live(),
+                            false,
+                            $this->get_sdk_version()
+                        );
+
+                        $params['plugin_id']         = $this->get_id();
+                        $params['plugin_public_key'] = $this->get_public_key();
+                    }
+
+                    $result = $api->get( 'pricing.json?' . http_build_query( $params ) );
                     break;
                 case 'start_trial':
                     $result = $this->opt_in(
