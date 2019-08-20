@@ -11553,19 +11553,24 @@
          * @param \FS_User $user
          * @param string   $license_key
          * @param array    $blog_2_install_map {
-         * @key    int Blog ID.
-         * @value  FS_Site Blog's associated install.
-         *                                     }
+         *      @key    int Blog ID.
+         *      @value  FS_Site Blog's associated install.
+         * }
+         * @param bool     $disable_foreign_license_activation
          *
          * @return mixed|true
          */
         private function activate_license_on_many_installs(
             FS_User $user,
             $license_key,
-            array $blog_2_install_map
+            array $blog_2_install_map,
+            $disable_foreign_license_activation = false
         ) {
             $params = array(
-                array( 'license_key' => $this->apply_filters( 'license_key', $license_key ) )
+                array(
+                    'license_key'                        => $this->apply_filters( 'license_key', $license_key ),
+                    'disable_foreign_license_activation' => $disable_foreign_license_activation,
+                )
             );
 
             $install_2_blog_map = array();
@@ -11608,11 +11613,20 @@
          *
          * @param \FS_User $user
          * @param string   $license_key
+         * @param bool     $disable_foreign_license_activation
          *
-         * @return true|mixed True if successful, otherwise, the API result.
+         * @return mixed|true True if successful, otherwise, the API result.
          */
-        private function activate_license_on_site( FS_User $user, $license_key ) {
-            return $this->activate_license_on_many_sites( $user, $license_key );
+        private function activate_license_on_site(
+            FS_User $user,
+            $license_key,
+            $disable_foreign_license_activation = false
+        ) {
+            return $this->activate_license_on_many_sites(
+                $user,
+                $license_key,
+                $disable_foreign_license_activation
+            );
         }
 
         /**
@@ -11624,13 +11638,15 @@
          * @param \FS_User $user
          * @param string   $license_key
          * @param int[]    $site_ids
+         * @param bool     $disable_foreign_license_activation
          *
          * @return true|mixed True if successful, otherwise, the API result.
          */
         private function activate_license_on_many_sites(
             FS_User $user,
             $license_key,
-            array $site_ids = array()
+            array $site_ids = array(),
+            $disable_foreign_license_activation = false
         ) {
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -11644,7 +11660,8 @@
                 false,
                 $sites,
                 false,
-                true
+                true,
+                $disable_foreign_license_activation
             );
 
             if ( ! $this->is_api_result_entity( $result ) &&
@@ -12320,6 +12337,7 @@
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
+         * @param null|string $license_owner_email Since 2.3.1 When set, will only activate the license owned by a user with a matching email address.
          *
          * @return array {
          *      @var bool   $success
@@ -12332,7 +12350,8 @@
         function activate_migrated_license(
             $license_key,
             $is_marketing_allowed = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $license_owner_email = null
         ) {
             $result = $this->activate_license(
                 $license_key,
@@ -12341,7 +12360,8 @@
                     array(),
                 $is_marketing_allowed,
                 null,
-                $plugin_id
+                $plugin_id,
+                $license_owner_email
             );
 
             // No need to show the sticky after license activation notice after migrating a license.
@@ -12356,12 +12376,13 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.2.4
          * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
+         *
          * @param string      $license_key
          * @param array       $sites
          * @param null|bool   $is_marketing_allowed
          * @param null|int    $blog_id
          * @param null|number $plugin_id
-         *
+         * @param null|string $license_owner_email Since 2.3.1 When set, will only activate the license owned by a user with a matching email address.         *
          * @return array {
          *      @var bool   $success
          *      @var string $error
@@ -12373,7 +12394,8 @@
             $sites = array(),
             $is_marketing_allowed = null,
             $blog_id = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $license_owner_email = null
         ) {
             $this->_logger->entrance();
 
@@ -12406,6 +12428,8 @@
                 $user = $fs->get_current_or_network_user();
             }
 
+            $disable_foreign_license_activation = ! empty($license_owner_email);
+
             if ( is_object( $user ) ) {
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
@@ -12427,7 +12451,12 @@
                     }
 
                     if ( ! empty( $blog_2_install_map ) ) {
-                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
+                        $result = $fs->activate_license_on_many_installs(
+                            $user,
+                            $license_key,
+                            $blog_2_install_map,
+                            $disable_foreign_license_activation
+                        );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12437,7 +12466,12 @@
                     }
 
                     if ( empty( $error ) && ! empty( $site_ids ) ) {
-                        $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
+                        $result = $fs->activate_license_on_many_sites(
+                            $user,
+                            $license_key,
+                            $site_ids,
+                            $disable_foreign_license_activation
+                        );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12473,7 +12507,11 @@
                             $fs->reconnect_locally( $has_valid_blog_id );
                         }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
-                        $result = $fs->activate_license_on_site( $user, $license_key );
+                        $result = $fs->activate_license_on_site(
+                            $user,
+                            $license_key,
+                            $disable_foreign_license_activation
+                        );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12494,7 +12532,7 @@
                 }
             } else {
                 $next_page = $fs->opt_in(
-                    false,
+                    $license_owner_email,
                     false,
                     false,
                     $license_key,
@@ -12502,7 +12540,8 @@
                     false,
                     false,
                     $is_marketing_allowed,
-                    $sites
+                    $sites,
+                    $disable_foreign_license_activation
                 );
 
                 if ( isset( $next_page->error ) ) {
@@ -15298,8 +15337,9 @@
          * @param bool        $is_disconnected      Whether or not to opt in without tracking.
          * @param null|bool   $is_marketing_allowed
          * @param array       $sites                If network-level opt-in, an array of containing details of sites.
+         * @param bool        $disable_foreign_license_activation
          *
-         * @return string|object
+         * @return object|string
          * @use    WP_Error
          */
         function opt_in(
@@ -15311,7 +15351,8 @@
             $trial_plan_id = false,
             $is_disconnected = false,
             $is_marketing_allowed = null,
-            $sites = array()
+            $sites = array(),
+            $disable_foreign_license_activation = false
         ) {
             $this->_logger->entrance();
 
@@ -15366,8 +15407,9 @@
 
             $filtered_license_key = false;
             if ( is_string( $license_key ) ) {
-                $filtered_license_key  = $this->apply_filters( 'license_key', $license_key );
-                $params['license_key'] = $filtered_license_key;
+                $filtered_license_key                         = $this->apply_filters( 'license_key', $license_key );
+                $params['license_key']                        = $filtered_license_key;
+                $params['disable_foreign_license_activation'] = $disable_foreign_license_activation;
             } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
                 $params['trial_plan_id'] = $trial_plan_id;
             }
@@ -15480,9 +15522,10 @@
                      * @author Leo Fajardo (@leorw)
                      */
                     $this->_storage->pending_sites_info = array(
-                        'blog_ids'      => $site_ids,
-                        'license_key'   => $license_key,
-                        'trial_plan_id' => $trial_plan_id
+                        'blog_ids'                           => $site_ids,
+                        'license_key'                        => $license_key,
+                        'trial_plan_id'                      => $trial_plan_id,
+                        'disable_foreign_license_activation' => $disable_foreign_license_activation,
                     );
                 }
 
@@ -15744,7 +15787,9 @@
                             fs_request_get_bool( 'is_marketing_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
-                            $pending_sites_info['trial_plan_id']
+                            $pending_sites_info['trial_plan_id'],
+                            true,
+                            $pending_sites_info['disable_foreign_license_activation']
                         );
                     } else {
                         $this->install_with_new_user(
@@ -15885,6 +15930,7 @@
          * @param bool      $license_key
          * @param bool      $trial_plan_id
          * @param bool      $redirect
+         * @param bool      $disable_foreign_license_activation
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -15896,7 +15942,8 @@
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
-            $redirect = true
+            $redirect = true,
+            $disable_foreign_license_activation = false
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
@@ -15909,7 +15956,15 @@
                 $sites[] = $this->get_site_info( array( 'blog_id' => $site_id ) );
             }
 
-            $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
+            $this->install_with_user(
+                $user,
+                $license_key,
+                $trial_plan_id,
+                $redirect,
+                true,
+                $sites,
+                $disable_foreign_license_activation
+            );
         }
 
         /**
@@ -16067,6 +16122,7 @@
          * @param number|bool $trial_plan_id
          * @param array       $sites Since 2.0.0
          * @param bool        $redirect
+         * @param bool        $disable_foreign_license_activation
          *
          * @return object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
          */
@@ -16074,7 +16130,8 @@
             $license_key = false,
             $trial_plan_id = false,
             $sites = array(),
-            $redirect = true
+            $redirect = true,
+            $disable_foreign_license_activation = false
         ) {
             // Get current logged WP user.
             $current_user = self::_get_current_wp_user();
@@ -16082,7 +16139,15 @@
             // Find the relevant FS user by the email.
             $user = self::_get_user_by_email( $current_user->user_email );
 
-            return $this->install_with_user( $user, $license_key, $trial_plan_id, $redirect, true, $sites );
+            return $this->install_with_user(
+                $user,
+                $license_key,
+                $trial_plan_id,
+                $redirect,
+                true,
+                $sites,
+                $disable_foreign_license_activation
+            );
         }
 
         /**
@@ -16095,6 +16160,7 @@
          * @param bool        $redirect
          * @param bool        $setup_account Since 2.0.0. When set to FALSE, executes a light installation without setting up the account as if it's the first opt-in.
          * @param array       $sites         Since 2.0.0. If not empty, should be a collection of site details for the bulk install API request.
+         * @param bool        $disable_foreign_license_activation
          *
          * @return \FS_Site|object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install. If $setup_account is set to `false`, return the newly created install.
          */
@@ -16104,7 +16170,8 @@
             $trial_plan_id = false,
             $redirect = true,
             $setup_account = true,
-            $sites = array()
+            $sites = array(),
+            $disable_foreign_license_activation = false
         ) {
             // We have to set the user before getting user scope API handler.
             $this->_user = $user;
@@ -16115,7 +16182,9 @@
                 $license_key,
                 $trial_plan_id,
                 $sites,
-                $redirect
+                $redirect,
+                false,
+                $disable_foreign_license_activation
             );
 
             if ( ! $this->is_api_result_entity( $result ) &&
@@ -16169,6 +16238,7 @@
          * @param array    $sites
          * @param bool     $redirect
          * @param bool     $silent
+         * @param bool     $disable_foreign_license_activation
          *
          * @return object|mixed
          */
@@ -16178,7 +16248,8 @@
             $trial_plan_id = false,
             $sites = array(),
             $redirect = false,
-            $silent = false
+            $silent = false,
+            $disable_foreign_license_activation = false
         ) {
             $extra_install_params = array(
                 'uid'             => $this->get_anonymous_id(),
@@ -16187,6 +16258,8 @@
 
             if ( ! empty( $license_key ) ) {
                 $extra_install_params['license_key'] = $this->apply_filters( 'license_key', $license_key );
+
+                $extra_install_params['disable_foreign_license_activation'] = $disable_foreign_license_activation;
 
                 if ( $silent ) {
                     $extra_install_params['ignore_license_owner'] = true;
