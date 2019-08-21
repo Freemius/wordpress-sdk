@@ -12230,17 +12230,17 @@
                 return;
             }
 
-            $this->add_ajax_action( 'set_beta_mode', array( &$this, '_set_beta_mode_ajax_handler' ) );
+            $this->add_ajax_action( 'set_beta_mode_and_maybe_fetch_version_update', array( &$this, '_set_beta_mode_and_maybe_fetch_version_update_ajax_handler' ) );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.0
          */
-        function _set_beta_mode_ajax_handler() {
+        function _set_beta_mode_and_maybe_fetch_version_update_ajax_handler() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'set_beta_mode' );
+            $this->check_ajax_referer( 'set_beta_mode_and_maybe_fetch_version_update' );
 
             if ( ! $this->is_user_admin() ) {
                 // Only for admins.
@@ -12271,10 +12271,31 @@
                 );
             }
 
-            $this->_user->is_beta = $user->is_beta;
-            $this->_store_user();
+            /**
+             * If the user has opted out of the beta program, this call may check for update in order to remove the
+             * cached beta version update information or replace it with non-beta version update information.
+             */
+            $this->update_user_beta_mode_and_maybe_fetch_version_update( $user->is_beta );
 
-            self::shoot_ajax_response( array( 'success' => true ) );
+            $latest_update_version = null;
+
+            /**
+             * If the user has opted out of the beta program, try to get cached version update information if there's any
+             * so that the "Install Update Now" button's text on the "Account" page will be updated with the latest update's
+             * version.
+             */
+            if ( ! $user->is_beta ) {
+                $updates = $this->get_all_updates();
+
+                if ( isset( $updates[ $this->get_id() ] ) && is_object( $updates[ $this->get_id() ] ) ) {
+                    $latest_update_version = $updates[ $this->get_id() ]->version;
+                }
+            }
+
+            self::shoot_ajax_response( array(
+                'success'               => true,
+                'latest_update_version' => $latest_update_version
+            ) );
         }
 
         /**
@@ -15181,8 +15202,54 @@
             $user = $this->get_api_user_scope()->get( '/?plugin_id=' . $this->get_id() . '&fields=is_beta' );
 
             if ( $this->is_api_result_entity( $user ) ) {
-                $this->_user->is_beta = $user->is_beta;
-                $this->_store_user();
+                $this->update_user_beta_mode_and_maybe_fetch_version_update( $user->is_beta );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param boolean $is_beta
+         */
+        private function update_user_beta_mode_and_maybe_fetch_version_update( $is_beta ) {
+            $this->_user->is_beta = $is_beta;
+            $this->_store_user();
+
+            $has_beta_user = $is_beta;
+
+            if (
+                ! $is_beta &&
+                is_multisite() &&
+                ( ! $this->_is_network_active || $this->is_delegated_connection() )
+            ) {
+                /**
+                 * If the user has opted out of the beta program and the plugin is not network active in a multisite
+                 * environment, check if there's any opted-in user that has not opted out of the beta program.
+                 */
+                $installs = $this->get_blog_install_map();
+
+                foreach ( $installs as $install ) {
+                    $user = self::_get_user_by_id( $install->user_id );
+
+                    if ( $user->is_beta() ) {
+                        $has_beta_user = true;
+                        break;
+                    }
+                }
+            }
+
+            if ( ! $has_beta_user && $this->has_beta_update() ) {
+                /**
+                 * If there's no longer a beta user and there's a cached beta update information, check for updates again
+                 * so that the cached update information will be updated if needed based on the user's `is_beta` state.
+                 */
+                $update = $this->get_update( $this->get_id() );
+
+                if ( is_object( $update ) ) {
+                    $updater = FS_Plugin_Updater::instance( $this );
+                    $updater->set_update_data( $update );
+                }
             }
         }
 

@@ -169,6 +169,8 @@
     $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 
     $is_premium = $fs->is_premium();
+
+    $has_beta_update = $fs->has_beta_update();
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -531,7 +533,7 @@
 																			$module_type = $fs->get_module_type();
 																			?>
 																			<a class="button button-primary"
-																			   href="<?php echo wp_nonce_url( self_admin_url( "update.php?action=upgrade-{$module_type}&{$module_type}=" . $fs->get_plugin_basename() ), "upgrade-{$module_type}_" . $fs->get_plugin_basename() ) ?>"><?php echo fs_esc_html_inline( 'Install Update Now', 'install-update-now', $slug ) . ' [' . $update->version . ']' ?></a>
+                                                                               href="<?php echo wp_nonce_url( self_admin_url( "update.php?action=upgrade-{$module_type}&{$module_type}=" . $fs->get_plugin_basename() ), "upgrade-{$module_type}_" . $fs->get_plugin_basename() ) ?>"><?php echo fs_esc_html_inline( 'Install Update Now', 'install-update-now', $slug ) ?> <span class="fs-update-version">[<?php echo $update->version ?>]</span></a>
 																		<?php endif ?>
 																	<?php endif; ?>
 																</div>
@@ -770,23 +772,49 @@
                 );
             ?>
 
+            var hasBetaUpdate = <?php echo $has_beta_update ? 'true' : 'false' ?>
+
             $( '.fs-toggle-beta-mode' ).click( function () {
                 var $checkbox = $( this ),
-                    isChecked = $checkbox.is( ':checked' );
+                    isBeta    = $checkbox.is( ':checked' );
 
-                if ( ! isChecked || confirm( '<?php echo $confirmation_message ?>' ) ) {
+                if ( ! isBeta || confirm( '<?php echo $confirmation_message ?>' ) ) {
                     $.ajax( {
                         url   : ajaxurl,
                         method: 'POST',
                         data  : {
-                            action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode' ) ?>',
-                            security : '<?php echo $fs->get_ajax_security( 'set_beta_mode' ) ?>',
-                            is_beta  : isChecked,
+                            action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode_and_maybe_fetch_version_update' ) ?>',
+                            security : '<?php echo $fs->get_ajax_security( 'set_beta_mode_and_maybe_fetch_version_update' ) ?>',
+                            is_beta  : isBeta,
                             module_id: <?php echo $fs->get_id() ?>
                         },
                         beforeSend: function () {
                             $checkbox.prop( 'disabled', true );
                             $checkbox.parent().find( 'span' ).text( '<?php echo $processing_text ?>' + '...' );
+                        },
+                        success: function ( result ) {
+                            if ( result.success && hasBetaUpdate && ! isBeta ) {
+                                var $updateButtonGroup = $( '.fs-field-version .fs-right .button-group' );
+
+                                if ( null !== result.latest_update_version ) {
+                                    /**
+                                     * Update the "Install Update Now" button's text with the latest update's version.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.3.1
+                                     */
+                                    $updateButtonGroup.find( '.fs-update-version' ).text( '[' + result.latest_update_version + ']' );
+                                } else {
+                                    /**
+                                     * Remove the latest beta version update button since the user has opted out of the
+                                     * beta program and there's no longer available latest version update.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.3.1
+                                     */
+                                    $updateButtonGroup.remove();
+                                }
+                            }
                         },
                         complete: function () {
                             $checkbox.prop( 'disabled', false );
