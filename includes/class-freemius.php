@@ -7711,33 +7711,13 @@
                 return;
             }
 
-            $license = $this->get_addon_active_parent_license();
+            $license = $this->get_active_parent_license();
             if ( ! is_object( $license ) ) {
                 return;
             }
 
-            if ( ! $this->is_registered() ) {
-                // Opt in with a license key.
-                $this->opt_in(
-                    $parent_fs->get_current_or_network_user()->email,
-                    false,
-                    false,
-                    $license->secret_key
-                );
-            } else {
-                // Activate the license.
-                $install = $this->get_api_site_scope()->call(
-                    '/',
-                    'put',
-                    array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
-                );
-
-                if ( ! FS_Api::is_api_error( $install ) ) {
-                    $this->_sync_addon_license( $this->get_id(), true );
-                }
-            }
+            $this->activate_license_bulk( $license );
         }
-
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -7754,71 +7734,39 @@
 
             $license = ( ! is_null( $license ) ) ?
                 $license :
-                $this->get_addon_active_parent_license();
+                $this->get_active_parent_license();
 
             if ( ! is_object( $license ) ) {
                 return;
             }
 
-            if ( ! $this->is_network_registered() ) {
-                $sites = $this->get_sites_for_network_level_optin();
+            $this->activate_license_bulk( $license );
+        }
 
-                if ( count( $sites ) > $license->left() ) {
-                    // If the add-on is network active, try to activate the license only if it can be activated on all sites.
-                    return;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.0.4
+         *
+         * @param FS_Plugin_License $license
+         */
+        private function activate_license_bulk( $license ) {
+            if ( empty( $license->products ) ) {
+                $license->products = array( $this->get_id() );
+            }
+
+            /**
+             * Try to activate the license for all supported products.
+             *
+             * @author Leo Fajardo
+             */
+            foreach ( $license->products as $product_id ) {
+                $fs = self::get_instance_by_id( $product_id );
+
+                if ( $fs->has_active_valid_license() ) {
+                    continue;
                 }
 
-                // Opt in with a license key.
-                $this->opt_in(
-                    $parent_fs->get_user()->email,
-                    false,
-                    false,
-                    $license->secret_key,
-                    false,
-                    false,
-                    false,
-                    null,
-                    $sites
-                );
-            } else {
-                $blog_2_install_map = array();
-                $site_ids           = array();
-
-                $all_sites = Freemius::get_sites();
-
-                foreach ( $all_sites as $site ) {
-                    $blog_id = Freemius::get_site_blog_id( $site );
-                    $install = $this->get_install_by_blog_id( $blog_id );
-
-                    if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
-                        // Skip license activation for installs that are already associated with a license.
-                        continue;
-                    }
-
-                    if ( is_object( $install ) ) {
-                        $blog_2_install_map[ $blog_id ] = $install;
-                    } else {
-                        $site_ids[] = $blog_id;
-                    }
-                }
-
-                if ( ( count( $blog_2_install_map ) + count( $site_ids ) ) > $license->left() ) {
-                    return;
-                }
-
-                $user = $this->get_current_or_network_user();
-
-                if ( ! empty( $blog_2_install_map ) ) {
-                    $result = $this->activate_license_on_many_installs( $user, $license->secret_key, $blog_2_install_map );
-
-                    if ( true !== $result ) {
-                        return;
-                    }
-                }
-
-                if ( ! empty( $site_ids ) ) {
-                    $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
-                }
+                $fs->activate_migrated_license( $license->secret_key );
             }
         }
 
@@ -7828,9 +7776,11 @@
          *
          * @return FS_Plugin_License
          */
-        private function get_addon_active_parent_license() {
+        private function get_active_parent_license() {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
-            $parent_instance          = $this->get_parent_instance();
+            $parent_instance          = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
 
             $foreign_licenses = $parent_instance->get_foreign_licenses_info(
                 self::get_all_licenses( $this->get_parent_id() )
@@ -7856,7 +7806,18 @@
                 return null;
             }
 
-            $license = new FS_Plugin_License( $result->licenses[ 0 ] );
+            if (
+                ! $this->is_api_result_object( $result, 'licenses' ) ||
+                ! is_array( $result->licenses ) ||
+                empty( $result->licenses )
+            ) {
+                return null;
+            }
+
+            $parent_license                 = $result->licenses[ 0 ];
+            $parent_license->children_plans = (array) $parent_license->children_plans;
+
+            $license = new FS_Plugin_License( $parent_license );
 
             return $license;
         }
@@ -12306,6 +12267,14 @@
                 fs_request_get( 'module_id', null, 'post' )
             );
 
+            if ( $result['success'] && $this->has_active_valid_license() ) {
+                $parent_license = $this->get_active_parent_license();
+
+                if ( is_object( $parent_license ) ) {
+                    $this->activate_license_bulk( $parent_license );
+                }
+            }
+
             echo json_encode( $result );
 
             exit;
@@ -16346,6 +16315,14 @@
             if ( ! fs_is_network_admin() ) {
                 // Try to activate premium license.
                 $this->_activate_license( true );
+
+                if ( $this->has_active_valid_license() ) {
+                    $parent_license = $this->get_active_parent_license();
+
+                    if ( is_object( $parent_license ) ) {
+                        $this->activate_license_bulk( $parent_license );
+                    }
+                }
             } else {
                 $license_id = fs_request_get( 'license_id' );
 
