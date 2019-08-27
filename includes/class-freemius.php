@@ -7840,13 +7840,16 @@
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0.4
+         *
+         * @param array $sites
+         * @param int   $blog_id
          */
-        private function maybe_activate_bundle_license() {
+        private function maybe_activate_bundle_license( $sites = array(), $blog_id = 0 ) {
             if ( $this->has_active_valid_license() ) {
                 $parent_license = $this->get_active_parent_license();
 
                 if ( is_object( $parent_license ) ) {
-                    $this->activate_bundle_license( $parent_license );
+                    $this->activate_bundle_license( $parent_license, $sites, $blog_id );
                 }
             }
         }
@@ -7856,9 +7859,14 @@
          * @since 2.3.0.4
          *
          * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $current_blog_id
          */
-        private function activate_bundle_license( $license ) {
+        private function activate_bundle_license( $license, $sites = array(), $current_blog_id = 0 ) {
             $is_network_admin = fs_is_network_admin();
+
+            $installs_by_blog_map  = array();
+            $site_info_by_blog_map = array();
 
             /**
              * Try to activate the license for all supported products.
@@ -7866,28 +7874,100 @@
              * @author Leo Fajardo
              */
             foreach ( $license->products as $product_id ) {
-                $fs = self::get_instance_by_id( $product_id );
-
-                if ( ! is_object( $fs ) || $fs->has_active_valid_license() ) {
+                if ( $this->get_id() == $product_id ) {
                     continue;
                 }
 
-                if ( $is_network_admin ) {
+                $fs = self::get_instance_by_id( $product_id );
+
+                if ( ! is_object( $fs ) ) {
+                    continue;
+                }
+
+                if ( $current_blog_id > 0 ) {
+                    $fs->switch_to_blog( $current_blog_id );
+                }
+                
+                if ( $fs->has_active_valid_license() ) {
+                    continue;
+                }
+
+                if ( ! $is_network_admin || $current_blog_id > 0 ) {
+                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection( $current_blog_id ) ) {
+                        // Do not try to activate the license in the site level if the product is network active and the connection was not delegated.
+                        continue;
+                    }
+                } else {
+                    if ( empty( $sites ) ) {
+                        $sites = self::get_sites();
+                    }
+
                     if ( ! $fs->is_network_active() ) {
                         // Do not try to activate the license in the network level if the product is not network active.
                         continue;
                     } else if ( $fs->is_network_delegated_connection() ) {
                         // Do not try to activate the license in the network level if the activation has been delegated to site admins.
                         continue;
-                    }
-                } else {
-                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection() ) {
-                        // Do not try to activate the license in the site level if the product is network active and the connection was not delegated.
-                        continue;
+                    } else {
+                        $has_install_with_license = false;
+
+                        foreach ( $sites as $site ) {
+                            if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                                continue;
+                            }
+
+                            $blog_id = $site['blog_id'];
+
+                            if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
+                                $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
+                            }
+
+                            $installs = $installs_by_blog_map[ $blog_id ];
+                            $install  = null;
+
+                            if ( isset( $installs[ $fs->get_slug() ] ) ) {
+                                $install = $installs[ $fs->get_slug() ];
+
+                                if ( is_object( $install ) &&
+                                    is_numeric( $install->id ) &&
+                                    is_numeric( $install->user_id ) &&
+                                    FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                ) {
+                                    // Load site.
+                                    $install = clone $install;
+                                } else {
+                                    $install = null;
+                                }
+                            }
+
+                            if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                                $has_install_with_license = true;
+                                break;
+                            }
+
+                            if ( ! $fs->is_site_delegated_connection( $blog_id ) && ! is_object( $install ) ) {
+                                if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
+                                    $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
+                                }
+
+                                $product_sites[] = $site_info_by_blog_map[ $blog_id ];
+                            }
+                        }
+
+                        if ( $has_install_with_license ) {
+                            // Do not try to activate the license in the network level if there's any install with a license.
+                            continue;
+                        }
                     }
                 }
 
-                $fs->activate_migrated_license( $license->secret_key );
+                $fs->activate_migrated_license(
+                    $license->secret_key,
+                    null,
+                    null,
+                    $sites,
+                    ( $current_blog_id > 0 ? $current_blog_id : null )
+                );
             }
         }
 
@@ -12385,18 +12465,20 @@
                 exit;
             }
 
+            $sites = fs_is_network_admin() ?
+                fs_request_get( 'sites', array(), 'post' ) :
+                array();
+
             $result = $this->activate_license(
                 $license_key,
-                fs_is_network_admin() ?
-                    fs_request_get( 'sites', array(), 'post' ) :
-                    array(),
+                $sites,
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' )
             );
 
             if ( $result['success'] ) {
-                $this->maybe_activate_bundle_license();
+                $this->maybe_activate_bundle_license( $sites );
             }
 
             echo json_encode( $result );
@@ -12413,6 +12495,8 @@
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
+         * @param array       $sites
+         * @param int         $blog_id
          *
          * @return array {
          *      @var bool   $success
@@ -12425,15 +12509,17 @@
         function activate_migrated_license(
             $license_key,
             $is_marketing_allowed = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $sites = array(),
+            $blog_id = null
         ) {
             $result = $this->activate_license(
                 $license_key,
-                $this->is_network_active() ?
+                ( empty( $sites ) && is_null( $blog_id ) && $this->is_network_active() ) ?
                     $this->get_sites_for_network_level_optin() :
-                    array(),
+                    $sites,
                 $is_marketing_allowed,
-                null,
+                $blog_id,
                 $plugin_id
             );
 
@@ -12579,8 +12665,11 @@
                 if ( empty( $error ) ) {
                     $fs->network_upgrade_mode_completed();
 
-                    $this->_user = $user;
-                    $this->_site = $this->get_network_install();
+                    $fs->_user = $user;
+
+                    if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                        $fs->_site = $fs->get_network_install();
+                    }
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -20739,7 +20828,7 @@
                          */
                         unset( $_REQUEST['plugin_id'] );
 
-                        $fs->maybe_activate_bundle_license();
+                        $fs->maybe_activate_bundle_license( array(), is_numeric( $blog_id ) ? $blog_id : 0 );
                     }
 
                     return;
