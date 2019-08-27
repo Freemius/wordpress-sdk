@@ -7985,7 +7985,7 @@
          *
          * @return FS_Plugin_License
          */
-        private function get_active_parent_license( $license_key = null ) {
+        function get_active_parent_license( $license_key = null ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
             $parent_instance          = $this->is_addon() ?
                 $this->get_parent_instance() :
