@@ -7940,7 +7940,6 @@
                                     is_numeric( $install->user_id ) &&
                                     FS_Plugin_Plan::is_valid_id( $install->plan_id )
                                 ) {
-                                    // Load site.
                                     $install = clone $install;
                                 } else {
                                     $install = null;
