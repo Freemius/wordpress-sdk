@@ -7891,6 +7891,10 @@
                     continue;
                 }
 
+                if ( ! $fs->has_paid_plan() ) {
+                    continue;
+                }
+
                 if ( $current_blog_id > 0 ) {
                     $fs->switch_to_blog( $current_blog_id );
                 }
