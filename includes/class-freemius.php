@@ -7841,16 +7841,23 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0.4
          *
-         * @param array $sites
-         * @param int   $blog_id
+         * @param string $license_key
+         * @param array  $sites
+         * @param int    $blog_id
          */
-        private function maybe_activate_bundle_license( $sites = array(), $blog_id = 0 ) {
-            if ( $this->has_active_valid_license() ) {
-                $parent_license = $this->get_active_parent_license();
+        private function maybe_activate_bundle_license( $license_key = null, $sites = array(), $blog_id = 0 ) {
+            if ( is_null( $license_key ) && $this->has_active_valid_license() ) {
+                $license_key = $this->_license->secret_key;
+            }
 
-                if ( is_object( $parent_license ) ) {
-                    $this->activate_bundle_license( $parent_license, $sites, $blog_id );
-                }
+            if ( is_null( $license_key ) ) {
+                return;
+            }
+
+            $parent_license = $this->get_active_parent_license( $license_key );
+
+            if ( is_object( $parent_license ) ) {
+                $this->activate_bundle_license( $parent_license, $sites, $blog_id );
             }
         }
         
@@ -7975,9 +7982,11 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
          *
+         * @param string|null $license_key
+         *
          * @return FS_Plugin_License
          */
-        private function get_active_parent_license() {
+        private function get_active_parent_license( $license_key = null ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
             $parent_instance          = $this->is_addon() ?
                 $this->get_parent_instance() :
@@ -8019,15 +8028,24 @@
                 return null;
             }
 
-            $parent_license = $result->licenses[ 0 ];
+            $parent_license = null;
 
-            if ( isset( $parent_license->children_plans ) ) {
-                $parent_license->children_plans = (array) $parent_license->children_plans;
+            if ( empty( $license_key ) ) {
+                $parent_license = $result->licenses[ 0 ];
+            } else {
+                foreach ( $result->licenses as $license ) {
+                    if ( $license_key === $license->secret_key ) {
+                        $parent_license = $license;
+                        break;
+                    }
+                }
             }
 
-            $license = new FS_Plugin_License( $parent_license );
+            if ( ! is_null( $parent_license ) ) {
+                $parent_license = new FS_Plugin_License( $parent_license );
+            }
 
-            return $license;
+            return $parent_license;
         }
 
         /**
@@ -12478,7 +12496,7 @@
             );
 
             if ( $result['success'] ) {
-                $this->maybe_activate_bundle_license( $sites );
+                $this->maybe_activate_bundle_license( $license_key, $sites );
             }
 
             echo json_encode( $result );
@@ -20828,7 +20846,7 @@
                          */
                         unset( $_REQUEST['plugin_id'] );
 
-                        $fs->maybe_activate_bundle_license( array(), is_numeric( $blog_id ) ? $blog_id : 0 );
+                        $fs->maybe_activate_bundle_license( null, array(), is_numeric( $blog_id ) ? $blog_id : 0 );
                     }
 
                     return;

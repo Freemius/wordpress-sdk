@@ -56,13 +56,6 @@
          *
          * @var array
          */
-        public $children_plans;
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.0.4
-         *
-         * @var array
-         */
         public $products;
         /**
          * @var number
