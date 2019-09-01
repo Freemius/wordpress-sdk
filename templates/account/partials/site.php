@@ -15,14 +15,15 @@
      * @var Freemius          $fs
      * @var FS_Plugin_License $main_license
      */
-    $fs            = $VARS['freemius'];
-    $slug          = $fs->get_slug();
-    $site          = $VARS['site'];
-    $main_license  = $VARS['license'];
-    $has_paid_plan = $fs->has_paid_plan();
-    $is_premium    = $fs->is_premium();
-    $main_user     = $fs->get_user();
-    $blog_id       = $site['blog_id'];
+    $fs                    = $VARS['freemius'];
+    $slug                  = $fs->get_slug();
+    $site                  = $VARS['site'];
+    $main_license          = $VARS['license'];
+    $has_developer_license = $VARS['has_developer_license'];
+    $has_paid_plan         = $fs->has_paid_plan();
+    $is_premium            = $fs->is_premium();
+    $main_user             = $fs->get_user();
+    $blog_id               = $site['blog_id'];
 
     $install       = $VARS['install'];
     $is_registered = ! empty( $install );
@@ -68,32 +69,38 @@
                     $license     = $has_license ?
                         $fs->_get_license_by_id( $install->license_id ) :
                         null;
+
+                    if ( is_object( $license ) && ! $license->is_developer_license() ) {
+                        $has_developer_license = false;
+                    }
                 } else {
                     $view_params['is_localhost'] = FS_Site::is_localhost_by_address( $site['url'] );
                 }
 
-                if ( is_object( $license ) ) {
-                    $view_params['license'] = $license;
+                if ( ! $has_developer_license ) {
+                    if ( is_object( $license ) ) {
+                        $view_params['license'] = $license;
 
-                    // Show license deactivation button.
-                    fs_require_template( 'account/partials/deactivate-license-button.php', $view_params );
-                } else {
-                    if ( is_object( $main_license ) && $main_license->can_activate( $view_params['is_localhost'] ) ) {
-                        // Main license is available for activation.
-                        $available_license = $main_license;
+                        // Show license deactivation button.
+                        fs_require_template( 'account/partials/deactivate-license-button.php', $view_params );
                     } else {
-                        // Try to find any available license for activation.
-                        $available_license = $fs->_get_available_premium_license( $view_params['is_localhost'] );
-                    }
+                        if ( is_object( $main_license ) && $main_license->can_activate( $view_params['is_localhost'] ) ) {
+                            // Main license is available for activation.
+                            $available_license = $main_license;
+                        } else {
+                            // Try to find any available license for activation.
+                            $available_license = $fs->_get_available_premium_license( $view_params['is_localhost'] );
+                        }
 
-                    if ( is_object( $available_license ) ) {
-                        $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id );
+                        if ( is_object( $available_license ) ) {
+                            $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id );
 
-                        $view_params['license'] = $available_license;
-                        $view_params['class'] .= ' button-primary';
-                        $view_params['plan'] = $premium_plan;
+                            $view_params['license'] = $available_license;
+                            $view_params['class'] .= ' button-primary';
+                            $view_params['plan'] = $premium_plan;
 
-                        fs_require_template( 'account/partials/activate-license-button.php', $view_params );
+                            fs_require_template( 'account/partials/activate-license-button.php', $view_params );
+                        }
                     }
                 }
             } ?></td>
@@ -106,7 +113,7 @@
                     $plan_title = $free_text;
                 } else {
                     if ( $install->is_trial() ) {
-                        if ( $trial_plan->id == $install->trial_plan_id ) {
+                        if ( is_object( $trial_plan ) && $trial_plan->id == $install->trial_plan_id ) {
                             $plan_title = is_string( $trial_plan->name ) ?
                                 strtoupper( $trial_plan->title ) :
                                 fs_text_inline( 'Trial', 'trial', $slug );
@@ -232,9 +239,13 @@
                     </td>
                     <td>
                         <code><?php echo htmlspecialchars( substr( $install->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $install->secret_key, - 3 ) ) ?></code>
+                        <?php if ( ! $has_developer_license ) : ?>
                         <input type="text" value="<?php echo htmlspecialchars( $install->secret_key ) ?>"
                                style="display: none" readonly/></td>
+                        <?php endif ?>
+                    <?php if ( ! $has_developer_license ) : ?>
                     <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
+                    <?php endif ?>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Secret Key -->
@@ -249,12 +260,16 @@
                         </td>
                         <td>
                             <code><?php echo htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $license->secret_key, - 3 ) ) ?></code>
+                            <?php if ( ! $has_developer_license ) : ?>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
+                            <?php endif ?>
+                        <?php if ( ! $has_developer_license ) : ?>
                         <td>
                             <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                             <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
                         </td>
+                        <?php endif ?>
                     </tr>
                     <?php $row_index ++ ?>
                     <!--/ License Key -->

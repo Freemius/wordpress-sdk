@@ -25,7 +25,9 @@
 	/**
 	 * @var FS_Plugin[]
 	 */
-	$addons = $fs->get_addons();
+	$addons = $fs->has_developer_license() ?
+        $fs->get_installed_addons() :
+        $fs->get_addons();
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 

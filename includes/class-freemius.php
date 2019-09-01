@@ -343,6 +343,14 @@
          */
         private $_dynamically_added_top_level_page_hook_name = '';
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @var FS_Plugin_License
+         */
+        private $_developer_license;
+
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -513,6 +521,10 @@
             $this->_load_account();
 
             $this->_version_updates_handler();
+
+            if ( $this->has_developer_license() || is_object( $this->_developer_license ) ) {
+                $this->add_ajax_action( 'set_developer_license_debug_mode', array( &$this, '_set_developer_license_debug_mode' ) );
+            }
         }
 
         /**
@@ -11790,6 +11802,18 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         *
+         * @return FS_Plugin_License
+         */
+        function get_developer_license() {
+            return is_object( $this->_developer_license ) ?
+                $this->_developer_license :
+                null;
+        }
+
+        /**
          * @param number $license_id
          *
          * @return null|\FS_Subscription
@@ -12064,6 +12088,18 @@
 
             fs_require_template( 'forms/license-activation.php', $vars );
             fs_require_template( 'forms/resend-key.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _add_developer_license_debug_mode_dialog_box() {
+            $vars = array(
+                'id' => $this->_module_id,
+            );
+
+            fs_require_template( 'forms/developer-license-debug-mode.php', $vars );
         }
 
         /**
@@ -16992,7 +17028,10 @@
             if ( $add_submenu_items ||
                 ( $is_activation_mode && $this->is_only_premium() && $this->is_admin_page( 'pricing' ) )
             ) {
-                if ( ! WP_FS__DEMO_MODE ) {
+                if (
+                    ! WP_FS__DEMO_MODE &&
+                    ! $this->has_developer_license()
+                ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
                         $this->is_pricing_page_visible()
@@ -18654,6 +18693,122 @@
          */
         function has_active_valid_license() {
             return self::is_active_valid_license( $this->_license );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         * 
+         * @return bool
+         */
+        function has_developer_license() {
+            if ( ! isset( $this->_developer_license ) ) {
+                $this->_developer_license = false;
+
+                $license = is_object( $this->_license ) ?
+                    $this->_license :
+                    $this->_get_available_premium_license();
+
+                if (
+                    ! is_object( $license ) &&
+                    ! $this->is_addon() &&
+                    $this->has_addons() &&
+                    ! $this->has_paid_plan()
+                ) {
+                    $installed_addons = $this->get_installed_addons();
+                    foreach ( $installed_addons as $fs_addon ) {
+                        $addon_license = $fs_addon->_get_license();
+
+                        if ( ! is_object( $addon_license ) ) {
+                            $addon_license = $fs_addon->_get_available_premium_license();
+                        }
+
+                        if ( is_object( $addon_license ) && $addon_license->is_developer_license() ) {
+                            $license = $addon_license;
+                            break;
+                        }
+                    }
+                }
+
+                if ( is_object( $license ) ) {
+                    $this->_developer_license = $license;
+                }
+            }
+
+            $has_developer_license = is_object( $this->_developer_license );
+
+            $is_developer_license_debug_mode = false;
+
+            if ( $has_developer_license ) {
+                if ( $this->is_network_active() ) {
+                    $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
+                } else {
+                    $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
+                }
+
+                $is_developer_license_debug_mode = ( 'true' === $is_developer_license_debug_mode );
+            }
+
+            if ( ! $has_developer_license || ! $is_developer_license_debug_mode ) {
+                if ( $this->_admin_notices->has_sticky( 'developer_license_debug_mode_enabled' ) ) {
+                    $this->_admin_notices->remove_sticky( 'developer_license_debug_mode_enabled' );
+                }
+            }
+
+            if ( $is_developer_license_debug_mode ) {
+                $has_developer_license = false;
+            }
+
+            return $has_developer_license;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _set_developer_license_debug_mode() {
+            $license_key = fs_request_get( 'license_key' );
+
+            $transient_value = ( ! empty( $license_key ) ? 'true' : 'false' );
+
+            if ( 'true' === $transient_value && $license_key !== $this->_developer_license->secret_key ) {
+                $this->shoot_ajax_failure( sprintf(
+                    '%s... %s',
+                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
+                    $this->get_text_x_inline(
+                        'seems like the key you entered doesn\'t match our records.',
+                        'the submitted developer license key doesn\'t match any license',
+                        'developer-license-not-found'
+                    )
+                ) );
+            }
+
+            if ( $this->is_network_active() ) {
+                set_site_transient(
+                    "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode",
+                    $transient_value,
+                    WP_FS__TIME_24_HOURS_IN_SEC / 24
+                );
+            } else {
+                set_transient(
+                    "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode",
+                    $transient_value,
+                    WP_FS__TIME_24_HOURS_IN_SEC / 24
+                );
+            }
+
+            if ( 'true' === $transient_value ) {
+                $this->_admin_notices->add_sticky(
+                    $this->get_text_x_inline(
+                        'Debug mode was successfully enabled and will be automatically disabled in 60 min. You can also disable it earlier by clicking the "Stop Debug" link.',
+                        'debug mode for the developer license was successfully enabled',
+                        'developer-license-debug-mode-enabled'
+                    ),
+                    'developer_license_debug_mode_enabled'
+                );
+            }
+
+            $this->shoot_ajax_success();
         }
 
         /**
@@ -21637,7 +21792,7 @@
             $add_upgrade_link = (
                 $add_action_links ||
                 ( $is_activation_mode && $this->is_only_premium() )
-            ) && ! WP_FS__DEMO_MODE;
+            ) && ! WP_FS__DEMO_MODE && ! $this->has_developer_license();
 
             $add_addons_link = ( $add_action_links && $this->has_addons() );
 

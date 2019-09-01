@@ -539,7 +539,17 @@
                     <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
                     <td><?php echo $license->activated ?></td>
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
-                    <td><?php echo esc_html( $license->secret_key ) ?></td>
+                    <td><?php
+                        $license_key = $license->secret_key;
+
+                        if ( $license->is_developer_license() ) {
+                            $license_key = htmlspecialchars( substr( $license_key, 0, 6 ) ) .
+                                str_pad( '', 23 * 6, '&bull;' ) .
+                                htmlspecialchars( substr( $license_key, - 3 ) );
+                        }
+
+                        echo esc_html( $license_key );
+                    ?></td>
                     <td><?php echo $license->expiration ?></td>
                 </tr>
             <?php endforeach ?>
