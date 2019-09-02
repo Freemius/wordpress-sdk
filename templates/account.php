@@ -748,7 +748,8 @@
                                                     'is_addon_installed'             => $is_addon_installed,
                                                     'addon_info'                     => isset( $addon_info_by_id[ $addon_id ] ) ?
                                                         $addon_info_by_id[ $addon_id ] :
-                                                        $fs->_get_addon_info( $addon_id, $is_addon_installed )
+                                                        $fs->_get_addon_info( $addon_id, $is_addon_installed ),
+                                                    'hide_data'                      => ( $hide_data && ! $is_data_debug_mode )
 												);
 
 												fs_require_template(

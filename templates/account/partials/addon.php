@@ -61,7 +61,7 @@
     $subscription           = null;
     $is_paying              = false;
     $show_upgrade           = false;
-    $hide_data              = false;
+    $hide_data              = $VARS['hide_data'];
 
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
