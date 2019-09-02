@@ -132,7 +132,7 @@ HTML;
                 action       : '<?php echo $fs->get_ajax_action( 'set_data_debug_mode' ) ?>',
                 security     : '<?php echo $fs->get_ajax_security( 'set_data_debug_mode' ) ?>',
                 license_key  : licenseKey,
-                is_debug_mode: <?php echo $fs->has_developer_license() ? 'true' : 'false' ?>,
+                is_debug_mode: isDebugMode,
                 module_id    : '<?php echo $fs->get_id() ?>'
             };
 

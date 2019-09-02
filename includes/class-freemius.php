@@ -11793,19 +11793,50 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
-         * @param int blog_id
+         * @param FS_Plugin_License $license
+         */
+        private function set_last_license_data( FS_Plugin_License $license ) {
+            $this->_storage->last_license_key     = md5( $license->secret_key );
+            $this->_storage->last_license_user_id = $license->user_id;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         * 
+         * @return bool
+         */
+        function get_hide_data_flag_value() {
+            return $this->_storage->hide_data;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return number
+         */
+        function get_last_license_user_id() {
+            return ( FS_User::is_valid_id( $this->_storage->last_license_user_id ) ) ?
+                $this->_storage->last_license_user_id :
+                null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param int $blog_id
          *
          * @return bool
          */
         function should_hide_data( $blog_id = null ) {
             if ( ! is_null( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
+            } else if ( ! is_null( $this->_hide_data ) ) {
+                return $this->_hide_data;
             }
 
-            if ( ! is_null( $this->_hide_data ) ) {
-                return $this->_hide_data;    
-            }
-            
             $should_hide_data = false;
 
             if ( ! $this->has_addons() ) {
@@ -11892,7 +11923,15 @@
 
             $this->_hide_data = $should_hide_data;
 
-            $this->restore_current_blog();
+            if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
+                if ( $this->_admin_notices->has_sticky( 'data_debug_mode_enabled' ) ) {
+                    $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
+                }
+            }
+
+            if ( ! is_null( $blog_id ) ) {
+                $this->restore_current_blog();
+            }
             
             return $should_hide_data;
         }
@@ -18841,10 +18880,10 @@
                 $this->get_parent_instance() :
                 $this;
 
-            if ( $fs->is_network_active() ) {
-                $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
+            if ( $fs->is_network_active() && fs_is_network_admin() ) {
+                $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode" );
             } else {
-                $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
+                $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode" );
             }
 
             return ( 'true' === $is_developer_license_debug_mode );
@@ -18863,7 +18902,7 @@
 
             $transient_value = ( ! empty( $license_key ) ? 'true' : 'false' );
 
-            if ( 'true' === $transient_value && $license_key !== $this->_storage->last_license_key ) {
+            if ( 'true' === $transient_value && md5( $license_key ) !== $this->_storage->last_license_key ) {
                 $this->shoot_ajax_failure( sprintf(
                     '%s... %s',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
@@ -18875,15 +18914,15 @@
                 ) );
             }
 
-            if ( $this->is_network_active() ) {
+            if ( $this->is_network_active() && fs_is_network_admin() ) {
                 set_site_transient(
-                    "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode",
+                    "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode",
                     $transient_value,
                     WP_FS__TIME_24_HOURS_IN_SEC / 24
                 );
             } else {
                 set_transient(
-                    "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode",
+                    "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode",
                     $transient_value,
                     WP_FS__TIME_24_HOURS_IN_SEC / 24
                 );
@@ -18894,9 +18933,9 @@
                     $this->get_text_x_inline(
                         'Debug mode was successfully enabled and will be automatically disabled in 60 min. You can also disable it earlier by clicking the "Stop Debug" link.',
                         'debug mode for the developer license was successfully enabled',
-                        'developer-license-debug-mode-enabled'
+                        'data_debug_mode_enabled'
                     ),
-                    'developer_license_debug_mode_enabled'
+                    'data_debug_mode_enabled'
                 );
             }
 
@@ -19385,7 +19424,11 @@
                     );
                 } else {
                     if ( ! is_object( $this->_license ) ) {
-                        $this->update_hide_data_flag( null );
+                        $this->update_hide_data_flag(
+                            FS_Plugin_License::is_valid_id( $site->license_id ) ?
+                                $this->get_license_by_id( $site->license_id ) :
+                                null
+                        );
                     } else {
                         $this->update_hide_data_flag( $this->_license );
 

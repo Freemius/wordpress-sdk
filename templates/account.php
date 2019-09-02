@@ -44,8 +44,8 @@
     $site                   = $fs->get_site();
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
-    $has_developer_license  = $fs->should_hide_data();
-    $hide_data              = ( $has_developer_license && ! $fs->is_data_debug_mode() );
+    $is_data_debug_mode     = $fs->is_data_debug_mode();
+    $hide_data              = ( $fs->should_hide_data() && ! $is_data_debug_mode );
     $subscription           = ( is_object( $license ) ?
                                   $fs->_get_subscription( $license->id ) :
                                   null );
@@ -60,7 +60,7 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
-	if ( $has_developer_license ) {
+	if ( $fs->should_hide_data() || $fs->is_data_debug_mode() ) {
         $fs->_add_data_debug_mode_dialog_box();
 	}
 
@@ -131,8 +131,6 @@
             $view_params = array(
                 'freemius' => $fs,
                 'license'  => $license,
-                'developer_license'  => $developer_license,
-                'has_developer_license'  => $has_developer_license,
                 'site'     => $site_info,
                 'install'  => $install,
             );
@@ -204,7 +202,7 @@
 							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_esc_html_echo_inline( 'Account Details', 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
-                                    <?php if ( $has_developer_license ) : ?>
+                                    <?php if ( $fs->should_hide_data() ) : ?>
                                         <li>
                                             <a href="#" class="debug-license-trigger"><?php
                                                 if ( $hide_data ) {

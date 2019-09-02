@@ -19,7 +19,8 @@
     $slug                  = $fs->get_slug();
     $site                  = $VARS['site'];
     $main_license          = $VARS['license'];
-    $has_developer_license = $VARS['has_developer_license'];
+    $is_data_debug_mode    = $fs->is_data_debug_mode();
+    $hide_data             = ( $fs->should_hide_data() && ! $is_data_debug_mode );
     $has_paid_plan         = $fs->has_paid_plan();
     $is_premium            = $fs->is_premium();
     $main_user             = $fs->get_user();
@@ -30,6 +31,10 @@
     $license       = null;
     $trial_plan    = $fs->get_trial_plan();
     $free_text     = fs_text_inline( 'Free', 'free', $slug );
+
+    if ( $hide_data && $fs->is_delegated_connection( $blog_id ) ) {
+        $hide_data = $fs->should_hide_data( $blog_id );
+    }
 ?>
     <tr class="fs-site-details" data-blog-id="<?php echo $blog_id ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
         <!-- Install ID or Opt-in option -->
@@ -69,15 +74,11 @@
                     $license     = $has_license ?
                         $fs->_get_license_by_id( $install->license_id ) :
                         null;
-
-                    if ( is_object( $license ) && ! $license->is_developer_license() ) {
-                        $has_developer_license = false;
-                    }
                 } else {
                     $view_params['is_localhost'] = FS_Site::is_localhost_by_address( $site['url'] );
                 }
 
-                if ( ! $has_developer_license ) {
+                if ( ! $hide_data ) {
                     if ( is_object( $license ) ) {
                         $view_params['license'] = $license;
 
@@ -239,11 +240,11 @@
                     </td>
                     <td>
                         <code><?php echo htmlspecialchars( substr( $install->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $install->secret_key, - 3 ) ) ?></code>
-                        <?php if ( ! $has_developer_license ) : ?>
+                        <?php if ( ! $hide_data ) : ?>
                         <input type="text" value="<?php echo htmlspecialchars( $install->secret_key ) ?>"
                                style="display: none" readonly/></td>
                         <?php endif ?>
-                    <?php if ( ! $has_developer_license ) : ?>
+                    <?php if ( ! $hide_data ) : ?>
                     <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
                     <?php endif ?>
                 </tr>
@@ -260,11 +261,11 @@
                         </td>
                         <td>
                             <code><?php echo htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $license->secret_key, - 3 ) ) ?></code>
-                            <?php if ( ! $has_developer_license ) : ?>
+                            <?php if ( ! $hide_data ) : ?>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
                             <?php endif ?>
-                        <?php if ( ! $has_developer_license ) : ?>
+                        <?php if ( ! $hide_data ) : ?>
                         <td>
                             <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                             <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
