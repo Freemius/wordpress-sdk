@@ -414,7 +414,18 @@
                                 echo $plan_name;
                             ?></td>
                         <td><?php echo $site->public_key ?></td>
-                        <td><?php echo esc_html( $site->secret_key ) ?></td>
+                        <?php $plugin_storage = FS_Storage::instance( $module_type, $slug ) ?>
+                        <td><?php
+                            $site_secret_key = $site->secret_key;
+
+                            if ( $plugin_storage->hide_data ) {
+                                $site_secret_key = htmlspecialchars( substr( $site_secret_key, 0, 6 ) ) .
+                                    str_pad( '', 23 * 6, '&bull;' ) .
+                                    htmlspecialchars( substr( $site_secret_key, - 3 ) );
+                            }
+
+                            echo esc_html( $site_secret_key )
+                        ?></td>
                         <td>
                             <form action="" method="POST">
                                 <input type="hidden" name="fs_action" value="delete_install">
@@ -473,7 +484,19 @@
     /**
      * @var FS_User[] $users
      */
-    $users = $VARS['users'];
+    $users                              = $VARS['users'];
+    $users_with_developer_license_by_id = array();
+
+    foreach ( $module_types as $module_type ) {
+        $licenses = $VARS[ $module_type . '_licenses' ];
+
+        foreach ( $licenses as $license ) {
+            if ( $license->is_developer_license() ) {
+                $users_with_developer_license_by_id[ $license->user_id ] = true;
+            }
+        }
+    }
+
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
     <h2><?php fs_esc_html_echo_inline( 'Users' ) ?></h2>
@@ -491,20 +514,27 @@
         </thead>
         <tbody>
         <?php foreach ( $users as $user_id => $user ) : ?>
+            <?php $has_developer_license = isset( $users_with_developer_license_by_id[ $user_id ] ) ?>
             <tr>
-                <td><?php echo $user->id ?></td>
-                <td><?php echo $user->get_name() ?></td>
-                <td><a href="mailto:<?php echo esc_attr( $user->email ) ?>"><?php echo $user->email ?></a></td>
-                <td><?php echo json_encode( $user->is_verified ) ?></td>
-                <td><?php echo $user->public_key ?></td>
-                <td><?php echo esc_html( $user->secret_key ) ?></td>
+                <td><?php echo $has_developer_license ? '' : $user->id ?></td>
+                <td><?php echo $has_developer_license ? '' : $user->get_name() ?></td>
                 <td>
+                    <?php if ( ! $has_developer_license ) : ?>
+                    <a href="mailto:<?php echo esc_attr( $user->email ) ?>"><?php echo $user->email ?></a>
+                    <?php endif ?>
+                </td>
+                <td><?php echo $has_developer_license ? '' : json_encode( $user->is_verified ) ?></td>
+                <td><?php echo $has_developer_license ? '' : $user->public_key ?></td>
+                <td><?php echo $has_developer_license ? '' : esc_html( $user->secret_key ) ?></td>
+                <td>
+                    <?php if ( ! $has_developer_license ) : ?>
                     <form action="" method="POST">
                         <input type="hidden" name="fs_action" value="delete_user">
                         <?php wp_nonce_field( 'delete_user' ) ?>
                         <input type="hidden" name="user_id" value="<?php echo $user->id ?>">
                         <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
                     </form>
+                    <?php endif ?>
                 </td>
             </tr>
         <?php endforeach ?>
