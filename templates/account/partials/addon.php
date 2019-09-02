@@ -61,7 +61,6 @@
     $subscription           = null;
     $is_paying              = false;
     $show_upgrade           = false;
-    $has_developer_license  = false;
     $hide_data              = false;
 
     if ( is_object( $fs_addon ) ) {
@@ -77,8 +76,7 @@
         $plan_title                 = $plan->title;
         $is_paid_trial              = $fs_addon->is_paid_trial();
         $version                    = $fs_addon->get_plugin_version();
-        $has_developer_license      = $fs_addon->should_hide_data();
-        $hide_data                  = ( $has_developer_license && ! $fs_addon->get_parent_instance()->is_data_debug_mode() );
+        $hide_data                  = ( $fs_addon->should_hide_data() && ! $fs_addon->get_parent_instance()->is_data_debug_mode() );
         $show_upgrade               = ( ! $hide_data && $fs_addon->has_paid_plan() && ! $is_paying && ! $is_paid_trial && ! $fs_addon->_has_premium_license() );
     } else if ( $is_addon_connected ) {
         if (
@@ -120,6 +118,8 @@
                 $has_valid_and_active_license &&
                 ( $site->trial_plan_id == $license->plan_id )
             );
+
+            $hide_data = $addon_info['hide_data'];
         }
     }
 

@@ -699,8 +699,47 @@
 
                                             $installed_addons_ids_map = array_flip( $installed_addons_ids );
 
+                                            $addon_info_by_id     = array();
+                                            $hide_all_addons_data = false;
+
+                                            if ( true === $fs->get_hide_data_flag_value() && ! $is_data_debug_mode ) {
+                                                $hide_all_addons_data = true;
+
+                                                foreach ( $addons_to_show as $addon_id ) {
+                                                    $is_addon_installed = isset( $installed_addons_ids_map[ $addon_id ] );
+                                                    $addon_info         = $fs->_get_addon_info( $addon_id, $is_addon_installed );
+                                                    $is_addon_connected = $addon_info['is_connected'];
+
+                                                    $fs_addon = ( $is_addon_connected && $is_addon_installed ) ?
+                                                        freemius( $addon_id ) :
+                                                        null;
+
+                                                    $hide_data = is_object( $fs_addon ) ?
+                                                        $fs_addon->should_hide_data() :
+                                                        $addon_info['hide_data'];
+
+                                                    if ( ! $hide_data ) {
+                                                        $hide_all_addons_data = false;
+                                                    }
+
+                                                    if ( $is_data_debug_mode ) {
+                                                        $hide_data = false;
+                                                    }
+
+                                                    $addon_info_by_id[ $addon_id ] = $addon_info;
+                                                }
+                                            }
+
 											foreach ( $addons_to_show as $addon_id ) {
 											    $is_addon_installed = isset( $installed_addons_ids_map[ $addon_id ] );
+
+											    if (
+                                                    $hide_all_addons_data &&
+                                                    ! $is_addon_installed &&
+                                                    ! file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $fs->get_addon_basename( $addon_id ) ) )
+                                                ) {
+											        continue;
+                                                }
 
 												$addon_view_params = array(
 													'parent_fs'                      => $fs,
@@ -709,7 +748,9 @@
 													'fs_blog_id'                     => $fs_blog_id,
                                                     'active_plugins_directories_map' => &$active_plugins_directories_map,
                                                     'is_addon_installed'             => $is_addon_installed,
-                                                    'addon_info'                     => $fs->_get_addon_info( $addon_id, $is_addon_installed )
+                                                    'addon_info'                     => isset( $addon_info_by_id[ $addon_id ] ) ?
+                                                        $addon_info_by_id[ $addon_id ] :
+                                                        $fs->_get_addon_info( $addon_id, $is_addon_installed )
 												);
 
 												fs_require_template(

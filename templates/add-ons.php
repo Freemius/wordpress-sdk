@@ -22,7 +22,8 @@
 
 	$open_addon = false;
 
-    $has_developer_license = $fs->should_hide_data() && ! $fs->is_data_debug_mode();
+    $is_data_debug_mode = $fs->is_data_debug_mode();
+    $hide_data          = ( $fs->should_hide_data() && ! $is_data_debug_mode );
 
 	/**
 	 * @var FS_Plugin[]
@@ -64,13 +65,49 @@
 
                     $active_plugins_directories_map = Freemius::get_active_plugins_directories_map( $fs_blog_id );
 					?>
+                    <?php
+                        $hide_all_addons_data = false;
+
+                        if ( true === $fs->get_hide_data_flag_value() && ! $is_data_debug_mode ) {
+                            $hide_all_addons_data = true;
+
+                            $addon_ids        = $fs->get_updated_account_addons();
+                            $installed_addons = $fs->get_installed_addons();
+                            foreach ( $installed_addons as $fs_addon ) {
+                                $addon_ids[] = $fs_addon->get_id();
+                            }
+
+                            if ( ! empty( $addon_ids ) ) {
+                                $addon_ids = array_unique( $addon_ids );
+                            }
+
+                            foreach ( $addon_ids as $addon_id ) {
+                                $addon = $fs->get_addon( $addon_id );
+
+                                if ( ! is_object( $addon ) ) {
+                                    continue;
+                                }
+
+                                $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $addon->slug );
+
+                                if ( ! $addon_storage->hide_data ) {
+                                    $hide_all_addons_data = false;
+                                    break;
+                                }
+
+                                if ( $is_data_debug_mode ) {
+                                    $hide_data = false;
+                                }
+                            }
+                        }
+                    ?>
 					<?php foreach ( $addons as $addon ) : ?>
 						<?php
                         $basename = $fs->get_addon_basename( $addon->id );
 
                         $is_addon_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $basename ) );
 
-                        if ( ! $is_addon_installed && $has_developer_license ) {
+                        if ( ! $is_addon_installed && $hide_all_addons_data ) {
                             continue;
                         }
 
@@ -188,7 +225,7 @@
 									<li class="fs-offer">
 									<span
 										class="fs-price"><?php
-                                        if ( $has_developer_license ) {
+                                        if ( $hide_data ) {
                                             echo '&nbsp;';
                                         } else {
 											$descriptors = array();

@@ -10463,7 +10463,8 @@
             $addon_info = array(
                 'is_connected' => false,
                 'slug'         => $slug,
-                'title'        => $addon->title
+                'title'        => $addon->title,
+                'hide_data'    => $addon_storage->hide_data
             );
 
             if ( ! $is_installed ) {
@@ -11763,7 +11764,16 @@
          */
         private function update_hide_data_flag( $license ) {
             if ( is_object( $license ) ) {
-                $this->_storage->last_license_key = $license->secret_key;
+                if ( $this->is_addon() ) {
+                    /**
+                     * Store the last license data to the parent's storage since it's needed only when showing the
+                     * "Start Debug" dialog which is triggered from the "Account" page. This way, there's no need to
+                     * iterate over the add-ons just to get the last license data.
+                     */
+                    $this->get_parent_instance()->set_last_license_data( $license );
+                } else {
+                    $this->set_last_license_data( $license );
+                }
             }
 
             if ( is_object( $license ) && $license->is_developer_license() ) {
@@ -11803,47 +11813,75 @@
             } else if ( true === $this->_storage->hide_data ) {
                 $should_hide_data = true;
             } else {
+                $addon_ids        = $this->get_updated_account_addons();
                 $installed_addons = $this->get_installed_addons();
+                foreach ( $installed_addons as $fs_addon ) {
+                    $addon_ids[] = $fs_addon->get_id();
+                }
 
-                if ( ! empty( $installed_addons ) ) {
+                if ( ! empty( $addon_ids ) ) {
+                    $addon_ids = array_unique( $addon_ids );
+
                     $is_network_level = (
                         fs_is_network_admin() &&
-                        $this->is_network_active() &&
-                        ! $this->is_network_delegated_connection()
+                        $this->is_network_active()
                     );
 
-                    $is_site_level = (
-                        ! fs_is_network_admin() &&
-                        ( ! $this->is_network_active() || $this->is_delegated_connection() )
-                    );
+                    foreach ( $addon_ids as $addon_id ) {
+                        $addon = $this->get_addon( $addon_id );
 
-                    $sites = self::get_sites();
-                    
-                    foreach ( $installed_addons as $installed_addon ) {
-                        if (
-                            $is_network_level &&
-                            $installed_addon->is_network_active() &&
-                            $installed_addon->is_network_delegated_connection()
-                        ) {
-                           continue;
+                        if ( ! is_object( $addon ) ) {
+                            continue;
                         }
 
+                        $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $addon->slug );
+                        $fs_addon      = $this->is_addon_activated( $addon_id ) ?
+                            self::get_addon_instance( $addon_id ) :
+                            null;
+
+                        $was_addon_network_activated = false;
+
+                        if ( is_object( $fs_addon ) ) {
+                            $was_addon_network_activated = $fs_addon->is_network_active();
+                        } else if ( $is_network_level ) {
+                            $was_addon_network_activated = $addon_storage->get( 'was_plugin_loaded', false, true );
+                        }
+
+                        $network_delegated_connection = (
+                            $was_addon_network_activated &&
+                            $addon_storage->get( 'is_delegated_connection', false, true )
+                        );
+
                         if (
                             $is_network_level &&
-                            ! $installed_addon->is_network_active() &&
-                            ! $installed_addon->is_network_delegated_connection()
+                            ( ! $was_addon_network_activated || $network_delegated_connection )
                         ) {
+                            $sites = self::get_sites();
+
+                            /**
+                             * If in network admin area and the add-on was not network-activated or network-activated
+                             * and network-delegated, find any add-on whose hide_data flag is true.
+                             */
                             foreach ( $sites as $site ) {
                                 $site_info = $this->get_site_info( $site );
-                                $blog_id   = $site_info['blog_id'];
 
-                                if ( $installed_addon->should_hide_data( $blog_id ) ) {
+                                if ( $addon_storage->get( 'hide_data', false, $site_info['blog_id'] ) ) {
                                     $should_hide_data = true;
                                     break;
                                 }
                             }
+                            
+                            if ( $should_hide_data ) {
+                                break;
+                            }
                         } else {
-                            if ( $installed_addon->should_hide_data() ) {
+                            /**
+                             * This will be executed when any of the following is met:
+                             * 1. Add-on was network-activated, not network-delegated, and in network admin area.
+                             * 2. Add-on was network-activated, network-delegated, and in site admin area.
+                             * 3. Add-on was not network-activated and in site admin area.
+                             */
+                            if ( $addon_storage->hide_data ) {
                                 $should_hide_data = true;
                                 break;
                             }
