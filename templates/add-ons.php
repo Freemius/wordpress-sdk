@@ -22,12 +22,12 @@
 
 	$open_addon = false;
 
+    $has_developer_license = $fs->should_hide_data() && ! $fs->is_data_debug_mode();
+
 	/**
 	 * @var FS_Plugin[]
 	 */
-	$addons = $fs->has_developer_license() ?
-        $fs->get_installed_addons() :
-        $fs->get_addons();
+	$addons = $fs->get_addons();
 
 	$has_addons = ( is_array( $addons ) && 0 < count( $addons ) );
 
@@ -54,7 +54,7 @@
 				<h3><?php echo esc_html( sprintf(
 						'%s... %s',
 						fs_text_x_inline( 'Oops', 'exclamation', 'oops', $slug ),
-						fs_text_inline( 'We could\'nt load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'add-ons-missing', $slug )
+						fs_text_inline( 'We couldn\'t load the add-ons list. It\'s probably an issue on our side, please try to come back in few minutes.', 'add-ons-missing', $slug )
 					) ) ?></h3>
 			<?php endif ?>
 			<ul class="fs-cards-list">
@@ -69,6 +69,11 @@
                         $basename = $fs->get_addon_basename( $addon->id );
 
                         $is_addon_installed = file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $basename ) );
+
+                        if ( ! $is_addon_installed && $has_developer_license ) {
+                            continue;
+                        }
+
                         $is_addon_activated = $is_addon_installed ?
                             $fs->is_addon_activated( $addon->id ) :
                             false;
@@ -183,6 +188,9 @@
 									<li class="fs-offer">
 									<span
 										class="fs-price"><?php
+                                        if ( $has_developer_license ) {
+                                            echo '&nbsp;';
+                                        } else {
 											$descriptors = array();
 
 											if ($has_free_plan)
@@ -192,7 +200,9 @@
 											if ($has_trial)
 												$descriptors[] = fs_text_x_inline( 'Trial', 'trial period',  'trial', $slug );
 
-											echo implode(' - ', $descriptors) ?></span>
+											echo implode(' - ', $descriptors);
+
+                                        } ?></span>
 									</li>
 									<li class="fs-description"><?php echo ! empty( $addon->info->short_description ) ? $addon->info->short_description : 'SHORT DESCRIPTION' ?></li>
                                     <?php

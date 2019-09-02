@@ -61,6 +61,8 @@
     $subscription           = null;
     $is_paying              = false;
     $show_upgrade           = false;
+    $has_developer_license  = false;
+    $hide_data              = false;
 
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
@@ -74,8 +76,10 @@
         $plan_name                  = $plan->name;
         $plan_title                 = $plan->title;
         $is_paid_trial              = $fs_addon->is_paid_trial();
-        $show_upgrade               = ( $fs_addon->has_paid_plan() && ! $is_paying && ! $is_paid_trial && ! $fs_addon->_has_premium_license() );
         $version                    = $fs_addon->get_plugin_version();
+        $has_developer_license      = $fs_addon->should_hide_data();
+        $hide_data                  = ( $has_developer_license && ! $fs_addon->get_parent_instance()->is_data_debug_mode() );
+        $show_upgrade               = ( ! $hide_data && $fs_addon->has_paid_plan() && ! $is_paying && ! $is_paid_trial && ! $fs_addon->_has_premium_license() );
     } else if ( $is_addon_connected ) {
         if (
             empty( $addon_info ) ||
@@ -202,7 +206,7 @@
 
         <?php
         $buttons = array();
-        if ( $is_addon_activated ) {
+        if ( $is_addon_activated && ! $hide_data ) {
             if ( $is_paying ) {
                 $buttons[] = fs_ui_get_action_button(
                     $fs->get_id(),
@@ -386,7 +390,7 @@
         </td>
         <!--/ Action -->
     <?php endif ?>
-    <?php if ( ! $is_paying && WP_FS__DEV_MODE ) : ?>
+    <?php if ( ! $is_paying && WP_FS__DEV_MODE && ! $hide_data ) : ?>
         <!-- Optional Delete Action -->
         <td>
             <?php

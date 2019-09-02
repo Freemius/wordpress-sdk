@@ -385,10 +385,6 @@
          * @return float|null|string
          */
         private function get_price_tag( FS_Plugin_Plan $plan, FS_Pricing $pricing ) {
-            if ( $this->_fs->has_developer_license() ) {
-                return '&nbsp;';
-            }
-
             $price_tag = '';
             if ( isset( $pricing->annual_price ) ) {
                 $price_tag = $pricing->annual_price . ( $plan->is_block_features ? ' / year' : '' );
@@ -1168,13 +1164,7 @@
                                                         return '$' + pricing.price + priceCycle;
                                                     }
 
-                                                    var price = '&nbsp;';
-
-                                                    <?php if ( ! $this->_fs->has_developer_license() ) : ?>
-                                                    price = ('$' + pricing.price + priceCycle);
-                                                    <?php endif ?>
-
-                                                    return _formatLicensesTitle(pricing) + ' - <var class="fs-price">' + price + '</var>';
+                                                    return _formatLicensesTitle(pricing) + ' - <var class="fs-price">$' + pricing.price + priceCycle + '</var>';
                                                 },
                                                 _checkoutUrl            = function (plan, pricing, cycle) {
                                                     return '<?php echo esc_url_raw( remove_query_arg( 'billing_cycle', add_query_arg( array( 'plugin_id' => $plan->plugin_id ), $api->checkout_link ) ) ) ?>' +

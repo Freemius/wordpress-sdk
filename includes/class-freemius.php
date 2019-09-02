@@ -347,9 +347,9 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
-         * @var FS_Plugin_License
+         * @var bool
          */
-        private $_developer_license;
+        private $_hide_data;
 
         #region Uninstall Reasons IDs
 
@@ -521,10 +521,6 @@
             $this->_load_account();
 
             $this->_version_updates_handler();
-
-            if ( $this->has_developer_license() || is_object( $this->_developer_license ) ) {
-                $this->add_ajax_action( 'set_developer_license_debug_mode', array( &$this, '_set_developer_license_debug_mode' ) );
-            }
         }
 
         /**
@@ -1646,6 +1642,7 @@
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
+            $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -11723,6 +11720,8 @@
 
             $this->_license = $new_license;
 
+            $this->update_hide_data_flag( $new_license );
+
             if ( ! is_object( $new_license ) ) {
                 $this->_site->license_id = null;
                 $this->_sync_site_subscription( null );
@@ -11754,6 +11753,110 @@
             $this->_sync_site_subscription( $new_license );
 
             return $this->_license;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param FS_Plugin_License $license
+         */
+        private function update_hide_data_flag( $license ) {
+            if ( is_object( $license ) ) {
+                $this->_storage->last_license_key = $license->secret_key;
+            }
+
+            if ( is_object( $license ) && $license->is_developer_license() ) {
+                $this->_storage->hide_data = true;
+            } else {
+                if ( $this->is_registered() && is_object( $license ) && $this->_user->id == $license->user_id ) {
+                    $this->_storage->hide_data = false;
+                } else {
+                    $this->_storage->hide_data = isset( $this->_storage->hide_data ) ?
+                        $this->_storage->hide_data :
+                        false;
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param int blog_id
+         *
+         * @return bool
+         */
+        function should_hide_data( $blog_id = null ) {
+            if ( ! is_null( $blog_id ) ) {
+                $this->switch_to_blog( $blog_id );
+            }
+
+            if ( ! is_null( $this->_hide_data ) ) {
+                return $this->_hide_data;    
+            }
+            
+            $should_hide_data = false;
+
+            if ( ! $this->has_addons() ) {
+                $should_hide_data = ( true === $this->_storage->hide_data );
+            } else if ( true === $this->_storage->hide_data ) {
+                $should_hide_data = true;
+            } else {
+                $installed_addons = $this->get_installed_addons();
+
+                if ( ! empty( $installed_addons ) ) {
+                    $is_network_level = (
+                        fs_is_network_admin() &&
+                        $this->is_network_active() &&
+                        ! $this->is_network_delegated_connection()
+                    );
+
+                    $is_site_level = (
+                        ! fs_is_network_admin() &&
+                        ( ! $this->is_network_active() || $this->is_delegated_connection() )
+                    );
+
+                    $sites = self::get_sites();
+                    
+                    foreach ( $installed_addons as $installed_addon ) {
+                        if (
+                            $is_network_level &&
+                            $installed_addon->is_network_active() &&
+                            $installed_addon->is_network_delegated_connection()
+                        ) {
+                           continue;
+                        }
+
+                        if (
+                            $is_network_level &&
+                            ! $installed_addon->is_network_active() &&
+                            ! $installed_addon->is_network_delegated_connection()
+                        ) {
+                            foreach ( $sites as $site ) {
+                                $site_info = $this->get_site_info( $site );
+                                $blog_id   = $site_info['blog_id'];
+
+                                if ( $installed_addon->should_hide_data( $blog_id ) ) {
+                                    $should_hide_data = true;
+                                    break;
+                                }
+                            }
+                        } else {
+                            if ( $installed_addon->should_hide_data() ) {
+                                $should_hide_data = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $this->_hide_data = $should_hide_data;
+
+            $this->restore_current_blog();
+            
+            return $should_hide_data;
         }
 
         /**
@@ -11799,18 +11902,6 @@
             }
 
             return $this->_get_available_premium_license();
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
-         *
-         * @return FS_Plugin_License
-         */
-        function get_developer_license() {
-            return is_object( $this->_developer_license ) ?
-                $this->_developer_license :
-                null;
         }
 
         /**
@@ -12094,12 +12185,12 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
-        function _add_developer_license_debug_mode_dialog_box() {
+        function _add_data_debug_mode_dialog_box() {
             $vars = array(
                 'id' => $this->_module_id,
             );
 
-            fs_require_template( 'forms/developer-license-debug-mode.php', $vars );
+            fs_require_template( 'forms/data-debug-mode.php', $vars );
         }
 
         /**
@@ -12118,6 +12209,10 @@
         function _get_subscription_cancellation_dialog_box_template_params( $is_license_deactivation = false ) {
             if ( fs_is_network_admin() ) {
                 // Subscription cancellation dialog box is currently not supported for multisite networks.
+                return array();
+            }
+            
+            if ( $this->should_hide_data() && ! $this->is_data_debug_mode() ) {
                 return array();
             }
 
@@ -17030,7 +17125,7 @@
             ) {
                 if (
                     ! WP_FS__DEMO_MODE &&
-                    ! $this->has_developer_license()
+                    ( ! $this->should_hide_data() || $this->is_data_debug_mode() )
                 ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
@@ -18698,80 +18793,39 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
-         * 
-         * @return bool
          */
-        function has_developer_license() {
-            if ( ! isset( $this->_developer_license ) ) {
-                $this->_developer_license = false;
-
-                $license = is_object( $this->_license ) ?
-                    $this->_license :
-                    $this->_get_available_premium_license();
-
-                if (
-                    ! is_object( $license ) &&
-                    ! $this->is_addon() &&
-                    $this->has_addons() &&
-                    ! $this->has_paid_plan()
-                ) {
-                    $installed_addons = $this->get_installed_addons();
-                    foreach ( $installed_addons as $fs_addon ) {
-                        $addon_license = $fs_addon->_get_license();
-
-                        if ( ! is_object( $addon_license ) ) {
-                            $addon_license = $fs_addon->_get_available_premium_license();
-                        }
-
-                        if ( is_object( $addon_license ) && $addon_license->is_developer_license() ) {
-                            $license = $addon_license;
-                            break;
-                        }
-                    }
-                }
-
-                if ( is_object( $license ) ) {
-                    $this->_developer_license = $license;
-                }
+        function is_data_debug_mode() {
+            if ( is_null( $this->_hide_data ) || ! $this->_hide_data ) {
+                return false;
             }
 
-            $has_developer_license = is_object( $this->_developer_license );
+            $fs = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
 
-            $is_developer_license_debug_mode = false;
-
-            if ( $has_developer_license ) {
-                if ( $this->is_network_active() ) {
-                    $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
-                } else {
-                    $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
-                }
-
-                $is_developer_license_debug_mode = ( 'true' === $is_developer_license_debug_mode );
+            if ( $fs->is_network_active() ) {
+                $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
+            } else {
+                $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_developer_license_debug_mode" );
             }
 
-            if ( ! $has_developer_license || ! $is_developer_license_debug_mode ) {
-                if ( $this->_admin_notices->has_sticky( 'developer_license_debug_mode_enabled' ) ) {
-                    $this->_admin_notices->remove_sticky( 'developer_license_debug_mode_enabled' );
-                }
-            }
-
-            if ( $is_developer_license_debug_mode ) {
-                $has_developer_license = false;
-            }
-
-            return $has_developer_license;
+            return ( 'true' === $is_developer_license_debug_mode );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
-        function _set_developer_license_debug_mode() {
+        function _set_data_debug_mode() {
+            if ( ! $this->should_hide_data() ) {
+                return;
+            }
+
             $license_key = fs_request_get( 'license_key' );
 
             $transient_value = ( ! empty( $license_key ) ? 'true' : 'false' );
 
-            if ( 'true' === $transient_value && $license_key !== $this->_developer_license->secret_key ) {
+            if ( 'true' === $transient_value && $license_key !== $this->_storage->last_license_key ) {
                 $this->shoot_ajax_failure( sprintf(
                     '%s... %s',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
@@ -19292,21 +19346,27 @@
                             $this->get_network_install_blog_id()
                     );
                 } else {
-                    if ( is_object( $this->_license ) && $this->_license->is_expired() ) {
-                        if ( ! $this->has_features_enabled_license() ) {
-                            $this->_deactivate_license();
-                            $plan_change = 'downgraded';
-                        } else {
-                            $last_time_expired_license_notice_was_shown = $this->_storage->get( 'expired_license_notice_shown', 0 );
+                    if ( ! is_object( $this->_license ) ) {
+                        $this->update_hide_data_flag( null );
+                    } else {
+                        $this->update_hide_data_flag( $this->_license );
 
-                            if ( time() - ( 14 * WP_FS__TIME_24_HOURS_IN_SEC ) >= $last_time_expired_license_notice_was_shown ) {
-                                /**
-                                 * Show the expired license notice every 14 days.
-                                 *
-                                 * @author Leo Fajardo (@leorw)
-                                 * @since 2.3.1
-                                 */
-                                $plan_change = 'expired';
+                        if ( $this->_license->is_expired() ) {
+                            if ( ! $this->has_features_enabled_license() ) {
+                                $this->_deactivate_license();
+                                $plan_change = 'downgraded';
+                            } else {
+                                $last_time_expired_license_notice_was_shown = $this->_storage->get( 'expired_license_notice_shown', 0 );
+
+                                if ( time() - ( 14 * WP_FS__TIME_24_HOURS_IN_SEC ) >= $last_time_expired_license_notice_was_shown ) {
+                                    /**
+                                     * Show the expired license notice every 14 days.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.3.1
+                                     */
+                                    $plan_change = 'expired';
+                                }
                             }
                         }
                     }
@@ -21792,7 +21852,7 @@
             $add_upgrade_link = (
                 $add_action_links ||
                 ( $is_activation_mode && $this->is_only_premium() )
-            ) && ! WP_FS__DEMO_MODE && ! $this->has_developer_license();
+            ) && ! WP_FS__DEMO_MODE && ( ! $this->should_hide_data() || $this->is_data_debug_mode() );
 
             $add_addons_link = ( $add_action_links && $this->has_addons() );
 

@@ -27,9 +27,11 @@
             $slug
         );
 
-    $submit_button_text = fs_text_inline( 'Submit License', 'submit-license', $slug );
-	$license_key_text   = fs_text_inline( 'License key', 'license-key' , $slug );
-    $license_input_html = "<input class='fs-license-key' type='text' placeholder='{$license_key_text}' tabindex='1' />";
+    $processing_text         = ( fs_esc_js_inline( 'Processing', 'processing', $slug ) . '...' );
+    $submit_button_text      = fs_text_inline( 'Submit License', 'submit-license', $slug );
+    $debug_license_link_text = fs_esc_html_x_inline( 'Debug', 'verb: turn developer license debug mode on', 'debug-license', $slug );
+	$license_key_text        = fs_text_inline( 'License key', 'license-key' , $slug );
+    $license_input_html      = "<input class='fs-license-key' type='text' placeholder='{$license_key_text}' tabindex='1' />";
 
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-submission-message"><p></p></div>
@@ -59,16 +61,14 @@ HTML;
             $debugLicenseLink         = $( '.debug-license-trigger' ),
 			$submitLicenseButton      = $modal.find( '.button-submit-license' ),
 			$licenseKeyInput          = $modal.find( 'input.fs-license-key' ),
-			$licenseSubmissionMessage = $modal.find( '.license-submission-message' );
+			$licenseSubmissionMessage = $modal.find( '.license-submission-message' ),
+            isDebugMode               = <?php echo $fs->is_data_debug_mode() ? 'true' : 'false' ?>;
 
 		$modal.appendTo( $( 'body' ) );
 
 		function registerEventHandlers() {
             $debugLicenseLink.click(function (evt) {
                 evt.preventDefault();
-
-                var $parent     = $debugLicenseLink.parent(),
-                    isDebugMode = <?php echo $fs->has_developer_license() ? 'false' : 'true' ?>;
 
                 if ( isDebugMode ) {
                     setDeveloperLicenseDebugMode();
@@ -129,8 +129,8 @@ HTML;
 
 		function setDeveloperLicenseDebugMode( licenseKey ) {
             var data = {
-                action       : '<?php echo $fs->get_ajax_action( 'set_developer_license_debug_mode' ) ?>',
-                security     : '<?php echo $fs->get_ajax_security( 'set_developer_license_debug_mode' ) ?>',
+                action       : '<?php echo $fs->get_ajax_action( 'set_data_debug_mode' ) ?>',
+                security     : '<?php echo $fs->get_ajax_security( 'set_data_debug_mode' ) ?>',
                 license_key  : licenseKey,
                 is_debug_mode: <?php echo $fs->has_developer_license() ? 'true' : 'false' ?>,
                 module_id    : '<?php echo $fs->get_id() ?>'
@@ -141,7 +141,8 @@ HTML;
                 method    : 'POST',
                 data      : data,
                 beforeSend: function () {
-                    $submitLicenseButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
+                    $debugLicenseLink.text( '<?php echo $processing_text ?>' );
+                    $submitLicenseButton.text( '<?php echo $processing_text ?>' );
                 },
                 success   : function ( result ) {
                     if ( result.success ) {
@@ -151,12 +152,12 @@ HTML;
                         window.location.reload();
                     } else {
                         showError( result.error.message ? result.error.message : result.error );
-                        resetSubmitLicenseButton();
+                        resetButtons();
                     }
                 },
                 error     : function () {
                     showError( <?php echo json_encode( fs_text_inline( 'An unknown error has occurred.', 'unknown-error', $slug ) ) ?> );
-                    resetSubmitLicenseButton();
+                    resetButtons();
                 }
             });
         }
@@ -177,14 +178,15 @@ HTML;
 			$( 'body' ).removeClass( 'has-fs-modal' );
 		}
 
-		function resetSubmitLicenseButton() {
+		function resetButtons() {
 			enableSubmitLicenseButton();
 			$submitLicenseButton.text( <?php echo json_encode( $submit_button_text ) ?> );
+			$debugLicenseLink.text( <?php echo json_encode( $debug_license_link_text ) ?> );
 		}
 
 		function resetModal() {
 			hideError();
-			resetSubmitLicenseButton();
+			resetButtons();
 		}
 
 		function enableSubmitLicenseButton() {

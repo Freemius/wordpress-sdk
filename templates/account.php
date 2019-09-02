@@ -44,8 +44,8 @@
     $site                   = $fs->get_site();
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
-    $developer_license      = $fs->get_developer_license();
-    $has_developer_license  = $fs->has_developer_license();
+    $has_developer_license  = $fs->should_hide_data();
+    $hide_data              = ( $has_developer_license && ! $fs->is_data_debug_mode() );
     $subscription           = ( is_object( $license ) ?
                                   $fs->_get_subscription( $license->id ) :
                                   null );
@@ -53,15 +53,15 @@
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
     $has_paid_plan          = $fs->has_paid_plan();
-    $show_upgrade           = ( ! $has_developer_license && $has_paid_plan && ! $is_paying && ! $is_paid_trial );
+    $show_upgrade           = ( ! $hide_data && $has_paid_plan && ! $is_paying && ! $is_paid_trial );
     $trial_plan             = $fs->get_trial_plan();
 
 	if ( $has_paid_plan ) {
         $fs->_add_license_activation_dialog_box();
 	}
 
-	if ( is_object( $developer_license ) ) {
-        $fs->_add_developer_license_debug_mode_dialog_box();
+	if ( $has_developer_license ) {
+        $fs->_add_data_debug_mode_dialog_box();
 	}
 
 	if ( fs_request_get_bool( 'auto_install' ) ) {
@@ -78,7 +78,7 @@
 
 	$payments = $fs->_fetch_payments();
 
-    $show_billing = ( ! $has_developer_license && is_array( $payments ) && 0 < count( $payments ) );
+    $show_billing = ( ! $hide_data && is_array( $payments ) && 0 < count( $payments ) );
 
 
 	$has_tabs = $fs->_add_tabs_before_content();
@@ -204,17 +204,17 @@
 							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_esc_html_echo_inline( 'Account Details', 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
-                                    <?php if ( is_object( $developer_license ) ) : ?>
+                                    <?php if ( $has_developer_license ) : ?>
                                         <li>
                                             <a href="#" class="debug-license-trigger"><?php
-                                                if ( $has_developer_license ) {
+                                                if ( $hide_data ) {
                                                     fs_esc_html_echo_x_inline( 'Debug', 'verb: turn developer license debug mode on', 'debug-license', $slug );
                                                 } else {
                                                     fs_esc_html_echo_x_inline( 'Stop Debug', 'turn developer license debug mode off', 'stop-debug-license', $slug );
                                                 }
                                             ?></a>
                                         </li>
-                                        <?php if ( ! $has_developer_license ) : ?>
+                                        <?php if ( ! $hide_data ) : ?>
                                         <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
                                     <?php endif ?>
@@ -222,7 +222,7 @@
 										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
 										<li>&nbsp;&bull;&nbsp;</li>
 									<?php endif ?>
-                                    <?php if ( ! $has_developer_license ) : ?>
+                                    <?php if ( ! $hide_data ) : ?>
                                         <?php if ( ! $is_paying ) : ?>
                                             <li>
                                                 <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
@@ -311,7 +311,7 @@
 
 										$profile   = array();
 
-										if ( ! $has_developer_license ) {
+										if ( ! $hide_data ) {
                                             $profile[] = array(
                                                 'id'    => 'user_name',
                                                 'title' => fs_text_inline( 'Name', 'name', $slug ),
@@ -380,7 +380,7 @@
 											'value' => $fs->get_plugin_version()
 										);
 
-										if ( $is_premium && ! $has_developer_license ) {
+										if ( $is_premium && ! $hide_data ) {
 										    $profile[] = array(
                                                 'id'    => 'beta_program',
                                                 'title' => '',
@@ -447,7 +447,7 @@
 												<td<?php if ( 'plan' === $p['id'] || 'bundle_plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
 													<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 														<code><?php echo htmlspecialchars( substr( $p['value'], 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $p['value'], - 3 ) ) ?></code>
-														<?php if ( ! $has_developer_license ) : ?>
+														<?php if ( ! $hide_data ) : ?>
                                                         <input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
 														       readonly/>
                                                         <?php endif ?>
@@ -480,7 +480,7 @@
 														<?php elseif ( $fs->is_trial() ) : ?>
 															<label class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ) ?></label>
 														<?php endif ?>
-                                                        <?php if ( ! $has_developer_license ) : ?>
+                                                        <?php if ( ! $hide_data ) : ?>
 														<div class="button-group">
 															<?php $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
                                                             <?php if ( is_object( $available_license ) ) : ?>
@@ -568,7 +568,7 @@
 															<?php endif ?>
 															<?php
 														elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-                                                            <?php if ( ! $has_developer_license ) : ?>
+                                                            <?php if ( ! $hide_data ) : ?>
                                                                 <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                                                                 <?php if ('license_key' === $p['id']) : ?>
                                                                     <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
@@ -619,7 +619,7 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
-                                <?php if ( ! $has_developer_license ) : ?>
+                                <?php if ( ! $hide_data ) : ?>
                                     <?php $has_license = is_object( $license ) ?>
                                     <?php if ( $has_license || ( $show_upgrade && $is_premium ) ) : ?>
                                         <?php
