@@ -22,7 +22,7 @@
     $message_above_input_field = is_object( $fs->_get_license() ) ?
         fs_text_inline( 'Please enter the license key to enable the debug mode:', 'submit-developer-license-message', $slug ) :
         fs_text_inline(
-            sprintf( 'To enter the debug mode, please enter the secret key of the license owner (User ID=%d), which you can find in your "My Profile" section of your User Dashboard:', $fs->get_developer_license()->user_id ),
+            sprintf( 'To enter the debug mode, please enter the secret key of the license owner (User ID=%d), which you can find in your "My Profile" section of your User Dashboard:', $fs->get_last_license_user_id() ),
             'submit-addon-developer-license-message',
             $slug
         );
