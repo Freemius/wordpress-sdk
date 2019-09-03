@@ -493,7 +493,7 @@
             );
 
             if ( 'true' === fs_request_get( 'fs_clear_api_cache' ) ||
-                 'true' === fs_request_is_action( 'restart_freemius' )
+                 fs_request_is_action( 'restart_freemius' )
             ) {
                 FS_Api::clear_cache();
                 $this->_cache->clear();
