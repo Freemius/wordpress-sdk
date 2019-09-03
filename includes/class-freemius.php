@@ -12334,6 +12334,8 @@
             $is_marketing_allowed = null,
             $plugin_id = null
         ) {
+            $this->_logger->entrance();
+
             $result = $this->activate_license(
                 $license_key,
                 $this->is_network_active() ?
