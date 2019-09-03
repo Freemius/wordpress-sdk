@@ -19327,6 +19327,7 @@
          * @since  1.0.5
          *
          * @param bool $background
+         * @param FS_Plugin_License|null $premium_license
          */
         protected function _activate_license( $background = false, $premium_license = null ) {
             $this->_logger->entrance();
