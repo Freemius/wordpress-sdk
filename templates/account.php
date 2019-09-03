@@ -50,7 +50,7 @@
     $plan                   = $fs->get_plan();
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
-    $has_paid_plan          = $fs->has_paid_plan();
+    $has_paid_plan          = $fs->apply_filters( 'has_paid_plan_account', $fs->has_paid_plan() );
     $show_upgrade           = ( $has_paid_plan && ! $is_paying && ! $is_paid_trial );
     $trial_plan             = $fs->get_trial_plan();
 

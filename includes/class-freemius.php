@@ -19178,7 +19178,7 @@
 
             $hmm_text = $this->get_text_x_inline( 'Hmm', 'something somebody says when they are thinking about what you have just said.', 'hmm' ) . '...';
 
-            if ( $this->has_paid_plan() ) {
+            if ( $this->apply_filters( 'has_paid_plan_account', $this->has_paid_plan() ) ) {
                 switch ( $plan_change ) {
                     case 'none':
                         if ( ! $background && is_admin() ) {
@@ -19328,7 +19328,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.5
          *
-         * @param bool $background
+         * @param bool                   $background
          * @param FS_Plugin_License|null $premium_license
          */
         protected function _activate_license( $background = false, $premium_license = null ) {
