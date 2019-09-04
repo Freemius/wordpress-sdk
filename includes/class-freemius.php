@@ -14279,10 +14279,12 @@
          *
          * @param int     $blog_id
          * @param FS_Site $install
+         *
+         * @return bool Since 2.3.1 returns if a switch was made.
          */
         function switch_to_blog( $blog_id, FS_Site $install = null ) {
             if ( $blog_id == $this->_context_is_network_or_blog_id ) {
-                return;
+                return false;
             }
 
             switch_to_blog( $blog_id );
@@ -14344,6 +14346,8 @@
 
             unset( $this->_site_api );
             unset( $this->_user_api );
+
+            return false;
         }
 
         /**
