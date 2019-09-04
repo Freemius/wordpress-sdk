@@ -11834,15 +11834,13 @@
          * @return bool
          */
         function should_hide_data( $ignore_data_debug_mode = false, $blog_id = null ) {
-            $should_hide_data = null;
-
             if ( ! is_null( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
-            } else if ( ! is_null( $this->_hide_data ) ) {
-                $should_hide_data = $this->_hide_data;
             }
 
-            if ( is_null( $should_hide_data ) ) {
+            if ( ! is_null( $this->_hide_data ) ) {
+                $should_hide_data = $this->_hide_data;
+            } else {
                 $should_hide_data = false;
 
                 if ( ! $this->has_addons() ) {
@@ -14289,6 +14287,7 @@
             $this->_user     = false;
             $this->_licenses = false;
             $this->_license  = null;
+            $this->_hide_data = null;
 
             if ( is_object( $this->_site ) ) {
                 // Try to fetch user from install.
