@@ -18906,9 +18906,9 @@
                 $this;
 
             if ( $fs->is_network_active() && fs_is_network_admin() ) {
-                $is_developer_license_debug_mode = get_site_transient( "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode" );
+                $is_developer_license_debug_mode = get_site_transient( "fs_{$this->get_id()}_data_debug_mode" );
             } else {
-                $is_developer_license_debug_mode = get_transient( "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode" );
+                $is_developer_license_debug_mode = get_transient( "fs_{$this->get_id()}_data_debug_mode" );
             }
 
             return ( 'true' === $is_developer_license_debug_mode );
@@ -18940,13 +18940,13 @@
 
             if ( $this->is_network_active() && fs_is_network_admin() ) {
                 set_site_transient(
-                    "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode",
+                    "fs_{$this->get_id()}_data_debug_mode",
                     $transient_value,
                     WP_FS__TIME_24_HOURS_IN_SEC / 24
                 );
             } else {
                 set_transient(
-                    "fs_{$this->_module_type}_{$this->_slug}_data_debug_mode",
+                    "fs_{$this->get_id()}_data_debug_mode",
                     $transient_value,
                     WP_FS__TIME_24_HOURS_IN_SEC / 24
                 );
