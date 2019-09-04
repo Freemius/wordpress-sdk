@@ -11805,11 +11805,23 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
-         * 
+         *
+         * @param bool $ignore_data_debug_mode
+         *
          * @return bool
          */
-        function get_hide_data_flag_value() {
-            return $this->_storage->hide_data;
+        function should_hide_data_by_flag( $ignore_data_debug_mode = false ) {
+            if ( true !== $this->_storage->hide_data ) {
+                return false;
+            } else if ( $ignore_data_debug_mode ) {
+                return true;
+            }
+
+            $fs = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
+
+            return ! $fs->is_data_debug_mode();
         }
 
         /**
@@ -11929,8 +11941,8 @@
 
                 if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
                     if ( $this->_admin_notices->has_sticky( 'data_debug_mode_enabled' ) ) {
-                        $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
-                    }
+                    $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
+                }
                 }
 
                 if ( ! is_null( $blog_id ) ) {
@@ -14284,9 +14296,9 @@
                 $install :
                 $this->get_install_by_blog_id( $blog_id );
 
-            $this->_user     = false;
-            $this->_licenses = false;
-            $this->_license  = null;
+            $this->_user      = false;
+            $this->_licenses  = false;
+            $this->_license   = null;
             $this->_hide_data = null;
 
             if ( is_object( $this->_site ) ) {

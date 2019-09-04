@@ -700,7 +700,7 @@
                                             $addon_info_by_id     = array();
                                             $hide_all_addons_data = false;
 
-                                            if ( true === $fs->get_hide_data_flag_value() && ! $is_data_debug_mode ) {
+                                            if ( $fs->should_hide_data_by_flag() ) {
                                                 $hide_all_addons_data = true;
 
                                                 foreach ( $addons_to_show as $addon_id ) {

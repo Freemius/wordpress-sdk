@@ -68,7 +68,7 @@
                     <?php
                         $hide_all_addons_data = false;
 
-                        if ( true === $fs->get_hide_data_flag_value() && ! $is_data_debug_mode ) {
+                        if ( $fs->should_hide_data_by_flag() ) {
                             $hide_all_addons_data = true;
 
                             $addon_ids        = $fs->get_updated_account_addons();
