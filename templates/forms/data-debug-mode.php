@@ -19,17 +19,16 @@
 	$slug         = $fs->get_slug();
     $unique_affix = $fs->get_unique_affix();
 
-    $message_above_input_field = is_object( $fs->_get_license() ) ?
-        fs_text_inline( 'Please enter the license key to enable the debug mode:', 'submit-developer-license-message', $slug ) :
-        fs_text_inline(
-            sprintf( 'To enter the debug mode, please enter the secret key of the license owner (User ID=%d), which you can find in your "My Profile" section of your User Dashboard:', $fs->get_last_license_user_id() ),
-            'submit-addon-developer-license-message',
-            $slug
-        );
+	$message_above_input_field = is_object( $fs->_get_license() ) ?
+		fs_text_inline( 'Please enter the license key to enable the debug mode:', 'submit-developer-license-message', $slug ) :
+		sprintf(
+			fs_text_inline( 'To enter the debug mode, please enter the secret key of the license owner (UserID = %d), which you can find in your "My Profile" section of your User Dashboard:', 'submit-addon-developer-license-message', $slug ),
+			$fs->get_last_license_user_id()
+		);
 
     $processing_text         = ( fs_esc_js_inline( 'Processing', 'processing', $slug ) . '...' );
     $submit_button_text      = fs_text_inline( 'Submit License', 'submit-license', $slug );
-    $debug_license_link_text = fs_esc_html_x_inline( 'Debug', 'verb: turn developer license debug mode on', 'debug-license', $slug );
+    $debug_license_link_text = fs_esc_html_inline( 'Start Debug', 'start-debug-license', $slug );
 	$license_key_text        = fs_text_inline( 'License key', 'license-key' , $slug );
     $license_input_html      = "<input class='fs-license-key' type='text' placeholder='{$license_key_text}' tabindex='1' />";
 
