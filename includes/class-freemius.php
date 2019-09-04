@@ -11828,114 +11828,122 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
-         * @param int $blog_id
+         * @param int  $blog_id
+         * @param bool $ignore_data_debug_mode
          *
          * @return bool
          */
-        function should_hide_data( $blog_id = null ) {
+        function should_hide_data( $ignore_data_debug_mode = false, $blog_id = null ) {
+            $should_hide_data = null;
+
             if ( ! is_null( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
             } else if ( ! is_null( $this->_hide_data ) ) {
-                return $this->_hide_data;
+                $should_hide_data = $this->_hide_data;
             }
 
-            $should_hide_data = false;
+            if ( is_null( $should_hide_data ) ) {
+                $should_hide_data = false;
 
-            if ( ! $this->has_addons() ) {
-                $should_hide_data = ( true === $this->_storage->hide_data );
-            } else if ( true === $this->_storage->hide_data ) {
-                $should_hide_data = true;
-            } else {
-                $addon_ids        = $this->get_updated_account_addons();
-                $installed_addons = $this->get_installed_addons();
-                foreach ( $installed_addons as $fs_addon ) {
-                    $addon_ids[] = $fs_addon->get_id();
-                }
+                if ( ! $this->has_addons() ) {
+                    $should_hide_data = ( true === $this->_storage->hide_data );
+                } else if ( true === $this->_storage->hide_data ) {
+                    $should_hide_data = true;
+                } else {
+                    $addon_ids        = $this->get_updated_account_addons();
+                    $installed_addons = $this->get_installed_addons();
+                    foreach ( $installed_addons as $fs_addon ) {
+                        $addon_ids[] = $fs_addon->get_id();
+                    }
 
-                if ( ! empty( $addon_ids ) ) {
-                    $addon_ids = array_unique( $addon_ids );
+                    if ( ! empty( $addon_ids ) ) {
+                        $addon_ids = array_unique( $addon_ids );
 
-                    $is_network_level = (
-                        fs_is_network_admin() &&
-                        $this->is_network_active()
-                    );
-
-                    foreach ( $addon_ids as $addon_id ) {
-                        $addon = $this->get_addon( $addon_id );
-
-                        if ( ! is_object( $addon ) ) {
-                            continue;
-                        }
-
-                        $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $addon->slug );
-                        $fs_addon      = $this->is_addon_activated( $addon_id ) ?
-                            self::get_addon_instance( $addon_id ) :
-                            null;
-
-                        $was_addon_network_activated = false;
-
-                        if ( is_object( $fs_addon ) ) {
-                            $was_addon_network_activated = $fs_addon->is_network_active();
-                        } else if ( $is_network_level ) {
-                            $was_addon_network_activated = $addon_storage->get( 'was_plugin_loaded', false, true );
-                        }
-
-                        $network_delegated_connection = (
-                            $was_addon_network_activated &&
-                            $addon_storage->get( 'is_delegated_connection', false, true )
+                        $is_network_level = (
+                            fs_is_network_admin() &&
+                            $this->is_network_active()
                         );
 
-                        if (
-                            $is_network_level &&
-                            ( ! $was_addon_network_activated || $network_delegated_connection )
-                        ) {
-                            $sites = self::get_sites();
+                        foreach ( $addon_ids as $addon_id ) {
+                            $addon = $this->get_addon( $addon_id );
 
-                            /**
-                             * If in network admin area and the add-on was not network-activated or network-activated
-                             * and network-delegated, find any add-on whose hide_data flag is true.
-                             */
-                            foreach ( $sites as $site ) {
-                                $site_info = $this->get_site_info( $site );
+                            if ( ! is_object( $addon ) ) {
+                                continue;
+                            }
 
-                                if ( $addon_storage->get( 'hide_data', false, $site_info['blog_id'] ) ) {
+                            $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $addon->slug );
+                            $fs_addon      = $this->is_addon_activated( $addon_id ) ?
+                                self::get_addon_instance( $addon_id ) :
+                                null;
+
+                            $was_addon_network_activated = false;
+
+                            if ( is_object( $fs_addon ) ) {
+                                $was_addon_network_activated = $fs_addon->is_network_active();
+                            } else if ( $is_network_level ) {
+                                $was_addon_network_activated = $addon_storage->get( 'was_plugin_loaded', false, true );
+                            }
+
+                            $network_delegated_connection = (
+                                $was_addon_network_activated &&
+                                $addon_storage->get( 'is_delegated_connection', false, true )
+                            );
+
+                            if (
+                                $is_network_level &&
+                                ( ! $was_addon_network_activated || $network_delegated_connection )
+                            ) {
+                                $sites = self::get_sites();
+
+                                /**
+                                 * If in network admin area and the add-on was not network-activated or network-activated
+                                 * and network-delegated, find any add-on whose hide_data flag is true.
+                                 */
+                                foreach ( $sites as $site ) {
+                                    $site_info = $this->get_site_info( $site );
+
+                                    if ( $addon_storage->get( 'hide_data', false, $site_info['blog_id'] ) ) {
+                                        $should_hide_data = true;
+                                        break;
+                                    }
+                                }
+
+                                if ( $should_hide_data ) {
+                                    break;
+                                }
+                            } else {
+                                /**
+                                 * This will be executed when any of the following is met:
+                                 * 1. Add-on was network-activated, not network-delegated, and in network admin area.
+                                 * 2. Add-on was network-activated, network-delegated, and in site admin area.
+                                 * 3. Add-on was not network-activated and in site admin area.
+                                 */
+                                if ( $addon_storage->hide_data ) {
                                     $should_hide_data = true;
                                     break;
                                 }
                             }
-                            
-                            if ( $should_hide_data ) {
-                                break;
-                            }
-                        } else {
-                            /**
-                             * This will be executed when any of the following is met:
-                             * 1. Add-on was network-activated, not network-delegated, and in network admin area.
-                             * 2. Add-on was network-activated, network-delegated, and in site admin area.
-                             * 3. Add-on was not network-activated and in site admin area.
-                             */
-                            if ( $addon_storage->hide_data ) {
-                                $should_hide_data = true;
-                                break;
-                            }
                         }
                     }
                 }
-            }
 
-            $this->_hide_data = $should_hide_data;
+                $this->_hide_data = $should_hide_data;
 
-            if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
-                if ( $this->_admin_notices->has_sticky( 'data_debug_mode_enabled' ) ) {
-                    $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
+                if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
+                    if ( $this->_admin_notices->has_sticky( 'data_debug_mode_enabled' ) ) {
+                        $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
+                    }
+                }
+
+                if ( ! is_null( $blog_id ) ) {
+                    $this->restore_current_blog();
                 }
             }
 
-            if ( ! is_null( $blog_id ) ) {
-                $this->restore_current_blog();
-            }
-            
-            return $should_hide_data;
+            return (
+                $should_hide_data &&
+                ( $ignore_data_debug_mode || ! $this->is_data_debug_mode() )
+            );
         }
 
         /**
@@ -12291,7 +12299,7 @@
                 return array();
             }
             
-            if ( $this->should_hide_data() && ! $this->is_data_debug_mode() ) {
+            if ( $this->should_hide_data() ) {
                 return array();
             }
 
@@ -17204,7 +17212,7 @@
             ) {
                 if (
                     ! WP_FS__DEMO_MODE &&
-                    ( ! $this->should_hide_data() || $this->is_data_debug_mode() )
+                    ( ! $this->should_hide_data() )
                 ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
@@ -18896,7 +18904,7 @@
          * @since  2.3.1
          */
         function _set_data_debug_mode() {
-            if ( ! $this->should_hide_data() ) {
+            if ( ! $this->should_hide_data( true ) ) {
                 return;
             }
 
@@ -21935,7 +21943,7 @@
             $add_upgrade_link = (
                 $add_action_links ||
                 ( $is_activation_mode && $this->is_only_premium() )
-            ) && ! WP_FS__DEMO_MODE && ( ! $this->should_hide_data() || $this->is_data_debug_mode() );
+            ) && ! WP_FS__DEMO_MODE && ( ! $this->should_hide_data() );
 
             $add_addons_link = ( $add_action_links && $this->has_addons() );
 

@@ -45,7 +45,7 @@
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
     $is_data_debug_mode     = $fs->is_data_debug_mode();
-    $hide_data              = ( $fs->should_hide_data() && ! $is_data_debug_mode );
+    $hide_data              = $fs->should_hide_data();
     $subscription           = ( is_object( $license ) ?
                                   $fs->_get_subscription( $license->id ) :
                                   null );
@@ -60,7 +60,7 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
-	if ( $fs->should_hide_data() || $fs->is_data_debug_mode() ) {
+	if ( $fs->should_hide_data(true) || $fs->is_data_debug_mode() ) {
         $fs->_add_data_debug_mode_dialog_box();
 	}
 
@@ -202,7 +202,7 @@
 							<h3><span class="dashicons dashicons-businessman"></span> <?php fs_esc_html_echo_inline( 'Account Details', 'account-details', $slug ) ?></h3>
 							<div class="fs-header-actions">
 								<ul>
-                                    <?php if ( $fs->should_hide_data() ) : ?>
+                                    <?php if ( $fs->should_hide_data( true ) ) : ?>
                                         <li>
                                             <a href="#" class="debug-license-trigger"><?php
                                                 if ( $hide_data ) {
@@ -713,7 +713,7 @@
                                                         null;
 
                                                     $hide_data = is_object( $fs_addon ) ?
-                                                        $fs_addon->should_hide_data() :
+                                                        $fs_addon->should_hide_data( true ) :
                                                         $addon_info['hide_data'];
 
                                                     if ( ! $hide_data ) {
