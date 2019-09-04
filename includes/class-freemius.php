@@ -11940,9 +11940,7 @@
                 $this->_hide_data = $should_hide_data;
 
                 if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
-                    if ( $this->_admin_notices->has_sticky( 'data_debug_mode_enabled' ) ) {
                     $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
-                }
                 }
 
                 if ( ! is_null( $blog_id ) ) {
