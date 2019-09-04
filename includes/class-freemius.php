@@ -11763,6 +11763,10 @@
          * @param FS_Plugin_License $license
          */
         private function update_hide_data_flag( $license ) {
+            $hide_data = isset( $this->_storage->hide_data ) ?
+                $this->_storage->hide_data :
+                false;
+
             if ( is_object( $license ) ) {
                 if ( $this->is_addon() ) {
                     /**
@@ -11774,19 +11778,17 @@
                 } else {
                     $this->set_last_license_data( $license );
                 }
-            }
 
-            if ( is_object( $license ) && $license->is_developer_license() ) {
-                $this->_storage->hide_data = true;
-            } else {
-                if ( $this->is_registered() && is_object( $license ) && $this->_user->id == $license->user_id ) {
-                    $this->_storage->hide_data = false;
-                } else {
-                    $this->_storage->hide_data = isset( $this->_storage->hide_data ) ?
-                        $this->_storage->hide_data :
-                        false;
+                if ( $license->is_developer_license() ) {
+                    // Activated a developer license, data should be hidden.
+                    $hide_data = true;
+                } else if ( $this->is_registered() && $this->_user->id == $license->user_id ) {
+                    // The account owner activated a regular license key, no need to hide the  data.
+                    $hide_data = false;
                 }
             }
+
+            $this->_storage->hide_data = $hide_data;
         }
 
         /**
