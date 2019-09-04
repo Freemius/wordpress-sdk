@@ -11940,9 +11940,11 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1.7
          *
+         * @param bool $double_check In some cases developers prefer to release their paid offering as premium-only, even though there is a free version. For those cases, looking at the 'is_premium_only' value isn't enough because the result will return false even when the product has only signle paid plan.
+         *
          * @return bool
          */
-        function is_single_plan() {
+        function is_single_plan( $double_check = false ) {
             $this->_logger->entrance();
 
             if ( ! $this->is_registered() ||
@@ -11952,7 +11954,18 @@
                 return true;
             }
 
-            return ( 1 === ( count( $this->_plans ) - ( $this->has_free_plan() ? 1 : 0 ) ) );
+            $has_free_plan = $this->has_free_plan();
+
+            if ( ! $has_free_plan && $double_check ) {
+                foreach ( $this->_plans as $plan ) {
+                    if ( $plan->is_free() ) {
+                        $has_free_plan = true;
+                        break;
+                    }
+                }
+            }
+
+            return ( 1 === ( count( $this->_plans ) - ( $has_free_plan ? 1 : 0 ) ) );
         }
 
         /**
@@ -16861,7 +16874,7 @@
                 // Didn't ask to hide the pricing page.
                 $this->is_page_visible( 'pricing' ) &&
                 // Don't have a valid active license or has more than one plan.
-                ( ! $this->is_paying() || ! $this->is_single_plan() )
+                ( ! $this->is_paying() || ! $this->is_single_plan( true ) )
             );
         }
 
