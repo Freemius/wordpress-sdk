@@ -75,9 +75,9 @@
          */
         public $secret_key;
         /**
-         * @var string $type Enum: `standard` or `developer`. Defaults to `standard`.
+         * @var string $mode Enum: `standard` or `developer`. Defaults to `standard`.
          */
-        public $type;
+        public $mode;
         /**
          * @var bool $is_free_localhost Defaults to true. If true, allow unlimited localhost installs with the same
          *      license.
@@ -95,8 +95,8 @@
 
         #endregion Properties
 
-        const TYPE_STANDARD  = 'standard';
-        const TYPE_DEVELOPER = 'developer';
+        const MODE_STANDARD  = 'standard';
+        const MODE_DEVELOPER = 'developer';
 
         /**
          * @param stdClass|bool $license
@@ -297,11 +297,11 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.0.4
+         * @since 2.3.1
          *
          * @return bool
          */
         function is_developer_license() {
-            return ( is_string( $this->type ) && self::TYPE_DEVELOPER === $this->type );
+            return ( is_string( $this->mode ) && self::MODE_DEVELOPER === $this->mode );
         }
     }
