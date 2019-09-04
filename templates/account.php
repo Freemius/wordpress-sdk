@@ -444,7 +444,7 @@
 												</td>
 												<td<?php if ( 'plan' === $p['id'] || 'bundle_plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
 													<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-														<code><?php echo htmlspecialchars( substr( $p['value'], 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $p['value'], - 3 ) ) ?></code>
+														<code><?php echo FS_Plugin_License::mask_secret_key_for_html( $p['value'] ) ?></code>
 														<?php if ( ! $hide_data ) : ?>
                                                         <input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
 														       readonly/>

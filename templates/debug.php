@@ -414,17 +414,12 @@
                                 echo $plan_name;
                             ?></td>
                         <td><?php echo $site->public_key ?></td>
-                        <?php $plugin_storage = FS_Storage::instance( $module_type, $slug ) ?>
                         <td><?php
-                            $site_secret_key = $site->secret_key;
+                                $plugin_storage = FS_Storage::instance( $module_type, $slug );
 
-                            if ( $plugin_storage->hide_data ) {
-                                $site_secret_key = htmlspecialchars( substr( $site_secret_key, 0, 6 ) ) .
-                                    str_pad( '', 23 * 6, '&bull;' ) .
-                                    htmlspecialchars( substr( $site_secret_key, - 3 ) );
-                            }
-
-                            echo esc_html( $site_secret_key )
+                                echo $plugin_storage->hide_data ?
+                                    FS_Plugin_License::mask_secret_key_for_html( $site->secret_key ) :
+                                    esc_html( $site->secret_key );
                         ?></td>
                         <td>
                             <form action="" method="POST">
@@ -542,7 +537,11 @@
     </table>
 <?php endif ?>
 <?php foreach ( $module_types as $module_type ) : ?>
-    <?php $licenses = $VARS[ $module_type . '_licenses' ] ?>
+    <?php
+    /**
+     * @var FS_Plugin_License[] $licenses
+     */
+    $licenses = $VARS[ $module_type . '_licenses' ] ?>
     <?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
         <h2><?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?></h2>
         <table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
@@ -570,15 +569,9 @@
                     <td><?php echo $license->activated ?></td>
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
                     <td><?php
-                        $license_key = $license->secret_key;
-
-                        if ( $license->is_developer_license() ) {
-                            $license_key = htmlspecialchars( substr( $license_key, 0, 6 ) ) .
-                                str_pad( '', 23 * 6, '&bull;' ) .
-                                htmlspecialchars( substr( $license_key, - 3 ) );
-                        }
-
-                        echo esc_html( $license_key );
+                            echo $license->is_developer_license() ?
+                                $license->get_html_escaped_masked_secret_key() :
+                                esc_html( $license->secret_key );
                     ?></td>
                     <td><?php echo $license->expiration ?></td>
                 </tr>

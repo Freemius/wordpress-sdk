@@ -239,7 +239,7 @@
                         <nobr><?php fs_esc_html_echo_inline( 'Secret Key', 'secret-key', $slug ) ?>:</nobr>
                     </td>
                     <td>
-                        <code><?php echo htmlspecialchars( substr( $install->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $install->secret_key, - 3 ) ) ?></code>
+                        <code><?php echo FS_Plugin_License::mask_secret_key_for_html( $install->secret_key ) ?></code>
                         <?php if ( ! $hide_data ) : ?>
                         <input type="text" value="<?php echo htmlspecialchars( $install->secret_key ) ?>"
                                style="display: none" readonly/></td>
@@ -260,7 +260,7 @@
                             <nobr><?php fs_esc_html_echo_inline( 'License Key', 'license-key', $slug ) ?>:</nobr>
                         </td>
                         <td>
-                            <code><?php echo htmlspecialchars( substr( $license->secret_key, 0, 6 ) ) . str_pad( '', 23 * 6, '&bull;' ) . htmlspecialchars( substr( $license->secret_key, - 3 ) ) ?></code>
+                            <code><?php echo $license->get_html_escaped_masked_secret_key() ?></code>
                             <?php if ( ! $hide_data ) : ?>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
