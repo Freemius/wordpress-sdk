@@ -18931,9 +18931,8 @@
                 $this->shoot_ajax_failure( sprintf(
                     '%s... %s',
                     $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
-                    $this->get_text_x_inline(
+                    $this->get_text_inline(
                         'seems like the key you entered doesn\'t match our records.',
-                        'the submitted developer license key doesn\'t match any license',
                         'developer-license-not-found'
                     )
                 ) );
@@ -18955,9 +18954,8 @@
 
             if ( 'true' === $transient_value ) {
                 $this->_admin_notices->add_sticky(
-                    $this->get_text_x_inline(
+                    $this->get_text_inline(
                         'Debug mode was successfully enabled and will be automatically disabled in 60 min. You can also disable it earlier by clicking the "Stop Debug" link.',
-                        'debug mode for the developer license was successfully enabled',
                         'data_debug_mode_enabled'
                     ),
                     'data_debug_mode_enabled'
