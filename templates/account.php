@@ -206,9 +206,9 @@
                                         <li>
                                             <a href="#" class="debug-license-trigger"><?php
                                                 if ( $hide_data ) {
-                                                    fs_esc_html_echo_x_inline( 'Debug', 'verb: turn developer license debug mode on', 'debug-license', $slug );
+                                                    fs_esc_html_echo_inline( 'Start Debug', 'start-debug-license', $slug );
                                                 } else {
-                                                    fs_esc_html_echo_x_inline( 'Stop Debug', 'turn developer license debug mode off', 'stop-debug-license', $slug );
+                                                    fs_esc_html_echo_inline( 'Stop Debug', 'stop-debug-license', $slug );
                                                 }
                                             ?></a>
                                         </li>
