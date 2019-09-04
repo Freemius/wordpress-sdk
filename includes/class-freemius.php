@@ -11855,9 +11855,11 @@
             } else {
                 $should_hide_data = false;
 
+                $hide_data_flag = $this->should_hide_data_by_flag( true );
+
                 if ( ! $this->has_addons() ) {
-                    $should_hide_data = ( true === $this->_storage->hide_data );
-                } else if ( true === $this->_storage->hide_data ) {
+                    $should_hide_data = $hide_data_flag;
+                } else if ( $hide_data_flag ) {
                     $should_hide_data = true;
                 } else {
                     $addon_ids        = $this->get_updated_account_addons();
@@ -11928,7 +11930,7 @@
                                  * 2. Add-on was network-activated, network-delegated, and in site admin area.
                                  * 3. Add-on was not network-activated and in site admin area.
                                  */
-                                if ( $addon_storage->hide_data ) {
+                                if ( true === $addon_storage->hide_data ) {
                                     $should_hide_data = true;
                                     break;
                                 }
