@@ -11774,9 +11774,9 @@
                      * "Start Debug" dialog which is triggered from the "Account" page. This way, there's no need to
                      * iterate over the add-ons just to get the last license data.
                      */
-                    $this->get_parent_instance()->set_last_license_data( $license );
+                    $this->get_parent_instance()->store_last_activated_license_data( $license );
                 } else {
-                    $this->set_last_license_data( $license );
+                    $this->store_last_activated_license_data( $license );
                 }
 
                 if ( $license->is_developer_license() ) {
@@ -11797,7 +11797,7 @@
          *
          * @param FS_Plugin_License $license
          */
-        private function set_last_license_data( FS_Plugin_License $license ) {
+        private function store_last_activated_license_data( FS_Plugin_License $license ) {
             $this->_storage->last_license_key     = md5( $license->secret_key );
             $this->_storage->last_license_user_id = $license->user_id;
         }
