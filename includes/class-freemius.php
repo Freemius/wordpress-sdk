@@ -11721,7 +11721,7 @@
 
             $this->_license = $new_license;
 
-            $this->update_hide_data_flag( $new_license );
+            $this->maybe_update_hide_data_flag( $new_license );
 
             if ( ! is_object( $new_license ) ) {
                 $this->_site->license_id = null;
@@ -11762,19 +11762,26 @@
          *
          * @param FS_Plugin_License $license
          */
-        private function update_hide_data_flag( $license ) {
+        private function maybe_update_hide_data_flag( $license ) {
             $hide_data = isset( $this->_storage->hide_data ) ?
                 $this->_storage->hide_data :
                 false;
 
             if ( is_object( $license ) ) {
+                $license_user = self::_get_user_by_id( $license->user_id );
+
+                if ( ! is_object( $license_user ) ) {
+                    // If foreign license, do not update the `hide_data` flag.
+                    return;
+                }
+
                 if ( $this->is_addon() ) {
                     /**
                      * Store the last license data to the parent's storage since it's needed only when showing the
                      * "Start Debug" dialog which is triggered from the "Account" page. This way, there's no need to
                      * iterate over the add-ons just to get the last license data.
                      */
-                    $this->get_parent_instance()->store_last_activated_license_data( $license );
+                    $this->get_parent_instance()->store_last_activated_license_data( $license, $license_user );
                 } else {
                     $this->store_last_activated_license_data( $license );
                 }
@@ -11796,10 +11803,16 @@
          * @since 2.3.1
          *
          * @param FS_Plugin_License $license
+         * @param FS_User           $license_user
          */
-        private function store_last_activated_license_data( FS_Plugin_License $license ) {
-            $this->_storage->last_license_key     = md5( $license->secret_key );
-            $this->_storage->last_license_user_id = $license->user_id;
+        private function store_last_activated_license_data( FS_Plugin_License $license, $license_user = null ) {
+            if ( ! is_object( $license_user ) ) {
+                $this->_storage->last_license_key     = md5( $license->secret_key );
+                $this->_storage->last_license_user_id = null;
+            } else {
+                $this->_storage->last_license_user_key = md5( $license_user->secret_key );
+                $this->_storage->last_license_user_id  = $license_user->id;
+            }
         }
 
         /**
@@ -18923,19 +18936,28 @@
                 return;
             }
 
-            $license_key = fs_request_get( 'license_key' );
+            $license_or_user_key = fs_request_get( 'license_or_user_key' );
 
-            $transient_value = ( ! empty( $license_key ) ? 'true' : 'false' );
+            $transient_value = ( ! empty( $license_or_user_key ) ) ?
+                'true' :
+                'false';
 
-            if ( 'true' === $transient_value && md5( $license_key ) !== $this->_storage->last_license_key ) {
-                $this->shoot_ajax_failure( sprintf(
-                    '%s... %s',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
-                    $this->get_text_inline(
-                        'seems like the key you entered doesn\'t match our records.',
-                        'developer-license-not-found'
-                    )
-                ) );
+            if ( 'true' === $transient_value ) {
+                $stored_key = $this->_storage->get( ! FS_User::is_valid_id( $this->_storage->last_license_user_id ) ?
+                    'last_license_key' :
+                    'last_license_user_key'
+                );
+
+                if ( md5( $license_or_user_key ) !== $stored_key ) {
+                    $this->shoot_ajax_failure( sprintf(
+                        '%s... %s',
+                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ),
+                        $this->get_text_inline(
+                            'seems like the key you entered doesn\'t match our records.',
+                            'developer-or-license-not-found'
+                        )
+                    ) );
+                }
             }
 
             if ( $this->is_network_active() && fs_is_network_admin() ) {
@@ -19447,13 +19469,13 @@
                     );
                 } else {
                     if ( ! is_object( $this->_license ) ) {
-                        $this->update_hide_data_flag(
+                        $this->maybe_update_hide_data_flag(
                             FS_Plugin_License::is_valid_id( $site->license_id ) ?
                                 $this->get_license_by_id( $site->license_id ) :
                                 null
                         );
                     } else {
-                        $this->update_hide_data_flag( $this->_license );
+                        $this->maybe_update_hide_data_flag( $this->_license );
 
                         if ( $this->_license->is_expired() ) {
                             if ( ! $this->has_features_enabled_license() ) {
