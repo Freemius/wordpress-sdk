@@ -38,7 +38,7 @@
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 ?>
-<?php if ( $fs->should_hide_data() ) : ?>
+<?php if ( ! $fs->should_hide_data() ) : ?>
 <div id="pframe"></div>
 <script type="text/javascript">
 	(function ($) {
