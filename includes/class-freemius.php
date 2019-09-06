@@ -10298,7 +10298,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @return FS_Plugin[]|false
+         * @return number[]|false
          */
         function get_account_addons() {
             $this->_logger->entrance();
