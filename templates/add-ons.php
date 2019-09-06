@@ -23,7 +23,7 @@
 	$open_addon = false;
 
     $is_data_debug_mode = $fs->is_data_debug_mode();
-    $hide_data          = $fs->should_hide_data();
+    $hide_data          = $fs->is_white_labeled();
 
 	/**
 	 * @var FS_Plugin[]
