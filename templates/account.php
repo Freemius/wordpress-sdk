@@ -204,17 +204,15 @@
 								<ul>
                                     <?php if ( $fs->is_whitelabeled( true ) ) : ?>
                                         <li>
-                                            <a href="#" class="debug-license-trigger"><?php
+                                            <a href="#" class="debug-license-trigger"><i class="dashicons dashicons-<?php echo $is_whitelabeled ? 'editor-code' : 'controls-pause' ?>"></i> <span><?php
                                                 if ( $is_whitelabeled ) {
                                                     fs_esc_html_echo_inline( 'Start Debug', 'start-debug-license', $slug );
                                                 } else {
                                                     fs_esc_html_echo_inline( 'Stop Debug', 'stop-debug-license', $slug );
                                                 }
-                                            ?></a>
+                                            ?></span></a>
                                         </li>
-                                        <?php if ( ! $is_whitelabeled ) : ?>
                                         <li>&nbsp;&bull;&nbsp;</li>
-                                        <?php endif ?>
                                     <?php endif ?>
 									<?php if ( $show_billing ) : ?>
 										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
