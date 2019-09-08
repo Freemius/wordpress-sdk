@@ -61,7 +61,7 @@
     $subscription           = null;
     $is_paying              = false;
     $show_upgrade           = false;
-    $hide_data              = $VARS['hide_data'];
+    $is_whitelabeled        = $VARS['is_whitelabeled'];
 
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
@@ -76,8 +76,17 @@
         $plan_title                 = $plan->title;
         $is_paid_trial              = $fs_addon->is_paid_trial();
         $version                    = $fs_addon->get_plugin_version();
-        $hide_data                  = ( $fs_addon->is_whitelabeled( true ) && ! $fs_addon->get_parent_instance()->is_data_debug_mode() );
-        $show_upgrade               = ( ! $hide_data && $fs_addon->has_paid_plan() && ! $is_paying && ! $is_paid_trial && ! $fs_addon->_has_premium_license() );
+        $is_whitelabeled            = (
+            $fs_addon->is_whitelabeled( true ) &&
+            ! $fs_addon->get_parent_instance()->is_data_debug_mode()
+        );
+        $show_upgrade               = (
+            ! $is_whitelabeled &&
+            $fs_addon->has_paid_plan() &&
+            ! $is_paying &&
+            ! $is_paid_trial &&
+            ! $fs_addon->_has_premium_license()
+        );
     } else if ( $is_addon_connected ) {
         if (
             empty( $addon_info ) ||
@@ -119,7 +128,7 @@
                 ( $site->trial_plan_id == $license->plan_id )
             );
 
-            $hide_data = $addon_info['hide_data'];
+            $is_whitelabeled = $addon_info['is_whitelabeled'];
         }
     }
 
@@ -206,7 +215,7 @@
 
         <?php
         $buttons = array();
-        if ( $is_addon_activated && ! $hide_data ) {
+        if ( $is_addon_activated && ! $is_whitelabeled ) {
             if ( $is_paying ) {
                 $buttons[] = fs_ui_get_action_button(
                     $fs->get_id(),
@@ -390,7 +399,7 @@
         </td>
         <!--/ Action -->
     <?php endif ?>
-    <?php if ( ! $is_paying && WP_FS__DEV_MODE && ! $hide_data ) : ?>
+    <?php if ( ! $is_paying && WP_FS__DEV_MODE && ! $is_whitelabeled ) : ?>
         <!-- Optional Delete Action -->
         <td>
             <?php

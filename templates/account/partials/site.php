@@ -20,7 +20,7 @@
     $site                  = $VARS['site'];
     $main_license          = $VARS['license'];
     $is_data_debug_mode    = $fs->is_data_debug_mode();
-    $hide_data             = $fs->is_whitelabeled();
+    $is_whitelabeled       = $fs->is_whitelabeled();
     $has_paid_plan         = $fs->has_paid_plan();
     $is_premium            = $fs->is_premium();
     $main_user             = $fs->get_user();
@@ -32,8 +32,8 @@
     $trial_plan    = $fs->get_trial_plan();
     $free_text     = fs_text_inline( 'Free', 'free', $slug );
 
-    if ( $hide_data && $fs->is_delegated_connection( $blog_id ) ) {
-        $hide_data = $fs->is_whitelabeled( true, $blog_id );
+    if ( $is_whitelabeled && $fs->is_delegated_connection( $blog_id ) ) {
+        $is_whitelabeled = $fs->is_whitelabeled( true, $blog_id );
     }
 ?>
     <tr class="fs-site-details" data-blog-id="<?php echo $blog_id ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
@@ -78,7 +78,7 @@
                     $view_params['is_localhost'] = FS_Site::is_localhost_by_address( $site['url'] );
                 }
 
-                if ( ! $hide_data ) {
+                if ( ! $is_whitelabeled ) {
                     if ( is_object( $license ) ) {
                         $view_params['license'] = $license;
 
@@ -240,11 +240,11 @@
                     </td>
                     <td>
                         <code><?php echo FS_Plugin_License::mask_secret_key_for_html( $install->secret_key ) ?></code>
-                        <?php if ( ! $hide_data ) : ?>
+                        <?php if ( ! $is_whitelabeled ) : ?>
                         <input type="text" value="<?php echo htmlspecialchars( $install->secret_key ) ?>"
                                style="display: none" readonly/></td>
                         <?php endif ?>
-                    <?php if ( ! $hide_data ) : ?>
+                    <?php if ( ! $is_whitelabeled ) : ?>
                     <td><button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button></td>
                     <?php endif ?>
                 </tr>
@@ -261,11 +261,11 @@
                         </td>
                         <td>
                             <code><?php echo $license->get_html_escaped_masked_secret_key() ?></code>
-                            <?php if ( ! $hide_data ) : ?>
+                            <?php if ( ! $is_whitelabeled ) : ?>
                             <input type="text" value="<?php echo htmlspecialchars( $license->secret_key ) ?>"
                                    style="display: none" readonly/></td>
                             <?php endif ?>
-                        <?php if ( ! $hide_data ) : ?>
+                        <?php if ( ! $is_whitelabeled ) : ?>
                         <td>
                             <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                             <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>

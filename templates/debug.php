@@ -417,7 +417,7 @@
                         <td><?php
                                 $plugin_storage = FS_Storage::instance( $module_type, $slug );
 
-                                echo $plugin_storage->hide_data ?
+                                echo $plugin_storage->is_whitelabeled ?
                                     FS_Plugin_License::mask_secret_key_for_html( $site->secret_key ) :
                                     esc_html( $site->secret_key );
                         ?></td>

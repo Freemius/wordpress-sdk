@@ -45,7 +45,7 @@
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
     $is_data_debug_mode     = $fs->is_data_debug_mode();
-    $hide_data              = $fs->is_whitelabeled();
+    $is_whitelabeled        = $fs->is_whitelabeled();
     $subscription           = ( is_object( $license ) ?
                                   $fs->_get_subscription( $license->id ) :
                                   null );
@@ -53,7 +53,7 @@
     $is_active_subscription = ( is_object( $subscription ) && $subscription->is_active() );
     $is_paid_trial          = $fs->is_paid_trial();
     $has_paid_plan          = $fs->has_paid_plan();
-    $show_upgrade           = ( ! $hide_data && $has_paid_plan && ! $is_paying && ! $is_paid_trial );
+    $show_upgrade           = ( ! $is_whitelabeled && $has_paid_plan && ! $is_paying && ! $is_paid_trial );
     $trial_plan             = $fs->get_trial_plan();
 
 	if ( $has_paid_plan ) {
@@ -78,7 +78,7 @@
 
 	$payments = $fs->_fetch_payments();
 
-    $show_billing = ( ! $hide_data && is_array( $payments ) && 0 < count( $payments ) );
+    $show_billing = ( ! $is_whitelabeled && is_array( $payments ) && 0 < count( $payments ) );
 
 
 	$has_tabs = $fs->_add_tabs_before_content();
@@ -205,14 +205,14 @@
                                     <?php if ( $fs->is_whitelabeled( true ) ) : ?>
                                         <li>
                                             <a href="#" class="debug-license-trigger"><?php
-                                                if ( $hide_data ) {
+                                                if ( $is_whitelabeled ) {
                                                     fs_esc_html_echo_inline( 'Start Debug', 'start-debug-license', $slug );
                                                 } else {
                                                     fs_esc_html_echo_inline( 'Stop Debug', 'stop-debug-license', $slug );
                                                 }
                                             ?></a>
                                         </li>
-                                        <?php if ( ! $hide_data ) : ?>
+                                        <?php if ( ! $is_whitelabeled ) : ?>
                                         <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
                                     <?php endif ?>
@@ -220,7 +220,7 @@
 										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
 										<li>&nbsp;&bull;&nbsp;</li>
 									<?php endif ?>
-                                    <?php if ( ! $hide_data ) : ?>
+                                    <?php if ( ! $is_whitelabeled ) : ?>
                                         <?php if ( ! $is_paying ) : ?>
                                             <li>
                                                 <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
@@ -309,7 +309,7 @@
 
 										$profile   = array();
 
-										if ( ! $hide_data ) {
+										if ( ! $is_whitelabeled ) {
                                             $profile[] = array(
                                                 'id'    => 'user_name',
                                                 'title' => fs_text_inline( 'Name', 'name', $slug ),
@@ -378,7 +378,7 @@
 											'value' => $fs->get_plugin_version()
 										);
 
-										if ( $is_premium && ! $hide_data ) {
+										if ( $is_premium && ! $is_whitelabeled ) {
 										    $profile[] = array(
                                                 'id'    => 'beta_program',
                                                 'title' => '',
@@ -445,7 +445,7 @@
 												<td<?php if ( 'plan' === $p['id'] || 'bundle_plan' === $p['id'] ) { echo ' colspan="2"'; }?>>
 													<?php if ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
 														<code><?php echo FS_Plugin_License::mask_secret_key_for_html( $p['value'] ) ?></code>
-														<?php if ( ! $hide_data ) : ?>
+														<?php if ( ! $is_whitelabeled ) : ?>
                                                         <input type="text" value="<?php echo htmlspecialchars( $p['value'] ) ?>" style="display: none"
 														       readonly/>
                                                         <?php endif ?>
@@ -478,7 +478,7 @@
 														<?php elseif ( $fs->is_trial() ) : ?>
 															<label class="fs-tag fs-warn"><?php echo esc_html( sprintf( $expires_in_text, human_time_diff( time(), strtotime( $site->trial_ends ) ) ) ) ?></label>
 														<?php endif ?>
-                                                        <?php if ( ! $hide_data ) : ?>
+                                                        <?php if ( ! $is_whitelabeled ) : ?>
 														<div class="button-group">
 															<?php $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
                                                             <?php if ( is_object( $available_license ) ) : ?>
@@ -566,7 +566,7 @@
 															<?php endif ?>
 															<?php
 														elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-                                                            <?php if ( ! $hide_data ) : ?>
+                                                            <?php if ( ! $is_whitelabeled ) : ?>
                                                                 <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                                                                 <?php if ('license_key' === $p['id']) : ?>
                                                                     <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
@@ -617,7 +617,7 @@
 						<div id="fs_sites" class="postbox">
 							<h3><span class="dashicons dashicons-networking"></span> <?php fs_esc_html_echo_inline( 'Sites', 'sites', $slug ) ?></h3>
 							<div class="fs-header-actions">
-                                <?php if ( ! $hide_data ) : ?>
+                                <?php if ( ! $is_whitelabeled ) : ?>
                                     <?php $has_license = is_object( $license ) ?>
                                     <?php if ( $has_license || ( $show_upgrade && $is_premium ) ) : ?>
                                         <?php
@@ -700,7 +700,7 @@
                                             $addon_info_by_id     = array();
                                             $hide_all_addons_data = false;
 
-                                            if ( $fs->should_hide_data_by_flag() ) {
+                                            if ( $fs->is_whitelabeled_by_flag() ) {
                                                 $hide_all_addons_data = true;
 
                                                 foreach ( $addons_to_show as $addon_id ) {
@@ -712,16 +712,16 @@
                                                         freemius( $addon_id ) :
                                                         null;
 
-                                                    $hide_data = is_object( $fs_addon ) ?
+                                                    $is_whitelabeled = is_object( $fs_addon ) ?
                                                         $fs_addon->is_whitelabeled( true ) :
-                                                        $addon_info['hide_data'];
+                                                        $addon_info['is_whitelabeled'];
 
-                                                    if ( ! $hide_data ) {
+                                                    if ( ! $is_whitelabeled ) {
                                                         $hide_all_addons_data = false;
                                                     }
 
                                                     if ( $is_data_debug_mode ) {
-                                                        $hide_data = false;
+                                                        $is_whitelabeled = false;
                                                     }
 
                                                     $addon_info_by_id[ $addon_id ] = $addon_info;
@@ -749,7 +749,7 @@
                                                     'addon_info'                     => isset( $addon_info_by_id[ $addon_id ] ) ?
                                                         $addon_info_by_id[ $addon_id ] :
                                                         $fs->_get_addon_info( $addon_id, $is_addon_installed ),
-                                                    'hide_data'                      => ( $hide_data && ! $is_data_debug_mode )
+                                                    'is_whitelabeled'                => ( $is_whitelabeled && ! $is_data_debug_mode )
 												);
 
 												fs_require_template(

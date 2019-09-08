@@ -23,7 +23,7 @@
 	$open_addon = false;
 
     $is_data_debug_mode = $fs->is_data_debug_mode();
-    $hide_data          = $fs->is_whitelabeled();
+    $is_whitelabeled    = $fs->is_whitelabeled();
 
 	/**
 	 * @var FS_Plugin[]
@@ -68,7 +68,7 @@
                     <?php
                         $hide_all_addons_data = false;
 
-                        if ( $fs->should_hide_data_by_flag() ) {
+                        if ( $fs->is_whitelabeled_by_flag() ) {
                             $hide_all_addons_data = true;
 
                             $addon_ids        = $fs->get_updated_account_addons();
@@ -90,13 +90,13 @@
 
                                 $addon_storage = FS_Storage::instance( WP_FS__MODULE_TYPE_PLUGIN, $addon->slug );
 
-                                if ( ! $addon_storage->hide_data ) {
+                                if ( ! $addon_storage->is_whitelabeled ) {
                                     $hide_all_addons_data = false;
                                     break;
                                 }
 
                                 if ( $is_data_debug_mode ) {
-                                    $hide_data = false;
+                                    $is_whitelabeled = false;
                                 }
                             }
                         }
@@ -225,7 +225,7 @@
 									<li class="fs-offer">
 									<span
 										class="fs-price"><?php
-                                        if ( $hide_data ) {
+                                        if ( $is_whitelabeled ) {
                                             echo '&nbsp;';
                                         } else {
 											$descriptors = array();

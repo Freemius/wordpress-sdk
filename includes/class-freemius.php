@@ -349,7 +349,7 @@
          *
          * @var bool
          */
-        private $_hide_data;
+        private $is_whitelabeled;
 
         #region Uninstall Reasons IDs
 
@@ -10461,10 +10461,10 @@
             }
 
             $addon_info = array(
-                'is_connected' => false,
-                'slug'         => $slug,
-                'title'        => $addon->title,
-                'hide_data'    => $addon_storage->hide_data
+                'is_connected'    => false,
+                'slug'            => $slug,
+                'title'           => $addon->title,
+                'is_whitelabeled' => $addon_storage->is_whitelabeled
             );
 
             if ( ! $is_installed ) {
@@ -11721,7 +11721,7 @@
 
             $this->_license = $new_license;
 
-            $this->maybe_update_hide_data_flag( $new_license );
+            $this->maybe_update_whitelabel_flag( $new_license );
 
             if ( ! is_object( $new_license ) ) {
                 $this->_site->license_id = null;
@@ -11762,16 +11762,16 @@
          *
          * @param FS_Plugin_License $license
          */
-        private function maybe_update_hide_data_flag( $license ) {
-            $hide_data = isset( $this->_storage->hide_data ) ?
-                $this->_storage->hide_data :
+        private function maybe_update_whitelabel_flag( $license ) {
+            $is_whitelabeled = isset( $this->_storage->is_whitelabeled ) ?
+                $this->_storage->is_whitelabeled :
                 false;
 
             if ( is_object( $license ) ) {
                 $license_user = self::_get_user_by_id( $license->user_id );
 
                 if ( ! is_object( $license_user ) ) {
-                    // If foreign license, do not update the `hide_data` flag.
+                    // If foreign license, do not update the `is_whitelabeled` flag.
                     return;
                 }
 
@@ -11788,14 +11788,14 @@
 
                 if ( $license->is_whitelabeled ) {
                     // Activated a developer license, data should be hidden.
-                    $hide_data = true;
+                    $is_whitelabeled = true;
                 } else if ( $this->is_registered() && $this->_user->id == $license->user_id ) {
                     // The account owner activated a regular license key, no need to hide the  data.
-                    $hide_data = false;
+                    $is_whitelabeled = false;
                 }
             }
 
-            $this->_storage->hide_data = $hide_data;
+            $this->_storage->is_whitelabeled = $is_whitelabeled;
         }
 
         /**
@@ -11823,8 +11823,8 @@
          *
          * @return bool
          */
-        function should_hide_data_by_flag( $ignore_data_debug_mode = false ) {
-            if ( true !== $this->_storage->hide_data ) {
+        function is_whitelabeled_by_flag( $ignore_data_debug_mode = false ) {
+            if ( true !== $this->_storage->is_whitelabeled ) {
                 return false;
             } else if ( $ignore_data_debug_mode ) {
                 return true;
@@ -11863,17 +11863,17 @@
                 $this->switch_to_blog( $blog_id );
             }
 
-            if ( ! is_null( $this->_hide_data ) ) {
-                $should_hide_data = $this->_hide_data;
+            if ( ! is_null( $this->is_whitelabeled ) ) {
+                $is_whitelabeled = $this->is_whitelabeled;
             } else {
-                $should_hide_data = false;
+                $is_whitelabeled = false;
 
-                $hide_data_flag = $this->should_hide_data_by_flag( true );
+                $is_whitelabeled_flag = $this->is_whitelabeled_by_flag( true );
 
                 if ( ! $this->has_addons() ) {
-                    $should_hide_data = $hide_data_flag;
-                } else if ( $hide_data_flag ) {
-                    $should_hide_data = true;
+                    $is_whitelabeled = $is_whitelabeled_flag;
+                } else if ( $is_whitelabeled_flag ) {
+                    $is_whitelabeled = true;
                 } else {
                     $addon_ids        = $this->get_updated_account_addons();
                     $installed_addons = $this->get_installed_addons();
@@ -11922,18 +11922,18 @@
 
                                 /**
                                  * If in network admin area and the add-on was not network-activated or network-activated
-                                 * and network-delegated, find any add-on whose hide_data flag is true.
+                                 * and network-delegated, find any add-on whose is_whitelabeled flag is true.
                                  */
                                 foreach ( $sites as $site ) {
                                     $site_info = $this->get_site_info( $site );
 
-                                    if ( $addon_storage->get( 'hide_data', false, $site_info['blog_id'] ) ) {
-                                        $should_hide_data = true;
+                                    if ( $addon_storage->get( 'is_whitelabeled', false, $site_info['blog_id'] ) ) {
+                                        $is_whitelabeled = true;
                                         break;
                                     }
                                 }
 
-                                if ( $should_hide_data ) {
+                                if ( $is_whitelabeled ) {
                                     break;
                                 }
                             } else {
@@ -11943,8 +11943,8 @@
                                  * 2. Add-on was network-activated, network-delegated, and in site admin area.
                                  * 3. Add-on was not network-activated and in site admin area.
                                  */
-                                if ( true === $addon_storage->hide_data ) {
-                                    $should_hide_data = true;
+                                if ( true === $addon_storage->is_whitelabeled ) {
+                                    $is_whitelabeled = true;
                                     break;
                                 }
                             }
@@ -11952,9 +11952,9 @@
                     }
                 }
 
-                $this->_hide_data = $should_hide_data;
+                $this->is_whitelabeled = $is_whitelabeled;
 
-                if ( ! $should_hide_data || ! $this->is_data_debug_mode() ) {
+                if ( ! $is_whitelabeled || ! $this->is_data_debug_mode() ) {
                     $this->_admin_notices->remove_sticky( 'data_debug_mode_enabled' );
                 }
 
@@ -11964,7 +11964,7 @@
             }
 
             return (
-                $should_hide_data &&
+                $is_whitelabeled &&
                 ( $ignore_data_debug_mode || ! $this->is_data_debug_mode() )
             );
         }
@@ -14311,10 +14311,10 @@
                 $install :
                 $this->get_install_by_blog_id( $blog_id );
 
-            $this->_user      = false;
-            $this->_licenses  = false;
-            $this->_license   = null;
-            $this->_hide_data = null;
+            $this->_user           = false;
+            $this->_licenses       = false;
+            $this->_license        = null;
+            $this->is_whitelabeled = null;
 
             if ( is_object( $this->_site ) ) {
                 // Try to fetch user from install.
@@ -18910,7 +18910,7 @@
          * @since  2.3.1
          */
         function is_data_debug_mode() {
-            if ( is_null( $this->_hide_data ) || ! $this->_hide_data ) {
+            if ( is_null( $this->is_whitelabeled ) || ! $this->is_whitelabeled ) {
                 return false;
             }
 
@@ -19469,13 +19469,13 @@
                     );
                 } else {
                     if ( ! is_object( $this->_license ) ) {
-                        $this->maybe_update_hide_data_flag(
+                        $this->maybe_update_whitelabel_flag(
                             FS_Plugin_License::is_valid_id( $site->license_id ) ?
                                 $this->get_license_by_id( $site->license_id ) :
                                 null
                         );
                     } else {
-                        $this->maybe_update_hide_data_flag( $this->_license );
+                        $this->maybe_update_whitelabel_flag( $this->_license );
 
                         if ( $this->_license->is_expired() ) {
                             if ( ! $this->has_features_enabled_license() ) {
