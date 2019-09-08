@@ -144,7 +144,7 @@ HTML;
                 method    : 'POST',
                 data      : data,
                 beforeSend: function () {
-                    $debugLicenseLink.text( '<?php echo $processing_text ?>' );
+                    $debugLicenseLink.find('span').text( '<?php echo $processing_text ?>' );
                     $submitKeyButton.text( '<?php echo $processing_text ?>' );
                 },
                 success   : function ( result ) {
@@ -184,7 +184,7 @@ HTML;
 		function resetButtons() {
 			enableSubmitButton();
 			$submitKeyButton.text( <?php echo json_encode( $submit_button_text ) ?> );
-			$debugLicenseLink.text( <?php echo json_encode( $debug_license_link_text ) ?> );
+			$debugLicenseLink.find('span').text( <?php echo json_encode( $debug_license_link_text ) ?> );
 		}
 
 		function resetModal() {
