@@ -11808,6 +11808,16 @@
             }
 
             $this->_storage->is_whitelabeled = $is_whitelabeled;
+
+            // Reset the whitelabeled status after update.
+            $this->is_whitelabeled = null;
+            if ( $this->is_addon() ) {
+                $parent_fs = $this->get_parent_instance();
+
+                if ( is_object( $parent_fs ) ) {
+                    $parent_fs->is_whitelabeled = null;
+                }
+            }
         }
 
         /**
