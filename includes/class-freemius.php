@@ -17262,10 +17262,7 @@
             if ( $add_submenu_items ||
                 ( $is_activation_mode && $this->is_only_premium() && $this->is_admin_page( 'pricing' ) )
             ) {
-                if (
-                    ! WP_FS__DEMO_MODE &&
-                    ( ! $this->is_whitelabeled() )
-                ) {
+                if (! WP_FS__DEMO_MODE && ! $this->is_whitelabeled() ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
                         $this->is_pricing_page_visible()
