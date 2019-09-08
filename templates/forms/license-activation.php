@@ -140,7 +140,7 @@ HTML;
                 "%s-Site %s License - %s",
                 ( 1 == $available_license->quota ?
                     'Single' :
-                    $available_license->quota
+                    ( $available_license->is_unlimited() ? 'Unlimited' : $available_license->quota )
                 ),
                 $fs->_get_plan_by_id( $available_license->plan_id )->title,
                 $available_license->get_html_escaped_masked_secret_key()
