@@ -289,6 +289,7 @@
                                             </li>
                                             <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
+                                    <?php endif ?>
                                         <li>
                                             <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
                                                 <input type="hidden" name="fs_action" value="<?php echo $fs->get_unique_affix() ?>_sync_license">
@@ -297,7 +298,6 @@
                                                         class="dashicons dashicons-image-rotate"></i> <?php fs_esc_html_echo_x_inline( 'Sync', 'as synchronize', 'sync', $slug ) ?></a>
                                             </form>
                                         </li>
-                                    <?php endif ?>
 								</ul>
 							</div>
 							<div class="inside">
