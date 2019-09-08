@@ -483,10 +483,13 @@
     $users_with_developer_license_by_id = array();
 
     foreach ( $module_types as $module_type ) {
+        /**
+         * @var FS_Plugin_License[] $licenses
+         */
         $licenses = $VARS[ $module_type . '_licenses' ];
 
         foreach ( $licenses as $license ) {
-            if ( $license->is_developer_license() ) {
+            if ( $license->is_whitelabeled ) {
                 $users_with_developer_license_by_id[ $license->user_id ] = true;
             }
         }
