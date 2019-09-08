@@ -369,6 +369,7 @@
                 <?php endif ?>
                 <th><?php fs_esc_html_echo_inline( 'Slug' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'User ID' ) ?></th>
+                <th><?php fs_esc_html_echo_inline( 'License ID' ) ?></th>
                 <th><?php fs_esc_html_echo_x_inline( 'Plan', 'as product pricing plan', 'plan' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Secret Key' ) ?></th>
@@ -389,6 +390,7 @@
                         <?php endif ?>
                         <td><?php echo $slug ?></td>
                         <td><?php echo $site->user_id ?></td>
+                        <td><?php echo !empty($site->license_id) ? $site->license_id : '' ?></td>
                         <td><?php
                                 $plan_name = '';
                                 if ( FS_Plugin_Plan::is_valid_id( $site->plan_id ) ) {
