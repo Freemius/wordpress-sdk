@@ -11045,7 +11045,9 @@
 
             if ( $license instanceof FS_Plugin_License ) {
                 $this->_licenses[] = $license;
-                $this->_license    = $license;
+
+                $this->set_license( $license );
+
                 $this->_store_licenses();
 
                 return $license;
@@ -11270,7 +11272,7 @@
 
             // Update current license.
             if ( is_object( $this->_license ) ) {
-                $this->_license = $this->_get_license_by_id( $this->_license->id );
+                $this->set_license( $this->_get_license_by_id( $this->_license->id ) );
             }
 
             return $this->_licenses;
@@ -11719,9 +11721,7 @@
         function _update_site_license( $new_license ) {
             $this->_logger->entrance();
 
-            $this->_license = $new_license;
-
-            $this->maybe_update_whitelabel_flag( $new_license );
+            $this->set_license( $new_license );
 
             if ( ! is_object( $new_license ) ) {
                 $this->_site->license_id = null;
@@ -11754,6 +11754,18 @@
             $this->_sync_site_subscription( $new_license );
 
             return $this->_license;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @param \FS_Plugin_License $license
+         */
+        private function set_license( FS_Plugin_License $license ) {
+            $this->_license = $license;
+
+            $this->maybe_update_whitelabel_flag( $license );
         }
 
         /**
@@ -15853,7 +15865,7 @@
             );
 
             if ( is_numeric( $first_install->license_id ) ) {
-                $this->_license = $this->_get_license_by_id( $first_install->license_id );
+                $this->set_license( $this->_get_license_by_id( $first_install->license_id ) );
             }
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
@@ -17209,17 +17221,17 @@
             }
 
             if ( $add_submenu_items ) {
-                // Add contact page.
-                $this->add_submenu_item(
-                    $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                    array( &$this, '_contact_page_render' ),
-                    $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                    'manage_options',
-                    'contact',
-                    'Freemius::_clean_admin_content_section',
-                    WP_FS__DEFAULT_PRIORITY,
-                    $this->is_submenu_item_visible( 'contact' )
-                );
+                    // Add contact page.
+                    $this->add_submenu_item(
+                        $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                        array( &$this, '_contact_page_render' ),
+                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                        'manage_options',
+                        'contact',
+                        'Freemius::_clean_admin_content_section',
+                        WP_FS__DEFAULT_PRIORITY,
+                        $this->is_submenu_item_visible( 'contact' )
+                    );
 
                 if ( $this->has_addons() ) {
                     $this->add_submenu_item(
