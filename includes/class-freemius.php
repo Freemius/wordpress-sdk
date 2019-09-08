@@ -17221,6 +17221,7 @@
             }
 
             if ( $add_submenu_items ) {
+                if (! WP_FS__DEMO_MODE && ! $this->is_whitelabeled() ) {
                     // Add contact page.
                     $this->add_submenu_item(
                         $this->get_text_inline( 'Contact Us', 'contact-us' ),
@@ -17232,6 +17233,7 @@
                         WP_FS__DEFAULT_PRIORITY,
                         $this->is_submenu_item_visible( 'contact' )
                     );
+                }
 
                 if ( $this->has_addons() ) {
                     $this->add_submenu_item(
