@@ -290,14 +290,14 @@
                                             <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
                                     <?php endif ?>
-                                        <li>
-                                            <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-                                                <input type="hidden" name="fs_action" value="<?php echo $fs->get_unique_affix() ?>_sync_license">
-                                                <?php wp_nonce_field( $fs->get_unique_affix() . '_sync_license' ) ?>
-                                                <a href="#" onclick="this.parentNode.submit(); return false;"><i
-                                                        class="dashicons dashicons-image-rotate"></i> <?php fs_esc_html_echo_x_inline( 'Sync', 'as synchronize', 'sync', $slug ) ?></a>
-                                            </form>
-                                        </li>
+                                    <li>
+                                        <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
+                                            <input type="hidden" name="fs_action" value="<?php echo $fs->get_unique_affix() ?>_sync_license">
+                                            <?php wp_nonce_field( $fs->get_unique_affix() . '_sync_license' ) ?>
+                                            <a href="#" onclick="this.parentNode.submit(); return false;"><i
+                                                    class="dashicons dashicons-image-rotate"></i> <?php fs_esc_html_echo_x_inline( 'Sync', 'as synchronize', 'sync', $slug ) ?></a>
+                                        </form>
+                                    </li>
 								</ul>
 							</div>
 							<div class="inside">
@@ -566,9 +566,9 @@
 														elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
                                                             <?php if ( ! $is_whitelabeled ) : ?>
                                                                 <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
-                                                                <?php if ('license_key' === $p['id']) : ?>
-                                                                    <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
-                                                                <?php endif ?>
+                                                            <?php endif ?>
+                                                            <?php if ('license_key' === $p['id']) : ?>
+                                                                <button class="button button-small activate-license-trigger <?php echo $fs->get_unique_affix() ?>"><?php fs_esc_html_echo_inline( 'Change License', 'change-license', $slug ) ?></button>
                                                             <?php endif ?>
 															<?php
 														elseif (/*in_array($p['id'], array('site_secret_key', 'site_id', 'site_public_key')) ||*/
