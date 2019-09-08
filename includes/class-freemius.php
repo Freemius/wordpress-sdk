@@ -11762,7 +11762,7 @@
          *
          * @param \FS_Plugin_License $license
          */
-        private function set_license( FS_Plugin_License $license ) {
+        private function set_license( FS_Plugin_License $license = null ) {
             $this->_license = $license;
 
             $this->maybe_update_whitelabel_flag( $license );
