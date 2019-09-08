@@ -75,9 +75,9 @@
          */
         public $secret_key;
         /**
-         * @var string $mode Enum: `standard` or `developer`. Defaults to `standard`.
+         * @var bool
          */
-        public $mode;
+        public $is_whitelabeled;
         /**
          * @var bool $is_free_localhost Defaults to true. If true, allow unlimited localhost installs with the same
          *      license.
@@ -94,9 +94,6 @@
         public $is_cancelled;
 
         #endregion Properties
-
-        const MODE_STANDARD  = 'standard';
-        const MODE_DEVELOPER = 'developer';
 
         /**
          * @param stdClass|bool $license
@@ -293,16 +290,6 @@
          */
         function total_activations() {
             return ( $this->activated + $this->activated_local );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
-         *
-         * @return bool
-         */
-        function is_developer_license() {
-            return ( is_string( $this->mode ) && self::MODE_DEVELOPER === $this->mode );
         }
 
         /**

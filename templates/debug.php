@@ -569,7 +569,7 @@
                     <td><?php echo $license->activated ?></td>
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
                     <td><?php
-                            echo $license->is_developer_license() ?
+                            echo $license->is_whitelabeled ?
                                 $license->get_html_escaped_masked_secret_key() :
                                 esc_html( $license->secret_key );
                     ?></td>

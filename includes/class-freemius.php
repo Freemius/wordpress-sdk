@@ -11786,7 +11786,7 @@
                     $this->store_last_activated_license_data( $license );
                 }
 
-                if ( $license->is_developer_license() ) {
+                if ( $license->is_whitelabeled ) {
                     // Activated a developer license, data should be hidden.
                     $hide_data = true;
                 } else if ( $this->is_registered() && $this->_user->id == $license->user_id ) {
