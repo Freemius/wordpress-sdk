@@ -11858,7 +11858,7 @@
          *
          * @return bool
          */
-        function is_white_labeled( $ignore_data_debug_mode = false, $blog_id = null ) {
+        function is_whitelabeled( $ignore_data_debug_mode = false, $blog_id = null ) {
             if ( ! is_null( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
             }
@@ -12322,7 +12322,7 @@
                 return array();
             }
             
-            if ( $this->is_white_labeled() ) {
+            if ( $this->is_whitelabeled() ) {
                 return array();
             }
 
@@ -17240,7 +17240,7 @@
             ) {
                 if (
                     ! WP_FS__DEMO_MODE &&
-                    ( ! $this->is_white_labeled() )
+                    ( ! $this->is_whitelabeled() )
                 ) {
                     $show_pricing = (
                         $this->is_submenu_item_visible( 'pricing' ) &&
@@ -18932,7 +18932,7 @@
          * @since  2.3.1
          */
         function _set_data_debug_mode() {
-            if ( ! $this->is_white_labeled( true ) ) {
+            if ( ! $this->is_whitelabeled( true ) ) {
                 return;
             }
 
@@ -21978,7 +21978,7 @@
             $add_upgrade_link = (
                 $add_action_links ||
                 ( $is_activation_mode && $this->is_only_premium() )
-            ) && ! WP_FS__DEMO_MODE && ( ! $this->is_white_labeled() );
+            ) && ! WP_FS__DEMO_MODE && ( ! $this->is_whitelabeled() );
 
             $add_addons_link = ( $add_action_links && $this->has_addons() );
 

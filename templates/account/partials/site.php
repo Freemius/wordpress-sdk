@@ -20,7 +20,7 @@
     $site                  = $VARS['site'];
     $main_license          = $VARS['license'];
     $is_data_debug_mode    = $fs->is_data_debug_mode();
-    $hide_data             = $fs->is_white_labeled();
+    $hide_data             = $fs->is_whitelabeled();
     $has_paid_plan         = $fs->has_paid_plan();
     $is_premium            = $fs->is_premium();
     $main_user             = $fs->get_user();
@@ -33,7 +33,7 @@
     $free_text     = fs_text_inline( 'Free', 'free', $slug );
 
     if ( $hide_data && $fs->is_delegated_connection( $blog_id ) ) {
-        $hide_data = $fs->is_white_labeled( true, $blog_id );
+        $hide_data = $fs->is_whitelabeled( true, $blog_id );
     }
 ?>
     <tr class="fs-site-details" data-blog-id="<?php echo $blog_id ?>"<?php if ( $is_registered ) : ?> data-install-id="<?php echo $install->id ?>"<?php endif ?>>
