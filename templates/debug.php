@@ -511,7 +511,7 @@
         <?php foreach ( $users as $user_id => $user ) : ?>
             <?php $has_developer_license = isset( $users_with_developer_license_by_id[ $user_id ] ) ?>
             <tr>
-                <td><?php echo $has_developer_license ? '' : $user->id ?></td>
+                <td><?php echo $user->id ?></td>
                 <td><?php echo $has_developer_license ? '' : $user->get_name() ?></td>
                 <td>
                     <?php if ( ! $has_developer_license ) : ?>
@@ -519,8 +519,8 @@
                     <?php endif ?>
                 </td>
                 <td><?php echo $has_developer_license ? '' : json_encode( $user->is_verified ) ?></td>
-                <td><?php echo $has_developer_license ? '' : $user->public_key ?></td>
-                <td><?php echo $has_developer_license ? '' : esc_html( $user->secret_key ) ?></td>
+                <td><?php echo $user->public_key ?></td>
+                <td><?php echo $has_developer_license ? FS_Plugin_License::mask_secret_key_for_html($user->secret_key) : esc_html( $user->secret_key ) ?></td>
                 <td>
                     <?php if ( ! $has_developer_license ) : ?>
                     <form action="" method="POST">
