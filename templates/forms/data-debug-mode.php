@@ -34,7 +34,7 @@
     $license_or_user_key_text = ( ! $has_last_license_user_id ) ?
         fs_text_inline( 'License key', 'license-key' , $slug ) :
         fs_text_inline( 'User key', 'user-key' , $slug );
-    $input_html               = "<input class='fs-license-or-user-key' type='text' placeholder='{$license_or_user_key_text}' tabindex='1' />";
+    $input_html               = "<input class='fs-license-or-user-key' type='password' placeholder='{$license_or_user_key_text}' tabindex='1' />";
 
 	$modal_content_html = <<< HTML
 	<div class="notice notice-error inline license-or-user-key-submission-message"><p></p></div>
