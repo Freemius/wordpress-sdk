@@ -380,6 +380,9 @@
                 // If not network activated OR delegated, then site level.
                 'activation_timestamp'         => 2,
                 'expired_license_notice_shown' => 2,
+                'is_whitelabeled'              => 2,
+                'last_license_key'             => 2,
+                'last_license_user_id'         => 2,
                 'prev_user_id'                 => 2,
                 'sticky_optin_added'           => 2,
                 'uninstall_reason'             => 2,
