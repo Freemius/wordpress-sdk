@@ -20511,7 +20511,7 @@
 
             $api = $this->get_api_site_or_plugin_scope();
 
-            $path = $this->add_show_pending( '/addons.json?enriched=true' );
+            $path = $this->add_show_pending( '/addons.json?enriched=true&count=50' );
 
             /**
              * @since 1.2.1
