@@ -151,7 +151,7 @@
          *
          * @return bool
          */
-		function is_usd() {
-		    return ( 'usd' === $this->currency );
+        function is_usd() {
+            return ( 'usd' === $this->currency );
         }
 	}
