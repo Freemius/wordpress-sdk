@@ -147,9 +147,21 @@
 
 									$min_price = 999999;
 									foreach ( $plan->pricing as $pricing ) {
-										if ( ! is_null( $pricing->annual_price ) && $pricing->annual_price > 0 ) {
+                                        $pricing = new FS_Pricing( $pricing );
+
+                                        if ( ! $pricing->is_usd() ) {
+                                            /**
+                                             * Skip non-USD pricing.
+                                             *
+                                             * @author Leo Fajardo (@leorw)
+                                             * @since 2.3.1
+                                             */
+                                            continue;
+                                        }
+
+                                        if ( $pricing->has_annual() ) {
 											$min_price = min( $min_price, $pricing->annual_price );
-										} else if ( ! is_null( $pricing->monthly_price ) && $pricing->monthly_price > 0 ) {
+										} else if ( $pricing->has_monthly() ) {
 											$min_price = min( $min_price, 12 * $pricing->monthly_price );
 										}
 									}

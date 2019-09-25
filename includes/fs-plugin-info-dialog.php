@@ -150,6 +150,16 @@
                             foreach ( $pricing as $prices ) {
                                 $prices = new FS_Pricing( $prices );
 
+                                if ( ! $prices->is_usd() ) {
+                                    /**
+                                     * Skip non-USD pricing.
+                                     *
+                                     * @author Leo Fajardo (@leorw)
+                                     * @since 2.3.1
+                                     */
+                                    continue;
+                                }
+
                                 if ( ( $prices->has_monthly() && $prices->monthly_price > 1.0 ) ||
                                      ( $prices->has_annual() && $prices->annual_price > 1.0 ) ||
                                      ( $prices->has_lifetime() && $prices->lifetime_price > 1.0 )
