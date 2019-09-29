@@ -484,7 +484,7 @@
             }
 
             if ( ! is_object( $this->_plugin ) ) {
-                $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
+                $this->_plugin = self::get_entity( FS_Plugin_Manager::instance( $this->_module_id )->get(), 'FS_Plugin' );
             }
 
             $this->_admin_notices = FS_Admin_Notices::instance(
@@ -1042,7 +1042,7 @@
             }
 
             if ( isset( $this->_storage->subscription ) && is_object( $this->_storage->subscription ) ) {
-                $this->_storage->subscriptions = array( $this->_storage->subscription );
+                $this->_storage->subscriptions = array( self::get_entity( $this->_storage->subscription, 'FS_Subscription' ) );
             }
         }
 
@@ -9893,7 +9893,7 @@
          * @return array[number]FS_User
          */
         static function get_all_users() {
-            $users = self::$_accounts->get_option( 'users', array() );
+            $users = self::maybe_get_entities_account_option( 'users', array() );
 
             if ( ! is_array( $users ) ) {
                 $users = array();
@@ -9937,7 +9937,7 @@
                 $option_name = $module_type . '_' . $option_name;
             }
 
-            return self::$_accounts->get_option( $option_name, array(), $network_level_or_blog_id );
+            return self::maybe_get_entities_account_option( $option_name, array(), $network_level_or_blog_id );
         }
 
         /**
@@ -9983,6 +9983,115 @@
             }
 
             self::$_accounts->set_option( $option_name, $option_value, $store, $network_level_or_blog_id );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param mixed  $entity
+         * @param string $class
+         *
+         * @return FS_Plugin|FS_User|FS_Site|FS_Plugin_License|FS_Plugin_Plan|FS_Plugin_Tag|FS_Subscription
+         */
+        private static function get_entity( $entity, $class ) {
+            if ( ! is_object( $entity ) || $entity instanceof $class ) {
+                return $entity;
+            }
+
+            return new $class( $entity );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param mixed  $entities
+         * @param string $class_name
+         *
+         * @return FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]|FS_Subscription[]
+         */
+        static function get_entities( $entities, $class_name ) {
+            if ( ! is_array( $entities ) || empty( $entities ) ) {
+                return $entities;
+            }
+
+            // Get first element.
+            $first_array_element = reset( $entities );
+
+            if ( $first_array_element instanceof $class_name ) {
+                /**
+                 * If the first element of the array is an instance of the context class, assume that all other
+                 * elements are instances of the class.
+                 */
+                return $entities;
+            } else if (
+                is_array( $first_array_element ) &&
+                ! empty( $first_array_element ) &&
+                reset( $first_array_element ) instanceof $class_name
+            ) {
+                /**
+                 * If the first element of the `$entities` array is an array whose first element is an instance of the
+                 * context class, assume that all other objects are instances of the class.
+                 */
+                return $entities;
+            }
+
+            foreach ( $entities as $key => $entities_or_entity ) {
+                if ( is_array( $entities_or_entity ) ) {
+                    $entities[ $key ] = self::get_entities( $entities_or_entity, $class_name );
+                } else {
+                    $entities[ $key ] = self::get_entity( $entities_or_entity, $class_name );
+                }
+            }
+
+            return $entities;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param string        $option_name
+         * @param mixed         $default
+         * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
+         *
+         * @return FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]
+         */
+        private static function maybe_get_entities_account_option( $option_name, $default = null, $network_level_or_blog_id = null ) {
+            $option = self::$_accounts->get_option( $option_name, $default, $network_level_or_blog_id );
+
+            $class_name = '';
+
+            switch ( $option_name ) {
+                case 'plugins':
+                case 'themes':
+                case 'addons':
+                $class_name = 'FS_Plugin';
+                    break;
+                case 'users':
+                    $class_name = 'FS_User';
+                    break;
+                case 'sites':
+                    $class_name = 'FS_Site';
+                    break;
+                case 'licenses':
+                case 'all_licenses':
+                    $class_name = 'FS_Plugin_License';
+                    break;
+                case 'plans':
+                    $class_name = 'FS_Plugin_Plan';
+                    break;
+                case 'updates':
+                    $class_name = 'FS_Plugin_Tag';
+                    break;
+            }
+
+            if ( empty( $class_name ) ) {
+                return $option;
+            }
+
+            return self::get_entities( $option, $class_name );
         }
 
         /**
@@ -10168,7 +10277,7 @@
          * @return FS_Plugin_Tag[]
          */
         private static function get_all_updates() {
-            $updates = self::$_accounts->get_option( 'updates', array() );
+            $updates = self::maybe_get_entities_account_option( 'updates', array() );
 
             if ( ! is_array( $updates ) ) {
                 $updates = array();
@@ -10184,7 +10293,7 @@
          * @return array<number,FS_Plugin[]>|false
          */
         private static function get_all_addons() {
-            $addons = self::$_accounts->get_option( 'addons', array() );
+            $addons = self::maybe_get_entities_account_option( 'addons', array() );
 
             if ( ! is_array( $addons ) ) {
                 $addons = array();
@@ -10442,7 +10551,7 @@
 
             if ( ! fs_is_network_admin() ) {
                 // Get blog-level activated installations.
-                $sites = self::$_accounts->get_option( 'sites', array() );
+                $sites = self::maybe_get_entities_account_option( 'sites', array() );
             } else {
                 $sites = null;
 
@@ -10451,7 +10560,7 @@
                 ) {
                     if ( FS_Site::is_valid_id( $addon_storage->network_install_blog_id ) ) {
                         // Get network-level activated installations.
-                        $sites = self::$_accounts->get_option(
+                        $sites = self::maybe_get_entities_account_option(
                             'sites',
                             array(),
                             $addon_storage->network_install_blog_id
@@ -10510,14 +10619,14 @@
 
             $addon_info['site'] = $site;
 
-            $plugins_data = self::$_accounts->get_option( WP_FS__MODULE_TYPE_PLUGIN . 's', array() );
+            $plugins_data = self::maybe_get_entities_account_option( WP_FS__MODULE_TYPE_PLUGIN . 's', array() );
             if ( isset( $plugins_data[ $slug ] ) ) {
                 $plugin_data = $plugins_data[ $slug ];
 
                 $addon_info['version'] = $plugin_data->version;
             }
 
-            $all_plans = self::$_accounts->get_option( 'plans', array() );
+            $all_plans = self::maybe_get_entities_account_option( 'plans', array() );
             if ( isset( $all_plans[ $slug ] ) ) {
                 $plans = $all_plans[ $slug ];
 
@@ -10530,7 +10639,7 @@
                 }
             }
 
-            $licenses = self::$_accounts->get_option( 'all_licenses', array() );
+            $licenses = self::maybe_get_entities_account_option( 'all_licenses', array() );
             if ( is_array( $licenses ) && isset( $licenses[ $addon_id ] ) ) {
                 foreach ( $licenses[ $addon_id ] as $license ) {
                     if ( $license->id == $site->license_id ) {
@@ -10544,7 +10653,9 @@
                 if ( isset( $addon_storage->subscriptions ) &&
                      ! empty( $addon_storage->subscriptions )
                 ) {
-                    foreach ( $addon_storage->subscriptions as $subscription ) {
+                    $addon_subscriptions = self::get_entities( $addon_storage->subscriptions, 'FS_Subscription' );
+
+                    foreach ( $addon_subscriptions as $subscription ) {
                         if ( $subscription->license_id == $site->license_id ) {
                             $addon_info['subscription'] = $subscription;
                             break;
@@ -12048,7 +12159,7 @@
                 return null;
             }
 
-            foreach ( $this->_storage->subscriptions as $subscription ) {
+            foreach ( self::get_entities( $this->_storage->subscriptions, 'FS_Subscription' ) as $subscription ) {
                 if ( $subscription->license_id == $license_id ) {
                     return $subscription;
                 }
@@ -12074,7 +12185,7 @@
                 return;
             }
 
-            $subscriptions = $this->_storage->subscriptions;
+            $subscriptions = self::get_entities( $this->_storage->subscriptions, 'FS_Subscription' );
 
             $updated_subscription = false;
             foreach ( $subscriptions as $key => $existing_subscription ) {
@@ -23707,8 +23818,8 @@
             }
 
             $modules = array_merge(
-                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                array_values( self::$_accounts->get_option( 'themes', array() ) )
+                array_values( self::maybe_get_entities_account_option( 'plugins', array() ) ),
+                array_values( self::maybe_get_entities_account_option( 'themes', array() ) )
             );
 
             foreach ( $modules as $module ) {
@@ -23852,8 +23963,8 @@
             }
 
             $modules = array_merge(
-                array_values( self::$_accounts->get_option( 'plugins', array() ) ),
-                array_values( self::$_accounts->get_option( 'themes', array() ) )
+                array_values( self::maybe_get_entities_account_option( 'plugins', array() ) ),
+                array_values( self::maybe_get_entities_account_option( 'themes', array() ) )
             );
 
             foreach ( $modules as $key => $module ) {

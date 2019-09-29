@@ -229,7 +229,7 @@
 ?>
 
 <?php foreach ( $module_types as $module_type ) : ?>
-    <?php $modules = $fs_options->get_option( $module_type . 's' ) ?>
+    <?php $modules = Freemius::get_entities( $fs_options->get_option( $module_type . 's' ), 'FS_Plugin' ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
         <h2><?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?></h2>
         <table id="fs_<?php echo $module_type ?>" class="widefat">
@@ -400,7 +400,7 @@
                                             $option_name = $module_type . '_' . $option_name;
                                         }
 
-                                        $all_plans = $fs_options->get_option( $option_name, array() );
+                                        $all_plans = Freemius::get_entities( $fs_options->get_option( $option_name, array() ), 'FS_Plugin_Plan' );
                                     }
 
                                     foreach ( $all_plans[ $slug ] as $plan ) {
