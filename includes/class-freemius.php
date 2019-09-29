@@ -10306,7 +10306,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @return FS_Plugin[]|false
+         * @return number[]|false
          */
         private static function get_all_account_addons() {
             $addons = self::$_accounts->get_option( 'account_addons', array() );
