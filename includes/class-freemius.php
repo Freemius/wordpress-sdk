@@ -1042,7 +1042,7 @@
             }
 
             if ( isset( $this->_storage->subscription ) && is_object( $this->_storage->subscription ) ) {
-                $this->_storage->subscriptions = array( fs_get_entity( $this->_storage->subscription, 'FS_Subscription' ) );
+                $this->_storage->subscriptions = array( fs_get_entity( $this->_storage->subscription, FS_Subscription::get_class_name() ) );
             }
         }
 
@@ -10006,23 +10006,23 @@
                 case 'plugins':
                 case 'themes':
                 case 'addons':
-                $class_name = 'FS_Plugin';
+                $class_name = FS_Plugin::get_class_name();
                     break;
                 case 'users':
-                    $class_name = 'FS_User';
+                    $class_name = FS_User::get_class_name();
                     break;
                 case 'sites':
-                    $class_name = 'FS_Site';
+                    $class_name = FS_Site::get_class_name();
                     break;
                 case 'licenses':
                 case 'all_licenses':
-                    $class_name = 'FS_Plugin_License';
+                    $class_name = FS_Plugin_License::get_class_name();
                     break;
                 case 'plans':
-                    $class_name = 'FS_Plugin_Plan';
+                    $class_name = FS_Plugin_Plan::get_class_name();
                     break;
                 case 'updates':
-                    $class_name = 'FS_Plugin_Tag';
+                    $class_name = FS_Plugin_Tag::get_class_name();
                     break;
             }
 
@@ -10592,7 +10592,7 @@
                 if ( isset( $addon_storage->subscriptions ) &&
                      ! empty( $addon_storage->subscriptions )
                 ) {
-                    $addon_subscriptions = fs_get_entities( $addon_storage->subscriptions, 'FS_Subscription' );
+                    $addon_subscriptions = fs_get_entities( $addon_storage->subscriptions, FS_Subscription::get_class_name() );
 
                     foreach ( $addon_subscriptions as $subscription ) {
                         if ( $subscription->license_id == $site->license_id ) {
@@ -12098,7 +12098,7 @@
                 return null;
             }
 
-            foreach ( fs_get_entities( $this->_storage->subscriptions, 'FS_Subscription' ) as $subscription ) {
+            foreach ( fs_get_entities( $this->_storage->subscriptions, FS_Subscription::get_class_name() ) as $subscription ) {
                 if ( $subscription->license_id == $license_id ) {
                     return $subscription;
                 }
@@ -12124,7 +12124,7 @@
                 return;
             }
 
-            $subscriptions = fs_get_entities( $this->_storage->subscriptions, 'FS_Subscription' );
+            $subscriptions = fs_get_entities( $this->_storage->subscriptions, FS_Subscription::get_class_name() );
 
             $updated_subscription = false;
             foreach ( $subscriptions as $key => $existing_subscription ) {
