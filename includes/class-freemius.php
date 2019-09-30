@@ -484,7 +484,7 @@
             }
 
             if ( ! is_object( $this->_plugin ) ) {
-                $this->_plugin = self::get_entity( FS_Plugin_Manager::instance( $this->_module_id )->get(), 'FS_Plugin' );
+                $this->_plugin = FS_Plugin_Manager::instance( $this->_module_id )->get();
             }
 
             $this->_admin_notices = FS_Admin_Notices::instance(
@@ -1042,7 +1042,7 @@
             }
 
             if ( isset( $this->_storage->subscription ) && is_object( $this->_storage->subscription ) ) {
-                $this->_storage->subscriptions = array( self::get_entity( $this->_storage->subscription, 'FS_Subscription' ) );
+                $this->_storage->subscriptions = array( fs_get_entity( $this->_storage->subscription, 'FS_Subscription' ) );
             }
         }
 
@@ -9986,69 +9986,8 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
+         * This method can also return non-entity or non-entities collection option like the `user_id_license_ids_map` option.
          *
-         * @param mixed  $entity
-         * @param string $class
-         *
-         * @return FS_Plugin|FS_User|FS_Site|FS_Plugin_License|FS_Plugin_Plan|FS_Plugin_Tag|FS_Subscription
-         */
-        private static function get_entity( $entity, $class ) {
-            if ( ! is_object( $entity ) || $entity instanceof $class ) {
-                return $entity;
-            }
-
-            return new $class( $entity );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
-         *
-         * @param mixed  $entities
-         * @param string $class_name
-         *
-         * @return FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]|FS_Subscription[]
-         */
-        static function get_entities( $entities, $class_name ) {
-            if ( ! is_array( $entities ) || empty( $entities ) ) {
-                return $entities;
-            }
-
-            // Get first element.
-            $first_array_element = reset( $entities );
-
-            if ( $first_array_element instanceof $class_name ) {
-                /**
-                 * If the first element of the array is an instance of the context class, assume that all other
-                 * elements are instances of the class.
-                 */
-                return $entities;
-            } else if (
-                is_array( $first_array_element ) &&
-                ! empty( $first_array_element ) &&
-                reset( $first_array_element ) instanceof $class_name
-            ) {
-                /**
-                 * If the first element of the `$entities` array is an array whose first element is an instance of the
-                 * context class, assume that all other objects are instances of the class.
-                 */
-                return $entities;
-            }
-
-            foreach ( $entities as $key => $entities_or_entity ) {
-                if ( is_array( $entities_or_entity ) ) {
-                    $entities[ $key ] = self::get_entities( $entities_or_entity, $class_name );
-                } else {
-                    $entities[ $key ] = self::get_entity( $entities_or_entity, $class_name );
-                }
-            }
-
-            return $entities;
-        }
-
-        /**
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
@@ -10056,7 +9995,7 @@
          * @param mixed         $default
          * @param null|bool|int $network_level_or_blog_id When an integer, use the given blog storage. When `true` use the multisite storage (if there's a network). When `false`, use the current context blog storage. When `null`, the decision which storage to use (MS vs. Current S) will be handled internally and determined based on the $option (based on self::$_SITE_LEVEL_PARAMS).
          *
-         * @return FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]
+         * @return mixed|FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]
          */
         private static function maybe_get_entities_account_option( $option_name, $default = null, $network_level_or_blog_id = null ) {
             $option = self::$_accounts->get_option( $option_name, $default, $network_level_or_blog_id );
@@ -10091,7 +10030,7 @@
                 return $option;
             }
 
-            return self::get_entities( $option, $class_name );
+            return fs_get_entities( $option, $class_name );
         }
 
         /**
@@ -10653,7 +10592,7 @@
                 if ( isset( $addon_storage->subscriptions ) &&
                      ! empty( $addon_storage->subscriptions )
                 ) {
-                    $addon_subscriptions = self::get_entities( $addon_storage->subscriptions, 'FS_Subscription' );
+                    $addon_subscriptions = fs_get_entities( $addon_storage->subscriptions, 'FS_Subscription' );
 
                     foreach ( $addon_subscriptions as $subscription ) {
                         if ( $subscription->license_id == $site->license_id ) {
@@ -12159,7 +12098,7 @@
                 return null;
             }
 
-            foreach ( self::get_entities( $this->_storage->subscriptions, 'FS_Subscription' ) as $subscription ) {
+            foreach ( fs_get_entities( $this->_storage->subscriptions, 'FS_Subscription' ) as $subscription ) {
                 if ( $subscription->license_id == $license_id ) {
                     return $subscription;
                 }
@@ -12185,7 +12124,7 @@
                 return;
             }
 
-            $subscriptions = self::get_entities( $this->_storage->subscriptions, 'FS_Subscription' );
+            $subscriptions = fs_get_entities( $this->_storage->subscriptions, 'FS_Subscription' );
 
             $updated_subscription = false;
             foreach ( $subscriptions as $key => $existing_subscription ) {

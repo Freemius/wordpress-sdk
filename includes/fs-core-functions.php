@@ -437,6 +437,78 @@
         }
     }
 
+    if ( ! function_exists( 'fs_get_entity' ) ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param mixed  $entity
+         * @param string $class
+         *
+         * @return FS_Plugin|FS_User|FS_Site|FS_Plugin_License|FS_Plugin_Plan|FS_Plugin_Tag|FS_Subscription
+         */
+        function fs_get_entity( $entity, $class ) {
+            if ( ! is_object( $entity ) || $entity instanceof $class ) {
+                return $entity;
+            }
+
+            return new $class( $entity );
+        }
+    }
+
+    if ( ! function_exists( 'fs_get_entities' ) ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param mixed  $entities
+         * @param string $class_name
+         *
+         * @return FS_Plugin[]|FS_User[]|FS_Site[]|FS_Plugin_License[]|FS_Plugin_Plan[]|FS_Plugin_Tag[]|FS_Subscription[]
+         */
+        function fs_get_entities( $entities, $class_name ) {
+            if ( ! is_array( $entities ) || empty( $entities ) ) {
+                return $entities;
+            }
+
+            // Get first element.
+            $first_array_element = reset( $entities );
+
+            if ( $first_array_element instanceof $class_name ) {
+                /**
+                 * If the first element of the array is an instance of the context class, assume that all other
+                 * elements are instances of the class.
+                 */
+                return $entities;
+            }
+
+            if (
+                is_array( $first_array_element ) &&
+                ! empty( $first_array_element )
+            ) {
+                $first_array_element = reset( $first_array_element );
+
+                if ( $first_array_element instanceof $class_name ) {
+                    /**
+                     * If the first element of the `$entities` array is an array whose first element is an instance of the
+                     * context class, assume that all other objects are instances of the class.
+                     */
+                    return $entities;
+                }
+            }
+
+            foreach ( $entities as $key => $entities_or_entity ) {
+                if ( is_array( $entities_or_entity ) ) {
+                    $entities[ $key ] = fs_get_entities( $entities_or_entity, $class_name );
+                } else {
+                    $entities[ $key ] = fs_get_entity( $entities_or_entity, $class_name );
+                }
+            }
+
+            return $entities;
+        }
+    }
+
     if ( ! function_exists( 'fs_nonce_url' ) ) {
         /**
          * Retrieve URL with nonce added to URL query.
