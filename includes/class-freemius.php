@@ -1601,6 +1601,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
+                add_action( 'init', array( &$this, '_maybe_add_fetch_license_user_data_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -6727,6 +6728,8 @@
                     } else {
                         $this->sync_install();
                     }
+
+                    $this->maybe_sync_install_user();
                 }
             }
         }
@@ -6939,6 +6942,8 @@
                 } else {
                     $this->sync_install( array(), true );
                 }
+
+                $this->maybe_sync_install_user();
             }
         }
 
@@ -9156,6 +9161,21 @@
                 // If updated 7 days ago or less, "flip a coin", if the value is 7 trigger a keepalive and update the last time it was triggered.
                 return ( 7 == rand( 1, 7 ) );
             }
+        }
+
+        /**
+         * Syncs the install owner's data if needed (i.e., if the install owner is different from the loaded user).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        private function maybe_sync_install_user() {
+            if ( $this->_user->id == $this->_site->user_id ) {
+                return;
+            }
+
+            // Fetch user data and store if found.
+            $this->fetch_user_by_install();
         }
 
         /**
@@ -11618,16 +11638,21 @@
          * @key    int Blog ID.
          * @value  FS_Site Blog's associated install.
          *                                     }
+         * @param bool     $change_account_owner If true, the the license owner will become the account owner.
          *
          * @return mixed|true
          */
         private function activate_license_on_many_installs(
             FS_User $user,
             $license_key,
-            array $blog_2_install_map
+            array $blog_2_install_map,
+            $change_account_owner = false
         ) {
             $params = array(
-                array( 'license_key' => $this->apply_filters( 'license_key', $license_key ) )
+                array(
+                    'license_key'          => $this->apply_filters( 'license_key', $license_key ),
+                    'change_account_owner' => $change_account_owner
+                )
             );
 
             $install_2_blog_map = array();
@@ -12622,6 +12647,8 @@
                 exit;
             }
 
+            $license_user_id = fs_request_get( 'license_user_id', null );
+
             $result = $this->activate_license(
                 $license_key,
                 fs_is_network_admin() ?
@@ -12629,7 +12656,8 @@
                     array(),
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
-                fs_request_get( 'module_id', null, 'post' )
+                fs_request_get( 'module_id', null, 'post' ),
+                FS_Plugin_License::is_valid_id( $license_user_id )
             );
 
             echo json_encode( $result );
@@ -12689,6 +12717,7 @@
          * @param null|bool   $is_marketing_allowed
          * @param null|int    $blog_id
          * @param null|number $plugin_id
+         * @param bool        $change_account_owner
          *
          * @return array {
          *      @var bool   $success
@@ -12701,7 +12730,8 @@
             $sites = array(),
             $is_marketing_allowed = null,
             $blog_id = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $change_account_owner = false
         ) {
             $this->_logger->entrance();
 
@@ -12755,7 +12785,7 @@
                     }
 
                     if ( ! empty( $blog_2_install_map ) ) {
-                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
+                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map, $change_account_owner );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12786,7 +12816,8 @@
 
                     if ( $fs->is_registered() ) {
                         $params = array(
-                            'license_key' => $fs->apply_filters( 'license_key', $license_key )
+                            'license_key'          => $fs->apply_filters( 'license_key', $license_key ),
+                            'change_account_owner' => $change_account_owner
                         );
 
                         $api = $fs->get_api_site_scope();
@@ -12815,6 +12846,8 @@
                     $fs->network_upgrade_mode_completed();
 
                     $fs->_sync_license( true, $has_valid_blog_id );
+
+                    $this->maybe_sync_install_user();
 
                     $next_page = $fs->is_addon() ?
                         $fs->get_parent_instance()->get_account_url() :
@@ -23834,6 +23867,18 @@
 
         /**
          * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _maybe_add_fetch_license_user_data_ajax_handler() {
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
+            $this->add_ajax_action( 'fetch_license_user_data', array( &$this, 'fetch_license_user_data_ajax_action' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          */
         function _fetch_is_marketing_required_flag_value_ajax_action() {
@@ -23867,6 +23912,67 @@
             }
 
             self::shoot_ajax_success( array( 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         */
+        function fetch_license_user_data_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'fetch_license_user_data' );
+
+            $license_key = fs_request_get( 'license_key' );
+
+            if ( empty( $license_key ) ) {
+                self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
+            }
+
+            $request = array(
+                'method'  => 'POST',
+                'body'    => array(
+                    'license_key'           => $license_key,
+                    'plugin_id'             => $this->get_id(),
+                    'is_license_activation' => true
+                ),
+                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+            );
+
+            $url = WP_FS__ADDRESS . '/action/service/license/';
+
+            $response = self::safe_remote_post(
+                $url,
+                $request,
+                WP_FS__TIME_24_HOURS_IN_SEC,
+                WP_FS__TIME_12_HOURS_IN_SEC
+            );
+
+            $data = null;
+
+            if ( ! is_wp_error( $response ) ) {
+                $decoded = is_string( $response['body'] ) ?
+                    json_decode( $response['body'] ) :
+                    null;
+
+                if (
+                    is_object( $decoded ) &&
+                    isset( $decoded->success ) &&
+                    true === $decoded->success &&
+                    isset( $decoded->data ) &&
+                    is_object( $decoded->data )
+                ) {
+                    $data = $decoded->data;
+                }
+            }
+
+            if ( empty( $data ) ) {
+                self::shoot_ajax_failure(
+                    fs_text_inline( "An unknown error has occurred while trying to fetch the license user's data.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            self::shoot_ajax_success( $data );
         }
 
         /**
