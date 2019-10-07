@@ -1,6 +1,6 @@
 ---
 name: ⚠️ Security issue disclosure
-about: Report a security issue in Angular Framework, Material, or CLI
+about: Report a security issue in Freemius SDK, API, Developer Dashboard, or User Dashboard
 
 ---
 
