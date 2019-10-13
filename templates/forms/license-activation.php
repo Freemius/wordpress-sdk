@@ -432,6 +432,7 @@ HTML;
 				showModal( evt );
 			});
 
+            <?php if ( ! $fs->is_addon() || ! $fs->get_parent_instance()->has_active_valid_license() ) : ?>
             /**
              * Disable activation button when empty license key.
              *
@@ -462,6 +463,7 @@ HTML;
                     previousLicenseKey = licenseKey;
                 }, 100 );
             } ).focus();
+            <?php endif ?>
 
 			$modal.on('input propertychange', 'input.fs-license-key', function () {
 
