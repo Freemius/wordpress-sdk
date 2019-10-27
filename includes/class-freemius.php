@@ -9441,6 +9441,8 @@
             $fs = self::get_instance_by_file( $plugin_file );
 
             if ( is_object( $fs ) ) {
+                $fs->remove_sdk_reference();
+                
                 self::require_plugin_essentials();
 
                 if ( is_plugin_active( $fs->_free_plugin_basename ) ||
