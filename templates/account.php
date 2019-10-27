@@ -547,11 +547,33 @@
 																<div class="button-group">
 																	<?php if ( $is_paying || $fs->is_trial() ) : ?>
 																		<?php if ( ! $fs->is_allowed_to_install() ) : ?>
-																			<a target="_blank" class="button button-primary"
-																			   href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php echo sprintf(
-																			       /* translators: %s: plan name (e.g. Download "Professional" Version) */
-																			       fs_text_inline( 'Download %s Version', 'download-x-version', $slug ),
-                                                                                                                                                                                                                                     ( $fs->is_trial() ? $trial_plan->title : $plan->title ) ) . ( is_object( $update ) ? ' [' . $update->version . ']' : '' ) ?></a>
+                                                                            <a target="_blank" class="button button-primary"
+                                                                                href="<?php echo $fs->_get_latest_download_local_url() ?>"><?php
+                                                                                $download_version_text_suffix = ( is_object( $update ) ? ' [' . $update->version . ']' : '' );
+
+                                                                                $download_version_text = sprintf(
+                                                                                    /* translators: %s: plan name (e.g. Download "Professional" Version) */
+                                                                                    fs_text_inline( 'Download %s Version', 'download-x-version', $slug ),
+                                                                                    ( $fs->is_trial() ? $trial_plan->title : $plan->title )
+                                                                                ) .
+                                                                                $download_version_text_suffix;
+
+                                                                                $download_version_text_length = function_exists( 'mb_strlen' ) ?
+                                                                                    mb_strlen( $download_version_text ) :
+                                                                                    strlen( $download_version_text );
+
+                                                                                if ( $download_version_text_length > 31 ) {
+                                                                                    /**
+                                                                                     * Try to limit the number of characters to 31 for now.
+                                                                                     *
+                                                                                     * @author Leo Fajardo (@leorw)
+                                                                                     * @aince 2.3.2
+                                                                                     */
+                                                                                    $download_version_text = fs_text_inline( 'Download Paid Version', 'download-paid-version', $slug ) . $download_version_text_suffix;
+                                                                                }
+
+                                                                                echo $download_version_text;
+                                                                            ?></a>
 																		<?php elseif ( is_object( $update ) ) : ?>
 																			<?php
 																			$module_type = $fs->get_module_type();
