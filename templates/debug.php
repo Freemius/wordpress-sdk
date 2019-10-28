@@ -23,10 +23,8 @@
     <?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
     <span class="switch-label"><?php fs_esc_html_echo_x_inline( 'Debugging', 'as code debugging' ) ?></span>
 
-    <div class="switch <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
+    <div class="switch round <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
         <div class="toggle"></div>
-        <span class="on"><?php echo esc_html( $on_text ) ?></span>
-        <span class="off"><?php echo esc_html( $off_text ) ?></span>
     </div>
     <script type="text/javascript">
         (function ($) {
