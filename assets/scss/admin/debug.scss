@@ -46,7 +46,7 @@
         background:    linear-gradient(top, #ececec 0%, #fff 100%);
         box-shadow:    inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5);
         z-index:       999;
-        @include transition(all 0.15s ease-in-out);
+        @include transition(0.40s cubic-bezier(0.54, 1.6, 0.5, 1));
     }
 
     &.on .toggle
@@ -61,24 +61,29 @@
     /* Round switch */
     &.round
     {
-        padding:       0px 20px;
+        top: 8px;
+        padding:       4px 25px;
         border-radius: 40px;
 
         .toggle
         {
+            top: 0px;
             border-radius: 40px;
-            width:         14px;
-            height:        14px;
+            width:         24px;
+            height:        24px;
         }
 
         &.on .toggle
         {
-            left:       3%;
-            background: $button-primary-bkg;
+            left:       -1px;
         }
-        &.off .toggle
+        &.off
         {
-            left: 58%;
+            background: $button-primary-bkg;
+
+            .toggle {
+                left: 25px;
+            }
         }
     }
 }
