@@ -5913,13 +5913,18 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
+         * @param bool $ignore_parent_instance
+         *
          * @return Freemius[]
          */
-        function get_installed_addons() {
+        function get_installed_addons( $ignore_parent_instance = false ) {
             $installed_addons = array();
             foreach ( self::$_instances as $instance ) {
-                if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
-                    if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
+                if ( $instance->is_addon() ) {
+                    if (
+                        $ignore_parent_instance ||
+                        ( is_object( $instance->_parent_plugin ) && $this->_plugin->id == $instance->_parent_plugin->id )
+                    ) {
                         $installed_addons[] = $instance;
                     }
                 }
@@ -12717,7 +12722,7 @@
          * @param null|bool   $is_marketing_allowed
          * @param null|int    $blog_id
          * @param null|number $plugin_id
-         * @param bool        $change_account_owner
+         * @param bool        $change_owner
          *
          * @return array {
          *      @var bool   $success
@@ -12731,7 +12736,7 @@
             $is_marketing_allowed = null,
             $blog_id = null,
             $plugin_id = null,
-            $change_account_owner = false
+            $change_owner = false
         ) {
             $this->_logger->entrance();
 
@@ -12785,7 +12790,7 @@
                     }
 
                     if ( ! empty( $blog_2_install_map ) ) {
-                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map, $change_account_owner );
+                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map, $change_owner );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
@@ -12817,8 +12822,15 @@
                     if ( $fs->is_registered() ) {
                         $params = array(
                             'license_key'          => $fs->apply_filters( 'license_key', $license_key ),
-                            'change_account_owner' => $change_account_owner
+                            'change_account_owner' => $change_owner
                         );
+
+                        $install_ids = array();
+
+                        if ( $change_owner && $fs->is_addon() ) {
+                            $install_ids           = $this->get_parent_product_and_addons_installs_ids_by_slug_map();
+                            $params['install_ids'] = implode( ',', array_values( $install_ids ) );
+                        }
 
                         $api = $fs->get_api_site_scope();
 
@@ -12830,6 +12842,14 @@
                                 var_export( $install->error, true );
                         } else {
                             $fs->reconnect_locally( $has_valid_blog_id );
+
+                            if (
+                                $change_owner &&
+                                // If successful ownership change.
+                                $fs->get_user()->id != $install->user_id
+                            ) {
+                                $this->complete_ownership_change_by_license( $install->user_id, $install_ids );
+                            }
                         }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
                         $result = $fs->activate_license_on_site( $user, $license_key );
@@ -12953,6 +12973,41 @@
             }
 
             return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return number[]
+         */
+        function get_parent_product_and_addons_installs_ids_by_slug_map() {
+            $fs = $this->get_parent_instance();
+
+            $account_addons = $fs->get_updated_account_addons();
+
+            $installed_addons     = $fs->get_installed_addons( true );
+            $installed_addons_ids = array();
+            foreach ( $installed_addons as $fs_addon ) {
+                $installed_addons_ids[] = $fs_addon->get_id();
+            }
+
+            $addons      = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
+            $install_ids = array( $fs->get_slug() => $fs->get_site()->id );
+
+            foreach ( $addons as $addon_id ) {
+                $is_installed = isset( $installed_addons_ids_map[ $addon_id ] );
+
+                $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
+
+                if ( ! $addon_info['is_connected'] ) {
+                    continue;
+                }
+
+                $install_ids[ $addon_info['slug'] ] = $addon_info['site']->id;
+            }
+
+            return $install_ids;
         }
 
         /**
@@ -15433,13 +15488,19 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
+         * @param number|null $site_user_id
+         *
          * @return \FS_User|mixed
          */
-        private function fetch_user_by_install() {
+        private function fetch_user_by_install( $site_user_id = null ) {
+            $site_user_id = FS_Site::is_valid_id( $site_user_id ) ?
+                $site_user_id :
+                $this->_site->user_id;
+
             $api = $this->get_api_site_scope();
 
             $uid          = $this->get_anonymous_id();
-            $request_path = "/users/{$this->_site->user_id}.json?uid={$uid}";
+            $request_path = "/users/{$site_user_id}.json?uid={$uid}";
 
             $result = $api->get( $request_path, false, WP_FS__TIME_10_MIN_IN_SEC );
 
@@ -20786,6 +20847,42 @@
             $this->_set_account( $user, $site );
 
             return true;
+        }
+
+        /**
+         * Completes ownership change by license.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         *
+         * @param number               $user_id
+         * @param array [string]number $install_ids_by_slug_map
+         */
+        private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map = array() ) {
+            $this->_logger->entrance();
+
+            $this->fetch_user_by_install( $user_id );
+
+            $installs_data = array();
+
+            foreach ( $install_ids_by_slug_map as $install_id ) {
+                $installs_data[] = array( 'id' => $install_id );
+            }
+
+            $result = $this->get_api_user_scope()->call( "/installs.json", 'put', $installs_data );
+
+            if ( $this->is_api_result_object( $result, 'installs' ) ) {
+                $sites                   = self::get_all_sites( $this->get_module_type() );
+                $install_ids_by_slug_map = array_flip( $install_ids_by_slug_map );
+
+                foreach ( $result->installs as $install ) {
+                    $site = new FS_Site( $install );
+
+                    $sites[ $install_ids_by_slug_map[ $site->id ] ] = clone $site;
+                }
+
+                $this->set_account_option( 'sites', $sites, true );
+            }
         }
 
         /**
