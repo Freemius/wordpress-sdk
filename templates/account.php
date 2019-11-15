@@ -60,6 +60,8 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
+    $fs->_add_change_user_dialog_box();
+
     if ( $fs->is_whitelabeled( true ) || $fs->is_data_debug_mode() ) {
         $fs->_add_data_debug_mode_dialog_box();
     }
@@ -590,6 +592,9 @@
 																<input type="submit" class="button button-small"
 																       value="<?php echo fs_esc_attr_x_inline( 'Edit', 'verb', 'edit', $slug ) ?>">
 															</form>
+                                                        <?php elseif ( 'user_id' === $p['id'] ) : ?>
+                                                                <input id="fs_change_user" type="submit" class="button button-small"
+                                                                       value="<?php echo fs_esc_attr_inline( 'Change User', 'change-user', $slug ) ?>">
 														<?php endif ?>
 													</td>
 												<?php endif ?>

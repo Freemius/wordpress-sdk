@@ -12407,6 +12407,20 @@
         }
 
         /**
+         * Displays the user change dialog box when the user clicks on the "Change User" button on the "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _add_change_user_dialog_box() {
+            $vars = array(
+                'id' => $this->_module_id,
+            );
+
+            fs_require_template( 'forms/change-user.php', $vars );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */

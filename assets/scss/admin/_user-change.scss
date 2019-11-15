@@ -1,0 +1,57 @@
+.fs-modal.fs-modal-user-change {
+	.fs-modal-body {
+		input#fs_other_email_address {
+			width: 100%;
+		}
+	}
+}
+
+.fs-user-change-options-container {
+	table {
+		width: 100%;
+		border-collapse: collapse;
+
+		tr {
+			display: block;
+			margin-bottom: 2px;
+		}
+
+		.fs-email-address-container {
+			td {
+				display: inline-block;
+			}
+
+			input[type="radio"] {
+				margin-bottom: 0;
+				margin-top: 0;
+			}
+		}
+
+		.fs-other-email-address-container {
+			width: 100%;
+
+			> div {
+				display: table;
+				width: 100%;
+
+				label, > div {
+					display: table-cell;
+				}
+
+				label {
+					width: 1%;
+					padding-left: 3px;
+					padding-right: 3px;
+				}
+
+				> div {
+					width: auto;
+
+					input {
+						width: 100%;
+					}
+				}
+			}
+		}
+	}
+}
