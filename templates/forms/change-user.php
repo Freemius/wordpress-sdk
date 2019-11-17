@@ -202,14 +202,13 @@ HTML;
 
 			$modal.on( 'blur', 'input#fs_other_email_address_text_field', function( evt ) {
 				var
-                    emailAddress            = $( this ).val().trim(),
-                    $focusedElement         = $( evt.relatedTarget ),
-                    hasSelectedLicenseOwner = ( $focusedElement.parents( '.fs-email-address-container' ).length > 0 );
+                    emailAddress    = $( this ).val().trim(),
+                    $focusedElement = $( evt.relatedTarget );
 
                 /**
                  * If email address is empty, disable the user change button.
                  */
-                if ( 0 === emailAddress.length || ! hasSelectedLicenseOwner ) {
+                if ( 0 === emailAddress.length ) {
                    disableUserChangeButton();
                 }
 			});

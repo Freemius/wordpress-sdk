@@ -12814,7 +12814,8 @@
             } else {
                 if (
                     // If successful ownership change.
-                    $this->get_user()->id != $install->user_id
+                    $this->get_user()->id != $install->user_id ||
+                    ! empty( $new_email_address )
                 ) {
                     $this->complete_ownership_change_by_license( $install->user_id, $install_ids );
                 }
