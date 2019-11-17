@@ -322,7 +322,7 @@ HTML;
                         resetLoadingMode();
 
                         if ( result.success ) {
-                            result = result.data;
+                            result = result.data[ Object.keys(result.data)[0] ];
 
                             // Cache result.
                             licenseUserDataByLicense[ licenseKey ] = result;
@@ -564,8 +564,10 @@ HTML;
                     data.sites = sites;
                 }
 
-                if ( null != licenseUserDataByLicense[ licenseKey ] ) {
-                    data.license_user_id = licenseUserDataByLicense[ licenseKey ].user_id;
+                if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
+                    if ( null != licenseUserDataByLicense[ licenseKey ] ) {
+                        data.license_user_id = licenseUserDataByLicense[ licenseKey ].user_id;
+                    }
                 }
 
 				$.ajax({

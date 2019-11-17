@@ -19,6 +19,11 @@
 	$slug         = $fs->get_slug();
     $unique_affix = $fs->get_unique_affix();
 
+    /**
+     * @var FS_Plugin_License[] $foreign_licenses
+     */
+    $foreign_licenses = $VARS['foreign_licenses'];
+
 	$change_user_message = fs_text_inline( 'By changing the user, you agree to transfer the account ownership to:', 'change-user--message', $slug );
 
 	$header_title = fs_text_inline( 'Change User', 'change-user', $slug );
@@ -27,7 +32,15 @@
 		$user_change_button_text = fs_text_inline( 'I Agree - Change User', 'agree-change-user', $slug );
 	}
 
-    $foreign_licenses_info = $fs->get_foreign_licenses_data();
+	$plugin_ids   = array();
+	$license_keys = array();
+
+	foreach ( $foreign_licenses as $foreign_license ) {
+	    $plugin_ids[]   = $foreign_license->plugin_id;
+	    $license_keys[] = $foreign_license->secret_key;
+    }
+
+    $foreign_licenses_info = $fs->fetch_licenses_user_data( $plugin_ids, $license_keys );
 
     $user_change_options_html = <<< HTML
     <div class="fs-user-change-options-container">
@@ -37,23 +50,23 @@ HTML;
 
         $user_change_options_html .= '';
 
-        foreach ( $foreign_licenses_info as $foreign_license_info ) {
+        foreach ( $foreign_licenses_info as $user_id => $foreign_license_info ) {
             $user_change_options_html .= <<< HTML
                 <tr class="fs-email-address-container">
-                    <td><input id="fs_email_address_{$foreign_license_info->user_id}" type="radio" name="fs_email_address" value="{$foreign_license_info->user_id}"></td>
-                    <td><label for="fs_email_address_{$foreign_license_info->user_id}">{$foreign_license_info->owner_email}</label></td>
+                    <td><input id="fs_email_address_{$user_id}" type="radio" name="fs_email_address" value="{$user_id}"></td>
+                    <td><label for="fs_email_address_{$user_id}">{$foreign_license_info->user_email}</label></td>
                 </tr>
 HTML;
         }
 
         $user_change_options_html .= <<< HTML
                 <tr class="fs-other-email-address-container-row">
-                    <td><input id="fs_email_address" type="radio" name="fs_email_address" value="other"></td>
+                    <td><input id="fs_other_email_address_radio" type="radio" name="fs_email_address" value="other"></td>
                     <td class="fs-other-email-address-container">
                         <div>
                             <label for="fs_email_address">Other: </label>
                             <div>
-                                <input id="fs_other_email_address" class="fs-email-address" type="text" placeholder="Enter email address" tabindex="1">
+                                <input id="fs_other_email_address_text_field" class="fs-email-address" type="text" placeholder="Enter email address" tabindex="1">
                             </div>
                         </div>
                     </td>
@@ -74,8 +87,8 @@ HTML;
 <script type="text/javascript">
 (function( $ ) {
 	$( document ).ready(function() {
-		var modalContentHtml = <?php echo json_encode( $modal_content_html ) ?>,
-			modalHtml =
+		var modalContentHtml            = <?php echo json_encode( $modal_content_html ) ?>,
+			modalHtml                   =
 				'<div class="fs-modal fs-modal-change-user fs-modal-change-user-<?php echo $unique_affix ?>">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
@@ -91,11 +104,12 @@ HTML;
 				+ '		</div>'
 				+ '	</div>'
 				+ '</div>',
-			$modal = $( modalHtml ),
-			$userChangeButton        = $modal.find( '.fs-button-change-user' ),
-			$emailAddressInput       = $modal.find( 'input#fs_email_address' ),
-			$changeUserResultMessage = $modal.find( '.fs-change-user-result-message' ),
-            $otherEmailAddress       = $modal.find( '#fs_other_email_address' );
+			$modal                      = $( modalHtml ),
+			$userChangeButton           = $modal.find( '.fs-button-change-user' ),
+			$otherEmailAddressRadio     = $modal.find( '#fs_other_email_address_radio' ),
+			$changeUserResultMessage    = $modal.find( '.fs-change-user-result-message' ),
+            $otherEmailAddressTextField = $modal.find( '#fs_other_email_address_text_field' ),
+            $licenseOwners              = $modal.find( 'input[type="radio"][name="fs_email_address"]' );
 
         $modal.appendTo($('body'));
 
@@ -112,61 +126,180 @@ HTML;
                 $( '.fs-loading' ).removeClass( 'fs-loading' );
 
                 console.log( 'resetLoadingMode - Primary button was enabled' );
+            },
+            /**
+             * @author Leo Fajardo (@leorw)
+             * @since 2.3.1
+             */
+            setLoadingMode = function () {
+                $( document.body ).css( { 'cursor': 'wait' } );
             };
 
 		function registerEventHandlers() {
-            $( '#fs_change_user' ).click(function (evt) {
+            var $otherEmailAddressContainer = $modal.find( '.fs-other-email-address-container' );
+
+            $licenseOwners.change(function() {
+                var otherEmailAddress           = $otherEmailAddressTextField.val().trim(),
+                    otherEmailAddressIsSelected = isOtherEmailAddressSelected();
+
+                if ( otherEmailAddressIsSelected ) {
+                    setTimeout(function() {
+                        $otherEmailAddressTextField.focus();
+                    });
+                }
+
+                if ( otherEmailAddress.length > 0 || ! otherEmailAddressIsSelected ) {
+                    enableUserChangeButton();
+                } else {
+                    disableUserChangeButton();
+                }
+            });
+
+            $otherEmailAddressContainer.click(function() {
+                $otherEmailAddressRadio.click();
+            });
+
+            $( '#fs_change_user' ).click( function (evt) {
 				evt.preventDefault();
 
 				showModal( evt );
-			});
+			} );
 
-			$modal.on( 'input propertychange', 'input.fs-email-address', function () {
+            /**
+             * Disable the user change button when the email address is empty.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.3.1
+             */
+            $modal.on( 'keyup paste delete cut', 'input#fs_other_email_address_text_field', function () {
+                setTimeout( function () {
+                    var emailAddress = $otherEmailAddressRadio.val().trim();
+
+                    if ( emailAddress === previousEmailAddress ) {
+                        return;
+                    }
+
+                    if ( '' === emailAddress ) {
+                        disableUserChangeButton();
+                    } else {
+                        enableUserChangeButton();
+                    }
+
+                    previousEmailAddress = emailAddress;
+                }, 100 );
+            } ).focus();
+
+			$modal.on( 'input propertychange', 'input#fs_other_email_address_text_field', function () {
 				var emailAddress = $( this ).val().trim();
 
+				/**
+                 * If email address is not empty, enable the user change button.
+				 */
 				if ( emailAddress.length > 0 ) {
 					enableUserChangeButton();
 				}
 			});
 
-			$modal.on( 'blur', 'input.fs-email-address', function( evt ) {
-				var emailAddress = $( this ).val().trim();
+			$modal.on( 'blur', 'input#fs_other_email_address_text_field', function( evt ) {
+				var
+                    emailAddress            = $( this ).val().trim(),
+                    $focusedElement         = $( evt.relatedTarget ),
+                    hasSelectedLicenseOwner = ( $focusedElement.parents( '.fs-email-address-container' ).length > 0 );
 
-                if ( 0 === emailAddress.length ) {
+                /**
+                 * If email address is empty, disable the user change button.
+                 */
+                if ( 0 === emailAddress.length || ! hasSelectedLicenseOwner ) {
                    disableUserChangeButton();
                 }
 			});
 
-			$modal.on( 'click', '.button-change-user', function ( evt ) {
+			$modal.on( 'click', '.fs-button-change-user', function ( evt ) {
 				evt.preventDefault();
 
 				if ( $( this ).hasClass( 'disabled' ) ) {
 					return;
 				}
 
+				var emailAddress   = '',
+                    licenseOwnerID = null;
+
+                if ( isOtherEmailAddressSelected() ) {
+                    emailAddress = $otherEmailAddressTextField.val().trim();
+
+                    if (0 === emailAddress.length) {
+                        return;
+                    }
+                } else {
+                    licenseOwnerID = $licenseOwners.filter( ':checked' ).val();
+                }
+
 				disableUserChangeButton();
-			});
+
+                var data = {
+                    action           : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
+                    security         : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
+                    new_email_address: emailAddress,
+                    new_user_id      : licenseOwnerID,
+                    module_id        : '<?php echo $fs->get_id() ?>'
+                };
+
+				$.ajax( {
+					url: ajaxurl,
+					method: 'POST',
+                    data: data,
+					beforeSend: function () {
+						$userChangeButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
+					},
+					success: function( result ) {
+						if ( result.success ) {
+							closeModal();
+
+							// Redirect to the "Account" page.
+							window.location.reload();
+						} else {
+							showError( result.error.message ? result.error.message : result.error );
+							resetUserChangeButton();
+						}
+					}
+				} );
+			} );
 
 			// If the user has clicked outside the window, close the modal.
-			$modal.on('click', '.fs-close, .button-secondary', function () {
+			$modal.on( 'click', '.fs-close, .button-secondary', function () {
 				closeModal();
 				return false;
-			});
+			} );
 		}
 
 		registerEventHandlers();
 
-		function showModal( evt ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @returns {Boolean}
+         */
+        function isOtherEmailAddressSelected() {
+            return ( 'other' === $licenseOwners.filter( ':checked' ).val() );
+        }
+
+		function showModal() {
 			resetModal();
 
 			// Display the dialog box.
 			$modal.addClass( 'active' );
 			$( 'body' ).addClass( 'has-fs-modal' );
+
+            $licenseOwners.attr( 'checked', false );
+            $licenseOwners.get( 0 ).click();
+
+            $otherEmailAddressTextField.val( '' );
 		}
 
 		function closeModal() {
-			$modal.removeClass('active');
-			$('body').removeClass('has-fs-modal');
+			$modal.removeClass( 'active' );
+			$( 'body' ).removeClass( 'has-fs-modal' );
 		}
 
 		function resetUserChangeButton() {

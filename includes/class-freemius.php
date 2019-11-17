@@ -1640,6 +1640,7 @@
             add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
             add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
+            add_action( 'admin_init', array( &$this, '_add_user_change_option' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -12407,14 +12408,71 @@
         }
 
         /**
-         * Displays the user change dialog box when the user clicks on the "Change User" button on the "Account" page.
+         * Checks if the "Change User" button should be added to the "Account" section.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
-        function _add_change_user_dialog_box() {
+        function get_product_and_addons_foreign_licenses() {
+            if ( $this->is_addon() ) {
+                // Add-ons do not have their own "Account" section, so ignore them.
+                return array();
+            }
+
+            if (
+                $this->is_network_active() &&
+                ( fs_is_network_admin() || ! $this->is_site_delegated_connection() )
+            ) {
+                // Add the button only to the site-level "Account" section for now.
+                return array();
+            }
+
+            $foreign_licenses = array();
+
+            if (
+                is_object( $this->_license ) &&
+                $this->_site->user_id != $this->_license->user_id
+            ) {
+                $foreign_licenses[] = $this->_license;
+            } else {
+                /**
+                 * If the install for the parent product is not associated with a foreign license, check if there's any
+                 * install for the parent product's add-ons that is associated with a foreign license.
+                 */
+                $installs_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+
+                foreach ( $installs_by_slug_map as $slug => $install_info ) {
+                    if ( $slug == $this->get_slug() ) {
+                        continue;
+                    }
+
+                    $site    = $install_info['site'];
+                    $license = $install_info['license'];
+
+                    if (
+                        is_object( $license ) &&
+                        $site->user_id != $license->user_id
+                    ) {
+                        $foreign_licenses[] = $license;
+                    }
+                }
+            }
+
+            return $foreign_licenses;
+        }
+
+        /**
+         * Displays the user change dialog box when the user clicks on the "Change User" button on the "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         *
+         * @param array $product_and_addons_foreign_licenses
+         */
+        function _add_change_user_dialog_box( $product_and_addons_foreign_licenses ) {
             $vars = array(
-                'id' => $this->_module_id,
+                'id'               => $this->_module_id,
+                'foreign_licenses' => $product_and_addons_foreign_licenses
             );
 
             fs_require_template( 'forms/change-user.php', $vars );
@@ -12568,6 +12626,32 @@
             $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
         }
 
+
+        /**
+         * Prepare page to include all required UI and logic for the user change dialog.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _add_user_change_option() {
+            if ( ! $this->is_user_admin() ) {
+                // Only admins can change user.
+                return;
+            }
+
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
+            if ( empty( $this->get_product_and_addons_foreign_licenses()) ) {
+                // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
+                return;
+            }
+
+            // Add user change AJAX handler.
+            $this->add_ajax_action( 'change_user', array( &$this, '_user_change_ajax_action' ) );
+        }
+
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.0.2
@@ -12682,6 +12766,61 @@
             echo json_encode( $result );
 
             exit;
+        }
+
+        /**
+         * User change WP AJAX handler.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _user_change_ajax_action() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'change_user' );
+
+            $new_email_address = trim( fs_request_get( 'new_email_address', '' ) );
+            $new_user_id       = fs_request_get( 'new_user_id' );
+
+            if ( empty( $new_email_address ) && ! FS_User::is_valid_id( $new_user_id ) ) {
+                exit;
+            }
+
+            $params = array();
+
+            if ( ! empty( $new_email_address ) ) {
+                $params['new_user_email'] = $new_email_address;
+            } else {
+                $params['new_user_id'] = $new_user_id;
+            }
+
+            $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+            $install_ids               = array();
+            
+            foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
+                $install_ids[$slug] = $install_info['site']->id;
+            }
+            
+            $params['install_ids'] = implode( ',', array_values( $install_ids ) );
+
+            $install = $this->get_api_site_scope()->call( $this->add_show_pending( '/' ), 'put', $params );
+
+            if ( FS_Api::is_api_error( $install ) ) {
+                $error = FS_Api::is_api_error_object( $install ) ?
+                    $install->error->message :
+                    var_export( $install->error, true );
+
+                self::shoot_ajax_failure( $error );
+            } else {
+                if (
+                    // If successful ownership change.
+                    $this->get_user()->id != $install->user_id
+                ) {
+                    $this->complete_ownership_change_by_license( $install->user_id, $install_ids );
+                }
+            }
+
+            self::shoot_ajax_success();
         }
 
         /**
@@ -12842,7 +12981,13 @@
                         $install_ids = array();
 
                         if ( $change_owner && $fs->is_addon() ) {
-                            $install_ids           = $this->get_parent_product_and_addons_installs_ids_by_slug_map();
+                            $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+                            $install_ids               = array();
+
+                            foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
+                                $install_ids[$slug] = $install_info['site']->id;
+                            }
+
                             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
                         }
 
@@ -13006,8 +13151,13 @@
                 $installed_addons_ids[] = $fs_addon->get_id();
             }
 
-            $addons      = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
-            $install_ids = array( $fs->get_slug() => $fs->get_site()->id );
+            $addons                    = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
+            $installs_info_by_slug_map = array(
+                $fs->get_slug() => array(
+                    'site'    => $fs->get_site(),
+                    'license' => $fs->_get_license()
+                )
+            );
 
             foreach ( $addons as $addon_id ) {
                 $is_installed = isset( $installed_addons_ids_map[ $addon_id ] );
@@ -13018,10 +13168,15 @@
                     continue;
                 }
 
-                $install_ids[ $addon_info['slug'] ] = $addon_info['site']->id;
+                $installs_info_by_slug_map[ $addon_info['slug'] ] = array(
+                    'site'    => $addon_info['site'],
+                    'license' => isset( $addon_info['license'] ) ?
+                        $addon_info['license'] :
+                        null
+                );
             }
 
-            return $install_ids;
+            return $installs_info_by_slug_map;
         }
 
         /**
@@ -20869,8 +21024,10 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          *
-         * @param number               $user_id
+         * @param number $user_id
          * @param array [string]number $install_ids_by_slug_map
+         *
+         * @throws Freemius_Exception
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map = array() ) {
             $this->_logger->entrance();
@@ -20883,7 +21040,7 @@
                 $installs_data[] = array( 'id' => $install_id );
             }
 
-            $result = $this->get_api_user_scope()->call( "/installs.json", 'put', $installs_data );
+            $result = $this->get_api_user_scope( true )->call( "/installs.json", 'put', $installs_data );
 
             if ( $this->is_api_result_object( $result, 'installs' ) ) {
                 $sites                   = self::get_all_sites( $this->get_module_type() );
@@ -24040,11 +24197,34 @@
                 self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
             }
 
+            $data = $this->fetch_licenses_user_data( array( $this->get_id() ), array( $license_key ) );
+
+            if ( empty( $data ) ) {
+                self::shoot_ajax_failure(
+                    fs_text_inline( "An unknown error has occurred while trying to fetch the license user's data.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            self::shoot_ajax_success( $data );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @param number[] $plugin_ids
+         * @param string[] $license_keys
+         *
+         * @return array
+         */
+        function fetch_licenses_user_data( $plugin_ids, $license_keys ) {
+            $this->_logger->entrance();
+
             $request = array(
                 'method'  => 'POST',
                 'body'    => array(
-                    'license_key'           => $license_key,
-                    'plugin_id'             => $this->get_id(),
+                    'plugin_ids'            => implode( ',', $plugin_ids ),
+                    'license_keys'          => implode( ',', $license_keys ),
                     'is_license_activation' => true
                 ),
                 'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
@@ -24077,13 +24257,7 @@
                 }
             }
 
-            if ( empty( $data ) ) {
-                self::shoot_ajax_failure(
-                    fs_text_inline( "An unknown error has occurred while trying to fetch the license user's data.", 'unknown-error-occurred', $this->get_slug() )
-                );
-            }
-
-            self::shoot_ajax_success( $data );
+            return $data;
         }
 
         /**

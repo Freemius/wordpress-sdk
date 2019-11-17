@@ -60,7 +60,11 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
-    $fs->_add_change_user_dialog_box();
+    $product_and_addons_foreign_licenses = $fs->get_product_and_addons_foreign_licenses();
+
+	if ( ! empty( $product_and_addons_foreign_licenses ) ) {
+        $fs->_add_change_user_dialog_box( $product_and_addons_foreign_licenses );
+    }
 
     if ( $fs->is_whitelabeled( true ) || $fs->is_data_debug_mode() ) {
         $fs->_add_data_debug_mode_dialog_box();
@@ -592,7 +596,7 @@
 																<input type="submit" class="button button-small"
 																       value="<?php echo fs_esc_attr_x_inline( 'Edit', 'verb', 'edit', $slug ) ?>">
 															</form>
-                                                        <?php elseif ( 'user_id' === $p['id'] ) : ?>
+                                                        <?php elseif ( 'user_id' === $p['id'] && ! empty( $product_and_addons_foreign_licenses ) ) : ?>
                                                                 <input id="fs_change_user" type="submit" class="button button-small"
                                                                        value="<?php echo fs_esc_attr_inline( 'Change User', 'change-user', $slug ) ?>">
 														<?php endif ?>
