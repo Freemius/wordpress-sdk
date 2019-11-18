@@ -245,13 +245,13 @@ HTML;
             singleBlogID         = null;
 
         var
-            previousLicenseKey       = null,
-            licenseUserDataByLicense = {},
+            previousLicenseKey          = null,
+            licenseUserDataByLicenseKey = {},
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.3.1
              */
-            resetLoadingMode = function() {
+            resetLoadingMode = function () {
                 // Reset loading mode.
                 $activateLicenseButton.text( <?php echo json_encode( $activate_button_text ) ?> );
                 $activateLicenseButton.prop( 'disabled', false );
@@ -275,8 +275,8 @@ HTML;
                 var licenseKey = $licenseKeyInput.val();
 
                 if (
-                    null != licenseUserDataByLicense[ licenseKey ] &&
-                    licenseUserDataByLicense[ licenseKey ].user_id != <?php echo $fs->get_user()->id ?>
+                    null != licenseUserDataByLicenseKey[ licenseKey ] &&
+                    licenseUserDataByLicenseKey[ licenseKey ].user_id != <?php echo $fs->get_user()->id ?>
                 ) {
                     $ownershipChangeOptionContainer.show();
                 } else {
@@ -296,7 +296,7 @@ HTML;
                     return;
                 }
 
-                if ( licenseUserDataByLicense.hasOwnProperty( licenseKey ) ) {
+                if ( licenseUserDataByLicenseKey.hasOwnProperty( licenseKey ) ) {
                     afterLicenseUserDataLoaded();
                     return;
                 }
@@ -322,10 +322,10 @@ HTML;
                         resetLoadingMode();
 
                         if ( result.success ) {
-                            result = result.data[ Object.keys(result.data)[0] ];
+                            result = result.data[ Object.keys( result.data )[0] ];
 
                             // Cache result.
-                            licenseUserDataByLicense[ licenseKey ] = result;
+                            licenseUserDataByLicenseKey[ licenseKey ] = result;
                         }
 
                         afterLicenseUserDataLoaded();
@@ -434,7 +434,7 @@ HTML;
 
             <?php if ( ! $fs->is_addon() || ! $fs->get_parent_instance()->has_active_valid_license() ) : ?>
             /**
-             * Disable activation button when empty license key.
+             * Disable activation button when license key is empty.
              *
              * @author Leo Fajardo (@leorw)
              * @since 2.3.1
@@ -565,8 +565,8 @@ HTML;
                 }
 
                 if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
-                    if ( null != licenseUserDataByLicense[ licenseKey ] ) {
-                        data.license_user_id = licenseUserDataByLicense[ licenseKey ].user_id;
+                    if ( null != licenseUserDataByLicenseKey[ licenseKey ] ) {
+                        data.license_user_id = licenseUserDataByLicenseKey[ licenseKey ].user_id;
                     }
                 }
 

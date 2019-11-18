@@ -1601,7 +1601,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
-                add_action( 'init', array( &$this, '_maybe_add_fetch_license_user_data_ajax_handler' ) );
+                add_action( 'init', array( &$this, '_maybe_add_fetch_license_owner_data_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -5921,13 +5921,15 @@
         function get_installed_addons( $ignore_parent_instance = false ) {
             $installed_addons = array();
             foreach ( self::$_instances as $instance ) {
-                if ( $instance->is_addon() ) {
-                    if (
-                        $ignore_parent_instance ||
-                        ( is_object( $instance->_parent_plugin ) && $this->_plugin->id == $instance->_parent_plugin->id )
-                    ) {
-                        $installed_addons[] = $instance;
-                    }
+                if ( ! $instance->is_addon() ) {
+                    continue;
+                }
+
+                if (
+                    $ignore_parent_instance ||
+                    ( is_object( $instance->_parent_plugin ) && $this->_plugin->id == $instance->_parent_plugin->id )
+                ) {
+                    $installed_addons[] = $instance;
                 }
             }
 
@@ -11644,7 +11646,7 @@
          * @key    int Blog ID.
          * @value  FS_Site Blog's associated install.
          *                                     }
-         * @param bool     $change_account_owner If true, the the license owner will become the account owner.
+         * @param bool     $change_account_owner If true, then the license owner will become the account owner.
          *
          * @return mixed|true
          */
@@ -12408,25 +12410,12 @@
         }
 
         /**
-         * Checks if the "Change User" button should be added to the "Account" section.
+         * Returns foreign licenses that are associated with the context product and its add-ons.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
         function get_product_and_addons_foreign_licenses() {
-            if ( $this->is_addon() ) {
-                // Add-ons do not have their own "Account" section, so ignore them.
-                return array();
-            }
-
-            if (
-                $this->is_network_active() &&
-                ( fs_is_network_admin() || ! $this->is_site_delegated_connection() )
-            ) {
-                // Add the button only to the site-level "Account" section for now.
-                return array();
-            }
-
             $foreign_licenses = array();
 
             if (
@@ -12434,27 +12423,26 @@
                 $this->_site->user_id != $this->_license->user_id
             ) {
                 $foreign_licenses[] = $this->_license;
-            } else {
-                /**
-                 * If the install for the parent product is not associated with a foreign license, check if there's any
-                 * install for the parent product's add-ons that is associated with a foreign license.
-                 */
-                $installs_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+            }
 
-                foreach ( $installs_by_slug_map as $slug => $install_info ) {
-                    if ( $slug == $this->get_slug() ) {
-                        continue;
-                    }
+            /**
+             * Also try to get foreign licenses for the context product's add-ons.
+             */
+            $installs_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
 
-                    $site    = $install_info['site'];
-                    $license = $install_info['license'];
+            foreach ( $installs_by_slug_map as $slug => $install_info ) {
+                if ( $slug == $this->get_slug() ) {
+                    continue;
+                }
 
-                    if (
-                        is_object( $license ) &&
-                        $site->user_id != $license->user_id
-                    ) {
-                        $foreign_licenses[] = $license;
-                    }
+                $site    = $install_info['site'];
+                $license = $install_info['license'];
+
+                if (
+                    is_object( $license ) &&
+                    $site->user_id != $license->user_id
+                ) {
+                    $foreign_licenses[] = $license;
                 }
             }
 
@@ -12462,7 +12450,7 @@
         }
 
         /**
-         * Displays the user change dialog box when the user clicks on the "Change User" button on the "Account" page.
+         * Displays the "Change User" dialog box when the user clicks on the "Change User" button on the "Account" page.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
@@ -12626,20 +12614,14 @@
             $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
         }
 
-
         /**
-         * Prepare page to include all required UI and logic for the user change dialog.
+         * Prepares page to include all required UI and logic for the "Change User" dialog.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
         function _add_user_change_option() {
-            if ( ! $this->is_user_admin() ) {
-                // Only admins can change user.
-                return;
-            }
-
-            if ( ! $this->is_registered() ) {
+            if ( ! $this->should_handle_user_change() ) {
                 return;
             }
 
@@ -12650,6 +12632,33 @@
 
             // Add user change AJAX handler.
             $this->add_ajax_action( 'change_user', array( &$this, '_user_change_ajax_action' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function should_handle_user_change() {
+            if ( ! $this->is_user_admin() ) {
+                // Only admins can change user.
+                return;
+            }
+
+            if ( $this->is_addon() ) {
+                return;
+            }
+
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
+            if (
+                $this->is_network_active() &&
+                ( fs_is_network_admin() || ! $this->is_site_delegated_connection() )
+            ) {
+                // Handle only on site-level "Account" section for now.
+                return false;
+            }
         }
 
         /**
@@ -12783,7 +12792,7 @@
             $new_user_id       = fs_request_get( 'new_user_id' );
 
             if ( empty( $new_email_address ) && ! FS_User::is_valid_id( $new_user_id ) ) {
-                exit;
+                self::shoot_ajax_failure( fs_text_inline( 'Invalid new user ID or email address.', 'invalid-new-user-id-or-email', $this->get_slug() ) );
             }
 
             $params = array();
@@ -13139,10 +13148,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
-         * @return number[]
+         * @return string[]FS_Site
          */
-        function get_parent_product_and_addons_installs_ids_by_slug_map() {
-            $fs = $this->get_parent_instance();
+        function get_parent_product_and_addons_installs_info_by_slug_map() {
+            $fs = $this->is_addon() ?
+                $this->get_parent_instance() :
+                $this;
 
             $account_addons = $fs->get_updated_account_addons();
 
@@ -18364,23 +18375,27 @@
 
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
-            $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
+            if ( is_object( $this->_user ) && $this->_user->id != $site->user_id ) {
+                $this->fetch_user_by_install( $site->user_id );
 
-            if ( empty( $prev_stored_user_id ) &&
-                 is_object($this->_user) && $this->_user->id != $site->user_id
-            ) {
-                /**
-                 * Store the current user ID as the previous user ID so that the previous user can be used
-                 * as the install's owner while the new owner's details are not yet available.
-                 *
-                 * This will be executed only in the `replica` site. For example, there are 2 sites, namely `original`
-                 * and `replica`, then an ownership change was initiated and completed in the `original`, the `replica`
-                 * will be using the previous user until it is updated again (e.g.: until the next clone of `original`
-                 * into `replica`.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 */
-                $this->_storage->store( 'prev_user_id', $sites[ $this->_slug ]->user_id, $network_level_or_blog_id );
+                $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
+
+                if ( empty( $prev_stored_user_id ) &&
+                     is_object($this->_user) && $this->_user->id != $site->user_id
+                ) {
+                    /**
+                     * Store the current user ID as the previous user ID so that the previous user can be used
+                     * as the install's owner while the new owner's details are not yet available.
+                     *
+                     * This will be executed only in the `replica` site. For example, there are 2 sites, namely `original`
+                     * and `replica`, then an ownership change was initiated and completed in the `original`, the `replica`
+                     * will be using the previous user until it is updated again (e.g.: until the next clone of `original`
+                     * into `replica`.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     */
+                    $this->_storage->store( 'prev_user_id', $sites[ $this->_slug ]->user_id, $network_level_or_blog_id );
+                }
             }
 
             $sites[ $this->_slug ] = $site_clone;
@@ -21041,7 +21056,7 @@
                 $installs_data[] = array( 'id' => $install_id );
             }
 
-            $result = $this->get_api_user_scope( true )->call( "/installs.json", 'put', $installs_data );
+            $result = $this->get_api_user_scope( true )->call( '/installs.json', 'put', $installs_data );
 
             if ( $this->is_api_result_object( $result, 'installs' ) ) {
                 $sites                   = self::get_all_sites( $this->get_module_type() );
@@ -24138,7 +24153,7 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
-        function _maybe_add_fetch_license_user_data_ajax_handler() {
+        function _maybe_add_fetch_license_owner_data_ajax_handler() {
             if ( ! $this->is_registered() ) {
                 return;
             }
@@ -24198,7 +24213,7 @@
                 self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
             }
 
-            $data = $this->fetch_licenses_user_data( array( $this->get_id() ), array( $license_key ) );
+            $data = $this->fetch_licenses_owner_data( array( $this->get_id() ), array( $license_key ) );
 
             if ( empty( $data ) ) {
                 self::shoot_ajax_failure(
@@ -24218,7 +24233,7 @@
          *
          * @return array
          */
-        function fetch_licenses_user_data( $plugin_ids, $license_keys ) {
+        function fetch_licenses_owner_data($plugin_ids, $license_keys ) {
             $this->_logger->entrance();
 
             $request = array(

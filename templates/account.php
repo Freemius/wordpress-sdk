@@ -60,7 +60,9 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
-    $product_and_addons_foreign_licenses = $fs->get_product_and_addons_foreign_licenses();
+    $product_and_addons_foreign_licenses = $fs->should_handle_user_change() ?
+        $fs->get_product_and_addons_foreign_licenses() :
+        array();
 
 	if ( ! empty( $product_and_addons_foreign_licenses ) ) {
         $fs->_add_change_user_dialog_box( $product_and_addons_foreign_licenses );
