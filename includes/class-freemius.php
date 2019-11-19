@@ -12809,9 +12809,11 @@
 
             $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
             $install_ids               = array();
-            
+            $install_plugin_ids        = array();
+
             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
-                $install_ids[$slug] = $install_info['site']->id;
+                $install_ids[$slug]   = $install_info['site']->id;
+                $install_plugin_ids[] = $install_info['site']->plugin_id;
             }
             
             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
@@ -12854,7 +12856,7 @@
                     $this->get_user()->id != $install->user_id ||
                     ! empty( $new_email_address )
                 ) {
-                    $this->complete_ownership_change_by_license( $install->user_id, $install_ids );
+                    $this->complete_ownership_change_by_license( $install->user_id, $install_ids, $install_plugin_ids );
                 }
             }
 
@@ -13016,13 +13018,15 @@
                             'change_account_owner' => $change_owner
                         );
 
-                        $install_ids = array();
+                        $install_ids        = array();
+                        $install_plugin_ids = array();
 
                         if ( $change_owner ) {
                             $installs_info_by_slug_map = $fs->get_parent_product_and_addons_installs_info_by_slug_map();
 
                             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
-                                $install_ids[$slug] = $install_info['site']->id;
+                                $install_ids[$slug]   = $install_info['site']->id;
+                                $install_plugin_ids[] = $install_info['site']->plugin_id;
                             }
 
                             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
@@ -13044,7 +13048,7 @@
                                 // If successful ownership change.
                                 $fs->get_user()->id != $install->user_id
                             ) {
-                                $fs->complete_ownership_change_by_license( $install->user_id, $install_ids );
+                                $fs->complete_ownership_change_by_license( $install->user_id, $install_ids, $install_plugin_ids );
                             }
                         }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
@@ -21069,21 +21073,19 @@
          *
          * @param number $user_id
          * @param array [string]number $install_ids_by_slug_map
+         * @param number[]             $install_plugin_ids
          *
          * @throws Freemius_Exception
          */
-        private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map = array() ) {
+        private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map, $install_plugin_ids ) {
             $this->_logger->entrance();
 
             $this->fetch_user_by_install( $user_id );
 
-            $installs_data = array();
+            $install_ids = implode( ',', $install_ids_by_slug_map );
+            $plugin_ids  = implode( ',', $install_plugin_ids );
 
-            foreach ( $install_ids_by_slug_map as $install_id ) {
-                $installs_data[] = array( 'id' => $install_id );
-            }
-
-            $result = $this->get_api_user_scope( true )->call( '/installs.json', 'put', $installs_data );
+            $result = $this->get_api_user_scope( true )->get( "/plugins/{$this->get_id()}/installs.json?ids={$install_ids}&plugin_ids={$plugin_ids}" );
 
             if ( $this->is_api_result_object( $result, 'installs' ) ) {
                 $sites                   = self::get_all_sites( $this->get_module_type() );
