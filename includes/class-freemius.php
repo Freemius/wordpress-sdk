@@ -11350,7 +11350,11 @@
 
             // Update current license.
             if ( is_object( $this->_license ) ) {
-                $this->set_license( $this->_get_license_by_id( $this->_license->id ) );
+                $license = $this->_get_license_by_id( $this->_license->id );
+
+                if ( is_object( $license ) ) {
+                    $this->set_license( $license );
+                }
             }
 
             return $this->_licenses;
