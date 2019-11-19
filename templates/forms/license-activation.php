@@ -197,6 +197,15 @@ HTML;
     {$ownership_change_option_html}
 HTML;
 
+    /**
+     * Handle the ownership change option if not an add-on or if no license yet is activated for the
+     * parent product in case of an add-on.
+     *
+     * @author Leo Fajardo (@leorw)
+     * @since 2.3.1
+     */
+	$is_user_change_supported = ( ! $fs->is_addon() || ! $fs->get_parent_instance()->has_active_valid_license() );
+
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 ?>
 <script type="text/javascript">
@@ -225,6 +234,8 @@ HTML;
 			$licenseKeyInput                = $modal.find( 'input.fs-license-key' ),
 			$licenseActivationMessage       = $modal.find( '.license-activation-message' ),
             isNetworkActivation             = <?php echo $is_network_activation ? 'true' : 'false' ?>,
+            isUserChangeSupported           = <?php echo $is_user_change_supported ? 'true' : 'false' ?>,
+            isSingleSiteActivation          = false,
             $ownershipChangeOptionContainer = $modal.find( '.ownership-change-option-container' );
 
 		$modal.appendTo($('body'));
@@ -289,6 +300,21 @@ HTML;
              * @since 2.3.1
              */
             fetchLicenseUserData = function () {
+                var hideUserChangeOption = ( ! isUserChangeSupported );
+
+                if ( ! hideUserChangeOption ) {
+                    hideUserChangeOption = ( isNetworkActivation || isSingleSiteActivation );
+                }
+
+                if ( ! hideUserChangeOption ) {
+                    hideUserChangeOption = ( hasLicenseTypes && ! isOtherLicenseKeySelected() );
+                }
+
+                if ( hideUserChangeOption ) {
+                    $ownershipChangeOptionContainer.hide();
+                    return;
+                }
+
                 var licenseKey = $licenseKeyInput.val();
 
                 if ( licenseKey.length < 32 ) {
@@ -402,6 +428,8 @@ HTML;
                         disableActivateLicenseButton();
                     }
 
+                    fetchLicenseUserData();
+
                     if ( ! isNetworkActivation ) {
                         return;
                     }
@@ -432,7 +460,6 @@ HTML;
 				showModal( evt );
 			});
 
-            <?php if ( ! $fs->is_addon() || ! $fs->get_parent_instance()->has_active_valid_license() ) : ?>
             /**
              * Disable activation button when license key is empty.
              *
@@ -463,7 +490,6 @@ HTML;
                     previousLicenseKey = licenseKey;
                 }, 100 );
             } ).focus();
-            <?php endif ?>
 
 			$modal.on('input propertychange', 'input.fs-license-key', function () {
 
@@ -566,7 +592,7 @@ HTML;
 
                 if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
                     if ( null != licenseUserDataByLicenseKey[ licenseKey ] ) {
-                        data.license_user_id = licenseUserDataByLicenseKey[ licenseKey ].user_id;
+                        data.change_owner = true;
                     }
                 }
 

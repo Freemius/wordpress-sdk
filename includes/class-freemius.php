@@ -12641,15 +12641,15 @@
         function should_handle_user_change() {
             if ( ! $this->is_user_admin() ) {
                 // Only admins can change user.
-                return;
+                return false;
             }
 
             if ( $this->is_addon() ) {
-                return;
+                return false;
             }
 
             if ( ! $this->is_registered() ) {
-                return;
+                return false;
             }
 
             if (
@@ -12659,6 +12659,8 @@
                 // Handle only on site-level "Account" section for now.
                 return false;
             }
+
+            return true;
         }
 
         /**
@@ -12759,8 +12761,6 @@
                 exit;
             }
 
-            $license_user_id = fs_request_get( 'license_user_id', null );
-
             $result = $this->activate_license(
                 $license_key,
                 fs_is_network_admin() ?
@@ -12769,7 +12769,7 @@
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
-                FS_Plugin_License::is_valid_id( $license_user_id )
+                fs_request_get_bool( 'change_owner' )
             );
 
             echo json_encode( $result );
@@ -12990,9 +12990,8 @@
 
                         $install_ids = array();
 
-                        if ( $change_owner && $fs->is_addon() ) {
-                            $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
-                            $install_ids               = array();
+                        if ( $change_owner ) {
+                            $installs_info_by_slug_map = $fs->get_parent_product_and_addons_installs_info_by_slug_map();
 
                             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
                                 $install_ids[$slug] = $install_info['site']->id;
@@ -13017,7 +13016,7 @@
                                 // If successful ownership change.
                                 $fs->get_user()->id != $install->user_id
                             ) {
-                                $this->complete_ownership_change_by_license( $install->user_id, $install_ids );
+                                $fs->complete_ownership_change_by_license( $install->user_id, $install_ids );
                             }
                         }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
