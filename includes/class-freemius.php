@@ -12819,9 +12819,33 @@
             $install = $this->get_api_site_scope()->call( $this->add_show_pending( '/' ), 'put', $params );
 
             if ( FS_Api::is_api_error( $install ) ) {
-                $error = FS_Api::is_api_error_object( $install ) ?
-                    $install->error->message :
-                    var_export( $install->error, true );
+                $error = '';
+
+                if ( is_object( $install ) ) {
+                    switch ( $install->error->code ) {
+                        case 'user_exist':
+                            $error = (
+                                $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...' .
+                                $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
+                                sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email_address . '</b>' ) .
+                                sprintf(
+                                    '<a style="line-height: 40px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+                                    $this->get_account_url( 'change_owner', array(
+                                        'state'           => 'init',
+                                        'candidate_email' => $new_email_address
+                                    ) ),
+                                    $this->get_text_inline( 'Change Ownership', 'change-ownership' )
+                                )
+                            );
+                            break;
+                    }
+                }
+
+                if ( empty( $error ) ) {
+                    $error = FS_Api::is_api_error_object( $install ) ?
+                        $install->error->message :
+                        var_export( $install->error, true );
+                }
 
                 self::shoot_ajax_failure( $error );
             } else {
