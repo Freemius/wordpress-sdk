@@ -206,11 +206,11 @@ HTML;
 				disableUserChangeButton();
 
                 var data = {
-                    action           : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
-                    security         : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
-                    new_email_address: emailAddress,
-                    new_user_id      : licenseOwnerID,
-                    module_id        : '<?php echo $fs->get_id() ?>'
+                    action       : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
+                    security     : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
+                    email_address: emailAddress,
+                    user_id      : licenseOwnerID,
+                    module_id    : '<?php echo $fs->get_id() ?>'
                 };
 
 				$.ajax( {

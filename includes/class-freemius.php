@@ -12773,7 +12773,7 @@
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
-                fs_request_get_bool( 'change_owner' )
+                fs_request_get( 'user_id', null )
             );
 
             echo json_encode( $result );
@@ -12792,8 +12792,8 @@
 
             $this->check_ajax_referer( 'change_user' );
 
-            $new_email_address = trim( fs_request_get( 'new_email_address', '' ) );
-            $new_user_id       = fs_request_get( 'new_user_id' );
+            $new_email_address = trim( fs_request_get( 'email_address', '' ) );
+            $new_user_id       = fs_request_get( 'user_id' );
 
             if ( empty( $new_email_address ) && ! FS_User::is_valid_id( $new_user_id ) ) {
                 self::shoot_ajax_failure( fs_text_inline( 'Invalid new user ID or email address.', 'invalid-new-user-id-or-email', $this->get_slug() ) );
@@ -12802,9 +12802,9 @@
             $params = array();
 
             if ( ! empty( $new_email_address ) ) {
-                $params['new_user_email'] = $new_email_address;
+                $params['user_email'] = $new_email_address;
             } else {
-                $params['new_user_id'] = $new_user_id;
+                $params['user_id'] = $new_user_id;
             }
 
             $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
@@ -12915,7 +12915,7 @@
          * @param null|bool   $is_marketing_allowed
          * @param null|int    $blog_id
          * @param null|number $plugin_id
-         * @param bool        $change_owner
+         * @param null|number $license_owner_id
          *
          * @return array {
          *      @var bool   $success
@@ -12929,7 +12929,7 @@
             $is_marketing_allowed = null,
             $blog_id = null,
             $plugin_id = null,
-            $change_owner = false
+            $license_owner_id = null
         ) {
             $this->_logger->entrance();
 
@@ -13014,14 +13014,17 @@
 
                     if ( $fs->is_registered() ) {
                         $params = array(
-                            'license_key'          => $fs->apply_filters( 'license_key', $license_key ),
-                            'change_account_owner' => $change_owner
+                            'license_key' => $fs->apply_filters( 'license_key', $license_key )
                         );
 
                         $install_ids        = array();
                         $install_plugin_ids = array();
 
+                        $change_owner = FS_User::is_valid_id( $license_owner_id );
+
                         if ( $change_owner ) {
+                            $params['user_id'] = $license_owner_id;
+
                             $installs_info_by_slug_map = $fs->get_parent_product_and_addons_installs_info_by_slug_map();
 
                             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {

@@ -592,7 +592,7 @@ HTML;
 
                 if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
                     if ( null != licenseUserDataByLicenseKey[ licenseKey ] ) {
-                        data.change_owner = true;
+                        data.user_id = licenseUserDataByLicenseKey[ licenseKey ].user_id;
                     }
                 }
 
