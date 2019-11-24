@@ -557,6 +557,7 @@
                 <th><?php fs_esc_html_echo_inline( 'Quota' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Activated' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Blocking' ) ?></th>
+                <th><?php fs_esc_html_echo_inline( 'Type' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'License Key' ) ?></th>
                 <th><?php fs_esc_html_echo_x_inline( 'Expiration', 'as expiration date' ) ?></th>
             </tr>
@@ -571,6 +572,7 @@
                     <td><?php echo $license->is_unlimited() ? 'Unlimited' : ( $license->is_single_site() ? 'Single Site' : $license->quota ) ?></td>
                     <td><?php echo $license->activated ?></td>
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
+                    <td><?php echo $license->is_whitelabeled ? 'Whitelabeled' : 'Normal' ?></td>
                     <td><?php
                             echo $license->is_whitelabeled ?
                                 $license->get_html_escaped_masked_secret_key() :
