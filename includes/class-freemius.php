@@ -12414,19 +12414,21 @@
         }
 
         /**
-         * Returns foreign licenses that are associated with the context product and its add-ons.
+         * Returns a collection of IDs of installs that are associated with the context product and its add-ons, and activated with foreign licenses.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
+         *
+         * @return number[]
          */
-        function get_product_and_addons_foreign_licenses() {
-            $foreign_licenses = array();
+        function get_ids_of_installs_activated_with_foreign_licenses() {
+            $installs = array();
 
             if (
                 is_object( $this->_license ) &&
                 $this->_site->user_id != $this->_license->user_id
             ) {
-                $foreign_licenses[] = $this->_license;
+                $installs[] = $this->_site->id;
             }
 
             /**
@@ -12446,11 +12448,11 @@
                     is_object( $license ) &&
                     $site->user_id != $license->user_id
                 ) {
-                    $foreign_licenses[] = $license;
+                    $installs[] = $site->id;
                 }
             }
 
-            return $foreign_licenses;
+            return $installs;
         }
 
         /**
@@ -12459,12 +12461,12 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          *
-         * @param array $product_and_addons_foreign_licenses
+         * @param number[] $install_ids
          */
-        function _add_change_user_dialog_box( $product_and_addons_foreign_licenses ) {
+        function _add_change_user_dialog_box( $install_ids ) {
             $vars = array(
-                'id'               => $this->_module_id,
-                'foreign_licenses' => $product_and_addons_foreign_licenses
+                'id'             => $this->_module_id,
+                'license_owners' => $this->fetch_license_owners_data( $install_ids )
             );
 
             fs_require_template( 'forms/change-user.php', $vars );
@@ -12629,7 +12631,7 @@
                 return;
             }
 
-            if ( empty( $this->get_product_and_addons_foreign_licenses()) ) {
+            if ( empty( $this->get_ids_of_installs_activated_with_foreign_licenses() ) ) {
                 // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
                 return;
             }
@@ -24260,52 +24262,22 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
-         * @param number[] $plugin_ids
-         * @param string[] $license_keys
+         * @param number[] $install_ids
          *
          * @return array
          */
-        function fetch_licenses_owner_data($plugin_ids, $license_keys ) {
+        function fetch_license_owners_data( $install_ids ) {
             $this->_logger->entrance();
 
-            $request = array(
-                'method'  => 'POST',
-                'body'    => array(
-                    'plugin_ids'            => implode( ',', $plugin_ids ),
-                    'license_keys'          => implode( ',', $license_keys ),
-                    'is_license_activation' => true
-                ),
-                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
-            );
+            $response = $this->get_api_user_scope()->get( '/licenses_owners.json?install_ids=' . implode( ',', $install_ids ) );
 
-            $url = WP_FS__ADDRESS . '/action/service/license/';
+            $license_owners = null;
 
-            $response = self::safe_remote_post(
-                $url,
-                $request,
-                WP_FS__TIME_24_HOURS_IN_SEC,
-                WP_FS__TIME_12_HOURS_IN_SEC
-            );
-
-            $data = null;
-
-            if ( ! is_wp_error( $response ) ) {
-                $decoded = is_string( $response['body'] ) ?
-                    json_decode( $response['body'] ) :
-                    null;
-
-                if (
-                    is_object( $decoded ) &&
-                    isset( $decoded->success ) &&
-                    true === $decoded->success &&
-                    isset( $decoded->data ) &&
-                    is_object( $decoded->data )
-                ) {
-                    $data = $decoded->data;
-                }
+            if ( $this->is_api_result_object( $response, 'owners' ) ) {
+                $license_owners = $response->owners;
             }
 
-            return $data;
+            return $license_owners;
         }
 
         /**

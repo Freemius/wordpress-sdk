@@ -19,25 +19,15 @@
 	$slug = $fs->get_slug();
 
     /**
-     * @var FS_Plugin_License[] $foreign_licenses
+     * @var number[] $install_ids
      */
-    $foreign_licenses = $VARS['foreign_licenses'];
+    $license_owners = $VARS['license_owners'];
 
 	$change_user_message                  = fs_text_inline( 'By changing the user, you agree to transfer the account ownership to:', 'change-user--message', $slug );
 	$header_title                         = fs_text_inline( 'Change User', 'change-user', $slug );
     $user_change_button_text              = fs_text_inline( 'I Agree - Change User', 'agree-change-user', $slug );
     $other_text                           = fs_text_inline( 'Other', 'other', $slug );
     $enter_email_address_placeholder_text = fs_text_inline( 'Enter email address', 'enter-email-address', $slug );
-
-	$plugin_ids   = array();
-	$license_keys = array();
-
-	foreach ( $foreign_licenses as $foreign_license ) {
-	    $plugin_ids[]   = $foreign_license->plugin_id;
-	    $license_keys[] = $foreign_license->secret_key;
-    }
-
-    $foreign_licenses_info = $fs->fetch_licenses_owner_data( $plugin_ids, $license_keys );
 
     $user_change_options_html = <<< HTML
     <div class="fs-user-change-options-container">
@@ -47,11 +37,11 @@ HTML;
 
         $user_change_options_html .= '';
 
-        foreach ( $foreign_licenses_info as $owner_id => $foreign_license_info ) {
+        foreach ( $license_owners as $license_owner ) {
             $user_change_options_html .= <<< HTML
                 <tr class="fs-email-address-container">
-                    <td><input id="fs_email_address_{$owner_id}" type="radio" name="fs_email_address" value="{$owner_id}"></td>
-                    <td><label for="fs_email_address_{$owner_id}">{$foreign_license_info->user_email}</label></td>
+                    <td><input id="fs_email_address_{$license_owner->id}" type="radio" name="fs_email_address" value="{$license_owner->id}"></td>
+                    <td><label for="fs_email_address_{$license_owner->id}">{$license_owner->email}</label></td>
                 </tr>
 HTML;
         }
