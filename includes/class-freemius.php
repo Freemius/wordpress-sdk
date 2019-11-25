@@ -12469,7 +12469,7 @@
                 'license_owners' => $this->fetch_license_owners_data( $install_ids )
             );
 
-            fs_require_template( 'forms/change-user.php', $vars );
+            fs_require_template( 'forms/user-change.php', $vars );
         }
 
         /**
