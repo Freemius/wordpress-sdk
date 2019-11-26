@@ -64,8 +64,8 @@
         $fs->get_ids_of_installs_activated_with_foreign_licenses() :
         array();
 
-	if ( ! empty( $ids_of_installs_activated_with_foreign_licenses ) ) {
-        $fs->_add_change_user_dialog_box( $ids_of_installs_activated_with_foreign_licenses );
+    if ( ! empty( $ids_of_installs_activated_with_foreign_licenses ) ) {
+        $fs->_add_user_change_dialog_box( $ids_of_installs_activated_with_foreign_licenses );
     }
 
     if ( $fs->is_whitelabeled( true ) || $fs->is_data_debug_mode() ) {

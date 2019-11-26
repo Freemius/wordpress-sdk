@@ -12462,7 +12462,7 @@
          *
          * @param number[] $install_ids
          */
-        function _add_change_user_dialog_box( $install_ids ) {
+        function _add_user_change_dialog_box( $install_ids ) {
             $vars = array(
                 'id'             => $this->_module_id,
                 'license_owners' => $this->fetch_license_owners_data( $install_ids )
