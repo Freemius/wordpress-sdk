@@ -11649,21 +11649,16 @@
          * @key    int Blog ID.
          * @value  FS_Site Blog's associated install.
          *                                     }
-         * @param bool     $change_account_owner If true, then the license owner will become the account owner.
          *
          * @return mixed|true
          */
         private function activate_license_on_many_installs(
             FS_User $user,
             $license_key,
-            array $blog_2_install_map,
-            $change_account_owner = false
+            array $blog_2_install_map
         ) {
             $params = array(
-                array(
-                    'license_key'          => $this->apply_filters( 'license_key', $license_key ),
-                    'change_account_owner' => $change_account_owner
-                )
+                array( 'license_key' => $this->apply_filters( 'license_key', $license_key ) )
             );
 
             $install_2_blog_map = array();
@@ -12982,7 +12977,7 @@
                     }
 
                     if ( ! empty( $blog_2_install_map ) ) {
-                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map, $change_owner );
+                        $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
 
                         if ( true !== $result ) {
                             $error = FS_Api::is_api_error_object( $result ) ?
