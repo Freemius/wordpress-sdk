@@ -1601,7 +1601,6 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
-                add_action( 'init', array( &$this, '_maybe_add_fetch_license_owner_data_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -24178,18 +24177,6 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
-         */
-        function _maybe_add_fetch_license_owner_data_ajax_handler() {
-            if ( ! $this->is_registered() ) {
-                return;
-            }
-
-            $this->add_ajax_action( 'fetch_license_user_data', array( &$this, 'fetch_license_user_data_ajax_action' ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
          * @since 2.1.0
          */
         function _fetch_is_marketing_required_flag_value_ajax_action() {
@@ -24219,36 +24206,16 @@
                  *
                  * @author Vova Feldman (@svovaf)
                  */
-                self::shoot_ajax_success( array( 'is_marketing_allowed' => null ) );
+                self::shoot_ajax_success( array(
+                    'is_marketing_allowed' => null,
+                    'license_owner_id'     => null
+                ) );
             }
 
-            self::shoot_ajax_success( array( 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
-         */
-        function fetch_license_user_data_ajax_action() {
-            $this->_logger->entrance();
-
-            $this->check_ajax_referer( 'fetch_license_user_data' );
-
-            $license_key = fs_request_get( 'license_key' );
-
-            if ( empty( $license_key ) ) {
-                self::shoot_ajax_failure( $this->get_text_inline( 'License key is empty.', 'empty-license-key' ) );
-            }
-
-            $data = $this->fetch_licenses_owner_data( array( $this->get_id() ), array( $license_key ) );
-
-            if ( empty( $data ) ) {
-                self::shoot_ajax_failure(
-                    fs_text_inline( "An unknown error has occurred while trying to fetch the license user's data.", 'unknown-error-occurred', $this->get_slug() )
-                );
-            }
-
-            self::shoot_ajax_success( $data );
+            self::shoot_ajax_success( array(
+                'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed,
+                'license_owner_id'      => ( isset( $user_plugins[0]->license_owner_id ) ? $user_plugins[0]->license_owner_id : null )
+            ) );
         }
 
         /**

@@ -287,7 +287,7 @@ HTML;
 
                 if (
                     null != licenseUserDataByLicenseKey[ licenseKey ] &&
-                    licenseUserDataByLicenseKey[ licenseKey ].user_id != <?php echo $fs->get_user()->id ?>
+                    licenseUserDataByLicenseKey[ licenseKey ].license_owner_id != <?php echo $fs->get_user()->id ?>
                 ) {
                     $ownershipChangeOptionContainer.show();
                 } else {
@@ -339,8 +339,8 @@ HTML;
                     url    : ajaxurl,
                     method : 'POST',
                     data   : {
-                        action     : '<?php echo $fs->get_ajax_action( 'fetch_license_user_data' ) ?>',
-                        security   : '<?php echo $fs->get_ajax_security( 'fetch_license_user_data' ) ?>',
+                        action     : '<?php echo $fs->get_ajax_action( 'fetch_is_marketing_required_flag_value' ) ?>',
+                        security   : '<?php echo $fs->get_ajax_security( 'fetch_is_marketing_required_flag_value' ) ?>',
                         license_key: licenseKey,
                         module_id  : '<?php echo $fs->get_id() ?>'
                     },
@@ -348,7 +348,7 @@ HTML;
                         resetLoadingMode();
 
                         if ( result.success ) {
-                            result = result.data[ Object.keys( result.data )[0] ];
+                            result = result.data;
 
                             // Cache result.
                             licenseUserDataByLicenseKey[ licenseKey ] = result;
@@ -592,7 +592,7 @@ HTML;
 
                 if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
                     if ( null != licenseUserDataByLicenseKey[ licenseKey ] ) {
-                        data.user_id = licenseUserDataByLicenseKey[ licenseKey ].user_id;
+                        data.user_id = licenseUserDataByLicenseKey[ licenseKey ].license_owner_id;
                     }
                 }
 
