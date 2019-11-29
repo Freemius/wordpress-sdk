@@ -12435,14 +12435,14 @@
                     continue;
                 }
 
-                $site    = $install_info['site'];
+                $install = $install_info['install'];
                 $license = $install_info['license'];
 
                 if (
                     is_object( $license ) &&
-                    $site->user_id != $license->user_id
+                    $install->user_id != $license->user_id
                 ) {
-                    $installs[] = $site->id;
+                    $installs[] = $install->id;
                 }
             }
 
@@ -12807,7 +12807,7 @@
             $install_ids               = array();
 
             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
-                $install_ids[ $slug ] = $install_info['site']->id;
+                $install_ids[ $slug ] = $install_info['install']->id;
             }
             
             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
@@ -13021,7 +13021,7 @@
                             $installs_info_by_slug_map = $fs->get_parent_and_addons_installs_info();
 
                             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
-                                $install_ids[ $slug ] = $install_info['site']->id;
+                                $install_ids[ $slug ] = $install_info['install']->id;
                             }
 
                             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
@@ -13195,7 +13195,7 @@
             // Add parent product info.
             $installs_info_by_slug_map = array(
                 $fs->get_slug() => array(
-                    'site'    => $fs->get_site(),
+                    'install' => $fs->get_site(),
                     'license' => $fs->_get_license()
                 )
             );
@@ -13210,7 +13210,7 @@
                 }
 
                 $installs_info_by_slug_map[ $addon_info['slug'] ] = array(
-                    'site'    => $addon_info['site'],
+                    'install' => $addon_info['site'],
                     'license' => isset( $addon_info['license'] ) ?
                         $addon_info['license'] :
                         null
