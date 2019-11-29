@@ -21076,8 +21076,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number $user_id
-         * @param array [string]number $install_ids_by_slug_map
+         * @param number              $user_id
+         * @param array[string]number $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {
@@ -21085,9 +21085,9 @@
 
             $this->sync_user_by_current_install( $user_id );
 
-            $install_ids = implode( ',', $install_ids_by_slug_map );
-
-            $result = $this->get_api_user_scope( true )->get( "/installs.json?install_ids={$install_ids}" );
+            $result = $this->get_api_user_scope( true )->get(
+                "/installs.json?install_ids=" . implode( ',', $install_ids_by_slug_map )
+            );
 
             if ( $this->is_api_result_object( $result, 'installs' ) ) {
                 $sites                   = self::get_all_sites( $this->get_module_type() );
@@ -24234,7 +24234,9 @@
         function fetch_license_owners_data( $install_ids ) {
             $this->_logger->entrance();
 
-            $response = $this->get_api_user_scope()->get( '/licenses_owners.json?install_ids=' . implode( ',', $install_ids ) );
+            $response = $this->get_api_user_scope()->get(
+                '/licenses_owners.json?install_ids=' . implode( ',', $install_ids )
+            );
 
             $license_owners = null;
 
