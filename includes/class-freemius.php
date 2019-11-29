@@ -9182,7 +9182,7 @@
             }
 
             // Fetch user data and store if found.
-            $this->fetch_user_by_install();
+            $this->sync_user_by_current_install();
         }
 
         /**
@@ -15655,7 +15655,7 @@
                     /**
                      * This is a special fault tolerance mechanism to handle a scenario that the user data is missing.
                      */
-                    $user = $this->fetch_user_by_install();
+                    $user = $this->sync_user_by_current_install();
                 }
 
                 $this->_user = ( $user instanceof FS_User ) ?
@@ -15699,7 +15699,7 @@
          *
          * @return \FS_User|mixed
          */
-        private function fetch_user_by_install( $site_user_id = null ) {
+        private function sync_user_by_current_install( $site_user_id = null ) {
             $site_user_id = FS_Site::is_valid_id( $site_user_id ) ?
                 $site_user_id :
                 $this->_site->user_id;
@@ -18402,7 +18402,7 @@
             $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
 
             if ( is_object( $this->_user ) && $this->_user->id != $site->user_id ) {
-                $this->fetch_user_by_install( $site->user_id );
+                $this->sync_user_by_current_install( $site->user_id );
 
                 $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
 
@@ -21073,7 +21073,7 @@
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {
             $this->_logger->entrance();
 
-            $this->fetch_user_by_install( $user_id );
+            $this->sync_user_by_current_install( $user_id );
 
             $install_ids = implode( ',', $install_ids_by_slug_map );
 
