@@ -61,7 +61,7 @@
 	}
 
     $ids_of_installs_activated_with_foreign_licenses = $fs->should_handle_user_change() ?
-        $fs->get_ids_of_installs_activated_with_foreign_licenses() :
+        $fs->get_installs_ids_with_foreign_licenses() :
         array();
 
     if ( ! empty( $ids_of_installs_activated_with_foreign_licenses ) ) {

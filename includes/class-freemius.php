@@ -12415,7 +12415,7 @@
          *
          * @return number[]
          */
-        function get_ids_of_installs_activated_with_foreign_licenses() {
+        function get_installs_ids_with_foreign_licenses() {
             $installs = array();
 
             if (
@@ -12625,7 +12625,7 @@
                 return;
             }
 
-            if ( empty( $this->get_ids_of_installs_activated_with_foreign_licenses() ) ) {
+            if ( empty( $this->get_installs_ids_with_foreign_licenses() ) ) {
                 // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
                 return;
             }
