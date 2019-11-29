@@ -13176,12 +13176,10 @@
          *
          * @return string[]FS_Site
          */
-        function get_parent_product_and_addons_installs_info_by_slug_map() {
+        private function get_parent_product_and_addons_installs_info_by_slug_map() {
             $fs = $this->is_addon() ?
                 $this->get_parent_instance() :
                 $this;
-
-            $account_addons = $fs->get_updated_account_addons();
 
             $installed_addons     = $fs->get_installed_addons( true );
             $installed_addons_ids = array();
@@ -13189,7 +13187,12 @@
                 $installed_addons_ids[] = $fs_addon->get_id();
             }
 
-            $addons                    = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
+            $addons_ids = array_unique( array_merge(
+                $installed_addons_ids,
+                $fs->get_updated_account_addons()
+            ) );
+
+            // Add parent product info.
             $installs_info_by_slug_map = array(
                 $fs->get_slug() => array(
                     'site'    => $fs->get_site(),
@@ -13197,7 +13200,7 @@
                 )
             );
 
-            foreach ( $addons as $addon_id ) {
+            foreach ( $addons_ids as $addon_id ) {
                 $is_installed = isset( $installed_addons_ids_map[ $addon_id ] );
 
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
