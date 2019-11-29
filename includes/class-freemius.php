@@ -12428,7 +12428,7 @@
             /**
              * Also try to get foreign licenses for the context product's add-ons.
              */
-            $installs_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+            $installs_by_slug_map = $this->get_parent_and_addons_installs_info();
 
             foreach ( $installs_by_slug_map as $slug => $install_info ) {
                 if ( $slug == $this->get_slug() ) {
@@ -12803,7 +12803,7 @@
                 $params['user_id'] = $new_user_id;
             }
 
-            $installs_info_by_slug_map = $this->get_parent_product_and_addons_installs_info_by_slug_map();
+            $installs_info_by_slug_map = $this->get_parent_and_addons_installs_info();
             $install_ids               = array();
 
             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
@@ -13018,7 +13018,7 @@
                         if ( $change_owner ) {
                             $params['user_id'] = $license_owner_id;
 
-                            $installs_info_by_slug_map = $fs->get_parent_product_and_addons_installs_info_by_slug_map();
+                            $installs_info_by_slug_map = $fs->get_parent_and_addons_installs_info();
 
                             foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
                                 $install_ids[ $slug ] = $install_info['site']->id;
@@ -13176,7 +13176,7 @@
          *
          * @return string[]FS_Site
          */
-        private function get_parent_product_and_addons_installs_info_by_slug_map() {
+        private function get_parent_and_addons_installs_info() {
             $fs = $this->is_addon() ?
                 $this->get_parent_instance() :
                 $this;
