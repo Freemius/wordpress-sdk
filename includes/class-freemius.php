@@ -9174,7 +9174,7 @@
          * Syncs the install owner's data if needed (i.e., if the install owner is different from the loaded user).
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          */
         private function maybe_sync_install_user() {
             if ( $this->_user->id == $this->_site->user_id ) {
@@ -12411,7 +12411,7 @@
          * Returns a collection of IDs of installs that are associated with the context product and its add-ons, and activated with foreign licenses.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          *
          * @return number[]
          */
@@ -12453,7 +12453,7 @@
          * Displays the "Change User" dialog box when the user clicks on the "Change User" button on the "Account" page.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          *
          * @param number[] $install_ids
          */
@@ -12618,7 +12618,7 @@
          * Prepares page to include all required UI and logic for the "Change User" dialog.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          */
         function _add_user_change_option() {
             if ( ! $this->should_handle_user_change() ) {
@@ -12636,7 +12636,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          */
         function should_handle_user_change() {
             if ( ! $this->is_user_admin() ) {
@@ -12781,7 +12781,7 @@
          * User change WP AJAX handler.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          */
         function _user_change_ajax_action() {
             $this->_logger->entrance();
@@ -13172,7 +13172,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
+         * @since 2.3.2
          *
          * @return string[]FS_Site
          */
@@ -21067,7 +21067,7 @@
          * Completes ownership change by license.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.1
+         * @since  2.3.2
          *
          * @param number $user_id
          * @param array [string]number $install_ids_by_slug_map
@@ -24218,7 +24218,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
+         * @since 2.3.2
          *
          * @param number[] $install_ids
          *

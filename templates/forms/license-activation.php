@@ -202,7 +202,7 @@ HTML;
      * parent product in case of an add-on.
      *
      * @author Leo Fajardo (@leorw)
-     * @since 2.3.1
+     * @since 2.3.2
      */
 	$is_user_change_supported = ( ! $fs->is_addon() || ! $fs->get_parent_instance()->has_active_valid_license() );
 
@@ -260,7 +260,7 @@ HTML;
             licenseUserDataByLicenseKey = {},
             /**
              * @author Leo Fajardo (@leorw)
-             * @since 2.3.1
+             * @since 2.3.2
              */
             resetLoadingMode = function () {
                 // Reset loading mode.
@@ -273,14 +273,14 @@ HTML;
             },
             /**
              * @author Leo Fajardo (@leorw)
-             * @since 2.3.1
+             * @since 2.3.2
              */
             setLoadingMode = function () {
                 $( document.body ).css( { 'cursor': 'wait' } );
             },
             /**
              * @author Leo Fajardo (@leorw)
-             * @since 2.3.1
+             * @since 2.3.2
              */
             afterLicenseUserDataLoaded = function () {
                 var licenseKey = $licenseKeyInput.val();
@@ -297,7 +297,7 @@ HTML;
             },
             /**
              * @author Leo Fajardo (@leorw)
-             * @since 2.3.1
+             * @since 2.3.2
              */
             fetchLicenseUserData = function () {
                 var hideUserChangeOption = ( ! isUserChangeSupported );
@@ -464,7 +464,7 @@ HTML;
              * Disable activation button when license key is empty.
              *
              * @author Leo Fajardo (@leorw)
-             * @since 2.3.1
+             * @since 2.3.2
              */
             $modal.on( 'keyup paste delete cut', 'input.fs-license-key', function () {
                 setTimeout( function () {
