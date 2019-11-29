@@ -13174,7 +13174,13 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.2
          *
-         * @return string[]FS_Site
+         * @return array {
+         *      @key   string Product slug.
+         *      @value array {
+         *          @property FS_Site           $site
+         *          @property FS_Plugin_License $license
+         *      }
+         * }
          */
         private function get_parent_and_addons_installs_info() {
             $fs = $this->is_addon() ?
@@ -13206,6 +13212,7 @@
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
 
                 if ( ! $addon_info['is_connected'] ) {
+                    // Add-on is not associated with an install entity.
                     continue;
                 }
 
