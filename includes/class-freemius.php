@@ -24229,7 +24229,12 @@
          *
          * @param number[] $install_ids
          *
-         * @return array
+         * @return array {
+         *      An array of objects containing the installs' licenses owners data.
+         *
+         *      @property number $id User ID.
+         *      @property string $email User email (can be masked email).
+         * }
          */
         private function fetch_installs_licenses_owners_data( $install_ids ) {
             $this->_logger->entrance();

@@ -19,7 +19,7 @@
     $slug = $fs->get_slug();
 
     /**
-     * @var number[] $install_ids
+     * @var object[] $license_owners
      */
     $license_owners = $VARS['license_owners'];
 
