@@ -12460,7 +12460,7 @@
         function _add_user_change_dialog_box( $install_ids ) {
             $vars = array(
                 'id'             => $this->_module_id,
-                'license_owners' => $this->fetch_license_owners_data( $install_ids )
+                'license_owners' => $this->fetch_installs_licenses_owners_data( $install_ids )
             );
 
             fs_require_template( 'forms/user-change.php', $vars );
@@ -24231,7 +24231,7 @@
          *
          * @return array
          */
-        function fetch_license_owners_data( $install_ids ) {
+        private function fetch_installs_licenses_owners_data( $install_ids ) {
             $this->_logger->entrance();
 
             $response = $this->get_api_user_scope()->get(
