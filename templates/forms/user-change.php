@@ -195,18 +195,16 @@ HTML;
 
                 disableUserChangeButton();
 
-                var data = {
+                $.ajax( {
+                    url       : ajaxurl,
+                    method    : 'POST',
+                    data      : {
                     action       : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
                     security     : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
                     email_address: emailAddress,
                     user_id      : licenseOwnerID,
                     module_id    : '<?php echo $fs->get_id() ?>'
-                };
-
-                $.ajax( {
-                    url       : ajaxurl,
-                    method    : 'POST',
-                    data      : data,
+                    },
                     beforeSend: function () {
                         $userChangeButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
                     },
