@@ -3,7 +3,7 @@
     * @package   Freemius
     * @copyright Copyright (c) 2015, Freemius, Inc.
     * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-    * @since     2.3.1
+    * @since     2.3.2
     */
 
     if ( ! defined( 'ABSPATH' ) ) {
@@ -11,10 +11,10 @@
     }
 
     /**
-     * @var array $VARS
+     * @var array    $VARS
      *
-    * @var Freemius $fs
-    */
+     * @var Freemius $fs
+     */
     $fs   = freemius( $VARS['id'] );
     $slug = $fs->get_slug();
 
@@ -199,11 +199,11 @@ HTML;
                     url       : ajaxurl,
                     method    : 'POST',
                     data      : {
-                    action       : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
-                    security     : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
-                    email_address: emailAddress,
-                    user_id      : licenseOwnerID,
-                    module_id    : '<?php echo $fs->get_id() ?>'
+                        action       : '<?php echo $fs->get_ajax_action( 'change_user' ) ?>',
+                        security     : '<?php echo $fs->get_ajax_security( 'change_user' ) ?>',
+                        email_address: emailAddress,
+                        user_id      : licenseOwnerID,
+                        module_id    : '<?php echo $fs->get_id() ?>'
                     },
                     beforeSend: function () {
                         $userChangeButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
