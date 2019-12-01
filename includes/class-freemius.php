@@ -11352,6 +11352,15 @@
                 $license = $this->_get_license_by_id( $this->_license->id );
 
                 if ( is_object( $license ) ) {
+                    /**
+                     * Ensure that `$license` is an object since it can be `false` in case a user change action has just
+                     * been completed and this method has synced the `$this->_licenses` collection for the new user (in
+                     * this case, the `$this->_licenses` collection may have only the newly activated license that is
+                     * associated with the new user).
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.3.2
+                     */
                     $this->set_license( $license );
                 }
             }
