@@ -256,8 +256,8 @@ HTML;
             singleBlogID         = null;
 
         var
-            previousLicenseKey          = null,
-            licenseUserDataByLicenseKey = {},
+            previousLicenseKey  = null,
+            otherLicenseOwnerID = null,
             /**
              * @author Leo Fajardo (@leorw)
              * @since 2.3.2
@@ -283,11 +283,9 @@ HTML;
              * @since 2.3.2
              */
             afterLicenseUserDataLoaded = function () {
-                var licenseKey = $licenseKeyInput.val();
-
                 if (
-                    null != licenseUserDataByLicenseKey[ licenseKey ] &&
-                    licenseUserDataByLicenseKey[ licenseKey ].license_owner_id != <?php echo $fs->get_user()->id ?>
+                    null !== otherLicenseOwnerID &&
+                    otherLicenseOwnerID != <?php echo $fs->get_user()->id ?>
                 ) {
                     $ownershipChangeOptionContainer.show();
                 } else {
@@ -300,34 +298,39 @@ HTML;
              * @since 2.3.2
              */
             fetchLicenseUserData = function () {
-                var hideUserChangeOption = ( ! isUserChangeSupported );
+                var hideAndUncheckUserChangeCheckbox = ( ! isUserChangeSupported ),
+                    otherLicenseKeyIsSelected      = isOtherLicenseKeySelected();
 
-                if ( ! hideUserChangeOption ) {
-                    hideUserChangeOption = ( isNetworkActivation || isSingleSiteActivation );
+                if ( ! hideAndUncheckUserChangeCheckbox ) {
+                    // User change is supported only on the site level.
+                    hideAndUncheckUserChangeCheckbox = ( isNetworkActivation || isSingleSiteActivation );
                 }
 
-                if ( ! hideUserChangeOption ) {
-                    hideUserChangeOption = ( hasLicenseTypes && ! isOtherLicenseKeySelected() );
+                if ( ! hideAndUncheckUserChangeCheckbox ) {
+                    hideAndUncheckUserChangeCheckbox = ( hasLicenseTypes && ! otherLicenseKeyIsSelected );
                 }
 
-                if ( hideUserChangeOption ) {
-                    $ownershipChangeOptionContainer.hide();
+                var licenseKey = $licenseKeyInput.val().trim();
+
+                if ( ! hideAndUncheckUserChangeCheckbox && otherLicenseKeyIsSelected ) {
+                    hideAndUncheckUserChangeCheckbox = ( licenseKey.length < 32 );
+                }
+
+                if ( licenseKey !== previousLicenseKey ) {
+                    // If the license key has not been changed, keep the owner ID in order to prevent another API call.
+                    otherLicenseOwnerID = null;
+                }
+
+                if ( hideAndUncheckUserChangeCheckbox ) {
+                    $ownershipChangeOptionContainer.hide().find( 'input' ).attr( 'checked', false );
+
                     return;
                 }
 
-                var licenseKey = $licenseKeyInput.val();
-
-                if ( licenseKey.length < 32 ) {
-                    $ownershipChangeOptionContainer.hide();
-                    return;
-                }
-
-                if ( licenseUserDataByLicenseKey.hasOwnProperty( licenseKey ) ) {
+                if ( null !== otherLicenseOwnerID ) {
                     afterLicenseUserDataLoaded();
                     return;
                 }
-
-                $ownershipChangeOptionContainer.hide();
 
                 setLoadingMode();
 
@@ -350,8 +353,8 @@ HTML;
                         if ( result.success ) {
                             result = result.data;
 
-                            // Cache result.
-                            licenseUserDataByLicenseKey[ licenseKey ] = result;
+                            // Cache license owner's ID.
+                            otherLicenseOwnerID = result.license_owner_id;
                         }
 
                         afterLicenseUserDataLoaded();
@@ -428,7 +431,9 @@ HTML;
                         disableActivateLicenseButton();
                     }
 
-                    fetchLicenseUserData();
+                    if ( '' !== licenseKey ) {
+                        fetchLicenseUserData();
+                    }
 
                     if ( ! isNetworkActivation ) {
                         return;
@@ -471,6 +476,7 @@ HTML;
                     var licenseKey = $licenseKeyInput.val().trim();
 
                     if ( licenseKey == previousLicenseKey ) {
+                        afterLicenseUserDataLoaded();
                         return;
                     }
 
@@ -591,9 +597,7 @@ HTML;
                 }
 
                 if ( $ownershipChangeOptionContainer.find( 'input:checked' ).length > 0 ) {
-                    if ( null != licenseUserDataByLicenseKey[ licenseKey ] ) {
-                        data.user_id = licenseUserDataByLicenseKey[ licenseKey ].license_owner_id;
-                    }
+                    data.user_id = otherLicenseOwnerID;
                 }
 
 				$.ajax({
