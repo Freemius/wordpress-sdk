@@ -35,8 +35,6 @@
             <tbody>
 HTML;
 
-        $user_change_options_html .= '';
-
         foreach ( $license_owners as $license_owner ) {
             $user_change_options_html .= <<< HTML
                 <tr class="fs-email-address-container">
