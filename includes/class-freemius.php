@@ -24219,7 +24219,7 @@
 
             self::shoot_ajax_success( array(
                 'is_marketing_allowed' => $user_plugins[0]->is_marketing_allowed,
-                'license_owner_id'      => ( isset( $user_plugins[0]->license_owner_id ) ? $user_plugins[0]->license_owner_id : null )
+                'license_owner_id'     => ( isset( $user_plugins[0]->license_owner_id ) ? $user_plugins[0]->license_owner_id : null )
             ) );
         }
 
