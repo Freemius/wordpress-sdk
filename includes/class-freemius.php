@@ -5913,22 +5913,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param bool $ignore_parent_instance
-         *
          * @return Freemius[]
          */
-        function get_installed_addons( $ignore_parent_instance = false ) {
+        function get_installed_addons() {
             $installed_addons = array();
             foreach ( self::$_instances as $instance ) {
-                if ( ! $instance->is_addon() ) {
-                    continue;
-                }
-
-                if (
-                    $ignore_parent_instance ||
-                    ( is_object( $instance->_parent_plugin ) && $this->_plugin->id == $instance->_parent_plugin->id )
-                ) {
-                    $installed_addons[] = $instance;
+                if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
+                    if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
+                        $installed_addons[] = $instance;
+                    }
                 }
             }
 
@@ -13196,10 +13189,16 @@
                 $this->get_parent_instance() :
                 $this;
 
-            $installed_addons     = $fs->get_installed_addons( true );
             $installed_addons_ids = array();
-            foreach ( $installed_addons as $fs_addon ) {
-                $installed_addons_ids[] = $fs_addon->get_id();
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_addon() ) {
+                    continue;
+                }
+
+                if ( $fs->get_id() == $instance->get_plugin()->parent_plugin_id ) {
+                    $installed_addons_ids[] = $instance->get_id();
+                }
             }
 
             $addons_ids = array_unique( array_merge(
