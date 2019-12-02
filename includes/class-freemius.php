@@ -13213,14 +13213,9 @@
 
             $installed_addons_ids = array();
 
-            foreach ( self::$_instances as $instance ) {
-                if ( ! $instance->is_addon() ) {
-                    continue;
-                }
-
-                if ( $fs->get_id() == $instance->get_plugin()->parent_plugin_id ) {
+            $installed_addons_instances = $this->get_installed_addons();
+            foreach ( $installed_addons_instances as $instance ) {
                 $installed_addons_ids[] = $instance->get_id();
-            }
             }
 
             $addons_ids = array_unique( array_merge(
