@@ -5916,12 +5916,16 @@
          * @return Freemius[]
          */
         function get_installed_addons() {
+            if ( $this->is_addon() ) {
+                // Add-on cannot have add-ons.
+                return array();
+            }
+
             $installed_addons = array();
+
             foreach ( self::$_instances as $instance ) {
-                if ( $instance->is_addon() && is_object( $instance->_parent_plugin ) ) {
-                    if ( $this->_plugin->id == $instance->_parent_plugin->id ) {
-                        $installed_addons[] = $instance;
-                    }
+                if ( $instance->is_addon_of( $this->_plugin->id ) ) {
+                    $installed_addons[] = $instance;
                 }
             }
 
@@ -5971,7 +5975,25 @@
          * @return bool
          */
         function is_addon() {
-            return isset( $this->_plugin->parent_plugin_id ) && is_numeric( $this->_plugin->parent_plugin_id );
+            return (
+                isset( $this->_plugin->parent_plugin_id ) &&
+                is_numeric( $this->_plugin->parent_plugin_id )
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.2
+         *
+         * @param number $parent_product_id
+         *
+         * @return bool
+         */
+        function is_addon_of( $parent_product_id ) {
+            return (
+                $this->is_addon() &&
+                $parent_product_id == $this->_plugin->parent_plugin_id
+            );
         }
 
         /**
@@ -13197,8 +13219,8 @@
                 }
 
                 if ( $fs->get_id() == $instance->get_plugin()->parent_plugin_id ) {
-                    $installed_addons_ids[] = $instance->get_id();
-                }
+                $installed_addons_ids[] = $instance->get_id();
+            }
             }
 
             $addons_ids = array_unique( array_merge(
