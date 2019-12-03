@@ -20288,7 +20288,11 @@
 
             if ( $show_notice ) {
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ), $this->get_plan_title() ),
+                    sprintf( $this->is_only_premium() ?
+                        $this->get_text_inline( 'Your %s license was successfully deactivated.', 'license-deactivation-message_premium-only' ) :
+                        $this->get_text_inline( 'Your license was successfully deactivated, you are back to the %s plan.', 'license-deactivation-message' ),
+                        $this->get_plan_title()
+                    ),
                     $this->get_text_inline( 'O.K', 'ok' )
                 );
             }
