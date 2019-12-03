@@ -212,8 +212,6 @@ HTML;
                     },
                     success   : function( result ) {
                         if ( result.success ) {
-                            closeModal();
-
                             // Redirect to the "Account" page.
                             window.location.reload();
                         } else {
