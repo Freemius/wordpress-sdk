@@ -205,6 +205,7 @@ HTML;
                     },
                     beforeSend: function () {
                         $userChangeButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
+                        $(document.body).css({'cursor': 'wait'});
                     },
                     success   : function( result ) {
                         if ( result.success ) {
@@ -213,9 +214,18 @@ HTML;
                             // Redirect to the "Account" page.
                             window.location.reload();
                         } else {
+                            $(document.body).css({'cursor': 'auto'});
+
                             showError( result.error.message ? result.error.message : result.error );
                             resetUserChangeButton();
                         }
+                    },
+                    error     : function () {
+                        $(document.body).css({'cursor': 'auto'});
+
+                        showError( '<?php fs_esc_js_echo_inline( 'Unexpected error, try again in 5 minutes. If the error persists, please contact support.', 'unexpected-error', $slug ) ?>' );
+
+                        resetUserChangeButton();
                     }
                 } );
             } );
