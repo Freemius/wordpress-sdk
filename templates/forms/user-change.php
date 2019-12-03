@@ -204,7 +204,10 @@ HTML;
                         module_id    : '<?php echo $fs->get_id() ?>'
                     },
                     beforeSend: function () {
-                        $userChangeButton.text( '<?php fs_esc_js_echo_inline( 'Processing', 'processing', $slug ) ?>...' );
+                        $userChangeButton
+                            .text( '<?php fs_esc_js_echo_inline( 'Changing user, please wait', 'changing-user-please-wait', $slug ) ?>...' )
+                            .prepend('<i class="fs-ajax-spinner"></i>');
+
                         $(document.body).css({'cursor': 'wait'});
                     },
                     success   : function( result ) {
