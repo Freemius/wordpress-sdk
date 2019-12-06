@@ -12221,7 +12221,7 @@
             }
 
             $current_plan_order  = - 1;
-            $required_plan_order = - 1;
+            $required_plan_order = PHP_INT_MAX;
             for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
                 if ( $plan === $this->_plans[ $i ]->name ) {
                     $required_plan_order = $i;
