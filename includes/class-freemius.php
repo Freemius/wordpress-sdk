@@ -13223,7 +13223,7 @@
 
             $installed_addons_ids = array();
 
-            $installed_addons_instances = $this->get_installed_addons();
+            $installed_addons_instances = $fs->get_installed_addons();
             foreach ( $installed_addons_instances as $instance ) {
                 $installed_addons_ids[] = $instance->get_id();
             }
