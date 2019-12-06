@@ -11367,11 +11367,13 @@
                 $license = $this->_get_license_by_id( $this->_license->id );
 
                 if ( is_object( $license ) ) {
-                    /**
-                     * Ensure that `$license` is an object since it can be `false` in case a user change action has just
-                     * been completed and this method has synced the `$this->_licenses` collection for the new user (in
-                     * this case, the `$this->_licenses` collection may have only the newly activated license that is
-                     * associated with the new user).
+                    /**y
+                     * `$license` can be `false` in case a user change action has just been completed and this method
+                     * has synced the `$this->_licenses` collection for the new user. In this case, the
+                     * `$this->_licenses` collection may have only the newly activated license that is associated with
+                     * the new user. `set_license` will eventually be called in the same request by the logic that
+                     * follows outside this method which will detect that the install's license has been updated, and
+                     * then `_update_site_license` will be called which in turn will call `set_license`.
                      *
                      * @author Leo Fajardo (@leorw)
                      * @since 2.3.2
@@ -11826,6 +11828,14 @@
         function _update_site_license( $new_license ) {
             $this->_logger->entrance();
 
+            /**
+             * In case this call will be removed in the future, the `_sync_licenses()` method needs to be updated
+             * accordingly so that it will also handle the case when an ownership change is done via license
+             * activation.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.3.2
+             */
             $this->set_license( $new_license );
 
             if ( ! is_object( $new_license ) ) {
