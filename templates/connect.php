@@ -322,6 +322,7 @@
 					<input type="hidden" name="fs_action"
 					       value="<?php echo $fs->get_unique_affix() ?>_activate_existing">
 					<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
+					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"><?php echo esc_html( $button_label ) ?></button>
 				</form>
@@ -331,6 +332,7 @@
 					<?php foreach ( $optin_params as $name => $value ) : ?>
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
+					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
@@ -360,7 +362,7 @@
 			$permissions['site']    = array(
 				'icon-class' => 'dashicons dashicons-admin-settings',
 				'label'      => $fs->get_text_inline( 'Your Site Overview', 'permissions-site' ),
-				'desc'       => $fs->get_text_inline( 'Site URL, WP version, PHP info, plugins & themes', 'permissions-site_desc' ),
+				'desc'       => $fs->get_text_inline( 'Site URL, WP version, PHP info', 'permissions-site_desc' ),
 				'priority'   => 10,
 			);
 
@@ -372,7 +374,7 @@
 			);
 
 			$permissions['events']  = array(
-				'icon-class' => 'dashicons dashicons-admin-plugins',
+				'icon-class' => 'dashicons dashicons-admin-' . ( $fs->is_plugin() ? 'plugins' : 'appearance' ),
 				'label'      => sprintf( $fs->get_text_inline( 'Current %s Events', 'permissions-events' ), ucfirst( $fs->get_module_type() ) ),
 				'desc'       => $fs->get_text_inline( 'Activation, deactivation and uninstall', 'permissions-events_desc' ),
 				'priority'   => 20,
@@ -387,6 +389,14 @@
 					'priority'   => 15,
 				);
 			}
+
+			$permissions['extensions']    = array(
+				'icon-class' => 'dashicons dashicons-menu',
+				'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ),
+				'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
+				'priority'   => 25,
+				'optional'   => true,
+			);
 
 			// Allow filtering of the permissions list.
 			$permissions = $fs->apply_filters( 'permission_list', $permissions );
@@ -410,8 +420,13 @@
 								<li id="fs-permission-<?php echo esc_attr( $id ); ?>"
 								    class="fs-permission fs-<?php echo esc_attr( $id ); ?>">
 									<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
+									<?php if ( isset( $permission['optional'] ) && true === $permission['optional'] ) : ?>
+										<div class="fs-switch fs-small fs-round fs-on">
+											<div class="fs-toggle"></div>
+										</div>
+									<?php endif ?>
 
-									<div>
+									<div class="fs-permission-description">
 										<span><?php echo esc_html( $permission['label'] ); ?></span>
 
 										<p><?php echo esc_html( $permission['desc'] ); ?></p>
@@ -670,6 +685,10 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
+			var isExtensionsTrackingAllowed = $('.fs-permission-extensions .fs-switch').hasClass('.fs-on');
+
+			$('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
+
 			/**
 			 * @author Vova Feldman (@svovaf)
 			 * @since 1.1.9
@@ -722,6 +741,8 @@
                         }
 
                         data.is_marketing_allowed = isMarketingAllowed;
+
+						data.is_extensions_tracking_allowed = isExtensionsTrackingAllowed;
                     }
 
                     $marketingOptin.removeClass( 'error' );
@@ -822,6 +843,12 @@
 			$('.fs-permissions').toggleClass('fs-open');
 
 			return false;
+		});
+
+		$('.fs-switch').click(function () {
+			$(this)
+				.toggleClass('fs-on')
+				.toggleClass('fs-off');
 		});
 
 		if (requireLicenseKey) {

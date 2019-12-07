@@ -8810,26 +8810,28 @@
             $include_themes = true,
             $include_blog_data = true
         ) {
-            if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
-                /**
-                 * @since 1.1.8 Also send plugin updates.
-                 */
-                if ( $include_plugins && ! isset( $override['plugins'] ) ) {
-                    $plugins = $this->get_plugins_data_for_api();
-                    if ( ! empty( $plugins ) ) {
-                        $override['plugins'] = $plugins;
+            if ( ( false !== $this->_storage->get( 'is_extensions_tracking_allowed', true ) ) ) {
+                if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
+                    /**
+                     * @since 1.1.8 Also send plugin updates.
+                     */
+                    if ( $include_plugins && ! isset( $override['plugins'] ) ) {
+                        $plugins = $this->get_plugins_data_for_api();
+                        if ( ! empty( $plugins ) ) {
+                            $override['plugins'] = $plugins;
+                        }
                     }
                 }
-            }
 
-            if ( ! defined( 'WP_FS__TRACK_THEMES' ) || false !== WP_FS__TRACK_THEMES ) {
-                /**
-                 * @since 1.1.8 Also send themes updates.
-                 */
-                if ( $include_themes && ! isset( $override['themes'] ) ) {
-                    $themes = $this->get_themes_data_for_api();
-                    if ( ! empty( $themes ) ) {
-                        $override['themes'] = $themes;
+                if ( ! defined( 'WP_FS__TRACK_THEMES' ) || false !== WP_FS__TRACK_THEMES ) {
+                    /**
+                     * @since 1.1.8 Also send themes updates.
+                     */
+                    if ( $include_themes && ! isset( $override['themes'] ) ) {
+                        $themes = $this->get_themes_data_for_api();
+                        if ( ! empty( $themes ) ) {
+                            $override['themes'] = $themes;
+                        }
                     }
                 }
             }
@@ -12805,7 +12807,8 @@
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
-                fs_request_get( 'user_id', null )
+                fs_request_get( 'user_id', null ),
+                fs_request_get_bool( 'is_extensions_tracking_allowed', true )
             );
 
             echo json_encode( $result );
@@ -12959,7 +12962,8 @@
             $is_marketing_allowed = null,
             $blog_id = null,
             $plugin_id = null,
-            $license_owner_id = null
+            $license_owner_id = null,
+            $is_extensions_tracking_allowed = true
         ) {
             $this->_logger->entrance();
 
@@ -12973,6 +12977,8 @@
             $fs = ( empty($plugin_id) || $plugin_id == $this->_module_id ) ?
                 $this :
                 $this->get_addon_instance( $plugin_id );
+
+            $this->_storage->is_extensions_tracking_allowed = $is_extensions_tracking_allowed;
 
             $error     = false;
             $next_page = false;
@@ -16184,6 +16190,9 @@
                     ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
                         $decoded->is_marketing_allowed :
                         null ),
+                    ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
+                        $decoded->is_extensions_tracking_allowed :
+                        null ),
                     $decoded->install_id,
                     $decoded->install_public_key,
                     $decoded->install_secret_key,
@@ -16196,6 +16205,9 @@
                     $decoded->user_secret_key,
                     ( isset( $decoded->is_marketing_allowed ) && ! is_null( $decoded->is_marketing_allowed ) ?
                         $decoded->is_marketing_allowed :
+                        null ),
+                    ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
+                        $decoded->is_extensions_tracking_allowed :
                         null ),
                     $decoded->installs,
                     false
@@ -16423,6 +16435,7 @@
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
+                            fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
                             $pending_sites_info['trial_plan_id']
@@ -16433,6 +16446,7 @@
                             fs_request_get( 'user_public_key' ),
                             fs_request_get( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
+                            fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                             fs_request_get( 'install_id' ),
                             fs_request_get( 'install_public_key' ),
                             fs_request_get( 'install_secret_key' ),
@@ -16488,13 +16502,12 @@
          * @param string    $user_public_key
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
+         * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
          * @param number    $install_id
          * @param string    $install_public_key
          * @param string    $install_secret_key
          * @param bool      $redirect
-         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                                redirect (or return a URL) to the account page with a special parameter to
-         *                                trigger the auto installation processes.
+         * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -16503,6 +16516,7 @@
             $user_public_key,
             $user_secret_key,
             $is_marketing_allowed,
+            $is_extensions_tracking_allowed,
             $install_id,
             $install_public_key,
             $install_secret_key,
@@ -16544,6 +16558,10 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
+            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
+                $this->_storage->is_extensions_tracking_allowed = $is_extensions_tracking_allowed;
+            }
+
             return $this->setup_account(
                 $this->_user,
                 $this->_site,
@@ -16562,6 +16580,7 @@
          * @param string    $user_public_key
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
+         * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
          * @param array     $site_ids
          * @param bool      $license_key
          * @param bool      $trial_plan_id
@@ -16574,6 +16593,7 @@
             $user_public_key,
             $user_secret_key,
             $is_marketing_allowed,
+            $is_extensions_tracking_allowed,
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
@@ -16583,6 +16603,10 @@
 
             if ( ! is_null( $is_marketing_allowed ) ) {
                 $this->disable_opt_in_notice_and_lock_user();
+            }
+
+            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
+                $this->_storage->is_extensions_tracking_allowed = $is_extensions_tracking_allowed;
             }
 
             $sites = array();
@@ -16603,11 +16627,10 @@
          * @param string    $user_public_key
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
+         * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
          * @param object[]  $installs
          * @param bool      $redirect
-         * @param bool      $auto_install Since 1.2.1.7 If `true` and setting up an account with a valid license, will
-         *                                redirect (or return a URL) to the account page with a special parameter to
-         *                                trigger the auto installation processes.
+         * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -16616,6 +16639,7 @@
             $user_public_key,
             $user_secret_key,
             $is_marketing_allowed,
+            $is_extensions_tracking_allowed,
             array $installs,
             $redirect = true,
             $auto_install = false
@@ -16624,6 +16648,10 @@
 
             if ( ! is_null( $is_marketing_allowed ) ) {
                 $this->disable_opt_in_notice_and_lock_user();
+            }
+
+            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
+                $this->_storage->is_extensions_tracking_allowed = $is_extensions_tracking_allowed;
             }
 
             $install_ids = array();
@@ -16734,6 +16762,8 @@
                  * @since  1.1.9 Add license key if given.
                  */
                 $license_key = fs_request_get( 'license_secret_key' );
+
+                $this->_storage->is_extensions_tracking_allowed = fs_request_get_bool( 'is_extensions_tracking_allowed', true );
 
                 $this->install_with_current_user( $license_key );
             }
@@ -21312,8 +21342,8 @@
             // Alias.
             $oops_text = $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...';
 
-            $is_network_action = $this->is_network_level_action();
-            $blog_id           = $this->is_network_level_site_specific_action();
+            $is_network_action       = $this->is_network_level_action();
+            $blog_id                 = $this->is_network_level_site_specific_action();
             $is_parent_plugin_action = ( $plugin_id == $this->get_id() );
 
             if ( is_numeric( $blog_id ) ) {
@@ -21417,7 +21447,7 @@
                             if ( $is_network_deletion ) {
                                 $fs_addon->delete_network_account_event();
                             } else {
-                            $fs_addon->delete_account_event();
+                                $fs_addon->delete_account_event();
                             }
 
                             fs_redirect( $this->_get_admin_page_url( 'account' ) );
