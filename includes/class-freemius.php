@@ -11367,7 +11367,7 @@
                 $license = $this->_get_license_by_id( $this->_license->id );
 
                 if ( is_object( $license ) ) {
-                    /**y
+                    /**
                      * `$license` can be `false` in case a user change action has just been completed and this method
                      * has synced the `$this->_licenses` collection for the new user. In this case, the
                      * `$this->_licenses` collection may have only the newly activated license that is associated with
