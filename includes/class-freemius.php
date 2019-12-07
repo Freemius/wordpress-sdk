@@ -21314,6 +21314,7 @@
 
             $is_network_action = $this->is_network_level_action();
             $blog_id           = $this->is_network_level_site_specific_action();
+            $is_parent_plugin_action = ( $plugin_id == $this->get_id() );
 
             if ( is_numeric( $blog_id ) ) {
                 $this->switch_to_blog( $blog_id );
@@ -21325,7 +21326,7 @@
                 case 'opt_in':
                     check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
-                    if ( $plugin_id == $this->get_id() ) {
+                    if ( $is_parent_plugin_action ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
                             if ( ! $this->is_registered() ) {
                                 $this->install_with_user(
@@ -21348,7 +21349,7 @@
                 case 'toggle_tracking':
                     check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
-                    if ( $plugin_id == $this->get_id() ) {
+                    if ( $is_parent_plugin_action ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
                             if ( $this->is_registered() ) {
                                 if ( $this->is_tracking_prohibited() ) {
@@ -21383,8 +21384,20 @@
                 case 'delete_account':
                     check_admin_referer( trim( "{$action}:{$blog_id}:{$install_id}", ':' ) );
 
-                    if ( $plugin_id == $this->get_id() ) {
-                        if ( $is_network_action && empty( $blog_id ) ) {
+                    $is_network_deletion = $is_network_action && empty( $blog_id );
+
+                    if ( $is_parent_plugin_action ) {
+                        // Delete add-on installs if have any.
+                        $installed_addons = $this->get_installed_addons();
+                        foreach ( $installed_addons as $fs_addon ) {
+                            if ( $is_network_deletion ) {
+                                $fs_addon->delete_network_account_event();
+                            } else {
+                                $fs_addon->delete_account_event();
+                            }
+                        }
+
+                        if ( $is_network_deletion ) {
                             $this->delete_network_account_event();
                         } else {
                             $this->delete_account_event();
@@ -21400,7 +21413,12 @@
                     } else {
                         if ( $this->is_addon_activated( $plugin_id ) ) {
                             $fs_addon = self::get_instance_by_id( $plugin_id );
+
+                            if ( $is_network_deletion ) {
+                                $fs_addon->delete_network_account_event();
+                            } else {
                             $fs_addon->delete_account_event();
+                            }
 
                             fs_redirect( $this->_get_admin_page_url( 'account' ) );
                         }
