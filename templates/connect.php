@@ -340,31 +340,42 @@
 		</div><?php
 
 			// Set core permission list items.
-			$permissions = array(
-				'profile' => array(
+			$permissions = array();
+
+			/**
+			 * When activating a license key the information of the admin is not collected, we gather the user info from the license.
+			 *
+			 * @since 2.3.2
+			 * @author Vova Feldman
+			 */
+			if ( ! $require_license_key ) {
+				$permissions['profile'] = array(
 					'icon-class' => 'dashicons dashicons-admin-users',
 					'label'      => $fs->get_text_inline( 'Your Profile Overview', 'permissions-profile' ),
 					'desc'       => $fs->get_text_inline( 'Name and email address', 'permissions-profile_desc' ),
 					'priority'   => 5,
-				),
-				'site'    => array(
-					'icon-class' => 'dashicons dashicons-admin-settings',
-					'label'      => $fs->get_text_inline( 'Your Site Overview', 'permissions-site' ),
-					'desc'       => $fs->get_text_inline( 'Site URL, WP version, PHP info, plugins & themes', 'permissions-site_desc' ),
-					'priority'   => 10,
-				),
-				'notices' => array(
-					'icon-class' => 'dashicons dashicons-testimonial',
-					'label'      => $fs->get_text_inline( 'Admin Notices', 'permissions-admin-notices' ),
-					'desc'       => $fs->get_text_inline( 'Updates, announcements, marketing, no spam', 'permissions-newsletter_desc' ),
-					'priority'   => 13,
-				),
-				'events'  => array(
-					'icon-class' => 'dashicons dashicons-admin-plugins',
-					'label'      => sprintf( $fs->get_text_inline( 'Current %s Events', 'permissions-events' ), ucfirst( $fs->get_module_type() ) ),
-					'desc'       => $fs->get_text_inline( 'Activation, deactivation and uninstall', 'permissions-events_desc' ),
-					'priority'   => 20,
-				),
+				);
+			}
+
+			$permissions['site']    = array(
+				'icon-class' => 'dashicons dashicons-admin-settings',
+				'label'      => $fs->get_text_inline( 'Your Site Overview', 'permissions-site' ),
+				'desc'       => $fs->get_text_inline( 'Site URL, WP version, PHP info, plugins & themes', 'permissions-site_desc' ),
+				'priority'   => 10,
+			);
+
+			$permissions['notices'] = array(
+				'icon-class' => 'dashicons dashicons-testimonial',
+				'label'      => $fs->get_text_inline( 'Admin Notices', 'permissions-admin-notices' ),
+				'desc'       => $fs->get_text_inline( 'Updates, announcements, marketing, no spam', 'permissions-newsletter_desc' ),
+				'priority'   => 13,
+			);
+
+			$permissions['events']  = array(
+				'icon-class' => 'dashicons dashicons-admin-plugins',
+				'label'      => sprintf( $fs->get_text_inline( 'Current %s Events', 'permissions-events' ), ucfirst( $fs->get_module_type() ) ),
+				'desc'       => $fs->get_text_inline( 'Activation, deactivation and uninstall', 'permissions-events_desc' ),
+				'priority'   => 20,
 			);
 
 			// Add newsletter permissions if enabled.
