@@ -187,7 +187,8 @@ HTML;
 								'<?php echo $fs->get_ajax_security( 'stop_tracking' ) ?>' :
 								'<?php echo $fs->get_ajax_security( 'allow_tracking' ) ?>'
 						),
-						module_id: moduleID
+						module_id: moduleID,
+                        _wp_http_referer: '<?php echo $fs->current_page_url() ?>'
 					},
 					beforeSend: function() {
 						if ( 'allow_tracking' == action ) {
