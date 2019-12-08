@@ -22646,6 +22646,11 @@
                 return;
             }*/
 
+            if ( $this->is_only_premium() && $this->is_free_plan() ) {
+                // Don't add tracking links for premium-only products that were opted-in by relation (add-on or a parent product) before activating any license.
+                return;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
