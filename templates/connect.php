@@ -685,9 +685,9 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-			var isExtensionsTrackingAllowed = $('.fs-permission-extensions .fs-switch').hasClass('.fs-on');
+			var isExtensionsTrackingAllowed = $( '.fs-permission-extensions .fs-switch' ).hasClass( '.fs-on' );
 
-			$('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
+			$( 'input[name=is_extensions_tracking_allowed]' ).val( isExtensionsTrackingAllowed ? 1 : 0 );
 
 			/**
 			 * @author Vova Feldman (@svovaf)
@@ -845,10 +845,10 @@
 			return false;
 		});
 
-		$('.fs-switch').click(function () {
+		$( '.fs-switch' ).click( function () {
 			$(this)
-				.toggleClass('fs-on')
-				.toggleClass('fs-off');
+				.toggleClass( 'fs-on' )
+				.toggleClass( 'fs-off' );
 		});
 
 		if (requireLicenseKey) {

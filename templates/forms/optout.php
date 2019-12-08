@@ -98,10 +98,10 @@
                 $modal              = $(modalHtml),
                 $adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
                 action              = '<?php echo $action ?>',
-                $actionLink         = $('span.opt-in-or-opt-out.<?php echo $slug ?> a'),
-                $optOutButton       = $modal.find('.button-opt-out'),
-                $optOutErrorMessage = $modal.find('.opt-out-error-message'),
-                $extensionsTracking = $modal.find('.fs-permission-extensions'),
+                $actionLink         = $( 'span.opt-in-or-opt-out.<?php echo $slug ?> a' ),
+                $optOutButton       = $modal.find( '.button-opt-out' ),
+                $optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
+                $extensionsTracking = $modal.find( '.fs-permission-extensions' ),
                 moduleID            = '<?php echo $fs->get_id() ?>';
 
 			$actionLink.attr( 'data-action', action );
@@ -231,14 +231,14 @@
 
                 isUpdatingPermission = true;
 
-                var $switch         = $extensionsTracking.find('.fs-switch'),
-                    $switchFeedback = $extensionsTracking.find('.fs-switch-feedback');
+                var $switch         = $extensionsTracking.find( '.fs-switch' ),
+                    $switchFeedback = $extensionsTracking.find( '.fs-switch-feedback' );
 
                 $switch
-                    .toggleClass('fs-on')
-                    .toggleClass('fs-off');
+                    .toggleClass( 'fs-on' )
+                    .toggleClass( 'fs-off' );
 
-                $switchFeedback.html('<i class="fs-ajax-spinner"></i>');
+                $switchFeedback.html( '<i class="fs-ajax-spinner"></i>' );
 
                 $.ajax({
                     url: ajaxurl,
@@ -253,11 +253,11 @@
                     },
                     success: function( resultObj ) {
                         if ( resultObj.success ) {
-                            $switchFeedback.html('<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $slug ) ) ?>')
+                            $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $slug ) ) ?>' )
                         } else {
                             $switch
-                                .toggleClass('fs-on')
-                                .toggleClass('fs-off');
+                                .toggleClass( 'fs-on' )
+                                .toggleClass( 'fs-off' );
                         }
 
 	                    isUpdatingPermission = false;

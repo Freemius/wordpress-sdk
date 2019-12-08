@@ -30,16 +30,16 @@
         (function ($) {
             $(document).ready(function () {
                 // Switch toggle
-                $('.fs-switch').click(function () {
-                    $(this)
-                        .toggleClass('fs-on')
-                        .toggleClass('fs-off');
+                $( '.fs-switch' ).click( function () {
+                    $( this )
+                        .toggleClass( 'fs-on' )
+                        .toggleClass( 'fs-off' );
 
-                    $.post(ajaxurl, {
+                    $.post( ajaxurl, {
                         action: 'fs_toggle_debug_mode',
-                        is_on : ($(this).hasClass('fs-on') ? 1 : 0)
-                    }, function (response) {
-                        if (1 == response) {
+                        is_on : ($(this).hasClass( 'fs-on' ) ? 1 : 0)
+                    }, function ( response ) {
+                        if ( 1 == response ) {
                             // Refresh page on success.
                             location.reload();
                         }
