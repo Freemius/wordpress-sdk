@@ -22591,10 +22591,14 @@
 
             $this->_logger->entrance();
 
-            if ( $this->is_premium() ) {
+            /**
+             * @author Vova Feldman (@svovaf)
+             * @since 2.3.2 Allow opting out from usage-tracking for paid products too by giving the appropriate warning letting the user know the automatic updates mechanism cannot function without an ongoing connection to the licensing and updates engine.
+             */
+            /*if ( $this->is_premium() ) {
                 // Don't add opt-in/out for premium code base.
                 return;
-            }
+            }*/
 
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
