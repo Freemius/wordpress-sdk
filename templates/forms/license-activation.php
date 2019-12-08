@@ -285,7 +285,7 @@ HTML;
             afterLicenseUserDataLoaded = function () {
                 if (
                     null !== otherLicenseOwnerID &&
-                    otherLicenseOwnerID != <?php echo $fs->get_user()->id ?>
+                    otherLicenseOwnerID != <?php echo $fs->is_registered() ? $fs->get_user()->id : 'null' ?>
                 ) {
                     $ownershipChangeOptionContainer.show();
                 } else {
