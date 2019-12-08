@@ -91,7 +91,7 @@
 				    + '		</div>'
 				    + '		<div class="fs-modal-footer">'
 				    + '			<button class="button <?php echo $fs->is_premium() ? 'button-primary warn' : 'button-secondary' ?> button-opt-out" tabindex="1"><?php echo esc_js( $opt_out_text ) ?></button>'
-				    + '			<button class="button button-primary button-close" tabindex="2"><?php echo esc_js( $primary_cta_label ) ?></button>'
+				    + '			<button class="button <?php echo $fs->is_premium() ? 'button-secondary' : 'button-primary' ?> button-close" tabindex="2"><?php echo esc_js( $primary_cta_label ) ?></button>'
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',
