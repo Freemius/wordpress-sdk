@@ -465,6 +465,8 @@ HTML;
 				showModal( evt );
 			});
 
+            var licenseTimeout = null;
+
             /**
              * Disable activation button when license key is empty.
              *
@@ -472,7 +474,9 @@ HTML;
              * @since 2.3.2
              */
             $modal.on( 'keyup paste delete cut', 'input.fs-license-key', function () {
-                setTimeout( function () {
+                clearTimeout(licenseTimeout);
+
+                licenseTimeout = setTimeout( function () {
                     var licenseKey = $licenseKeyInput.val().trim();
 
                     if ( licenseKey == previousLicenseKey ) {
@@ -494,7 +498,7 @@ HTML;
                     }
 
                     previousLicenseKey = licenseKey;
-                }, 100 );
+                }, 200 );
             } ).focus();
 
 			$modal.on('input propertychange', 'input.fs-license-key', function () {
