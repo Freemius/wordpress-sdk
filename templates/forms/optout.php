@@ -190,7 +190,7 @@ HTML;
 						module_id: moduleID
 					},
 					beforeSend: function() {
-						if ( 'opt-in' == action ) {
+						if ( 'allow_tracking' == action ) {
 							$actionLink.text( '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...' );
 						} else {
 							$optOutButton.text( '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out', $slug ) ?>...' );
