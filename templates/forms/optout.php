@@ -41,7 +41,7 @@
 		$opt_in_message_appreciation = sprintf( fs_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-in-message-appreciation', $slug ), $fs->get_module_type() );
 
 		$opt_out_message_subtitle       = $opt_in_message_appreciation;
-	$opt_out_message_usage_tracking = sprintf( fs_text_inline( "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking.", 'opt-out-message-usage-tracking', $slug ), $plugin_title );
+		$opt_out_message_usage_tracking = sprintf( fs_text_inline( "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking.", 'opt-out-message-usage-tracking', $slug ), $plugin_title );
 		$primary_cta_label              = fs_text_inline( 'On second thought - I want to continue helping', 'opt-out-cancel', $slug );
 	}
 
@@ -66,12 +66,12 @@
 
 	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params );
 
-	$modal_content_html = <<< HTML
-		<h2>{$opt_out_message_appreciation}</h2>
-		<div class="notice notice-error inline opt-out-error-message"><p></p></div>
+    $modal_content_html = "
+		<h2" . ( $fs->is_premium() ? ' style="color: red"' : '' ) . ">{$opt_out_message_subtitle}</h2>
+		<div class=\"notice notice-error inline opt-out-error-message\"><p></p></div>
 		<p>{$opt_out_message_usage_tracking}</p>
 		<p>{$opt_out_message_clicking_opt_out}</p>
-HTML;
+		<label class=\"fs-permission-extensions\"><div class=\"fs-switch fs-small fs-round fs-" . ( $fs->is_extensions_tracking_allowed() ? 'on' : 'off' ) . "\"><div class=\"fs-toggle\"></div></div> " . fs_text_inline( 'Plugins & themes tracking' ) . " <span class=\"fs-switch-feedback success\"></span></label>";
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
@@ -95,13 +95,14 @@ HTML;
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',
-			    $modal              = $( modalHtml ),
-			    $adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
-			    action              = '<?php echo $action ?>',
-			    $actionLink         = $( 'span.opt-in-or-opt-out.<?php echo $slug ?> a' ),
-			    $optOutButton       = $modal.find( '.button-opt-out' ),
-			    $optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
-			    moduleID            = '<?php echo $fs->get_id() ?>';
+                $modal              = $(modalHtml),
+                $adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
+                action              = '<?php echo $action ?>',
+                $actionLink         = $('span.opt-in-or-opt-out.<?php echo $slug ?> a'),
+                $optOutButton       = $modal.find('.button-opt-out'),
+                $optOutErrorMessage = $modal.find('.opt-out-error-message'),
+                $extensionsTracking = $modal.find('.fs-permission-extensions'),
+                moduleID            = '<?php echo $fs->get_id() ?>';
 
 			$actionLink.attr( 'data-action', action );
 			$modal.appendTo( $( 'body' ) );
@@ -221,6 +222,48 @@ HTML;
 					}
 				});
 			}
+
+			var isUpdatingPermission = false;
+            $extensionsTracking.on('click', function() {
+                if (isUpdatingPermission) {
+                    return false;
+                }
+
+                isUpdatingPermission = true;
+
+                var $switch         = $extensionsTracking.find('.fs-switch'),
+                    $switchFeedback = $extensionsTracking.find('.fs-switch-feedback');
+
+                $switch
+                    .toggleClass('fs-on')
+                    .toggleClass('fs-off');
+
+                $switchFeedback.html('<i class="fs-ajax-spinner"></i>');
+
+                $.ajax({
+                    url: ajaxurl,
+                    method: 'POST',
+                    data: {
+                        action    : '<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>',
+                        security  : '<?php echo $fs->get_ajax_security( 'update_tracking_permission' ) ?>',
+                        module_id : moduleID,
+                        _wp_http_referer: '<?php echo $fs->current_page_url() ?>',
+                        permission: 'extensions',
+                        is_enabled: $switch.hasClass('fs-on')
+                    },
+                    success: function( resultObj ) {
+                        if ( resultObj.success ) {
+                            $switchFeedback.html('<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $slug ) ) ?>')
+                        } else {
+                            $switch
+                                .toggleClass('fs-on')
+                                .toggleClass('fs-off');
+                        }
+
+	                    isUpdatingPermission = false;
+                    }
+                });
+            });
 
 			function enableOptOutButton() {
 				$optOutButton.removeClass( 'disabled' );

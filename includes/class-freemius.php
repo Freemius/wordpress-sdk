@@ -5409,6 +5409,52 @@
         }
 
         /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.2
+         *
+         * @return bool
+         */
+        function is_extensions_tracking_allowed() {
+            return $this->_storage->get( 'is_extensions_tracking_allowed', true );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.2
+         */
+        function _update_tracking_permission_callback() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'update_tracking_permission' );
+
+            $is_enabled = fs_request_get_bool( 'is_enabled', null );
+
+            if ( ! is_bool( $is_enabled ) ) {
+                self::shoot_ajax_failure();
+            }
+
+            $permission = fs_request_get( 'permission' );
+
+            switch ( $permission ) {
+                case 'extensions':
+                    $this->_storage->is_extensions_tracking_allowed = $is_enabled;
+                    break;
+                default:
+                    $permission = 'no_match';
+            }
+
+            if ( 'no_match' === $permission ) {
+                self::shoot_ajax_failure();
+            }
+
+            self::shoot_ajax_success( array(
+                'permissions' => array(
+                    $permission => $is_enabled,
+                )
+            ) );
+        }
+
+        /**
          * Parse plugin's settings (as defined by the plugin dev).
          *
          * @author Vova Feldman (@svovaf)
@@ -22647,6 +22693,10 @@
             }
 
             if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
+                return;
+            }
+
+            if ( $this->add_ajax_action( 'update_tracking_permission', array( &$this, '_update_tracking_permission_callback' ) ) ) {
                 return;
             }
 
