@@ -131,6 +131,14 @@
 	?>
 	<?php
 		}
+
+		/**
+		 * Allows developers to include custom HTML before the opt-in content.
+		 *
+		 * @author Vova Feldman
+		 * @since 2.3.2
+		 */
+		$fs->do_action( 'connect/before' );
 	?>
 	<div id="fs_connect"
 	     class="wrap<?php if ( ! fs_is_network_admin() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
@@ -457,6 +465,14 @@
 		</div>
 	</div>
 	<?php
+		/**
+		 * Allows developers to include custom HTML after the opt-in content.
+		 *
+		 * @author Vova Feldman
+		 * @since 2.3.2
+		 */
+		$fs->do_action( 'connect/after' );
+
 		if ( $is_optin_dialog ) { ?>
 </div>
 <?php
