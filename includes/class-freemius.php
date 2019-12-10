@@ -8089,6 +8089,10 @@
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
+                if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                    continue;
+                }
+
                 $install_id = $this->_delete_site( true, $blog_id );
 
                 // Clear all storage data.
