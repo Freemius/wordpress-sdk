@@ -701,7 +701,7 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-			var isExtensionsTrackingAllowed = $( '.fs-permission-extensions .fs-switch' ).hasClass( '.fs-on' );
+			var isExtensionsTrackingAllowed = $( '#fs-permission-extensions .fs-switch' ).hasClass( 'fs-on' );
 
 			$( 'input[name=is_extensions_tracking_allowed]' ).val( isExtensionsTrackingAllowed ? 1 : 0 );
 
