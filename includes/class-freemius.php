@@ -8870,7 +8870,7 @@
             $include_themes = true,
             $include_blog_data = true
         ) {
-            if ( ( false !== $this->_storage->get( 'is_extensions_tracking_allowed', true, fs_is_network_admin() ) ) ) {
+            if ( $this->is_extensions_tracking_allowed() ) {
                 if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
                     /**
                      * @since 1.1.8 Also send plugin updates.
