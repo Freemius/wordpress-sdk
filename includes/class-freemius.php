@@ -5415,7 +5415,7 @@
          * @return bool
          */
         function is_extensions_tracking_allowed() {
-            return $this->_storage->get( 'is_extensions_tracking_allowed', true, fs_is_network_admin() );
+            return (true === $this->_storage->get( 'is_extensions_tracking_allowed', true ) );
         }
 
         /**
@@ -5461,7 +5461,7 @@
          * @param bool $is_enabled
          */
         private function update_extensions_tracking_allowed_flag_value( $is_enabled ) {
-            $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled, fs_is_network_admin() );
+            $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
         }
 
         /**
