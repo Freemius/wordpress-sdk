@@ -5437,7 +5437,7 @@
 
             switch ( $permission ) {
                 case 'extensions':
-                    $this->update_extensions_tracking_allowed_flag_value( $is_enabled );
+                    $this->update_extensions_tracking_flag( $is_enabled );
                     break;
                 default:
                     $permission = 'no_match';
@@ -5460,7 +5460,7 @@
          *
          * @param bool $is_enabled
          */
-        private function update_extensions_tracking_allowed_flag_value( $is_enabled ) {
+        private function update_extensions_tracking_flag( $is_enabled ) {
             $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
         }
 
@@ -13038,7 +13038,7 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $this->update_extensions_tracking_allowed_flag_value( $is_extensions_tracking_allowed );
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             $error     = false;
             $next_page = false;
@@ -16619,7 +16619,7 @@
             }
 
             if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_allowed_flag_value( $is_extensions_tracking_allowed );
+                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
             }
 
             return $this->setup_account(
@@ -16666,7 +16666,7 @@
             }
 
             if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_allowed_flag_value( $is_extensions_tracking_allowed );
+                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
             }
 
             $sites = array();
@@ -16711,7 +16711,7 @@
             }
 
             if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_allowed_flag_value( $is_extensions_tracking_allowed );
+                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
             }
 
             $install_ids = array();
@@ -16823,7 +16823,7 @@
                  */
                 $license_key = fs_request_get( 'license_secret_key' );
 
-                $this->update_extensions_tracking_allowed_flag_value( fs_request_get_bool( 'is_extensions_tracking_allowed', true ) );
+                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', true ) );
 
                 $this->install_with_current_user( $license_key );
             }
