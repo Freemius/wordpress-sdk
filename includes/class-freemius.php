@@ -12685,7 +12685,17 @@
                 return;
             }
 
-            if ( $this->has_premium_version() && ! $this->is_premium() ) {
+            if (
+                $this->has_premium_version() &&
+                ! $this->is_premium() &&
+                /**
+                 * Also handle the case when an upgrade was made using the free version.
+                 * 
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.3.2
+                 */
+                ! is_object( $this->_get_license() )
+            ) {
                 // Only add license activation logic to the premium version, or in case of a serviceware plugin, also in the free version.
                 return;
             }
