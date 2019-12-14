@@ -1,0 +1,119 @@
+$switch-size: 24px;
+$switch-small-size: 0.75 * $switch-size;
+$switch-on-color: $wp-button-primary-background-color;
+
+.fs-switch
+{
+    position:      relative;
+    display:       inline-block;
+    //font-size:     1.6em;
+    //font-weight:   bold;
+    color:         #ccc;
+    text-shadow:   0 1px 1px rgba(255, 255, 255, 0.8);
+    height:        18px;
+    padding:       6px 6px 5px 6px;
+    border:        1px solid #ccc;
+    border:        1px solid rgba(0, 0, 0, 0.2);
+    //border-radius: 4px;
+    background:    #ececec;
+    box-shadow:    0 0 4px rgba(0, 0, 0, 0.1), inset 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    cursor:        pointer;
+
+    span
+    {
+        display:        inline-block;
+        width:          35px;
+        text-transform: uppercase;
+    }
+
+    .fs-toggle
+    {
+        position:      absolute;
+        top:           1px;
+        width:         37px;
+        height:        $switch-size + 1px;
+        border:        1px solid #ccc;
+        border:        1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        background:    #fff;
+        @include linear-gradient(#ececec, #fff);
+        box-shadow:    inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+        z-index:       999;
+        @include transition(0.40s cubic-bezier(0.54, 1.6, 0.5, 1));
+    }
+
+    &.fs-off .fs-toggle
+    {
+        left: 2%;
+    }
+    &.fs-on .fs-toggle
+    {
+        left: 54%;
+    }
+
+    /* Round switch */
+    &.fs-round
+    {
+        top:     $switch-size / 3;
+        padding: 4px ($switch-size + 1px);
+        @include border-radius($switch-size);
+
+        .fs-toggle
+        {
+            top:    0;
+            width:  $switch-size;
+            height: $switch-size;
+            @include border-radius($switch-size);
+        }
+
+        &.fs-off .fs-toggle
+        {
+            left: -1px;
+        }
+
+        &.fs-on
+        {
+            background: $switch-on-color;
+
+            .fs-toggle
+            {
+                left: $switch-size + 1px;
+            }
+        }
+    }
+
+    &.fs-small
+    {
+        &.fs-round
+        {
+            padding: 1px ($switch-small-size + 1px);
+
+            .fs-toggle
+            {
+                top:    0;
+                width:  $switch-small-size;
+                height: $switch-small-size;
+                @include border-radius($switch-small-size);
+            }
+
+            &.fs-on .fs-toggle
+            {
+                left: $switch-small-size + 1px;
+            }
+        }
+    }
+}
+
+.fs-switch-feedback {
+    margin-left: 10px;
+
+    &.success {
+        color: $fs-logo-green-color;
+    }
+
+    .rtl &
+    {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+}
