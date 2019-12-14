@@ -21,25 +21,25 @@
 <div>
     <!-- Debugging Switch -->
     <?php //$debug_mode = get_option( 'fs_debug_mode', null ) ?>
-    <span class="switch-label"><?php fs_esc_html_echo_x_inline( 'Debugging', 'as code debugging' ) ?></span>
+    <span class="fs-switch-label"><?php fs_esc_html_echo_x_inline( 'Debugging', 'as code debugging' ) ?></span>
 
-    <div class="switch round <?php echo WP_FS__DEBUG_SDK ? 'off' : 'on' ?>">
-        <div class="toggle"></div>
+    <div class="fs-switch fs-round <?php echo WP_FS__DEBUG_SDK ? 'fs-on' : 'fs-off' ?>">
+        <div class="fs-toggle"></div>
     </div>
     <script type="text/javascript">
         (function ($) {
             $(document).ready(function () {
                 // Switch toggle
-                $('.switch').click(function () {
-                    $(this)
-                        .toggleClass('on')
-                        .toggleClass('off');
+                $( '.fs-switch' ).click( function () {
+                    $( this )
+                        .toggleClass( 'fs-on' )
+                        .toggleClass( 'fs-off' );
 
-                    $.post(ajaxurl, {
+                    $.post( ajaxurl, {
                         action: 'fs_toggle_debug_mode',
-                        is_on : ($(this).hasClass('off') ? 1 : 0)
-                    }, function (response) {
-                        if (1 == response) {
+                        is_on : ($(this).hasClass( 'fs-on' ) ? 1 : 0)
+                    }, function ( response ) {
+                        if ( 1 == response ) {
                             // Refresh page on success.
                             location.reload();
                         }
