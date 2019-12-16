@@ -142,7 +142,9 @@
 				});
 			}
 
+			<?php if ( $fs->is_registered() ) : ?>
 			registerEventHandlers();
+			<?php endif ?>
 
 			function showModal() {
 				resetModal();
@@ -309,9 +311,9 @@
 				var label = (('stop_tracking' == action) ?
 					    '<?php echo esc_js( $opt_out_text ) ?>' :
 				        '<?php echo esc_js( $opt_in_text ) ?>'),
-				    href = (('stop_tracking' != action) ?
-					    '<?php echo esc_js( $reconnect_url ) ?>' :
-					    '');
+                    href = (('stop_tracking' != action) ?
+                        '<?php echo ( $fs->is_registered() ? '' : esc_js( $reconnect_url ) ) ?>' :
+                        '');
 
 				$actionLink = $('<a id="fs_theme_opt_in_out" href="' + encodeURI(href) + '" class="button" data-action="' + action + '">' + label + '</a>');
 
