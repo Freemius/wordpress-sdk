@@ -7895,6 +7895,20 @@
                     continue;
                 }
 
+                if (
+                    ! $fs->is_addon() &&
+                    ! FS_Plan_Manager::instance()->has_paid_plan( $fs->_plans )
+                ) {
+                    /**
+                     * The parent product can be free-only but can have its `has_paid_plan` flag set to `true` when
+                     * there is a context bundle.
+                     * 
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.3.2
+                     */
+                    continue;
+                }
+
                 if ( $current_blog_id > 0 ) {
                     $fs->switch_to_blog( $current_blog_id );
                 }
