@@ -185,7 +185,11 @@ $form_width: 480px;
                     height:    40px;
                 }
 
-                div
+                .fs-switch {
+                    float: right;
+                }
+
+                .fs-permission-description
                 {
                     margin-left: 55px;
 
@@ -401,10 +405,14 @@ $form_width: 480px;
             {
                 li
                 {
-                    div
+                    .fs-permission-description
                     {
                         margin-right: 55px;
                         margin-left:  0;
+                    }
+
+                    .fs-switch {
+                        float: left;
                     }
 
                     i.dashicons

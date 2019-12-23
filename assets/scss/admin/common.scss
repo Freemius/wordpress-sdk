@@ -1,5 +1,6 @@
 @import "../start";
 @import "themes";
+@import "switch";
 
 #fs_frame
 {
@@ -209,6 +210,7 @@ span.fs-submenu-item.fs-sub:before
     display:         inline-block;
     background:      url('/wp-admin/images/wpspin_light-2x.gif');
     background-size: contain;
+    margin-bottom:   -2px;
 }
 
 .wrap.fs-section {
