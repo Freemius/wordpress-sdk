@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-11-10 01:59+0000\n"
-"Last-Translator: Carlos Longarela <carlos@longarela.eu>\n"
+"PO-Revision-Date: 2019-12-26 09:28+0100\n"
+"Last-Translator: David <david@closemarketing.es>\n"
 "Language: es_ES\n"
 "Language-Team: Spanish (Spain) (http://www.transifex.com/freemius/wordpress-sdk/language/es_ES/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,9 +17,10 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 2.2.4\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
-"X-Poedit-SourceCharset: UTF-8\n"
 
 #: includes/class-freemius.php1880, templates/account.php:840
 msgid "An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned."
@@ -47,7 +48,7 @@ msgstr "¿Cuál es el nombre de %s?"
 
 #: includes/class-freemius.php:2499
 msgid "It's a temporary %s. I'm just debugging an issue."
-msgstr "Es una %stemporal . Sólo estoy depurando un problema"
+msgstr "Es una %s temporal. Sólo estoy depurando un problema."
 
 #: includes/class-freemius.php:2501
 msgid "Deactivation"
@@ -103,11 +104,11 @@ msgstr "%s es genial, pero necesito una característica que no soportáis"
 
 #: includes/class-freemius.php:2598
 msgid "What feature?"
-msgstr "¿Qué característica?"
+msgstr "¿Cual funcionalidad?"
 
 #: includes/class-freemius.php:2602
 msgid "The %s is not working"
-msgstr " El %s no funciona"
+msgstr "El %s no funciona"
 
 #: includes/class-freemius.php:2604
 msgid "Kindly share what didn't work so we can fix it for future users..."
@@ -123,7 +124,7 @@ msgstr "¿Que has estado buscando?"
 
 #: includes/class-freemius.php:2614
 msgid "The %s didn't work as expected"
-msgstr " El %s no funciona como esperaba"
+msgstr "El %s no funciona como esperaba"
 
 #: includes/class-freemius.php:2616
 msgid "What did you expect?"
@@ -257,10 +258,9 @@ msgstr "La actualización de %s se completó con éxito."
 
 #: includes/class-freemius.php9802, includes/class-fs-plugin-updater.php1038,
 #: includes/class-fs-plugin-updater.php1233,
-#: includes/class-fs-plugin-updater.php1240,
-#: templates/auto-installation.php:32
+#: includes/class-fs-plugin-updater.php1240, templates/auto-installation.php:32
 msgid "Add-On"
-msgstr "Complemento"
+msgstr "Extensión"
 
 #: includes/class-freemius.php9804, templates/account.php335,
 #: templates/account.php343, templates/debug.php360, templates/debug.php:551
@@ -291,7 +291,7 @@ msgstr "No vemos ninguna licencia activa asociada a esa dirección de correo ele
 
 #: includes/class-freemius.php:13416
 msgid "Account is pending activation."
-msgstr "La cuenta está pendiente de activación"
+msgstr "La cuenta está pendiente de activación."
 
 #: includes/class-freemius.php13528,
 #: templates/forms/premium-versions-upgrade-handler.php:47
@@ -708,7 +708,7 @@ msgstr "Inscribirse"
 
 #: includes/class-freemius.php:22453
 msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
-msgstr "La versión de pago de %1$s ya está instalada. Por favor, actívala para empezar a beneficiarte de las características de %2$s. %3$s"
+msgstr " La versión de pago de %1$s ya está instalada. Por favor, actívala para empezar a beneficiarte de las características de %2$s. %3$s"
 
 #: includes/class-freemius.php:22461
 msgid "Activate %s features"
@@ -888,8 +888,7 @@ msgid "Install Free Version Now"
 msgstr "Instalar la versión gratuita ahora"
 
 #: includes/fs-plugin-info-dialog.php749, templates/add-ons.php323,
-#: templates/auto-installation.php111,
-#: templates/account/partials/addon.php365,
+#: templates/auto-installation.php111, templates/account/partials/addon.php365,
 #: templates/account/partials/addon.php:418
 msgid "Install Now"
 msgstr "Instalar ahora"
@@ -2001,8 +2000,8 @@ msgstr "Nombre de la empresa"
 msgid "Tax / VAT ID"
 msgstr "Tax / Núm IVA"
 
-#: templates/account/billing.php42, templates/account/billing.php42,
-#: templates/account/billing.php43, templates/account/billing.php:43
+#: templates/account/billing.php42, templates/account/billing.php43,
+#: templates/account/billing.php:43
 msgid "Address Line %d"
 msgstr "Línea de la dirección %d"
 
@@ -2196,7 +2195,7 @@ msgstr "%s tracking cookie después de la primera visita para maximizar las gana
 
 #: templates/forms/affiliation.php:155
 msgid "Unlimited commissions."
-msgstr "Comisiones Ilimitadas"
+msgstr "Comisiones Ilimitadas."
 
 #: templates/forms/affiliation.php:157
 msgid "%s minimum payout amount."
@@ -2256,7 +2255,7 @@ msgstr "Social media (Facebook, Twitter, etc.)"
 
 #: templates/forms/affiliation.php:203
 msgid "Mobile apps"
-msgstr "Apps móviles "
+msgstr "Aplicaciones móviles"
 
 #: templates/forms/affiliation.php:207
 msgid "Website, email, and social media statistics (optional)"
@@ -2330,7 +2329,7 @@ msgstr "Hay una nueva versión de %s disponible."
 
 #: templates/forms/premium-versions-upgrade-handler.php:41
 msgid " %s to access version %s security & feature updates, and support."
-msgstr "%s para acceder a la versión %s de actualizaciones de funciones, seguridad y soporte."
+msgstr " %s para acceder a la versión %s de actualizaciones de funciones, seguridad y soporte."
 
 #: templates/forms/premium-versions-upgrade-handler.php:54
 msgid "New Version Available"
@@ -2404,19 +2403,19 @@ msgstr "Beta"
 
 #: templates/partials/network-activation.php:27
 msgid "Activate license on all sites in the network."
-msgstr "Activar licencia en todos los sitios de la red"
+msgstr "Activar licencia en todos los sitios de la red."
 
 #: templates/partials/network-activation.php:28
 msgid "Apply on all sites in the network."
-msgstr "Aplicar en todos los sitios de la red"
+msgstr "Aplicar en todos los sitios de la red."
 
 #: templates/partials/network-activation.php:31
 msgid "Activate license on all pending sites."
-msgstr "Aplicar licencia en todos los sitios pendientes"
+msgstr "Aplicar licencia en todos los sitios pendientes."
 
 #: templates/partials/network-activation.php:32
 msgid "Apply on all pending sites."
-msgstr "Aplicar en todos los sitios pendientes"
+msgstr "Aplicar en todos los sitios pendientes."
 
 #: templates/partials/network-activation.php40,
 #: templates/partials/network-activation.php:74
