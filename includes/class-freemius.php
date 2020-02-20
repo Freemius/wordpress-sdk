@@ -12733,7 +12733,9 @@
                 return;
             }
 
-            if ( empty( $this->get_installs_ids_with_foreign_licenses() ) ) {
+            $installs_ids_with_foreign_licenses = $this->get_installs_ids_with_foreign_licenses();
+
+            if ( empty( $installs_ids_with_foreign_licenses ) ) {
                 // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
                 return;
             }
