@@ -7126,7 +7126,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
+                    if ( ! $this->is_activation_page() ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
