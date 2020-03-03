@@ -328,7 +328,11 @@
                 }
             }
 
-            $data->sections['description'] = fs_get_template( '/plugin-info/description.php', $view_vars );
+            // If the description on Freemius is empty, but the plugin is hosted on WP.org, show the WP.org description.
+            $description = fs_get_template( '/plugin-info/description.php', $view_vars );
+            if ( !empty( $data->sections['description'] ) && empty( $description ) ) {
+                $data->sections['description'] = $description;
+            }
 
             if ( $has_pricing ) {
                 // Add plans to data.
