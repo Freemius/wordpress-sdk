@@ -812,7 +812,9 @@ HTML;
                 $singleInstallDetails.prev().data( 'blog-id' ) :
                 null;
 
+            <?php if ( $fs->apply_filters( 'enable_per_site_activation', true ) ) : ?>
             $multisiteOptionsContainer.toggle( isNetworkActivation && ! isSingleSiteActivation );
+            <?php endif ?>
 
             if ( hasLicenseTypes ) {
                 $licenseTypes.attr( 'checked', false );
