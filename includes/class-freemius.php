@@ -7126,7 +7126,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
+                    if ( ! $this->is_activation_page() ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
@@ -12733,7 +12733,9 @@
                 return;
             }
 
-            if ( empty( $this->get_installs_ids_with_foreign_licenses() ) ) {
+            $installs_ids_with_foreign_licenses = $this->get_installs_ids_with_foreign_licenses();
+
+            if ( empty( $installs_ids_with_foreign_licenses ) ) {
                 // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
                 return;
             }
