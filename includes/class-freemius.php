@@ -1601,7 +1601,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
-                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler') );
+                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
