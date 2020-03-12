@@ -2195,6 +2195,12 @@
                 );
 
                 $store_option = true;
+            } else if (
+                isset( $id_slug_type_path_map[ $module_id ]['slug'] ) &&
+                $slug !== $id_slug_type_path_map[ $module_id ]['slug']
+            ) {
+                $id_slug_type_path_map[ $module_id ]['slug'] = $slug;
+                $store_option = true;
             }
 
             if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
