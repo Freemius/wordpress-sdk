@@ -10123,6 +10123,10 @@
 
             $class_name = '';
 
+            if ( fs_starts_with( $option_name, WP_FS__MODULE_TYPE_THEME . '_' ) ) {
+                $option_name = str_replace( WP_FS__MODULE_TYPE_THEME . '_', '', $option_name );
+            }
+            
             switch ( $option_name ) {
                 case 'plugins':
                 case 'themes':
