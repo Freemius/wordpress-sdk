@@ -20,7 +20,8 @@
 	if ( ! empty( $plugin->info->selling_point_0 ) ||
 	     ! empty( $plugin->info->selling_point_1 ) ||
 	     ! empty( $plugin->info->selling_point_2 )
-	) : ?>
+	) :
+	?>
 		<div class="fs-selling-points">
 			<ul>
 				<?php for ( $i = 0; $i < 3; $i ++ ) : ?>
@@ -56,7 +57,8 @@
 	<?php
 	endif;
 
-	if ( ! empty( $plugin->info->screenshots ) ) : ?>
+	if ( ! empty( $plugin->info->screenshots ) ) :
+	?>
 	<?php $screenshots = $plugin->info->screenshots ?>
 	<div class="fs-screenshots clearfix">
 		<h2><?php fs_esc_html_echo_inline( 'Screenshots', 'screenshots', $plugin->slug ) ?></h2>
