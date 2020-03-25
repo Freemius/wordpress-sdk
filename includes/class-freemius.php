@@ -14357,7 +14357,12 @@
          * @return bool
          */
         function is_user_in_admin() {
-            return is_admin() && ! self::is_ajax() && ! self::is_cron();
+            return (
+                is_admin() &&
+                ! self::is_ajax() &&
+                ! self::is_cron() &&
+                ( 'admin-post.php' !== self::get_current_page() )
+            );
         }
 
         /**
