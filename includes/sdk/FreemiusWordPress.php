@@ -228,10 +228,13 @@
 			$now          = ( time() - self::$_clock_diff );
 			$date         = date( 'r', $now );
 
-			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) && ! empty( $pPostParams ) ) {
-				$content_md5  = md5( $pPostParams );
-				$content_type = 'application/json';
-			}
+			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) ) {
+                $content_type = 'application/json';
+
+                if ( ! empty( $pPostParams ) ) {
+                    $content_md5 = md5( $pPostParams );
+                }
+            }
 
 			$string_to_sign = implode( $eol, array(
 				$pMethod,
@@ -380,10 +383,11 @@
 			}
 
 			if ( in_array( $pMethod, array( 'POST', 'PUT' ) ) ) {
-				if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
-					$pWPRemoteArgs['headers']['Content-type'] = 'application/json';
-					$pWPRemoteArgs['body']                    = json_encode( $pParams );
-				}
+                $pWPRemoteArgs['headers']['Content-type'] = 'application/json';
+
+                if ( is_array( $pParams ) && 0 < count( $pParams ) ) {
+                    $pWPRemoteArgs['body'] = json_encode( $pParams );
+                }
 			}
 
 			$request_url = self::GetUrl( $pCanonizedPath, $pIsSandbox );

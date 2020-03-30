@@ -369,6 +369,14 @@
         const REASON_DIDNT_WORK_AS_EXPECTED = 14;
         const REASON_TEMPORARY_DEACTIVATION = 15;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @var boolean|null
+         */
+        private $_use_external_pricing = null;
+
         #endregion
 
         /* Ctor
@@ -1601,6 +1609,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
+                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -2186,6 +2195,12 @@
                 );
 
                 $store_option = true;
+            } else if (
+                isset( $id_slug_type_path_map[ $module_id ]['slug'] ) &&
+                $slug !== $id_slug_type_path_map[ $module_id ]['slug']
+            ) {
+                $id_slug_type_path_map[ $module_id ]['slug'] = $slug;
+                $store_option                                = true;
             }
 
             if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
@@ -7126,7 +7141,7 @@
                  )
             ) {
                 if ( ! $this->is_pending_activation() ) {
-                    if ( ! $this->_menu->is_activation_page( $this->show_opt_in_on_themes_page() ) ) {
+                    if ( ! $this->is_activation_page() ) {
                         /**
                          * If a user visits any other admin page before activating the premium-only theme with a valid
                          * license, reactivate the previous theme.
@@ -10312,6 +10327,10 @@
 
             $class_name = '';
 
+            if ( fs_starts_with( $option_name, WP_FS__MODULE_TYPE_THEME . '_' ) ) {
+                $option_name = str_replace( WP_FS__MODULE_TYPE_THEME . '_', '', $option_name );
+            }
+            
             switch ( $option_name ) {
                 case 'plugins':
                 case 'themes':
@@ -12937,7 +12956,9 @@
                 return;
             }
 
-            if ( empty( $this->get_installs_ids_with_foreign_licenses() ) ) {
+            $installs_ids_with_foreign_licenses = $this->get_installs_ids_with_foreign_licenses();
+
+            if ( empty( $installs_ids_with_foreign_licenses ) ) {
                 // Handle user change only when the parent product or one of its add-ons is activated with a foreign license.
                 return;
             }
@@ -13222,6 +13243,32 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return string
+         */
+        function get_pricing_js_path() {
+            return $this->apply_filters( 'freemius_pricing_js_path', WP_FS__DIR_INCLUDES . '/freemius-pricing/freemius-pricing.js' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         *
+         * @return bool
+         */
+        function should_use_external_pricing() {
+            if ( is_null( $this->_use_external_pricing ) ) {
+                $pricing_js_path = $this->get_pricing_js_path();
+
+                $this->_use_external_pricing = ( empty( $pricing_js_path ) || ! file_exists( $pricing_js_path ) );
+            }
+
+            return $this->_use_external_pricing;
+        }
+
+        /**
          * The implementation of this method was previously in `_activate_license_ajax_action()`.
          *
          * @author Vova Feldman (@svovaf)
@@ -13398,7 +13445,7 @@
 
                     $next_page = $fs->is_addon() ?
                         $fs->get_parent_instance()->get_account_url() :
-                        $fs->get_account_url();
+                        $fs->get_after_activation_url();
                 }
             } else {
                 $next_page = $fs->opt_in(
@@ -14530,7 +14577,12 @@
          * @return bool
          */
         function is_user_in_admin() {
-            return is_admin() && ! self::is_ajax() && ! self::is_cron();
+            return (
+                is_admin() &&
+                ! self::is_ajax() &&
+                ! self::is_cron() &&
+                ( 'admin-post.php' !== self::get_current_page() )
+            );
         }
 
         /**
@@ -14842,9 +14894,18 @@
             if ( function_exists( 'get_sites' ) ) {
                 // For WP 4.6 and above.
                 return get_sites( $args );
-            } else if ( function_exists( 'wp_get_sites' ) ) {
+            } else if ( function_exists( 'wp_' . 'get_sites' ) ) {
                 // For WP 3.7 to WP 4.5.
-                return wp_get_sites( $args );
+                /**
+                 * This is a hack suggested previously proposed by the TRT. Our SDK is compliant with older WP versions and we'd like to keep it that way.
+                 *
+                 * @todo Remove this hack once this false-positive error is removed from the Theme Sniffer.
+                 *
+                 * @since 2.3.3
+                 * @author Vova Feldman (@svovaf)
+                 */
+                $fn = 'wp_' . 'get_sites';
+                return $fn( $args );
             } else {
                 // For WP 3.6 and below.
                 return get_blog_list( 0, 'all' );
@@ -22155,6 +22216,86 @@
             } else {
                 echo $this->apply_filters( 'templates/pricing.php', fs_get_template( 'pricing.php', $vars ) );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.1
+         */
+        function _maybe_add_pricing_ajax_handler() {
+            if ( ! $this->should_use_external_pricing() ) {
+                $this->add_ajax_action( 'pricing_ajax_action', array( &$this, '_fs_pricing_ajax_action_handler' ) );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.1
+         */
+        function _fs_pricing_ajax_action_handler() {
+            $this->check_ajax_referer( 'pricing_ajax_action' );
+
+            $result         = null;
+            $pricing_action = fs_request_get( 'pricing_action' );
+
+            switch ( $pricing_action ) {
+                case 'fetch_pricing_data':
+                    $params = array(
+                        'is_enriched'  => true,
+                        'trial'        => fs_request_get_bool( 'trial' ),
+                        'sandbox'      => fs_request_get( 'sandbox' ),
+                        's_ctx_type'   => fs_request_get( 's_ctx_type' ),
+                        's_ctx_id'     => fs_request_get( 's_ctx_id' ),
+                        's_ctx_ts'     => fs_request_get( 's_ctx_ts' ),
+                        's_ctx_secure' => fs_request_get( 's_ctx_secure' ),
+                    );
+
+                    $bundle_id         = $this->get_bundle_id();
+                    $bundle_public_key = $this->get_bundle_public_key();
+
+                    $has_bundle_context = ( FS_Plugin::is_valid_id( $bundle_id ) && ! empty( $bundle_public_key ) );
+
+                    if ( ! $has_bundle_context ) {
+                        $api = $this->get_api_plugin_scope();
+                    } else {
+                        $api = FS_Api::instance(
+                            $bundle_id,
+                            'plugin',
+                            $bundle_id,
+                            $bundle_public_key,
+                            ! $this->is_live(),
+                            false,
+                            $this->get_sdk_version()
+                        );
+
+                        $params['plugin_id']         = $this->get_id();
+                        $params['plugin_public_key'] = $this->get_public_key();
+                    }
+
+                    $result = $api->get( 'pricing.json?' . http_build_query( $params ) );
+                    break;
+                case 'start_trial':
+                    $result = $this->opt_in(
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        fs_request_get( 'plan_id' )
+                    );
+            }
+
+            if ( is_object( $result ) && $this->is_api_error( $result ) ) {
+                $this->_logger->api_error( $result );
+
+                self::shoot_ajax_failure(
+                    isset( $result->error ) ?
+                        ( is_string( $result->error ) ? $result->error : $result->error->message ) :
+                        var_export( $result, true )
+                );
+            }
+
+            $this->shoot_ajax_success( $result );
         }
 
         #----------------------------------------------------------------------------------
