@@ -13445,7 +13445,7 @@
 
                     $next_page = $fs->is_addon() ?
                         $fs->get_parent_instance()->get_account_url() :
-                        $fs->get_after_activation_url();
+                        $fs->get_after_activation_url( 'after_license_activation' );
                 }
             } else {
                 $next_page = $fs->opt_in(
