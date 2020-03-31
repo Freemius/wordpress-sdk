@@ -387,7 +387,7 @@
 
         $newest_sdk_plugin_path = $fs_active_plugins->newest->plugin_path;
 
-        $active_plugins        = get_option( 'active_plugins', array() );
+        $active_plugins        = array_values( get_option( 'active_plugins', array() ) );
         $newest_sdk_plugin_key = array_search( $newest_sdk_plugin_path, $active_plugins );
         if ( 0 === $newest_sdk_plugin_key ) {
             // if it's 0 it's the first plugin already, no need to continue
