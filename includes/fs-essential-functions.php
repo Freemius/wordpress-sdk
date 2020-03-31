@@ -393,8 +393,9 @@
             // if it's 0 it's the first plugin already, no need to continue
             return false;
         } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
-            // Remove plugin from its current position (position minus one for array_splice usage).
-            array_splice( $active_plugins, $newest_sdk_plugin_key - 1, 1 );
+            // Remove plugin from its current position.
+            array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
+
 
             // Set it to be included first.
             array_unshift( $active_plugins, $newest_sdk_plugin_path );
