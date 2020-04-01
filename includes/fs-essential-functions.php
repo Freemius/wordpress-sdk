@@ -417,23 +417,25 @@
             update_option( 'active_plugins', $updated_active_plugins );
 
             return true;
-        } else if ( is_multisite() && false === $newest_sdk_plugin_key ) {
+        }
+
+        if ( is_multisite() ) {
             // Plugin is network active.
             $network_active_plugins = get_site_option( 'active_sitewide_plugins', array() );
 
-            if (isset($network_active_plugins[$newest_sdk_plugin_path])) {
-                reset($network_active_plugins);
-                if ( $newest_sdk_plugin_path === key($network_active_plugins) ) {
+            if ( isset( $network_active_plugins[ $newest_sdk_plugin_path ] ) ) {
+                reset( $network_active_plugins );
+                if ( $newest_sdk_plugin_path === key( $network_active_plugins ) ) {
                     // Plugin is already activated first on the network level.
                     return false;
-                } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
-                    $time = $network_active_plugins[$newest_sdk_plugin_path];
+                } else {
+                    $time = $network_active_plugins[ $newest_sdk_plugin_path ];
 
                     // Remove plugin from its current position.
-                    unset($network_active_plugins[$newest_sdk_plugin_path]);
+                    unset( $network_active_plugins[ $newest_sdk_plugin_path ] );
 
                     // Set it to be included first.
-                    $network_active_plugins = array($newest_sdk_plugin_path => $time) + $network_active_plugins;
+                    $network_active_plugins = array( $newest_sdk_plugin_path => $time ) + $network_active_plugins;
 
                     update_site_option( 'active_sitewide_plugins', $network_active_plugins );
 
