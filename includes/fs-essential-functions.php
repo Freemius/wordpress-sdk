@@ -408,7 +408,7 @@
 
             $updated_active_plugins[] = $plugin_path;
 
-            if ( ! $is_first_path ) {
+            if ( $is_first_path ) {
                 $is_first_path = false;
             }
         }
