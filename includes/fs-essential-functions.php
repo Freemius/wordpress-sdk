@@ -387,19 +387,34 @@
 
         $newest_sdk_plugin_path = $fs_active_plugins->newest->plugin_path;
 
-        $active_plugins        = get_option( 'active_plugins', array() );
-        $newest_sdk_plugin_key = array_search( $newest_sdk_plugin_path, $active_plugins );
-        if ( 0 === $newest_sdk_plugin_key ) {
-            // if it's 0 it's the first plugin already, no need to continue
-            return false;
-        } else if ( is_numeric( $newest_sdk_plugin_key ) ) {
-            // Remove plugin from its current position.
-            array_splice( $active_plugins, $newest_sdk_plugin_key, 1 );
+        $active_plugins         = get_option( 'active_plugins', array() );
+        $updated_active_plugins = array( $newest_sdk_plugin_path );
 
-            // Set it to be included first.
-            array_unshift( $active_plugins, $newest_sdk_plugin_path );
+        $plugin_found  = false;
+        $is_first_path = true;
 
-            update_option( 'active_plugins', $active_plugins );
+        foreach ( $active_plugins as $key => $plugin_path ) {
+            if ( $plugin_path === $newest_sdk_plugin_path ) {
+                if ( $is_first_path ) {
+                    // if it's the first plugin already, no need to continue
+                    return false;
+                }
+
+                $plugin_found = true;
+
+                // Skip the plugin (it is already added as the 1st item of $updated_active_plugins).
+                continue;
+            }
+
+            $updated_active_plugins[] = $plugin_path;
+
+            if ( ! $is_first_path ) {
+                $is_first_path = false;
+            }
+        }
+
+        if ( $plugin_found ) {
+            update_option( 'active_plugins', $updated_active_plugins );
 
             return true;
         } else if ( is_multisite() && false === $newest_sdk_plugin_key ) {
