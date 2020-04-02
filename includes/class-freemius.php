@@ -1465,7 +1465,10 @@
             if ( $this->is_plugin() &&
                  ! isset( $this->_storage->is_plugin_new_install )
             ) {
-                $this->_storage->is_plugin_new_install = false;
+                $this->_storage->is_plugin_new_install = (
+                    ! is_plugin_active( $this->_plugin_basename ) &&
+                    empty( $this->_storage->plugin_last_version )
+                );
             }
         }
 
