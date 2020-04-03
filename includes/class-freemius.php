@@ -4042,6 +4042,20 @@
         }
 
         /**
+         * Get anonymous netowrk id
+         *
+         * @author Takhir Lugumanov (@tagire)
+         * @since  1.1.0
+         *
+         * @param null|int $blog_id Since 2.0.0
+         *
+         * @return string
+         */
+        function get_anonymous_network_id( $blog_id = null ) {
+           return get_anonymous_network_id( get_network()->site_id );
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
@@ -16094,6 +16108,11 @@
                     $this->get_secret_key()
                 );
             }
+
+            if ( is_multisite() && function_exists('get_network')) {
+                $params['network_uid'] = $this->get_anonymous_network_id();
+            }
+
 
             return array_merge( $params, $override_with );
         }
