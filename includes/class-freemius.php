@@ -3875,6 +3875,7 @@
                     'is_cron'      => json_encode( self::is_cron() ),
                     'is_gdpr_test' => $is_gdpr_test,
                     'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
+                    'network_uid'  => $this->get_anonymous_network_id( $blog_id ),
                 )
             );
         }
@@ -4052,7 +4053,7 @@
          * @return string
          */
         function get_anonymous_network_id( $blog_id = null ) {
-           return get_anonymous_network_id( get_network()->site_id );
+           return self::get_anonymous_id( get_network()->site_id );
         }
 
         /**
