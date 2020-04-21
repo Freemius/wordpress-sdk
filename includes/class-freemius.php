@@ -19502,9 +19502,11 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.2.1
+         *
+         * @param bool $check_expiration
          */
-        function has_active_valid_license() {
-            return self::is_active_valid_license( $this->_license );
+        function has_active_valid_license( $check_expiration = true ) {
+            return self::is_active_valid_license( $this->_license, $check_expiration );
         }
 
         /**
@@ -19596,15 +19598,16 @@
          * @since  2.1.3
          *
          * @param FS_Plugin_License $license
+         * @param bool              $check_expiration
          *
          * @return bool
          */
-        private static function is_active_valid_license( $license ) {
+        private static function is_active_valid_license( $license, $check_expiration = true ) {
             return (
                 is_object( $license ) &&
                 FS_Plugin_License::is_valid_id( $license->id ) &&
                 $license->is_active() &&
-                $license->is_valid()
+                ( ! $check_expiration || $license->is_valid() )
             );
         }
 
