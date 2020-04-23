@@ -824,7 +824,11 @@
                 return false;
             }
 
-            if ( ! $is_tabs_visibility_check && $this->show_settings_with_tabs() ) {
+            if (
+                ! $is_tabs_visibility_check &&
+                $this->is_org_repo_compliant() &&
+                $this->show_settings_with_tabs()
+            ) {
                 /**
                  * wp.org themes are limited to a single submenu item, and
                  * sub-submenu items are most likely not allowed (never verified).
