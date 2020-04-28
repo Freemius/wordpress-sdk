@@ -1615,7 +1615,7 @@
                 add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+                add_action( 'wp_delete_site', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
 
                 add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
                 add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
@@ -15213,34 +15213,27 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param int  $context_blog_id
-         * @param bool $drop True if site's database tables should be dropped. Default is false.
+         * @param WP_Site $old_site
          */
-        public function _after_site_deleted_callback( $context_blog_id = 0, $drop = false ) {
+        public function _after_site_deleted_callback( WP_Site $old_site ) {
             $this->_logger->entrance();
 
-            $install = $this->get_install_by_blog_id( $context_blog_id );
+            $install = $this->get_install_by_blog_id( $old_site->blog_id );
 
             if ( ! is_object( $install ) ) {
                 // Site not connected.
                 return;
             }
 
-            $this->update_multisite_data_after_site_deactivation( $context_blog_id );
+            $this->update_multisite_data_after_site_deactivation( $old_site->blog_id );
 
             $current_blog_id = get_current_blog_id();
 
-            $this->switch_to_blog( $context_blog_id );
+            $this->switch_to_blog( $old_site->blog_id );
 
-            if ( $drop ) {
-                // Delete install if dropping site DB.
-                $this->delete_account_event();
-            } else {
-                // Send deactivation event.
-                $this->sync_install( array(
-                    'is_active' => false,
-                ) );
-            }
+            // Delete install if dropping site DB.
+            $this->delete_account_event();
+
 
             $this->switch_to_blog( $current_blog_id );
         }
