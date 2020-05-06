@@ -180,7 +180,9 @@
                 // Kinsta
                 ( fs_starts_with( $subdomain, 'staging-' ) && ( fs_ends_with( $subdomain, '.kinsta.com' ) || fs_ends_with( $subdomain, '.kinsta.cloud' ) ) ) ||
                 // DesktopServer
-                fs_ends_with( $subdomain, '.dev.cc' )
+                fs_ends_with( $subdomain, '.dev.cc' ) ||
+                // Pressable
+                fs_ends_with( $subdomain, '.mystagingwebsite.com' )
             );
         }
 
