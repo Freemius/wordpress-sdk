@@ -1495,6 +1495,13 @@
                             -1 < settings.url.indexOf('admin-ajax.php') &&
                             ! ( settings.url.indexOf( '<?php echo $admin_param ?>' ) > 0 )
                         ) {
+                            if (
+                                'string' === typeof settings.data &&
+                                settings.data.indexOf( 'action=heartbeat' ) > 0
+                            ) {
+                                return;
+                            }
+
                             if (settings.url.indexOf('?') > 0) {
                                 settings.url += '&';
                             } else {
@@ -1502,7 +1509,6 @@
                             }
 
                             settings.url += '<?php echo $admin_param ?>=true';
-
                         }
                     });
                 })(jQuery);
