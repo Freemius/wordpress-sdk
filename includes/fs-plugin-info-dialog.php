@@ -168,9 +168,9 @@
                                 }
                             }
 
-                            if ( ! empty( $filtered_pricing ) ) {
-                                $has_paid_plan = true;
+                            $has_paid_plan = true;
 
+                            if ( ! empty( $filtered_pricing ) ) {
                                 $plan->pricing = $filtered_pricing;
 
                                 $has_pricing = true;
@@ -250,12 +250,14 @@
                         switch_to_blog( $blog_id );
                     }
 
-                    $data->checkout_link = $this->_fs->checkout_url(
-                        WP_FS__PERIOD_ANNUALLY,
-                        false,
-                        array(),
-                        ( $has_valid_blog_id ? false : null )
-                    );
+                    if ( $has_pricing ) {
+                        $data->checkout_link = $this->_fs->checkout_url(
+                            WP_FS__PERIOD_ANNUALLY,
+                            false,
+                            array(),
+                            ( $has_valid_blog_id ? false : null )
+                        );
+                    }
 
                     if ( $has_valid_blog_id ) {
                         restore_current_blog();
