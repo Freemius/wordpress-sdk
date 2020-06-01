@@ -13001,6 +13001,50 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.2.14
+         */
+        function starting_migration() {
+            if ( ! empty( $this->_storage->license_migration ) ) {
+                // Do not overwrite the data if already set.
+                return;
+            }
+
+            $this->_storage->license_migration = (object) array(
+                'is_migrating'    => true,
+                'start_timestamp' => time()
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.2.14
+         */
+        function is_migration() {
+            if ( $this->is_addon() ) {
+                return $this->get_parent_instance()->is_migration();
+            }
+
+            if ( empty( $this->_storage->license_migration ) ) {
+                return false;
+            }
+
+            if ( ! is_object( $this->_storage->license_migration ) ) {
+                return false;
+            }
+
+            if ( ! $this->_storage->license_migration->is_migrating ) {
+                return false;
+            }
+
+            return (
+                // Return `true` if the migration is within 5 minutes from the starting time.
+                ( time() - $this->_storage->license_migration->start_timestamp ) <= WP_FS__TIME_5_MIN_IN_SEC
+            );
+        }
+
+        /**
+         *
          * A helper method to activate migrated licenses. If the product is network activated and integrated, the method will network activate the license.
          *
          * @author Vova Feldman (@svovaf)
@@ -23399,7 +23443,8 @@
          * @since  1.0.9
          */
         function set_plugin_upgrade_complete() {
-            $this->_storage->plugin_upgrade_mode = false;
+            $this->_storage->plugin_upgrade_mode             = false;
+            $this->_storage->license_migration->is_migrating = false;
         }
 
         #endregion
