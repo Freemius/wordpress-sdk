@@ -13081,7 +13081,8 @@
         function activate_migrated_license(
             $license_key,
             $is_marketing_allowed = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $blog_id = null
         ) {
             $this->_logger->entrance();
 
@@ -13091,7 +13092,7 @@
                     $this->get_sites_for_network_level_optin() :
                     array(),
                 $is_marketing_allowed,
-                null,
+                $blog_id,
                 $plugin_id
             );
 
@@ -13188,6 +13189,15 @@
                 $user = $fs->get_current_or_network_user();
             }
 
+            if ( $has_valid_blog_id ) {
+                /**
+                 * If a specific blog ID was provided, activate the license only on the specific blog that is associated with the given blog ID.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $fs->switch_to_blog( $blog_id );
+            }
+
             if ( is_object( $user ) ) {
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
@@ -13228,16 +13238,6 @@
                         }
                     }
                 } else {
-                    if ( $has_valid_blog_id ) {
-                        /**
-                         * If a specific blog ID was provided, activate the license only for the install that is
-                         * associated with the given blog ID.
-                         *
-                         * @author Leo Fajardo (@leorw)
-                         */
-                        $fs->switch_to_blog( $blog_id );
-                    }
-
                     if ( $fs->is_registered() ) {
                         $params = array(
                             'license_key' => $fs->apply_filters( 'license_key', $license_key )
