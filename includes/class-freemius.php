@@ -1654,7 +1654,7 @@
 
             add_action( 'admin_init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
-            if ( $this->is_theme() ) {
+            if ( $this->is_theme() && ! $this->is_migration() ) {
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
@@ -2028,13 +2028,19 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
-            $this->_add_tracking_links();
+            $is_migration = $this->is_migration();
+
+            if ( ! $is_migration ) {
+                $this->_add_tracking_links();
+            }
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
             }
 
-            $this->_register_account_hooks();
+            if ( ! $is_migration ) {
+                $this->_register_account_hooks();
+            }
         }
 
         /**
@@ -7106,6 +7112,8 @@
          * @since  1.0.7
          */
         function _admin_init_action() {
+            $is_migration = $this->is_migration();
+
             /**
              * Automatically redirect to connect/activation page after plugin activation.
              *
@@ -7118,7 +7126,7 @@
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
                      */
-                } else {
+                } else if ( ! $is_migration ) {
                     $this->_redirect_on_activation_hook();
                     return;
                 }
@@ -7184,45 +7192,49 @@
                             return;
                         }
 
-                        if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                            if ( ! $this->_anonymous_mode ) {
-                                // Show notice for new plugin installations.
-                                $this->_admin_notices->add(
-                                    sprintf(
-                                        $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
-                                        sprintf( '<b><a href="%s">%s</a></b>',
-                                            $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
-                                            sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
-                                                '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
-                                        )
-                                    ),
-                                    '',
-                                    'update-nag'
-                                );
-                            }
-                        } else {
-                            if ( $this->should_add_sticky_optin_notice() ) {
-                                $this->add_sticky_optin_admin_notice();
-                            }
+                        if ( ! $is_migration ) {
+                            if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
+                                if ( ! $this->_anonymous_mode ) {
+                                    // Show notice for new plugin installations.
+                                    $this->_admin_notices->add(
+                                        sprintf(
+                                            $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
+                                            sprintf( '<b><a href="%s">%s</a></b>',
+                                                $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
+                                                sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
+                                                    '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
+                                            )
+                                        ),
+                                        '',
+                                        'update-nag'
+                                    );
+                                }
+                            } else {
+                                if ( $this->should_add_sticky_optin_notice() ) {
+                                    $this->add_sticky_optin_admin_notice();
+                                }
 
-                            if ( $this->has_filter( 'optin_pointer_element' ) ) {
-                                // Don't show admin nag if plugin update.
-                                wp_enqueue_script( 'wp-pointer' );
-                                wp_enqueue_style( 'wp-pointer' );
+                                if ( $this->has_filter( 'optin_pointer_element' ) ) {
+                                    // Don't show admin nag if plugin update.
+                                    wp_enqueue_script( 'wp-pointer' );
+                                    wp_enqueue_style( 'wp-pointer' );
 
-                                $this->_enqueue_connect_essentials();
+                                    $this->_enqueue_connect_essentials();
 
-                                add_action( 'admin_print_footer_scripts', array(
-                                    $this,
-                                    '_add_connect_pointer_script'
-                                ) );
+                                    add_action( 'admin_print_footer_scripts', array(
+                                        $this,
+                                        '_add_connect_pointer_script'
+                                    ) );
+                                }
                             }
                         }
                     }
                 }
 
-                if ( $this->show_opt_in_on_themes_page() &&
-                     $this->is_activation_page()
+                if (
+                    ! $is_migration &&
+                    $this->show_opt_in_on_themes_page() &&
+                    $this->is_activation_page()
                 ) {
                     $this->_show_theme_activation_optin_dialog();
                 }
@@ -12707,6 +12719,10 @@
          * @since  1.2.0
          */
         function _add_license_activation() {
+            if ( $this->is_migration() ) {
+                return;
+            }
+
             if ( ! $this->is_user_admin() ) {
                 // Only admins can activate a license.
                 return;
