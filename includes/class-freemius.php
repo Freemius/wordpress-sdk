@@ -13024,7 +13024,7 @@
                 return;
             }
 
-            $this->_storage->license_migration = (object) array(
+            $this->_storage->license_migration = array(
                 'is_migrating'    => true,
                 'start_timestamp' => time()
             );
@@ -13043,17 +13043,13 @@
                 return false;
             }
 
-            if ( ! is_object( $this->_storage->license_migration ) ) {
-                return false;
-            }
-
-            if ( ! $this->_storage->license_migration->is_migrating ) {
+            if ( ! $this->_storage->license_migration['is_migrating'] ) {
                 return false;
             }
 
             return (
                 // Return `true` if the migration is within 5 minutes from the starting time.
-                ( time() - $this->_storage->license_migration->start_timestamp ) <= WP_FS__TIME_5_MIN_IN_SEC
+                ( time() - $this->_storage->license_migration['start_timestamp'] ) <= WP_FS__TIME_5_MIN_IN_SEC
             );
         }
 
@@ -23457,11 +23453,8 @@
          * @since  1.0.9
          */
         function set_plugin_upgrade_complete() {
-            $this->_storage->plugin_upgrade_mode = false;
-
-            if ( ! empty( $this->_storage->license_migration ) ) {
-                $this->_storage->license_migration->is_migrating = false;
-            }
+            $this->_storage->plugin_upgrade_mode               = false;
+            $this->_storage->license_migration['is_migrating'] = false;
         }
 
         #endregion
