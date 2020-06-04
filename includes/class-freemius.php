@@ -2028,7 +2028,7 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
-            if ( ! $this->is_migration() ) {
+            if ( $this->is_migration() ) {
                 return;
             }
 
@@ -7232,7 +7232,7 @@
                 }
 
                 if ( $this->show_opt_in_on_themes_page() &&
-                    $this->is_activation_page()
+                     $this->is_activation_page()
                 ) {
                     $this->_show_theme_activation_optin_dialog();
                 }
