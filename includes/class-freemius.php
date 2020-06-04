@@ -7132,6 +7132,10 @@
                 }
             }
 
+            if ( $is_migration ) {
+                return;
+            }
+
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
                 check_admin_referer( $this->get_unique_affix() . '_skip_activation' );
 
@@ -7192,48 +7196,44 @@
                             return;
                         }
 
-                        if ( ! $is_migration ) {
-                            if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                                if ( ! $this->_anonymous_mode ) {
-                                    // Show notice for new plugin installations.
-                                    $this->_admin_notices->add(
-                                        sprintf(
-                                            $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
-                                            sprintf( '<b><a href="%s">%s</a></b>',
-                                                $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
-                                                sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
-                                                    '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
-                                            )
-                                        ),
-                                        '',
-                                        'update-nag'
-                                    );
-                                }
-                            } else {
-                                if ( $this->should_add_sticky_optin_notice() ) {
-                                    $this->add_sticky_optin_admin_notice();
-                                }
+                        if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
+                            if ( ! $this->_anonymous_mode ) {
+                                // Show notice for new plugin installations.
+                                $this->_admin_notices->add(
+                                    sprintf(
+                                        $this->get_text_inline( 'You are just one step away - %s', 'you-are-step-away' ),
+                                        sprintf( '<b><a href="%s">%s</a></b>',
+                                            $this->get_activation_url( array(), ! $this->is_delegated_connection() ),
+                                            sprintf( $this->get_text_x_inline( 'Complete "%s" Activation Now',
+                                                '%s - plugin name. As complete "PluginX" activation now', 'activate-x-now' ), $this->get_plugin_name() )
+                                        )
+                                    ),
+                                    '',
+                                    'update-nag'
+                                );
+                            }
+                        } else {
+                            if ( $this->should_add_sticky_optin_notice() ) {
+                                $this->add_sticky_optin_admin_notice();
+                            }
 
-                                if ( $this->has_filter( 'optin_pointer_element' ) ) {
-                                    // Don't show admin nag if plugin update.
-                                    wp_enqueue_script( 'wp-pointer' );
-                                    wp_enqueue_style( 'wp-pointer' );
+                            if ( $this->has_filter( 'optin_pointer_element' ) ) {
+                                // Don't show admin nag if plugin update.
+                                wp_enqueue_script( 'wp-pointer' );
+                                wp_enqueue_style( 'wp-pointer' );
 
-                                    $this->_enqueue_connect_essentials();
+                                $this->_enqueue_connect_essentials();
 
-                                    add_action( 'admin_print_footer_scripts', array(
-                                        $this,
-                                        '_add_connect_pointer_script'
-                                    ) );
-                                }
+                                add_action( 'admin_print_footer_scripts', array(
+                                    $this,
+                                    '_add_connect_pointer_script'
+                                ) );
                             }
                         }
                     }
                 }
 
-                if (
-                    ! $is_migration &&
-                    $this->show_opt_in_on_themes_page() &&
+                if ( $this->show_opt_in_on_themes_page() &&
                     $this->is_activation_page()
                 ) {
                     $this->_show_theme_activation_optin_dialog();
