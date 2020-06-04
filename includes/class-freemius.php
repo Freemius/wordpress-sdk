@@ -2028,19 +2028,17 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
-            $is_migration = $this->is_migration();
-
-            if ( ! $is_migration ) {
-                $this->_add_tracking_links();
+            if ( ! $this->is_migration() ) {
+                return;
             }
+
+            $this->_add_tracking_links();
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
             }
 
-            if ( ! $is_migration ) {
-                $this->_register_account_hooks();
-            }
+            $this->_register_account_hooks();
         }
 
         /**
