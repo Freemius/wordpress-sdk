@@ -1654,7 +1654,7 @@
 
             add_action( 'admin_init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
-            if ( $this->is_theme() ) {
+            if ( $this->is_theme() && ! $this->is_migration() ) {
                 add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
             }
 
@@ -2028,6 +2028,10 @@
          * @since  2.0.0
          */
         function _hook_action_links_and_register_account_hooks() {
+            if ( $this->is_migration() ) {
+                return;
+            }
+
             $this->_add_tracking_links();
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
@@ -7106,6 +7110,8 @@
          * @since  1.0.7
          */
         function _admin_init_action() {
+            $is_migration = $this->is_migration();
+
             /**
              * Automatically redirect to connect/activation page after plugin activation.
              *
@@ -7118,10 +7124,14 @@
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
                      */
-                } else {
+                } else if ( ! $is_migration ) {
                     $this->_redirect_on_activation_hook();
                     return;
                 }
+            }
+
+            if ( $is_migration ) {
+                return;
             }
 
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
@@ -12707,6 +12717,10 @@
          * @since  1.2.0
          */
         function _add_license_activation() {
+            if ( $this->is_migration() ) {
+                return;
+            }
+
             if ( ! $this->is_user_admin() ) {
                 // Only admins can activate a license.
                 return;
@@ -13001,6 +13015,46 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.2.14
+         */
+        function starting_migration() {
+            if ( ! empty( $this->_storage->license_migration ) ) {
+                // Do not overwrite the data if already set.
+                return;
+            }
+
+            $this->_storage->license_migration = array(
+                'is_migrating'    => true,
+                'start_timestamp' => time()
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.2.14
+         */
+        function is_migration() {
+            if ( $this->is_addon() ) {
+                return $this->get_parent_instance()->is_migration();
+            }
+
+            if ( empty( $this->_storage->license_migration ) ) {
+                return false;
+            }
+
+            if ( ! $this->_storage->license_migration['is_migrating'] ) {
+                return false;
+            }
+
+            return (
+                // Return `true` if the migration is within 5 minutes from the starting time.
+                ( time() - $this->_storage->license_migration['start_timestamp'] ) <= WP_FS__TIME_5_MIN_IN_SEC
+            );
+        }
+
+        /**
+         *
          * A helper method to activate migrated licenses. If the product is network activated and integrated, the method will network activate the license.
          *
          * @author Vova Feldman (@svovaf)
@@ -13021,7 +13075,8 @@
         function activate_migrated_license(
             $license_key,
             $is_marketing_allowed = null,
-            $plugin_id = null
+            $plugin_id = null,
+            $blog_id = null
         ) {
             $this->_logger->entrance();
 
@@ -13031,7 +13086,7 @@
                     $this->get_sites_for_network_level_optin() :
                     array(),
                 $is_marketing_allowed,
-                null,
+                $blog_id,
                 $plugin_id
             );
 
@@ -13128,6 +13183,15 @@
                 $user = $fs->get_current_or_network_user();
             }
 
+            if ( $has_valid_blog_id ) {
+                /**
+                 * If a specific blog ID was provided, activate the license only on the specific blog that is associated with the given blog ID.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                $fs->switch_to_blog( $blog_id );
+            }
+
             if ( is_object( $user ) ) {
                 if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
@@ -13168,16 +13232,6 @@
                         }
                     }
                 } else {
-                    if ( $has_valid_blog_id ) {
-                        /**
-                         * If a specific blog ID was provided, activate the license only for the install that is
-                         * associated with the given blog ID.
-                         *
-                         * @author Leo Fajardo (@leorw)
-                         */
-                        $fs->switch_to_blog( $blog_id );
-                    }
-
                     if ( $fs->is_registered() ) {
                         $params = array(
                             'license_key' => $fs->apply_filters( 'license_key', $license_key )
@@ -23399,7 +23453,8 @@
          * @since  1.0.9
          */
         function set_plugin_upgrade_complete() {
-            $this->_storage->plugin_upgrade_mode = false;
+            $this->_storage->plugin_upgrade_mode               = false;
+            $this->_storage->license_migration['is_migrating'] = false;
         }
 
         #endregion
