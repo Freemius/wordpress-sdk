@@ -13154,7 +13154,12 @@
 
             $license_key = trim( $license_key );
 
-            if ( ! fs_is_network_admin() ) {
+            $is_network_activation_or_migration = (
+                fs_is_network_admin() ||
+                ( ! empty( $sites ) && $this->is_migration() )
+            );
+
+            if ( ! $is_network_activation_or_migration ) {
                 // If the license activation is executed outside the context of a network admin, ignore the sites collection.
                 $sites = array();
             }
@@ -13193,7 +13198,7 @@
             }
 
             if ( is_object( $user ) ) {
-                if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                if ( $is_network_activation_or_migration && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
                     $site_ids           = array();
@@ -13310,7 +13315,7 @@
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
                 } else {
-                    if ( fs_is_network_admin() ) {
+                    if ( $is_network_activation_or_migration ) {
                         /**
                          * Get the list of sites that were just opted-in (and license activated).
                          * This is an optimization for the next part below saving some DB queries.
@@ -14929,7 +14934,7 @@
          * @return bool Since 2.3.1 returns if a switch was made.
          */
         function switch_to_blog( $blog_id, FS_Site $install = null ) {
-            if ( $blog_id == $this->_context_is_network_or_blog_id ) {
+            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_context_is_network_or_blog_id ) {
                 return false;
             }
 
