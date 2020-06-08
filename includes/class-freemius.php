@@ -1400,15 +1400,10 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param bool $is_network_activation
-         *
          * @return bool True if network activation was on and now completed.
          */
-        private function network_upgrade_mode_completed( $is_network_activation = false ) {
-            if (
-                ( fs_is_network_admin() || $is_network_activation ) &&
-                $this->is_network_upgrade_mode()
-            ) {
+        private function network_upgrade_mode_completed() {
+            if ( fs_is_network_admin() && $this->is_network_upgrade_mode() ) {
                 $this->_storage->remove( 'is_network_activation' );
 
                 return true;
@@ -13294,7 +13289,7 @@
                 }
 
                 if ( empty( $error ) ) {
-                    $fs->network_upgrade_mode_completed( $is_network_activation_or_migration );
+                    $fs->network_upgrade_mode_completed();
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
