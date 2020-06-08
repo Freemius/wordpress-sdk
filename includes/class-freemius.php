@@ -8011,10 +8011,6 @@
              * @author Leo Fajardo
              */
             foreach ( $license->products as $product_id ) {
-                if ( $this->get_id() == $product_id ) {
-                    continue;
-                }
-
                 $fs = self::get_instance_by_id( $product_id );
 
                 if ( ! is_object( $fs ) ) {
