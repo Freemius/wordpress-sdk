@@ -23455,7 +23455,10 @@
         function set_plugin_upgrade_complete() {
             $this->_storage->plugin_upgrade_mode = false;
 
-            $license_migration                 = $this->_storage->license_migration;
+            $license_migration = ! empty( $this->_storage->license_migration ) ?
+                $this->_storage->license_migration :
+                array();
+
             $license_migration['is_migrating'] = false;
 
             $this->_storage->license_migration = $license_migration;
