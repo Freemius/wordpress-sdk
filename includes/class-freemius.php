@@ -1400,10 +1400,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
+         * @param bool $is_network_activation
+         *
          * @return bool True if network activation was on and now completed.
          */
-        private function network_upgrade_mode_completed() {
-            if ( fs_is_network_admin() && $this->is_network_upgrade_mode() ) {
+        private function network_upgrade_mode_completed( $is_network_activation = false ) {
+            if (
+                ( fs_is_network_admin() || $is_network_activation ) &&
+                $this->is_network_upgrade_mode()
+            ) {
                 $this->_storage->remove( 'is_network_activation' );
 
                 return true;
@@ -13154,7 +13159,12 @@
 
             $license_key = trim( $license_key );
 
-            if ( ! fs_is_network_admin() ) {
+            $is_network_activation = (
+                fs_is_network_admin() ||
+                ( ! empty( $sites ) && $this->is_migration() )
+            );
+
+            if ( ! $is_network_activation ) {
                 // If the license activation is executed outside the context of a network admin, ignore the sites collection.
                 $sites = array();
             }
@@ -13193,7 +13203,7 @@
             }
 
             if ( is_object( $user ) ) {
-                if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                if ( $is_network_activation && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
                     $site_ids           = array();
@@ -13284,7 +13294,7 @@
                 }
 
                 if ( empty( $error ) ) {
-                    $fs->network_upgrade_mode_completed();
+                    $fs->network_upgrade_mode_completed( $is_network_activation );
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -13310,7 +13320,7 @@
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
                 } else {
-                    if ( fs_is_network_admin() ) {
+                    if ( $is_network_activation ) {
                         /**
                          * Get the list of sites that were just opted-in (and license activated).
                          * This is an optimization for the next part below saving some DB queries.
@@ -14929,7 +14939,7 @@
          * @return bool Since 2.3.1 returns if a switch was made.
          */
         function switch_to_blog( $blog_id, FS_Site $install = null ) {
-            if ( $blog_id == $this->_context_is_network_or_blog_id ) {
+            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_context_is_network_or_blog_id ) {
                 return false;
             }
 
