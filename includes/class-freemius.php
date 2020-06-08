@@ -13159,12 +13159,12 @@
 
             $license_key = trim( $license_key );
 
-            $is_network_activation = (
+            $is_network_activation_or_migration = (
                 fs_is_network_admin() ||
                 ( ! empty( $sites ) && $this->is_migration() )
             );
 
-            if ( ! $is_network_activation ) {
+            if ( ! $is_network_activation_or_migration ) {
                 // If the license activation is executed outside the context of a network admin, ignore the sites collection.
                 $sites = array();
             }
@@ -13203,7 +13203,7 @@
             }
 
             if ( is_object( $user ) ) {
-                if ( $is_network_activation && ! $has_valid_blog_id ) {
+                if ( $is_network_activation_or_migration && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
                     $site_ids           = array();
@@ -13294,7 +13294,7 @@
                 }
 
                 if ( empty( $error ) ) {
-                    $fs->network_upgrade_mode_completed( $is_network_activation );
+                    $fs->network_upgrade_mode_completed( $is_network_activation_or_migration );
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -13320,7 +13320,7 @@
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
                 } else {
-                    if ( $is_network_activation ) {
+                    if ( $is_network_activation_or_migration ) {
                         /**
                          * Get the list of sites that were just opted-in (and license activated).
                          * This is an optimization for the next part below saving some DB queries.
