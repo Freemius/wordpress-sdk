@@ -23681,8 +23681,12 @@
          * @since  1.0.9
          */
         function set_plugin_upgrade_complete() {
-            $this->_storage->plugin_upgrade_mode               = false;
-            $this->_storage->license_migration['is_migrating'] = false;
+            $this->_storage->plugin_upgrade_mode = false;
+
+            $license_migration                 = $this->_storage->license_migration;
+            $license_migration['is_migrating'] = false;
+
+            $this->_storage->license_migration = $license_migration;
         }
 
         #endregion
