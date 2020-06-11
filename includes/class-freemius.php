@@ -8050,7 +8050,7 @@
                     }
                 } else {
                     if ( empty( $sites ) ) {
-                        $sites = self::get_sites();
+                        $sites = self::get_sites_for_network_level_optin();
                     }
 
                     if ( ! $fs->is_network_active() ) {
