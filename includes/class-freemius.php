@@ -351,6 +351,14 @@
          */
         private $is_whitelabeled;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.3
+         *
+         * @var bool
+         */
+        private $_enable_bundle_license_auto_activation;
+
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -5655,6 +5663,7 @@
                 $this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
             }
             $this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
+            $this->_enable_bundle_license_auto_activation = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
 
             if ( ! empty( $plugin_info['trial'] ) ) {
                 $this->_trial_days = $this->get_numeric_option(
@@ -7868,7 +7877,10 @@
                 return;
             }
 
-            if ( ! empty( $license->products ) ) {
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
                 $this->activate_bundle_license( $license );
 
                 return;
@@ -7917,7 +7929,10 @@
                 return;
             }
 
-            if ( ! empty( $license->products ) ) {
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
                 $this->activate_bundle_license( $license );
 
                 return;
@@ -10660,6 +10675,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.3
+         *
+         * @return bool
+         */
+        function is_bundle_license_auto_activation_enabled() {
+            return $this->_enable_bundle_license_auto_activation;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.4
          *
@@ -13156,7 +13181,10 @@
                 fs_request_get_bool( 'is_extensions_tracking_allowed', true )
             );
 
-            if ( $result['success'] ) {
+            if (
+                $result['success'] &&
+                $this->is_bundle_license_auto_activation_enabled()
+            ) {
                 $license             = new FS_Plugin_License();
                 $license->secret_key = $license_key;
 
@@ -17517,7 +17545,9 @@
                 // Try to activate premium license.
                 $this->_activate_license( true );
 
-                $this->maybe_activate_bundle_license( $bundle_license );
+                if ( $this->is_bundle_license_auto_activation_enabled() ) {
+                    $this->maybe_activate_bundle_license( $bundle_license );
+                }
             } else {
                 if ( is_object( $bundle_license ) ) {
                     $premium_license = $bundle_license;
@@ -21990,7 +22020,9 @@
                          */
                         unset( $_REQUEST['plugin_id'] );
 
-                        $fs->maybe_activate_bundle_license( null, array(), is_numeric( $blog_id ) ? $blog_id : 0 );
+                        if ( $this->is_bundle_license_auto_activation_enabled() ) {
+                            $fs->maybe_activate_bundle_license( null, array(), is_numeric( $blog_id ) ? $blog_id : 0 );
+                        }
                     }
 
                     return;
