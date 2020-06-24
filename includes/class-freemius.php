@@ -4919,10 +4919,12 @@
                     } else {
                         $is_network_admin = fs_is_network_admin();
 
-                        if (
+                        if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
+                            // If add-on activated and parent not, automatically install parent for the user.
+                            $this->activate_parent_account( $this->_parent );
+                        } else if (
                             $this->_parent->is_registered() &&
                             ! $this->is_registered() &&
-                            $this->has_free_plan() &&
                             /**
                              * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
                              * * Network active and in network admin         - network activate add-on account.
@@ -4936,16 +4938,32 @@
                              */
                             ( $this->is_network_active() || ! $is_network_admin )
                         ) {
-                            // If parent plugin activated, automatically install add-on for the user.
-                            $this->_activate_addon_account(
-                                $this->_parent,
-                                ( $this->is_network_active() && $is_network_admin ) ?
-                                    true :
-                                    get_current_blog_id()
-                            );
-                        } else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
-                            // If add-on activated and parent not, automatically install parent for the user.
-                            $this->activate_parent_account( $this->_parent );
+                            $premium_license = null;
+
+                            if ( ! $this->has_free_plan() && $this->_parent->has_features_enabled_bundle_license() ) {
+                                $bundle_license = $this->get_active_parent_license( $this->_parent->_get_license()->secret_key, false );
+
+                                if (
+                                    is_object( $bundle_license ) &&
+                                    ! empty( $bundle_license->products ) &&
+                                    in_array( $this->get_id(), $bundle_license->products )
+                                ) {
+                                    $premium_license = $bundle_license;
+                                }
+                            }
+
+                            if ( $this->has_free_plan() || is_object( $premium_license) ) {
+                                // If parent plugin activated, automatically install add-on for the user.
+                                $this->_activate_addon_account(
+                                    $this->_parent,
+                                    ( $this->is_network_active() && $is_network_admin ) ?
+                                        true :
+                                        get_current_blog_id(),
+                                    is_object( $premium_license ) ?
+                                        $premium_license->secret_key :
+                                        null
+                                );
+                            }
                         }
 
                         // @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
@@ -8126,10 +8144,11 @@
          * @since 2.3.0
          *
          * @param string|null $license_key
+         * @param bool|null   $flush
          *
          * @return FS_Plugin_License
          */
-        function get_active_parent_license( $license_key = null ) {
+        function get_active_parent_license( $license_key = null, $flush = true ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
             $parent_instance          = $this->is_addon() ?
                 $this->get_parent_instance() :
@@ -8153,7 +8172,7 @@
                 $parent_licenses_endpoint = add_query_arg( $foreign_licenses, $parent_licenses_endpoint );
             }
 
-            $result = $fs->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, true );
+            $result = $fs->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, $flush );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
@@ -17384,8 +17403,9 @@
          *
          * @param Freemius      $parent_fs
          * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param string|null   $license_key
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null ) {
+        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, $license_key = null ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
@@ -17422,6 +17442,10 @@
                 if ( empty( $params['sites'] ) ) {
                     return;
                 }
+            }
+
+            if ( ! empty( $license_key ) ) {
+                $params['license_key'] = $license_key;
             }
 
             // Activate add-on with parent plugin credentials.
@@ -19945,6 +19969,22 @@
                 is_numeric( $this->_license->id ) &&
                 $this->_license->is_features_enabled()
             );
+        }
+
+        /**
+         * Checks if the site is activated with a bundle license that has enabled features.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.3.3
+         *
+         * @return bool
+         */
+        function has_features_enabled_bundle_license() {
+            if ( ! $this->has_features_enabled_license() ) {
+                return false;
+            }
+
+            return FS_Plugin_License::is_valid_id( $this->_license->parent_license_id );
         }
 
         /**
