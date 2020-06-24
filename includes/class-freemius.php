@@ -4965,9 +4965,7 @@
                                     ( $this->is_network_active() && $is_network_admin ) ?
                                         true :
                                         get_current_blog_id(),
-                                    is_object( $premium_license ) ?
-                                        $premium_license->secret_key :
-                                        null
+                                    $premium_license
                                 );
                             }
                         }
@@ -7995,20 +7993,22 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0.4
          *
-         * @param string $license_key
-         * @param array  $sites
-         * @param int    $blog_id
+         * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $blog_id
          */
-        private function maybe_activate_bundle_license( $license_key = null, $sites = array(), $blog_id = 0 ) {
-            if ( is_null( $license_key ) && $this->has_active_valid_license() ) {
-                $license_key = $this->_license->secret_key;
+        private function maybe_activate_bundle_license( FS_Plugin_License $license = null, $sites = array(), $blog_id = 0 ) {
+            if ( ! is_object( $license ) && $this->has_active_valid_license() ) {
+                $license = $this->_license;
             }
 
-            if ( is_null( $license_key ) ) {
+            if ( ! is_object( $license ) ) {
                 return;
             }
 
-            $parent_license = $this->get_active_parent_license( $license_key );
+            $parent_license = ( is_object( $license ) && ! empty( $license->products ) ) ?
+                $license :
+                $this->get_active_parent_license( $license->secret_key );
 
             if ( is_object( $parent_license ) ) {
                 $this->activate_bundle_license( $parent_license, $sites, $blog_id );
@@ -13157,7 +13157,10 @@
             );
 
             if ( $result['success'] ) {
-                $this->maybe_activate_bundle_license( $license_key, $sites );
+                $license             = new FS_Plugin_License();
+                $license->secret_key = $license_key;
+
+                $this->maybe_activate_bundle_license( $license, $sites );
             }
 
             echo json_encode( $result );
@@ -17407,11 +17410,11 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param Freemius      $parent_fs
-         * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
-         * @param string|null   $bundle_license_key
+         * @param Freemius          $parent_fs
+         * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param FS_Plugin_License $bundle_license
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, $bundle_license_key = null ) {
+        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, FS_Plugin_License $bundle_license = null ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
@@ -17450,8 +17453,8 @@
                 }
             }
 
-            if ( ! empty( $bundle_license_key) ) {
-                $params['license_key'] = $bundle_license_key;
+            if ( is_object( $bundle_license ) ) {
+                $params['license_key'] = $bundle_license->secret_key;
             }
 
             // Activate add-on with parent plugin credentials.
@@ -17462,15 +17465,13 @@
             );
 
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                /**
-                 * When a license key is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: it will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.3.3
-                 */
-                $background = ( ! empty( $bundle_license_key) );
-
-                if ( ! $background ) {
+                if ( ! is_object( $bundle_license ) ) {
+                    /**
+                     * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: it will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.3.3
+                     */
                     $error_message = FS_Api::is_api_error_object( $result ) ?
                         $result->error->message :
                         $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
@@ -17516,21 +17517,25 @@
                 // Try to activate premium license.
                 $this->_activate_license( true );
 
-                $this->maybe_activate_bundle_license();
+                $this->maybe_activate_bundle_license( $bundle_license );
             } else {
-                $license_id = fs_request_get( 'license_id' );
+                if ( is_object( $bundle_license ) ) {
+                    $premium_license = $bundle_license;
+                } else {
+                    $license_id = fs_request_get( 'license_id' );
 
-                if ( is_object( $this->_site ) &&
-                    FS_Plugin_License::is_valid_id( $license_id ) &&
-                    $license_id == $this->_site->license_id
-                ) {
-                    // License is already activated.
-                    return;
+                    if ( is_object( $this->_site ) &&
+                        FS_Plugin_License::is_valid_id( $license_id ) &&
+                        $license_id == $this->_site->license_id
+                    ) {
+                        // License is already activated.
+                        return;
+                    }
+
+                    $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+                        $this->_get_license_by_id( $license_id ) :
+                        $this->_get_available_premium_license();
                 }
-
-                $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
-                    $this->_get_license_by_id( $license_id ) :
-                    $this->_get_available_premium_license();
 
                 if ( is_object( $premium_license ) ) {
                     $this->maybe_network_activate_addon_license( $premium_license );
