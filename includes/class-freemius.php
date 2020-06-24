@@ -4941,6 +4941,12 @@
                             $premium_license = null;
 
                             if ( ! $this->has_free_plan() && $this->_parent->has_features_enabled_bundle_license() ) {
+                                /**
+                                 * If the add-on has no free plan, try to activate with a bundle license if there's any.
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.3.3
+                                 */
                                 $bundle_license = $this->get_active_parent_license( $this->_parent->_get_license()->secret_key, false );
 
                                 if (
@@ -17456,16 +17462,26 @@
             );
 
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                $error_message = FS_Api::is_api_error_object( $result ) ?
-                    $result->error->message :
-                    $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
+                /**
+                 * When a license key is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: it will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.3.3
+                 */
+                $background = ( ! empty( $license_key ) );
 
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
+                if ( ! $background ) {
+                    $error_message = FS_Api::is_api_error_object( $result ) ?
+                        $result->error->message :
+                        $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
+
+                    $this->_admin_notices->add(
+                        sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+                        $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
+                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                        'error'
+                    );
+                }
 
                 return;
             }
