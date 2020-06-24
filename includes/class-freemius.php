@@ -17409,9 +17409,9 @@
          *
          * @param Freemius      $parent_fs
          * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
-         * @param string|null   $license_key
+         * @param string|null   $bundle_license_key
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, $license_key = null ) {
+        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, $bundle_license_key = null ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
@@ -17450,8 +17450,8 @@
                 }
             }
 
-            if ( ! empty( $license_key ) ) {
-                $params['license_key'] = $license_key;
+            if ( ! empty( $bundle_license_key) ) {
+                $params['license_key'] = $bundle_license_key;
             }
 
             // Activate add-on with parent plugin credentials.
@@ -17468,7 +17468,7 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.3.3
                  */
-                $background = ( ! empty( $license_key ) );
+                $background = ( ! empty( $bundle_license_key) );
 
                 if ( ! $background ) {
                     $error_message = FS_Api::is_api_error_object( $result ) ?
