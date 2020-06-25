@@ -10686,7 +10686,7 @@
          */
         function is_bundle_license_auto_activation_enabled() {
             return $this->is_addon() ?
-                $this->_parent->is_bundle_license_auto_activation_enabled() :
+                ( is_object( $this->_parent ) && $this->_parent->is_bundle_license_auto_activation_enabled() ) :
                 $this->_is_bundle_license_auto_activation_enabled;
         }
 
