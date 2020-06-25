@@ -357,7 +357,7 @@
          *
          * @var bool
          */
-        private $_enable_bundle_license_auto_activation;
+        private $_is_bundle_license_auto_activation_enabled = false;
 
         #region Uninstall Reasons IDs
 
@@ -4948,9 +4948,13 @@
                         ) {
                             $premium_license = null;
 
-                            if ( ! $this->has_free_plan() && $this->_parent->has_features_enabled_bundle_license() ) {
+                            if (
+                                ! $this->has_free_plan() &&
+                                $this->is_bundle_license_auto_activation_enabled() &&
+                                $this->_parent->is_activated_with_bundle_license()
+                            ) {
                                 /**
-                                 * If the add-on has no free plan, try to activate with a bundle license if there's any.
+                                 * If the add-on has no free plan, try to activate the account only when there's a bundle license.
                                  *
                                  * @author Leo Fajardo (@leorw)
                                  * @since 2.3.3
@@ -5663,7 +5667,7 @@
                 $this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
             }
             $this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
-            $this->_enable_bundle_license_auto_activation = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
+            $this->_is_bundle_license_auto_activation_enabled = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
 
             if ( ! empty( $plugin_info['trial'] ) ) {
                 $this->_trial_days = $this->get_numeric_option(
@@ -8021,7 +8025,7 @@
                 return;
             }
 
-            $parent_license = ( is_object( $license ) && ! empty( $license->products ) ) ?
+            $parent_license = ( ! empty( $license->products ) ) ?
                 $license :
                 $this->get_active_parent_license( $license->secret_key );
 
@@ -8165,7 +8169,7 @@
          * @since 2.3.0
          *
          * @param string|null $license_key
-         * @param bool|null   $flush
+         * @param bool        $flush
          *
          * @return FS_Plugin_License
          */
@@ -10681,7 +10685,9 @@
          * @return bool
          */
         function is_bundle_license_auto_activation_enabled() {
-            return $this->_enable_bundle_license_auto_activation;
+            return $this->is_addon() ?
+                $this->_parent->is_bundle_license_auto_activation_enabled() :
+                $this->_is_bundle_license_auto_activation_enabled;
         }
 
         /**
@@ -17495,7 +17501,7 @@
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
                 if ( ! is_object( $bundle_license ) ) {
                     /**
-                     * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: it will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
+                     * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: the notice will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
                      *
                      * @author Leo Fajardo (@leorw)
                      * @since 2.3.3
@@ -20023,14 +20029,14 @@
         }
 
         /**
-         * Checks if the site is activated with a bundle license that has enabled features.
+         * Checks if the product is activated with a bundle license.
          *
          * @author Leo Fajardo (@leorw)
          * @since  2.3.3
          *
          * @return bool
          */
-        function has_features_enabled_bundle_license() {
+        function is_activated_with_bundle_license() {
             if ( ! $this->has_features_enabled_license() ) {
                 return false;
             }
