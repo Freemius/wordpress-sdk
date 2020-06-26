@@ -3881,18 +3881,24 @@
 
             $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
+            $params = array(
+                'is_update'    => json_encode( $is_update ),
+                'version'      => $version,
+                'sdk'          => $this->version,
+                'is_admin'     => json_encode( is_admin() ),
+                'is_ajax'      => json_encode( self::is_ajax() ),
+                'is_cron'      => json_encode( self::is_cron() ),
+                'is_gdpr_test' => $is_gdpr_test,
+                'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
+            );
+
+            if ( is_multisite() && function_exists( 'get_network' ) ) {
+                $params['network_uid'] = $this->get_anonymous_network_id();
+            }
+
             return $this->get_api_plugin_scope()->ping(
                 $this->get_anonymous_id( $blog_id ),
-                array(
-                    'is_update'    => json_encode( $is_update ),
-                    'version'      => $version,
-                    'sdk'          => $this->version,
-                    'is_admin'     => json_encode( is_admin() ),
-                    'is_ajax'      => json_encode( self::is_ajax() ),
-                    'is_cron'      => json_encode( self::is_cron() ),
-                    'is_gdpr_test' => $is_gdpr_test,
-                    'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
-                )
+                $params
             );
         }
 
@@ -4056,6 +4062,18 @@
             $this->_logger->departure( $unique_id );
 
             return $unique_id;
+        }
+
+        /**
+         * Returns anonymous network ID.
+         *
+         * @author Takhir Lugumanov (@tagire)
+         * @since  2.3.3
+         *
+         * @return string
+         */
+        function get_anonymous_network_id() {
+           return self::get_anonymous_id( get_network()->site_id );
         }
 
         /**
@@ -16174,6 +16192,10 @@
                     $params['salt'] .
                     $this->get_secret_key()
                 );
+            }
+
+            if ( is_multisite() && function_exists( 'get_network' ) ) {
+                $params['network_uid'] = $this->get_anonymous_network_id();
             }
 
             return array_merge( $params, $override_with );
