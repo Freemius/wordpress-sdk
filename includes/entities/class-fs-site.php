@@ -170,13 +170,19 @@
                 fs_starts_with( $subdomain, 'staging' ) ||
                 // WPEngine staging.
                 fs_ends_with( $subdomain, '.staging.wpengine.com' ) ||
+                fs_ends_with( $subdomain, '.dev.wpengine.com' ) ||
+                fs_ends_with( $subdomain, '.wpengine.com' ) ||
                 // Pantheon
-                ( fs_ends_with($subdomain, 'pantheonsite.io') &&
-                  (fs_starts_with($subdomain, 'test-') || fs_starts_with($subdomain, 'dev-'))) ||
+                ( fs_ends_with( $subdomain, 'pantheonsite.io' ) &&
+                  ( fs_starts_with( $subdomain, 'test-' ) || fs_starts_with( $subdomain, 'dev-' ) ) ) ||
                 // Cloudways
                 fs_ends_with( $subdomain, '.cloudwaysapps.com' ) ||
                 // Kinsta
-                (fs_ends_with($subdomain, '.kinsta.com') && fs_starts_with($subdomain, 'staging-'))
+                ( fs_starts_with( $subdomain, 'staging-' ) && ( fs_ends_with( $subdomain, '.kinsta.com' ) || fs_ends_with( $subdomain, '.kinsta.cloud' ) ) ) ||
+                // DesktopServer
+                fs_ends_with( $subdomain, '.dev.cc' ) ||
+                // Pressable
+                fs_ends_with( $subdomain, '.mystagingwebsite.com' )
             );
         }
 

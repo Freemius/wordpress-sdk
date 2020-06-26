@@ -123,3 +123,43 @@
         }
     }
 }
+
+#customize-theme-controls #accordion-section-freemius_upsell
+{
+    border-top:    1px solid $wp-button-primary-background-color !important;;
+    border-bottom: 1px solid $wp-button-primary-background-color !important;;
+
+    h3.accordion-section-title
+    {
+        color:            $wp-button-primary-color;
+        background-color: $wp-button-primary-background-color;
+        border-left:      4px solid $wp-button-primary-background-color;
+        transition:       .15s background-color ease-in-out, .15s border-color ease-in-out;
+        outline:          none;
+        border-bottom:    none !important;
+
+        &:hover
+        {
+            background-color:  $wp-button-primary-hover-background-color;
+            border-left-color: $wp-button-primary-active-background-color;
+        }
+
+        &:after {
+            color: $wp-button-primary-color;
+        }
+    }
+
+    .rtl
+    {
+        h3.accordion-section-title
+        {
+            border-left:  none;
+            border-right: 4px solid $wp-button-primary-background-color;
+
+            &:hover
+            {
+                border-right-color: $wp-button-primary-active-background-color;
+            }
+        }
+    }
+}

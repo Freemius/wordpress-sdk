@@ -16,51 +16,55 @@
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
-	$confirmation_message = $fs->apply_filters( 'uninstall_confirmation_message', '' );
+    $subscription_cancellation_dialog_box_template_params = $VARS['subscription_cancellation_dialog_box_template_params'];
+    $show_deactivation_feedback_form                      = $VARS['show_deactivation_feedback_form'];
+	$confirmation_message                                 = $VARS['uninstall_confirmation_message'];
 
-	$reasons = $VARS['reasons'];
+    $is_anonymous                     = ( ! $fs->is_registered() );
+    $anonymous_feedback_checkbox_html = '';
 
-	$reasons_list_items_html = '';
+    $reasons_list_items_html = '';
 
-	foreach ( $reasons as $reason ) {
-		$list_item_classes    = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
+    if ( $show_deactivation_feedback_form ) {
+        $reasons = $VARS['reasons'];
 
-		if ( isset( $reason['internal_message'] ) && ! empty( $reason['internal_message'] ) ) {
-			$list_item_classes .= ' has-internal-message';
-			$reason_internal_message = $reason['internal_message'];
-		} else {
-			$reason_internal_message = '';
-		}
-		
-		$reason_input_type = ( ! empty( $reason['input_type'] ) ? $reason['input_type'] : '' );
-        $reason_input_placeholder = ( ! empty( $reason['input_placeholder'] ) ? $reason['input_placeholder'] : '' );
-			
-		$reason_list_item_html = <<< HTML
-			<li class="{$list_item_classes}"
-			 	data-input-type="{$reason_input_type}"
-			 	data-input-placeholder="{$reason_input_placeholder}">
-	            <label>
-	            	<span>
-	            		<input type="radio" name="selected-reason" value="{$reason['id']}"/>
-                    </span>
-                    <span>{$reason['text']}</span>
-                </label>
-                <div class="internal-message">{$reason_internal_message}</div>
-            </li>
+        foreach ( $reasons as $reason ) {
+            $list_item_classes    = 'reason' . ( ! empty( $reason['input_type'] ) ? ' has-input' : '' );
+
+            if ( isset( $reason['internal_message'] ) && ! empty( $reason['internal_message'] ) ) {
+                $list_item_classes .= ' has-internal-message';
+                $reason_internal_message = $reason['internal_message'];
+            } else {
+                $reason_internal_message = '';
+            }
+
+            $reason_input_type = ( ! empty( $reason['input_type'] ) ? $reason['input_type'] : '' );
+            $reason_input_placeholder = ( ! empty( $reason['input_placeholder'] ) ? $reason['input_placeholder'] : '' );
+
+            $reason_list_item_html = <<< HTML
+                <li class="{$list_item_classes}"
+                    data-input-type="{$reason_input_type}"
+                    data-input-placeholder="{$reason_input_placeholder}">
+                    <label>
+                        <span>
+                            <input type="radio" name="selected-reason" value="{$reason['id']}"/>
+                        </span>
+                        <span>{$reason['text']}</span>
+                    </label>
+                    <div class="internal-message">{$reason_internal_message}</div>
+                </li>
 HTML;
 
-		$reasons_list_items_html .= $reason_list_item_html;
-	}
+            $reasons_list_items_html .= $reason_list_item_html;
+        }
 
-	$is_anonymous = ( ! $fs->is_registered() );
-	if ( $is_anonymous ) {
-		$anonymous_feedback_checkbox_html = sprintf(
-			'<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox"> %s</label>',
-			fs_esc_html_inline( 'Anonymous feedback', 'anonymous-feedback', $slug )
-		);
-	} else {
-		$anonymous_feedback_checkbox_html = '';
-	}
+        if ( $is_anonymous ) {
+            $anonymous_feedback_checkbox_html = sprintf(
+                '<label class="anonymous-feedback-label"><input type="checkbox" class="anonymous-feedback-checkbox"> %s</label>',
+                fs_esc_html_inline( 'Anonymous feedback', 'anonymous-feedback', $slug )
+            );
+        }
+    }
 
 	// Aliases.
 	$deactivate_text = fs_text_inline( 'Deactivate', 'deactivate', $slug );
@@ -68,12 +72,15 @@ HTML;
 	$activate_x_text = fs_text_inline( 'Activate %s', 'activate-x', $slug );
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
+
+    if ( ! empty( $subscription_cancellation_dialog_box_template_params ) ) {
+        fs_require_template( 'forms/subscription-cancellation.php', $subscription_cancellation_dialog_box_template_params );
+    }
 ?>
-<?php $fs->_maybe_add_subscription_cancellation_dialog_box() ?>
 <script type="text/javascript">
 (function ($) {
-	var reasonsHtml = <?php echo json_encode( $reasons_list_items_html ) ?>,
-	    modalHtml =
+	var reasonsHtml                    = <?php echo json_encode( $reasons_list_items_html ) ?>,
+	    modalHtml                      =
 		    '<div class="fs-modal fs-modal-deactivation-feedback<?php echo empty( $confirmation_message ) ? ' no-confirmation-message' : ''; ?>">'
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-header">'
@@ -86,29 +93,38 @@ HTML;
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
-		    + '			<a href="#" class="button button-primary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
+		    + '			<a href="#" class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
-	    $modal = $(modalHtml),
-	    $deactivateLink = $('#the-list .deactivate > [data-module-id=<?php echo $fs->get_id() ?>].fs-module-id').prev(),
-	    selectedReasonID = false,
-	    redirectLink = '',
-		$anonymousFeedback    = $modal.find( '.anonymous-feedback-label' ),
-		isAnonymous           = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
-		otherReasonID         = <?php echo Freemius::REASON_OTHER; ?>,
-		dontShareDataReasonID = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
-        deleteThemeUpdateData = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>,
-        $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' );
+	    $modal                         = $(modalHtml),
+	    selectedReasonID               = false,
+	    redirectLink                   = '',
+		$anonymousFeedback             = $modal.find( '.anonymous-feedback-label' ),
+		isAnonymous                    = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
+		otherReasonID                  = <?php echo Freemius::REASON_OTHER; ?>,
+		dontShareDataReasonID          = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
+        deleteThemeUpdateData          = <?php echo $fs->is_theme() && $fs->is_premium() && ! $fs->has_any_active_valid_license() ? 'true' : 'false' ?>,
+        $subscriptionCancellationModal = $( '.fs-modal-subscription-cancellation-<?php echo $fs->get_id() ?>' ),
+        showDeactivationFeedbackForm   = <?php echo ( $show_deactivation_feedback_form ? 'true' : 'false' ) ?>,
+        $body                          = $( 'body' );
 
-	$modal.appendTo($('body'));
+	$modal.appendTo( $body );
 
 	if ( 0 !== $subscriptionCancellationModal.length ) {
         $subscriptionCancellationModal.on( '<?php echo $fs->get_action_tag( 'subscription_cancellation_action' ) ?>', function( evt, cancelSubscription ) {
+            var shouldDeactivateModule = ( $modal.hasClass( 'no-confirmation-message' ) && ! showDeactivationFeedbackForm );
+
             if ( false === cancelSubscription ) {
-                showModal();
+                if ( ! shouldDeactivateModule ) {
+                    showModal();
+                }
 
                 $subscriptionCancellationModal.trigger( 'closeModal' );
+
+                if ( shouldDeactivateModule ) {
+                    deactivateModule();
+                }
             } else {
                 var $errorMessage = $subscriptionCancellationModal.find( '.notice-error' );
 
@@ -140,7 +156,12 @@ HTML;
                             $subscriptionCancellationModal.find( '.fs-modal-footer .button-primary' ).removeClass( 'warn' );
 
                             $subscriptionCancellationModal.remove();
-                            showModal();
+
+                            if ( ! shouldDeactivateModule ) {
+                                showModal();
+                            } else {
+                                deactivateModule();
+                            }
                         } else {
                             $errorMessage.find( '> p' ).html( result.error );
                             $errorMessage.show();
@@ -160,7 +181,11 @@ HTML;
 	registerEventHandlers();
 
 	function registerEventHandlers() {
-		$deactivateLink.click(function (evt) {
+		$body.on( 'click', '#the-list .deactivate > a', function ( evt ) {
+		    if ( 0 === $( this ).next( '[data-module-id=<?php echo $fs->get_id() ?>].fs-module-id' ).length ) {
+		        return true;
+            }
+
 			evt.preventDefault();
 
             redirectLink = $(this).attr('href');
@@ -191,7 +216,15 @@ HTML;
 
 			redirectLink = $(this).attr('href');
 
-			showModal();
+            if ( 0 != $subscriptionCancellationModal.length ) {
+                $subscriptionCancellationModal.trigger( 'showModal' );
+            } else {
+                if ( $modal.hasClass( 'no-confirmation-message' ) && ! showDeactivationFeedbackForm ) {
+                    deactivateModule();
+                } else {
+                    showModal();
+                }
+            }
 		});
 		<?php
 		} ?>
@@ -243,7 +276,7 @@ HTML;
 			var _this = $(this);
 
 			if (_this.hasClass('allow-deactivate')) {
-				var $radio = $('input[type="radio"]:checked');
+				var $radio = $modal.find('input[type="radio"]:checked');
 
 				if (0 === $radio.length) {
 				    if ( ! deleteThemeUpdateData ) {
@@ -303,7 +336,11 @@ HTML;
 				// Change the Deactivate button's text and show the reasons panel.
 				_parent.find('.button-deactivate').addClass('allow-deactivate');
 
-				showPanel('reasons');
+				if ( showDeactivationFeedbackForm ) {
+                    showPanel('reasons');
+                } else {
+				    deactivateModule();
+                }
 			}
 		});
 
@@ -344,7 +381,7 @@ HTML;
 			if (_parent.hasClass('has-input')) {
 				var inputType = _parent.data('input-type'),
 				    inputPlaceholder = _parent.data('input-placeholder'),
-				    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" />' : '<textarea rows="5"></textarea>' ) + '</div>';
+				    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" maxlength="128" />' : '<textarea rows="5" maxlength="128"></textarea>' ) + '</div>';
 
 				_parent.append($(reasonInputHtml));
 				_parent.find('input, textarea').attr('placeholder', inputPlaceholder).focus();
@@ -493,5 +530,14 @@ HTML;
 	function getCurrentPanel() {
 		return $modal.find('.fs-modal-panel.active').attr('data-panel-id');
 	}
+
+    /**
+     * @author Leo Fajardo (@leorw)
+     *
+     * @since 2.3.0
+     */
+	function deactivateModule() {
+	    window.location.href = redirectLink;
+    }
 })(jQuery);
 </script>

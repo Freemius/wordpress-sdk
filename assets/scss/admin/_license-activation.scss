@@ -1,14 +1,14 @@
 .fs-modal.fs-modal-license-activation {
 	.fs-modal-body {
-		input.license_key {
+		input.fs-license-key {
 			width: 100%;
 		}
 	}
 }
 
-#license_options_container {
+.fs-license-options-container {
 	table {
-		&, select, #available_license_key {
+		&, select, .fs-available-license-key {
 			width: 100%;
 		}
 
@@ -16,7 +16,7 @@
 			width: 1%;
 		}
 
-		#other_license_key_container {
+		.fs-other-license-key-container {
 			label {
 				position: relative;
 				top: 6px;
@@ -40,7 +40,7 @@
 	}
 }
 
-#sites_list_container {
+.fs-sites-list-container {
 	td {
 		cursor: pointer;
 	}

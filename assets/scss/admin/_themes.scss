@@ -1,21 +1,28 @@
+@import "badge";
+
 .theme-browser
 {
     .theme
     {
-        .fs-premium-theme-badge
-        {
-            position:       absolute;
-            top:            10px;
-            right:          0;
-            background:     $fs-logo-green-color;
-            color:          #fff;
-            text-transform: uppercase;
-            padding:        5px 10px;
-            @include border-radius(3px 0 0 3px);
-            font-weight:    bold;
-            border-right:   0;
-            @include box-shadow(0 2px 1px -1px rgba(0, 0, 0, .3));
-            font-size:      1.1em;
+        .fs-premium-theme-badge-container {
+            position: absolute;
+            right: 0;
+            top: 0;
+
+            .fs-badge {
+                position: relative;
+                top: 0;
+                margin-top: 10px;
+                text-align: center;
+
+                &.fs-premium-theme-badge {
+                    font-size: 1.1em;
+                }
+
+                &.fs-beta-theme-badge {
+                    background: #00a0d2;
+                }
+            }
         }
     }
 }

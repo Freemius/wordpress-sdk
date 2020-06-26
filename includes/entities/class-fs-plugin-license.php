@@ -30,6 +30,27 @@
          */
         public $plan_id;
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.0
+         *
+         * @var string
+         */
+        public $parent_plan_name;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.0
+         *
+         * @var string
+         */
+        public $parent_plan_title;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.3.0
+         *
+         * @var number
+         */
+        public $parent_license_id;
+        /**
          * @var number
          */
         public $pricing_id;
@@ -53,6 +74,10 @@
          * @var string
          */
         public $secret_key;
+        /**
+         * @var bool
+         */
+        public $is_whitelabeled;
         /**
          * @var bool $is_free_localhost Defaults to true. If true, allow unlimited localhost installs with the same
          *      license.
@@ -95,7 +120,7 @@
          * @return int
          */
         function left() {
-            if ( ! $this->is_active() || $this->is_expired() ) {
+            if ( ! $this->is_features_enabled() ) {
                 return 0;
             }
 
@@ -265,5 +290,34 @@
          */
         function total_activations() {
             return ( $this->activated + $this->activated_local );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since 2.3.1
+         *
+         * @return string
+         */
+        function get_html_escaped_masked_secret_key() {
+            return self::mask_secret_key_for_html( $this->secret_key );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.3.1
+         *
+         * @param string $secret_key
+         *
+         * @return string
+         */
+        static function mask_secret_key_for_html( $secret_key ) {
+            return (
+                // Initial 6 chars - sk_ABC
+                htmlspecialchars( substr( $secret_key, 0, 6 ) ) .
+                // Masking
+                str_pad( '', ( strlen( $secret_key ) - 9 ) * 6, '&bull;' ) .
+                // Last 3 chars.
+                htmlspecialchars( substr( $secret_key, - 3 ) )
+            );
         }
     }
