@@ -1367,6 +1367,7 @@
                             if ( ! empty( $api->slug ) && true == $api->is_wp_org_compliant ) {
                                 ?>
                                 <li><a target="_blank"
+																			 rel="noopener noreferrer"
                                        href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1375,6 +1376,7 @@
                             if ( ! empty( $api->homepage ) ) {
                                 ?>
                                 <li><a target="_blank"
+																       rel="noopener noreferrer"
                                        href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1383,6 +1385,7 @@
                             if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
                                 ?>
                                 <li><a target="_blank"
+																       rel="noopener noreferrer"
                                        href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1429,6 +1432,7 @@
 					<span class="counter-label"><a
                             href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
                             target="_blank"
+														rel="noopener noreferrer"
                             title="<?php echo esc_attr( sprintf(
                             /* translators: %s: # of stars (e.g. 5 stars) */
                                 fs_text_inline( 'Click to see reviews that provided a rating of %s', 'click-to-reviews', $api->slug ),
@@ -1458,13 +1462,14 @@
                                     if ( empty( $contrib_profile ) ) {
                                         echo "<li><img src='https://wordpress.org/grav-redirect.php?user={$contrib_username}&amp;s=36' width='18' height='18' />{$contrib_username}</li>";
                                     } else {
-                                        echo "<li><a href='{$contrib_profile}' target='_blank'><img src='https://wordpress.org/grav-redirect.php?user={$contrib_username}&amp;s=36' width='18' height='18' />{$contrib_username}</a></li>";
+                                        echo "<li><a href='{$contrib_profile}' target='_blank' rel='noopener noreferrer'><img src='https://wordpress.org/grav-redirect.php?user={$contrib_username}&amp;s=36' width='18' height='18' />{$contrib_username}</a></li>";
                                     }
                                 }
                             ?>
                         </ul>
                         <?php if ( ! empty( $api->donate_link ) ) { ?>
                             <a target="_blank"
+														   rel="noopener noreferrer"
                                href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
                                 &#187;</a>
                         <?php } ?>

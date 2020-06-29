@@ -4259,7 +4259,7 @@
                                     )
                                 ),
                                 sprintf(
-                                    '<a href="%s" target="_blank"><b>%s</b></a> - %s',
+                                    '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
                                     sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
                                     $install_previous_title,
                                     $install_previous_desc
@@ -4366,7 +4366,7 @@
                                 )
                             ),
                             sprintf(
-                                '<a href="%s" target="_blank"><b>%s</b></a> - %s',
+                                '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
                                 sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
                                 $install_previous_title,
                                 $install_previous_desc
@@ -20909,7 +20909,7 @@
          */
         private function get_latest_download_link( $label, $plugin_id = false ) {
             return sprintf(
-                '<a target="_blank" href="%s">%s</a>',
+                '<a target="_blank" rel="noopener noreferrer" href="%s">%s</a>',
                 $this->_get_latest_download_local_url( $plugin_id ),
                 $label
             );
@@ -20980,7 +20980,7 @@
                             $this->get_text_inline( 'Version %s was released.', 'version-x-released' ) . ' ' . $this->get_text_inline( 'Please download %s.', 'please-download-x' ),
                             $update->version,
                             sprintf(
-                                '<a href="%s" target="_blank">%s</a>',
+                                '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
                                 $this->get_account_url( 'download_latest' ),
                                 sprintf(
                                 /* translators: %s: plan name (e.g. latest "Professional" version) */
@@ -21467,7 +21467,7 @@
                                                 $this->get_plugin_title(),
                                                 fs_strip_url_protocol( get_site_url( $blog_id ) ),
                                                 sprintf(
-                                                    '<a href="%s" target="_blank">%s</a>',
+                                                    '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
                                                     'https://freemius.com',
                                                     'freemius.com'
                                                 )
@@ -22870,7 +22870,7 @@
 
             foreach ( $this->_action_links as $new_links ) {
                 foreach ( $new_links as $link ) {
-                    $before_deactivate[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank"' : '' ) . '>' . $link['label'] . '</a>';
+                    $before_deactivate[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank" rel="noopener noreferrer"' : '' ) . '>' . $link['label'] . '</a>';
                 }
             }
 
@@ -22990,7 +22990,7 @@
                     '';
 
                 return sprintf(
-                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>).</li></ol>',
                     $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
                     ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
                     $this->get_latest_download_link( sprintf(
