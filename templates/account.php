@@ -163,7 +163,15 @@
         }
     }
 
-    $has_bundle_license              = ( is_object( $license ) && FS_Plugin_License::is_valid_id( $license->parent_license_id ) );
+    $has_bundle_license = false;
+
+    if ( is_object( $license ) &&
+        FS_Plugin_License::is_valid_id( $license->parent_license_id )
+    ) {
+        // Context license has a parent license, therefore, the account has a bundle license.
+        $has_bundle_license = true;
+    }
+
     $bundle_subscription             = null;
     $is_bundle_first_payment_pending = false;
 
@@ -189,19 +197,31 @@
     $installed_addons     = $fs->get_installed_addons();
     $installed_addons_ids = array();
 
+    /**
+     * Store the installed add-ons' IDs into a collection which will be used in determining the add-ons to show on the "Account" page, and at the same time try to find an add-on that is activated with a bundle license if the core product is not.
+     *
+     * @author Leo Fajardo
+     *
+     * @since 2.4.0
+     */
     foreach ( $installed_addons as $fs_addon ) {
         $installed_addons_ids[] = $fs_addon->get_id();
 
+        if ( $has_bundle_license ) {
+            // We already have the context bundle license details, skip.
+            continue;
+        }
+
         if (
-            ! $has_bundle_license &&
             $show_plan_row &&
             $fs_addon->has_active_valid_license()
         ) {
             $addon_license = $fs_addon->_get_license();
 
-            $has_bundle_license = FS_Plugin_License::is_valid_id( $addon_license->parent_license_id );
+            if ( FS_Plugin_License::is_valid_id( $addon_license->parent_license_id ) ) {
+                // Add-on's license is associated with a parent/bundle license.
+                $has_bundle_license = true;
 
-            if ( $has_bundle_license ) {
                 $bundle_plan_title               = strtoupper( $addon_license->parent_plan_title );
                 $bundle_subscription             = $fs_addon->_get_subscription( $addon_license->parent_license_id );
                 $is_bundle_first_payment_pending = $addon_license->is_first_payment_pending();
