@@ -52,7 +52,7 @@
         public $parent_license_id;
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.0.4
+         * @since 2.4.0
          *
          * @var array
          */

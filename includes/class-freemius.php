@@ -353,7 +353,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.3
+         * @since 2.4.0
          *
          * @var bool
          */
@@ -4957,7 +4957,7 @@
                                  * If the add-on has no free plan, try to activate the account only when there's a bundle license.
                                  *
                                  * @author Leo Fajardo (@leorw)
-                                 * @since 2.3.3
+                                 * @since 2.4.0
                                  */
                                 $bundle_license = $this->get_active_parent_license( $this->_parent->_get_license()->secret_key, false );
 
@@ -8010,7 +8010,7 @@
          * but by clicking on a license activation button) for a product via its "Account" page.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.0.4
+         * @since 2.4.0
          *
          * @param FS_Plugin_License $license
          * @param array             $sites
@@ -8036,7 +8036,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.0.4
+         * @since 2.4.0
          *
          * @param FS_Plugin_License $license
          * @param array             $sites
@@ -8073,7 +8073,7 @@
                      * there is a context bundle.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.3.2
+                     * @since 2.4.0
                      */
                     continue;
                 }
@@ -10699,7 +10699,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.3
+         * @since  2.4.0
          *
          * @return bool
          */
@@ -17527,7 +17527,7 @@
                      * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: the notice will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.3.3
+                     * @since 2.4.0
                      */
                     $error_message = FS_Api::is_api_error_object( $result ) ?
                         $result->error->message :
@@ -20055,7 +20055,7 @@
          * Checks if the product is activated with a bundle license.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.3.3
+         * @since  2.4.0
          *
          * @return bool
          */
@@ -22045,7 +22045,7 @@
                          * products will work properly.
                          *
                          * @author Leo Fajardo (@leorw)
-                         * @since 2.3.0.4
+                         * @since 2.4.0
                          */
                         unset( $_REQUEST['plugin_id'] );
 
