@@ -8191,13 +8191,16 @@
          */
         function get_active_parent_license( $license_key = null, $flush = true ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
-            $parent_instance          = $this->is_addon() ?
-                $this->get_parent_instance() :
-                null;
 
-            $fs = ( ! is_null( $parent_instance ) && $parent_instance->is_registered() ) ?
-                $parent_instance :
-                $this;
+            $fs = $this;
+            
+            if ( $this->is_addon() ) {
+                $parent_instance = $this->get_parent_instance();
+
+                if ( is_object( $parent_instance ) && $parent_instance->is_registered() ) {
+                    $fs = $parent_instance;
+                }
+            }
 
             $foreign_licenses = $fs->get_foreign_licenses_info(
                 self::get_all_licenses( $this->get_parent_id() )
@@ -8234,7 +8237,7 @@
             $parent_license = null;
 
             if ( empty( $license_key ) ) {
-                $parent_license = $result->licenses[ 0 ];
+                $parent_license = $result->licenses[0];
             } else {
                 foreach ( $result->licenses as $license ) {
                     if ( $license_key === $license->secret_key ) {
@@ -17464,7 +17467,11 @@
          * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
          * @param FS_Plugin_License $bundle_license
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null, FS_Plugin_License $bundle_license = null ) {
+        private function _activate_addon_account(
+            Freemius $parent_fs,
+            $network_level_or_blog_id = null,
+            FS_Plugin_License $bundle_license = null
+        ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
