@@ -8092,10 +8092,6 @@
                         continue;
                     }
                 } else {
-                    if ( empty( $sites ) ) {
-                        $sites = self::get_sites_for_network_level_optin();
-                    }
-
                     if ( ! $fs->is_network_active() ) {
                         // Do not try to activate the license in the network level if the product is not network active.
                         continue;
@@ -8104,6 +8100,17 @@
                         continue;
                     } else {
                         $has_install_with_license = false;
+
+                        // Stores sites that have an install entity and non-delegated sites that have no install entity.
+                        $filtered_sites = array();
+
+                        if ( empty( $sites ) ) {
+                            $all_sites = self::get_sites();
+
+                            foreach ( $all_sites as $site ) {
+                                $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
+                            }
+                        }
 
                         foreach ( $sites as $site ) {
                             if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
@@ -8122,33 +8129,42 @@
                             if ( isset( $installs[ $fs->get_slug() ] ) ) {
                                 $install = $installs[ $fs->get_slug() ];
 
-                                if ( is_object( $install ) &&
-                                    is_numeric( $install->id ) &&
-                                    is_numeric( $install->user_id ) &&
-                                    FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                if (
+                                    is_object( $install ) &&
+                                    (
+                                        ! FS_Site::is_valid_id( $install->id ) ||
+                                        ! FS_User::is_valid_id( $install->user_id ) ||
+                                        ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                    )
                                 ) {
-                                    $install = clone $install;
-                                } else {
                                     $install = null;
                                 }
                             }
 
-                            if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                            if (
+                                is_object( $install ) &&
+                                FS_Plugin_License::is_valid_id( $install->license_id )
+                            ) {
                                 $has_install_with_license = true;
                                 break;
                             }
 
-                            if ( ! $fs->is_site_delegated_connection( $blog_id ) && ! is_object( $install ) ) {
+                            if (
+                                ! is_object( $install ) &&
+                                ! $fs->is_site_delegated_connection( $blog_id )
+                            ) {
                                 if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
                                     $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
                                 }
 
-                                $product_sites[] = $site_info_by_blog_map[ $blog_id ];
+                                $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
                             }
                         }
 
-                        if ( $has_install_with_license ) {
-                            // Do not try to activate the license in the network level if there's any install with a license.
+                        $sites = $filtered_sites;
+
+                        if ( $has_install_with_license || empty( $sites ) ) {
+                            // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
                             continue;
                         }
                     }
