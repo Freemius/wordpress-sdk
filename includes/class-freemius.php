@@ -8187,6 +8187,8 @@
         }
 
         /**
+         * Returns a collection of parent licenses that can be activated for the context product.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
          *
@@ -8223,14 +8225,6 @@
             }
 
             $result = $fs->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, $flush );
-
-            if (
-                ! $this->is_api_result_object( $result, 'licenses' ) ||
-                ! is_array( $result->licenses ) ||
-                empty( $result->licenses )
-            ) {
-                return null;
-            }
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
@@ -17471,7 +17465,7 @@
          *
          * @param Freemius          $parent_fs
          * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
-         * @param FS_Plugin_License $bundle_license
+         * @param FS_Plugin_License $bundle_license           @since 2.4.0. If provided, a license will be activated for the add-on.
          */
         private function _activate_addon_account(
             Freemius $parent_fs,
