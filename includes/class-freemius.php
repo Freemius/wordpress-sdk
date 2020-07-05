@@ -8005,9 +8005,7 @@
         }
 
         /**
-         * Tries to activate a bundle license for all supported products if the current product is activated with a
-         * bundle license. This is called after activating an available license (not via the license activation dialog
-         * but by clicking on a license activation button) for a product via its "Account" page.
+         * Tries to activate a bundle license for all supported products if the current product is activated with a bundle license. This is called after activating an available license (not via the license activation dialog but by clicking on a license activation button) for a product via its "Account" page.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.0
@@ -8071,9 +8069,6 @@
                     /**
                      * The parent product can be free-only but can have its `has_paid_plan` flag set to `true` when
                      * there is a context bundle.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.4.0
                      */
                     continue;
                 }
@@ -17465,7 +17460,7 @@
          *
          * @param Freemius          $parent_fs
          * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
-         * @param FS_Plugin_License $bundle_license           @since 2.4.0. If provided, a license will be activated for the add-on.
+         * @param FS_Plugin_License $bundle_license           @since 2.4.0. If provided, this license will be activated for the add-on.
          */
         private function _activate_addon_account(
             Freemius $parent_fs,
@@ -22041,8 +22036,7 @@
                         $fs->_activate_license();
 
                         /**
-                         * Remove the product ID from `$_REQUEST` so that the syncing of the license for the other
-                         * products will work properly.
+                         * Remove the product ID from `$_REQUEST` so that the syncing of the license for the other products will work properly.
                          *
                          * @author Leo Fajardo (@leorw)
                          * @since 2.4.0
