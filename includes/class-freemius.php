@@ -8101,7 +8101,7 @@
                     } else {
                         $has_install_with_license = false;
 
-                        // Stores sites that have an install entity and non-delegated sites that have no install entity.
+                        // Collection of sites that have an install entity that is not activated with a license or non-delegated sites that have no install entity, or both types of site.
                         $filtered_sites = array();
 
                         if ( empty( $sites ) ) {
@@ -8109,6 +8109,15 @@
 
                             foreach ( $all_sites as $site ) {
                                 $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
+                            }
+                        } else {
+                            // Populate the map here to avoid calling `$fs->get_site_info( $site );` in the other `for` loop below.
+                            foreach ( $sites as $site ) {
+                                if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                                    continue;
+                                }
+
+                                $site_info_by_blog_map[ $site['blog_id'] ] = $site;
                             }
                         }
 
@@ -8149,10 +8158,7 @@
                                 break;
                             }
 
-                            if (
-                                ! is_object( $install ) &&
-                                ! $fs->is_site_delegated_connection( $blog_id )
-                            ) {
+                            if ( ! $fs->is_site_delegated_connection( $blog_id ) ) {
                                 if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
                                     $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
                                 }
