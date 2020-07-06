@@ -17578,9 +17578,9 @@
 
             if ( ! fs_is_network_admin() ) {
                 // Try to activate premium license.
-                $this->_activate_license( true );
+                $this->_activate_license( true, $bundle_license );
 
-                if ( $this->is_bundle_license_auto_activation_enabled() ) {
+                if ( is_object( $bundle_license ) ) {
                     $this->maybe_activate_bundle_license( $bundle_license );
                 }
             } else {
