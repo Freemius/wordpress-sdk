@@ -8156,21 +8156,24 @@
                             break;
                         }
 
-                        if ( ! $fs->is_site_delegated_connection( $blog_id ) ) {
+                        if ( $fs->is_site_delegated_connection( $blog_id ) ) {
+                            // Site activation delegated, don't activate bundle license on the site in the network admin.
+                            continue;
+                        }
+
                             if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
                                 $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
                             }
 
                             $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
                         }
-                    }
 
-                    $sites = $filtered_sites;
-
-                    if ( $has_install_with_license || empty( $sites ) ) {
+                    if ( $has_install_with_license || empty( $filtered_sites ) ) {
                         // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
                         continue;
                     }
+
+                    $sites = $filtered_sites;
                 }
 
                 $fs->activate_migrated_license(
