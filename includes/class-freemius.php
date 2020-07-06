@@ -8192,7 +8192,7 @@
         }
 
         /**
-         * Returns a collection of parent licenses that can be activated for the context product.
+         * Returns a parent license that can be activated for the context product.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
