@@ -8090,84 +8090,86 @@
                     if ( ! $fs->is_network_active() ) {
                         // Do not try to activate the license in the network level if the product is not network active.
                         continue;
-                    } else if ( $fs->is_network_delegated_connection() ) {
+                    }
+
+                    if ( $fs->is_network_delegated_connection() ) {
                         // Do not try to activate the license in the network level if the activation has been delegated to site admins.
                         continue;
-                    } else {
-                        $has_install_with_license = false;
+                    }
 
-                        // Collection of sites that have an install entity that is not activated with a license or non-delegated sites that have no install entity, or both types of site.
-                        $filtered_sites = array();
+                    $has_install_with_license = false;
 
-                        if ( empty( $sites ) ) {
-                            $all_sites = self::get_sites();
+                    // Collection of sites that have an install entity that is not activated with a license or non-delegated sites that have no install entity, or both types of site.
+                    $filtered_sites = array();
 
-                            foreach ( $all_sites as $site ) {
-                                $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
-                            }
-                        } else {
-                            // Populate the map here to avoid calling `$fs->get_site_info( $site );` in the other `for` loop below.
-                            foreach ( $sites as $site ) {
-                                if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
-                                    continue;
-                                }
+                    if ( empty( $sites ) ) {
+                        $all_sites = self::get_sites();
 
-                                $site_info_by_blog_map[ $site['blog_id'] ] = $site;
-                            }
+                        foreach ( $all_sites as $site ) {
+                            $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
                         }
-
+                    } else {
+                        // Populate the map here to avoid calling `$fs->get_site_info( $site );` in the other `for` loop below.
                         foreach ( $sites as $site ) {
                             if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
                                 continue;
                             }
 
-                            $blog_id = $site['blog_id'];
+                            $site_info_by_blog_map[ $site['blog_id'] ] = $site;
+                        }
+                    }
 
-                            if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
-                                $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
-                            }
+                    foreach ( $sites as $site ) {
+                        if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                            continue;
+                        }
 
-                            $installs = $installs_by_blog_map[ $blog_id ];
-                            $install  = null;
+                        $blog_id = $site['blog_id'];
 
-                            if ( isset( $installs[ $fs->get_slug() ] ) ) {
-                                $install = $installs[ $fs->get_slug() ];
+                        if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
+                            $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
+                        }
 
-                                if (
-                                    is_object( $install ) &&
-                                    (
-                                        ! FS_Site::is_valid_id( $install->id ) ||
-                                        ! FS_User::is_valid_id( $install->user_id ) ||
-                                        ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
-                                    )
-                                ) {
-                                    $install = null;
-                                }
-                            }
+                        $installs = $installs_by_blog_map[ $blog_id ];
+                        $install  = null;
+
+                        if ( isset( $installs[ $fs->get_slug() ] ) ) {
+                            $install = $installs[ $fs->get_slug() ];
 
                             if (
                                 is_object( $install ) &&
-                                FS_Plugin_License::is_valid_id( $install->license_id )
+                                (
+                                    ! FS_Site::is_valid_id( $install->id ) ||
+                                    ! FS_User::is_valid_id( $install->user_id ) ||
+                                    ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                )
                             ) {
-                                $has_install_with_license = true;
-                                break;
-                            }
-
-                            if ( ! $fs->is_site_delegated_connection( $blog_id ) ) {
-                                if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
-                                    $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
-                                }
-
-                                $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                                $install = null;
                             }
                         }
 
-                        $sites = $filtered_sites;
-
-                        if ( $has_install_with_license || empty( $sites ) ) {
-                            // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
-                            continue;
+                        if (
+                            is_object( $install ) &&
+                            FS_Plugin_License::is_valid_id( $install->license_id )
+                        ) {
+                            $has_install_with_license = true;
+                            break;
                         }
+
+                        if ( ! $fs->is_site_delegated_connection( $blog_id ) ) {
+                            if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
+                                $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
+                            }
+
+                            $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                        }
+                    }
+
+                    $sites = $filtered_sites;
+
+                    if ( $has_install_with_license || empty( $sites ) ) {
+                        // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
+                        continue;
                     }
                 }
 
