@@ -17527,13 +17527,14 @@
             );
 
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                if ( ! is_object( $bundle_license ) ) {
+                if ( is_object( $bundle_license ) ) {
                     /**
                      * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: the notice will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
                      *
                      * @author Leo Fajardo (@leorw)
-                     * @since 2.4.0
+                     * @since  2.4.0
                      */
+                } else {
                     $error_message = FS_Api::is_api_error_object( $result ) ?
                         $result->error->message :
                         $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
