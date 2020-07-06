@@ -351,6 +351,14 @@
          */
         private $is_whitelabeled;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @var bool
+         */
+        private $_is_bundle_license_auto_activation_enabled = false;
+
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -4919,10 +4927,12 @@
                     } else {
                         $is_network_admin = fs_is_network_admin();
 
-                        if (
+                        if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
+                            // If add-on activated and parent not, automatically install parent for the user.
+                            $this->activate_parent_account( $this->_parent );
+                        } else if (
                             $this->_parent->is_registered() &&
                             ! $this->is_registered() &&
-                            $this->has_free_plan() &&
                             /**
                              * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
                              * * Network active and in network admin         - network activate add-on account.
@@ -4936,16 +4946,40 @@
                              */
                             ( $this->is_network_active() || ! $is_network_admin )
                         ) {
-                            // If parent plugin activated, automatically install add-on for the user.
-                            $this->_activate_addon_account(
-                                $this->_parent,
-                                ( $this->is_network_active() && $is_network_admin ) ?
-                                    true :
-                                    get_current_blog_id()
-                            );
-                        } else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
-                            // If add-on activated and parent not, automatically install parent for the user.
-                            $this->activate_parent_account( $this->_parent );
+                            $premium_license = null;
+
+                            if (
+                                ! $this->has_free_plan() &&
+                                $this->is_bundle_license_auto_activation_enabled() &&
+                                $this->_parent->is_activated_with_bundle_license()
+                            ) {
+                                /**
+                                 * If the add-on has no free plan, try to activate the account only when there's a bundle license.
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.4.0
+                                 */
+                                $bundle_license = $this->get_active_parent_license( $this->_parent->_get_license()->secret_key, false );
+
+                                if (
+                                    is_object( $bundle_license ) &&
+                                    ! empty( $bundle_license->products ) &&
+                                    in_array( $this->get_id(), $bundle_license->products )
+                                ) {
+                                    $premium_license = $bundle_license;
+                                }
+                            }
+
+                            if ( $this->has_free_plan() || is_object( $premium_license) ) {
+                                // If parent plugin activated, automatically install add-on for the user.
+                                $this->_activate_addon_account(
+                                    $this->_parent,
+                                    ( $this->is_network_active() && $is_network_admin ) ?
+                                        true :
+                                        get_current_blog_id(),
+                                    $premium_license
+                                );
+                            }
                         }
 
                         // @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
@@ -5633,6 +5667,7 @@
                 $this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
             }
             $this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
+            $this->_is_bundle_license_auto_activation_enabled = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
 
             if ( ! empty( $plugin_info['trial'] ) ) {
                 $this->_trial_days = $this->get_numeric_option(
@@ -7850,8 +7885,17 @@
                 return;
             }
 
-            $license = $this->get_addon_active_parent_license();
+            $license = $this->get_active_parent_license();
             if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
+                $this->activate_bundle_license( $license );
+
                 return;
             }
 
@@ -7877,7 +7921,6 @@
             }
         }
 
-
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
@@ -7893,9 +7936,18 @@
 
             $license = ( ! is_null( $license ) ) ?
                 $license :
-                $this->get_addon_active_parent_license();
+                $this->get_active_parent_license();
 
             if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
+                $this->activate_bundle_license( $license );
+
                 return;
             }
 
@@ -7962,16 +8014,217 @@
         }
 
         /**
+         * Tries to activate a bundle license for all supported products if the current product is activated with a bundle license. This is called after activating an available license (not via the license activation dialog but by clicking on a license activation button) for a product via its "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $blog_id
+         */
+        private function maybe_activate_bundle_license( FS_Plugin_License $license = null, $sites = array(), $blog_id = 0 ) {
+            if ( ! is_object( $license ) && $this->has_active_valid_license() ) {
+                $license = $this->_license;
+            }
+
+            if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            $parent_license = ( ! empty( $license->products ) ) ?
+                $license :
+                $this->get_active_parent_license( $license->secret_key );
+
+            if ( is_object( $parent_license ) ) {
+                $this->activate_bundle_license( $parent_license, $sites, $blog_id );
+            }
+        }
+
+        /**
+         * Try to activate a bundle license for all the bundle products installed on the site.
+         *  (1) If a child product install already has a license, the bundle license won't be activated.
+         *  (2) On multi-site networks, if the attempt to activate the bundle license is triggered from the network admin, the bundle license activation will only work for non-delegated sites and only if none of them is associated with a license. Even if one of the sites has the product installed with a license key, skip the bundle license activation for the product.
+         *  (3) On multi-site networks, if the attempt to activate the bundle license is triggered from a site-level admin, only activate the license if the product is site-level activated or delegated, and the product installation is not yet associated with a license.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $current_blog_id
+         */
+        private function activate_bundle_license( $license, $sites = array(), $current_blog_id = 0 ) {
+            $is_network_admin = fs_is_network_admin();
+
+            $installs_by_blog_map  = array();
+            $site_info_by_blog_map = array();
+
+            /**
+             * Try to activate the license for all supported products.
+             *
+             * @author Leo Fajardo
+             */
+            foreach ( $license->products as $product_id ) {
+                $fs = self::get_instance_by_id( $product_id );
+
+                if ( ! is_object( $fs ) ) {
+                    continue;
+                }
+
+                if ( ! $fs->has_paid_plan() ) {
+                    continue;
+                }
+
+                if (
+                    ! $fs->is_addon() &&
+                    ! FS_Plan_Manager::instance()->has_paid_plan( $fs->_plans )
+                ) {
+                    /**
+                     * The parent product can be free-only but can have its `has_paid_plan` flag set to `true` when
+                     * there is a context bundle.
+                     */
+                    continue;
+                }
+
+                if ( $current_blog_id > 0 ) {
+                    $fs->switch_to_blog( $current_blog_id );
+                }
+
+                if ( $fs->has_active_valid_license() ) {
+                    continue;
+                }
+
+                if ( ! $is_network_admin || $current_blog_id > 0 ) {
+                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection( $current_blog_id ) ) {
+                        // Do not try to activate the license in the site level if the product is network active and the connection was not delegated.
+                        continue;
+                    }
+                } else {
+                    if ( ! $fs->is_network_active() ) {
+                        // Do not try to activate the license in the network level if the product is not network active.
+                        continue;
+                    }
+
+                    if ( $fs->is_network_delegated_connection() ) {
+                        // Do not try to activate the license in the network level if the activation has been delegated to site admins.
+                        continue;
+                    }
+
+                    $has_install_with_license = false;
+
+                    // Collection of sites that have an install entity that is not activated with a license or non-delegated sites that have no install entity, or both types of site.
+                    $filtered_sites = array();
+
+                    if ( empty( $sites ) ) {
+                        $all_sites = self::get_sites();
+
+                        foreach ( $all_sites as $site ) {
+                            $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
+                        }
+                    } else {
+                        // Populate the map here to avoid calling `$fs->get_site_info( $site );` in the other `for` loop below.
+                        foreach ( $sites as $site ) {
+                            if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                                continue;
+                            }
+
+                            $site_info_by_blog_map[ $site['blog_id'] ] = $site;
+                        }
+                    }
+
+                    foreach ( $sites as $site ) {
+                        if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                            continue;
+                        }
+
+                        $blog_id = $site['blog_id'];
+
+                        if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
+                            $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
+                        }
+
+                        $installs = $installs_by_blog_map[ $blog_id ];
+                        $install  = null;
+
+                        if ( isset( $installs[ $fs->get_slug() ] ) ) {
+                            $install = $installs[ $fs->get_slug() ];
+
+                            if (
+                                is_object( $install ) &&
+                                (
+                                    ! FS_Site::is_valid_id( $install->id ) ||
+                                    ! FS_User::is_valid_id( $install->user_id ) ||
+                                    ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                )
+                            ) {
+                                $install = null;
+                            }
+                        }
+
+                        if (
+                            is_object( $install ) &&
+                            FS_Plugin_License::is_valid_id( $install->license_id )
+                        ) {
+                            $has_install_with_license = true;
+                            break;
+                        }
+
+                        if ( $fs->is_site_delegated_connection( $blog_id ) ) {
+                            // Site activation delegated, don't activate bundle license on the site in the network admin.
+                            continue;
+                        }
+
+                        if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
+                            $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
+                        }
+
+                        $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                    }
+
+                    if ( $has_install_with_license || empty( $filtered_sites ) ) {
+                        // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
+                        continue;
+                    }
+
+                    $sites = $filtered_sites;
+                }
+
+                $fs->activate_migrated_license(
+                    $license->secret_key,
+                    null,
+                    null,
+                    $sites,
+                    ( $current_blog_id > 0 ? $current_blog_id : null )
+                );
+            }
+        }
+
+        /**
+         * Returns a parent license that can be activated for the context product.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
          *
+         * @param string|null $license_key
+         * @param bool        $flush
+         *
          * @return FS_Plugin_License
          */
-        private function get_addon_active_parent_license() {
+        function get_active_parent_license( $license_key = null, $flush = true ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
-            $parent_instance          = $this->get_parent_instance();
 
-            $foreign_licenses = $parent_instance->get_foreign_licenses_info(
+            $fs = $this;
+            
+            if ( $this->is_addon() ) {
+                $parent_instance = $this->get_parent_instance();
+
+                if ( is_object( $parent_instance ) && $parent_instance->is_registered() ) {
+                    $fs = $parent_instance;
+                }
+            }
+
+            $foreign_licenses = $fs->get_foreign_licenses_info(
                 self::get_all_licenses( $this->get_parent_id() )
             );
 
@@ -7985,7 +8238,7 @@
                 $parent_licenses_endpoint = add_query_arg( $foreign_licenses, $parent_licenses_endpoint );
             }
 
-            $result = $parent_instance->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, true );
+            $result = $fs->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, $flush );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
@@ -7995,9 +8248,24 @@
                 return null;
             }
 
-            $license = new FS_Plugin_License( $result->licenses[ 0 ] );
+            $parent_license = null;
 
-            return $license;
+            if ( empty( $license_key ) ) {
+                $parent_license = $result->licenses[0];
+            } else {
+                foreach ( $result->licenses as $license ) {
+                    if ( $license_key === $license->secret_key ) {
+                        $parent_license = $license;
+                        break;
+                    }
+                }
+            }
+
+            if ( ! is_null( $parent_license ) ) {
+                $parent_license = new FS_Plugin_License( $parent_license );
+            }
+
+            return $parent_license;
         }
 
         /**
@@ -10441,6 +10709,18 @@
          */
         function is_tracking_allowed() {
             return ( is_object( $this->_site ) && $this->_site->is_tracking_allowed() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.0
+         *
+         * @return bool
+         */
+        function is_bundle_license_auto_activation_enabled() {
+            return $this->is_addon() ?
+                ( is_object( $this->_parent ) && $this->_parent->is_bundle_license_auto_activation_enabled() ) :
+                $this->_is_bundle_license_auto_activation_enabled;
         }
 
         /**
@@ -12926,17 +13206,29 @@
                 exit;
             }
 
+            $sites = fs_is_network_admin() ?
+                fs_request_get( 'sites', array(), 'post' ) :
+                array();
+
             $result = $this->activate_license(
                 $license_key,
-                fs_is_network_admin() ?
-                    fs_request_get( 'sites', array(), 'post' ) :
-                    array(),
+                $sites,
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
                 fs_request_get_bool( 'is_extensions_tracking_allowed', true )
             );
+
+            if (
+                $result['success'] &&
+                $this->is_bundle_license_auto_activation_enabled()
+            ) {
+                $license             = new FS_Plugin_License();
+                $license->secret_key = $license_key;
+
+                $this->maybe_activate_bundle_license( $license, $sites );
+            }
 
             echo json_encode( $result );
 
@@ -13072,6 +13364,8 @@
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
+         * @param array       $sites
+         * @param int         $blog_id
          *
          * @return array {
          *      @var bool   $success
@@ -13085,15 +13379,16 @@
             $license_key,
             $is_marketing_allowed = null,
             $plugin_id = null,
+            $sites = array(),
             $blog_id = null
         ) {
             $this->_logger->entrance();
 
             $result = $this->activate_license(
                 $license_key,
-                $this->is_network_active() ?
+                ( empty( $sites ) && is_null( $blog_id ) && $this->is_network_active() ) ?
                     $this->get_sites_for_network_level_optin() :
-                    array(),
+                    $sites,
                 $is_marketing_allowed,
                 $blog_id,
                 $plugin_id
@@ -13299,6 +13594,12 @@
 
                 if ( empty( $error ) ) {
                     $fs->network_upgrade_mode_completed();
+
+                    $fs->_user = $user;
+
+                    if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                        $fs->_site = $fs->get_network_install();
+                    }
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -17178,10 +17479,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param Freemius      $parent_fs
-         * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param Freemius          $parent_fs
+         * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param FS_Plugin_License $bundle_license           Since 2.4.0. If provided, this license will be activated for the add-on.
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null ) {
+        private function _activate_addon_account(
+            Freemius $parent_fs,
+            $network_level_or_blog_id = null,
+            FS_Plugin_License $bundle_license = null
+        ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
@@ -17220,6 +17526,10 @@
                 }
             }
 
+            if ( is_object( $bundle_license ) ) {
+                $params['license_key'] = $bundle_license->secret_key;
+            }
+
             // Activate add-on with parent plugin credentials.
             $result = $parent_fs->get_api_site_scope()->call(
                 "/addons/{$this->_plugin->id}/installs.json",
@@ -17228,16 +17538,25 @@
             );
 
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                $error_message = FS_Api::is_api_error_object( $result ) ?
-                    $result->error->message :
-                    $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
+                if ( is_object( $bundle_license ) ) {
+                    /**
+                     * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: the notice will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since  2.4.0
+                     */
+                } else {
+                    $error_message = FS_Api::is_api_error_object( $result ) ?
+                        $result->error->message :
+                        $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
 
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
+                    $this->_admin_notices->add(
+                        sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+                        $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
+                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                        'error'
+                    );
+                }
 
                 return;
             }
@@ -17270,21 +17589,29 @@
 
             if ( ! fs_is_network_admin() ) {
                 // Try to activate premium license.
-                $this->_activate_license( true );
-            } else {
-                $license_id = fs_request_get( 'license_id' );
+                $this->_activate_license( true, $bundle_license );
 
-                if ( is_object( $this->_site ) &&
-                    FS_Plugin_License::is_valid_id( $license_id ) &&
-                    $license_id == $this->_site->license_id
-                ) {
-                    // License is already activated.
-                    return;
+                if ( is_object( $bundle_license ) ) {
+                    $this->maybe_activate_bundle_license( $bundle_license );
                 }
+            } else {
+                if ( is_object( $bundle_license ) ) {
+                    $premium_license = $bundle_license;
+                } else {
+                    $license_id = fs_request_get( 'license_id' );
 
-                $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
-                    $this->_get_license_by_id( $license_id ) :
-                    $this->_get_available_premium_license();
+                    if ( is_object( $this->_site ) &&
+                        FS_Plugin_License::is_valid_id( $license_id ) &&
+                        $license_id == $this->_site->license_id
+                    ) {
+                        // License is already activated.
+                        return;
+                    }
+
+                    $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+                        $this->_get_license_by_id( $license_id ) :
+                        $this->_get_available_premium_license();
+                }
 
                 if ( is_object( $premium_license ) ) {
                     $this->maybe_network_activate_addon_license( $premium_license );
@@ -19742,6 +20069,22 @@
         }
 
         /**
+         * Checks if the product is activated with a bundle license.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.0
+         *
+         * @return bool
+         */
+        function is_activated_with_bundle_license() {
+            if ( ! $this->has_features_enabled_license() ) {
+                return false;
+            }
+
+            return FS_Plugin_License::is_valid_id( $this->_license->parent_license_id );
+        }
+
+        /**
          * Check if user is a trial or have feature enabled license.
          *
          * @author Vova Feldman (@svovaf)
@@ -21713,6 +22056,18 @@
 
                     if ( is_object( $fs ) ) {
                         $fs->_activate_license();
+
+                        /**
+                         * Remove the product ID from `$_REQUEST` so that the syncing of the license for the other products will work properly.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.4.0
+                         */
+                        unset( $_REQUEST['plugin_id'] );
+
+                        if ( $this->is_bundle_license_auto_activation_enabled() ) {
+                            $fs->maybe_activate_bundle_license( null, array(), is_numeric( $blog_id ) ? $blog_id : 0 );
+                        }
                     }
 
                     return;
