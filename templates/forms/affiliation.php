@@ -83,6 +83,9 @@
     }
 
     $apply_to_become_affiliate_text = fs_text_inline( 'Apply to become an affiliate', 'apply-to-become-an-affiliate', $slug );
+
+    $module_id                    = $fs->get_id();
+    $affiliate_program_legal_link = "https://freemius.com/plugin/${module_id}/${slug}/legal/affiliate-program/";
 ?>
 <div id="fs_affiliation_content_wrapper" class="wrap">
     <form method="post" action="">
@@ -217,11 +220,15 @@
                                             <p class="description"><?php echo esc_html( sprintf( fs_text_inline( 'Please provide details on how you intend to promote %s (please be as specific as possible).', 'promotion-method-desc-field-desc', $slug ), $plugin_title ) ) ?></p>
                                         <?php endif ?>
                                     </div>
+                                    <div>
+                                        <input type="checkbox" name="terms" id="is_agree_check_box">
+                                        <label for="terms">I agree to the <a href="<?php echo $affiliate_program_legal_link ?>">Referrer Program's</a> terms & conditions.</label>
+                                    </div>
                                 </form>
                             </div>
                             <?php if ( ! $is_affiliate ) : ?>
                                 <a id="cancel_button" href="#" class="button button-secondary button-cancel" style="display: none"><?php fs_esc_html_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>
-                                <a id="submit_button" class="button button-primary" href="#" style="display: none"><?php echo esc_html( $apply_to_become_affiliate_text ) ?></a>
+                                <a id="submit_button" class="button button-primary disabled" href="#" style="display: none"><?php echo esc_html( $apply_to_become_affiliate_text ) ?></a>
                                 <a id="apply_button" class="button button-primary" href="#"><?php fs_esc_html_echo_inline( 'Become an affiliate', 'become-an-affiliate', $slug ) ?></a>
                             <?php endif ?>
                         </div>
@@ -242,7 +249,8 @@
                     $errorMessageContainer    = $('#error_message'),
                     $domain                   = $('#domain'),
                     $addDomain                = $('#add_domain'),
-                    $extraDomainsContainer    = $('#extra_domains_container');
+                    $extraDomainsContainer    = $('#extra_domains_container'),
+                    $isAgreeCheckBox          = $('#is_agree_check_box');
 
                 $applyButton.click(function (evt) {
                     evt.preventDefault();
@@ -360,7 +368,7 @@
                         data      : {
                             action   : '<?php echo $fs->get_ajax_action( 'submit_affiliate_application' ) ?>',
                             security : '<?php echo $fs->get_ajax_security( 'submit_affiliate_application' ) ?>',
-                            module_id: '<?php echo $fs->get_id() ?>',
+                            module_id: '<?php echo $module_id ?>',
                             affiliate: affiliate
                         },
                         beforeSend: function () {
@@ -373,7 +381,7 @@
                                 location.reload();
                             } else {
                                 if (result.error && result.error.length > 0) {
-                                showErrorMessage(result.error);
+                                    showErrorMessage(result.error);
                                 }
 
                                 $cancelButton.removeClass('disabled');
@@ -472,13 +480,27 @@
 
                     window.scrollTo(0, 0);
                 }
+
+                /**
+                 * @author Xiaheng Chen
+                 */
+                $isAgreeCheckBox.click(function () {
+                    var
+                        $this = $(this);
+
+                    if (true == $this.prop('checked')) {
+                        $submitButton.removeClass('disabled');
+                    } else {
+                        $submitButton.addClass('disabled');
+                    }
+                })
             });
         </script>
     </div>
 <?php
     $params = array(
         'page'           => 'affiliation',
-        'module_id'      => $fs->get_id(),
+        'module_id'      => $module_id,
         'module_slug'    => $slug,
         'module_version' => $fs->get_plugin_version(),
     );
