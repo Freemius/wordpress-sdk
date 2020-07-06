@@ -8033,6 +8033,11 @@
         }
 
         /**
+         * Try to activate a bundle license for all the bundle products installed on the site.
+         *  (1) If a child product install already has a license, the bundle license won't be activated.
+         *  (2) On multi-site networks, if the attempt to activate the bundle license is triggered from the network admin, the bundle license activation will only work for non-delegated sites and only if none of them is associated with a license. Even if one of the sites has the product installed with a license key, skip the bundle license activation for the product.
+         *  (3) On multi-site networks, if the attempt to activate the bundle license is triggered from a site-level admin, only activate the license if the product is site-level activated or delegated, and the product installation is not yet associated with a license.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.0
          *
@@ -8161,12 +8166,12 @@
                             continue;
                         }
 
-                            if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
-                                $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
-                            }
-
-                            $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                        if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
+                            $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
                         }
+
+                        $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                    }
 
                     if ( $has_install_with_license || empty( $filtered_sites ) ) {
                         // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
@@ -17465,7 +17470,7 @@
          *
          * @param Freemius          $parent_fs
          * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
-         * @param FS_Plugin_License $bundle_license           @since 2.4.0. If provided, this license will be activated for the add-on.
+         * @param FS_Plugin_License $bundle_license           Since 2.4.0. If provided, this license will be activated for the add-on.
          */
         private function _activate_addon_account(
             Freemius $parent_fs,
