@@ -880,7 +880,7 @@
                 $classes[] = 'disabled';
             }
 
-						$rel = ( '_blank' === $target ) ? ' rel="noopener noreferrer"' : '';
+            $rel = ( '_blank' === $target ) ? ' rel="noopener noreferrer"' : '';
 
             return sprintf(
                 '<a %s class="button %s">%s</a>',
