@@ -878,11 +878,13 @@
 
             if ( $is_disabled ) {
                 $classes[] = 'disabled';
-            }
+						}
+						
+						$rel = $target === '_blank' ? 'rel="noopener noreferrer"' : '';
 
             return sprintf(
                 '<a %s class="button %s">%s</a>',
-                empty( $href ) ? '' : 'href="' . $href . '" target="' . $target . '"',
+                empty( $href ) ? '' : 'href="' . $href . '" target="' . $target . '"' . $rel,
                 implode( ' ', $classes ),
                 $label
             );

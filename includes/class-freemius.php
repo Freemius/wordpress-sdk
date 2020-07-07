@@ -1505,7 +1505,7 @@
             ?>
             <script type="text/javascript">
                 (function ($) {
-                    $('.fs-submenu-item.wp-support-forum').parent().attr('target', '_blank');
+                    $('.fs-submenu-item.wp-support-forum').parent().attr({target: '_blank', rel: 'noopener noreferrer'});
                 })(jQuery);
             </script>
             <?php
