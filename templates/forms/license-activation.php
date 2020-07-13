@@ -229,16 +229,16 @@ HTML;
 				+ '	</div>'
 				+ '</div>',
 			$modal = $(modalHtml),
-			$activateLicenseLink            = $('span.activate-license.<?php echo $unique_affix ?> a, .activate-license-trigger.<?php echo $unique_affix ?>'),
 			$activateLicenseButton          = $modal.find('.button-activate-license'),
 			$licenseKeyInput                = $modal.find( 'input.fs-license-key' ),
 			$licenseActivationMessage       = $modal.find( '.license-activation-message' ),
             isNetworkActivation             = <?php echo $is_network_activation ? 'true' : 'false' ?>,
             isUserChangeSupported           = <?php echo $is_user_change_supported ? 'true' : 'false' ?>,
             isSingleSiteActivation          = false,
-            $ownershipChangeOptionContainer = $modal.find( '.ownership-change-option-container' );
+            $ownershipChangeOptionContainer = $modal.find( '.ownership-change-option-container' ),
+            $body                           = $( 'body' );
 
-		$modal.appendTo($('body'));
+		$modal.appendTo( $body );
 
         var
             $licensesDropdown    = $modal.find( '.fs-licenses' ),
@@ -459,7 +459,7 @@ HTML;
                 });
             }
 
-            $activateLicenseLink.click(function (evt) {
+            $body.on( 'click', 'span.activate-license.<?php echo $unique_affix ?> a, .activate-license-trigger.<?php echo $unique_affix ?>', function (evt) {
 				evt.preventDefault();
 
 				showModal( evt );
@@ -635,7 +635,7 @@ HTML;
 
 		registerEventHandlers();
 
-        $('body').trigger('licenseActivationLoaded');
+        $body.trigger('licenseActivationLoaded');
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -800,7 +800,7 @@ HTML;
 
 			// Display the dialog box.
 			$modal.addClass('active');
-			$('body').addClass('has-fs-modal');
+			$body.addClass('has-fs-modal');
 
             var
                 $singleInstallDetails  = $( evt.target ).parents( 'tr.fs-install-details' ),
@@ -812,7 +812,9 @@ HTML;
                 $singleInstallDetails.prev().data( 'blog-id' ) :
                 null;
 
+            <?php if ( $fs->apply_filters( 'enable_per_site_activation', true ) ) : ?>
             $multisiteOptionsContainer.toggle( isNetworkActivation && ! isSingleSiteActivation );
+            <?php endif ?>
 
             if ( hasLicenseTypes ) {
                 $licenseTypes.attr( 'checked', false );
@@ -832,7 +834,7 @@ HTML;
 
 		function closeModal() {
 			$modal.removeClass('active');
-			$('body').removeClass('has-fs-modal');
+			$body.removeClass('has-fs-modal');
 		}
 
 		function resetActivateLicenseButton() {
