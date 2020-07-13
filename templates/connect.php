@@ -54,7 +54,7 @@
 			) );
 	}
 
-	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" rel="noopener noreferrer" tabindex="1">freemius.com</a>';
+	$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com</a>';
 
 	$error = fs_request_get( 'error' );
 
@@ -458,10 +458,10 @@
 			</div>
 		<?php endif ?>
 		<div class="fs-terms">
-			<a href="https://freemius.com/privacy/" target="_blank" rel="noopener noreferrer"
+			<a href="https://freemius.com/privacy/" target="_blank" rel="noopener"
 			   tabindex="1"><?php fs_esc_html_echo_inline( 'Privacy Policy', 'privacy-policy', $slug ) ?></a>
 			&nbsp;&nbsp;-&nbsp;&nbsp;
-			<a href="<?php echo $require_license_key ? $freemius_plugin_terms_url : $freemius_usage_tracking_url ?>" target="_blank" rel="noopener noreferrer" tabindex="1"><?php $require_license_key ? fs_echo_inline( 'License Agreement', 'license-agreement', $slug ) : fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
+			<a href="<?php echo $require_license_key ? $freemius_plugin_terms_url : $freemius_usage_tracking_url ?>" target="_blank" rel="noopener" tabindex="1"><?php $require_license_key ? fs_echo_inline( 'License Agreement', 'license-agreement', $slug ) : fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
 		</div>
 	</div>
 	<?php

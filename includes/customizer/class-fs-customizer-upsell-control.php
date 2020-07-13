@@ -147,7 +147,7 @@
 												</ul>
 												<# } #>
 													<# if ( 'free' != data.plans[i].name ) { #>
-														<a href="{{ data.button_url }}" class="button button-primary" target="_blank" rel="noopener noreferrer">{{{ data.button_text }}}</a>
+														<a href="{{ data.button_url }}" class="button button-primary" target="_blank">{{{ data.button_text }}}</a>
 														<# } #>
 										</div>
 									</div>
