@@ -1369,7 +1369,7 @@
                             if ( ! empty( $api->slug ) && true == $api->is_wp_org_compliant ) {
                                 ?>
                                 <li><a target="_blank"
-																			 rel="noopener noreferrer"
+                                       rel="noopener noreferrer"
                                        href="https://wordpress.org/plugins/<?php echo $api->slug; ?>/"><?php fs_esc_html_echo_inline( 'WordPress.org Plugin Page', 'wp-org-plugin-page', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1378,7 +1378,7 @@
                             if ( ! empty( $api->homepage ) ) {
                                 ?>
                                 <li><a target="_blank"
-																       rel="noopener noreferrer"
+                                       rel="noopener noreferrer"
                                        href="<?php echo esc_url( $api->homepage ); ?>"><?php fs_esc_html_echo_inline( 'Plugin Homepage', 'plugin-homepage', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1387,7 +1387,7 @@
                             if ( ! empty( $api->donate_link ) && empty( $api->contributors ) ) {
                                 ?>
                                 <li><a target="_blank"
-																       rel="noopener noreferrer"
+                                       rel="noopener noreferrer"
                                        href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_esc_html_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
                                         &#187;</a>
                                 </li>
@@ -1431,19 +1431,19 @@
                             );
                             ?>
                             <div class="counter-container">
-					<span class="counter-label"><a
-                            href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
-                            target="_blank"
-														rel="noopener noreferrer"
-                            title="<?php echo esc_attr( sprintf(
-                            /* translators: %s: # of stars (e.g. 5 stars) */
-                                fs_text_inline( 'Click to see reviews that provided a rating of %s', 'click-to-reviews', $api->slug ),
-                                $stars_label
-                            ) ) ?>"><?php echo $stars_label ?></a></span>
+                              <span class="counter-label"><a
+                                href="https://wordpress.org/support/view/plugin-reviews/<?php echo $api->slug; ?>?filter=<?php echo $key; ?>"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="<?php echo esc_attr( sprintf(
+                                  /* translators: %s: # of stars (e.g. 5 stars) */
+                                  fs_text_inline( 'Click to see reviews that provided a rating of %s', 'click-to-reviews', $api->slug ),
+                                  $stars_label
+                                ) ) ?>"><?php echo $stars_label ?></a></span>
                                 <span class="counter-back">
-						<span class="counter-bar" style="width: <?php echo absint(92 * $_rating); ?>px;"></span>
-					</span>
-                                <span class="counter-count"><?php echo number_format_i18n( $ratecount ); ?></span>
+                                <span class="counter-bar" style="width: <?php echo absint(92 * $_rating); ?>px;"></span>
+                              </span>
+                              <span class="counter-count"><?php echo number_format_i18n( $ratecount ); ?></span>
                             </div>
                             <?php
                         }
@@ -1471,7 +1471,7 @@
                         </ul>
                         <?php if ( ! empty( $api->donate_link ) ) { ?>
                             <a target="_blank"
-														   rel="noopener noreferrer"
+                               rel="noopener noreferrer"
                                href="<?php echo esc_url( $api->donate_link ); ?>"><?php fs_echo_inline( 'Donate to this plugin', 'donate-to-plugin', $api->slug ) ?>
                                 &#187;</a>
                         <?php } ?>
