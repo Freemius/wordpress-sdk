@@ -49,7 +49,7 @@
 		fs_text_inline( 'By clicking "Opt Out", we will no longer be sending any data from %s to %s.', 'opt-out-message-clicking-opt-out', $slug ),
 		$plugin_title,
 		sprintf(
-			'<a href="%s" target="_blank">%s</a>',
+			'<a href="%s" target="_blank" rel="noopener">%s</a>',
 			'https://freemius.com',
 			'freemius.com'
 		)
