@@ -222,7 +222,7 @@
                                     </div>
                                     <div>
                                         <input type="checkbox" id="legal_consent_checkbox">
-                                        <label for="legal_consent_checkbox">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer">Referrer Program's</a> terms & conditions.</label>
+                                        <label for="legal_consent_checkbox">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
                                     </div>
                                 </form>
                             </div>
