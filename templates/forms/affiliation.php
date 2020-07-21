@@ -221,8 +221,8 @@
                                         <?php endif ?>
                                     </div>
                                     <div>
-                                        <input type="checkbox" id="is_agree_check_box">
-                                        <label for="is_agree_check_box">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
+                                        <input type="checkbox" id="legal_consent_checkbox">
+                                        <label for="legal_consent_checkbox">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
                                     </div>
                                 </form>
                             </div>
@@ -250,7 +250,7 @@
                     $domain                   = $('#domain'),
                     $addDomain                = $('#add_domain'),
                     $extraDomainsContainer    = $('#extra_domains_container'),
-                    $isAgreeCheckBox          = $('#is_agree_check_box');
+                    $legalConsentCheckbox     = $('#legal_consent_checkbox');
 
                 $applyButton.click(function (evt) {
                     evt.preventDefault();
@@ -484,7 +484,7 @@
                 /**
                  * @author Xiaheng Chen
                  */
-                $isAgreeCheckBox.click(function () {
+                $legalConsentCheckbox.click(function () {
                     var
                         $this = $(this);
 
