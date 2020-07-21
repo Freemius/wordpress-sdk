@@ -250,7 +250,7 @@
                     $domain                   = $('#domain'),
                     $addDomain                = $('#add_domain'),
                     $extraDomainsContainer    = $('#extra_domains_container'),
-                    $legalConsentCheckbox     = $('#legal_consent_checkbox');
+                    $legalConsentCheckbox     = $( '#legal_consent_checkbox' );
 
                 $applyButton.click(function (evt) {
                     evt.preventDefault();
@@ -484,16 +484,16 @@
                 /**
                  * @author Xiaheng Chen
                  */
-                $legalConsentCheckbox.click(function () {
+                $legalConsentCheckbox.click( function () {
                     var
-                        $this = $(this);
+                        $this = $( this );
 
-                    if (true == $this.prop('checked')) {
-                        $submitButton.removeClass('disabled');
+                    if ( true == $this.prop( 'checked' ) ) {
+                        $submitButton.removeClass( 'disabled' );
                     } else {
-                        $submitButton.addClass('disabled');
+                        $submitButton.addClass( 'disabled' );
                     }
-                })
+                } )
             });
         </script>
     </div>
