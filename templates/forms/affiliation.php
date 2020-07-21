@@ -487,15 +487,14 @@
                  * @since 2.4.0
                  */
                 $legalConsentCheckbox.click( function () {
-                    var
-                        $this = $( this );
+                    var $this = $( this );
 
                     if ( true == $this.prop( 'checked' ) ) {
                         $submitButton.removeClass( 'disabled' );
                     } else {
                         $submitButton.addClass( 'disabled' );
                     }
-                } )
+                } );
             });
         </script>
     </div>
