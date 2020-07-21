@@ -84,8 +84,8 @@
 
     $apply_to_become_affiliate_text = fs_text_inline( 'Apply to become an affiliate', 'apply-to-become-an-affiliate', $slug );
 
-    $module_id                    = $fs->get_id();
-    $affiliate_program_legal_link = "https://freemius.com/plugin/${module_id}/${slug}/legal/affiliate-program/";
+    $module_id                   = $fs->get_id();
+    $affiliate_program_terms_url = "https://freemius.com/plugin/${module_id}/${slug}/legal/affiliate-program/";
 ?>
 <div id="fs_affiliation_content_wrapper" class="wrap">
     <form method="post" action="">
@@ -222,7 +222,7 @@
                                     </div>
                                     <div>
                                         <input type="checkbox" name="terms" id="is_agree_check_box">
-                                        <label for="terms">I agree to the <a href="<?php echo $affiliate_program_legal_link ?>">Referrer Program's</a> terms & conditions.</label>
+                                        <label for="terms">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
                                     </div>
                                 </form>
                             </div>
