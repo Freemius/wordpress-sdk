@@ -482,7 +482,7 @@
                 }
 
                 /**
-                 * @author Xiaheng Chen
+                 * @author Xiaheng Chen (@xhchen)
                  *
                  * @since 2.4.0
                  */
