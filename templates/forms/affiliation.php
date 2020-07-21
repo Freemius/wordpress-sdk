@@ -221,8 +221,8 @@
                                         <?php endif ?>
                                     </div>
                                     <div>
-                                        <input type="checkbox" name="terms" id="is_agree_check_box">
-                                        <label for="terms">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
+                                        <input type="checkbox" id="is_agree_check_box">
+                                        <label for="is_agree_check_box">I agree to the <a href="<?php echo $affiliate_program_terms_url ?>" target="_blank" rel="noreferrer noopener">Referrer Program's</a> terms & conditions.</label>
                                     </div>
                                 </form>
                             </div>
