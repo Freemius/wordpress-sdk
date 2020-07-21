@@ -85,7 +85,7 @@
     $apply_to_become_affiliate_text = fs_text_inline( 'Apply to become an affiliate', 'apply-to-become-an-affiliate', $slug );
 
     $module_id                   = $fs->get_id();
-    $affiliate_program_terms_url = "https://freemius.com/plugin/${module_id}/${slug}/legal/affiliate-program/";
+    $affiliate_program_terms_url = "https://freemius.com/plugin/{$module_id}/{$slug}/legal/affiliate-program/";
 ?>
 <div id="fs_affiliation_content_wrapper" class="wrap">
     <form method="post" action="">
