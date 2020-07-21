@@ -381,7 +381,7 @@
                                 location.reload();
                             } else {
                                 if (result.error && result.error.length > 0) {
-                                    showErrorMessage(result.error);
+                                showErrorMessage(result.error);
                                 }
 
                                 $cancelButton.removeClass('disabled');
@@ -483,6 +483,8 @@
 
                 /**
                  * @author Xiaheng Chen
+                 *
+                 * @since 2.4.0
                  */
                 $legalConsentCheckbox.click( function () {
                     var
