@@ -5481,7 +5481,10 @@
          * @return bool
          */
         function is_extensions_tracking_allowed() {
-            return (true === $this->_storage->get( 'is_extensions_tracking_allowed', true ) );
+            return ( true === $this->apply_filters(
+                    'is_extensions_tracking_allowed',
+                    $this->_storage->get( 'is_extensions_tracking_allowed', true )
+                ) );
         }
 
         /**
@@ -23324,14 +23327,18 @@
                 return;
             }
 
-            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
-                if ( ! $this->is_enable_anonymous() ) {
-                    // If opted in and tracking is allowed, don't allow to opt out if anonymous mode is disabled.
-                    return;
-                }
+            if (
+                $this->is_activation_mode() &&
+                $this->is_premium() &&
+                ! $this->is_registered()
+            ) {
+                // If not yet registered and running the premium code base, a license activation link will already be shown.
+                return;
+            }
 
-                if ( ! $this->is_free_plan() ) {
-                    // Don't allow to opt out if running in paid plan.
+            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                if ( ! $this->is_premium() && ! $this->is_enable_anonymous() ) {
+                    // If opted in and tracking is allowed, don't allow to opt out if not premium and anonymous mode is disabled.
                     return;
                 }
             }

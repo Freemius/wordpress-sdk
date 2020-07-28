@@ -399,11 +399,12 @@
 			}
 
 			$permissions['extensions']    = array(
-				'icon-class' => 'dashicons dashicons-menu',
-				'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ),
-				'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
-				'priority'   => 25,
-				'optional'   => true,
+                'icon-class' => 'dashicons dashicons-menu',
+                'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ),
+                'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
+                'priority'   => 25,
+                'optional'   => true,
+                'default'    => $fs->apply_filters( 'permission_extensions_default', true )
 			);
 
 			// Allow filtering of the permissions list.
@@ -429,7 +430,7 @@
 								    class="fs-permission fs-<?php echo esc_attr( $id ); ?>">
 									<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
 									<?php if ( isset( $permission['optional'] ) && true === $permission['optional'] ) : ?>
-										<div class="fs-switch fs-small fs-round fs-on">
+										<div class="fs-switch fs-small fs-round fs-<?php echo (! isset( $permission['default'] ) || true === $permission['default'] ) ?  'on' : 'off' ?>">
 											<div class="fs-toggle"></div>
 										</div>
 									<?php endif ?>
