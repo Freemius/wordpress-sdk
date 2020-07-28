@@ -429,7 +429,7 @@
 								    class="fs-permission fs-<?php echo esc_attr( $id ); ?>">
 									<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
 									<?php if ( isset( $permission['optional'] ) && true === $permission['optional'] ) : ?>
-										<div class="fs-switch fs-small fs-round fs-on">
+										<div class="fs-switch fs-small fs-round fs-<?php echo $fs->is_extensions_tracking_allowed() ?  'on' : 'off'?>">
 											<div class="fs-toggle"></div>
 										</div>
 									<?php endif ?>

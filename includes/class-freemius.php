@@ -5481,7 +5481,10 @@
          * @return bool
          */
         function is_extensions_tracking_allowed() {
-            return (true === $this->_storage->get( 'is_extensions_tracking_allowed', true ) );
+            return ( true === $this->apply_filters(
+                    'is_extensions_tracking_allowed',
+                    $this->_storage->get( 'is_extensions_tracking_allowed', true )
+                ) );
         }
 
         /**
