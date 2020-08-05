@@ -9017,7 +9017,9 @@
                         'slug'           => $data['slug'],
                         'version'        => $data['Version'],
                         'title'          => $data['Name'],
-                        'is_active'      => $data['is_active'],
+                        'is_active'      => $data['is_active'] ||
+                                            ( isset( $site_active_plugins[ $basename ] ) &&
+                                              $site_active_plugins[ $basename ]['is_active'] ),
                         'is_uninstalled' => false,
                     );
 
