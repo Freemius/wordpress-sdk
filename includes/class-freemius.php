@@ -9039,7 +9039,7 @@
 
                     if ( isset( $site_active_plugins[ $basename ] ) ) {
                         $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
-                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = true;
+                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = $is_site_level_active;
                     }
                 }
             }
