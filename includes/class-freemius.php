@@ -9017,14 +9017,25 @@
                         'slug'           => $data['slug'],
                         'version'        => $data['Version'],
                         'title'          => $data['Name'],
-                        'is_active'      => $data['is_active'] ||
-                                            ( isset( $site_active_plugins[ $basename ] ) &&
-                                              $site_active_plugins[ $basename ]['is_active'] ),
+                        'is_active'      => $data['is_active'],
                         'is_uninstalled' => false,
                     );
 
-                    $plugins_update_data[]                       = $new_plugin;
                     $network_plugins_cache->plugins[ $basename ] = $new_plugin;
+
+                    $is_site_level_active = (
+                        isset( $site_active_plugins[ $basename ] ) &&
+                        $site_active_plugins[ $basename ]['is_active']
+                    );
+
+                    /**
+                     * If not network active, set the activity status based on the site-level plugin status.
+                     */
+                    if ( ! $new_plugin['is_active'] ) {
+                        $new_plugin['is_active'] = $is_site_level_active;
+                    }
+
+                    $plugins_update_data[] = $new_plugin;
 
                     if ( isset( $site_active_plugins[ $basename ] ) ) {
                         $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
