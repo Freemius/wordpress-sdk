@@ -168,9 +168,9 @@
                                 }
                             }
 
-                            $has_paid_plan = true;
-
                             if ( ! empty( $filtered_pricing ) ) {
+                                $has_paid_plan = true;
+
                                 $plan->pricing = $filtered_pricing;
 
                                 $has_pricing = true;
@@ -250,26 +250,29 @@
                         switch_to_blog( $blog_id );
                     }
 
-                    if ( $has_pricing ) {
-                        $data->checkout_link = $this->_fs->checkout_url(
-                            WP_FS__PERIOD_ANNUALLY,
-                            false,
-                            array(),
-                            ( $has_valid_blog_id ? false : null )
-                        );
-                    }
+                    $data->checkout_link = $this->_fs->checkout_url(
+                        WP_FS__PERIOD_ANNUALLY,
+                        false,
+                        array(),
+                        ( $has_valid_blog_id ? false : null )
+                    );
 
                     if ( $has_valid_blog_id ) {
                         restore_current_blog();
                     }
+                }
 
-                    if ( is_object( $fs_addon ) ) {
-                        $data->has_purchased_license = $fs_addon->has_active_valid_license();
-                    } else {
-                        $account_addons = $this->_fs->get_account_addons();
-                        if ( ! empty( $account_addons ) && in_array( $selected_addon->id, $account_addons ) ) {
-                            $data->has_purchased_license = true;
-                        }
+                /**
+                 * Check if there's a purchased license in case the add-on can only be installed/downloaded as part of a purchased bundle.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 */
+                if ( is_object( $fs_addon ) ) {
+                    $data->has_purchased_license = $fs_addon->has_active_valid_license();
+                } else {
+                    $account_addons = $this->_fs->get_account_addons();
+                    if ( ! empty( $account_addons ) && in_array( $selected_addon->id, $account_addons ) ) {
+                        $data->has_purchased_license = true;
                     }
                 }
 
@@ -579,7 +582,7 @@
 
             $has_installed_version = ( 'install' !== $this->status['status'] );
 
-            if ( ! $api->has_paid_plan ) {
+            if ( ! $api->has_paid_plan && ! $api->has_purchased_license ) {
                 /**
                  * Free-only add-on.
                  *
