@@ -1674,6 +1674,7 @@
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
             $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
+            $this->add_ajax_action( 'update_whitelabel', array( &$this, '_update_whitelabel_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -13141,6 +13142,58 @@
             if ( self::is_updates_page() || ( $this->is_plugin() && self::is_plugins_page() ) ) {
                 $this->_add_premium_version_upgrade_selection_action();
             }
+        }
+
+        /**
+         * @author Edgar Melkonyan
+         *
+         * @throws Freemius_Exception
+         */
+        function _update_whitelabel_ajax_handler() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'update_whitelabel' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $license = $this->get_api_user_scope()->call(
+                "/licenses/{$this->_site->license_id}.json",
+                'put',
+                array( 'is_whitelabeled' => ! $this->_license->is_whitelabeled )
+            );
+
+            if ( ! $this->is_api_result_entity( $license ) ) {
+                self::shoot_ajax_failure(
+                FS_Api::is_api_error_object( $license ) ?
+                    $license->error->message :
+                    fs_text_inline( "An unknown error has occurred while trying to update the license's is whitelabeled.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            $this->_license->is_whitelabeled = $license->is_whitelabeled;
+            $this->_store_licenses();
+
+            $this->_sync_license();
+
+            if ( $license->is_whitelabeled ) {
+                $this->_admin_notices->add_sticky(
+                    sprintf(
+                        $this->get_text_inline(
+                            'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your billing address and invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
+                            'license_whitelabeled'
+                        ),
+                        "<b> {$this->get_plugin_title()} </b>", '<a href="https://users.freemius.com">User Dashboard</a>', '<a href="#" class="fs-update-whitelabel">revert it now</a>'
+                    ),
+                    "license_{$license->id}_whitlabeled"
+                );
+            } else {
+                $this->_admin_notices->remove_sticky("license_{$license->id}_whitlabeled");
+            }
+
+            self::shoot_ajax_response( array( 'success' => true ) );
         }
 
         /**

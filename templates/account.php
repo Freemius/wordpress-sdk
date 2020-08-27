@@ -251,6 +251,12 @@
 		</h2>
 		<?php endif ?>
 
+        <?php if ( ! $is_whitelabeled) : ?>
+            <div class="notice fs-notice-promotion inline fs-not-whitelabeled">
+                <p> <?php echo sprintf(fs_text_inline('Is this your client\'s site %s if you wish to hide sensitive info like your billing address and invoices from the WP Admin.', 'license_not_whitelabeled', $slug), '<a href="#" class="fs-update-whitelabel">Click here</a>') ?> </p>
+            </div>
+        <?php endif ?>
+
 		<div id="poststuff">
 			<div id="fs_account">
 				<div class="has-sidebar has-right-sidebar">
@@ -1054,6 +1060,34 @@
                         $(this).hide();
                     }
                 });
+            });
+
+            $( '.fs-update-whitelabel' ).click( function () {
+                let updating = false;
+
+                if ( ! updating ) {
+                    $.ajax( {
+                        url   : ajaxurl,
+                        method: 'POST',
+                        data  : {
+                            action   : '<?php echo $fs->get_ajax_action( 'update_whitelabel' ) ?>',
+                            security : '<?php echo $fs->get_ajax_security( 'update_whitelabel' ) ?>',
+                            module_id: <?php echo $fs->get_id() ?>,
+                        },
+                        beforeSend: function () {
+                            updating = true;
+                            $( this ).parent().empty().append('<p> <?php echo $processing_text ?> ... </p>');
+                        },
+                        complete: function () {
+                            updating = false;
+                            location.reload();
+                        }
+                    } );
+
+                    return true;
+                }
+
+                return false;
             });
 
         })(jQuery);
