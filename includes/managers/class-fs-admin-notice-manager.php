@@ -145,7 +145,7 @@
                     // If there are sticky notices for the current slug, add a callback
                     // to the AJAX action that handles message dismiss.
                     add_action( "wp_ajax_fs_dismiss_notice_action_{$ajax_action_suffix}", array(
-                        &$this,
+                        $this,
                         'dismiss_notice_ajax_callback'
                     ) );
 
@@ -352,13 +352,13 @@
 
             if ( empty( $this->_notices ) ) {
                 if ( ! $is_network_and_blog_admins ) {
-                    add_action( $notices_type, array( &$this, "_admin_notices_hook" ) );
+                    add_action( $notices_type, array( $this, "_admin_notices_hook" ) );
                 } else {
-                    add_action( 'network_admin_notices', array( &$this, "_admin_notices_hook" ) );
-                    add_action( 'admin_notices', array( &$this, "_admin_notices_hook" ) );
+                    add_action( 'network_admin_notices', array( $this, "_admin_notices_hook" ) );
+                    add_action( 'admin_notices', array( $this, "_admin_notices_hook" ) );
                 }
 
-                add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_styles' ) );
+                add_action( 'admin_enqueue_scripts', array( $this, '_enqueue_styles' ) );
             }
 
             if ( '' === $id ) {

@@ -80,7 +80,7 @@
          */
         private function filters() {
             // Override request for plugin information
-            add_filter( 'plugins_api', array( &$this, 'plugins_api_filter' ), 10, 3 );
+            add_filter( 'plugins_api', array( $this, 'plugins_api_filter' ), 10, 3 );
 
             $this->add_transient_filters();
 
@@ -94,16 +94,16 @@
              */
             // WP 2.9+
             add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                &$this,
+                $this,
                 'catch_plugin_update_row'
             ), 9 );
             add_action( "after_plugin_row_{$this->_fs->get_plugin_basename()}", array(
-                &$this,
+                $this,
                 'edit_and_echo_plugin_update_row'
             ), 11, 2 );
 
             if ( ! $this->_fs->has_any_active_valid_license() ) {
-                add_action( 'admin_head', array( &$this, 'catch_plugin_information_dialog_contents' ) );
+                add_action( 'admin_head', array( $this, 'catch_plugin_information_dialog_contents' ) );
             }
 
             if ( ! WP_FS__IS_PRODUCTION_MODE ) {
@@ -115,14 +115,14 @@
 
             if ( $this->_fs->is_premium() ) {
                 if ( ! $this->is_correct_folder_name() ) {
-                    add_filter( 'upgrader_post_install', array( &$this, '_maybe_update_folder_name' ), 10, 3 );
+                    add_filter( 'upgrader_post_install', array( $this, '_maybe_update_folder_name' ), 10, 3 );
                 }
 
                 add_filter( 'upgrader_pre_install', array( 'FS_Plugin_Updater', '_store_basename_for_source_adjustment' ), 1, 2 );
                 add_filter( 'upgrader_source_selection', array( 'FS_Plugin_Updater', '_maybe_adjust_source_dir' ), 1, 3 );
 
                 if ( ! $this->_fs->has_any_active_valid_license() ) {
-                    add_filter( 'wp_prepare_themes_for_js', array( &$this, 'change_theme_update_info_html' ), 10, 1 );
+                    add_filter( 'wp_prepare_themes_for_js', array( $this, 'change_theme_update_info_html' ), 10, 1 );
                 }
             }
         }
@@ -139,7 +139,7 @@
                 return;
             }
 
-            add_action( 'admin_footer', array( &$this, 'edit_and_echo_plugin_information_dialog_contents' ), 0, 1 );
+            add_action( 'admin_footer', array( $this, 'edit_and_echo_plugin_information_dialog_contents' ), 0, 1 );
 
             ob_start();
         }
@@ -247,12 +247,12 @@
             }
 
             add_filter( 'pre_set_site_transient_update_plugins', array(
-                &$this,
+                $this,
                 'pre_set_site_transient_update_plugins_filter'
             ) );
 
             add_filter( 'pre_set_site_transient_update_themes', array(
-                &$this,
+                $this,
                 'pre_set_site_transient_update_plugins_filter'
             ) );
         }
@@ -263,12 +263,12 @@
          */
         private function remove_transient_filters() {
             remove_filter( 'pre_set_site_transient_update_plugins', array(
-                &$this,
+                $this,
                 'pre_set_site_transient_update_plugins_filter'
             ) );
 
             remove_filter( 'pre_set_site_transient_update_themes', array(
-                &$this,
+                $this,
                 'pre_set_site_transient_update_plugins_filter'
             ) );
         }

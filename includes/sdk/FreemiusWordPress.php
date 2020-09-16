@@ -513,7 +513,7 @@
 				$pParams,
 				$pWPRemoteArgs,
 				$this->_isSandbox,
-				$sign_request ? array( &$this, 'SignRequest' ) : null
+				$sign_request ? array( $this, 'SignRequest' ) : null
 			);
 		}
 
