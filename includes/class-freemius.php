@@ -1645,7 +1645,13 @@
                 add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+
+                //call the deprecated version if wp_version < 5.1
+                if ( version_compare($GLOBALS['wp_version'],'5.1') === -1) {
+                    add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2);
+                } else {
+                    add_action( 'wp_delete_site', array( &$this, '_after_wpsite_deleted_callback' ), 10, 2 );
+                }
 
                 add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
                 add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
@@ -15687,6 +15693,37 @@
                     'is_active' => false,
                 ) );
             }
+
+            $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site deletion, called from wp_delete_site
+         *
+         * @author Dario Curvino (@dudo)
+         * @author Vova Feldman  (@svovaf)
+         * @since  2.0.0
+         *
+         * @param WP_Site $old_site
+         */
+        public function _after_wpsite_deleted_callback( WP_Site $old_site ) {
+            $this->_logger->entrance();
+
+            $install = $this->get_install_by_blog_id( $old_site->blog_id );
+
+            if ( ! is_object( $install ) ) {
+                // Site not connected.
+                return;
+            }
+
+            $this->update_multisite_data_after_site_deactivation( $old_site->blog_id );
+
+            $current_blog_id = get_current_blog_id();
+
+            $this->switch_to_blog( $old_site->blog_id );
+
+            // Delete install if dropping site DB.
+            $this->delete_account_event();
 
             $this->switch_to_blog( $current_blog_id );
         }
