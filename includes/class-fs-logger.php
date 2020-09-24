@@ -40,7 +40,7 @@
 		private function __construct( $id, $on = false, $echo = false ) {
 			$this->_id = $id;
 
-			$bt     = debug_backtrace();
+			$bt     = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
 			$caller = $bt[2];
 
 			if ( false !== strpos( $caller['file'], 'plugins' ) ) {
