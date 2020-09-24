@@ -4179,7 +4179,7 @@
             }
 
             // Get the UTF encoded domain name.
-            $domain = idn_to_ascii( $parts[1] ) . '.';
+            $domain = idn_to_ascii( $parts[1], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 ) . '.';
 
             return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
         }
