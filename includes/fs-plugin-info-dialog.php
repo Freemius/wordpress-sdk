@@ -54,10 +54,39 @@
          */
         private $status;
 
+        /**
+         * The default currency of the plugin or addon.
+         *
+         * @author invisnet
+         *
+         * @var string
+         */
+        private $default_currency;
+
+        /**
+         * The currency symbol for the default currency.
+         *
+         * @author invisnet
+         *
+         * @var string
+         */
+        private $currency_symbol;
+
         function __construct( Freemius $fs ) {
             $this->_fs = $fs;
 
             $this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $fs->get_slug() . '_info', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+
+            // Get the default currency in case it's not usd.
+            $this->default_currency = $this->_fs->apply_filters( 'default_currency', 'usd' );
+
+            // Set the currency symbol - probably should be a helper on the Freemius class for this.
+            $symbols = [
+                'usd' => '$',
+                'gbp' => '&pound',
+                'eur' => '&euro'
+            ];
+            $this->currency_symbol = $symbols[ $this->default_currency ];
 
             // Remove default plugin information action.
             remove_all_actions( 'install_plugins_pre_plugin-information' );
@@ -150,12 +179,11 @@
                             foreach ( $pricing as $prices ) {
                                 $prices = new FS_Pricing( $prices );
 
-                                if ( ! $prices->is_usd() ) {
+                                if ( $this->default_currency !== $prices->currency ) {
                                     /**
-                                     * Skip non-USD pricing.
+                                     * Skip pricings not in the default currency.
                                      *
-                                     * @author Leo Fajardo (@leorw)
-                                     * @since 2.3.1
+                                     * @author invisnet
                                      */
                                     continue;
                                 }
@@ -421,7 +449,7 @@
                 $price_tag = $pricing->lifetime_price;
             }
 
-            return '$' . $price_tag;
+            return $this->currency_symbol . $price_tag;
         }
 
         /**
@@ -1190,7 +1218,7 @@
                                                     }
 
                                                     if (!multipleLicenses && 1 == pricing.licenses) {
-                                                        return '$' + pricing.price + priceCycle;
+                                                        return '<?php echo $this->currency_symbol ?>' + pricing.price + priceCycle;
                                                     }
 
                                                     return _formatLicensesTitle(pricing) + ' - <var class="fs-price">$' + pricing.price + priceCycle + '</var>';
