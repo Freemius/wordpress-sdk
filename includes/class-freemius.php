@@ -23466,10 +23466,12 @@
          * @since  1.0.3
          */
         function _redirect_on_activation_hook() {
-            $url = $this->get_after_plugin_activation_redirect_url();
+            if ( $this->apply_filters( 'redirect_on_activation', true ) ) {
+                $url = $this->get_after_plugin_activation_redirect_url();
 
-            if ( is_string( $url ) ) {
-                fs_redirect( $url );
+                if ( is_string( $url ) ) {
+                    fs_redirect( $url );
+                }
             }
         }
 
