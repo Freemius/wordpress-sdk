@@ -372,6 +372,7 @@
                     $view_vars                  = array(
                         'plans'  => $plans,
                         'plugin' => $selected_addon,
+                        'currency_symbol' => $this->currency_symbol
                     );
                     $data->sections['features'] = fs_get_template( '/plugin-info/features.php', $view_vars );
                 }
