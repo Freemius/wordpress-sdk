@@ -1674,7 +1674,7 @@
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
             $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
-            $this->add_ajax_action( 'update_whitelabel_mode', array( &$this, '_update_whitelabel_mode_ajax_handler' ) );
+            $this->add_ajax_action( 'toggle_whitelabel_mode', array( &$this, '_toggle_whitelabel_mode_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -13150,10 +13150,10 @@
          *
          * @throws Freemius_Exception
          */
-        function _update_whitelabel_mode_ajax_handler() {
+        function _toggle_whitelabel_mode_ajax_handler() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'update_whitelabel_mode' );
+            $this->check_ajax_referer( 'toggle_whitelabel_mode' );
 
             if ( ! $this->is_user_admin() ) {
                 // Only for admins.
@@ -13190,7 +13190,7 @@
                         ),
                         "<strong>{$this->get_plugin_title()}</strong>",
                         sprintf( '<a href="https://users.freemius.com">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
-                        sprintf( '<a href="#" class="fs-update-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
+                        sprintf( '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
                     ),
                     "license_{$license->id}_whitelabeled"
                 );
@@ -22371,7 +22371,7 @@
                     sprintf(
                         $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your billing address and invoices from the WP Admin.", 'license_not_whitelabeled' ),
                         sprintf(
-                            '<a href="#" class="fs-update-whitelabel-mode">%s</a>',
+                            '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>',
                             $this->get_text_inline( 'Click here', 'click-here' )
                         )
                     )

@@ -1056,15 +1056,15 @@
                 });
             });
 
-            $( '.fs-update-whitelabel-mode' ).click( function () {
+            $( '.fs-toggle-whitelabel-mode' ).click( function () {
                 var $updateLink = $( this );
 
                 $.ajax( {
                     url   : ajaxurl,
                     method: 'POST',
                     data  : {
-                        action   : '<?php echo $fs->get_ajax_action( 'update_whitelabel_mode' ) ?>',
-                        security : '<?php echo $fs->get_ajax_security( 'update_whitelabel_mode' ) ?>',
+                        action   : '<?php echo $fs->get_ajax_action( 'toggle_whitelabel_mode' ) ?>',
+                        security : '<?php echo $fs->get_ajax_security( 'toggle_whitelabel_mode' ) ?>',
                         module_id: <?php echo $fs->get_id() ?>
                     },
                     beforeSend: function () {
