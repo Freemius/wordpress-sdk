@@ -13170,7 +13170,7 @@
                 self::shoot_ajax_failure(
                 FS_Api::is_api_error_object( $license ) ?
                     $license->error->message :
-                    fs_text_inline( "An unknown error has occurred while trying to update the license's white-label mode.", 'unknown-error-occurred', $this->get_slug() )
+                    fs_text_inline( "An unknown error has occurred while trying to toggle the license's white-label mode.", 'unknown-error-occurred', $this->get_slug() )
                 );
             }
 
