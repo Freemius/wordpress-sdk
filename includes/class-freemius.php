@@ -7736,7 +7736,10 @@
                  * @author Leo Fajardo (@leorw)
                  * @since  1.2.2
                  */
-                if ( is_plugin_active( $other_version_basename ) ) {
+                if (
+                    is_plugin_active( $other_version_basename ) &&
+                    $this->apply_filters( 'deactivate_on_activation', true )
+                ) {
                     deactivate_plugins( $other_version_basename );
                 }
             }
