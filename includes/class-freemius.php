@@ -13180,7 +13180,7 @@
             $this->_sync_license();
 
             if ( ! $license->is_whitelabeled ) {
-                $this->_admin_notices->remove_sticky( "license_{$license->id}_whitelabeled" );
+                $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
             } else {
                 $this->_admin_notices->add_sticky(
                     sprintf(
@@ -13192,7 +13192,7 @@
                         sprintf( '<a href="https://users.freemius.com">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
                         sprintf( '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
                     ),
-                    "license_whitelabeled"
+                    'license_whitelabeled'
                 );
             }
 
@@ -20748,6 +20748,13 @@
             }
 
             if ( 'none' !== $plan_change ) {
+                if (
+                    ! is_object( $this->_license ) ||
+                    ! $this->_license->is_whitelabeled
+                ) {
+                    $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
+                }
+
                 $this->do_action( 'after_license_change', $plan_change, $this->get_plan() );
             }
         }
