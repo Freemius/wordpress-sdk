@@ -1674,7 +1674,7 @@
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
             $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
-            $this->add_ajax_action( 'update_whitelabel', array( &$this, '_update_whitelabel_ajax_handler' ) );
+            $this->add_ajax_action( 'update_whitelabel_mode', array( &$this, '_update_whitelabel_mode_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -13146,13 +13146,14 @@
 
         /**
          * @author Edgar Melkonyan
+         * @since 2.4.1
          *
          * @throws Freemius_Exception
          */
-        function _update_whitelabel_ajax_handler() {
+        function _update_whitelabel_mode_ajax_handler() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'update_whitelabel' );
+            $this->check_ajax_referer( 'update_whitelabel_mode' );
 
             if ( ! $this->is_user_admin() ) {
                 // Only for admins.
@@ -13169,7 +13170,7 @@
                 self::shoot_ajax_failure(
                 FS_Api::is_api_error_object( $license ) ?
                     $license->error->message :
-                    fs_text_inline( "An unknown error has occurred while trying to update the license's is whitelabeled.", 'unknown-error-occurred', $this->get_slug() )
+                    fs_text_inline( "An unknown error has occurred while trying to update the license's white-label mode.", 'unknown-error-occurred', $this->get_slug() )
                 );
             }
 
@@ -13178,19 +13179,21 @@
 
             $this->_sync_license();
 
-            if ( $license->is_whitelabeled ) {
+            if ( ! $license->is_whitelabeled ) {
+                $this->_admin_notices->remove_sticky( "license_{$license->id}_whitelabeled" );
+            } else {
                 $this->_admin_notices->add_sticky(
                     sprintf(
                         $this->get_text_inline(
                             'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your billing address and invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
                             'license_whitelabeled'
                         ),
-                        "<b> {$this->get_plugin_title()} </b>", '<a href="https://users.freemius.com">User Dashboard</a>', '<a href="#" class="fs-update-whitelabel">revert it now</a>'
+                        "<strong>{$this->get_plugin_title()}</strong>",
+                        sprintf( '<a href="https://users.freemius.com">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
+                        sprintf( '<a href="#" class="fs-update-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
                     ),
-                    "license_{$license->id}_whitlabeled"
+                    "license_{$license->id}_whitelabeled"
                 );
-            } else {
-                $this->_admin_notices->remove_sticky("license_{$license->id}_whitlabeled");
             }
 
             self::shoot_ajax_response( array( 'success' => true ) );
