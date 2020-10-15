@@ -13192,7 +13192,7 @@
                         sprintf( '<a href="https://users.freemius.com">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
                         sprintf( '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
                     ),
-                    "license_{$license->id}_whitelabeled"
+                    "license_whitelabeled"
                 );
             }
 
@@ -22374,7 +22374,11 @@
                             '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>',
                             $this->get_text_inline( 'Click here', 'click-here' )
                         )
-                    )
+                    ),
+                    '',
+                    'success',
+                    false,
+                    'license_not_whitelabeled'
                 );
             }
 
