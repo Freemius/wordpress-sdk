@@ -100,6 +100,9 @@
         <td>
             <button id="fs_set_db_option" class="button"><?php fs_esc_html_echo_inline( 'Set DB Option' ) ?></button>
         </td>
+        <td>
+            <button id="fs_check_connectivity_option" class="button"><?php fs_esc_html_echo_inline( 'Check Connectivity' ) ?></button>
+        </td>
     </tr>
     </tbody>
 </table>
@@ -140,6 +143,20 @@
                 }
             }
         });
+
+        $('#fs_check_connectivity_option').click(async function () {
+            let response = await fetch('https://api.freemius.com/v1/ping.json');
+
+            if (!response.ok) {
+                alert("Error response code: " + response.status);
+            } else {
+                // if HTTP-status is 200-299
+                // get the response body (the method explained below)
+                let json = await response.json();
+
+                alert("Response code:" + response.status + "\nResponse: " + JSON.stringify(json));
+            }
+        })
     })(jQuery);
 </script>
 <?php
