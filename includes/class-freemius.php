@@ -22362,6 +22362,22 @@
 
             $this->_handle_account_edits();
 
+            if (
+                is_object( $this->_license ) &&
+                $this->_license->user_id == $this->_user->id &&
+                ! $this->is_whitelabeled( true )
+            ) {
+                $this->_admin_notices->add(
+                    sprintf(
+                        $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your billing address and invoices from the WP Admin.", 'license_not_whitelabeled' ),
+                        sprintf(
+                            '<a href="#" class="fs-update-whitelabel-mode">%s</a>',
+                            $this->get_text_inline( 'Click here', 'click-here' )
+                        )
+                    )
+                );
+            }
+
             $this->do_action( 'account_page_load_before_departure' );
         }
 
