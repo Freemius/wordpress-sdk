@@ -13185,7 +13185,7 @@
                 $this->_admin_notices->add_sticky(
                     sprintf(
                         $this->get_text_inline(
-                            'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your billing address and invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
+                            'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
                             'license_whitelabeled'
                         ),
                         "<strong>{$this->get_plugin_title()}</strong>",
@@ -22376,7 +22376,7 @@
             ) {
                 $this->_admin_notices->add(
                     sprintf(
-                        $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your billing address and invoices from the WP Admin.", 'license_not_whitelabeled' ),
+                        $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin.", 'license_not_whitelabeled' ),
                         sprintf(
                             '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>',
                             $this->get_text_inline( 'Click here', 'click-here' )
