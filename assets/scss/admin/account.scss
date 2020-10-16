@@ -1,6 +1,17 @@
 @import "../start";
 @import "tag";
 
+.fs-notice[data-id="license_not_whitelabeled"], .fs-notice[data-id="license_whitelabeled"] {
+    &.success {
+        color: inherit;
+        border-left-color: #00a0d2;
+
+        label.fs-plugin-title {
+            display: none;
+        }
+    }
+}
+
 #fs_account
 {
     .postbox,
