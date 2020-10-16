@@ -9039,7 +9039,7 @@
                         $new_plugin['is_active'] = $is_site_level_active;
                     }
 
-                    $plugins_update_data[]                       = $new_plugin;
+                    $plugins_update_data[] = $new_plugin;
 
                     if ( isset( $site_active_plugins[ $basename ] ) ) {
                         $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
@@ -23553,12 +23553,11 @@
          */
         function _redirect_on_activation_hook() {
             if ( $this->apply_filters( 'redirect_on_activation', true ) ) {
-            $url = $this->get_after_plugin_activation_redirect_url();
-
-            if ( is_string( $url ) ) {
-                fs_redirect( $url );
+                $url = $this->get_after_plugin_activation_redirect_url();
+                if ( is_string( $url ) ) {
+                    fs_redirect( $url );
+                }
             }
-        }
         }
 
         /**
