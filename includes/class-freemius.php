@@ -1674,6 +1674,7 @@
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
             $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
+            $this->add_ajax_action( 'toggle_whitelabel_mode', array( &$this, '_toggle_whitelabel_mode_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -13147,6 +13148,61 @@
         }
 
         /**
+         * @author Edgar Melkonyan
+         * @since 2.4.1
+         *
+         * @throws Freemius_Exception
+         */
+        function _toggle_whitelabel_mode_ajax_handler() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'toggle_whitelabel_mode' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $license = $this->get_api_user_scope()->call(
+                "/licenses/{$this->_site->license_id}.json",
+                'put',
+                array( 'is_whitelabeled' => ! $this->_license->is_whitelabeled )
+            );
+
+            if ( ! $this->is_api_result_entity( $license ) ) {
+                self::shoot_ajax_failure(
+                FS_Api::is_api_error_object( $license ) ?
+                    $license->error->message :
+                    fs_text_inline( "An unknown error has occurred while trying to toggle the license's white-label mode.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            $this->_license->is_whitelabeled = $license->is_whitelabeled;
+            $this->_store_licenses();
+
+            $this->_sync_license();
+
+            if ( ! $license->is_whitelabeled ) {
+                $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
+            } else {
+                $this->_admin_notices->add_sticky(
+                    sprintf(
+                        $this->get_text_inline(
+                            'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
+                            'license_whitelabeled'
+                        ),
+                        "<strong>{$this->get_plugin_title()}</strong>",
+                        sprintf( '<a href="https://users.freemius.com" target="_blank">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
+                        sprintf( '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
+                    ),
+                    'license_whitelabeled'
+                );
+            }
+
+            self::shoot_ajax_response( array( 'success' => true ) );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.0
          */
@@ -20695,6 +20751,13 @@
             }
 
             if ( 'none' !== $plan_change ) {
+                if (
+                    ! is_object( $this->_license ) ||
+                    ! $this->_license->is_whitelabeled
+                ) {
+                    $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
+                }
+
                 $this->do_action( 'after_license_change', $plan_change, $this->get_plan() );
             }
         }
@@ -22308,6 +22371,26 @@
             }
 
             $this->_handle_account_edits();
+
+            if (
+                is_object( $this->_license ) &&
+                $this->_license->user_id == $this->_user->id &&
+                ! $this->is_whitelabeled( true )
+            ) {
+                $this->_admin_notices->add(
+                    sprintf(
+                        $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin.", 'license_not_whitelabeled' ),
+                        sprintf(
+                            '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>',
+                            $this->get_text_inline( 'Click here', 'click-here' )
+                        )
+                    ),
+                    '',
+                    'success',
+                    false,
+                    'license_not_whitelabeled'
+                );
+            }
 
             $this->do_action( 'account_page_load_before_departure' );
         }
