@@ -137,6 +137,7 @@
             ),
             'selector'            => '#fs_pricing_wrapper',
             'unique_affix'        => $fs->get_unique_affix(),
+            'featured_pricing_id' => 1690
         ), $query_params );
 
         wp_add_inline_script( 'freemius-pricing', 'Freemius.pricing.new( ' . json_encode( $pricing_config ) . ' )' );
