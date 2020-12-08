@@ -7235,7 +7235,7 @@
 
                         if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
                             if ( ! $this->_anonymous_mode &&
-                                 ( ! $this->is_addon() || ( ! $this->_parent->_is_anonymous && ! $this->_parent->_anonymous_mode ) ) ) {
+                                 ( ! $this->is_addon() || ! $this->_parent->is_anonymous() ) ) {
                                 // Show notice for new plugin installations.
                                 $this->_admin_notices->add(
                                     sprintf(
@@ -7286,8 +7286,7 @@
          * @return bool
          */
         private function should_add_sticky_optin_notice() {
-            if ( $this->_anonymous_mode ||
-                ( $this->is_addon() && ( $this->_parent->_is_anonymous || $this->_parent->_anonymous_mode ) ) ) {
+            if ( $this->is_addon() && $this->_parent->is_anonymous() ) {
                 return false;
             }
 
