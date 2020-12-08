@@ -7234,7 +7234,8 @@
                         }
 
                         if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                            if ( ! $this->_anonymous_mode ) {
+                            if ( ! $this->_anonymous_mode &&
+                                 ( ! $this->is_addon() || ! $this->_parent->is_anonymous() ) ) {
                                 // Show notice for new plugin installations.
                                 $this->_admin_notices->add(
                                     sprintf(
@@ -7285,6 +7286,10 @@
          * @return bool
          */
         private function should_add_sticky_optin_notice() {
+            if ( $this->is_addon() && $this->_parent->is_anonymous() ) {
+                return false;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     return false;
@@ -23393,6 +23398,14 @@
 
             if ( $this->is_only_premium() && $this->is_free_plan() ) {
                 // Don't add tracking links for premium-only products that were opted-in by relation (add-on or a parent product) before activating any license.
+                return;
+            }
+
+            if (
+                $this->is_addon() &&
+                ! $this->is_only_premium() &&
+                $this->_parent->is_anonymous()
+            ) {
                 return;
             }
 
