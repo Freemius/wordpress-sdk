@@ -23401,6 +23401,14 @@
                 return;
             }
 
+            if (
+                $this->is_addon() &&
+                ! $this->is_only_premium() &&
+                $this->_parent->is_anonymous()
+            ) {
+                return;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
