@@ -145,6 +145,19 @@
 
             $subdomain = $url_parts['host'];
 
+            // Get whitelisted domains list.
+            $accounts            = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
+            $whitelisted_domains = $accounts->get_option('whitelisted_domains');
+
+            if (null !== $whitelisted_domains) {
+                // Checking if a subdomain is in the whitelisted domains list.
+                foreach ($whitelisted_domains as $whitelisted_domain) {
+                    if ($subdomain === $whitelisted_domain->domain) {
+                        return true;
+                    }
+                }
+            }
+
             return (
                 // Starts with.
                 fs_starts_with( $subdomain, 'local.' ) ||
