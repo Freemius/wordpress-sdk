@@ -12381,15 +12381,32 @@
          * @return bool
          */
         function is_whitelabeled_by_flag( $ignore_data_debug_mode = false ) {
+            $is_whitelabeled = null;
+
             if ( true !== $this->_storage->is_whitelabeled ) {
-                return false;
+                $is_whitelabeled = false;
             } else if ( $ignore_data_debug_mode ) {
-                return true;
+                $is_whitelabeled = true;
             }
 
             $fs = $this->is_addon() ?
                 $this->get_parent_instance() :
                 $this;
+
+            $last_license_user_id = $fs->get_last_license_user_id();
+
+            if ( FS_User::is_valid_id( $last_license_user_id ) ) {
+                /**
+                 * @var bool|null $is_whitelabeled
+                 *
+                 * @since 2.4.2
+                 */
+                $is_whitelabeled = $this->apply_filters( 'is_whitelabeled', $is_whitelabeled );
+            }
+
+            if ( ! is_null( $is_whitelabeled ) ) {
+                return $is_whitelabeled;
+            }
 
             return ! $fs->is_data_debug_mode();
         }
