@@ -144,10 +144,10 @@
             }
         });
 
-        $('#fs_check_connectivity_option').click(async function () {
-            $.post( ajaxurl, {
+        $('#fs_check_connectivity_option').click(function () {
+            $.post(ajaxurl, {
                 action: 'fs_check_connectivity',
-            }, function ( response ) {
+            }, function (response) {
                 alert("Response: " + response);
             });
         })
