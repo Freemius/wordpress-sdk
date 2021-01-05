@@ -145,15 +145,11 @@
         });
 
         $('#fs_check_connectivity_option').click(async function () {
-            let response = await fetch('https://api.freemius.com/v1/ping.json');
-
-            if (!response.ok) {
-                alert("Error response code: " + response.status);
-            } else {
-                let json = await response.json();
-
-                alert("Response code:" + response.status + "\nResponse: " + JSON.stringify(json));
-            }
+            $.post( ajaxurl, {
+                action: 'fs_check_connectivity',
+            }, function ( response ) {
+                alert("Response: " + response);
+            });
         })
     })(jQuery);
 </script>
