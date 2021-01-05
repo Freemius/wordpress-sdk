@@ -3423,6 +3423,8 @@
 
             self::add_ajax_action_static( 'get_db_option', array( 'Freemius', '_get_db_option' ) );
 
+            self::add_ajax_action_static( 'set_db_option', array( 'Freemius', '_set_db_option' ) );
+
             self::add_ajax_action_static( 'check_connectivity', array( 'Freemius', '_check_connectivity' ) );
 
             if ( 0 == did_action( 'plugins_loaded' ) ) {
