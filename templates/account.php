@@ -437,7 +437,7 @@
 										    $profile[] = array(
                                                 'id'    => 'beta_program',
                                                 'title' => '',
-                                                'value' => $user->is_beta
+                                                'value' => $site->is_beta
                                             );
                                         }
 
