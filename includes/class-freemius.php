@@ -5530,7 +5530,7 @@
          *
          * @param bool $is_enabled
          */
-        private function update_extensions_tracking_flag( $is_enabled ) {
+        function update_extensions_tracking_flag( $is_enabled ) {
             $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
         }
 
