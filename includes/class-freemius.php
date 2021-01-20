@@ -6860,8 +6860,6 @@
          */
         function _sync_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
-                $this->sync_site_beta_mode();
-
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
                     $this->_sync_license( true, false, $current_blog_id );
@@ -16450,19 +16448,6 @@
                 ( true === $this->_storage->beta_data['is_beta'] ) &&
                 ( $this->get_plugin_version() === $this->_storage->beta_data['version'] )
             );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.0
-         */
-        private function sync_site_beta_mode() {
-            $site = $this->get_api_site_scope()->get( '/?fields=is_beta' );
-
-            if ( $this->is_api_result_entity( $site ) ) {
-                $this->_site->is_beta = $site->is_beta;
-                $this->_store_site();
-            }
         }
 
         /**
