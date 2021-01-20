@@ -105,6 +105,8 @@
         /**
          * @author Edgar Melkonyan
          *
+         * @since 2.4.2
+         *
          * @var bool
          */
         public $is_beta;
