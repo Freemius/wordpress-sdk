@@ -5484,7 +5484,7 @@
         function is_extensions_tracking_allowed() {
             return ( true === $this->apply_filters(
                     'is_extensions_tracking_allowed',
-                    $this->_storage->get( 'is_extensions_tracking_allowed', true )
+                    $this->_storage->get( 'is_extensions_tracking_allowed', null )
                 ) );
         }
 
@@ -5528,10 +5528,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.2
          *
-         * @param bool $is_enabled
+         * @param bool|null $is_enabled
          */
         function update_extensions_tracking_flag( $is_enabled ) {
-            $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
+            if ( is_bool( $is_enabled ) ) {
+                $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
+            }
         }
 
         /**
@@ -13294,7 +13296,7 @@
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
-                fs_request_get_bool( 'is_extensions_tracking_allowed', true )
+                fs_request_get_bool( 'is_extensions_tracking_allowed', null )
             );
 
             if (
@@ -13529,7 +13531,7 @@
             $blog_id = null,
             $plugin_id = null,
             $license_owner_id = null,
-            $is_extensions_tracking_allowed = true
+            $is_extensions_tracking_allowed = null
         ) {
             $this->_logger->entrance();
 
@@ -17137,9 +17139,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             return $this->setup_account(
                 $this->_user,
@@ -17184,9 +17184,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -17229,9 +17227,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             $install_ids = array();
 
@@ -17342,7 +17338,7 @@
                  */
                 $license_key = fs_request_get( 'license_secret_key' );
 
-                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', true ) );
+                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', null ) );
 
                 $this->install_with_current_user( $license_key );
             }

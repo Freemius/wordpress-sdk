@@ -404,7 +404,7 @@
                 'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
                 'priority'   => 25,
                 'optional'   => true,
-                'default'    => $fs->apply_filters( 'permission_extensions_default', true )
+                'default'    => $fs->apply_filters( 'permission_extensions_default', ! $require_license_key )
 			);
 
 			// Allow filtering of the permissions list.
@@ -702,9 +702,16 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-			var isExtensionsTrackingAllowed = $( '#fs-permission-extensions .fs-switch' ).hasClass( 'fs-on' );
+            var $extensionsPermission = $('#fs-permission-extensions .fs-switch'),
+                isExtensionsTrackingAllowed = ($extensionsPermission.length > 0) ?
+                    $extensionsPermission.hasClass('fs-on') :
+                    null;
 
-			$( 'input[name=is_extensions_tracking_allowed]' ).val( isExtensionsTrackingAllowed ? 1 : 0 );
+            if (null === isExtensionsTrackingAllowed) {
+                $('input[name=is_extensions_tracking_allowed]').remove();
+            } else {
+                $('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
+            }
 
 			/**
 			 * @author Vova Feldman (@svovaf)
