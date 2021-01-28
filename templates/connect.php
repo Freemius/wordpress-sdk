@@ -402,8 +402,8 @@
 
             $permissions['extensions'] = array(
                 'icon-class' => 'dashicons dashicons-menu',
-                'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ),
-                'tooltip'    => ( $require_license_key ? $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts.', 'permissions-events_tooltip' ) : '' ),
+                'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts.', 'permissions-events_tooltip' ),
                 'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
                 'priority'   => 25,
                 'optional'   => true,
