@@ -347,6 +347,9 @@
 					} ?>><?php echo esc_html( $button_label ) ?></button>
 				</form>
 			<?php endif ?>
+            <?php if ( $require_license_key ) : ?>
+                <a id="license_issues_link" href="<?php echo $fs->apply_filters( 'known_license_issues_url', 'https://freemius.com/help/documentation/wordpress-sdk/license-activation-issues/' ) ?>" target="_blank"><?php fs_esc_html_echo_inline( 'License issues?', 'license-issues', $slug ) ?></a>
+            <?php endif ?>
 		</div><?php
 
 			// Set core permission list items.
