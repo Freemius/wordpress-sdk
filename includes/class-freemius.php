@@ -20590,6 +20590,20 @@
                     }
                 }
 
+                if ( ! $this->is_addon() &&
+                     $this->_site->is_beta() !== $site->is_beta
+                ) {
+                    // Beta flag updated.
+                    $this->_site = $site;
+
+                    $this->_store_site(
+                        true,
+                        $is_site_level_sync ?
+                            null :
+                            $this->get_network_install_blog_id()
+                    );
+                }
+
                 if ( $this->is_addon() || $this->has_addons() ) {
                     /**
                      * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
