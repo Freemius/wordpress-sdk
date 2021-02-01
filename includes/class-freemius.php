@@ -13504,12 +13504,12 @@
 
                 foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
                     if ( $data->plugin_path == $this->get_plugin_basename() ) {
-                        $plugin_or_theme_img_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
+                        $plugin_or_theme_root_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
 
-                        $pricing_js_path = $plugin_or_theme_img_dir
+                        $pricing_js_path = $plugin_or_theme_root_dir
                             . '/'
                             // The basename will be `plugins`, `themes`, or the basename of a custom plugins or themes directory.
-                            . str_replace( '../' . basename( $plugin_or_theme_img_dir ) . '/', '', $sdk_path )
+                            . str_replace( '../' . basename( $plugin_or_theme_root_dir ) . '/', '', $sdk_path )
                             . '/includes/freemius-pricing/freemius-pricing.js';
 
                         break;
