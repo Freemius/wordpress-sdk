@@ -390,7 +390,7 @@
          *
          * @var string|null
          */
-        private $_pricing_js_path;
+        private $_pricing_js_path = null;
 
         #endregion
 
