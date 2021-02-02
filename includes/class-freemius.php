@@ -390,7 +390,7 @@
          *
          * @var string|null
          */
-        private $_pricing_js_path = '';
+        private $_pricing_js_path;
 
         #endregion
 
@@ -13493,31 +13493,29 @@
          * @return string
          */
         function get_pricing_js_path() {
-            if ( ! empty( $this->_pricing_js_path ) ) {
-                return $this->_pricing_js_path;
-            }
+            if ( ! isset( $this->_pricing_js_path ) ) {
+                $pricing_js_path = $this->apply_filters( 'freemius_pricing_js_path', '' );
 
-            $pricing_js_path = $this->apply_filters( 'freemius_pricing_js_path', '' );
+                if ( empty( $pricing_js_path ) ) {
+                    global $fs_active_plugins;
 
-            if ( empty( $pricing_js_path ) ) {
-                global $fs_active_plugins;
+                    foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
+                        if ( $data->plugin_path == $this->get_plugin_basename() ) {
+                            $plugin_or_theme_root_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
 
-                foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
-                    if ( $data->plugin_path == $this->get_plugin_basename() ) {
-                        $plugin_or_theme_root_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
+                            $pricing_js_path = $plugin_or_theme_root_dir
+                                . '/'
+                                // The basename will be `plugins`, `themes`, or the basename of a custom plugins or themes directory.
+                                . str_replace( '../' . basename( $plugin_or_theme_root_dir ) . '/', '', $sdk_path )
+                                . '/includes/freemius-pricing/freemius-pricing.js';
 
-                        $pricing_js_path = $plugin_or_theme_root_dir
-                            . '/'
-                            // The basename will be `plugins`, `themes`, or the basename of a custom plugins or themes directory.
-                            . str_replace( '../' . basename( $plugin_or_theme_root_dir ) . '/', '', $sdk_path )
-                            . '/includes/freemius-pricing/freemius-pricing.js';
-
-                        break;
+                            break;
+                        }
                     }
                 }
-            }
 
-            $this->_pricing_js_path = $pricing_js_path;
+                $this->_pricing_js_path = $pricing_js_path;
+            }
 
             return $this->_pricing_js_path;
         }
