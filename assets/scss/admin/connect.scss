@@ -154,7 +154,7 @@ $form_width: 480px;
             margin-top: 0;
         }
 
-        .fs-trigger
+        & > .fs-trigger
         {
             font-size:       0.9em;
             text-decoration: none;
@@ -177,7 +177,7 @@ $form_width: 480px;
                     margin-bottom: 0;
                 }
 
-                i.dashicons
+                & > i.dashicons
                 {
                     float:     left;
                     font-size: 40px;
@@ -214,6 +214,7 @@ $form_width: 480px;
 
             ul
             {
+                overflow: initial;
                 height: auto;
                 margin: 20px 20px 10px 20px;
             }
@@ -553,4 +554,11 @@ $form_width: 480px;
             border-left-color: #fafafa;
         }
     }
+}
+
+#license_issues_link {
+    display: block;
+    text-align:  center;
+    font-size: 0.9em;
+    margin-top: 10px;
 }
