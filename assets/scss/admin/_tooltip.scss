@@ -14,24 +14,27 @@
         @include transition(opacity 0.3s ease-in-out);
         position:      absolute;
         background:    $tooltip-bkg-color;
-        color:         $tooltip-color;
+        color:         $tooltip-color !important;
         font-family:   'arial', serif;
         font-size:     12px;
         padding:       10px;
         z-index:       999999;
         bottom:        100%;
         margin-bottom: 5px;
-        left:          0;
+        left:          -17px;
         right:         0;
         @include border-radius(5px);
         @include box-shadow(1px 1px 1px rgba(0, 0, 0, 0.2));
         line-height:   1.3em;
         font-weight:   bold;
         text-align:    left;
+        text-transform: none !important;
 
         .rtl &
         {
             text-align: right;
+            left: auto;
+            right: -17px;
         }
 
         &::after
