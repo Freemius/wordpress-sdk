@@ -1147,138 +1147,6 @@
                                                 </a>
                                             <?php endif ?>
                                             <?php $i ++; endforeach ?>
-                                    <?php wp_enqueue_script( 'jquery' ) ?>
-                                    <script type="text/javascript">
-                                        (function ($, undef) {
-                                            var
-                                                _formatBillingFrequency = function (cycle) {
-                                                    switch (cycle) {
-                                                        case 'monthly':
-                                                            return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Monthly', 'as every month', 'monthly', $api->slug ) ) ?>';
-                                                        case 'annual':
-                                                            return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Annually', 'as once a year', 'annually', $api->slug ) ) ?>';
-                                                        case 'lifetime':
-                                                            return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Once', 'as once a year', 'once', $api->slug ) ) ?>';
-                                                    }
-                                                },
-                                                _formatLicensesTitle    = function (pricing) {
-                                                    switch (pricing.licenses) {
-                                                        case 1:
-                                                            return '<?php fs_esc_attr_echo_inline( 'Single Site License', 'license-single-site', $api->slug ) ?>';
-                                                        case null:
-                                                            return '<?php fs_esc_attr_echo_inline( 'Unlimited Licenses', 'license-unlimited', $api->slug ) ?>';
-                                                        default:
-                                                            return '<?php fs_esc_attr_echo_inline( 'Up to %s Sites', 'license-x-sites', $api->slug ) ?>'.replace('%s', pricing.licenses);
-                                                    }
-                                                },
-                                                _formatPrice            = function (pricing, cycle, multipleLicenses) {
-                                                    if (undef === multipleLicenses)
-                                                        multipleLicenses = true;
-
-                                                    var priceCycle;
-                                                    switch (cycle) {
-                                                        case 'monthly':
-                                                            priceCycle = ' / <?php fs_echo_x_inline( 'mo', 'as monthly period', 'mo', $api->slug ) ?>';
-                                                            break;
-                                                        case 'lifetime':
-                                                            priceCycle = '';
-                                                            break;
-                                                        case 'annual':
-                                                        default:
-                                                            priceCycle = ' / <?php fs_echo_x_inline( 'year', 'as annual period', 'year', $api->slug ) ?>';
-                                                            break;
-                                                    }
-
-                                                    if (!multipleLicenses && 1 == pricing.licenses) {
-                                                        return '$' + pricing.price + priceCycle;
-                                                    }
-
-                                                    return _formatLicensesTitle(pricing) + ' - <var class="fs-price">$' + pricing.price + priceCycle + '</var>';
-                                                },
-                                                _checkoutUrl            = function (plan, pricing, cycle) {
-                                                    return '<?php echo esc_url_raw( remove_query_arg( 'billing_cycle', add_query_arg( array( 'plugin_id' => $plan->plugin_id ), $api->checkout_link ) ) ) ?>' +
-                                                        '&plan_id=' + plan +
-                                                        '&pricing_id=' + pricing +
-                                                        '&billing_cycle=' + cycle<?php if ( $plan->has_trial() ) {
-                                                        echo " + '&trial=true'";
-                                                    }?>;
-                                                },
-                                                _updateCtaUrl           = function (plan, pricing, cycle) {
-                                                    $('.plugin-information-pricing .fs-checkout-button, #plugin-information-footer .fs-checkout-button').attr('href', _checkoutUrl(plan, pricing, cycle));
-                                                };
-
-                                            $(document).ready(function () {
-                                                var $plan = $('.plugin-information-pricing .fs-plan[data-plan-id=<?php echo $plan->id ?>]');
-                                                $plan.find('input[type=radio]').on('click', function () {
-                                                    _updateCtaUrl(
-                                                        $plan.attr('data-plan-id'),
-                                                        $(this).val(),
-                                                        $plan.find('.nav-tab-active').attr('data-billing-cycle')
-                                                    );
-
-                                                    $plan.find('.fs-trial-terms .fs-price').html(
-                                                        $(this).parents('label').find('.fs-price').html()
-                                                    );
-                                                });
-
-                                                $plan.find('.nav-tab').click(function () {
-                                                    if ($(this).hasClass('nav-tab-active'))
-                                                        return;
-
-                                                    var $this        = $(this),
-                                                        billingCycle = $this.attr('data-billing-cycle'),
-                                                        pricing      = JSON.parse($this.attr('data-pricing')),
-                                                        $pricesList  = $this.parents('.fs-plan').find('.fs-pricing-body .fs-licenses'),
-                                                        html         = '';
-
-                                                    // Un-select previously selected tab.
-                                                    $plan.find('.nav-tab').removeClass('nav-tab-active');
-
-                                                    // Select current tab.
-                                                    $this.addClass('nav-tab-active');
-
-                                                    // Render licenses prices.
-                                                    if (1 == pricing.length) {
-                                                        html = '<li><label><?php echo fs_esc_attr_x_inline( 'Price', 'noun', 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
-                                                    } else {
-                                                        for (var i = 0; i < pricing.length; i++) {
-                                                            html += '<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="' + pricing[i].id + '">' + _formatPrice(pricing[i], billingCycle) + '</label></li>';
-                                                        }
-                                                    }
-                                                    $pricesList.html(html);
-
-                                                    if (1 < pricing.length) {
-                                                        // Select first license option.
-                                                        $pricesList.find('li:first input').click();
-                                                    }
-                                                    else {
-                                                        _updateCtaUrl(
-                                                            $plan.attr('data-plan-id'),
-                                                            pricing[0].id,
-                                                            billingCycle
-                                                        );
-                                                    }
-
-                                                    // Update billing frequency.
-                                                    $plan.find('.fs-billing-frequency').html(_formatBillingFrequency(billingCycle));
-
-                                                    if ('annual' === billingCycle) {
-                                                        $plan.find('.fs-annual-discount').show();
-                                                    } else {
-                                                        $plan.find('.fs-annual-discount').hide();
-                                                    }
-                                                });
-
-                                                <?php if ( $has_annual ) : ?>
-                                                // Select annual by default.
-                                                $plan.find('.nav-tab[data-billing-cycle=annual]').click();
-                                                <?php else : ?>
-                                                // Select first tab.
-                                                $plan.find('.nav-tab:first').click();
-                                                <?php endif ?>
-                                            });
-                                        }(jQuery));
-                                    </script>
                                 </div>
                                 <div class="fs-pricing-body">
                                     <span class="fs-billing-frequency"></span>
@@ -1306,6 +1174,140 @@
                                     <?php endif ?>
                                 </div>
                             </div>
+                            <?php wp_enqueue_script( 'jquery' ) ?>
+                            <script type="text/javascript">
+                                (function ($, undef) {
+                                    var
+                                        _formatBillingFrequency = function (cycle) {
+                                            switch (cycle) {
+                                                case 'monthly':
+                                                    return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Monthly', 'as every month', 'monthly', $api->slug ) ) ?>';
+                                                case 'annual':
+                                                    return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Annually', 'as once a year', 'annually', $api->slug ) ) ?>';
+                                                case 'lifetime':
+                                                    return '<?php printf( fs_text_x_inline( 'Billed %s', 'e.g. billed monthly', 'billed-x', $api->slug ), fs_text_x_inline( 'Once', 'as once a year', 'once', $api->slug ) ) ?>';
+                                            }
+                                        },
+                                        _formatLicensesTitle    = function (pricing) {
+                                            switch (pricing.licenses) {
+                                                case 1:
+                                                    return '<?php fs_esc_attr_echo_inline( 'Single Site License', 'license-single-site', $api->slug ) ?>';
+                                                case null:
+                                                    return '<?php fs_esc_attr_echo_inline( 'Unlimited Licenses', 'license-unlimited', $api->slug ) ?>';
+                                                default:
+                                                    return '<?php fs_esc_attr_echo_inline( 'Up to %s Sites', 'license-x-sites', $api->slug ) ?>'.replace('%s', pricing.licenses);
+                                            }
+                                        },
+                                        _formatPrice            = function (pricing, cycle, multipleLicenses) {
+                                            if (undef === multipleLicenses)
+                                                multipleLicenses = true;
+
+                                            var priceCycle;
+                                            switch (cycle) {
+                                                case 'monthly':
+                                                    priceCycle = ' / <?php fs_echo_x_inline( 'mo', 'as monthly period', 'mo', $api->slug ) ?>';
+                                                    break;
+                                                case 'lifetime':
+                                                    priceCycle = '';
+                                                    break;
+                                                case 'annual':
+                                                default:
+                                                    priceCycle = ' / <?php fs_echo_x_inline( 'year', 'as annual period', 'year', $api->slug ) ?>';
+                                                    break;
+                                            }
+
+                                            if (!multipleLicenses && 1 == pricing.licenses) {
+                                                return '$' + pricing.price + priceCycle;
+                                            }
+
+                                            return _formatLicensesTitle(pricing) + ' - <var class="fs-price">$' + pricing.price + priceCycle + '</var>';
+                                        },
+                                        _checkoutUrl            = function (plan, pricing, cycle) {
+                                            return '<?php echo esc_url_raw( remove_query_arg( 'billing_cycle', add_query_arg( array( 'plugin_id' => $plan->plugin_id ), $api->checkout_link ) ) ) ?>' +
+                                                '&plan_id=' + plan +
+                                                '&pricing_id=' + pricing +
+                                                '&billing_cycle=' + cycle<?php if ( $plan->has_trial() ) {
+                                                echo " + '&trial=true'";
+                                            }?>;
+                                        },
+                                        _updateCtaUrl           = function (plan, pricing, cycle) {
+                                            $('.plugin-information-pricing .fs-plan[data-plan-id=' + plan + '] .fs-checkout-button, #plugin-information-footer .fs-checkout-button').attr('href', _checkoutUrl(plan, pricing, cycle));
+                                        };
+
+                                    $(document).ready(function () {
+                                        var $plan = $('.plugin-information-pricing .fs-plan[data-plan-id=<?php echo $plan->id ?>]');
+
+                                        $plan.find('.nav-tab').click(function () {
+                                            if ($(this).hasClass('nav-tab-active'))
+                                                return;
+
+                                            var $this        = $(this),
+                                                billingCycle = $this.attr('data-billing-cycle'),
+                                                pricing      = JSON.parse($this.attr('data-pricing')),
+                                                $pricesList  = $this.parents('.fs-plan').find('.fs-pricing-body .fs-licenses'),
+                                                html         = '';
+
+                                            // Un-select previously selected tab.
+                                            $plan.find('.nav-tab').removeClass('nav-tab-active');
+
+                                            // Select current tab.
+                                            $this.addClass('nav-tab-active');
+
+                                            // Render licenses prices.
+                                            if (1 == pricing.length) {
+                                                html = '<li><label><?php echo fs_esc_attr_x_inline( 'Price', 'noun', 'price', $api->slug ) ?>: ' + _formatPrice(pricing[0], billingCycle, false) + '</label></li>';
+                                            } else {
+                                                for (var i = 0; i < pricing.length; i++) {
+                                                    html += '<li><label><input name="pricing-<?php echo $plan->id ?>" type="radio" value="' + pricing[i].id + '">' + _formatPrice(pricing[i], billingCycle) + '</label></li>';
+                                                }
+                                            }
+                                            $pricesList.html(html);
+
+                                            if (1 < pricing.length) {
+                                                // Select first license option.
+                                                $pricesList.find('li:first input').click();
+                                            }
+                                            else {
+                                                _updateCtaUrl(
+                                                    $plan.attr('data-plan-id'),
+                                                    pricing[0].id,
+                                                    billingCycle
+                                                );
+                                            }
+
+                                            // Update billing frequency.
+                                            $plan.find('.fs-billing-frequency').html(_formatBillingFrequency(billingCycle));
+
+                                            if ('annual' === billingCycle) {
+                                                $plan.find('.fs-annual-discount').show();
+                                            } else {
+                                                $plan.find('.fs-annual-discount').hide();
+                                            }
+
+                                            // Update the CTA button's url when clicking the pricing item.
+                                            $plan.find('input[type=radio]').on('click', function () {
+                                                _updateCtaUrl(
+                                                    $plan.attr('data-plan-id'),
+                                                    $(this).val(),
+                                                    $plan.find('.nav-tab-active').attr('data-billing-cycle')
+                                                );
+
+                                                $plan.find('.fs-trial-terms .fs-price').html(
+                                                    $(this).parents('label').find('.fs-price').html()
+                                                );
+                                            });
+                                        });
+
+                                        <?php if ( $has_annual ) : ?>
+                                        // Select annual by default.
+                                        $plan.find('.nav-tab[data-billing-cycle=annual]').click();
+                                        <?php else : ?>
+                                        // Select first tab.
+                                        $plan.find('.nav-tab:first').click();
+                                        <?php endif ?>
+                                    });
+                                }(jQuery));
+                            </script>
                         <?php endforeach ?>
                       </div>
                     <?php endif ?>
