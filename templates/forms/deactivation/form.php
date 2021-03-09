@@ -463,8 +463,8 @@ HTML;
 
 		$modal.find('.message').hide();
 
-		if ( isAnonymous ) {
-			$anonymousFeedback.find( 'input' ).prop( 'checked', false );
+        if ( isAnonymous ) {
+			$anonymousFeedback.find( 'input' ).prop( 'checked', <?php echo $fs->apply_filters( 'default_to_anonymous_feedback', false ) ? 'true' : 'false' ?> );
 
 			// Hide, since by default there is no selected reason.
 			$anonymousFeedback.hide();
