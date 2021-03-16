@@ -92,6 +92,7 @@ HTML;
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
+			+ '         <label style="display: none" class="feedback-from-snooze-label"><input type="checkbox" class="feedback-from-snooze-checkbox"> <span><?php fs_esc_js_echo_inline( 'Snooze this panel during troubleshooting', 'snooze-panel-during-troubleshooting', $slug ) ?></span><span style="display: none"><?php fs_esc_js_echo_inline( 'Snooze this panel for', 'snooze-panel-for', $slug ) ?> <select><option><?php echo number_format_i18n(1) ?> <?php fs_esc_js_echo_inline( 'hour', $slug ) ?></option><option><?php echo number_format_i18n(24) ?> <?php fs_esc_js_echo_inline( 'hours', $slug ) ?></option><option><?php echo number_format_i18n(7) ?> <?php fs_esc_js_echo_inline( 'days', $slug ) ?></option><option><?php echo number_format_i18n(30) ?> <?php fs_esc_js_echo_inline( 'days', $slug ) ?></option></select></span></label>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
 		    + '			<a href="#" class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
 		    + '		</div>'
@@ -101,6 +102,7 @@ HTML;
 	    selectedReasonID               = false,
 	    redirectLink                   = '',
 		$anonymousFeedback             = $modal.find( '.anonymous-feedback-label' ),
+		$feedbackSnooze                = $modal.find( '.feedback-from-snooze-label' ),
 		isAnonymous                    = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
 		otherReasonID                  = <?php echo Freemius::REASON_OTHER; ?>,
 		dontShareDataReasonID          = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
@@ -365,12 +367,12 @@ HTML;
 
 			$modal.find('.reason-input').remove();
 			$modal.find( '.internal-message' ).hide();
-			$modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
-				fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
-				$fs->is_plugin() ?
-					$deactivate_text :
-					sprintf( $activate_x_text, $theme_text )
-			) ) ?>');
+            $modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
+                fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
+                $fs->is_plugin() ?
+                    $deactivate_text :
+                    sprintf( $activate_x_text, $theme_text )
+            ) ) ?>').removeClass('button-secondary').addClass('button-primary');
 
 			enableDeactivateButton();
 
@@ -391,7 +393,44 @@ HTML;
 					disableDeactivateButton();
 				}
 			}
+
+            $anonymousFeedback.toggle( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> != selectedReasonID );
+            $feedbackSnooze.toggle( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID );
+
+            if ( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID ) {
+                updateDeactivationButtonOnTrouble();
+            }
 		});
+
+		var snooze = false;
+
+		var updateDeactivationButtonOnTrouble = function () {
+            if ( snooze ) {
+                $modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
+                    fs_text_inline( 'Snooze & %s', 'snooze-modal-button-submit' , $slug ),
+                    $fs->is_plugin() ?
+                        $deactivate_text :
+                        sprintf( $activate_x_text, $theme_text )
+                ) ) ?>');
+            } else {
+                $modal.find('.button-deactivate').html('<?php echo esc_js(
+                    $fs->is_plugin() ?
+                        $deactivate_text :
+                        sprintf( $activate_x_text, $theme_text )
+                ) ?>');
+            }
+        };
+
+        $feedbackSnooze.on( 'click', 'input', function () {
+            var $spans = $feedbackSnooze.find( 'span' );
+
+            snooze = ( ! snooze );
+
+            $( $spans[0] ).toggle();
+            $( $spans[1] ).toggle();
+
+            updateDeactivationButtonOnTrouble();
+        });
 
 		// If the user has clicked outside the window, cancel it.
 		$modal.on('click', function (evt) {
