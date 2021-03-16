@@ -2545,7 +2545,7 @@
             $reason_temporary_deactivation = array(
                 'id'                => self::REASON_TEMPORARY_DEACTIVATION,
                 'text'              => sprintf(
-                    $this->get_text_inline( "It's a temporary %s. I'm just debugging an issue.", 'reason-temporary-x' ),
+                    $this->get_text_inline( "It's a temporary %s - I'm troubleshooting an issue", 'reason-temporary-x' ),
                     strtolower( $this->is_plugin() ?
                         $this->get_text_inline( 'Deactivation', 'deactivation' ) :
                         $this->get_text_inline( 'Theme Switch', 'theme-switch' )
