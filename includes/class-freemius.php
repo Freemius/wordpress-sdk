@@ -544,6 +544,8 @@
             $this->_load_account();
 
             $this->_version_updates_handler();
+
+            add_action( 'admin_head', array( &$this, '_hide_admin_notices_on_about_page' ), 1 );
         }
 
         /**
@@ -18717,6 +18719,18 @@
          */
         function remove_sticky( $ids, $network_level_or_blog_id = null ) {
             $this->_admin_notices->remove_sticky( $ids, $network_level_or_blog_id );
+        }
+
+        /**
+         * @author Xiaheng Chen (@xhchen)
+         * @since 2.4.3
+         */
+        function _hide_admin_notices_on_about_page(){
+            global $pagenow;
+
+            if ( 'about.php' === $pagenow ) {
+                $this->_hide_admin_notices();
+            }
         }
 
         #endregion
