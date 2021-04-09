@@ -1555,7 +1555,7 @@
             $this->_logger->entrance();
 
             if ( is_admin() ) {
-                add_action( 'admin_init', array( &$this, '_hook_action_links_and_register_account_hooks' ) );
+                add_action( 'admin_init', array( $this, '_hook_action_links_and_register_account_hooks' ) );
 
                 if ( $this->is_plugin() ) {
                     if ( self::is_plugin_install_page() && true !== fs_request_get_bool( 'fs_allow_updater_and_dialog' ) ) {
@@ -1586,17 +1586,17 @@
                      */
                     register_activation_hook(
                         $plugin_dir . $this->_free_plugin_basename,
-                        array( &$this, '_activate_plugin_event_hook' )
+                        array( $this, '_activate_plugin_event_hook' )
                     );
 
                     register_activation_hook(
                         $plugin_dir . $this->premium_plugin_basename(),
-                        array( &$this, '_activate_plugin_event_hook' )
+                        array( $this, '_activate_plugin_event_hook' )
                     );
                 } else {
-                    add_action( 'after_switch_theme', array( &$this, '_activate_theme_event_hook' ), 10, 2 );
+                    add_action( 'after_switch_theme', array( $this, '_activate_theme_event_hook' ), 10, 2 );
 
-                    add_action( 'admin_footer', array( &$this, '_style_premium_theme' ) );
+                    add_action( 'admin_footer', array( $this, '_style_premium_theme' ) );
                 }
 
                 /**
@@ -1619,7 +1619,7 @@
                          $this->is_activation_mode( false ) &&
                          0 == did_action( 'plugins_loaded' )
                     ) {
-                        add_action( 'plugins_loaded', array( &$this, '_plugins_loaded' ) );
+                        add_action( 'plugins_loaded', array( $this, '_plugins_loaded' ) );
                     } else {
                         // If was activated before, then it was already loaded before.
                         $this->_plugins_loaded();
@@ -1628,16 +1628,16 @@
 
                 if ( ! self::is_ajax() ) {
                     if ( ! $this->is_addon() ) {
-                        add_action( 'init', array( &$this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
+                        add_action( 'init', array( $this, '_add_default_submenu_items' ), WP_FS__LOWEST_PRIORITY );
                     }
                 }
 
                 if ( $this->_storage->handle_gdpr_admin_notice ) {
-                    add_action( 'init', array( &$this, '_maybe_show_gdpr_admin_notice' ) );
+                    add_action( 'init', array( $this, '_maybe_show_gdpr_admin_notice' ) );
                 }
 
-                add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
-                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler' ) );
+                add_action( 'init', array( $this, '_maybe_add_gdpr_optin_ajax_handler') );
+                add_action( 'init', array( $this, '_maybe_add_pricing_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -1645,18 +1645,18 @@
                     add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
                 }
 
-                register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
+                register_deactivation_hook( $this->_plugin_main_file_path, array( $this, '_deactivate_plugin_hook' ) );
             }
 
             if ( is_multisite() ) {
-                add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+                add_action( 'deactivate_blog', array( $this, '_after_site_deactivated_callback' ) );
+                add_action( 'archive_blog', array( $this, '_after_site_deactivated_callback' ) );
+                add_action( 'make_spam_blog', array( $this, '_after_site_deactivated_callback' ) );
+                add_action( 'deleted_blog', array( $this, '_after_site_deleted_callback' ), 10, 2 );
 
-                add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
-                add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
-                add_action( 'make_ham_blog', array( &$this, '_after_site_reactivated_callback' ) );
+                add_action( 'activate_blog', array( $this, '_after_site_reactivated_callback' ) );
+                add_action( 'unarchive_blog', array( $this, '_after_site_reactivated_callback' ) );
+                add_action( 'make_ham_blog', array( $this, '_after_site_reactivated_callback' ) );
             }
 
             if ( $this->is_theme() &&
@@ -1664,51 +1664,51 @@
                  $this->apply_filters( 'show_customizer_upsell', true )
             ) {
                 // Register customizer upsell.
-                add_action( 'customize_register', array( &$this, '_customizer_register' ) );
+                add_action( 'customize_register', array( $this, '_customizer_register' ) );
             }
 
-            add_action( 'admin_init', array( &$this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
+            add_action( 'admin_init', array( $this, '_redirect_on_clicked_menu_link' ), WP_FS__LOWEST_PRIORITY );
 
             if ( $this->is_theme() && ! $this->is_migration() ) {
-                add_action( 'admin_init', array( &$this, '_add_tracking_links' ) );
+                add_action( 'admin_init', array( $this, '_add_tracking_links' ) );
             }
 
-            add_action( 'admin_init', array( &$this, '_add_license_activation' ) );
-            add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
-            add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
-            add_action( 'admin_init', array( &$this, '_add_user_change_option' ) );
+            add_action( 'admin_init', array( $this, '_add_license_activation' ) );
+            add_action( 'admin_init', array( $this, '_add_premium_version_upgrade_selection' ) );
+            add_action( 'admin_init', array( $this, '_add_beta_mode_update_handler' ) );
+            add_action( 'admin_init', array( $this, '_add_user_change_option' ) );
 
-            $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
-            $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
-            $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
-            $this->add_ajax_action( 'toggle_whitelabel_mode', array( &$this, '_toggle_whitelabel_mode_ajax_handler' ) );
+            $this->add_ajax_action( 'update_billing', array( $this, '_update_billing_ajax_action' ) );
+            $this->add_ajax_action( 'start_trial', array( $this, '_start_trial_ajax_action' ) );
+            $this->add_ajax_action( 'set_data_debug_mode', array( $this, '_set_data_debug_mode' ) );
+            $this->add_ajax_action( 'toggle_whitelabel_mode', array( $this, '_toggle_whitelabel_mode_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
-                $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
+                $this->add_ajax_action( 'network_activate', array( $this, '_network_activate_ajax_action' ) );
             }
 
             $this->add_ajax_action( 'install_premium_version', array(
-                &$this,
+                $this,
                 '_install_premium_version_ajax_action'
             ) );
 
-            $this->add_ajax_action( 'submit_affiliate_application', array( &$this, '_submit_affiliate_application' ) );
+            $this->add_ajax_action( 'submit_affiliate_application', array( $this, '_submit_affiliate_application' ) );
 
-            $this->add_action( 'after_plans_sync', array( &$this, '_check_for_trial_plans' ) );
+            $this->add_action( 'after_plans_sync', array( $this, '_check_for_trial_plans' ) );
 
-            $this->add_action( 'sdk_version_update', array( &$this, '_sdk_version_update' ), WP_FS__DEFAULT_PRIORITY, 2 );
+            $this->add_action( 'sdk_version_update', array( $this, '_sdk_version_update' ), WP_FS__DEFAULT_PRIORITY, 2 );
 
             $this->add_action(
                 'plugin_version_update',
-                array( &$this, '_after_version_update' ),
+                array( $this, '_after_version_update' ),
                 WP_FS__DEFAULT_PRIORITY,
                 2
             );
-            $this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
+            $this->add_filter( 'after_code_type_change', array( $this, '_after_code_type_change' ) );
 
-            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
-            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
-            add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
+            add_action( 'admin_init', array( $this, '_add_trial_notice' ) );
+            add_action( 'admin_init', array( $this, '_add_affiliate_program_notice' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, '_enqueue_common_css' ) );
 
             /**
              * Handle request to reset anonymous mode for `get_reconnect_url()`.
@@ -1719,7 +1719,7 @@
             if ( fs_request_is_action( 'reset_anonymous_mode' ) &&
                  $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
-                add_action( 'admin_init', array( &$this, 'connect_again' ) );
+                add_action( 'admin_init', array( $this, 'connect_again' ) );
             }
         }
 
@@ -1737,7 +1737,7 @@
             ) {
                 $this->add_ajax_action(
                     'delete_theme_update_data',
-                    array( &$this, '_delete_theme_update_data_action' )
+                    array( $this, '_delete_theme_update_data_action' )
                 );
             }
 
@@ -1750,16 +1750,16 @@
                  * @since  1.2.2.7
                  */
                 if ( ! $this->_cache->has_valid( 'tabs' ) ) {
-                    add_action( 'admin_footer', array( &$this, '_tabs_capture' ) );
+                    add_action( 'admin_footer', array( $this, '_tabs_capture' ) );
                     // Add license activation AJAX callback.
-                    $this->add_ajax_action( 'store_tabs', array( &$this, '_store_tabs_ajax_action' ) );
+                    $this->add_ajax_action( 'store_tabs', array( $this, '_store_tabs_ajax_action' ) );
 
-                    add_action( 'admin_enqueue_scripts', array( &$this, '_store_tabs_styles' ), 9999999 );
+                    add_action( 'admin_enqueue_scripts', array( $this, '_store_tabs_styles' ), 9999999 );
                 }
 
                 add_action(
                     'admin_footer',
-                    array( &$this, '_add_freemius_tabs' ),
+                    array( $this, '_add_freemius_tabs' ),
                     /**
                      * The tabs JS code must be executed after the tabs capture logic (_tabs_capture()).
                      * That's why the priority is 11 while the tabs capture logic is added
@@ -1775,7 +1775,7 @@
                 if ( ! $this->is_addon() || $this->is_only_premium() ) {
                     add_action(
                         ( $this->_is_network_active && fs_is_network_admin() ? 'network_' : '' ) . 'admin_menu',
-                        array( &$this, '_prepare_admin_menu' ),
+                        array( $this, '_prepare_admin_menu' ),
                         WP_FS__LOWEST_PRIORITY
                     );
                 }
@@ -2074,19 +2074,19 @@
              */
             $this->add_ajax_action(
                 'submit_uninstall_reason',
-                array( &$this, '_submit_uninstall_reason_action' )
+                array( $this, '_submit_uninstall_reason_action' )
             );
 
             $this->add_ajax_action(
                 'cancel_subscription_or_trial',
-                array( &$this, 'cancel_subscription_or_trial_ajax_action' )
+                array( $this, 'cancel_subscription_or_trial_ajax_action' )
             );
 
             if ( ! $this->is_addon() || $this->is_parent_plugin_installed() ) {
                 if ( ( $this->is_plugin() && self::is_plugins_page() ) ||
                      ( $this->is_theme() && self::is_themes_page() )
                 ) {
-                    add_action( 'admin_footer', array( &$this, '_add_deactivation_feedback_dialog_box' ) );
+                    add_action( 'admin_footer', array( $this, '_add_deactivation_feedback_dialog_box' ) );
                 }
             }
         }
@@ -4802,12 +4802,12 @@
 
                                 $ajax_action_suffix = $this->_slug . ( $this->is_theme() ? ':theme' : '' );
                                 add_action( "wp_ajax_fs_resolve_firewall_issues_{$ajax_action_suffix}", array(
-                                    &$this,
+                                    $this,
                                     '_email_about_firewall_issue'
                                 ) );
 
                                 add_action( "wp_ajax_fs_retry_connectivity_test_{$ajax_action_suffix}", array(
-                                    &$this,
+                                    $this,
                                     '_retry_connectivity_test'
                                 ) );
 
@@ -4818,12 +4818,12 @@
                                  * @since  2.0.0
                                  */
                                 /*$this->add_ajax_action( 'resolve_firewall_issues', array(
-                                    &$this,
+                                    $this,
                                     '_email_about_firewall_issue'
                                 ) );
 
                                 $this->add_ajax_action( 'retry_connectivity_test', array(
-                                    &$this,
+                                    $this,
                                     '_retry_connectivity_test'
                                 ) );*/
                             }
@@ -5003,7 +5003,7 @@
                     }
                 }
 
-                add_action( 'admin_init', array( &$this, '_admin_init_action' ) );
+                add_action( 'admin_init', array( $this, '_admin_init_action' ) );
 
 //				if ( $this->is_registered() ||
 //				     $this->is_anonymous() ||
@@ -5817,7 +5817,7 @@
                 if ( ! $this->is_addon() ) {
                     add_action(
                         is_admin() ? 'admin_init' : 'init',
-                        array( &$this, '_plugin_code_type_changed' )
+                        array( $this, '_plugin_code_type_changed' )
                     );
                 }
 
@@ -6853,7 +6853,7 @@
         function _sync_cron() {
             $this->_logger->entrance();
 
-            $this->execute_cron( 'sync', array( &$this, '_sync_cron_method' ) );
+            $this->execute_cron( 'sync', array( $this, '_sync_cron_method' ) );
         }
 
         /**
@@ -6944,7 +6944,7 @@
          * @since  1.1.7.3
          */
         private function hook_callback_to_sync_cron() {
-            $this->add_action( 'data_sync', array( &$this, '_sync_cron' ) );
+            $this->add_action( 'data_sync', array( $this, '_sync_cron' ) );
         }
 
         /**
@@ -7056,7 +7056,7 @@
          * @since  1.1.7.3
          */
         private function hook_callback_to_install_sync() {
-            $this->add_action( 'install_sync', array( &$this, '_run_sync_install' ) );
+            $this->add_action( 'install_sync', array( $this, '_run_sync_install' ) );
         }
 
         /**
@@ -7079,7 +7079,7 @@
         public function _run_sync_install() {
             $this->_logger->entrance();
 
-            $this->execute_cron( 'sync', array( &$this, '_sync_install_cron_method' ) );
+            $this->execute_cron( 'sync', array( $this, '_sync_install_cron_method' ) );
         }
 
         /**
@@ -9846,7 +9846,7 @@
 
             register_activation_hook(
                 $plugin_dir . $basename,
-                array( &$this, '_activate_plugin_event_hook' )
+                array( $this, '_activate_plugin_event_hook' )
             );
         }
 
@@ -13083,10 +13083,10 @@
             }
 
             // Add license activation AJAX callback.
-            $this->add_ajax_action( 'activate_license', array( &$this, '_activate_license_ajax_action' ) );
+            $this->add_ajax_action( 'activate_license', array( $this, '_activate_license_ajax_action' ) );
 
             // Add resend license AJAX callback.
-            $this->add_ajax_action( 'resend_license_key', array( &$this, '_resend_license_key_ajax_action' ) );
+            $this->add_ajax_action( 'resend_license_key', array( $this, '_resend_license_key_ajax_action' ) );
         }
 
         /**
@@ -13108,7 +13108,7 @@
             }
 
             // Add user change AJAX handler.
-            $this->add_ajax_action( 'change_user', array( &$this, '_user_change_ajax_action' ) );
+            $this->add_ajax_action( 'change_user', array( $this, '_user_change_ajax_action' ) );
         }
 
         /**
@@ -13227,7 +13227,7 @@
                 return;
             }
 
-            $this->add_ajax_action( 'set_beta_mode', array( &$this, '_set_beta_mode_ajax_handler' ) );
+            $this->add_ajax_action( 'set_beta_mode', array( $this, '_set_beta_mode_ajax_handler' ) );
         }
 
         /**
@@ -17939,11 +17939,11 @@
                      * Handle theme opt-in when the opt-in form shows as a dialog box in the themes page.
                      */
                     if ( fs_request_is_action( $this->get_unique_affix() . '_activate_existing' ) ) {
-                        add_action( 'load-themes.php', array( &$this, '_install_with_current_user' ) );
+                        add_action( 'load-themes.php', array( $this, '_install_with_current_user' ) );
                     } else if ( fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ||
                                 fs_request_get_bool( 'pending_activation' )
                     ) {
-                        add_action( 'load-themes.php', array( &$this, '_install_with_new_user' ) );
+                        add_action( 'load-themes.php', array( $this, '_install_with_new_user' ) );
                     }
                 }
             } else {
@@ -18005,7 +18005,7 @@
                     $this->get_plugin_name(),
                     'manage_options',
                     $this->_slug,
-                    array( &$this, '_connect_page_render' )
+                    array( $this, '_connect_page_render' )
                 );
             } else if ( $this->_menu->is_top_level() ) {
                 if ( $this->_menu->is_override_exact() ) {
@@ -18015,7 +18015,7 @@
                     }
                 }
 
-                $hook = $this->_menu->override_menu_item( array( &$this, '_connect_page_render' ) );
+                $hook = $this->_menu->override_menu_item( array( $this, '_connect_page_render' ) );
 
                 if ( false === $hook ) {
                     // Create new menu item just for the opt-in.
@@ -18024,7 +18024,7 @@
                         $this->get_plugin_name(),
                         'manage_options',
                         $this->_menu->get_slug(),
-                        array( &$this, '_connect_page_render' )
+                        array( $this, '_connect_page_render' )
                     );
                 }
             } else {
@@ -18041,7 +18041,7 @@
                     $hook = $this->_menu->override_submenu_action(
                         $parent_slug,
                         $this->_menu->get_raw_slug(),
-                        array( &$this, '_connect_page_render' )
+                        array( $this, '_connect_page_render' )
                     );
 
                     if ( false !== $hook ) {
@@ -18264,7 +18264,7 @@
                     // Add affiliation page.
                     $this->add_submenu_item(
                         $this->get_text_inline( 'Affiliation', 'affiliation' ),
-                        array( &$this, '_affiliation_page_render' ),
+                        array( $this, '_affiliation_page_render' ),
                         $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Affiliation', 'affiliation' ),
                         'manage_options',
                         'affiliation',
@@ -18294,11 +18294,11 @@
                     // Add user account page.
                     $this->add_submenu_item(
                         $this->get_text_inline( 'Account', 'account' ),
-                        array( &$this, '_account_page_render' ),
+                        array( $this, '_account_page_render' ),
                         $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Account', 'account' ),
                         'manage_options',
                         'account',
-                        array( &$this, '_account_page_load' ),
+                        array( $this, '_account_page_load' ),
                         WP_FS__DEFAULT_PRIORITY,
                         ( $add_submenu_items && $show_account )
                     );
@@ -18310,7 +18310,7 @@
                     // Add contact page.
                     $this->add_submenu_item(
                         $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                        array( &$this, '_contact_page_render' ),
+                        array( $this, '_contact_page_render' ),
                         $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
                         'manage_options',
                         'contact',
@@ -18323,11 +18323,11 @@
                 if ( $this->has_addons() ) {
                     $this->add_submenu_item(
                         $this->get_text_inline( 'Add-Ons', 'add-ons' ),
-                        array( &$this, '_addons_page_render' ),
+                        array( $this, '_addons_page_render' ),
                         $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Add-Ons', 'add-ons' ),
                         'manage_options',
                         'addons',
-                        array( &$this, '_addons_page_load' ),
+                        array( $this, '_addons_page_load' ),
                         WP_FS__LOWEST_PRIORITY - 1,
                         $this->is_submenu_item_visible( 'addons' )
                     );
@@ -18359,7 +18359,7 @@
                     // Add upgrade/pricing page.
                     $this->add_submenu_item(
                         $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? $this->get_text_x_inline( '&#x2190;', 'ASCII arrow left icon', 'symbol_arrow-left' ) : $this->get_text_x_inline( '&#x27a4;', 'ASCII arrow right icon', 'symbol_arrow-right' ) ),
-                        array( &$this, '_pricing_page_render' ),
+                        array( $this, '_pricing_page_render' ),
                         $this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
                         'manage_options',
                         'pricing',
@@ -20562,7 +20562,7 @@
                                     if ( ! fs_request_get_bool( 'auto_install' ) ) {
                                         // Open the license activation dialog box on the account page.
                                         add_action( 'admin_footer', array(
-                                            &$this,
+                                            $this,
                                             '_open_license_activation_dialog_box'
                                         ) );
                                     }
@@ -22564,7 +22564,7 @@
          */
         function _maybe_add_pricing_ajax_handler() {
             if ( ! $this->should_use_external_pricing() ) {
-                $this->add_ajax_action( 'pricing_ajax_action', array( &$this, '_fs_pricing_ajax_action_handler' ) );
+                $this->add_ajax_action( 'pricing_ajax_action', array( $this, '_fs_pricing_ajax_action_handler' ) );
             }
         }
 
@@ -22988,7 +22988,7 @@
 
             // Check if trial message is already shown.
             if ( $this->is_in_trial_promotion() ) {
-                add_action( 'admin_footer', array( &$this, '_fix_start_trial_menu_item_url' ) );
+                add_action( 'admin_footer', array( $this, '_fix_start_trial_menu_item_url' ) );
 
                 $this->_menu->add_counter_to_menu_item( 1, 'fs-trial' );
 
@@ -23222,7 +23222,7 @@
         function _show_theme_activation_optin_dialog() {
             fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
 
-            add_action( 'admin_footer', array( &$this, '_add_fs_theme_activation_dialog' ) );
+            add_action( 'admin_footer', array( $this, '_add_fs_theme_activation_dialog' ) );
         }
 
         /**
@@ -23260,11 +23260,11 @@
 
             // Add action link to settings page.
             add_filter( 'plugin_action_links_' . $this->_plugin_basename, array(
-                &$this,
+                $this,
                 '_modify_plugin_action_links_hook'
             ), WP_FS__DEFAULT_PRIORITY, 2 );
             add_filter( 'network_admin_plugin_action_links_' . $this->_plugin_basename, array(
-                &$this,
+                $this,
                 '_modify_plugin_action_links_hook'
             ), WP_FS__DEFAULT_PRIORITY, 2 );
         }
@@ -23371,7 +23371,7 @@
 
             if ( ! self::is_ajax() ) {
                 // Inject license activation dialog UI and client side code.
-                add_action( 'admin_footer', array( &$this, '_add_license_activation_dialog_box' ) );
+                add_action( 'admin_footer', array( $this, '_add_license_activation_dialog_box' ) );
             }
 
             $link_text = $this->is_free_plan() ?
@@ -23395,7 +23395,7 @@
             $this->_logger->entrance();
 
             if ( ! self::is_ajax() ) {
-                add_action( 'admin_footer', array( &$this, '_add_premium_version_upgrade_selection_dialog_box' ) );
+                add_action( 'admin_footer', array( $this, '_add_premium_version_upgrade_selection_dialog_box' ) );
             }
         }
 
@@ -23480,15 +23480,15 @@
                 }
             }
 
-            if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'stop_tracking', array( $this, '_stop_tracking_callback' ) ) ) {
                 return;
             }
 
-            if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'allow_tracking', array( $this, '_allow_tracking_callback' ) ) ) {
                 return;
             }
 
-            if ( $this->add_ajax_action( 'update_tracking_permission', array( &$this, '_update_tracking_permission_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'update_tracking_permission', array( $this, '_update_tracking_permission_callback' ) ) ) {
                 return;
             }
 
@@ -23517,7 +23517,7 @@
                 $url = $this->get_activation_url( $params );
             }
 
-            add_action( 'admin_footer', array( &$this, '_add_optout_dialog' ) );
+            add_action( 'admin_footer', array( $this, '_add_optout_dialog' ) );
 
             if ( ! empty( $link_text_id ) && $this->is_plugin() && self::is_plugins_page() ) {
                 $this->add_plugin_action_link(
@@ -25118,7 +25118,7 @@
          * @since  2.1.0
          */
         function _maybe_add_gdpr_optin_ajax_handler() {
-            $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( &$this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
+            $this->add_ajax_action( 'fetch_is_marketing_required_flag_value', array( $this, '_fetch_is_marketing_required_flag_value_ajax_action' ) );
 
             if ( FS_GDPR_Manager::instance()->is_opt_in_notice_shown() ) {
                 $this->add_gdpr_optin_ajax_handler_and_style();
@@ -25203,10 +25203,10 @@
          */
         private function add_gdpr_optin_ajax_handler_and_style() {
             // Add GDPR action AJAX callback.
-            $this->add_ajax_action( 'gdpr_optin_action', array( &$this, '_gdpr_optin_ajax_action' ) );
+            $this->add_ajax_action( 'gdpr_optin_action', array( $this, '_gdpr_optin_ajax_action' ) );
 
-            add_action( 'admin_footer', array( &$this, '_add_gdpr_optin_js' ) );
-            add_action( 'admin_enqueue_scripts', array( &$this, 'enqueue_gdpr_optin_notice_style' ) );
+            add_action( 'admin_footer', array( $this, '_add_gdpr_optin_js' ) );
+            add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_gdpr_optin_notice_style' ) );
         }
 
         /**

@@ -63,12 +63,12 @@
             remove_all_actions( 'install_plugins_pre_plugin-information' );
 
             // Override action with custom plugins function for add-ons.
-            add_action( 'install_plugins_pre_plugin-information', array( &$this, 'install_plugin_information' ) );
+            add_action( 'install_plugins_pre_plugin-information', array( $this, 'install_plugin_information' ) );
 
             // Override request for plugin information for Add-ons.
             add_filter(
                 'fs_plugins_api',
-                array( &$this, '_get_addon_info_filter' ),
+                array( $this, '_get_addon_info_filter' ),
                 WP_FS__DEFAULT_PRIORITY, 3 );
         }
 

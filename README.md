@@ -152,7 +152,7 @@ To add a function which will only be available in your premium plugin version, s
                 // Init premium version.
                 $this->admin_init__premium_only();
 
-                add_action( 'admin_init', array( &$this, 'admin_init_hook__premium_only' );
+                add_action( 'admin_init', array( $this, 'admin_init_hook__premium_only' );
             }
 
             ...
