@@ -9,3 +9,4 @@ transifex-config.json
 *.orig
 npm-debug.log
 package-lock.json
+vendor

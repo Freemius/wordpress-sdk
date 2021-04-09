@@ -5,6 +5,17 @@
     "homepage": "https://freemius.com",
     "license": "GPL-3.0-only",
     "require": {
-        "php": ">=5.2"
-	}
+        "php": ">=5.6"
+	},
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+        "phpcompatibility/php-compatibility": "*"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "platform": {
+            "php": "7.3"
+        }
+    }
 }
