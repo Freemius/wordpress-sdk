@@ -2504,12 +2504,14 @@
             $vars['show_deactivation_feedback_form']                      = $show_deactivation_feedback_form;
             $vars['uninstall_confirmation_message']                       = $uninstall_confirmation_message;
 
-            /**
-             * Load the HTML template for the deactivation feedback dialog box.
-             *
-             * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
-             */
-            fs_require_template( 'forms/deactivation/form.php', $vars );
+            if ( ! get_site_transient('fs_snooze_period')) {
+                /**
+                 * Load the HTML template for the deactivation feedback dialog box.
+                 *
+                 * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
+                 */
+                fs_require_template( 'forms/deactivation/form.php', $vars );
+            }
         }
 
         /**
@@ -2709,6 +2711,10 @@
             );
 
             $this->_storage->store( 'uninstall_reason', $reason );
+
+            if (Freemius::REASON_TEMPORARY_DEACTIVATION == $reason->id && '' != fs_request_get('snooze_period')) {
+                set_site_transient('fs_snooze_period', fs_request_get('snooze_period'));
+            }
 
             /**
              * If the module type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
@@ -7149,6 +7155,15 @@
         }
 
         /**
+         * @author Edgar Melkonyan
+         *
+         * @return bool
+         */
+        function is_premium_without_license() {
+            return ($this->is_premium() && ! $this->_get_available_premium_license());
+        }
+
+        /**
          *
          * NOTE: admin_menu action executed before admin_init.
          *
@@ -7166,7 +7181,9 @@
             if ( $this->is_plugin_activation() ) {
                 delete_transient( "fs_{$this->_module_type}_{$this->_slug}_activated" );
 
-                if ( isset( $_GET['activate-multi'] ) ) {
+                if ( isset( $_GET['activate-multi'] ) ||
+                    (get_site_transient('fs_snooze_period') && ! $this->is_premium_without_license())
+                ) {
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
                      */

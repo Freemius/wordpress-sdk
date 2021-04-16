@@ -308,7 +308,12 @@ HTML;
 
 				var $selected_reason = $radio.parents('li:first'),
 				    $input = $selected_reason.find('textarea, input[type="text"]'),
-				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
+				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '',
+                    snooze_period = '';
+
+				if ( (<?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID) ) {
+                    snooze_period =  $feedbackSnooze.find('select').val()
+                }
 
 				if (isOtherReasonSelected() && ( '' === userReason )) {
 					return;
@@ -323,7 +328,8 @@ HTML;
 						module_id   : '<?php echo $fs->get_id() ?>',
 						reason_id   : $radio.val(),
 						reason_info : userReason,
-						is_anonymous: isAnonymousFeedback()
+						is_anonymous: isAnonymousFeedback(),
+                        snooze_period: snooze_period
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
