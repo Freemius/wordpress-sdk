@@ -36,8 +36,14 @@
 		}
 	}
 
-	.anonymous-feedback-label {
+	.anonymous-feedback-label,
+	.feedback-from-snooze-label {
 		float: left;
+		line-height: 30px;
+
+		.rtl & {
+			float: right;
+		}
 	}
 
     .fs-modal-panel {

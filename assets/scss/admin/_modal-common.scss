@@ -164,7 +164,7 @@
 		> .button {
 			margin: 0 7px;
 
-			&:first-child {
+			&:last-of-type {
 				margin: 0;
 			}
 		}
@@ -191,6 +191,10 @@
                 left: 20px;
             }
         }
+
+		.fs-modal-footer {
+			text-align: left;
+		}
     }
 }
 
