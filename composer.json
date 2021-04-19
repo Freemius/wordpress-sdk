@@ -6,5 +6,8 @@
     "license": "GPL-3.0-only",
     "require": {
         "php": ">=5.2"
-	}
+	},
+    "autoload": {
+        "files": ["./vendor/freemius/wordpress-sdk/start.php"]
+    }
 }
