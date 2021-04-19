@@ -7160,7 +7160,7 @@
          * @return bool
          */
         function is_premium_without_license() {
-            return ($this->is_premium() && ! $this->_get_available_premium_license());
+            return ($this->is_premium() && ! $this->is_registered());
         }
 
         /**
