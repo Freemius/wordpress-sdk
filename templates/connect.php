@@ -175,13 +175,15 @@
 							fs_text_inline( 'complete the install', 'complete-the-install', $slug )
 						) );
 					} else if ( $require_license_key ) {
+
+
 						$button_label = $is_network_upgrade_mode ?
                             fs_text_inline( 'Activate License', 'agree-activate-license', $slug ) :
                             fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
 
 						$message = $fs->apply_filters(
 						    'connect-message_on-premium',
-							sprintf( fs_text_inline( 'Welcome to %s! To get started, please enter your license key:', 'thanks-for-purchasing', $slug ), '<b>' . $fs->get_plugin_name() . '</b>' ),
+							sprintf( fs_text_inline( 'Welcome to %s! To get started, please enter your license key: ', 'thanks-for-purchasing', $slug ), '<b>' . $fs->get_plugin_name() . '</b>' ),
 							$first_name,
 							$fs->get_plugin_name()
 						);
@@ -424,7 +426,7 @@
 									fs_esc_html_inline( 'The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management.', 'license-sync-disclaimer', $slug ),
 									$fs->get_module_label( true ),
 									sprintf('<a class="fs-trigger" href="#" tabindex="1">%s</a>', fs_esc_html_inline('diagnostic data', 'send-data')),
-									'<a class="fs-tooltip-trigger' . (is_rtl() ? ' rtl' : '') . '" href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com <i class="dashicons dashicons-editor-help" style="text-decoration: none;"><span class="fs-tooltip" style="width: 170px">' . $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) . '</span></i></a>'
+									'<a class="fs-tooltip-trigger' . (is_rtl() ? ' rtl' : '') . '" href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com <i class="dashicons dashicons-editor-help" style="text-decoration: none;"><span class="fs-tooltip" style="width: 170px;">' . $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) . '</span></i></a>'
 								) ?></p>
 					<?php else : ?>
 					<a class="fs-trigger" href="#" tabindex="1"><?php fs_esc_html_echo_inline( 'What permissions are being granted?', 'what-permissions', $slug ) ?></a>

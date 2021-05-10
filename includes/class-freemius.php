@@ -7351,6 +7351,7 @@
          * @since  1.1.4
          */
         function _enqueue_connect_essentials() {
+
             wp_enqueue_script( 'jquery' );
             wp_enqueue_script( 'json2' );
 
@@ -23213,6 +23214,8 @@
                 // Add basic CSS for admin-notices and menu-item colors.
                 fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
             }
+
+	        fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
         }
 
         /**
