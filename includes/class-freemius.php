@@ -23433,7 +23433,7 @@
             if (
                 $this->is_addon() &&
                 ! $this->is_only_premium() &&
-                $this->_parent->is_anonymous()
+                $this->get_parent_instance()->is_anonymous()
             ) {
                 return;
             }
