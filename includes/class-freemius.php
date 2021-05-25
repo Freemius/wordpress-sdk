@@ -4918,6 +4918,28 @@
             }
 
             if ( $this->is_user_in_admin() ) {
+                if ( $this->is_registered() && fs_request_has( 'purchase_completed' ) ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf(
+                        /* translators: %s: License type (e.g. you have a professional license) */
+                            $this->get_text_inline( 'You have purchased a %s license.', 'you-have-x-license' ),
+                            fs_request_get( 'purchased_plan' )
+                        ) .
+                        sprintf(
+                            $this->get_text_inline(" The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box.", 'post-purchase-email-sent-message' ),
+                            $this->get_module_label( true ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? "products' " : '' ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? 's' : '' ),
+                            sprintf(
+                                '<strong>%s</strong>',
+                                fs_request_get( 'purchase_email' )
+                            )
+                        ),
+                        'plan_purchased',
+                        $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                    );
+                }
+
                 if ( $this->is_addon() ) {
                     if ( ! $this->is_parent_plugin_installed() ) {
                         $parent_name = $this->get_option( $plugin_info, 'parent_name', null );
