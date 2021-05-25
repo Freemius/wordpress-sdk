@@ -2249,7 +2249,7 @@
                      $id_slug_type_path_map[ $module_id ]['type']
                  ) )
             ) {
-                $caller_main_file_and_type = $this->get_caller_main_file_and_type();
+                $caller_main_file_and_type = $this->get_caller_main_file_and_type( $module_id );
 
                 $id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
                 $id_slug_type_path_map[ $module_id ]['path'] = $caller_main_file_and_type->path;
@@ -2273,8 +2273,10 @@
          *         add-ons are relying on loading the SDK from the parent module, and also allows themes including the
          *         SDK an internal file instead of directly from functions.php.
          * @since  1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
+         *
+         * @param number $module_id @since 2.4.3
          */
-        private function get_caller_main_file_and_type() {
+        private function get_caller_main_file_and_type( $module_id ) {
             self::require_plugin_essentials();
 
             $all_plugins       = fs_get_plugins( true );
@@ -2413,10 +2415,12 @@
                 }
             }
 
-            return (object) array(
+            $caller_main_file_and_type = (object) array(
                 'module_type' => $module_type,
                 'path'        => $caller_file_candidate
             );
+
+            return apply_filters( "fs_{$module_id}_caller_main_file_and_type", $caller_main_file_and_type );
         }
 
         #----------------------------------------------------------------------------------
@@ -13097,10 +13101,15 @@
                     ( $is_network_admin && $this->is_network_active() && ! $this->is_network_delegated_connection() ) ||
                     ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
                 ) {
-                    /**
-                     * @since 1.2.0 Add license action link only on plugins page.
-                     */
-                    $this->_add_license_action_link();
+                    if (
+                        $this->is_premium() ||
+                        ( $this->has_paid_plan() && ! $this->has_premium_version() )
+                    ) {
+                        /**
+                         * @since 1.2.0 Add license action link only on plugins page.
+                         */
+                        $this->_add_license_action_link();
+                    }
                 }
             }
 
@@ -23451,7 +23460,7 @@
             if (
                 $this->is_addon() &&
                 ! $this->is_only_premium() &&
-                $this->_parent->is_anonymous()
+                $this->get_parent_instance()->is_anonymous()
             ) {
                 return;
             }
