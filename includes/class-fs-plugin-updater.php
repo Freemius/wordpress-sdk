@@ -240,7 +240,11 @@
          * @since  2.0.0
          */
         private function add_transient_filters() {
-            if ( $this->_fs->is_premium() && ! $this->_fs->is_tracking_allowed() ) {
+            if (
+                $this->_fs->is_premium() &&
+                $this->_fs->is_registered() &&
+                ! $this->_fs->is_tracking_allowed()
+            ) {
                 $this->_logger->log( 'Opted out sites cannot receive automatic software updates.' );
 
                 return;
