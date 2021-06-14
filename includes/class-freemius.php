@@ -21499,9 +21499,11 @@
         private function get_latest_download_api_url( $plugin_id = false ) {
             $this->_logger->entrance();
 
-            return $this->get_api_site_scope()->get_signed_url(
+            $download_api_url = $this->get_api_site_scope()->get_signed_url(
                 $this->_get_latest_version_endpoint( $plugin_id, 'zip' )
             );
+
+            return str_replace( 'http:', 'https:', $download_api_url );
         }
 
         /**
