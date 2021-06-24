@@ -165,7 +165,7 @@
 		</div>
 		<div class="fs-content">
 			<?php if ( ! empty( $error ) ) : ?>
-				<p class="fs-error"><?php echo esc_html( $error ) ?></p>
+				<p class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></p>
 			<?php endif ?>
 			<p><?php
 					$button_label = fs_text_inline( 'Allow & Continue', 'opt-in-connect', $slug );
