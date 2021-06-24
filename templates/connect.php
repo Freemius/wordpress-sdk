@@ -25,6 +25,15 @@
 
 	$fs->_enqueue_connect_essentials();
 
+    /**
+     * Enqueueing the styles in `_enqueue_connect_essentials()` is too late, as we need them in the HEADER. Therefore, inject the styles inline to avoid FOUC.
+     *
+     * @author Vova Feldman (@svovaf)
+     */
+    echo "<style>\n";
+    include WP_FS__DIR_CSS . '/admin/connect.css';
+    echo "</style>\n";
+
 	$current_user = Freemius::_get_current_wp_user();
 
 	$first_name = $current_user->user_firstname;
