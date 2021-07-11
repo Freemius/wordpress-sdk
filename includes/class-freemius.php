@@ -1677,6 +1677,7 @@
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
             add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
             add_action( 'admin_init', array( &$this, '_add_user_change_option' ) );
+            add_action( 'admin_init', array( &$this, '_add_email_address_update_option' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -12893,6 +12894,90 @@
         }
 
         /**
+         * Displays an email address update dialog box when the user clicks on the email address "Edit" button on the "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        function _add_email_address_update_dialog_box() {
+            $vars = array(
+                'id' => $this->_module_id,
+            );
+
+            fs_require_template( 'forms/email-address-update.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _add_email_address_update_option() {
+            if ( ! $this->is_user_admin() ) {
+                // Only admins can change user.
+                return false;
+            }
+
+            if ( ! $this->is_registered() ) {
+                return false;
+            }
+
+            // Add email address update AJAX handler.
+            $this->add_ajax_action( 'update_email_address', array( &$this, '_email_address_update_ajax_handler' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _email_address_update_ajax_handler() {
+            $this->check_ajax_referer( 'update_email_address' );
+
+            $new_email_address = fs_request_get( 'email_address', '' );
+            $transfer_type     = fs_request_get( 'transfer_type', '' );
+
+            $result = $this->update_email(
+                $new_email_address,
+                $transfer_type
+            );
+
+            if ( ! FS_Api::is_api_error( $result ) ) {
+                self::shoot_ajax_success();
+
+                return;
+            }
+
+            if ( FS_Api::is_api_error_object( $result ) ) {
+                switch ( $result->error->code ) {
+                    case 'user_exist':
+                        $error = (
+                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '... ' .
+                            $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
+                            sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email_address . '</b>' ) .
+                            sprintf(
+                                '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+                                $this->get_account_url( 'change_owner', array(
+                                    'state'           => 'init',
+                                    'candidate_email' => $new_email_address,
+                                    'transfer_type'   => $transfer_type
+                                ) ),
+                                $this->get_text_inline( 'Change Ownership', 'change-ownership' )
+                            )
+                        );
+
+                        break;
+                }
+            }
+
+            if ( empty( $error ) ) {
+                $error = is_object( $result ) ?
+                    var_export( $result->error, true ) :
+                    $result;
+            }
+
+            self::shoot_ajax_failure( $error );
+        }
+
+        /**
          * Returns a collection of IDs of installs that are associated with the context product and its add-ons, and activated with foreign licenses.
          *
          * @author Leo Fajardo (@leorw)
@@ -21690,16 +21775,18 @@
          * @uses   FS_Api
          *
          * @param string $new_email
+         * @param string $transfer_type
          *
          * @return object
          */
-        private function update_email( $new_email ) {
+        private function update_email( $new_email, $transfer_type ) {
             $this->_logger->entrance();
-
 
             $api  = $this->get_api_user_scope();
             $user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,email,is_verified", 'put', array(
                 'email'                   => $new_email,
+                'transfer_type'           => $transfer_type,
+                'install_id'              => $this->_site->id,
                 'after_email_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'sync_user' )
@@ -21712,7 +21799,6 @@
                 $this->_store_user();
             } else {
                 // handle different error cases.
-
             }
 
             return $user;
@@ -21788,15 +21874,17 @@
          * @uses   FS_Api
          *
          * @param string $candidate_email
+         * @param string $transfer_type
          *
          * @return bool Is ownership change successfully initiated.
          */
-        private function init_change_owner( $candidate_email ) {
+        private function init_change_owner( $candidate_email, $transfer_type = 'transfer' ) {
             $this->_logger->entrance();
 
             $api    = $this->get_api_site_scope();
             $result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
                 'email'             => $candidate_email,
+                'transfer_type'     => $transfer_type,
                 'after_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'change_owner' )
@@ -22252,8 +22340,9 @@
                     switch ( $state ) {
                         case 'init':
                             $candidate_email = fs_request_get( 'candidate_email', '' );
+                            $transfer_type   = fs_request_get( 'transfer_type', '' );
 
-                            if ( $this->init_change_owner( $candidate_email ) ) {
+                            if ( $this->init_change_owner( $candidate_email, $transfer_type ) ) {
                                 $this->_admin_notices->add( sprintf( $this->get_text_inline( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
                             }
                             break;
@@ -22273,37 +22362,6 @@
                                 // @todo Handle failed ownership change message.
                             }
                             break;
-                    }
-
-                    return;
-
-                case 'update_email':
-                    check_admin_referer( 'update_email' );
-
-                    $new_email = fs_request_get( 'fs_email_' . $this->get_unique_affix(), '' );
-                    $result    = $this->update_email( $new_email );
-
-                    if ( isset( $result->error ) ) {
-                        switch ( $result->error->code ) {
-                            case 'user_exist':
-                                $this->_admin_notices->add(
-                                    $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
-                                    sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email . '</b>' ) .
-                                    sprintf(
-                                        '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
-                                        $this->get_account_url( 'change_owner', array(
-                                            'state'           => 'init',
-                                            'candidate_email' => $new_email
-                                        ) ),
-                                        $this->get_text_inline( 'Change Ownership', 'change-ownership' )
-                                    ),
-                                    $oops_text,
-                                    'error'
-                                );
-                                break;
-                        }
-                    } else {
-                        $this->_admin_notices->add( $this->get_text_inline( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', 'email-updated-message' ) );
                     }
 
                     return;

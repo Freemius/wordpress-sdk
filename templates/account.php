@@ -62,6 +62,8 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
+    $fs->_add_email_address_update_dialog_box();
+
     $ids_of_installs_activated_with_foreign_licenses = $fs->should_handle_user_change() ?
         $fs->get_installs_ids_with_foreign_licenses() :
         array();
@@ -668,7 +670,7 @@
 																<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $fs->get_unique_affix() ?>"
 																       value="">
 																<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
-																<input type="submit" class="button button-small"
+																<input type="submit" class="button button-small <?php if ( 'email' === $p['id'] ) echo 'button-edit-email-address' ?>"
 																       value="<?php echo fs_esc_attr_x_inline( 'Edit', 'verb', 'edit', $slug ) ?>">
 															</form>
                                                         <?php elseif ( 'user_id' === $p['id'] && ! empty( $ids_of_installs_activated_with_foreign_licenses ) ) : ?>
