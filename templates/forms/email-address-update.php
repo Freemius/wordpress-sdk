@@ -187,6 +187,11 @@
                 return;
             }
 
+            if ( previousEmailAddress === '<?php echo $current_email_address ?>' ) {
+                closeModal();
+                return;
+            }
+
 			var transferType = 'transfer';
 
 			if ( 'current' === selectedEmailAddressesOwnershipOption ) {
