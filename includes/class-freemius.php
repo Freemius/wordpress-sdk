@@ -12949,9 +12949,12 @@
             if ( FS_Api::is_api_error_object( $result ) ) {
                 switch ( $result->error->code ) {
                     case 'user_exist':
+                    case 'account_verification_required':
                         $error = (
                             $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '... ' .
-                            $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
+                            ( 'user_exist' === $result->error->code ?
+                                $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) :
+                                $this->get_text_inline( 'Sorry, we could not complete the email update.', 'email-address-update-error' ) ) . ' ' .
                             sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email_address . '</b>' ) .
                             sprintf(
                                 '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
