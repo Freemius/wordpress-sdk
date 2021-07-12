@@ -480,7 +480,14 @@
      * @var FS_User[] $users
      */
     $users                              = $VARS['users'];
+    $user_ids_map                       = array();
     $users_with_developer_license_by_id = array();
+
+    if ( ! is_array( $users ) && ! empty( $users ) ) {
+        foreach ( $users as $user ) {
+            $user_ids_map[ $user->id ] = true;
+        }
+    }
 
     foreach ( $module_types as $module_type ) {
         /**
@@ -574,7 +581,7 @@
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
                     <td><?php echo $license->is_whitelabeled ? 'Whitelabeled' : 'Normal' ?></td>
                     <td><?php
-                            echo $license->is_whitelabeled ?
+                            echo ( $license->is_whitelabeled || ! isset( $user_ids_map[ $license->user_id ] ) ) ?
                                 $license->get_html_escaped_masked_secret_key() :
                                 esc_html( $license->secret_key );
                     ?></td>
