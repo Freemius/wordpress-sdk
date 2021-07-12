@@ -21884,10 +21884,24 @@
         private function init_change_owner( $candidate_email, $transfer_type = 'transfer' ) {
             $this->_logger->entrance();
 
+            $installs_info_by_slug_map = $this->get_parent_and_addons_installs_info();
+            $install_ids               = array();
+
+            foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
+                $install = $install_info['install'];
+
+                if ( $this->_user->id != $install->user_id ) {
+                    continue;
+                }
+
+                $install_ids[ $slug ] = $install->id;
+            }
+
             $api    = $this->get_api_site_scope();
             $result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
                 'email'             => $candidate_email,
                 'transfer_type'     => $transfer_type,
+                'install_ids'       => implode( ',', array_values( $install_ids ) ),
                 'after_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'change_owner' )
@@ -21909,28 +21923,69 @@
         private function complete_change_owner() {
             $this->_logger->entrance();
 
-            $site_result = $this->get_api_site_scope( true )->get();
-            $site        = new FS_Site( $site_result );
-            $this->_site = $site;
+            $install_ids = fs_request_get( 'install_ids' );
 
-            $user     = new FS_User();
-            $user->id = fs_request_get( 'user_id' );
+            if ( ! empty( $install_ids ) ) {
+                $install_ids = explode( ',', $install_ids );
 
-            // Validate install's user and given user.
-            if ( $user->id != $this->_site->user_id ) {
-                return false;
+                foreach ( $install_ids as $key => $install_id ) {
+                    if ( ! FS_Site::is_valid_id( $install_id ) ) {
+                        unset( $install_ids[ $key ] );
+                    }
+                }
             }
 
+            if ( ! is_array( $install_ids ) ) {
+                $install_ids = array();
+            }
+
+            $install_ids[] = $this->_site->id;
+
+            $user             = new FS_User();
+            $user->id         = fs_request_get( 'user_id' );
             $user->public_key = fs_request_get( 'user_public_key' );
             $user->secret_key = fs_request_get( 'user_secret_key' );
 
-            // Fetch new user information.
+            $prev_user   = $this->_user;
             $this->_user = $user;
+
+            $result = $this->get_api_user_scope( true )->get(
+                "/installs.json?install_ids=" . implode( ',', $install_ids )
+            );
+
+            $sites = self::get_all_sites( $this->get_module_type() );
+
+            if ( $this->is_api_result_object( $result, 'installs' ) ) {
+                foreach ( $sites as $slug => $install ) {
+                    $install_id_slug_map[ $install->id ] = $slug;
+                }
+
+                foreach ( $result->installs as $install ) {
+                    $site = new FS_Site( $install );
+
+                    $sites[ $install_id_slug_map[ $install->id ] ] = clone $site;
+
+                    if ( $this->_site->id == $site->id ) {
+                        $this->_site = $site;
+                    }
+                }
+            }
+
+            // Validate install's user and given user.
+            if ( $user->id != $this->_site->user_id ) {
+                $this->_user = $prev_user;
+
+                return false;
+            }
+
+            $this->set_account_option( 'sites', $sites, true );
+
+            // Fetch new user information.
             $user_result = $this->get_api_user_scope( true )->get();
             $user        = new FS_User( $user_result );
             $this->_user = $user;
 
-            $this->_set_account( $user, $site );
+            $this->_set_account( $user, $this->_site );
 
             return true;
         }
