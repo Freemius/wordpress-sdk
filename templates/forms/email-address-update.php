@@ -3,7 +3,9 @@
 	 * @package   Freemius
 	 * @copyright Copyright (c) 2015, Freemius, Inc.
 	 * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since     2.4.3
+     *
+     * @author Leo Fajardo (@leorw)
+	 * @since 2.4.3
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +25,7 @@
 ?>
 <script type="text/javascript">
 ( function ( $ ) {
-	var modalHtml                           =
+	var modalHtml                             =
 		    '<div class="fs-modal fs-modal-email-address-update">'
 		    + '	<div class="fs-modal-dialog">'
 		    + '		<div class="fs-modal-header">'
@@ -79,7 +81,7 @@
             + '                         <label>'
             + '                             <span><input type="radio" name="assets-transfer-type" value="all" /></span>'
             + '                             <span><?php echo sprintf(
-                                                fs_esc_html_inline( 'Yes - move all my data and assets from %s to %s', 'move-all-data-and-assets', $slug ),
+                                                fs_esc_html_inline( 'Yes - move all my data and assets from %s to %s', 'move-all-data-and-assets-into-new-account', $slug ),
                                                 sprintf( '<strong>%s</strong>', $current_email_address ),
                                                 '<strong class="fs-new-email-address"></strong>'
                                             ) ?></span>'
@@ -89,7 +91,7 @@
             + '                         <label>'
             + '                             <span><input type="radio" name="assets-transfer-type" value="plugin" /></span>'
             + '                             <span><?php echo sprintf(
-                                                fs_esc_html_inline( "No - only move this %s's data to %s", 'move-only-plugin-data', $slug ),
+                                                fs_esc_html_inline( "No - only move this %s's data to %s", 'move-only-plugin-data-into-new-account', $slug ),
                                                 $fs->get_module_label( true ),
                                                 '<strong class="fs-new-email-address"></strong>'
                                             ) ?></span>'
@@ -131,20 +133,22 @@
                 return;
             }
 
-            $modal.find( '.fs-new-email-address').text( emailAddress );
-
             var isValidEmailAddressInput = isValidEmailAddress( emailAddress );
 
             toggleOptions( isValidEmailAddressInput );
 
             if ( ! isValidEmailAddressInput ) {
                 disableUpdateButton();
-            } else if ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption ) {
-                enableUpdateButton();
+            } else {
+                $modal.find( '.fs-new-email-address').text( emailAddress );
+
+                if ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption ) {
+                    enableUpdateButton();
+                }
             }
 
             previousEmailAddress = emailAddress;
-        } ).focus();
+        } );
 
         $modal.on(' input propertychange', '.fs-new-email-address-input', function () {
             var emailAddress             = $( this ).val().trim(),
@@ -158,9 +162,9 @@
             ) {
                 enableUpdateButton();
             }
-        });
+        } );
 
-        $modal.on( 'blur', '.fs-new-email-address-input', function( evt ) {
+        $modal.on( 'blur', '.fs-new-email-address-input', function() {
             var emailAddress             = $( this ).val().trim(),
                 isValidEmailAddressInput = isValidEmailAddress( emailAddress );
 
@@ -169,7 +173,7 @@
             if ( ! isValidEmailAddressInput ) {
                 disableUpdateButton();
             }
-        });
+        } );
 
         $modal.on( 'click', '.fs-close, .button-secondary', function () {
             closeModal();
@@ -266,7 +270,7 @@
             }
 
 			if (
-                $( '.fs-new-email-address-input' ).val().trim().length > 0 &&
+                isValidEmailAddress( $( '.fs-new-email-address-input' ).val().trim() ) &&
                 ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption )
             ) {
                 enableUpdateButton();

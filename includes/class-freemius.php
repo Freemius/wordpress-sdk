@@ -3734,10 +3734,12 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.8
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         * 
+         * @return array
          */
-        static function _debug_page_render() {
+        static function get_all_modules_sites() {
             self::$_static_logger->entrance();
 
             if ( ! is_multisite() ) {
@@ -3778,11 +3780,26 @@
                 }
             }
 
+            return array(
+                WP_FS__MODULE_TYPE_PLUGIN => $all_plugins_installs,
+                WP_FS__MODULE_TYPE_THEME  => $all_themes_installs,
+            );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  1.0.8
+         */
+        static function _debug_page_render() {
+            self::$_static_logger->entrance();
+
+            $all_modules_sites = self::get_all_modules_sites();
+
             $licenses_by_module_type = self::get_all_licenses_by_module_type();
 
             $vars = array(
-                'plugin_sites'    => $all_plugins_installs,
-                'theme_sites'     => $all_themes_installs,
+                'plugin_sites'    => $all_modules_sites[ WP_FS__MODULE_TYPE_PLUGIN ],
+                'theme_sites'     => $all_modules_sites[ WP_FS__MODULE_TYPE_THEME ],
                 'users'           => self::get_all_users(),
                 'addons'          => self::get_all_addons(),
                 'account_addons'  => self::get_all_account_addons(),
@@ -12900,9 +12917,7 @@
          * @since  2.4.3
          */
         function _add_email_address_update_dialog_box() {
-            $vars = array(
-                'id' => $this->_module_id,
-            );
+            $vars = array( 'id' => $this->_module_id );
 
             fs_require_template( 'forms/email-address-update.php', $vars );
         }
@@ -12912,13 +12927,8 @@
          * @since 2.4.3
          */
         function _add_email_address_update_option() {
-            if ( ! $this->is_user_admin() ) {
-                // Only admins can change user.
-                return false;
-            }
-
-            if ( ! $this->is_registered() ) {
-                return false;
+            if ( ! $this->should_handle_user_change() ) {
+                return;
             }
 
             // Add email address update AJAX handler.
@@ -12932,19 +12942,16 @@
         function _email_address_update_ajax_handler() {
             $this->check_ajax_referer( 'update_email_address' );
 
-            $new_email_address = fs_request_get( 'email_address', '' );
-            $transfer_type     = fs_request_get( 'transfer_type', '' );
+            $new_email_address = fs_request_get( 'email_address' );
+            $transfer_type     = fs_request_get( 'transfer_type' );
 
-            $result = $this->update_email(
-                $new_email_address,
-                $transfer_type
-            );
+            $result = $this->update_email( $new_email_address );
 
             if ( ! FS_Api::is_api_error( $result ) ) {
                 self::shoot_ajax_success();
-
-                return;
             }
+
+            $error = '';
 
             if ( FS_Api::is_api_error_object( $result ) ) {
                 switch ( $result->error->code ) {
@@ -12954,14 +12961,14 @@
                             $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '... ' .
                             ( 'user_exist' === $result->error->code ?
                                 $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) :
-                                $this->get_text_inline( 'Sorry, we could not complete the email update.', 'email-address-update-error' ) ) . ' ' .
+                                $this->get_text_inline( 'Sorry, we could not complete the email update.', 'email-address-update-could-not-be-completed-message' ) ) . ' ' .
                             sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email_address . '</b>' ) .
                             sprintf(
                                 '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
                                 $this->get_account_url( 'change_owner', array(
                                     'state'           => 'init',
                                     'candidate_email' => $new_email_address,
-                                    'transfer_type'   => $transfer_type
+                                    'transfer_type'   => $transfer_type,
                                 ) ),
                                 $this->get_text_inline( 'Change Ownership', 'change-ownership' )
                             )
@@ -21778,17 +21785,15 @@
          * @uses   FS_Api
          *
          * @param string $new_email
-         * @param string $transfer_type
          *
          * @return object
          */
-        private function update_email( $new_email, $transfer_type ) {
+        private function update_email( $new_email ) {
             $this->_logger->entrance();
 
             $api  = $this->get_api_user_scope();
             $user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,email,is_verified", 'put', array(
                 'email'                   => $new_email,
-                'transfer_type'           => $transfer_type,
                 'install_id'              => $this->_site->id,
                 'after_email_confirm_url' => $this->_get_admin_page_url(
                     'account',
@@ -21881,7 +21886,7 @@
          *
          * @return bool Is ownership change successfully initiated.
          */
-        private function init_change_owner( $candidate_email, $transfer_type = 'transfer' ) {
+        private function init_change_owner( $candidate_email, $transfer_type ) {
             $this->_logger->entrance();
 
             $installs_info_by_slug_map = $this->get_parent_and_addons_installs_info();
@@ -21891,6 +21896,7 @@
                 $install = $install_info['install'];
 
                 if ( $this->_user->id != $install->user_id ) {
+                    // Skip add-on installs that are not owned by the parent product's install's owner.
                     continue;
                 }
 
@@ -21939,8 +21945,6 @@
                 $install_ids = array();
             }
 
-            $install_ids[] = $this->_site->id;
-
             $user             = new FS_User();
             $user->id         = fs_request_get( 'user_id' );
             $user->public_key = fs_request_get( 'user_public_key' );
@@ -21953,17 +21957,23 @@
                 "/installs.json?install_ids=" . implode( ',', $install_ids )
             );
 
-            $sites = self::get_all_sites( $this->get_module_type() );
+            $current_blog_sites = self::get_all_sites( $this->get_module_type() );
 
             if ( $this->is_api_result_object( $result, 'installs' ) ) {
-                foreach ( $sites as $slug => $install ) {
-                    $install_id_slug_map[ $install->id ] = $slug;
+                $site_id_slug_map = array();
+
+                foreach ( $current_blog_sites as $slug => $site ) {
+                    $site_id_slug_map[ $site->id ] = $slug;
                 }
 
                 foreach ( $result->installs as $install ) {
                     $site = new FS_Site( $install );
 
-                    $sites[ $install_id_slug_map[ $install->id ] ] = clone $site;
+                    if ( ! isset( $site_id_slug_map[ $install->id ] ) ) {
+                        continue;
+                    }
+
+                    $current_blog_sites[ $site_id_slug_map[ $install->id ] ] = clone $site;
 
                     if ( $this->_site->id == $site->id ) {
                         $this->_site = $site;
@@ -21978,7 +21988,7 @@
                 return false;
             }
 
-            $this->set_account_option( 'sites', $sites, true );
+            $this->set_account_option( 'sites', $current_blog_sites, true );
 
             // Fetch new user information.
             $user_result = $this->get_api_user_scope( true )->get();
@@ -21986,6 +21996,46 @@
             $this->_user = $user;
 
             $this->_set_account( $user, $this->_site );
+
+            $remove_user       = true;
+            $all_modules_sites = self::get_all_modules_sites();
+
+            foreach ( $all_modules_sites as $sites_by_module_type ) {
+                foreach ( $sites_by_module_type as $sites_by_slug ) {
+                    foreach ( $sites_by_slug as $site ) {
+                        if ( $prev_user->id == $site->user_id ) {
+                            $remove_user = false;
+                            break;
+                        }
+                    }
+
+                    if ( ! $remove_user ) {
+                        break;
+                    }
+                }
+
+                if ( ! $remove_user ) {
+                    break;
+                }
+            }
+
+            if ( $remove_user ) {
+                $users = self::get_all_users();
+
+                if ( isset( $users[ $prev_user->id ] ) ) {
+                    unset( $users[ $prev_user->id ] );
+                } else {
+                    // If the prev user wasn't found by the key, iterate over the users collection.
+                    foreach ( $users as $key => $user ) {
+                        if ( $user->id == $prev_user->id ) {
+                            unset( $users[ $key ] );
+                            break;
+                        }
+                    }
+                }
+
+                $this->set_account_option( 'users', $users, true );
+            }
 
             return true;
         }
@@ -22397,8 +22447,8 @@
                     $state = fs_request_get( 'state', 'init' );
                     switch ( $state ) {
                         case 'init':
-                            $candidate_email = fs_request_get( 'candidate_email', '' );
-                            $transfer_type   = fs_request_get( 'transfer_type', '' );
+                            $candidate_email = fs_request_get( 'candidate_email' );
+                            $transfer_type   = fs_request_get( 'transfer_type' );
 
                             if ( $this->init_change_owner( $candidate_email, $transfer_type ) ) {
                                 $this->_admin_notices->add( sprintf( $this->get_text_inline( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );

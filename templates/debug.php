@@ -483,7 +483,7 @@
     $user_ids_map                       = array();
     $users_with_developer_license_by_id = array();
 
-    if ( ! is_array( $users ) && ! empty( $users ) ) {
+    if ( is_array( $users ) && ! empty( $users ) ) {
         foreach ( $users as $user ) {
             $user_ids_map[ $user->id ] = true;
         }

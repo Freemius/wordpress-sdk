@@ -63,7 +63,9 @@
         $fs->_add_license_activation_dialog_box();
 	}
 
-    $fs->_add_email_address_update_dialog_box();
+	if ( $fs->should_handle_user_change() ) {
+        $fs->_add_email_address_update_dialog_box();
+    }
 
     $ids_of_installs_activated_with_foreign_licenses = $fs->should_handle_user_change() ?
         $fs->get_installs_ids_with_foreign_licenses() :
