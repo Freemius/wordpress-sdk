@@ -13892,7 +13892,7 @@
 
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
 
-                if ( ! $addon_info['is_connected'] ) {
+                if ( ! isset( $addon_info['is_connected'] ) || ! $addon_info['is_connected'] ) {
                     // Add-on is not associated with an install entity.
                     continue;
                 }
