@@ -4888,10 +4888,8 @@
                      * @since  1.1.7.3
                      *
                      */
-                    if ( $this->is_registered() ) {
-                        if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
-                            $this->schedule_sync_cron();
-                        }
+                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                        $this->maybe_schedule_sync_cron();
                     }
 
                     /**
@@ -6938,6 +6936,24 @@
          */
         private function is_sync_cron_on() {
             return $this->is_cron_on( 'sync' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        private function maybe_schedule_sync_cron() {
+            $next_schedule = $this->next_sync_cron();
+
+            // The event is properly scheduled, so no need to reschedule it.
+            if (
+                is_numeric( $next_schedule ) &&
+                $next_schedule > time()
+            ) {
+                return;
+            }
+
+            $this->schedule_sync_cron();
         }
 
         /**
