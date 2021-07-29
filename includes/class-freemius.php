@@ -21794,7 +21794,6 @@
             $api  = $this->get_api_user_scope();
             $user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,email,is_verified", 'put', array(
                 'email'                   => $new_email,
-                'install_id'              => $this->_site->id,
                 'after_email_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'sync_user' )
