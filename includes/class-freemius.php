@@ -1642,7 +1642,11 @@
 
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
-                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    } else {
+                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
+                    }
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -8608,7 +8612,7 @@
          * @uses   Freemius::is_network_anonymous() to check if the super-admin network skipped.
          * @uses   Freemius::is_network_delegated_connection() to check if the super-admin network delegated the connection to the site admins.
          */
-        function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+        public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
             if ( $this->is_premium() &&
@@ -8704,6 +8708,27 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param \WP_Site $new_site
+         */
+        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_new_blog_callback(
+                $new_site->id,
+                // Dummy user ID (not in use).
+                0,
+                $new_site->domain,
+                $new_site->path,
+                $new_site->network_id,
+                // Dummy meta, not in use.
+                array()
+            );
         }
 
         /**
