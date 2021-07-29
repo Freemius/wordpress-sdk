@@ -1653,9 +1653,8 @@
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
 
-                //call the deprecated version if wp_version < 5.1
-                if ( version_compare($GLOBALS['wp_version'],'5.1') === -1) {
                     add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2);
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
                 } else {
                     add_action( 'wp_delete_site', array( &$this, '_after_wpsite_deleted_callback' ), 10, 2 );
                 }
