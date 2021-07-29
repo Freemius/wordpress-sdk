@@ -15807,31 +15807,14 @@
          * Executed after site deletion, called from wp_delete_site
          *
          * @author Dario Curvino (@dudo)
-         * @author Vova Feldman  (@svovaf)
-         * @since  2.0.0
+         * @since  2.4.3
          *
          * @param WP_Site $old_site
          */
         public function _after_wpsite_deleted_callback( WP_Site $old_site ) {
             $this->_logger->entrance();
 
-            $install = $this->get_install_by_blog_id( $old_site->blog_id );
-
-            if ( ! is_object( $install ) ) {
-                // Site not connected.
-                return;
-            }
-
-            $this->update_multisite_data_after_site_deactivation( $old_site->blog_id );
-
-            $current_blog_id = get_current_blog_id();
-
-            $this->switch_to_blog( $old_site->blog_id );
-
-            // Delete install if dropping site DB.
-            $this->delete_account_event();
-
-            $this->switch_to_blog( $current_blog_id );
+            $this->_after_site_deleted_callback( $old_site->blog_id, true );
         }
 
         /**
