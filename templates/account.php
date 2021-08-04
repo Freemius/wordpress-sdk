@@ -663,7 +663,7 @@
 																'user_name'
 															) ) )
 														) : ?>
-                                                            <?php if ( 'email' === $p['id'] && ! fs_is_network_admin() ) : ?>
+                                                            <?php if ( 'email' !== $p['id'] || ! fs_is_network_admin() ) : ?>
 															<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST"
 															      onsubmit="var val = prompt('<?php echo esc_attr( sprintf(
                                                                       /* translators: %s: User's account property (e.g. name, email) */
