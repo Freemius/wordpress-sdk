@@ -12957,21 +12957,13 @@
                 switch ( $result->error->code ) {
                     case 'user_exist':
                     case 'account_verification_required':
-                        $error = (
-                            $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '... ' .
-                            ( 'user_exist' === $result->error->code ?
-                                $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) :
-                                $this->get_text_inline( 'Sorry, we could not complete the email update.', 'email-address-update-could-not-be-completed-message' ) ) . ' ' .
-                            sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email_address . '</b>' ) .
-                            sprintf(
-                                '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
-                                $this->get_account_url( 'change_owner', array(
+                        $error = array(
+                            'code' => 'change_ownership',
+                            'url'  => $this->get_account_url( 'change_owner', array(
                                     'state'           => 'init',
                                     'candidate_email' => $new_email_address,
                                     'transfer_type'   => $transfer_type,
                                 ) ),
-                                $this->get_text_inline( 'Change Ownership', 'change-ownership' )
-                            )
                         );
 
                         break;

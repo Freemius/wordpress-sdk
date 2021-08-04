@@ -206,8 +206,12 @@
                         // Redirect to the "Account" page.
                         window.location.reload();
                     } else {
-                        showError( result.error.message ? result.error.message : result.error );
-                        resetUpdateButton();
+                        if ('change_ownership' === result.error.code) {
+                            window.location = result.error.url;
+                        } else {
+                            showError(result.error.message ? result.error.message : result.error);
+                            resetUpdateButton();
+                        }
                     }
                 },
                 error     : function () {
