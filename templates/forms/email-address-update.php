@@ -283,6 +283,10 @@
 	}
 
 	function closeModal() {
+        selectedEmailAddressesOwnershipOption = null;
+
+        disableUpdateButton();
+
 		$modal.removeClass( 'active' );
 
 		$( 'body' ).removeClass( 'has-fs-modal' );
