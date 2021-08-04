@@ -91,8 +91,7 @@
             + '                         <label>'
             + '                             <span><input type="radio" name="assets-transfer-type" value="plugin" /></span>'
             + '                             <span><?php echo sprintf(
-                                                fs_esc_html_inline( "No - only move this %s's data to %s", 'move-only-plugin-data-into-new-account', $slug ),
-                                                $fs->get_module_label( true ),
+                                                fs_esc_html_inline( "No - only move this site's data to %s", 'move-only-plugin-data-into-new-account', $slug ),
                                                 '<strong class="fs-new-email-address"></strong>'
                                             ) ?></span>'
             + '                         </label>'
