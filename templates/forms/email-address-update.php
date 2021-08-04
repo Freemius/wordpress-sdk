@@ -102,8 +102,8 @@
             + '         </div>'
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
-		    + '			<a href="#" class="button button-primary button-update"><?php fs_esc_js_echo_inline( 'Update', 'update-email-address', $slug ) ?></a>'
-		    + '			<a href="#" class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
+		    + '			<button class="button button-primary button-update" disabled><?php fs_esc_js_echo_inline( 'Update', 'update-email-address', $slug ) ?></button>'
+		    + '			<button class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></button>'
 		    + '		</div>'
 		    + '	</div>'
 		    + '</div>',
@@ -181,12 +181,6 @@
         } );
 
 		$modal.on( 'click', '.fs-modal-footer .button-update', function ( evt ) {
-			evt.preventDefault();
-
-			if ( $( this ).hasClass( 'disabled' ) ) {
-				return;
-			}
-
             if ( ! isValidEmailAddress( previousEmailAddress ) ) {
                 return;
             }
@@ -220,7 +214,7 @@
                 beforeSend: function () {
                     disableUpdateButton();
 
-                    $updateButton.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+                    $updateButton.find( '.fs-modal-footer .button' ).prop( 'disabled', true );
                     $updateButton.text( 'Processing...' );
                 },
                 success   : function( result ) {
@@ -316,11 +310,11 @@
     }
 
 	function enableUpdateButton() {
-        $updateButton.removeClass( 'disabled' );
+        $updateButton.prop( 'disabled', false );
 	}
 
 	function disableUpdateButton() {
-		$updateButton.addClass( 'disabled' );
+		$updateButton.prop( 'disabled', true );
 	}
 
     function hideError() {
