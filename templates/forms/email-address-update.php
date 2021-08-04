@@ -126,7 +126,7 @@
             showModal( evt );
         } );
 
-        $modal.on( 'keyup paste delete cut', '.fs-new-email-address-input', function () {
+        $modal.on( 'input propertychange keyup paste delete cut', '.fs-new-email-address-input', function () {
             var emailAddress = $( this ).val().trim();
 
             if ( emailAddress === previousEmailAddress ) {
@@ -148,20 +148,6 @@
             }
 
             previousEmailAddress = emailAddress;
-        } );
-
-        $modal.on(' input propertychange', '.fs-new-email-address-input', function () {
-            var emailAddress             = $( this ).val().trim(),
-                isValidEmailAddressInput = isValidEmailAddress( emailAddress );
-
-            toggleOptions( isValidEmailAddressInput );
-
-            if (
-                isValidEmailAddressInput &&
-                ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption )
-            ) {
-                enableUpdateButton();
-            }
         } );
 
         $modal.on( 'blur', '.fs-new-email-address-input', function() {
