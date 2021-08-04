@@ -4,24 +4,24 @@
             width: 100%;
         }
     }
-}
 
-p {
-    margin-bottom: 0;
-}
+    p {
+        margin-bottom: 0;
+    }
 
-ul {
-    margin-top: 5px;
+    ul {
+        margin: 1em 0.5em;
 
-    li label {
-        span {
-            float: left;
-            margin-top: 0;
+        li label {
+            span {
+                float: left;
+                margin-top: 0;
 
-            &:last-child {
-                display: block;
-                float: none;
-                margin-left: 20px;
+                &:last-child {
+                    display: block;
+                    float: none;
+                    margin-left: 20px;
+                }
             }
         }
     }
