@@ -3765,9 +3765,9 @@
                         foreach ( $installs as $slug => $install ) {
                             if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
                                 $sites_by_type[ $type ][ $slug ] = array();
-                        }
+                            }
 
-                        $install->blog_id = $blog_id;
+                            $install->blog_id = $blog_id;
 
                             $sites_by_type[ $type ][ $slug ][] = $install;
                         }
@@ -7145,13 +7145,20 @@
         /**
          * Show a notice that activation is currently pending.
          *
+         * @todo Add some sort of mechanism to allow users to update the email address they would like to opt-in with when $is_suspicious_email is true.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
          * @param bool|string $email
          * @param bool        $is_pending_trial Since 1.2.1.5
+         * @param bool        $is_suspicious_email Since 2.4.3 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
          */
-        function _add_pending_activation_notice( $email = false, $is_pending_trial = false ) {
+        function _add_pending_activation_notice(
+            $email = false,
+            $is_pending_trial = false,
+            $is_suspicious_email = false
+        ) {
             if ( ! is_string( $email ) ) {
                 $current_user = self::_get_current_wp_user();
                 $email        = $current_user->user_email;
@@ -12953,10 +12960,10 @@
                         $error = array(
                             'code' => 'change_ownership',
                             'url'  => $this->get_account_url( 'change_owner', array(
-                                    'state'           => 'init',
-                                    'candidate_email' => $new_email_address,
-                                    'transfer_type'   => $transfer_type,
-                                ) ),
+                                'state'           => 'init',
+                                'candidate_email' => $new_email_address,
+                                'transfer_type'   => $transfer_type,
+                            ) ),
                         );
 
                         break;
@@ -16901,7 +16908,8 @@
                         true ),
                     false,
                     $filtered_license_key,
-                    ! empty( $params['trial_plan_id'] )
+                    ! empty( $params['trial_plan_id'] ),
+                    isset( $decoded->is_suspicious_email ) && $decoded->is_suspicious_email
                 );
             } else if ( isset( $decoded->install_secret_key ) ) {
                 return $this->install_with_new_user(
@@ -17176,7 +17184,13 @@
                         );
                     }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
-                    $this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
+                    $this->set_pending_confirmation(
+                        fs_request_get( 'user_email' ),
+                        true,
+                        false,
+                        false,
+                        fs_request_get_bool( 'is_suspicious_email' )
+                    );
                 }
             }
         }
@@ -17418,7 +17432,8 @@
             $email = false,
             $redirect = true,
             $license_key = false,
-            $is_pending_trial = false
+            $is_pending_trial = false,
+            $is_suspicious_email = false
         ) {
             if ( $this->_ignore_pending_mode ) {
                 /**
@@ -17433,7 +17448,7 @@
                 // Install must be activated via email since
                 // user with the same email already exist.
                 $this->_storage->is_pending_activation = true;
-                $this->_add_pending_activation_notice( $email, $is_pending_trial );
+                $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
             }
 
             if ( ! empty( $license_key ) ) {
