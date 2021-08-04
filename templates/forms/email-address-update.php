@@ -142,9 +142,7 @@
             } else {
                 $modal.find( '.fs-new-email-address').text( emailAddress );
 
-                if ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption ) {
-                    enableUpdateButton();
-                }
+                maybeEnableUpdateButton();
             }
 
             previousEmailAddress = emailAddress;
@@ -249,11 +247,8 @@
                 }
             }
 
-			if (
-                isValidEmailAddress( $( '.fs-new-email-address-input' ).val().trim() ) &&
-                ( 'both' !== selectedEmailAddressesOwnershipOption || null !== selectedAssetsTransfershipOption )
-            ) {
-                enableUpdateButton();
+			if ( isValidEmailAddress( $( '.fs-new-email-address-input' ).val().trim() ) ) {
+                maybeEnableUpdateButton();
             }
 		});
 	}
@@ -295,11 +290,23 @@
 	}
 
     function resetUpdateButton() {
-        enableUpdateButton();
+        maybeEnableUpdateButton();
+
         $updateButton.text( <?php echo json_encode( fs_text_inline( 'Update', 'update-email-address', $slug ) ) ?> );
     }
 
-	function enableUpdateButton() {
+	function maybeEnableUpdateButton() {
+	    if ( null === selectedEmailAddressesOwnershipOption ) {
+	        return;
+        }
+
+	    if (
+	        'both' === selectedEmailAddressesOwnershipOption &&
+            null === selectedAssetsTransfershipOption
+        ) {
+	        return;
+        }
+
         $updateButton.prop( 'disabled', false );
 	}
 
