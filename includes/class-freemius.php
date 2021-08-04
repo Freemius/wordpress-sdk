@@ -3739,51 +3739,44 @@
          * 
          * @return array
          */
-        static function get_all_modules_sites() {
+        private static function get_all_modules_sites() {
             self::$_static_logger->entrance();
 
+            $sites_by_type = array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(),
+                WP_FS__MODULE_TYPE_THEME  => array(),
+            );
+
+            $module_types = array_keys( $sites_by_type );
+
             if ( ! is_multisite() ) {
-                $all_plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN );
-                $all_themes_installs  = self::get_all_sites( WP_FS__MODULE_TYPE_THEME );
+                foreach ( $module_types as $type ) {
+                    $sites_by_type[ $type ] = self::get_all_sites( $type );
+                }
             } else {
                 $sites = self::get_sites();
-
-                $all_plugins_installs = array();
-                $all_themes_installs  = array();
 
                 foreach ( $sites as $site ) {
                     $blog_id = self::get_site_blog_id( $site );
 
-                    $plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id );
+                    foreach ( $module_types as $type ) {
+                        $installs = self::get_all_sites( $type, $blog_id );
 
-                    foreach ( $plugins_installs as $slug => $install ) {
-                        if ( ! isset( $all_plugins_installs[ $slug ] ) ) {
-                            $all_plugins_installs[ $slug ] = array();
+                        foreach ( $installs as $slug => $install ) {
+                            if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
+                                $sites_by_type[ $type ][ $slug ] = array();
                         }
 
                         $install->blog_id = $blog_id;
 
-                        $all_plugins_installs[ $slug ][] = $install;
-                    }
-
-                    $themes_installs = self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id );
-
-                    foreach ( $themes_installs as $slug => $install ) {
-                        if ( ! isset( $all_themes_installs[ $slug ] ) ) {
-                            $all_themes_installs[ $slug ] = array();
+                            $sites_by_type[ $type ][ $slug ][] = $install;
                         }
 
-                        $install->blog_id = $blog_id;
-
-                        $all_themes_installs[ $slug ][] = $install;
                     }
                 }
             }
 
-            return array(
-                WP_FS__MODULE_TYPE_PLUGIN => $all_plugins_installs,
-                WP_FS__MODULE_TYPE_THEME  => $all_themes_installs,
-            );
+            return $sites_by_type;
         }
 
         /**
