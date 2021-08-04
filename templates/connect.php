@@ -161,7 +161,7 @@
 				fs_require_once_template( 'plugin-icon.php', $vars );
 			?>
 			<i class="dashicons dashicons-plus fs-second"></i>
-			<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/connect-logo.png"/>
+			<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/logo/connect.svg"/>
 		</div>
 		<div class="fs-content">
 			<?php if ( ! empty( $error ) ) : ?>
@@ -217,11 +217,6 @@
 
 						$message = $fs->apply_filters(
 						    $filter,
-                            ($is_network_upgrade_mode ?
-                                '' :
-                                /* translators: %s: name (e.g. Hey John,) */
-                                $hey_x_text . '<br>'
-                            ) .
 							sprintf(
 								esc_html( $default_optin_message ),
 								'<b>' . esc_html( $fs->get_plugin_name() ) . '</b>',
