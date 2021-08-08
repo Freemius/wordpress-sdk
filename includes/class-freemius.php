@@ -11377,13 +11377,13 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          */
-        private function restore_backup_site( $network_level_or_blog_id = null ) {
+        private function restore_backup_site() {
             self::$_accounts->set_option(
                 'unique_id',
                 self::$_accounts->get_option( 'prev_unique_id' )
             );
 
-            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id, true );
+            $sites = self::get_all_sites( $this->_module_type, null, true );
             $this->store_site( clone $sites[ $this->_slug ] );
         }
 
