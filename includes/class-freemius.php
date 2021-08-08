@@ -408,8 +408,10 @@
          * @param bool        $is_init Since 1.2.1 Is initiation sequence.
          */
         private function __construct( $module_id, $slug = false, $is_init = false ) {
+            $main_file = false;
+
             if ( $is_init && is_numeric( $module_id ) && is_string( $slug ) ) {
-                $this->store_id_slug_type_path_map( $module_id, $slug );
+                $main_file = $this->store_id_slug_type_path_map( $module_id, $slug );
             }
 
             $this->_module_id   = $module_id;
@@ -424,7 +426,7 @@
 
             $this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
+            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init, $main_file );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -1642,7 +1644,11 @@
 
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
-                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    } else {
+                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
+                    }
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -1652,7 +1658,12 @@
                 add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                    add_action( 'deleted_blog', array( $this, '_after_site_deleted_callback' ), 10, 2 );
+                } else {
+                    add_action( 'wp_delete_site', array( $this, '_after_wpsite_deleted_callback' ) );
+                }
 
                 add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
                 add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
@@ -2095,20 +2106,27 @@
         /**
          * Leverage backtrace to find caller plugin file path.
          *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.6
-         *
-         * @param  bool $is_init Is initiation sequence.
+         * @param bool   $is_init   Is initiation sequence.
+         * @param string $main_file Since 2.4.3 expects the module's main file path to potentially purge the cached path.
          *
          * @return string
+         * @since  1.0.6
+         *
+         * @author Vova Feldman (@svovaf)
          */
-        private function _find_caller_plugin_file( $is_init = false ) {
+        private function _find_caller_plugin_file( $is_init = false, $main_file = '' ) {
             // Try to load the cached value of the file path.
             if ( isset( $this->_storage->plugin_main_file ) ) {
                 $plugin_main_file = $this->_storage->plugin_main_file;
                 if ( ! empty( $plugin_main_file->path ) ) {
                     $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
                     if ( file_exists( $absolute_path ) ) {
+                        if ( $is_init && $absolute_path !== $this->get_absolute_path( $main_file ) ) {
+                            // Update cached path if not matching the actual path.
+                            $plugin_main_file->path = $main_file;
+                            $this->_storage->plugin_main_file = $plugin_main_file;
+                        }
+
                         return $absolute_path;
                     }
                 }
@@ -2149,12 +2167,11 @@
              * Only the original instantiator that calls dynamic_init can modify the module's path.
              */
             // Find caller module.
-            $id_slug_type_path_map            = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
             $this->_storage->plugin_main_file = (object) array(
-                'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
+                'path' => $main_file,
             );
 
-            return $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+            return $this->get_absolute_path( $main_file );
         }
 
         /**
@@ -2216,6 +2233,8 @@
          * @param number $module_id
          * @param string $slug
          *
+         * @return string Since 2.4.3 return the module's main file path.
+         *
          * @since  1.2.2
          */
         private function store_id_slug_type_path_map( $module_id, $slug ) {
@@ -2237,19 +2256,48 @@
                 $store_option                                = true;
             }
 
-            if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
-                 /**
-                  * This verification is for cases when suddenly the same module
-                  * is installed but with a different folder name.
-                  *
-                  * @author Vova Feldman (@svovaf)
-                  * @since  1.2.3
-                  */
-                 ! file_exists( $this->get_absolute_path(
-                     $id_slug_type_path_map[ $module_id ]['path'],
-                     $id_slug_type_path_map[ $module_id ]['type']
-                 ) )
-            ) {
+            $find_caller = empty( $id_slug_type_path_map[ $module_id ]['path'] );
+
+            if ( ! $find_caller ) {
+                /**
+                 * This verification is for cases when suddenly the same module
+                 * is installed but with a different folder name.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.2.3
+                 */
+                $find_caller = ! file_exists( $this->get_absolute_path(
+                    $id_slug_type_path_map[ $module_id ]['path'],
+                    $id_slug_type_path_map[ $module_id ]['type']
+                ) );
+            }
+
+            foreach ( $id_slug_type_path_map as $id => $data ) {
+                if ( empty( $id ) ) {
+                    // Remove maps with empty module ID.
+                    unset( $id_slug_type_path_map[ $id ] );
+                    $store_option = true;
+                    continue;
+                }
+
+                /**
+                 * If the module's main file path is identical to the main file path of another module then it means that the cached path of the current module or the other one with the same path is wrong, and therefore, we need to recalculate those paths.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  2.4.3
+                 */
+                if ( ! $find_caller ) {
+                    if ( $id == $module_id ) {
+                        continue;
+                    }
+
+                    if ( $data['path'] === $id_slug_type_path_map[ $module_id ]['path'] ) {
+                        $find_caller = true;
+                    }
+                }
+            }
+
+            if ( $find_caller ) {
                 $caller_main_file_and_type = $this->get_caller_main_file_and_type( $module_id );
 
                 $id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
@@ -2261,6 +2309,8 @@
             if ( $store_option ) {
                 self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
             }
+
+            return $id_slug_type_path_map[ $module_id ]['path'];
         }
 
         /**
@@ -4899,10 +4949,8 @@
                      * @since  1.1.7.3
                      *
                      */
-                    if ( $this->is_registered() ) {
-                        if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
-                            $this->schedule_sync_cron();
-                        }
+                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                        $this->maybe_schedule_sync_cron();
                     }
 
                     /**
@@ -6952,6 +7000,24 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        private function maybe_schedule_sync_cron() {
+            $next_schedule = $this->next_sync_cron();
+
+            // The event is properly scheduled, so no need to reschedule it.
+            if (
+                is_numeric( $next_schedule ) &&
+                $next_schedule > time()
+            ) {
+                return;
+            }
+
+            $this->schedule_sync_cron();
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
          *
@@ -8645,7 +8711,7 @@
          * @uses   Freemius::is_network_anonymous() to check if the super-admin network skipped.
          * @uses   Freemius::is_network_delegated_connection() to check if the super-admin network delegated the connection to the site admins.
          */
-        function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+        public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
             if ( $this->is_premium() &&
@@ -8741,6 +8807,27 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param \WP_Site $new_site
+         */
+        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_new_blog_callback(
+                $new_site->id,
+                // Dummy user ID (not in use).
+                0,
+                $new_site->domain,
+                $new_site->path,
+                $new_site->network_id,
+                // Dummy meta, not in use.
+                array()
+            );
         }
 
         /**
@@ -13979,7 +14066,7 @@
 
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
 
-                if ( ! $addon_info['is_connected'] ) {
+                if ( ! isset( $addon_info['is_connected'] ) || ! $addon_info['is_connected'] ) {
                     // Add-on is not associated with an install entity.
                     continue;
                 }
@@ -15912,6 +15999,20 @@
             }
 
             $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site deletion, called from wp_delete_site
+         *
+         * @author Dario Curvino (@dudo)
+         * @since  2.4.3
+         *
+         * @param WP_Site $old_site
+         */
+        public function _after_wpsite_deleted_callback( WP_Site $old_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_site_deleted_callback( $old_site->blog_id, true );
         }
 
         /**
