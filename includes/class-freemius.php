@@ -3721,7 +3721,7 @@
                 $clone_install = $current_install;
                 
                 // Try to find a different install of the context product that is associated with the current URL and load it.
-                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) );
+                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?all=true&search=" . urlencode( $current_url ) );
 
                 $associated_install = null;
 
