@@ -1,0 +1,40 @@
+@import "../start";
+
+.fs-notice[data-id="clone_resolution_options_notice"] {
+    padding: 0;
+    color: inherit !important;
+
+    .fs-notice-body {
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .fs-notice-header {
+        padding: 5px 10px;
+    }
+
+    ol {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .fs-clone-resolution-options-container {
+        border-top: 1px solid #ccc;
+        padding: 10px 10px 15px 10px;
+
+        p {
+            margin-top: 0;
+        }
+    }
+
+    .button {
+        margin-right: 10px;
+    }
+
+    #fs_clone_resolution_error_message {
+        border: 1px solid $fs-logo-magenta-color;
+        background: #fee;
+        color: $fs-logo-magenta-color;
+        padding: 10px;
+    }
+}

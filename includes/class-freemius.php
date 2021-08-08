@@ -2495,7 +2495,10 @@
              * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
             $show_deactivation_feedback_form = true;
-            if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
+
+            if ( $this->is_unresolved_clone() ) {
+                $show_deactivation_feedback_form = false;
+            } else if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
             } else if ( $this->is_addon() ) {
                 /**
@@ -3489,6 +3492,7 @@
 
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
+                add_action( 'plugins_loaded', array( 'Freemius', '_init_clone_manager' ) );
             }
 
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
@@ -3508,6 +3512,404 @@
             }
 
             self::$_statics_loaded = true;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @return bool
+         */
+        private function is_unresolved_clone() {
+            if ( ! $this->is_clone() ) {
+                return false;
+            }
+
+            return ( ! FS_Clone_Manager::instance()->is_temporary_duplicate( false ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private static function strip_protocol( $url ) {
+            $pos = strpos( $url, '://' );
+
+            if ( false === $pos ) {
+                return $url;
+            }
+
+            return substr( $url, $pos + 3 );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function is_clone() {
+            if ( ! is_object( $this->_site ) ) {
+                return false;
+            }
+
+            return ( trailingslashit( $this->_site->url ) !== trailingslashit( get_site_url() ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        static function _init_clone_manager() {
+            if ( is_admin() ) {
+                FS_Clone_Manager::instance()->init();
+
+                if ( ! empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() ) ) {
+                    if ( self::is_ajax() ) {
+                        self::add_ajax_action_static( 'handle_clone_resolution', array( 'Freemius', '_clone_resolution_action_ajax_handler' ) );
+                    } else if ( ! self::is_cron() && ! self::is_admin_post() ) {
+                        add_action( 'admin_footer', array( 'Freemius', '_add_clone_resolution_javascript' ) );
+                        add_action( 'init', array( 'Freemius', '_maybe_show_clone_admin_notice' ) );
+                    }
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        static function _add_clone_resolution_javascript() {
+            $vars = array( 'ajax_action' => self::get_ajax_action_static( 'handle_clone_resolution' ) );
+
+            fs_require_once_template( 'clone-resolution-js.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        static function _clone_resolution_action_ajax_handler() {
+            self::$_static_logger->entrance();
+
+            check_ajax_referer( self::get_ajax_action_static( 'handle_clone_resolution' ), 'security' );
+
+            $clone_action = fs_request_get( 'clone_action' );
+
+            if ( empty( $clone_action ) ) {
+                self::shoot_ajax_failure( array(
+                    'message'      => fs_text_inline( 'Invalid clone resolution action param.', 'invalid-clone-resolution-action-param-error' ),
+                    'redirect_url' => '',
+                ) );
+            }
+
+            if ( 'temporary_duplicate' === $clone_action ) {
+                FS_Clone_Manager::instance()->store_temporary_duplicate_flag();
+            } else {
+                $result = self::resolve_cloned_sites( $clone_action );
+
+                if ( $result['has_error'] ) {
+                    $message = empty( $result['redirect_url'] ) ?
+                        fs_text_inline( 'An unknown error has occurred.', 'unknown-error' ) :
+                        '';
+
+                    self::shoot_ajax_failure( array(
+                        'message' => $message,
+                        'redirect_url' => $result['redirect_url'],
+                    ) );
+                }
+            }
+
+            self::shoot_ajax_success();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string $clone_action
+         */
+        private static function resolve_cloned_sites( $clone_action ) {
+            $instances_with_clone_count = 0;
+            $instance_with_error        = null;
+            $has_error                  = false;
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $instances_with_clone_count ++;
+                
+                if ( 'new_website' === $clone_action ) {
+                    $instance->sync_install();
+                } else {
+                    $instance->handle_long_term_duplicate();
+
+                    if ( ! is_object( $instance->get_site() ) ) {
+                        $has_error = true;
+
+                        if ( ! is_object( $instance_with_error ) ) {
+                            $instance_with_error = $instance;
+                        }
+                    }
+                }
+            }
+
+            $redirect_url = '';
+
+            if (
+                1 === $instances_with_clone_count &&
+                $has_error
+            ) {
+                $redirect_url = $instance_with_error->get_activation_url();
+            }
+
+            return ( array(
+                'has_error'    => $has_error,
+                'redirect_url' => $redirect_url,
+            ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function handle_long_term_duplicate() {
+            $site = $this->_site;
+
+            $this->delete_current_install( false );
+
+            if ( ! is_object( $this->_license ) ) {
+                $this->opt_in();
+            } else if ( ! $this->_license->is_utilized( $site->is_localhost() ) ) {
+                $this->opt_in( false, false, false, $this->_license->secret_key );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        static function handle_clones() {
+            $current_url = trailingslashit( get_site_url() );
+            $has_clone   = false;
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $current_install = $instance->get_site();
+                $clone_install   = $current_install;
+
+                // Try to find a different install of the context product that is associated with the current URL and load it.
+                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) );
+
+                $associated_install = null;
+
+                if ( $instance->is_api_result_object( $result, 'installs' ) ) {
+                    foreach ( $result->installs as $install ) {
+                        if ( $install->id == $current_install->id ) {
+                            // The current install's URL was already set to the current URL for some reason, so don't treat this install as a clone but update the current install.
+                            $associated_install = $install;
+                            break;
+                        }
+
+                        if ( ! is_object( $associated_install ) ) {
+                            // Found a different install that is associated with the current URL, load it and replace the current install with it.
+                            $associated_install = $install;
+                        }
+                    }
+                }
+
+                if ( is_object( $associated_install ) ) {
+                    // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
+                    $instance->store_site( new FS_Site( clone $associated_install ) );
+                } else if ( $current_install->is_localhost() ) {
+                    if ( ! $instance->is_premium() ) {
+                        $instance->delete_current_install();
+
+                        $instance->opt_in();
+
+                        if ( ! is_object( $instance->get_site() ) ) {
+                            $instance->restore_backup_site();
+                        } else {
+                            $clone_install = null;
+                        }
+                    } else {
+                        $license = $instance->_get_license();
+
+                        if (
+                            is_object( $license ) &&
+                            ! $license->is_utilized( $current_install )
+                        ) {
+                            $instance->delete_current_install();
+
+                            $instance->opt_in( false, false, false, $license->secret_key );
+
+                            if ( ! is_object( $instance->get_site() ) ) {
+                                $instance->restore_backup_site();
+                            } else {
+                                $clone_install = null;
+                            }
+                        }
+                    }
+                }
+
+                if ( ! $has_clone && is_object( $clone_install ) ) {
+                    $has_clone = true;
+                }
+            }
+
+            if (
+                $has_clone &&
+                empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
+            ) {
+                FS_Clone_Manager::instance()->store_clone_identification_timestamp();
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        static function _maybe_show_clone_admin_notice() {
+            $first_instance_with_clone = null;
+
+            $site_urls                        = array();
+            $sites_with_license_urls          = array();
+            $sites_with_premium_version_count = 0;
+            $product_titles                   = array();
+
+            foreach ( self::$_instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $install = $instance->get_site();
+
+                $site_urls[]      = self::strip_protocol( $install->url );
+                $product_titles[] = $instance->get_plugin_title();
+
+                if ( is_null( $first_instance_with_clone ) ) {
+                    $first_instance_with_clone = $instance;
+                }
+
+                if ( is_object( $instance->_get_license() ) ) {
+                    $sites_with_license_urls[] = self::strip_protocol( $install->url );
+                }
+                
+                if ( $instance->is_premium() ) {
+                    $sites_with_premium_version_count ++;
+                }
+            }
+
+            if ( empty( $sites_with_license_urls ) ) {
+                FS_Clone_Manager::instance()->remove_opt_in_notice();
+            }
+
+            if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
+                return;
+            }
+
+            $module_label = 'product';
+            $module_title = null;
+
+            if ( ! FS_Clone_Manager::instance()->is_temporary_duplicate() ) {
+                if ( ! empty( $site_urls ) ) {
+                    if ( 1 === count( $site_urls ) ) {
+                        $module_label = $first_instance_with_clone->get_module_label( true );
+                    }
+
+                    fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+                    FS_Clone_Manager::instance()->add_manual_clone_resolution_admin_notice(
+                        $product_titles,
+                        $site_urls,
+                        self::strip_protocol( get_site_url() ),
+                        ( count( $site_urls ) === count( $sites_with_license_urls ) ),
+                        ( count( $site_urls ) === $sites_with_premium_version_count ),
+                        $module_label
+                    );
+                }
+
+                return;
+            }
+
+            if ( empty( $sites_with_license_urls ) ) {
+                return;
+            }
+            
+            if ( 1 === count( $sites_with_license_urls ) ) {
+                $module_label = $first_instance_with_clone->get_module_label( true );
+                $module_title = $first_instance_with_clone->get_plugin_title();
+            }
+
+            FS_Clone_Manager::instance()->add_temporary_duplicate_sticky_notice(
+                self::get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $module_label ),
+                $module_title
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         * 
+         * @return string
+         */
+        private static function get_temporary_duplicate_admin_notice_string( $site_urls, $module_label ) {
+            $temporary_duplicate_end_date = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration();
+            $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
+
+            $total_sites = count( $site_urls );
+
+            $current_url = self::strip_protocol( get_site_url() );
+            $sites_list  = '';
+
+            if ( $total_sites > 1 ) {
+                foreach ( $site_urls as $site_url ) {
+                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                }
+
+                $sites_list = '<ol>' . $sites_list . '</ol>';
+            }
+
+            return sprintf(
+                sprintf(
+                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message"></p><p>%s</p></div>',
+                    ( 1 === $total_sites ?
+                        fs_esc_html_inline( '%s is a temporary duplicate of %s.', 'temporary-duplicate-message' ) :
+                        fs_esc_html_inline( '%s is a temporary duplicate of these sites:%s', 'temporary-duplicate-of-sites-message' ) )
+                ) . '%s',
+                sprintf( '<strong>%s</strong>', $current_url ),
+                ( 1 === $total_sites ?
+                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                    $sites_list ),
+                sprintf(
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p><p>%s</p></div>',
+                    sprintf(
+                        fs_esc_html_inline( "The %s's automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
+                        sprintf( '<strong>%s</strong>', $module_label ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date )
+                    ),
+                    sprintf(
+                        fs_esc_html_inline( 'If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s.', 'duplicate-site-message' ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date),
+                        sprintf( '<a href="#" id="fs_temporary_duplicate_license_activation_link" data-clone-action="temporary_duplicate_license_activation">%s</a>', fs_esc_html_inline( 'activate a license here', '' ) )
+                    )
+                )
+            );
         }
 
         /**
@@ -3862,6 +4264,15 @@
          */
         function is_on() {
             self::$_static_logger->entrance();
+
+            if (
+                $this->is_clone() &&
+                ! FS_Clone_Manager::instance()->is_temporary_duplicate() &&
+                ! empty( $this->_storage->user_was_recovered_from_install ) &&
+                true === $this->_storage->user_was_recovered_from_install
+            ) {
+                return false;
+            }
 
             if ( isset( $this->_is_on ) ) {
                 return $this->_is_on;
@@ -5111,7 +5522,8 @@
                      */
                     ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->premium_plugin_basename() ) ) )
                 ) &&
-                $this->has_release_on_freemius()
+                $this->has_release_on_freemius() &&
+                ( ! $this->is_unresolved_clone() )
             ) {
                 FS_Plugin_Updater::instance( $this );
             }
@@ -7184,6 +7596,10 @@
          * @param int|null $current_blog_id
          */
         function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
+            if ( $this->is_unresolved_clone() ) {
+                return;
+            }
+
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -10014,7 +10430,9 @@
                     return;
                 }
 
-                $fs->_uninstall_plugin_event();
+                if ( ! $fs->is_unresolved_clone() ) {
+                    $fs->_uninstall_plugin_event();
+                }
 
                 $fs->do_action( 'after_uninstall' );
             }
@@ -10474,9 +10892,14 @@
          */
         private static function get_all_sites(
             $module_type = WP_FS__MODULE_TYPE_PLUGIN,
-            $blog_id = null
+            $blog_id = null,
+            $is_backup = false
         ) {
-            $sites = self::get_account_option( 'sites', $module_type, $blog_id );
+            $sites = self::get_account_option(
+                ( $is_backup ? 'prev_' : '' ) . 'sites',
+                $module_type,
+                $blog_id
+            );
 
             if ( ! is_array( $sites ) ) {
                 $sites = array();
@@ -10894,6 +11317,49 @@
          */
         function get_site() {
             return $this->_site;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function store_site( $site ) {
+            $this->_site = $site;
+            $this->sync_install( array(), true );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function delete_current_install( $back_up = true ) {
+            // Back up and delete the unique ID.
+            if ( $back_up ) {
+                self::$_accounts->set_option( 'prev_unique_id', $this->get_anonymous_id() );
+            }
+
+            self::$_accounts->set_option( 'unique_id', null );
+
+            if ( $back_up ) {
+                // Back up and delete the current install.
+                $this->back_up_site();
+            }
+
+            $this->_delete_site();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function restore_backup_site( $network_level_or_blog_id = null ) {
+            self::$_accounts->set_option(
+                'unique_id',
+                self::$_accounts->get_option( 'prev_unique_id' )
+            );
+
+            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id, true );
+            $this->store_site( clone $sites[ $this->_slug ] );
         }
 
         /**
@@ -14957,6 +15423,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         *
+         * @return bool
+         */
+        static function is_admin_post() {
+            return ( 'admin-post.php' === self::get_current_page() );
+        }
+
+        /**
          * Check if a real user is visiting the admin dashboard.
          *
          * @author Vova Feldman (@svovaf)
@@ -14969,7 +15445,7 @@
                 is_admin() &&
                 ! self::is_ajax() &&
                 ! self::is_cron() &&
-                ( 'admin-post.php' !== self::get_current_page() )
+                ! self::is_admin_post()
             );
         }
 
@@ -16419,20 +16895,6 @@
             ) {
                 // Load site.
                 $this->_site = $site;
-
-                // Load plans.
-                $this->_plans = $plans[ $this->_slug ];
-                if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
-                    $this->_sync_plans();
-                } else {
-                    for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-                        if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
-                            $this->_plans[ $i ] = self::decrypt_entity( $this->_plans[ $i ] );
-                        } else {
-                            unset( $this->_plans[ $i ] );
-                        }
-                    }
-                }
             }
 
             $user = null;
@@ -16462,6 +16924,10 @@
                      * This is a special fault tolerance mechanism to handle a scenario that the user data is missing.
                      */
                     $user = $this->sync_user_by_current_install();
+
+                    if ( is_object( $user ) ) {
+                        $this->_storage->user_was_recovered_from_install = true;
+                    }
                 }
 
                 $this->_user = ( $user instanceof FS_User ) ?
@@ -16475,6 +16941,20 @@
             }
 
             if ( is_object( $this->_site ) ) {
+                // Load plans.
+                $this->_plans = $plans[ $this->_slug ];
+                if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
+                    $this->_sync_plans();
+                } else {
+                    for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
+                        if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
+                            $this->_plans[ $i ] = self::decrypt_entity( $this->_plans[ $i ] );
+                        } else {
+                            unset( $this->_plans[ $i ] );
+                        }
+                    }
+                }
+
                 $this->_license = $this->_get_license_by_id( $this->_site->license_id );
 
                 if ( $this->_site->version != $this->get_plugin_version() ) {
@@ -19223,7 +19703,7 @@
          * @param null|int $network_level_or_blog_id Since 2.0.0
          * @param \FS_Site $site                     Since 2.0.0
          */
-        private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null ) {
+        private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null, $is_backup = false ) {
             $this->_logger->entrance();
 
             if ( is_null( $site ) ) {
@@ -19238,9 +19718,12 @@
 
             $site_clone = clone $site;
 
-            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
+            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id, $is_backup );
 
-            if ( is_object( $this->_user ) && $this->_user->id != $site->user_id ) {
+            if (
+                ! $is_backup &&
+                is_object( $this->_user ) && $this->_user->id != $site->user_id
+            ) {
                 $this->sync_user_by_current_install( $site->user_id );
 
                 $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
@@ -19265,7 +19748,26 @@
 
             $sites[ $this->_slug ] = $site_clone;
 
-            $this->set_account_option( 'sites', $sites, $store, $network_level_or_blog_id );
+            $this->set_account_option(
+                ( $is_backup ? 'prev_' : '' ) . 'sites',
+                $sites,
+                $store,
+                $network_level_or_blog_id
+            );
+        }
+
+        /**
+         * Update site information.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function back_up_site() {
+            $this->_logger->entrance();
+
+            $site_clone = clone $this->_site;
+
+            $this->_store_site( true, null, $site_clone, true );
         }
 
         /**
@@ -20371,7 +20873,12 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license( $background, true, $is_context_single_site, $current_blog_id );
+                $this->_sync_plugin_license(
+                    $background,
+                    ! $this->is_unresolved_clone(),
+                    $is_context_single_site,
+                    $current_blog_id
+                );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
@@ -21485,6 +21992,10 @@
             $fetch_readme = true
         ) {
             $this->_logger->entrance();
+
+            if ( $this->is_unresolved_clone() ) {
+                return false;
+            }
 
             $switch_to_blog_id = null;
 
