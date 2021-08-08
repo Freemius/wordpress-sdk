@@ -3707,8 +3707,19 @@
                 }
 
                 $current_install = $instance->get_site();
-                $clone_install   = $current_install;
 
+                if (
+                    ! empty( $instance->_storage->is_site_url_update_incomplete ) &&
+                    true === $instance->_storage->is_site_url_update_incomplete
+                ) {
+                    $instance->sync_install();
+                    $instance->_storage->is_site_url_update_incomplete = false;
+
+                    continue;
+                }
+
+                $clone_install = $current_install;
+                
                 // Try to find a different install of the context product that is associated with the current URL and load it.
                 $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) );
 
@@ -5364,6 +5375,8 @@
 
             if ( $this->is_registered() ) {
                 $this->hook_callback_to_install_sync();
+
+                add_action( 'update_option_siteurl', array( &$this, '_store_site_url_update_incomplete_flag' ), 10, 3 );
             }
 
             if ( $this->is_addon() ) {
@@ -5567,6 +5580,18 @@
             }
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         * 
+         * @param string $old_value
+         * @param string $value
+         * @param string $option
+         */
+        function _store_site_url_update_incomplete_flag( $old_value, $value, $option ) {
+            $this->_storage->is_site_url_update_incomplete = true;
+        }
+        
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
