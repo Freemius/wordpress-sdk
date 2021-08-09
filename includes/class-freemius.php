@@ -3628,8 +3628,8 @@
         static function _get_debug_log() {
             $logs = FS_Logger::load_db_logs(
                 fs_request_get( 'filters', false, 'post' ),
-                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
-                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
+                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 200,
+                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? intval( $_POST['offset'] ) : 0
             );
 
             self::shoot_ajax_success( $logs );
