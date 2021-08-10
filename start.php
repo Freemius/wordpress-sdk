@@ -70,7 +70,7 @@
 		// Load all Freemius powered active plugins.
 		$fs_active_plugins = get_option( 'fs_active_plugins', new stdClass() );
 
-		// Prevent potential PHP 7.4+ warnings when the option came back with a non-object.
+		// Prevent potential PHP warnings when the option came back with a non-object.
 		if ( ! is_object( $fs_active_plugins ) ) {
 			$fs_active_plugins = new stdClass();
 		}
