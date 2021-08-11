@@ -220,8 +220,6 @@
             }
 
 
-            $show_admin_notices = ( ! $this->is_gutenberg_page() );
-
             foreach ( $this->_notices as $id => $msg ) {
                 if ( isset( $msg['wp_user_id'] ) && is_numeric( $msg['wp_user_id'] ) ) {
                     if ( get_current_user_id() != $msg['wp_user_id'] ) {
@@ -264,7 +262,7 @@
                 $show_notice = call_user_func_array( 'fs_apply_filter', array(
                     $this->_module_unique_affix,
                     'show_admin_notice',
-                    $show_admin_notices,
+                    $this->can_show_admin_notices(),
                     $msg
                 ) );
 
@@ -316,6 +314,25 @@
             }
 
             return false;
+        }
+
+        /**
+         * Check if the admin notices can be shown.
+         *
+         * @author Xiaheng Chen (@xhchen)
+         * @since  2.4.2
+         *
+         * @return bool
+         */
+        function can_show_admin_notices() {
+            global $pagenow;
+
+            if ( 'about.php' === $pagenow ) {
+                // Don't show the admin notices in About page.
+                return false;
+            }
+
+            return ( ! $this->is_gutenberg_page());
         }
 
         /**
