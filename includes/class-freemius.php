@@ -7888,7 +7888,9 @@
                     $plugin_version = $this->_storage->is_anonymous_ms['version'];
                     $network        = true;
                 } else {
-                    $plugin_version = $this->_storage->is_anonymous['version'];
+                    $plugin_version = isset( $this->_storage->is_anonymous ) ?
+                        $this->_storage->is_anonymous['version'] :
+                        null;
                     $network        = false;
                 }
 
