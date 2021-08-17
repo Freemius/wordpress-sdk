@@ -219,9 +219,6 @@
                 return;
             }
 
-
-            $show_admin_notices = ( ! $this->is_gutenberg_page() );
-
             foreach ( $this->_notices as $id => $msg ) {
                 if ( isset( $msg['wp_user_id'] ) && is_numeric( $msg['wp_user_id'] ) ) {
                     if ( get_current_user_id() != $msg['wp_user_id'] ) {
@@ -264,7 +261,7 @@
                 $show_notice = call_user_func_array( 'fs_apply_filter', array(
                     $this->_module_unique_affix,
                     'show_admin_notice',
-                    $show_admin_notices,
+                    $this->show_admin_notices(),
                     $msg
                 ) );
 
@@ -316,6 +313,30 @@
             }
 
             return false;
+        }
+
+        /**
+         * Check if admin notices should be shown on page. E.g., we don't want to show notices in the Visual Editor.
+         *
+         * @author Xiaheng Chen (@xhchen)
+         * @since  2.4.2
+         *
+         * @return bool
+         */
+        function show_admin_notices() {
+            global $pagenow;
+
+            if ( 'about.php' === $pagenow ) {
+                // Don't show admin notices on the About page.
+                return false;
+            }
+
+            if ( $this->is_gutenberg_page() ) {
+                // Don't show admin notices in Gutenberg (visual editor).
+                return false;
+            }
+
+            return true;
         }
 
         /**
