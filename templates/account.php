@@ -46,6 +46,7 @@
     $site                   = $fs->get_site();
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
+    $is_license_foreign     = ( $user->id != $license->user_id );
     $is_data_debug_mode     = $fs->is_data_debug_mode();
     $is_whitelabeled        = $fs->is_whitelabeled();
     $subscription           = ( is_object( $license ) ?
@@ -61,6 +62,10 @@
 	if ( $has_paid_plan ) {
         $fs->_add_license_activation_dialog_box();
 	}
+
+	if ( $fs->should_handle_user_change() ) {
+        $fs->_add_email_address_update_dialog_box();
+    }
 
     $ids_of_installs_activated_with_foreign_licenses = $fs->should_handle_user_change() ?
         $fs->get_installs_ids_with_foreign_licenses() :
@@ -645,7 +650,7 @@
 															<?php endif ?>
 															<?php
 														elseif ( in_array( $p['id'], array( 'license_key', 'site_secret_key' ) ) ) : ?>
-                                                            <?php if ( ! $is_whitelabeled ) : ?>
+                                                            <?php if ( ! $is_whitelabeled && ( 'site_secret_key' === $p['id'] || ! $is_license_foreign ) ) : ?>
                                                                 <button class="button button-small fs-toggle-visibility"><?php fs_esc_html_echo_x_inline( 'Show', 'verb', 'show', $slug ) ?></button>
                                                             <?php endif ?>
                                                             <?php if ('license_key' === $p['id']) : ?>
@@ -658,6 +663,7 @@
 																'user_name'
 															) ) )
 														) : ?>
+                                                            <?php if ( 'email' !== $p['id'] || ! fs_is_network_admin() ) : ?>
 															<form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST"
 															      onsubmit="var val = prompt('<?php echo esc_attr( sprintf(
                                                                       /* translators: %s: User's account property (e.g. name, email) */
@@ -668,9 +674,10 @@
 																<input type="hidden" name="fs_<?php echo $p['id'] ?>_<?php echo $fs->get_unique_affix() ?>"
 																       value="">
 																<?php wp_nonce_field( 'update_' . $p['id'] ) ?>
-																<input type="submit" class="button button-small"
+																<input type="submit" class="button button-small <?php if ( 'email' === $p['id'] ) echo 'button-edit-email-address' ?>"
 																       value="<?php echo fs_esc_attr_x_inline( 'Edit', 'verb', 'edit', $slug ) ?>">
 															</form>
+                                                            <?php endif ?>
                                                         <?php elseif ( 'user_id' === $p['id'] && ! empty( $ids_of_installs_activated_with_foreign_licenses ) ) : ?>
                                                                 <input id="fs_change_user" type="submit" class="button button-small"
                                                                        value="<?php echo fs_esc_attr_inline( 'Change User', 'change-user', $slug ) ?>">
