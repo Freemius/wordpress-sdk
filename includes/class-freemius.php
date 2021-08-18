@@ -3492,8 +3492,9 @@
 
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
-                add_action( 'plugins_loaded', array( 'Freemius', '_init_clone_manager' ) );
             }
+
+            add_action( 'init', array( 'Freemius', '_init_clone_manager' ) );
 
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
             add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
@@ -3566,8 +3567,9 @@
                     if ( self::is_ajax() ) {
                         self::add_ajax_action_static( 'handle_clone_resolution', array( 'Freemius', '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! self::is_cron() && ! self::is_admin_post() ) {
+                        self::maybe_show_clone_admin_notice();
+
                         add_action( 'admin_footer', array( 'Freemius', '_add_clone_resolution_javascript' ) );
-                        add_action( 'init', array( 'Freemius', '_maybe_show_clone_admin_notice' ) );
                     }
                 }
             }
@@ -3643,8 +3645,8 @@
 
                 $instances_with_clone_count ++;
                 
-                if ( 'new_website' === $clone_action ) {
-                    $instance->sync_install();
+                if ( 'new_home' === $clone_action ) {
+                    $instance->sync_install( array( 'is_new_site' => true ), true );
                 } else {
                     $instance->handle_long_term_duplicate();
 
@@ -3702,47 +3704,40 @@
                     continue;
                 }
 
-                if ( ! $instance->is_clone() ) {
-                    continue;
-                }
-
                 $current_install = $instance->get_site();
-
-                if (
-                    ! empty( $instance->_storage->is_site_url_update_incomplete ) &&
-                    true === $instance->_storage->is_site_url_update_incomplete
-                ) {
-                    $instance->sync_install();
-                    $instance->_storage->is_site_url_update_incomplete = false;
-
-                    continue;
-                }
-
-                $clone_install = $current_install;
+                $clone_install   = $current_install;
                 
                 // Try to find a different install of the context product that is associated with the current URL and load it.
-                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?all=true&search=" . urlencode( $current_url ) );
+                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?all=true", true );
 
-                $associated_install = null;
+                $associated_or_updated_install = null;
 
                 if ( $instance->is_api_result_object( $result, 'installs' ) ) {
                     foreach ( $result->installs as $install ) {
-                        if ( $install->id == $current_install->id ) {
-                            // The current install's URL was already set to the current URL for some reason, so don't treat this install as a clone but update the current install.
-                            $associated_install = $install;
+                        $install_url = trailingslashit( $install->url );
+
+                        if (
+                            $install->id == $current_install->id &&
+                            trailingslashit( $current_install->url ) !== $install_url
+                        ) {
+                            // The URL of the current install was updated to a different one, just update the local install to the latest.
+                            $associated_or_updated_install = $install;
                             break;
                         }
 
-                        if ( ! is_object( $associated_install ) ) {
-                            // Found a different install that is associated with the current URL, load it and replace the current install with it.
-                            $associated_install = $install;
+                        if (
+                            ! is_object( $associated_or_updated_install ) &&
+                            $current_url === $install_url
+                        ) {
+                            // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
+                            $associated_or_updated_install = $install;
                         }
                     }
                 }
 
-                if ( is_object( $associated_install ) ) {
+                if ( is_object( $associated_or_updated_install ) ) {
                     // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
-                    $instance->store_site( new FS_Site( clone $associated_install ) );
+                    $instance->store_site( new FS_Site( clone $associated_or_updated_install ) );
                 } else if ( $current_install->is_localhost() ) {
                     if ( ! $instance->is_premium() ) {
                         $instance->delete_current_install();
@@ -3791,7 +3786,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          */
-        static function _maybe_show_clone_admin_notice() {
+        private static function maybe_show_clone_admin_notice() {
             $first_instance_with_clone = null;
 
             $site_urls                        = array();
@@ -5375,8 +5370,6 @@
 
             if ( $this->is_registered() ) {
                 $this->hook_callback_to_install_sync();
-
-                add_action( 'update_option_siteurl', array( &$this, '_store_site_url_update_incomplete_flag' ), 10, 3 );
             }
 
             if ( $this->is_addon() ) {
@@ -5580,18 +5573,6 @@
             }
         }
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         * 
-         * @param string $old_value
-         * @param string $value
-         * @param string $option
-         */
-        function _store_site_url_update_incomplete_flag( $old_value, $value, $option ) {
-            $this->_storage->is_site_url_update_incomplete = true;
-        }
-        
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
@@ -11350,7 +11331,7 @@
          */
         function store_site( $site ) {
             $this->_site = $site;
-            $this->sync_install( array(), true );
+            $this->_store_site( true );
         }
 
         /**

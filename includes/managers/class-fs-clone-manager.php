@@ -310,25 +310,22 @@
         }
 
         /**
-         * @param bool $check_only_stored_value
+         * @param bool $check_only_if_stored
          *
          * @return bool
          */
-        function is_temporary_duplicate( $check_only_stored_value = true ) {
-            if (
-                $check_only_stored_value &&
-                ! isset( $this->_data['is_temporary_duplicate'] )
-            ) {
-                return false;
-            }
-
-            if ( true !== $this->_data['is_temporary_duplicate'] ) {
+        function is_temporary_duplicate( $check_only_if_stored = true ) {
+            if ( ! isset( $this->_data['is_temporary_duplicate'] ) ) {
+                if ( $check_only_if_stored ) {
+                    return false;
+                }
+            } else if ( true !== $this->_data['is_temporary_duplicate'] ) {
                 return false;
             }
 
             $clone_identification_timestamp = $this->get_clone_identification_timestamp();
 
-            return time() < ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) );
+            return ( ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) > time() );
         }
 
         function store_temporary_duplicate_flag() {
