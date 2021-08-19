@@ -15339,12 +15339,17 @@
         }
 
         /**
+         * @todo Implement pagination when accessing the subsites collection.
+         *
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
+         * @param int $limit  Default to 1,000
+         * @param int $offset Default to 0
+         *
          * @return array Active & public sites collection.
          */
-        static function get_sites() {
+        static function get_sites( $limit = 1000, $offset = 0 ) {
             if ( ! is_multisite() ) {
                 return array();
             }
@@ -15366,6 +15371,8 @@
                 'mature'   => 0,
                 'spam'     => 0,
                 'deleted'  => 0,
+                'number'   => $limit,
+                'offset'   => $offset,
             );
 
             if ( function_exists( 'get_sites' ) ) {
