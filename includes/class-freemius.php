@@ -2291,7 +2291,10 @@
                         continue;
                     }
 
-                    if ( $data['path'] === $id_slug_type_path_map[ $module_id ]['path'] ) {
+                    if (
+                        isset( $data['path'] ) &&
+                        $data['path'] === $id_slug_type_path_map[ $module_id ]['path']
+                    ) {
                         $find_caller = true;
                     }
                 }
