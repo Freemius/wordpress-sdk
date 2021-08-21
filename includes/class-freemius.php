@@ -11349,7 +11349,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          */
-        private function delete_current_install( $back_up = true ) {
+        private function delete_current_install( $back_up ) {
             // Back up and delete the unique ID.
             if ( $back_up ) {
                 self::$_accounts->set_option( 'prev_unique_id', $this->get_anonymous_id() );
