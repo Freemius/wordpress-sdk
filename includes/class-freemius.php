@@ -3551,7 +3551,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          */
-        private function is_clone() {
+        function is_clone() {
             if ( ! is_object( $this->_site ) ) {
                 return false;
             }
@@ -3709,8 +3709,8 @@
                 }
 
                 $current_install = $instance->get_site();
-                $clone_install   = $current_install;
-                
+                $is_clone        = $instance->is_clone();
+
                 // Try to find a different install of the context product that is associated with the current URL and load it.
                 $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?all=true", true );
 
@@ -3720,16 +3720,14 @@
                     foreach ( $result->installs as $install ) {
                         $install_url = trailingslashit( $install->url );
 
-                        if (
-                            $install->id == $current_install->id &&
-                            trailingslashit( $current_install->url ) !== $install_url
-                        ) {
-                            // The URL of the current install was updated to a different one, just update the local install to the latest.
-                            $associated_or_updated_install = $install;
-                            break;
-                        }
-
-                        if (
+                        if ( $install->id == $current_install->id ) {
+                            if ( trailingslashit( $current_install->url ) !== $install_url ) {
+                                // The URL of the current install was updated to a different one, just update the local install to the latest.
+                                $associated_or_updated_install = $install;
+                                break;
+                            }
+                        } else if (
+                            $is_clone &&
                             ! is_object( $associated_or_updated_install ) &&
                             $current_url === $install_url
                         ) {
@@ -3741,39 +3739,48 @@
 
                 if ( is_object( $associated_or_updated_install ) ) {
                     // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
-                    $instance->store_site( new FS_Site( clone $associated_or_updated_install ) );
-                } else if ( $current_install->is_localhost() ) {
-                    if ( ! $instance->is_premium() ) {
-                        $instance->delete_current_install();
+                    $instance->store_site(new FS_Site(clone $associated_or_updated_install));
 
-                        $instance->opt_in();
+                    $is_clone = $instance->is_clone();
+                }
 
-                        if ( ! is_object( $instance->get_site() ) ) {
-                            $instance->restore_backup_site();
-                        } else {
-                            $clone_install = null;
-                        }
-                    } else {
+                if ( $is_clone && $current_install->is_localhost() ) {
+                    $license_key = false;
+
+                    if ( $instance->is_premium() ) {
                         $license = $instance->_get_license();
 
                         if (
                             is_object( $license ) &&
                             ! $license->is_utilized( $current_install )
                         ) {
-                            $instance->delete_current_install();
-
-                            $instance->opt_in( false, false, false, $license->secret_key );
-
-                            if ( ! is_object( $instance->get_site() ) ) {
-                                $instance->restore_backup_site();
-                            } else {
-                                $clone_install = null;
-                            }
+                            $license_key = $license->secret_key;
                         }
+                    }
+
+                    $instance->delete_current_install( true );
+
+                    $instance->opt_in(
+                        false,
+                        false,
+                        false,
+                        $license_key,
+                        false,
+                        false,
+                        false,
+                        null,
+                        array(),
+                        false
+                    );
+
+                    if ( ! is_object( $instance->get_site() ) ) {
+                        $instance->restore_backup_site();
+                    } else {
+                        $is_clone = false;
                     }
                 }
 
-                if ( ! $has_clone && is_object( $clone_install ) ) {
+                if ( ! $has_clone && $is_clone ) {
                     $has_clone = true;
                 }
             }
@@ -17215,6 +17222,7 @@
          * @param bool        $is_disconnected      Whether or not to opt in without tracking.
          * @param null|bool   $is_marketing_allowed
          * @param array       $sites                If network-level opt-in, an array of containing details of sites.
+         * @param bool        $redirect
          *
          * @return string|object
          * @use    WP_Error
@@ -17228,7 +17236,8 @@
             $trial_plan_id = false,
             $is_disconnected = false,
             $is_marketing_allowed = null,
-            $sites = array()
+            $sites = array(),
+            $redirect = true
         ) {
             $this->_logger->entrance();
 
@@ -17252,7 +17261,7 @@
                             $fs_user,
                             false,
                             $trial_plan_id,
-                            true,
+                            $redirect,
                             true,
                             $sites
                         );
