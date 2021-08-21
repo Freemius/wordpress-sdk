@@ -3522,6 +3522,10 @@
          * @return bool
          */
         private function is_unresolved_clone() {
+            if ( FS_Clone_Manager::instance()->is_handling_clones() ) {
+                return true;
+            }
+
             if ( ! $this->is_clone() ) {
                 return false;
             }
