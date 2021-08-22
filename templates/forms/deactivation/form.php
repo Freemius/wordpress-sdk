@@ -301,7 +301,7 @@ HTML;
                             },
                             beforeSend: function() {
                                 _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
-                                _parent.find( '.fs-modal-footer .button-secondary' ).text( 'Processing...' );
+                                _parent.find( '.fs-modal-footer .button-deactivate' ).text( '<?php echo esc_js( fs_text_inline( 'Processing', 'processing', $slug ) ) ?>...' );
                             },
                             complete  : function() {
                                 window.location.href = redirectLink;
@@ -329,7 +329,7 @@ HTML;
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
-						_parent.find('.fs-modal-footer .button-secondary').text('Processing...');
+						_parent.find('.fs-modal-footer .button-deactivate').text('<?php echo esc_js( fs_text_inline( 'Processing', 'processing', $slug ) ) ?>...');
 					},
 					complete  : function () {
 						// Do not show the dialog box, deactivate the plugin.
