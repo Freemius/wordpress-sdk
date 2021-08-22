@@ -494,12 +494,13 @@ HTML;
             return;
         }
 
-        $user_reason       = $modal.find('.reason-input input');
-        $deactivate_button = $modal.find('.button-deactivate');
+        var
+            $userReason       = $modal.find('.reason-input input'),
+            $deactivateButton = $modal.find('.button-deactivate');
 
-	    if (0 === $user_reason.val().trim().length) {
-	        // If the reason is empty, just change the text to 'Deactivate'(plugin) or 'Switch'(theme).
-            $deactivate_button.html('<?php echo
+	    if (0 === $userReason.val().trim().length) {
+	        // If the reason is empty, just change the text to 'Deactivate' (plugin) or 'Activate themeX' (theme).
+            $deactivateButton.html('<?php echo
                 $fs->is_plugin() ?
                     $deactivate_text :
                     fs_text_inline('Switch', 'switch', $slug)
