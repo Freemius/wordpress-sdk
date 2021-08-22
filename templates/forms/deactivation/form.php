@@ -505,7 +505,7 @@ HTML;
             $deactivateButton.html('<?php echo
                 $fs->is_plugin() ?
                     $deactivate_text :
-                    fs_text_inline('Switch', 'switch', $slug)
+                    sprintf( $activate_x_text, $theme_text )
             ?>');
         } else {
             $deactivateButton.html('<?php echo esc_js( $submit_deactivate_text ) ?>');
