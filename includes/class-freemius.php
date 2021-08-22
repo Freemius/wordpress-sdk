@@ -3740,6 +3740,7 @@
                 if ( is_object( $associated_or_updated_install ) ) {
                     // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
                     $instance->store_site(new FS_Site(clone $associated_or_updated_install));
+                    $instance->sync_install( array( 'is_clone' => false ), true );
 
                     $is_clone = $instance->is_clone();
                 }
@@ -10040,7 +10041,7 @@
             $this->set_keepalive_timestamp();
 
             // Send updated values to FS.
-            $site = $this->get_api_site_scope()->call( '/', 'put', $params );
+            $site = $this->get_api_site_scope( $flush )->call( '/', 'put', $params );
 
             if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
                 /**
@@ -11363,6 +11364,7 @@
             }
 
             $this->_delete_site();
+            $this->_site = null;
         }
 
         /**
