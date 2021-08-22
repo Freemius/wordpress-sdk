@@ -241,9 +241,10 @@ HTML;
 			 * to change the message color back to default.
 			 */
 			if (reason.length > 0) {
-				$('.message').removeClass('error-message');
-				enableDeactivateButton();
-			}
+                $('.message').removeClass('error-message');
+            }
+
+            changeDeactivateButtonText();
 		});
 
 		$modal.on('blur', '.reason-input input', function () {
@@ -260,8 +261,8 @@ HTML;
 				 */
 				if (0 === $userReason.val().trim().length) {
 					$('.message').addClass('error-message');
-					disableDeactivateButton();
-				}
+                    changeDeactivateButtonText();
+                }
 			}, 150);
 		});
 
@@ -307,10 +308,6 @@ HTML;
 				var $selected_reason = $radio.parents('li:first'),
 				    $input = $selected_reason.find('textarea, input[type="text"]'),
 				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
-
-				if (isOtherReasonSelected() && ( '' === userReason )) {
-					return;
-				}
 
 				$.ajax({
 					url       : ajaxurl,
@@ -372,8 +369,6 @@ HTML;
 					sprintf( $activate_x_text, $theme_text )
 			) ) ?>');
 
-			enableDeactivateButton();
-
 			if ( _parent.hasClass( 'has-internal-message' ) ) {
 				_parent.find( '.internal-message' ).show();
 			}
@@ -388,8 +383,8 @@ HTML;
 
 				if (isOtherReasonSelected()) {
 					showMessage('<?php echo esc_js( fs_text_inline( 'Kindly tell us the reason so we can improve.', 'ask-for-reason-message' , $slug ) ); ?>');
-					disableDeactivateButton();
-				}
+                    changeDeactivateButtonText();
+                }
 			}
 		});
 
@@ -453,8 +448,6 @@ HTML;
 	function resetModal() {
 		selectedReasonID = false;
 
-		enableDeactivateButton();
-
 		// Uncheck all radio buttons.
 		$modal.find('input[type="radio"]').prop('checked', false);
 
@@ -491,13 +484,35 @@ HTML;
 		$modal.find('.message').text(message).show();
 	}
 
-	function enableDeactivateButton() {
-		$modal.find('.button-deactivate').removeClass('disabled');
-	}
+    /**
+     * @author Xiaheng Chen (@xhchen)
+     *
+     * @since 2.4.2
+     */
+	function changeDeactivateButtonText() {
+        if ( ! isOtherReasonSelected()) {
+            return;
+        }
 
-	function disableDeactivateButton() {
-		$modal.find('.button-deactivate').addClass('disabled');
-	}
+        $user_reason       = $modal.find('.reason-input input');
+        $deactivate_button = $modal.find('.button-deactivate');
+
+	    if (0 === $user_reason.val().trim().length) {
+	        // If the reason is empty, just change the text to 'Deactivate'(plugin) or 'Switch'(theme).
+            $deactivate_button.html('<?php echo
+                $fs->is_plugin() ?
+                    $deactivate_text :
+                    fs_text_inline('Switch', 'switch', $slug)
+            ?>');
+        } else {
+            $deactivate_button.html('<?php echo esc_js(sprintf(
+                fs_text_inline('Submit & %s', 'deactivation-modal-button-submit', $slug),
+                $fs->is_plugin() ?
+                    $deactivate_text :
+                    sprintf($activate_x_text, $theme_text)
+            )) ?>');
+        }
+    }
 
 	function showPanel(panelType) {
         $modal.find( '.fs-modal-panel' ).removeClass( 'active' );
