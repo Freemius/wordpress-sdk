@@ -1,0 +1,28 @@
+.fs-modal.fs-modal-email-address-update {
+    .fs-modal-body {
+        input[type="text"] {
+            width: 100%;
+        }
+    }
+
+    p {
+        margin-bottom: 0;
+    }
+
+    ul {
+        margin: 1em 0.5em;
+
+        li label {
+            span {
+                float: left;
+                margin-top: 0;
+
+                &:last-child {
+                    display: block;
+                    float: none;
+                    margin-left: 20px;
+                }
+            }
+        }
+    }
+}
