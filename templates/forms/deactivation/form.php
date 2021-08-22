@@ -71,6 +71,13 @@ HTML;
 	$theme_text      = fs_text_inline( 'Theme', 'theme', $slug );
 	$activate_x_text = fs_text_inline( 'Activate %s', 'activate-x', $slug );
 
+    $submit_deactivate_text = sprintf(
+        fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit', $slug ),
+        $fs->is_plugin() ?
+            $deactivate_text :
+            sprintf( $activate_x_text, $theme_text )
+    );
+
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 
     if ( ! empty( $subscription_cancellation_dialog_box_template_params ) ) {
@@ -362,12 +369,7 @@ HTML;
 
 			$modal.find('.reason-input').remove();
 			$modal.find( '.internal-message' ).hide();
-			$modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
-				fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
-				$fs->is_plugin() ?
-					$deactivate_text :
-					sprintf( $activate_x_text, $theme_text )
-			) ) ?>');
+			$modal.find('.button-deactivate').html('<?php echo esc_js( $submit_deactivate_text ) ?>');
 
 			if ( _parent.hasClass( 'has-internal-message' ) ) {
 				_parent.find( '.internal-message' ).show();
@@ -506,12 +508,7 @@ HTML;
                     fs_text_inline('Switch', 'switch', $slug)
             ?>');
         } else {
-            $deactivate_button.html('<?php echo esc_js(sprintf(
-                fs_text_inline('Submit & %s', 'deactivation-modal-button-submit', $slug),
-                $fs->is_plugin() ?
-                    $deactivate_text :
-                    sprintf($activate_x_text, $theme_text)
-            )) ?>');
+            $deactivateButton.html('<?php echo esc_js( $submit_deactivate_text ) ?>');
         }
     }
 
