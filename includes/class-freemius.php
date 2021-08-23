@@ -2440,7 +2440,7 @@
             /**
              * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
-            $show_deactivation_feedback_form = true;
+            $show_deactivation_feedback_form = ! self::is_deactivation_snoozed();
             if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
             } else if ( $this->is_addon() ) {
@@ -2504,7 +2504,6 @@
             $vars['show_deactivation_feedback_form']                      = $show_deactivation_feedback_form;
             $vars['uninstall_confirmation_message']                       = $uninstall_confirmation_message;
 
-            if ( ! get_site_transient('fs_snooze_period')) {
                 /**
                  * Load the HTML template for the deactivation feedback dialog box.
                  *
@@ -2512,7 +2511,6 @@
                  */
                 fs_require_template( 'forms/deactivation/form.php', $vars );
             }
-        }
 
         /**
          * @author Leo Fajardo (@leorw)
