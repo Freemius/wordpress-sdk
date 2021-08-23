@@ -316,6 +316,14 @@ HTML;
 				    $input = $selected_reason.find('textarea, input[type="text"]'),
 				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
 
+                if (isOtherReasonSelected() && ( '' === userReason )) {
+                    // If the reason is empty, just deactivate it without submitting the feedback.
+                    _parent.find('.fs-modal-footer .button').addClass('disabled');
+                    window.location.href = redirectLink;
+
+                    return;
+                }
+
 				$.ajax({
 					url       : ajaxurl,
 					method    : 'POST',
