@@ -387,6 +387,20 @@
         }
 
         /**
+         * @return bool
+         */
+        function was_temporary_duplicate_notice_shown_before() {
+            return ( ! empty( $this->_data['temporary_duplicate_notice_shown_at'] ) );
+        }
+
+        /**
+         * @return bool
+         */
+        function clear_temporary_duplicate_notice_shown_timestamp() {
+            $this->update_option( 'temporary_duplicate_notice_shown_at', null );
+        }
+
+        /**
          * @param string      $message
          * @param string|null $plugin_title
          */
@@ -401,5 +415,7 @@
                 $plugin_title,
                 true
             );
+
+            $this->update_option( 'temporary_duplicate_notice_shown_at', time() );
         }
     }

@@ -3775,11 +3775,9 @@
                 }
             }
 
-            if (
-                $has_clone &&
-                empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
-            ) {
+            if ( $has_clone ) {
                 FS_Clone_Manager::instance()->store_clone_identification_timestamp();
+                FS_Clone_Manager::instance()->clear_temporary_duplicate_notice_shown_timestamp();
             }
         }
 
@@ -3788,6 +3786,10 @@
          * @since 2.4.3
          */
         private static function maybe_show_clone_admin_notice() {
+            if ( FS_Clone_Manager::instance()->was_temporary_duplicate_notice_shown_before() ) {
+                return;
+            }
+
             $first_instance_with_clone = null;
 
             $site_urls                        = array();
