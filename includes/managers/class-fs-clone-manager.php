@@ -175,15 +175,13 @@
          * @param string   $current_url
          * @param bool     $has_license
          * @param bool     $is_premium
-         * @param string   $module_label
          */
         function add_manual_clone_resolution_admin_notice(
             $product_titles,
             $site_urls,
             $current_url,
             $has_license = false,
-            $is_premium = false,
-            $module_label = 'product'
+            $is_premium = false
         ) {
             $total_sites = count( $site_urls );
             $sites_list  = '';
@@ -283,7 +281,7 @@
                         ( 1 === $total_sites ?
                             sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                             $above_mentioned_sites_text ),
-                        $module_label,
+                        ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) ),
                         ( 1 === $total_sites ?
                             sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                             $above_mentioned_sites_text ),
