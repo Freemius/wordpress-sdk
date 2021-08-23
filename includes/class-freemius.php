@@ -3726,7 +3726,10 @@
                 if ( is_object( $associated_or_updated_install ) ) {
                     // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
                     $instance->store_site(new FS_Site(clone $associated_or_updated_install));
-                    $instance->sync_install( array( 'is_clone' => false ), true );
+
+                    if ( $associated_or_updated_install->id != $current_install->id ) {
+                        $instance->sync_install( array( 'is_clone' => false ), true );
+                    }
 
                     $is_clone = $instance->is_clone();
                 }
