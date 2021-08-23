@@ -2504,13 +2504,13 @@
             $vars['show_deactivation_feedback_form']                      = $show_deactivation_feedback_form;
             $vars['uninstall_confirmation_message']                       = $uninstall_confirmation_message;
 
-                /**
-                 * Load the HTML template for the deactivation feedback dialog box.
-                 *
-                 * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
-                 */
-                fs_require_template( 'forms/deactivation/form.php', $vars );
-            }
+            /**
+             * Load the HTML template for the deactivation feedback dialog box.
+             *
+             * @todo Deactivation form core functions should be loaded only once! Otherwise, when there are multiple Freemius powered plugins the same code is loaded multiple times. The only thing that should be loaded differently is the various deactivation reasons object based on the state of the plugin.
+             */
+            fs_require_template( 'forms/deactivation/form.php', $vars );
+        }
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -2789,6 +2789,21 @@
                 return set_site_transient( 'fs_snooze_period', $value, $period );
             }
         }
+
+        /**
+         * The deactivation snooze expiration UNIX timestamp (in sec).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return int
+         */
+        static function deactivation_snooze_expires_at() {
+            return ( ! is_multisite() || fs_is_network_admin() ) ?
+                (int) get_option( '_transient_timeout_fs_snooze_period' ) :
+                (int) get_site_option( '_site_transient_timeout_fs_snooze_period' );
+        }
+
         #endregion
 
         /**
@@ -3741,6 +3756,10 @@
 
                     switch_to_blog( $current_blog_id );
                 }
+            } else if ( fs_request_is_action( 'reset_deactivation_snoozing' ) ) {
+                check_admin_referer( 'reset_deactivation_snoozing' );
+
+                self::reset_deactivation_snoozing();
             } else if ( fs_request_is_action( 'simulate_trial' ) ) {
                 check_admin_referer( 'simulate_trial' );
 
