@@ -99,7 +99,7 @@
             $this->update_option( 'clone_identification_timestamp', time() );
         }
 
-        function is_handling_clones() {
+        private function is_handling_clones() {
             if ( ! isset( $this->_data[ 'request_handler_timestamp' ] ) ) {
                 return false;
             }
@@ -115,10 +115,8 @@
         private function initiate_clone_resolution_handler() {
             if (
                 ! empty( $this->_data ) &&
-                (
-                    // If clones are already being handled, do not make another request.
-                    $this->is_handling_clones()
-                )
+                // If clones are already being handled, do not make another request.
+                $this->is_handling_clones()
             ) {
                 return;
             }
@@ -229,12 +227,17 @@
              */
             $notice = ( $notice_header . '%4$s%5$s%6$s' );
 
+            $above_mentioned_sites_text = fs_text_inline( 'the above-mentioned sites', 'above-mentioned-sites' );
+
             $message = sprintf(
                 $notice,
                 // %1$s
                 ( 1 === $total_products ?
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
-                    sprintf( '<div><p><strong>%s</strong>:</p>%s</div>', fs_esc_html_x_inline( 'Products', 'clone resolution admin notice', 'products' ), $products_list ) ),
+                    ( 1 === $total_sites ?
+                        sprintf( '<div>%s</div>', $products_list ) :
+                        sprintf( '<div><p><strong>%s</strong>:</p>%s</div>', fs_esc_html_x_inline( 'Products', 'clone resolution admin notice products list label', 'products' ), $products_list ) )
+                ),
                 // %2$s
                 sprintf( '<strong>%s</strong>', $current_url ),
                 // %3$s
@@ -246,11 +249,17 @@
                     '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p><p>%s</p><div>%s</div></div>',
                     sprintf(
                         fs_esc_html_inline( 'Is %s a duplicate of %s?', 'duplicate-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] )
+                        sprintf( '<strong>%s</strong>', $current_url),
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text )
                     ),
                     sprintf(
                         fs_esc_html_inline( 'Yes, %s is a duplicate of %s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] )
+                        sprintf( '<strong>%s</strong>', $current_url ),
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text )
                     ),
                     sprintf(
                         '<button class="button" data-clone-action="temporary_duplicate">%s</button><button class="button" data-clone-action="long_term_duplicate">%s</button>',
@@ -263,13 +272,22 @@
                     '<div class="fs-clone-resolution-options-container fs-migrate-site-option"><p>%s</p><p>%s</p><div>%s</div></div>',
                     sprintf(
                         fs_esc_html_inline( 'Is %s the new home of %s?', 'migrate-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] )
+                        sprintf( '<strong>%s</strong>', $current_url),
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text )
                     ),
                     sprintf(
                         fs_esc_html_inline( 'Yes, %s is replacing %s. I would like to migrate my %s from %s to %s.', 'migrate-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] ),
+                        sprintf( '<strong>%s</strong>', $current_url),
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text ),
                         $module_label,
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] )
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text ),
+                        sprintf( '<strong>%s</strong>', $current_url)
                     ),
                     sprintf(
                         '<button class="button" data-clone-action="new_home">%s</button>',
@@ -286,8 +304,11 @@
                         sprintf( '<strong>%s</strong>', $current_url)
                     ),
                     sprintf(
-                        fs_esc_html_inline( '%s is new and different website that is separate from %s. %s', 'new-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url), sprintf( '<strong>%s</strong>', $site_urls[0] ),
+                        fs_esc_html_inline( 'Yes, %s is a new and different website that is separate from %s. %s', 'new-site-message' ),
+                        sprintf( '<strong>%s</strong>', $current_url),
+                        ( 1 === $total_sites ?
+                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                            $above_mentioned_sites_text ),
                         $is_premium ?
                             fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
                             ''
