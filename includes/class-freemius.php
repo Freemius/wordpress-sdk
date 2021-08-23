@@ -2712,8 +2712,12 @@
 
             $this->_storage->store( 'uninstall_reason', $reason );
 
-            if (Freemius::REASON_TEMPORARY_DEACTIVATION == $reason->id && '' != fs_request_get('snooze_period')) {
-                set_site_transient('fs_snooze_period', fs_request_get('snooze_period'));
+            if ( self::REASON_TEMPORARY_DEACTIVATION == $reason->id ) {
+                $snooze_period = fs_request_get( 'snooze_period' );
+
+                if ( is_numeric( $snooze_period ) && 0 < $snooze_period ) {
+                    self::snooze_deactivation_form( (int) $snooze_period );
+                }
             }
 
             /**
@@ -2736,6 +2740,58 @@
             echo 1;
             exit;
         }
+
+        #--------------------------------------------------------------------------------
+        #region Deactivation Feedback Snoozing
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param int $period
+         *
+         * @return bool True if the value was set, false otherwise.
+         */
+        private static function snooze_deactivation_form( $period ) {
+            return ( 0 < $period && self::reset_deactivation_snoozing( $period ) );
+        }
+
+        /**
+         * Check if deactivation feedback form is snoozed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return bool
+         */
+        static function is_deactivation_snoozed() {
+            $is_snoozed = ( ! is_multisite() || fs_is_network_admin() ) ?
+                get_transient( 'fs_snooze_period' ) :
+                get_site_transient( 'fs_snooze_period' );
+
+
+            return ( 'true' === $is_snoozed );
+        }
+
+        /**
+         * Reset deactivation snoozing. When `$period` is `0` will stop deactivation snoozing by deleting the transients. Otherwise, will set the transients for the selected period.
+         *
+         * @param int $period Period in seconds.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         */
+        private static function reset_deactivation_snoozing( $period = 0 ) {
+            $value = ( 0 === $period ) ? null : 'true';
+
+            if ( ! is_multisite() || fs_is_network_admin() ) {
+                return set_transient( 'fs_snooze_period', $value, $period );
+            } else {
+                return set_site_transient( 'fs_snooze_period', $value, $period );
+            }
+        }
+        #endregion
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -7155,15 +7211,6 @@
         }
 
         /**
-         * @author Edgar Melkonyan
-         *
-         * @return bool
-         */
-        function is_premium_without_license() {
-            return ($this->is_premium() && ! $this->is_registered());
-        }
-
-        /**
          *
          * NOTE: admin_menu action executed before admin_init.
          *
@@ -7181,11 +7228,23 @@
             if ( $this->is_plugin_activation() ) {
                 delete_transient( "fs_{$this->_module_type}_{$this->_slug}_activated" );
 
-                if ( isset( $_GET['activate-multi'] ) ||
-                    (get_site_transient('fs_snooze_period') && ! $this->is_premium_without_license())
-                ) {
+                if ( isset( $_GET['activate-multi'] ) ) {
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
+                     */
+                } else if (
+                    self::is_deactivation_snoozed() &&
+                    (
+                        // Either running the free code base.
+                        ! $this->is_premium() ||
+                        // Or if has a free version.
+                        ! $this->is_only_premium() ||
+                        // If premium only, don't redirect if license is activated.
+                        ( $this->is_registered() && ! $this->can_use_premium_code() )
+                    )
+                ) {
+                    /**
+                     * Don't redirect if activating during the deactivation snooze period (aka troubleshooting), unless activating a paid product version that the admin didn't enter its license key yet.
                      */
                 } else if ( ! $is_migration ) {
                     $this->_redirect_on_activation_hook();
