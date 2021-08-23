@@ -3833,15 +3833,11 @@
             $site_urls               = array_unique( $site_urls );
             $sites_with_license_urls = array_unique( $sites_with_license_urls );
 
-            $module_label = 'product';
+            $module_label = fs_text_inline( 'product', 'product' );
             $module_title = null;
 
             if ( ! FS_Clone_Manager::instance()->is_temporary_duplicate() ) {
                 if ( ! empty( $site_urls ) ) {
-                    if ( 1 === count( $site_urls ) ) {
-                        $module_label = $first_instance_with_clone->get_module_label( true );
-                    }
-
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
                     FS_Clone_Manager::instance()->add_manual_clone_resolution_admin_notice(
@@ -3849,8 +3845,7 @@
                         $site_urls,
                         fs_strip_url_protocol( get_site_url() ),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
-                        ( count( $site_urls ) === $sites_with_premium_version_count ),
-                        $module_label
+                        ( count( $site_urls ) === $sites_with_premium_version_count )
                     );
                 }
 
@@ -3897,10 +3892,10 @@
 
             return sprintf(
                 sprintf(
-                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message"></p><p>%s</p></div>',
+                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message" style="display: none"></p><p>%s</p></div>',
                     ( 1 === $total_sites ?
-                        fs_esc_html_inline( '%s is a temporary duplicate of %s.', 'temporary-duplicate-message' ) :
-                        fs_esc_html_inline( '%s is a temporary duplicate of these sites:%s', 'temporary-duplicate-of-sites-message' ) )
+                        fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) :
+                        fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites:%s', 'temporary-duplicate-of-sites-message' ) )
                 ) . '%s',
                 sprintf( '<strong>%s</strong>', $current_url ),
                 ( 1 === $total_sites ?
