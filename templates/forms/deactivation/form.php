@@ -284,9 +284,26 @@ HTML;
 			var _this = $(this);
 
 			if (_this.hasClass('allow-deactivate')) {
-				var $radio = $modal.find('input[type="radio"]:checked');
+				var
+                    $radio           = $modal.find('input[type="radio"]:checked'),
+                    isReasonSelected = (0 < $radio.length),
+                    userReason       = '';
 
-				if (0 === $radio.length) {
+				if ( isReasonSelected ) {
+                    var $selectedReason = $radio.parents('li:first'),
+                        $reasonInput = $selectedReason.find('textarea, input[type="text"]');
+
+                    if ( 0 < $reasonInput.length ) {
+                        userReason = $reasonInput.val().trim();
+                    }
+                }
+
+                if ( isOtherReasonSelected() && '' === userReason ) {
+                    // If the 'Other' is selected and a reason is not provided (aka it's empty), treat it as if a reason wasn't selected at all.
+                    isReasonSelected = false;
+                }
+
+                if ( ! isReasonSelected ) {
 				    if ( ! deleteThemeUpdateData ) {
                         // If no selected reason, just deactivate the plugin.
                         window.location.href = redirectLink;
@@ -311,18 +328,6 @@ HTML;
 
 					return;
 				}
-
-				var $selected_reason = $radio.parents('li:first'),
-				    $input = $selected_reason.find('textarea, input[type="text"]'),
-				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
-
-                if (isOtherReasonSelected() && ( '' === userReason )) {
-                    // If the reason is empty, just deactivate it without submitting the feedback.
-                    _parent.find('.fs-modal-footer .button').addClass('disabled');
-                    window.location.href = redirectLink;
-
-                    return;
-                }
 
 				$.ajax({
 					url       : ajaxurl,
