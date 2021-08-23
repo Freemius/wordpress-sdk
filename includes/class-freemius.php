@@ -3526,29 +3526,11 @@
          * @return bool
          */
         private function is_unresolved_clone() {
-            if ( FS_Clone_Manager::instance()->is_handling_clones() ) {
-                return true;
-            }
-
             if ( ! $this->is_clone() ) {
                 return false;
             }
 
             return ( ! FS_Clone_Manager::instance()->is_temporary_duplicate( false ) );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         */
-        private static function strip_protocol( $url ) {
-            $pos = strpos( $url, '://' );
-
-            if ( false === $pos ) {
-                return $url;
-            }
-
-            return substr( $url, $pos + 3 );
         }
 
         /**
@@ -3821,7 +3803,7 @@
 
                 $install = $instance->get_site();
 
-                $site_urls[]      = self::strip_protocol( $install->url );
+                $site_urls[]      = fs_strip_url_protocol( $install->url );
                 $product_titles[] = $instance->get_plugin_title();
 
                 if ( is_null( $first_instance_with_clone ) ) {
@@ -3829,7 +3811,7 @@
                 }
 
                 if ( is_object( $instance->_get_license() ) ) {
-                    $sites_with_license_urls[] = self::strip_protocol( $install->url );
+                    $sites_with_license_urls[] = fs_strip_url_protocol( $install->url );
                 }
                 
                 if ( $instance->is_premium() ) {
@@ -3859,7 +3841,7 @@
                     FS_Clone_Manager::instance()->add_manual_clone_resolution_admin_notice(
                         $product_titles,
                         $site_urls,
-                        self::strip_protocol( get_site_url() ),
+                        fs_strip_url_protocol( get_site_url() ),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
                         ( count( $site_urls ) === $sites_with_premium_version_count ),
                         $module_label
@@ -3896,7 +3878,7 @@
 
             $total_sites = count( $site_urls );
 
-            $current_url = self::strip_protocol( get_site_url() );
+            $current_url = fs_strip_url_protocol( get_site_url() );
             $sites_list  = '';
 
             if ( $total_sites > 1 ) {
