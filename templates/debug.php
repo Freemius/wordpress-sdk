@@ -77,6 +77,16 @@
                 <button class="button"><?php fs_esc_html_echo_inline( 'Clear Updates Transients' ) ?></button>
             </form>
         </td>
+        <?php if ( Freemius::is_deactivation_snoozed() ) : ?>
+        <td>
+            <!-- Reset Deactivation Snoozing -->
+            <form action="" method="POST">
+                <input type="hidden" name="fs_action" value="reset_deactivation_snoozing">
+                <?php wp_nonce_field( 'reset_deactivation_snoozing' ) ?>
+                <button class="button"><?php fs_esc_html_echo_inline( 'Reset Deactivation Snoozing' ) ?> (Expires in <?php echo ( Freemius::deactivation_snooze_expires_at() - time() ) ?> sec)</button>
+            </form>
+        </td>
+        <?php endif ?>
         <td>
             <!-- Sync Data with Server -->
             <form action="" method="POST">

@@ -24,6 +24,7 @@
     $anonymous_feedback_checkbox_html = '';
 
     $reasons_list_items_html = '';
+    $snooze_select_html      = '';
 
     if ( $show_deactivation_feedback_form ) {
         $reasons = $VARS['reasons'];
@@ -64,6 +65,41 @@ HTML;
                 fs_esc_html_inline( 'Anonymous feedback', 'anonymous-feedback', $slug )
             );
         }
+
+        $snooze_periods = array(
+            array(
+                'increment' => fs_text_inline( 'hour', $slug ),
+                'quantity'  => number_format_i18n(1),
+                'value'     => 6 * WP_FS__TIME_10_MIN_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'hours', $slug ),
+                'quantity'  => number_format_i18n(24),
+                'value'     => WP_FS__TIME_24_HOURS_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'days', $slug ),
+                'quantity'  => number_format_i18n(7),
+                'value'     => WP_FS__TIME_WEEK_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'days', $slug ),
+                'quantity'  => number_format_i18n(30),
+                'value'     => 30 * WP_FS__TIME_24_HOURS_IN_SEC,
+            ),
+        );
+
+        $snooze_select_html = '<select>';
+        foreach ($snooze_periods as $period) {
+            $snooze_select_html .= sprintf(
+                '<option value="%s">%s %s</option>',
+                $period['value'],
+                $period['quantity'],
+                $period['increment']
+            );
+        }
+
+        $snooze_select_html .= '</select>';
     }
 
 	// Aliases.
@@ -92,6 +128,7 @@ HTML;
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
+			+ '         <label style="display: none" class="feedback-from-snooze-label"><input type="checkbox" class="feedback-from-snooze-checkbox"> <span><?php fs_esc_js_echo_inline( 'Snooze this panel during troubleshooting', 'snooze-panel-during-troubleshooting', $slug ) ?></span><span style="display: none"><?php fs_esc_js_echo_inline( 'Snooze this panel for', 'snooze-panel-for', $slug ) ?> <?php echo $snooze_select_html ?></span></label>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
 		    + '			<a href="#" class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
 		    + '		</div>'
@@ -101,6 +138,7 @@ HTML;
 	    selectedReasonID               = false,
 	    redirectLink                   = '',
 		$anonymousFeedback             = $modal.find( '.anonymous-feedback-label' ),
+		$feedbackSnooze                = $modal.find( '.feedback-from-snooze-label' ),
 		isAnonymous                    = <?php echo ( $is_anonymous ? 'true' : 'false' ); ?>,
 		otherReasonID                  = <?php echo Freemius::REASON_OTHER; ?>,
 		dontShareDataReasonID          = <?php echo Freemius::REASON_DONT_LIKE_TO_SHARE_MY_INFORMATION; ?>,
@@ -306,7 +344,12 @@ HTML;
 
 				var $selected_reason = $radio.parents('li:first'),
 				    $input = $selected_reason.find('textarea, input[type="text"]'),
-				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '';
+				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '',
+                    snoozePeriod = 0;
+
+				if ( (<?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID) ) {
+                    snoozePeriod = parseInt($feedbackSnooze.find('select').val(), 10);
+                }
 
 				if (isOtherReasonSelected() && ( '' === userReason )) {
 					return;
@@ -316,12 +359,13 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						action      : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',
-						security    : '<?php echo $fs->get_ajax_security( 'submit_uninstall_reason' ) ?>',
-						module_id   : '<?php echo $fs->get_id() ?>',
-						reason_id   : $radio.val(),
-						reason_info : userReason,
-						is_anonymous: isAnonymousFeedback()
+						action       : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',
+						security     : '<?php echo $fs->get_ajax_security( 'submit_uninstall_reason' ) ?>',
+						module_id    : '<?php echo $fs->get_id() ?>',
+						reason_id    : $radio.val(),
+						reason_info  : userReason,
+						is_anonymous : isAnonymousFeedback(),
+                        snooze_period: snoozePeriod
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
@@ -365,12 +409,12 @@ HTML;
 
 			$modal.find('.reason-input').remove();
 			$modal.find( '.internal-message' ).hide();
-			$modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
-				fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
-				$fs->is_plugin() ?
-					$deactivate_text :
-					sprintf( $activate_x_text, $theme_text )
-			) ) ?>');
+            $modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
+                fs_text_inline( 'Submit & %s', 'deactivation-modal-button-submit' , $slug ),
+                $fs->is_plugin() ?
+                    $deactivate_text :
+                    sprintf( $activate_x_text, $theme_text )
+            ) ) ?>').removeClass('button-secondary').addClass('button-primary');
 
 			enableDeactivateButton();
 
@@ -391,7 +435,44 @@ HTML;
 					disableDeactivateButton();
 				}
 			}
+
+            $anonymousFeedback.toggle( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> != selectedReasonID );
+            $feedbackSnooze.toggle( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID );
+
+            if ( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID ) {
+                updateDeactivationButtonOnTrouble();
+            }
 		});
+
+		var snooze = false;
+
+		var updateDeactivationButtonOnTrouble = function () {
+            if ( snooze ) {
+                $modal.find('.button-deactivate').html('<?php echo esc_js( sprintf(
+                    fs_text_inline( 'Snooze & %s', 'snooze-modal-button-submit' , $slug ),
+                    $fs->is_plugin() ?
+                        $deactivate_text :
+                        sprintf( $activate_x_text, $theme_text )
+                ) ) ?>');
+            } else {
+                $modal.find('.button-deactivate').html('<?php echo esc_js(
+                    $fs->is_plugin() ?
+                        $deactivate_text :
+                        sprintf( $activate_x_text, $theme_text )
+                ) ?>');
+            }
+        };
+
+        $feedbackSnooze.on( 'click', 'input', function () {
+            var $spans = $feedbackSnooze.find( 'span' );
+
+            snooze = ( ! snooze );
+
+            $( $spans[0] ).toggle();
+            $( $spans[1] ).toggle();
+
+            updateDeactivationButtonOnTrouble();
+        });
 
 		// If the user has clicked outside the window, cancel it.
 		$modal.on('click', function (evt) {
