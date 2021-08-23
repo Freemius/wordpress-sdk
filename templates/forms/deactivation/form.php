@@ -24,6 +24,7 @@
     $anonymous_feedback_checkbox_html = '';
 
     $reasons_list_items_html = '';
+    $snooze_select_html      = '';
 
     if ( $show_deactivation_feedback_form ) {
         $reasons = $VARS['reasons'];
@@ -64,6 +65,41 @@ HTML;
                 fs_esc_html_inline( 'Anonymous feedback', 'anonymous-feedback', $slug )
             );
         }
+
+        $snooze_periods = array(
+            array(
+                'increment' => fs_text_inline( 'hour', $slug ),
+                'quantity'  => number_format_i18n(1),
+                'value'     => 6 * WP_FS__TIME_10_MIN_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'hours', $slug ),
+                'quantity'  => number_format_i18n(24),
+                'value'     => WP_FS__TIME_24_HOURS_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'days', $slug ),
+                'quantity'  => number_format_i18n(7),
+                'value'     => WP_FS__TIME_WEEK_IN_SEC,
+            ),
+            array(
+                'increment' => fs_text_inline( 'days', $slug ),
+                'quantity'  => number_format_i18n(30),
+                'value'     => 30 * WP_FS__TIME_24_HOURS_IN_SEC,
+            ),
+        );
+
+        $snooze_select_html = '<select>';
+        foreach ($snooze_periods as $period) {
+            $snooze_select_html .= sprintf(
+                '<option value="%s">%s %s</option>',
+                $period['value'],
+                $period['quantity'],
+                $period['increment']
+            );
+        }
+
+        $snooze_select_html .= '</select>';
     }
 
 	// Aliases.
@@ -92,7 +128,7 @@ HTML;
 		    + '		</div>'
 		    + '		<div class="fs-modal-footer">'
 			+ '         <?php echo $anonymous_feedback_checkbox_html ?>'
-			+ '         <label style="display: none" class="feedback-from-snooze-label"><input type="checkbox" class="feedback-from-snooze-checkbox"> <span><?php fs_esc_js_echo_inline( 'Snooze this panel during troubleshooting', 'snooze-panel-during-troubleshooting', $slug ) ?></span><span style="display: none"><?php fs_esc_js_echo_inline( 'Snooze this panel for', 'snooze-panel-for', $slug ) ?> <select><option><?php echo number_format_i18n(1) ?> <?php fs_esc_js_echo_inline( 'hour', $slug ) ?></option><option><?php echo number_format_i18n(24) ?> <?php fs_esc_js_echo_inline( 'hours', $slug ) ?></option><option><?php echo number_format_i18n(7) ?> <?php fs_esc_js_echo_inline( 'days', $slug ) ?></option><option><?php echo number_format_i18n(30) ?> <?php fs_esc_js_echo_inline( 'days', $slug ) ?></option></select></span></label>'
+			+ '         <label style="display: none" class="feedback-from-snooze-label"><input type="checkbox" class="feedback-from-snooze-checkbox"> <span><?php fs_esc_js_echo_inline( 'Snooze this panel during troubleshooting', 'snooze-panel-during-troubleshooting', $slug ) ?></span><span style="display: none"><?php fs_esc_js_echo_inline( 'Snooze this panel for', 'snooze-panel-for', $slug ) ?> <?php echo $snooze_select_html ?></span></label>'
 		    + '			<a href="#" class="button button-secondary button-deactivate"></a>'
 		    + '			<a href="#" class="button button-secondary button-close"><?php fs_esc_js_echo_inline( 'Cancel', 'cancel', $slug ) ?></a>'
 		    + '		</div>'
