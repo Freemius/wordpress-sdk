@@ -9920,8 +9920,9 @@
 
                     if ( ! empty( $install_data ) || $is_common_diff ) {
                         // Add install ID and site unique ID.
-                        $install_data['id']  = $install->id;
-                        $install_data['uid'] = $uid;
+                        $install_data['id']       = $install->id;
+                        $install_data['uid']      = $uid;
+                        $install_data['is_clone'] = ( trailingslashit( $install->url ) !== trailingslashit( get_site_url( $blog_id ) ) );
 
                         $installs_data[] = $install_data;
                     }
