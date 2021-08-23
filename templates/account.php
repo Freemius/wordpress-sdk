@@ -46,7 +46,7 @@
     $site                   = $fs->get_site();
     $name                   = $user->get_name();
     $license                = $fs->_get_license();
-    $is_license_foreign     = ( $user->id != $license->user_id );
+    $is_license_foreign     = ( is_object( $license ) && $user->id != $license->user_id );
     $is_data_debug_mode     = $fs->is_data_debug_mode();
     $is_whitelabeled        = $fs->is_whitelabeled();
     $subscription           = ( is_object( $license ) ?
