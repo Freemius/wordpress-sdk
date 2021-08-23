@@ -345,10 +345,10 @@ HTML;
 				var $selected_reason = $radio.parents('li:first'),
 				    $input = $selected_reason.find('textarea, input[type="text"]'),
 				    userReason = ( 0 !== $input.length ) ? $input.val().trim() : '',
-                    snooze_period = '';
+                    snoozePeriod = 0;
 
 				if ( (<?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID) ) {
-                    snooze_period =  $feedbackSnooze.find('select').val()
+                    snoozePeriod = parseInt($feedbackSnooze.find('select').val(), 10);
                 }
 
 				if (isOtherReasonSelected() && ( '' === userReason )) {
@@ -359,13 +359,13 @@ HTML;
 					url       : ajaxurl,
 					method    : 'POST',
 					data      : {
-						action      : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',
-						security    : '<?php echo $fs->get_ajax_security( 'submit_uninstall_reason' ) ?>',
-						module_id   : '<?php echo $fs->get_id() ?>',
-						reason_id   : $radio.val(),
-						reason_info : userReason,
-						is_anonymous: isAnonymousFeedback(),
-                        snooze_period: snooze_period
+						action       : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',
+						security     : '<?php echo $fs->get_ajax_security( 'submit_uninstall_reason' ) ?>',
+						module_id    : '<?php echo $fs->get_id() ?>',
+						reason_id    : $radio.val(),
+						reason_info  : userReason,
+						is_anonymous : isAnonymousFeedback(),
+                        snooze_period: snoozePeriod
 					},
 					beforeSend: function () {
 						_parent.find('.fs-modal-footer .button').addClass('disabled');
