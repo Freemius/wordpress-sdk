@@ -3670,13 +3670,15 @@
          * @since 2.4.3
          */
         private function handle_long_term_duplicate() {
-            $site = $this->_site;
-
             $this->delete_current_install( false );
 
             if ( ! is_object( $this->_license ) ) {
                 $this->opt_in();
-            } else if ( ! $this->_license->is_utilized( $site->is_localhost() ) ) {
+            } else if (
+                ! $this->_license->is_utilized(
+                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( get_site_url() ) )
+                )
+            ) {
                 $this->opt_in( false, false, false, $this->_license->secret_key );
             }
         }
@@ -3734,7 +3736,10 @@
                     $is_clone = $instance->is_clone();
                 }
 
-                if ( $is_clone && $current_install->is_localhost() ) {
+                if (
+                    $is_clone &&
+                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( $current_url ) )
+                ) {
                     $license_key = false;
 
                     if ( $instance->is_premium() ) {
