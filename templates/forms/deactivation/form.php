@@ -303,6 +303,8 @@ HTML;
                     isReasonSelected = false;
                 }
 
+                _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
+
                 if ( ! isReasonSelected ) {
 				    if ( ! deleteThemeUpdateData ) {
                         // If no selected reason, just deactivate the plugin.
@@ -317,7 +319,6 @@ HTML;
                                 module_id: '<?php echo $fs->get_id() ?>'
                             },
                             beforeSend: function() {
-                                _parent.find( '.fs-modal-footer .button' ).addClass( 'disabled' );
                                 _parent.find( '.fs-modal-footer .button-deactivate' ).text( '<?php echo esc_js( fs_text_inline( 'Processing', 'processing', $slug ) ) ?>...' );
                             },
                             complete  : function() {
@@ -341,7 +342,6 @@ HTML;
 						is_anonymous: isAnonymousFeedback()
 					},
 					beforeSend: function () {
-						_parent.find('.fs-modal-footer .button').addClass('disabled');
 						_parent.find('.fs-modal-footer .button-deactivate').text('<?php echo esc_js( fs_text_inline( 'Processing', 'processing', $slug ) ) ?>...');
 					},
 					complete  : function () {
