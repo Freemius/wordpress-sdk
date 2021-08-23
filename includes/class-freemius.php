@@ -408,8 +408,10 @@
          * @param bool        $is_init Since 1.2.1 Is initiation sequence.
          */
         private function __construct( $module_id, $slug = false, $is_init = false ) {
+            $main_file = false;
+
             if ( $is_init && is_numeric( $module_id ) && is_string( $slug ) ) {
-                $this->store_id_slug_type_path_map( $module_id, $slug );
+                $main_file = $this->store_id_slug_type_path_map( $module_id, $slug );
             }
 
             $this->_module_id   = $module_id;
@@ -424,7 +426,7 @@
 
             $this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
+            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init, $main_file );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -1642,7 +1644,11 @@
 
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
-                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    } else {
+                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
+                    }
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -1652,7 +1658,12 @@
                 add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                    add_action( 'deleted_blog', array( $this, '_after_site_deleted_callback' ), 10, 2 );
+                } else {
+                    add_action( 'wp_delete_site', array( $this, '_after_wpsite_deleted_callback' ) );
+                }
 
                 add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
                 add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
@@ -1677,6 +1688,7 @@
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
             add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
             add_action( 'admin_init', array( &$this, '_add_user_change_option' ) );
+            add_action( 'admin_init', array( &$this, '_add_email_address_update_option' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
@@ -2094,20 +2106,27 @@
         /**
          * Leverage backtrace to find caller plugin file path.
          *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.6
-         *
-         * @param  bool $is_init Is initiation sequence.
+         * @param bool   $is_init   Is initiation sequence.
+         * @param string $main_file Since 2.4.3 expects the module's main file path to potentially purge the cached path.
          *
          * @return string
+         * @since  1.0.6
+         *
+         * @author Vova Feldman (@svovaf)
          */
-        private function _find_caller_plugin_file( $is_init = false ) {
+        private function _find_caller_plugin_file( $is_init = false, $main_file = '' ) {
             // Try to load the cached value of the file path.
             if ( isset( $this->_storage->plugin_main_file ) ) {
                 $plugin_main_file = $this->_storage->plugin_main_file;
                 if ( ! empty( $plugin_main_file->path ) ) {
                     $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
                     if ( file_exists( $absolute_path ) ) {
+                        if ( $is_init && $absolute_path !== $this->get_absolute_path( $main_file ) ) {
+                            // Update cached path if not matching the actual path.
+                            $plugin_main_file->path = $main_file;
+                            $this->_storage->plugin_main_file = $plugin_main_file;
+                        }
+
                         return $absolute_path;
                     }
                 }
@@ -2148,12 +2167,11 @@
              * Only the original instantiator that calls dynamic_init can modify the module's path.
              */
             // Find caller module.
-            $id_slug_type_path_map            = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
             $this->_storage->plugin_main_file = (object) array(
-                'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
+                'path' => $main_file,
             );
 
-            return $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+            return $this->get_absolute_path( $main_file );
         }
 
         /**
@@ -2215,6 +2233,8 @@
          * @param number $module_id
          * @param string $slug
          *
+         * @return string Since 2.4.3 return the module's main file path.
+         *
          * @since  1.2.2
          */
         private function store_id_slug_type_path_map( $module_id, $slug ) {
@@ -2236,20 +2256,52 @@
                 $store_option                                = true;
             }
 
-            if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
-                 /**
-                  * This verification is for cases when suddenly the same module
-                  * is installed but with a different folder name.
-                  *
-                  * @author Vova Feldman (@svovaf)
-                  * @since  1.2.3
-                  */
-                 ! file_exists( $this->get_absolute_path(
-                     $id_slug_type_path_map[ $module_id ]['path'],
-                     $id_slug_type_path_map[ $module_id ]['type']
-                 ) )
-            ) {
-                $caller_main_file_and_type = $this->get_caller_main_file_and_type();
+            $find_caller = empty( $id_slug_type_path_map[ $module_id ]['path'] );
+
+            if ( ! $find_caller ) {
+                /**
+                 * This verification is for cases when suddenly the same module
+                 * is installed but with a different folder name.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.2.3
+                 */
+                $find_caller = ! file_exists( $this->get_absolute_path(
+                    $id_slug_type_path_map[ $module_id ]['path'],
+                    $id_slug_type_path_map[ $module_id ]['type']
+                ) );
+            }
+
+            foreach ( $id_slug_type_path_map as $id => $data ) {
+                if ( empty( $id ) ) {
+                    // Remove maps with empty module ID.
+                    unset( $id_slug_type_path_map[ $id ] );
+                    $store_option = true;
+                    continue;
+                }
+
+                /**
+                 * If the module's main file path is identical to the main file path of another module then it means that the cached path of the current module or the other one with the same path is wrong, and therefore, we need to recalculate those paths.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  2.4.3
+                 */
+                if ( ! $find_caller ) {
+                    if ( $id == $module_id ) {
+                        continue;
+                    }
+
+                    if (
+                        isset( $data['path'] ) &&
+                        $data['path'] === $id_slug_type_path_map[ $module_id ]['path']
+                    ) {
+                        $find_caller = true;
+                    }
+                }
+            }
+
+            if ( $find_caller ) {
+                $caller_main_file_and_type = $this->get_caller_main_file_and_type( $module_id );
 
                 $id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
                 $id_slug_type_path_map[ $module_id ]['path'] = $caller_main_file_and_type->path;
@@ -2260,6 +2312,8 @@
             if ( $store_option ) {
                 self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
             }
+
+            return $id_slug_type_path_map[ $module_id ]['path'];
         }
 
         /**
@@ -2273,8 +2327,10 @@
          *         add-ons are relying on loading the SDK from the parent module, and also allows themes including the
          *         SDK an internal file instead of directly from functions.php.
          * @since  1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
+         *
+         * @param number $module_id @since 2.4.3
          */
-        private function get_caller_main_file_and_type() {
+        private function get_caller_main_file_and_type( $module_id ) {
             self::require_plugin_essentials();
 
             $all_plugins       = fs_get_plugins( true );
@@ -2413,10 +2469,12 @@
                 }
             }
 
-            return (object) array(
+            $caller_main_file_and_type = (object) array(
                 'module_type' => $module_type,
                 'path'        => $caller_file_candidate
             );
+
+            return apply_filters( "fs_{$module_id}_caller_main_file_and_type", $caller_main_file_and_type );
         }
 
         #----------------------------------------------------------------------------------
@@ -3648,8 +3706,8 @@
         static function _get_debug_log() {
             $logs = FS_Logger::load_db_logs(
                 fs_request_get( 'filters', false, 'post' ),
-                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
-                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
+                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 200,
+                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? intval( $_POST['offset'] ) : 0
             );
 
             self::shoot_ajax_success( $logs );
@@ -3808,55 +3866,65 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         * 
+         * @return array
+         */
+        private static function get_all_modules_sites() {
+            self::$_static_logger->entrance();
+
+            $sites_by_type = array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(),
+                WP_FS__MODULE_TYPE_THEME  => array(),
+            );
+
+            $module_types = array_keys( $sites_by_type );
+
+            if ( ! is_multisite() ) {
+                foreach ( $module_types as $type ) {
+                    $sites_by_type[ $type ] = self::get_all_sites( $type );
+                }
+            } else {
+                $sites = self::get_sites();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    foreach ( $module_types as $type ) {
+                        $installs = self::get_all_sites( $type, $blog_id );
+
+                        foreach ( $installs as $slug => $install ) {
+                            if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
+                                $sites_by_type[ $type ][ $slug ] = array();
+                            }
+
+                            $install->blog_id = $blog_id;
+
+                            $sites_by_type[ $type ][ $slug ][] = $install;
+                        }
+
+                    }
+                }
+            }
+
+            return $sites_by_type;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.8
          */
         static function _debug_page_render() {
             self::$_static_logger->entrance();
 
-            if ( ! is_multisite() ) {
-                $all_plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN );
-                $all_themes_installs  = self::get_all_sites( WP_FS__MODULE_TYPE_THEME );
-            } else {
-                $sites = self::get_sites();
-
-                $all_plugins_installs = array();
-                $all_themes_installs  = array();
-
-                foreach ( $sites as $site ) {
-                    $blog_id = self::get_site_blog_id( $site );
-
-                    $plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id );
-
-                    foreach ( $plugins_installs as $slug => $install ) {
-                        if ( ! isset( $all_plugins_installs[ $slug ] ) ) {
-                            $all_plugins_installs[ $slug ] = array();
-                        }
-
-                        $install->blog_id = $blog_id;
-
-                        $all_plugins_installs[ $slug ][] = $install;
-                    }
-
-                    $themes_installs = self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id );
-
-                    foreach ( $themes_installs as $slug => $install ) {
-                        if ( ! isset( $all_themes_installs[ $slug ] ) ) {
-                            $all_themes_installs[ $slug ] = array();
-                        }
-
-                        $install->blog_id = $blog_id;
-
-                        $all_themes_installs[ $slug ][] = $install;
-                    }
-                }
-            }
+            $all_modules_sites = self::get_all_modules_sites();
 
             $licenses_by_module_type = self::get_all_licenses_by_module_type();
 
             $vars = array(
-                'plugin_sites'    => $all_plugins_installs,
-                'theme_sites'     => $all_themes_installs,
+                'plugin_sites'    => $all_modules_sites[ WP_FS__MODULE_TYPE_PLUGIN ],
+                'theme_sites'     => $all_modules_sites[ WP_FS__MODULE_TYPE_THEME ],
                 'users'           => self::get_all_users(),
                 'addons'          => self::get_all_addons(),
                 'account_addons'  => self::get_all_account_addons(),
@@ -4963,10 +5031,8 @@
                      * @since  1.1.7.3
                      *
                      */
-                    if ( $this->is_registered() ) {
-                        if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
-                            $this->schedule_sync_cron();
-                        }
+                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                        $this->maybe_schedule_sync_cron();
                     }
 
                     /**
@@ -4993,6 +5059,28 @@
             }
 
             if ( $this->is_user_in_admin() ) {
+                if ( $this->is_registered() && fs_request_has( 'purchase_completed' ) ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf(
+                        /* translators: %s: License type (e.g. you have a professional license) */
+                            $this->get_text_inline( 'You have purchased a %s license.', 'you-have-x-license' ),
+                            fs_request_get( 'purchased_plan' )
+                        ) .
+                        sprintf(
+                            $this->get_text_inline(" The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box.", 'post-purchase-email-sent-message' ),
+                            $this->get_module_label( true ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? "products' " : '' ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? 's' : '' ),
+                            sprintf(
+                                '<strong>%s</strong>',
+                                fs_request_get( 'purchase_email' )
+                            )
+                        ),
+                        'plan_purchased',
+                        $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                    );
+                }
+
                 if ( $this->is_addon() ) {
                     if ( ! $this->is_parent_plugin_installed() ) {
                         $parent_name = $this->get_option( $plugin_info, 'parent_name', null );
@@ -6994,6 +7082,24 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        private function maybe_schedule_sync_cron() {
+            $next_schedule = $this->next_sync_cron();
+
+            // The event is properly scheduled, so no need to reschedule it.
+            if (
+                is_numeric( $next_schedule ) &&
+                $next_schedule > time()
+            ) {
+                return;
+            }
+
+            $this->schedule_sync_cron();
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.3
          *
@@ -7187,13 +7293,20 @@
         /**
          * Show a notice that activation is currently pending.
          *
+         * @todo Add some sort of mechanism to allow users to update the email address they would like to opt-in with when $is_suspicious_email is true.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
          * @param bool|string $email
          * @param bool        $is_pending_trial Since 1.2.1.5
+         * @param bool        $is_suspicious_email Since 2.4.3 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
          */
-        function _add_pending_activation_notice( $email = false, $is_pending_trial = false ) {
+        function _add_pending_activation_notice(
+            $email = false,
+            $is_pending_trial = false,
+            $is_suspicious_email = false
+        ) {
             if ( ! is_string( $email ) ) {
                 $current_user = self::_get_current_wp_user();
                 $email        = $current_user->user_email;
@@ -7449,8 +7562,6 @@
 
             fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
             fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
-
-            fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
         }
 
         /**
@@ -7873,7 +7984,9 @@
                     $plugin_version = $this->_storage->is_anonymous_ms['version'];
                     $network        = true;
                 } else {
-                    $plugin_version = $this->_storage->is_anonymous['version'];
+                    $plugin_version = isset( $this->_storage->is_anonymous ) ?
+                        $this->_storage->is_anonymous['version'] :
+                        null;
                     $network        = false;
                 }
 
@@ -8696,7 +8809,7 @@
          * @uses   Freemius::is_network_anonymous() to check if the super-admin network skipped.
          * @uses   Freemius::is_network_delegated_connection() to check if the super-admin network delegated the connection to the site admins.
          */
-        function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+        public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
             if ( $this->is_premium() &&
@@ -8792,6 +8905,27 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param \WP_Site $new_site
+         */
+        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_new_blog_callback(
+                $new_site->id,
+                // Dummy user ID (not in use).
+                0,
+                $new_site->domain,
+                $new_site->path,
+                $new_site->network_id,
+                // Dummy meta, not in use.
+                array()
+            );
         }
 
         /**
@@ -12962,6 +13096,75 @@
         }
 
         /**
+         * Displays an email address update dialog box when the user clicks on the email address "Edit" button on the "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        function _add_email_address_update_dialog_box() {
+            $vars = array( 'id' => $this->_module_id );
+
+            fs_require_template( 'forms/email-address-update.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _add_email_address_update_option() {
+            if ( ! $this->should_handle_user_change() ) {
+                return;
+            }
+
+            // Add email address update AJAX handler.
+            $this->add_ajax_action( 'update_email_address', array( &$this, '_email_address_update_ajax_handler' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _email_address_update_ajax_handler() {
+            $this->check_ajax_referer( 'update_email_address' );
+
+            $new_email_address = fs_request_get( 'email_address' );
+            $transfer_type     = fs_request_get( 'transfer_type' );
+
+            $result = $this->update_email( $new_email_address );
+
+            if ( ! FS_Api::is_api_error( $result ) ) {
+                self::shoot_ajax_success();
+            }
+
+            $error = '';
+
+            if ( FS_Api::is_api_error_object( $result ) ) {
+                switch ( $result->error->code ) {
+                    case 'user_exist':
+                    case 'account_verification_required':
+                        $error = array(
+                            'code' => 'change_ownership',
+                            'url'  => $this->get_account_url( 'change_owner', array(
+                                'state'           => 'init',
+                                'candidate_email' => $new_email_address,
+                                'transfer_type'   => $transfer_type,
+                            ) ),
+                        );
+
+                        break;
+                }
+            }
+
+            if ( empty( $error ) ) {
+                $error = is_object( $result ) ?
+                    var_export( $result->error, true ) :
+                    $result;
+            }
+
+            self::shoot_ajax_failure( $error );
+        }
+
+        /**
          * Returns a collection of IDs of installs that are associated with the context product and its add-ons, and activated with foreign licenses.
          *
          * @author Leo Fajardo (@leorw)
@@ -13168,10 +13371,15 @@
                     ( $is_network_admin && $this->is_network_active() && ! $this->is_network_delegated_connection() ) ||
                     ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
                 ) {
-                    /**
-                     * @since 1.2.0 Add license action link only on plugins page.
-                     */
-                    $this->_add_license_action_link();
+                    if (
+                        $this->is_premium() ||
+                        ( $this->has_paid_plan() && ! $this->has_premium_version() )
+                    ) {
+                        /**
+                         * @since 1.2.0 Add license action link only on plugins page.
+                         */
+                        $this->_add_license_action_link();
+                    }
                 }
             }
 
@@ -13956,7 +14164,7 @@
 
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
 
-                if ( ! $addon_info['is_connected'] ) {
+                if ( ! isset( $addon_info['is_connected'] ) || ! $addon_info['is_connected'] ) {
                     // Add-on is not associated with an install entity.
                     continue;
                 }
@@ -15227,12 +15435,17 @@
         }
 
         /**
+         * @todo Implement pagination when accessing the subsites collection.
+         *
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
+         * @param int $limit  Default to 1,000
+         * @param int $offset Default to 0
+         *
          * @return array Active & public sites collection.
          */
-        static function get_sites() {
+        static function get_sites( $limit = 1000, $offset = 0 ) {
             if ( ! is_multisite() ) {
                 return array();
             }
@@ -15254,6 +15467,8 @@
                 'mature'   => 0,
                 'spam'     => 0,
                 'deleted'  => 0,
+                'number'   => $limit,
+                'offset'   => $offset,
             );
 
             if ( function_exists( 'get_sites' ) ) {
@@ -15889,6 +16104,20 @@
             }
 
             $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site deletion, called from wp_delete_site
+         *
+         * @author Dario Curvino (@dudo)
+         * @since  2.4.3
+         *
+         * @param WP_Site $old_site
+         */
+        public function _after_wpsite_deleted_callback( WP_Site $old_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_site_deleted_callback( $old_site->blog_id, true );
         }
 
         /**
@@ -16885,7 +17114,8 @@
                         true ),
                     false,
                     $filtered_license_key,
-                    ! empty( $params['trial_plan_id'] )
+                    ! empty( $params['trial_plan_id'] ),
+                    isset( $decoded->is_suspicious_email ) && $decoded->is_suspicious_email
                 );
             } else if ( isset( $decoded->install_secret_key ) ) {
                 return $this->install_with_new_user(
@@ -17160,7 +17390,13 @@
                         );
                     }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
-                    $this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
+                    $this->set_pending_confirmation(
+                        fs_request_get( 'user_email' ),
+                        true,
+                        false,
+                        false,
+                        fs_request_get_bool( 'is_suspicious_email' )
+                    );
                 }
             }
         }
@@ -17402,7 +17638,8 @@
             $email = false,
             $redirect = true,
             $license_key = false,
-            $is_pending_trial = false
+            $is_pending_trial = false,
+            $is_suspicious_email = false
         ) {
             if ( $this->_ignore_pending_mode ) {
                 /**
@@ -17417,7 +17654,7 @@
                 // Install must be activated via email since
                 // user with the same email already exist.
                 $this->_storage->is_pending_activation = true;
-                $this->_add_pending_activation_notice( $email, $is_pending_trial );
+                $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
             }
 
             if ( ! empty( $license_key ) ) {
@@ -21561,9 +21798,11 @@
         private function get_latest_download_api_url( $plugin_id = false ) {
             $this->_logger->entrance();
 
-            return $this->get_api_site_scope()->get_signed_url(
+            $download_api_url = $this->get_api_site_scope()->get_signed_url(
                 $this->_get_latest_version_endpoint( $plugin_id, 'zip' )
             );
+
+            return str_replace( 'http:', 'https:', $download_api_url );
         }
 
         /**
@@ -21758,7 +21997,6 @@
         private function update_email( $new_email ) {
             $this->_logger->entrance();
 
-
             $api  = $this->get_api_user_scope();
             $user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,email,is_verified", 'put', array(
                 'email'                   => $new_email,
@@ -21774,7 +22012,6 @@
                 $this->_store_user();
             } else {
                 // handle different error cases.
-
             }
 
             return $user;
@@ -21850,15 +22087,32 @@
          * @uses   FS_Api
          *
          * @param string $candidate_email
+         * @param string $transfer_type
          *
          * @return bool Is ownership change successfully initiated.
          */
-        private function init_change_owner( $candidate_email ) {
+        private function init_change_owner( $candidate_email, $transfer_type ) {
             $this->_logger->entrance();
+
+            $installs_info_by_slug_map = $this->get_parent_and_addons_installs_info();
+            $install_ids               = array();
+
+            foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
+                $install = $install_info['install'];
+
+                if ( $this->_user->id != $install->user_id ) {
+                    // Skip add-on installs that are not owned by the parent product's install's owner.
+                    continue;
+                }
+
+                $install_ids[ $slug ] = $install->id;
+            }
 
             $api    = $this->get_api_site_scope();
             $result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
                 'email'             => $candidate_email,
+                'transfer_type'     => $transfer_type,
+                'install_ids'       => implode( ',', array_values( $install_ids ) ),
                 'after_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'change_owner' )
@@ -21880,28 +22134,113 @@
         private function complete_change_owner() {
             $this->_logger->entrance();
 
-            $site_result = $this->get_api_site_scope( true )->get();
-            $site        = new FS_Site( $site_result );
-            $this->_site = $site;
+            $install_ids = fs_request_get( 'install_ids' );
 
-            $user     = new FS_User();
-            $user->id = fs_request_get( 'user_id' );
+            if ( ! empty( $install_ids ) ) {
+                $install_ids = explode( ',', $install_ids );
 
-            // Validate install's user and given user.
-            if ( $user->id != $this->_site->user_id ) {
-                return false;
+                foreach ( $install_ids as $key => $install_id ) {
+                    if ( ! FS_Site::is_valid_id( $install_id ) ) {
+                        unset( $install_ids[ $key ] );
+                    }
+                }
             }
 
+            if ( ! is_array( $install_ids ) ) {
+                $install_ids = array();
+            }
+
+            $user             = new FS_User();
+            $user->id         = fs_request_get( 'user_id' );
             $user->public_key = fs_request_get( 'user_public_key' );
             $user->secret_key = fs_request_get( 'user_secret_key' );
 
-            // Fetch new user information.
+            $prev_user   = $this->_user;
             $this->_user = $user;
+
+            $result = $this->get_api_user_scope( true )->get(
+                "/installs.json?install_ids=" . implode( ',', $install_ids )
+            );
+
+            $current_blog_sites = self::get_all_sites( $this->get_module_type() );
+
+            if ( $this->is_api_result_object( $result, 'installs' ) ) {
+                $site_id_slug_map = array();
+
+                foreach ( $current_blog_sites as $slug => $site ) {
+                    $site_id_slug_map[ $site->id ] = $slug;
+                }
+
+                foreach ( $result->installs as $install ) {
+                    $site = new FS_Site( $install );
+
+                    if ( ! isset( $site_id_slug_map[ $install->id ] ) ) {
+                        continue;
+                    }
+
+                    $current_blog_sites[ $site_id_slug_map[ $install->id ] ] = clone $site;
+
+                    if ( $this->_site->id == $site->id ) {
+                        $this->_site = $site;
+                    }
+                }
+            }
+
+            // Validate install's user and given user.
+            if ( $user->id != $this->_site->user_id ) {
+                $this->_user = $prev_user;
+
+                return false;
+            }
+
+            $this->set_account_option( 'sites', $current_blog_sites, true );
+
+            // Fetch new user information.
             $user_result = $this->get_api_user_scope( true )->get();
             $user        = new FS_User( $user_result );
             $this->_user = $user;
 
-            $this->_set_account( $user, $site );
+            $this->_set_account( $user, $this->_site );
+
+            $remove_user       = true;
+            $all_modules_sites = self::get_all_modules_sites();
+
+            foreach ( $all_modules_sites as $sites_by_module_type ) {
+                foreach ( $sites_by_module_type as $sites_by_slug ) {
+                    foreach ( $sites_by_slug as $site ) {
+                        if ( $prev_user->id == $site->user_id ) {
+                            $remove_user = false;
+                            break;
+                        }
+                    }
+
+                    if ( ! $remove_user ) {
+                        break;
+                    }
+                }
+
+                if ( ! $remove_user ) {
+                    break;
+                }
+            }
+
+            if ( $remove_user ) {
+                $users = self::get_all_users();
+
+                if ( isset( $users[ $prev_user->id ] ) ) {
+                    unset( $users[ $prev_user->id ] );
+                } else {
+                    // If the prev user wasn't found by the key, iterate over the users collection.
+                    foreach ( $users as $key => $user ) {
+                        if ( $user->id == $prev_user->id ) {
+                            unset( $users[ $key ] );
+                            break;
+                        }
+                    }
+                }
+
+                $this->set_account_option( 'users', $users, true );
+            }
 
             return true;
         }
@@ -22313,10 +22652,15 @@
                     $state = fs_request_get( 'state', 'init' );
                     switch ( $state ) {
                         case 'init':
-                            $candidate_email = fs_request_get( 'candidate_email', '' );
+                            $candidate_email = fs_request_get( 'candidate_email' );
+                            $transfer_type   = fs_request_get( 'transfer_type' );
 
-                            if ( $this->init_change_owner( $candidate_email ) ) {
-                                $this->_admin_notices->add( sprintf( $this->get_text_inline( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
+                            if ( $this->init_change_owner( $candidate_email, $transfer_type ) ) {
+                                if ( 'transfer' === $transfer_type ) {
+                                    $this->_admin_notices->add( sprintf( $this->get_text_inline( 'A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours.', 'change-owner-request-sent-x-transfer' ), '<b>' . $this->_user->email . '</b>' ) );
+                                } else {
+                                    $this->_admin_notices->add( sprintf( $this->get_text_inline( 'A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
+                                }
                             }
                             break;
                         case 'owner_confirmed':
@@ -22335,37 +22679,6 @@
                                 // @todo Handle failed ownership change message.
                             }
                             break;
-                    }
-
-                    return;
-
-                case 'update_email':
-                    check_admin_referer( 'update_email' );
-
-                    $new_email = fs_request_get( 'fs_email_' . $this->get_unique_affix(), '' );
-                    $result    = $this->update_email( $new_email );
-
-                    if ( isset( $result->error ) ) {
-                        switch ( $result->error->code ) {
-                            case 'user_exist':
-                                $this->_admin_notices->add(
-                                    $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
-                                    sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email . '</b>' ) .
-                                    sprintf(
-                                        '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
-                                        $this->get_account_url( 'change_owner', array(
-                                            'state'           => 'init',
-                                            'candidate_email' => $new_email
-                                        ) ),
-                                        $this->get_text_inline( 'Change Ownership', 'change-ownership' )
-                                    ),
-                                    $oops_text,
-                                    'error'
-                                );
-                                break;
-                        }
-                    } else {
-                        $this->_admin_notices->add( $this->get_text_inline( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', 'email-updated-message' ) );
                     }
 
                     return;
@@ -23522,7 +23835,7 @@
             if (
                 $this->is_addon() &&
                 ! $this->is_only_premium() &&
-                $this->_parent->is_anonymous()
+                $this->get_parent_instance()->is_anonymous()
             ) {
                 return;
             }
