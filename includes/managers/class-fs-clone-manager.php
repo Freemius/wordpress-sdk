@@ -358,6 +358,23 @@
             return ( ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) > time() );
         }
 
+        /**
+         * @return bool
+         */
+        function is_temporary_duplicate_mode_expired() {
+            if ( ! isset( $this->_data['is_temporary_duplicate'] ) ) {
+                return false;
+            }
+
+            if ( true !== $this->_data['is_temporary_duplicate'] ) {
+                return false;
+            }
+
+            $clone_identification_timestamp = $this->get_clone_identification_timestamp();
+
+            return ( time() > ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) );
+        }
+
         function store_temporary_duplicate_flag() {
             $this->update_option( 'is_temporary_duplicate', true );
         }
