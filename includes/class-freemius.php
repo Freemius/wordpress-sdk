@@ -3830,6 +3830,9 @@
                 return;
             }
 
+            $site_urls               = array_unique( $site_urls );
+            $sites_with_license_urls = array_unique( $sites_with_license_urls );
+
             $module_label = 'product';
             $module_title = null;
 
