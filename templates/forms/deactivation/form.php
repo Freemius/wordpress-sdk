@@ -275,10 +275,6 @@ HTML;
 		} ?>
 
 		$modal.on('input propertychange', '.reason-input input', function () {
-			if (!isOtherReasonSelected()) {
-				return;
-			}
-
 			var reason = $(this).val().trim();
 
 			/**
@@ -288,6 +284,8 @@ HTML;
 			if (reason.length > 0) {
                 $('.message').removeClass('error-message');
             }
+
+            toggleDeactivationButtonPrimary( reason.length > 0 );
 
             changeDeactivateButtonText();
 		});
@@ -434,7 +432,11 @@ HTML;
 				_parent.find( '.internal-message' ).show();
 			}
 
-			if (_parent.hasClass('has-input')) {
+			if ( ! _parent.hasClass('has-input') ) {
+                toggleDeactivationButtonPrimary( true );
+            } else {
+                toggleDeactivationButtonPrimary( false );
+
 				var inputType = _parent.data('input-type'),
 				    inputPlaceholder = _parent.data('input-placeholder'),
 				    reasonInputHtml = '<div class="reason-input"><span class="message"></span>' + ( ( 'textfield' === inputType ) ? '<input type="text" maxlength="128" />' : '<textarea rows="5" maxlength="128"></textarea>' ) + '</div>';
@@ -455,6 +457,18 @@ HTML;
                 updateDeactivationButtonOnTrouble();
             }
 		});
+
+		var toggleDeactivationButtonPrimary = function ( isPrimary ) {
+		    if ( isPrimary ) {
+                $modal.find('.button-deactivate')
+                    .removeClass( 'button-secondary' )
+                    .addClass( 'button-primary' );
+            } else {
+                $modal.find('.button-deactivate')
+                    .addClass( 'button-secondary' )
+                    .removeClass( 'button-primary' );
+            }
+        };
 
 		var snooze = false;
 
