@@ -5693,7 +5693,7 @@
             }
 
             // Send update to FS.
-            $result = $this->get_api_site_scope()->call( $this->add_is_clone_param( '/?fields=is_disconnected' ), 'put', array(
+            $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
                 'is_disconnected' => true
             ) );
 
@@ -5842,7 +5842,7 @@
                 return true;
             }
 
-            $result = $this->get_api_site_scope()->call( $this->add_is_clone_param( '/?is_disconnected' ), 'put', array(
+            $result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
                 'is_disconnected' => false
             ) );
 
@@ -8466,7 +8466,7 @@
             } else {
                 // Activate the license.
                 $install = $this->get_api_site_scope()->call(
-                    $this->add_is_clone_param( '/' ),
+                    '/',
                     'put',
                     array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
                 );
@@ -10285,7 +10285,7 @@
                 $event['properties'] = $properties;
             }
 
-            $result = $this->get_api_site_scope()->call( $this->add_is_clone_param( 'events.json' ), 'post', $event );
+            $result = $this->get_api_site_scope()->call( 'events.json', 'post', $event );
 
             return $this->is_api_error( $result ) ?
                 false :
@@ -13935,7 +13935,7 @@
             }
 
             $site = $this->get_api_site_scope()->call(
-                $this->add_is_clone_param( '/' ),
+                '',
                 'put',
                 array(
                     'is_beta'   => ( 'true' == $is_beta ),
@@ -14040,7 +14040,7 @@
             
             $params['install_ids'] = implode( ',', array_values( $install_ids ) );
 
-            $install = $this->get_api_site_scope()->call( $this->add_is_clone_param( $this->add_show_pending( '/' ) ), 'put', $params );
+            $install = $this->get_api_site_scope()->call( $this->add_show_pending( '/' ), 'put', $params );
 
             if ( FS_Api::is_api_error( $install ) ) {
                 $error = '';
@@ -14358,7 +14358,7 @@
 
                         $api = $fs->get_api_site_scope();
 
-                        $install = $api->call( $fs->add_is_clone_param( $fs->add_show_pending( '/' ) ), 'put', $params );
+                        $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
 
                         if ( FS_Api::is_api_error( $install ) ) {
                             $error = FS_Api::is_api_error_object( $install ) ?
@@ -17102,7 +17102,7 @@
             $api = $this->get_api_site_scope();
 
             $uid          = $this->get_anonymous_id();
-            $request_path = $this->add_is_clone_param( "/users/{$site_user_id}.json?uid={$uid}" );
+            $request_path = "/users/{$site_user_id}.json?uid={$uid}";
 
             $result = $api->get( $request_path, false, WP_FS__TIME_10_MIN_IN_SEC );
 
@@ -20348,7 +20348,7 @@
                     $this->_license->id;
             }
 
-            $result = $api->get( $this->add_is_clone_param( "/licenses/{$license_id}/subscriptions.json" ), true );
+            $result = $api->get( "/licenses/{$license_id}/subscriptions.json", true );
 
             return ! isset( $result->error ) ?
                 ( ( is_array( $result->subscriptions ) && 0 < count( $result->subscriptions ) ) ?
@@ -20375,7 +20375,7 @@
                 $plan_id = $this->_site->plan_id;
             }
 
-            $plan = $api->get( $this->add_is_clone_param( "/plans/{$plan_id}.json" ), true );
+            $plan = $api->get( "/plans/{$plan_id}.json", true );
 
             return ! isset( $plan->error ) ? new FS_Plugin_Plan( $plan ) : $plan;
         }
@@ -20501,7 +20501,7 @@
 
                 if ( is_numeric( $site_license_id ) ) {
                     // Try to retrieve a foreign license that is linked to the install.
-                    $api_result = $api->call( $this->add_is_clone_param( '/licenses.json?is_enriched=true' ) );
+                    $api_result = $api->call( '/licenses.json?is_enriched=true' );
 
                     if ( $this->is_api_result_object( $api_result, 'licenses' ) &&
                          is_array( $api_result->licenses )
@@ -21632,7 +21632,7 @@
             }
 
             $api     = $this->get_api_site_scope();
-            $license = $api->call( $this->add_is_clone_param( "/licenses/{$premium_license->id}.json?is_enriched=true" ), 'put', $api_request_params );
+            $license = $api->call( "/licenses/{$premium_license->id}.json?is_enriched=true", 'put', $api_request_params );
 
             if ( ! $this->is_api_result_entity( $license ) ) {
                 if ( ! $background ) {
@@ -21658,7 +21658,7 @@
             $premium_license = new FS_Plugin_License( $license );
 
             // Updated site plan.
-            $site = $this->get_api_site_scope()->get( $this->add_is_clone_param( '/' ), true );
+            $site = $this->get_api_site_scope()->get( '/', true );
             if ( $this->is_api_result_entity( $site ) ) {
                 $this->_site = new FS_Site( $site );
             }
@@ -21714,7 +21714,7 @@
             }
 
             $api     = $this->get_api_site_scope();
-            $license = $api->call( $this->add_is_clone_param( "/licenses/{$this->_site->license_id}.json" ), 'delete' );
+            $license = $api->call( "/licenses/{$this->_site->license_id}.json", 'delete' );
 
             $this->handle_license_deactivation_result( $license, $hmm_text, $show_notice );
         }
@@ -21789,7 +21789,7 @@
             $deactivate_license = fs_request_get_bool( 'deactivate_license' );
 
             $api  = $this->get_api_site_scope();
-            $site = $api->call( $this->add_is_clone_param( 'downgrade.json' ), 'put', array( 'deactivate_license' => $deactivate_license ) );
+            $site = $api->call( 'downgrade.json', 'put', array( 'deactivate_license' => $deactivate_license ) );
 
             $plan_downgraded = false;
             $plan            = false;
@@ -21928,7 +21928,7 @@
             }
 
             $api  = $this->get_api_site_scope();
-            $plan = $api->call( $this->add_is_clone_param( "plans/{$plan->id}/trials.json" ), 'post' );
+            $plan = $api->call( "plans/{$plan->id}/trials.json", 'post' );
 
             if ( ! $this->is_api_result_entity( $plan ) ) {
                 // Some API error while trying to start the trial.
@@ -21972,7 +21972,7 @@
             $trial_plan = $this->get_trial_plan();
 
             $api  = $this->get_api_site_scope();
-            $site = $api->call(  $this->add_is_clone_param( 'trials.json' ), 'delete' );
+            $site = $api->call( 'trials.json', 'delete' );
 
             $trial_cancelled = false;
 
@@ -22539,7 +22539,7 @@
             }
 
             $api    = $this->get_api_site_scope();
-            $result = $api->call( $this->add_is_clone_param( "/users/{$this->_user->id}.json" ), 'put', array(
+            $result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
                 'email'             => $candidate_email,
                 'transfer_type'     => $transfer_type,
                 'install_ids'       => implode( ',', array_values( $install_ids ) ),
@@ -22753,7 +22753,7 @@
             }
 
             $api    = $this->get_api_site_scope();
-            $result = $api->call( $this->add_is_clone_param( "/users/{$this->_user->id}/verify.json" ), 'put', array(
+            $result = $api->call( "/users/{$this->_user->id}/verify.json", 'put', array(
                 'after_email_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'sync_user' )
@@ -23635,7 +23635,8 @@
                     $this->_site->public_key,
                     ! $this->is_live(),
                     $this->_site->secret_key,
-                    $this->get_sdk_version()
+                    $this->get_sdk_version(),
+                    get_site_url()
                 );
             }
 
@@ -26194,18 +26195,6 @@
             }
 
             return $path . ( false !== strpos( $path, '?' ) ? '&' : '?' ) . 'show_pending=true';
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
-         *
-         * @param string $path
-         *
-         * @return string
-         */
-        private function add_is_clone_param( $path ) {
-            return $path . ( false !== strpos( $path, '?' ) ? '&' : '?' ) . 'is_clone=' . ( $this->is_clone() ? 'true' : 'false' );
         }
 
         #endregion
