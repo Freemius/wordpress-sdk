@@ -21026,12 +21026,7 @@
             if ( $is_addon_sync ) {
                 $this->_sync_addon_license( $plugin_id, $background );
             } else {
-                $this->_sync_plugin_license(
-                    $background,
-                    ! $this->is_unresolved_clone(),
-                    $is_context_single_site,
-                    $current_blog_id
-                );
+                $this->_sync_plugin_license( $background, true, $is_context_single_site, $current_blog_id );
             }
 
             $this->do_action( 'after_account_plan_sync', $this->get_plan_name() );
