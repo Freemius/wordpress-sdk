@@ -3862,15 +3862,37 @@
             if ( empty( $sites_with_license_urls ) ) {
                 return;
             }
-            
-            if ( 1 === count( $sites_with_license_urls ) ) {
-                $module_label = $first_instance_with_clone->get_module_label( true );
-                $module_title = $first_instance_with_clone->get_plugin_title();
+
+            if ( $clone_manager->is_temporary_duplicate_notice_shown() ) {
+                return;
             }
 
-            FS_Clone_Manager::instance()->add_temporary_duplicate_sticky_notice(
-                self::get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $module_label ),
-                $module_title
+            $last_time_temporary_duplicate_notice_shown  = $clone_manager->last_time_temporary_duplicate_notice_was_shown();
+            $was_temporary_duplicate_notice_shown_before = ( false !== $last_time_temporary_duplicate_notice_shown );
+
+            if ( $was_temporary_duplicate_notice_shown_before ) {
+                $temporary_duplicate_mode_expiration_timestamp = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration();
+                $current_time                                  = time();
+
+                if (
+                    $current_time > $temporary_duplicate_mode_expiration_timestamp ||
+                    $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
+                ) {
+                    // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
+                    return;
+                }
+            }
+
+            if ( 1 === count( $sites_with_license_urls ) ) {
+                $module_label              = $first_instance_with_clone->get_module_label( true );
+                $admin_notice_module_title = $first_instance_with_clone->get_plugin_title();
+            }
+
+            fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+            $clone_manager->add_temporary_duplicate_sticky_notice(
+                self::get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $product_titles, $module_label ),
+                $admin_notice_module_title
             );
         }
 
@@ -3880,40 +3902,60 @@
          * 
          * @return string
          */
-        private static function get_temporary_duplicate_admin_notice_string( $site_urls, $module_label ) {
+        private static function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
             $temporary_duplicate_end_date = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
-            $total_sites = count( $site_urls );
-
             $current_url = fs_strip_url_protocol( get_site_url() );
+
+            $total_sites = count( $site_urls );
             $sites_list  = '';
+
+            $total_products = count( $product_titles );
+            $products_list  = '';
 
             if ( $total_sites > 1 ) {
                 foreach ( $site_urls as $site_url ) {
                     $sites_list .= sprintf( '<li>%s</li>', $site_url );
                 }
 
-                $sites_list = '<ol>' . $sites_list . '</ol>';
+                $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
+            }
+
+            if ( $total_products > 1 ) {
+                foreach ( $product_titles as $product_title ) {
+                    $products_list .= sprintf( '<li>%s</li>', $product_title );
+                }
+
+                $products_list = '<ol>' . $products_list . '</ol>';
             }
 
             return sprintf(
                 sprintf(
-                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message" style="display: none"></p><p>%s</p></div>',
+                    '<div>%s</div>',
                     ( 1 === $total_sites ?
-                        fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) :
-                        fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites:%s', 'temporary-duplicate-of-sites-message' ) )
+                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
+                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
                 ) . '%s',
                 sprintf( '<strong>%s</strong>', $current_url ),
                 ( 1 === $total_sites ?
                     sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                     $sites_list ),
                 sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p><p>%s</p></div>',
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
                     sprintf(
-                        fs_esc_html_inline( "The %s's automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $module_label ),
+                        fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
+                        ( 1 === $total_products ?
+                            sprintf(
+                                fs_esc_html_x_inline( "The %s's", '"The <product_label>", e.g.: "The plugin"', 'the-product-x'),
+                                "<strong>{$module_label}</strong>"
+                            ) :
+                            fs_esc_html_inline( "The following products'", 'the-following-products' ) ),
                         sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date )
+                    ),
+                    ( 1 === $total_products ?
+                        '' :
+                        sprintf( '<div>%s</div>', $products_list )
                     ),
                     sprintf(
                         fs_esc_html_inline( 'If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s.', 'duplicate-site-message' ),

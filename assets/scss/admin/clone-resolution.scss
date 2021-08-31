@@ -30,11 +30,19 @@
     .button {
         margin-right: 10px;
     }
+}
 
+.fs-notice[data-id="temporary_duplicate_notice"] {
     #fs_clone_resolution_error_message {
         border: 1px solid $fs-logo-magenta-color;
         background: #fee;
         color: $fs-logo-magenta-color;
         padding: 10px;
+    }
+}
+
+.fs-notice[data-id="temporary_duplicate_notice"] {
+    ol {
+        margin-top: 0;
     }
 }

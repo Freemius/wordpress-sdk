@@ -191,12 +191,12 @@
 
             if ( 1 === $total_products ) {
                 $notice_header = sprintf(
-                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message" style="display: none"></p><p>%s</p></div>',
+                    '<div class="fs-notice-header"><p>%s</p></div>',
                     fs_esc_html_inline( '%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s.', 'single-cloned-site-safe-mode-message' )
                 );
             } else {
                 $notice_header = sprintf(
-                    '<div class="fs-notice-header"><p id="fs_clone_resolution_error_message" style="display: none"></p><p>%s</p></div>',
+                    '<div class="fs-notice-header"><p>%s</p></div>',
                     ( 1 === $total_sites ) ?
                         fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s', 'multiple-products-cloned-site-safe-mode-message' ) :
                         fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s', 'multiple-products-multiple-cloned-sites-safe-mode-message' )
@@ -234,7 +234,7 @@
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
                     ( 1 === $total_sites ?
                         sprintf( '<div>%s</div>', $products_list ) :
-                        sprintf( '<div><p><strong>%s</strong>:</p>%s</div>', fs_esc_html_x_inline( 'Products', 'clone resolution admin notice products list label', 'products' ), $products_list ) )
+                        sprintf( '<div><p><strong>%s</strong>:</p>%s</div>', fs_esc_html_x_inline( 'Products', 'Clone resolution admin notice products list label', 'products' ), $products_list ) )
                 ),
                 // %2$s
                 sprintf( '<strong>%s</strong>', $current_url ),
@@ -259,11 +259,16 @@
                             sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                             $above_mentioned_sites_text )
                     ),
-                    sprintf(
-                        '<button class="button" data-clone-action="temporary_duplicate">%s</button><button class="button" data-clone-action="long_term_duplicate">%s</button>',
-                        fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' ),
-                        fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
-                    )
+                    $this->has_temporary_duplicate_mode_expired() ?
+                        sprintf(
+                            '<button class="button" data-clone-action="temporary_duplicate">%s</button>',
+                            fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' )
+                        ) :
+                        sprintf(
+                            '<button class="button" data-clone-action="temporary_duplicate">%s</button><button class="button" data-clone-action="long_term_duplicate">%s</button>',
+                            fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' ),
+                            fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
+                        )
                 ),
                 // %5$s
                 sprintf(
