@@ -2500,7 +2500,7 @@
              */
             $show_deactivation_feedback_form = true;
 
-            if ( $this->is_unresolved_clone() ) {
+            if ( $this->is_clone() ) {
                 $show_deactivation_feedback_form = false;
             } else if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
@@ -3530,7 +3530,7 @@
                 return false;
             }
 
-            return ( ! FS_Clone_Manager::instance()->is_temporary_duplicate( false ) );
+            return FS_Clone_Manager::instance()->has_temporary_duplicate_mode_expired();
         }
 
         /**
@@ -7660,7 +7660,7 @@
          * @param int|null $current_blog_id
          */
         function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
-            if ( $this->is_unresolved_clone() ) {
+            if ( $this->is_clone() ) {
                 return;
             }
 
@@ -10504,7 +10504,7 @@
                     return;
                 }
 
-                if ( ! $fs->is_unresolved_clone() ) {
+                if ( ! $fs->is_clone() ) {
                     $fs->_uninstall_plugin_event();
                 }
 
