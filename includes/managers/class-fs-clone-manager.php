@@ -90,9 +90,11 @@
          * @return int
          */
         function get_temporary_duplicate_expiration() {
-            $timestamp = $this->get_clone_identification_timestamp();
+            $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
+                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
+                $this->get_clone_identification_timestamp();
 
-            return min( $timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ), time() );
+            return ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) );
         }
 
         function store_clone_identification_timestamp() {
@@ -345,57 +347,62 @@
         }
 
         /**
-         * @param bool $check_only_if_stored
-         *
          * @return bool
          */
-        function is_temporary_duplicate( $check_only_if_stored = true ) {
-            if ( ! isset( $this->_data['is_temporary_duplicate'] ) ) {
-                if ( $check_only_if_stored ) {
-                    return false;
-                }
-            } else if ( true !== $this->_data['is_temporary_duplicate'] ) {
-                return false;
-            }
+        function is_temporary_duplicate() {
+            $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
+                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
+                $this->get_clone_identification_timestamp();
 
-            $clone_identification_timestamp = $this->get_clone_identification_timestamp();
-
-            return ( ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) > time() );
+            return ( ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) > time() );
         }
 
         /**
          * @return bool
          */
-        function is_temporary_duplicate_mode_expired() {
-            if ( ! isset( $this->_data['is_temporary_duplicate'] ) ) {
-                return false;
-            }
+        function has_temporary_duplicate_mode_expired() {
+            $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
+                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
+                $this->get_clone_identification_timestamp();
 
-            if ( true !== $this->_data['is_temporary_duplicate'] ) {
-                return false;
-            }
-
-            $clone_identification_timestamp = $this->get_clone_identification_timestamp();
-
-            return ( time() > ( $clone_identification_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) );
+            return ( time() > ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) );
         }
 
-        function store_temporary_duplicate_flag() {
-            $this->update_option( 'is_temporary_duplicate', true );
+        /**
+         * @return bool
+         */
+        function was_temporary_duplicate_mode_selected() {
+            return (
+                isset( $this->_data['temporary_duplicate_mode_selection_timestamp'] ) &&
+                is_numeric( $this->_data['temporary_duplicate_mode_selection_timestamp'] )
+            );
+        }
+
+        function store_temporary_duplicate_timestamp() {
+            $this->update_option( 'temporary_duplicate_mode_selection_timestamp', time() );
         }
 
         /**
          * Removes the notice that is shown when the user has flagged the clones as temporary duplicate.
          */
-        function remove_opt_in_notice() {
+        function remove_temporary_duplicate_notice() {
             $this->_notices->remove_sticky( 'temporary_duplicate_notice' );
         }
 
         /**
          * @return bool
          */
-        function was_temporary_duplicate_notice_shown_before() {
-            return ( ! empty( $this->_data['temporary_duplicate_notice_shown_at'] ) );
+        function is_temporary_duplicate_notice_shown() {
+            return $this->_notices->has_sticky( 'temporary_duplicate_notice' );
+        }
+
+        /**
+         * @return bool
+         */
+        function last_time_temporary_duplicate_notice_was_shown() {
+            return empty( $this->_data['temporary_duplicate_notice_shown_at'] ) ?
+                false :
+                $this->_data['temporary_duplicate_notice_shown_at'];
         }
 
         /**

@@ -3777,9 +3777,7 @@
          * @since 2.4.3
          */
         private static function maybe_show_clone_admin_notice() {
-            if ( FS_Clone_Manager::instance()->was_temporary_duplicate_notice_shown_before() ) {
-                return;
-            }
+            $clone_manager = FS_Clone_Manager::instance();
 
             $first_instance_with_clone = null;
 
@@ -3816,7 +3814,7 @@
             }
 
             if ( empty( $sites_with_license_urls ) ) {
-                FS_Clone_Manager::instance()->remove_opt_in_notice();
+                $clone_manager->remove_temporary_duplicate_notice();
             }
 
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
@@ -3826,14 +3824,23 @@
             $site_urls               = array_unique( $site_urls );
             $sites_with_license_urls = array_unique( $sites_with_license_urls );
 
-            $module_label = fs_text_inline( 'product', 'product' );
-            $module_title = null;
+            $module_label              = fs_text_inline( 'products', 'products' );
+            $admin_notice_module_title = null;
 
-            if ( ! FS_Clone_Manager::instance()->is_temporary_duplicate() ) {
+            $has_temporary_duplicate_mode_expired = $clone_manager->has_temporary_duplicate_mode_expired();
+
+            if (
+                ! $clone_manager->was_temporary_duplicate_mode_selected() ||
+                $has_temporary_duplicate_mode_expired
+            ) {
                 if ( ! empty( $site_urls ) ) {
+                    if ( $has_temporary_duplicate_mode_expired ) {
+                        $clone_manager->remove_temporary_duplicate_notice();
+                    }
+
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
-                    FS_Clone_Manager::instance()->add_manual_clone_resolution_admin_notice(
+                    $clone_manager->add_manual_clone_resolution_admin_notice(
                         $product_titles,
                         $site_urls,
                         fs_strip_url_protocol( get_site_url() ),
