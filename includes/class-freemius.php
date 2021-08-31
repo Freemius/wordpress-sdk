@@ -3698,86 +3698,70 @@
                     continue;
                 }
 
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
                 $current_install = $instance->get_site();
-                $is_clone        = $instance->is_clone();
 
                 // Try to find a different install of the context product that is associated with the current URL and load it.
-                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?all=true", true );
+                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) . "&all=true", true );
 
-                $associated_or_updated_install = null;
+                $associated_install = null;
 
                 if ( $instance->is_api_result_object( $result, 'installs' ) ) {
                     foreach ( $result->installs as $install ) {
-                        $install_url = trailingslashit( $install->url );
-
                         if ( $install->id == $current_install->id ) {
-                            if ( trailingslashit( $current_install->url ) !== $install_url ) {
-                                // The URL of the current install was updated to a different one, just update the local install to the latest.
-                                $associated_or_updated_install = $install;
-                                break;
-                            }
-                        } else if (
-                            $is_clone &&
-                            ! is_object( $associated_or_updated_install ) &&
-                            $current_url === $install_url
-                        ) {
-                            // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
-                            $associated_or_updated_install = $install;
+                            continue;
                         }
+
+                        // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
+                        $associated_install = $install;
+                        
+                        break;
                     }
                 }
 
-                if ( is_object( $associated_or_updated_install ) ) {
-                    // Replace the current install with an up-to-date install or with a different install that is associated with the current URL.
-                    $instance->store_site(new FS_Site(clone $associated_or_updated_install));
+                if ( is_object( $associated_install ) ) {
+                    // Replace the current install with a different install that is associated with the current URL.
+                    $instance->store_site( new FS_Site( clone $associated_install ) );
+                    $instance->sync_install( array( 'is_new_site' => true ), true );
 
-                    if ( $associated_or_updated_install->id != $current_install->id ) {
-                        $instance->sync_install( array( 'is_clone' => false ), true );
-                    }
-
-                    $is_clone = $instance->is_clone();
+                    continue;
                 }
 
-                if (
-                    $is_clone &&
-                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( $current_url ) )
-                ) {
-                    $license_key = false;
+                if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! FS_Site::is_localhost_by_address( $current_url ) ) {
+                    $has_clone = true;
+                    continue;
+                }
 
-                    if ( $instance->is_premium() ) {
-                        $license = $instance->_get_license();
+                $license_key = false;
 
-                        if (
-                            is_object( $license ) &&
-                            ! $license->is_utilized( $current_install )
-                        ) {
-                            $license_key = $license->secret_key;
-                        }
-                    }
+                if ( $instance->is_premium() ) {
+                    $license = $instance->_get_license();
 
-                    $instance->delete_current_install( true );
-
-                    $instance->opt_in(
-                        false,
-                        false,
-                        false,
-                        $license_key,
-                        false,
-                        false,
-                        false,
-                        null,
-                        array(),
-                        false
-                    );
-
-                    if ( ! is_object( $instance->get_site() ) ) {
-                        $instance->restore_backup_site();
-                    } else {
-                        $is_clone = false;
+                    if ( is_object( $license ) && ! $license->is_utilized( true ) ) {
+                        $license_key = $license->secret_key;
                     }
                 }
 
-                if ( ! $has_clone && $is_clone ) {
+                $instance->delete_current_install( true );
+
+                $instance->opt_in(
+                    false,
+                    false,
+                    false,
+                    $license_key,
+                    false,
+                    false,
+                    false,
+                    null,
+                    array(),
+                    false
+                );
+
+                if ( ! is_object( $instance->get_site() ) ) {
+                    $instance->restore_backup_site();
                     $has_clone = true;
                 }
             }
