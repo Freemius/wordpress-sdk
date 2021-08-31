@@ -3593,24 +3593,15 @@
                 ) );
             }
 
+            $result = array();
+
             if ( 'temporary_duplicate' === $clone_action ) {
-                FS_Clone_Manager::instance()->store_temporary_duplicate_flag();
+                FS_Clone_Manager::instance()->store_temporary_duplicate_timestamp();
             } else {
                 $result = self::resolve_cloned_sites( $clone_action );
-
-                if ( $result['has_error'] ) {
-                    $message = empty( $result['redirect_url'] ) ?
-                        fs_text_inline( 'An unknown error has occurred.', 'unknown-error' ) :
-                        '';
-
-                    self::shoot_ajax_failure( array(
-                        'message' => $message,
-                        'redirect_url' => $result['redirect_url'],
-                    ) );
-                }
             }
 
-            self::shoot_ajax_success();
+            self::shoot_ajax_success( $result );
         }
 
         /**
@@ -3659,10 +3650,7 @@
                 $redirect_url = $instance_with_error->get_activation_url();
             }
 
-            return ( array(
-                'has_error'    => $has_error,
-                'redirect_url' => $redirect_url,
-            ) );
+            return ( array( 'redirect_url' => $redirect_url ) );
         }
 
         /**
@@ -3672,15 +3660,29 @@
         private function handle_long_term_duplicate() {
             $this->delete_current_install( false );
 
-            if ( ! is_object( $this->_license ) ) {
-                $this->opt_in();
-            } else if (
+            $license_key = false;
+
+            if (
+                is_object( $this->_license ) &&
                 ! $this->_license->is_utilized(
                     ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( get_site_url() ) )
                 )
             ) {
-                $this->opt_in( false, false, false, $this->_license->secret_key );
+                $license_key = $this->_license->secret_key;
             }
+
+            $this->opt_in(
+                false,
+                false,
+                false,
+                $license_key,
+                false,
+                false,
+                false,
+                null,
+                array(),
+                false
+            );
         }
 
         /**
