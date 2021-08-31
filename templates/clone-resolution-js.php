@@ -39,19 +39,15 @@
                             clone_action: $this.data( 'clone-action' )
                         },
                         beforeSend: function() {
-                            hideError();
-
                             $this.css( { 'cursor': 'wait' } );
 
                             $cloneResolutionNotice.find( '.button' ).addClass( 'disabled' );
                         },
                         success   : function( resultObj ) {
-                            if ( resultObj.success ) {
-                                $cloneResolutionNotice.remove();
-                            } else if ( '' !== resultObj.error.redirect_url ) {
-                                window.location = resultObj.error.redirect_url;
+                            if ( resultObj.data.redirect_url && '' !== resultObj.data.redirect_url ) {
+                                window.location = resultObj.data.redirect_url;
                             } else {
-                                showError( resultObj.error.message );
+                                window.location.reload();
                             }
                         },
                         complete  : function() {
@@ -62,14 +58,5 @@
                 } );
             }
         } );
-
-        function hideError() {
-            $errorMessage.hide();
-        }
-
-        function showError( msg ) {
-            $errorMessage.text( msg );
-            $errorMessage.show();
-        }
     } )( jQuery );
 </script>
