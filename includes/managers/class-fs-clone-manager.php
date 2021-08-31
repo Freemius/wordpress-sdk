@@ -70,11 +70,7 @@
         function init() {
             if ( Freemius::is_admin_post() ) {
                 add_action( 'admin_post_fs_clone_resolution', array( &$this, '_handle_clone_resolution' ) );
-
-                return;
             }
-
-            $this->initiate_clone_resolution_handler();
         }
 
         /**
@@ -110,11 +106,11 @@
                 return false;
             }
 
-            // Give the logic that handles clones enough time to finish (it is given 10 minutes for now).
-            return ( ( $this->_data[ 'request_handler_timestamp' ] + WP_FS__TIME_10_MIN_IN_SEC ) > time() );
+            // Give the logic that handles clones enough time to finish (it is given 3 minutes for now).
+            return ( ( $this->_data[ 'request_handler_timestamp' ] + ( WP_FS__TIME_12_HOURS_IN_SEC / 4 ) ) > time() );
         }
 
-        private function initiate_clone_resolution_handler() {
+        function maybe_run_clone_resolution_handler() {
             if (
                 ! empty( $this->_data ) &&
                 // If clones are already being handled, do not make another request.
