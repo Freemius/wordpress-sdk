@@ -5721,7 +5721,7 @@
             }
 
             // Send update to FS.
-            $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+            $result = $this->api_site_scope_call( '/?fields=is_disconnected', 'put', array(
                 'is_disconnected' => true
             ) );
 
@@ -5870,7 +5870,7 @@
                 return true;
             }
 
-            $result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
+            $result = $this->api_site_scope_call( '/?is_disconnected', 'put', array(
                 'is_disconnected' => false
             ) );
 
@@ -8493,7 +8493,7 @@
                 );
             } else {
                 // Activate the license.
-                $install = $this->get_api_site_scope()->call(
+                $install = $this->api_site_scope_call(
                     '/',
                     'put',
                     array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
@@ -9953,9 +9953,8 @@
 
                     if ( ! empty( $install_data ) || $is_common_diff ) {
                         // Add install ID and site unique ID.
-                        $install_data['id']       = $install->id;
-                        $install_data['uid']      = $uid;
-                        $install_data['is_clone'] = ( trailingslashit( $install->url ) !== trailingslashit( get_site_url( $blog_id ) ) );
+                        $install_data['id']  = $install->id;
+                        $install_data['uid'] = $uid;
 
                         $installs_data[] = $install_data;
                     }
@@ -10083,7 +10082,7 @@
             $this->set_keepalive_timestamp();
 
             // Send updated values to FS.
-            $site = $this->get_api_site_scope( $flush )->call( '/', 'put', $params );
+            $site = $this->api_site_scope_call( '/', 'put', $params, true );
 
             if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
                 /**
@@ -13962,7 +13961,7 @@
                 self::shoot_ajax_failure();
             }
 
-            $site = $this->get_api_site_scope()->call(
+            $site = $this->api_site_scope_call(
                 '',
                 'put',
                 array(
@@ -23669,6 +23668,63 @@
             }
 
             return $this->_site_api;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string $path
+         * @param string $method
+         * @param array  $params
+         * @param bool   $flush_instance
+         *
+         * @return array|mixed|string|void
+         * @throws Freemius_Exception
+         */
+        private function api_site_scope_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
+            $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
+
+            $this->maybe_update_local_install( $result );
+
+            return $result;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param array|mixed|string|void $api_result
+         * @param bool                    $check_if_entity
+         */
+        private function maybe_update_local_install( $api_result ) {
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
+            if ( ! FS_Api::is_api_result_entity( $api_result ) ) {
+                return;
+            }
+
+            if ( ! isset( $api_result->url ) ) {
+                return;
+            }
+
+            $stored_local_url  = trailingslashit( $this->_site->url );
+            $stored_remote_url = trailingslashit( $api_result->url );
+
+            if ( $stored_local_url !== $stored_remote_url ) {
+                $site      = clone $this->_site;
+                $site->url = $api_result->url;
+
+                $this->store_site( $site );
+
+                $stored_local_url = $stored_remote_url;
+            }
+
+            if ( $stored_remote_url !== trailingslashit( get_site_url() ) ) {
+                FS_Clone_Manager::instance()->maybe_run_clone_resolution_handler();
+            }
         }
 
         private $_plugin_api;
