@@ -512,7 +512,7 @@
 		}
 
 		/**
-		 * @param array <string,string> $module Plugin or Theme details.
+		 * @param array <string,string|bool|array> $module Plugin or Theme details.
 		 *
 		 * @return Freemius
 		 * @throws Freemius_Exception

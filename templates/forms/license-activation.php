@@ -35,7 +35,7 @@
 			// Insights platform information.
 			$fs->get_usage_tracking_terms_url();
 
-		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" tabindex="0">freemius.com</a>';
+		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="0">freemius.com</a>';
 
 		$message_below_input_field = sprintf(
 			fs_text_inline( 'The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
@@ -115,13 +115,15 @@ HTML;
              * @var FS_Plugin_License $license
              */
             foreach ( $available_licenses as $license ) {
+                $plan = $fs->_get_plan_by_id( $license->plan_id );
+
                 $label = sprintf(
                     "%s-Site %s License - %s",
                     ( 1 == $license->quota ?
                         'Single' :
                         ( $license->is_unlimited() ? 'Unlimited' : $license->quota )
                     ),
-                    $fs->_get_plan_by_id( $license->plan_id )->title,
+                    ( is_object( $plan ) ? $plan->title : '' ),
                     $license->get_html_escaped_masked_secret_key()
                 );
 

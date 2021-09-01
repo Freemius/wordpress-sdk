@@ -351,6 +351,14 @@
          */
         private $is_whitelabeled;
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @var bool
+         */
+        private $_is_bundle_license_auto_activation_enabled = false;
+
         #region Uninstall Reasons IDs
 
         const REASON_NO_LONGER_NEEDED = 1;
@@ -376,6 +384,13 @@
          * @var boolean|null
          */
         private $_use_external_pricing = null;
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.2
+         *
+         * @var string|null
+         */
+        private $_pricing_js_path = null;
 
         #endregion
 
@@ -393,8 +408,10 @@
          * @param bool        $is_init Since 1.2.1 Is initiation sequence.
          */
         private function __construct( $module_id, $slug = false, $is_init = false ) {
+            $main_file = false;
+
             if ( $is_init && is_numeric( $module_id ) && is_string( $slug ) ) {
-                $this->store_id_slug_type_path_map( $module_id, $slug );
+                $main_file = $this->store_id_slug_type_path_map( $module_id, $slug );
             }
 
             $this->_module_id   = $module_id;
@@ -409,7 +426,7 @@
 
             $this->_logger = FS_Logger::get_logger( WP_FS__SLUG . '_' . $this->get_unique_affix(), WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
-            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init );
+            $this->_plugin_main_file_path = $this->_find_caller_plugin_file( $is_init, $main_file );
             $this->_plugin_dir_path       = plugin_dir_path( $this->_plugin_main_file_path );
             $this->_plugin_basename       = $this->get_plugin_basename();
             $this->_free_plugin_basename  = str_replace( '-premium/', '/', $this->_plugin_basename );
@@ -1526,7 +1543,7 @@
             ?>
             <script type="text/javascript">
                 (function ($) {
-                    $('.fs-submenu-item.wp-support-forum').parent().attr('target', '_blank');
+                    $('.fs-submenu-item.wp-support-forum').parent().attr( { target: '_blank', rel: 'noopener noreferrer' } );
                 })(jQuery);
             </script>
             <?php
@@ -1627,7 +1644,11 @@
 
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
-                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    } else {
+                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
+                    }
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -1637,7 +1658,12 @@
                 add_action( 'deactivate_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'archive_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
-                add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
+
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                    add_action( 'deleted_blog', array( $this, '_after_site_deleted_callback' ), 10, 2 );
+                } else {
+                    add_action( 'wp_delete_site', array( $this, '_after_wpsite_deleted_callback' ) );
+                }
 
                 add_action( 'activate_blog', array( &$this, '_after_site_reactivated_callback' ) );
                 add_action( 'unarchive_blog', array( &$this, '_after_site_reactivated_callback' ) );
@@ -1662,10 +1688,12 @@
             add_action( 'admin_init', array( &$this, '_add_premium_version_upgrade_selection' ) );
             add_action( 'admin_init', array( &$this, '_add_beta_mode_update_handler' ) );
             add_action( 'admin_init', array( &$this, '_add_user_change_option' ) );
+            add_action( 'admin_init', array( &$this, '_add_email_address_update_option' ) );
 
             $this->add_ajax_action( 'update_billing', array( &$this, '_update_billing_ajax_action' ) );
             $this->add_ajax_action( 'start_trial', array( &$this, '_start_trial_ajax_action' ) );
             $this->add_ajax_action( 'set_data_debug_mode', array( &$this, '_set_data_debug_mode' ) );
+            $this->add_ajax_action( 'toggle_whitelabel_mode', array( &$this, '_toggle_whitelabel_mode_ajax_handler' ) );
 
             if ( $this->_is_network_active && fs_is_network_admin() ) {
                 $this->add_ajax_action( 'network_activate', array( &$this, '_network_activate_ajax_action' ) );
@@ -2078,20 +2106,27 @@
         /**
          * Leverage backtrace to find caller plugin file path.
          *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.6
-         *
-         * @param  bool $is_init Is initiation sequence.
+         * @param bool   $is_init   Is initiation sequence.
+         * @param string $main_file Since 2.4.3 expects the module's main file path to potentially purge the cached path.
          *
          * @return string
+         * @since  1.0.6
+         *
+         * @author Vova Feldman (@svovaf)
          */
-        private function _find_caller_plugin_file( $is_init = false ) {
+        private function _find_caller_plugin_file( $is_init = false, $main_file = '' ) {
             // Try to load the cached value of the file path.
             if ( isset( $this->_storage->plugin_main_file ) ) {
                 $plugin_main_file = $this->_storage->plugin_main_file;
                 if ( ! empty( $plugin_main_file->path ) ) {
                     $absolute_path = $this->get_absolute_path( $plugin_main_file->path );
                     if ( file_exists( $absolute_path ) ) {
+                        if ( $is_init && $absolute_path !== $this->get_absolute_path( $main_file ) ) {
+                            // Update cached path if not matching the actual path.
+                            $plugin_main_file->path = $main_file;
+                            $this->_storage->plugin_main_file = $plugin_main_file;
+                        }
+
                         return $absolute_path;
                     }
                 }
@@ -2132,12 +2167,11 @@
              * Only the original instantiator that calls dynamic_init can modify the module's path.
              */
             // Find caller module.
-            $id_slug_type_path_map            = self::$_accounts->get_option( 'id_slug_type_path_map', array() );
             $this->_storage->plugin_main_file = (object) array(
-                'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
+                'path' => $main_file,
             );
 
-            return $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+            return $this->get_absolute_path( $main_file );
         }
 
         /**
@@ -2199,6 +2233,8 @@
          * @param number $module_id
          * @param string $slug
          *
+         * @return string Since 2.4.3 return the module's main file path.
+         *
          * @since  1.2.2
          */
         private function store_id_slug_type_path_map( $module_id, $slug ) {
@@ -2220,20 +2256,52 @@
                 $store_option                                = true;
             }
 
-            if ( empty( $id_slug_type_path_map[ $module_id ]['path'] ) ||
-                 /**
-                  * This verification is for cases when suddenly the same module
-                  * is installed but with a different folder name.
-                  *
-                  * @author Vova Feldman (@svovaf)
-                  * @since  1.2.3
-                  */
-                 ! file_exists( $this->get_absolute_path(
-                     $id_slug_type_path_map[ $module_id ]['path'],
-                     $id_slug_type_path_map[ $module_id ]['type']
-                 ) )
-            ) {
-                $caller_main_file_and_type = $this->get_caller_main_file_and_type();
+            $find_caller = empty( $id_slug_type_path_map[ $module_id ]['path'] );
+
+            if ( ! $find_caller ) {
+                /**
+                 * This verification is for cases when suddenly the same module
+                 * is installed but with a different folder name.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  1.2.3
+                 */
+                $find_caller = ! file_exists( $this->get_absolute_path(
+                    $id_slug_type_path_map[ $module_id ]['path'],
+                    $id_slug_type_path_map[ $module_id ]['type']
+                ) );
+            }
+
+            foreach ( $id_slug_type_path_map as $id => $data ) {
+                if ( empty( $id ) ) {
+                    // Remove maps with empty module ID.
+                    unset( $id_slug_type_path_map[ $id ] );
+                    $store_option = true;
+                    continue;
+                }
+
+                /**
+                 * If the module's main file path is identical to the main file path of another module then it means that the cached path of the current module or the other one with the same path is wrong, and therefore, we need to recalculate those paths.
+                 *
+                 * @author Vova Feldman (@svovaf)
+                 * @since  2.4.3
+                 */
+                if ( ! $find_caller ) {
+                    if ( $id == $module_id ) {
+                        continue;
+                    }
+
+                    if (
+                        isset( $data['path'] ) &&
+                        $data['path'] === $id_slug_type_path_map[ $module_id ]['path']
+                    ) {
+                        $find_caller = true;
+                    }
+                }
+            }
+
+            if ( $find_caller ) {
+                $caller_main_file_and_type = $this->get_caller_main_file_and_type( $module_id );
 
                 $id_slug_type_path_map[ $module_id ]['type'] = $caller_main_file_and_type->module_type;
                 $id_slug_type_path_map[ $module_id ]['path'] = $caller_main_file_and_type->path;
@@ -2244,6 +2312,8 @@
             if ( $store_option ) {
                 self::$_accounts->set_option( 'id_slug_type_path_map', $id_slug_type_path_map, true );
             }
+
+            return $id_slug_type_path_map[ $module_id ]['path'];
         }
 
         /**
@@ -2257,8 +2327,10 @@
          *         add-ons are relying on loading the SDK from the parent module, and also allows themes including the
          *         SDK an internal file instead of directly from functions.php.
          * @since  1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
+         *
+         * @param number $module_id @since 2.4.3
          */
-        private function get_caller_main_file_and_type() {
+        private function get_caller_main_file_and_type( $module_id ) {
             self::require_plugin_essentials();
 
             $all_plugins       = fs_get_plugins( true );
@@ -2397,10 +2469,12 @@
                 }
             }
 
-            return (object) array(
+            $caller_main_file_and_type = (object) array(
                 'module_type' => $module_type,
                 'path'        => $caller_file_candidate
             );
+
+            return apply_filters( "fs_{$module_id}_caller_main_file_and_type", $caller_main_file_and_type );
         }
 
         #----------------------------------------------------------------------------------
@@ -2424,7 +2498,7 @@
             /**
              * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
-            $show_deactivation_feedback_form = true;
+            $show_deactivation_feedback_form = ! self::is_deactivation_snoozed();
             if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
             } else if ( $this->is_addon() ) {
@@ -2529,7 +2603,7 @@
             $reason_temporary_deactivation = array(
                 'id'                => self::REASON_TEMPORARY_DEACTIVATION,
                 'text'              => sprintf(
-                    $this->get_text_inline( "It's a temporary %s. I'm just debugging an issue.", 'reason-temporary-x' ),
+                    $this->get_text_inline( "It's a temporary %s - I'm troubleshooting an issue", 'reason-temporary-x' ),
                     strtolower( $this->is_plugin() ?
                         $this->get_text_inline( 'Deactivation', 'deactivation' ) :
                         $this->get_text_inline( 'Theme Switch', 'theme-switch' )
@@ -2694,6 +2768,14 @@
 
             $this->_storage->store( 'uninstall_reason', $reason );
 
+            if ( self::REASON_TEMPORARY_DEACTIVATION == $reason->id ) {
+                $snooze_period = fs_request_get( 'snooze_period' );
+
+                if ( is_numeric( $snooze_period ) && 0 < $snooze_period ) {
+                    self::snooze_deactivation_form( (int) $snooze_period );
+                }
+            }
+
             /**
              * If the module type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
              * not support uninstall hook.
@@ -2714,6 +2796,73 @@
             echo 1;
             exit;
         }
+
+        #--------------------------------------------------------------------------------
+        #region Deactivation Feedback Snoozing
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param int $period
+         *
+         * @return bool True if the value was set, false otherwise.
+         */
+        private static function snooze_deactivation_form( $period ) {
+            return ( 0 < $period && self::reset_deactivation_snoozing( $period ) );
+        }
+
+        /**
+         * Check if deactivation feedback form is snoozed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return bool
+         */
+        static function is_deactivation_snoozed() {
+            $is_snoozed = ( ! is_multisite() || fs_is_network_admin() ) ?
+                get_transient( 'fs_snooze_period' ) :
+                get_site_transient( 'fs_snooze_period' );
+
+
+            return ( 'true' === $is_snoozed );
+        }
+
+        /**
+         * Reset deactivation snoozing. When `$period` is `0` will stop deactivation snoozing by deleting the transients. Otherwise, will set the transients for the selected period.
+         *
+         * @param int $period Period in seconds.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         */
+        private static function reset_deactivation_snoozing( $period = 0 ) {
+            $value = ( 0 === $period ) ? null : 'true';
+
+            if ( ! is_multisite() || fs_is_network_admin() ) {
+                return set_transient( 'fs_snooze_period', $value, $period );
+            } else {
+                return set_site_transient( 'fs_snooze_period', $value, $period );
+            }
+        }
+
+        /**
+         * The deactivation snooze expiration UNIX timestamp (in sec).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return int
+         */
+        static function deactivation_snooze_expires_at() {
+            return ( ! is_multisite() || fs_is_network_admin() ) ?
+                (int) get_option( '_transient_timeout_fs_snooze_period' ) :
+                (int) get_site_option( '_site_transient_timeout_fs_snooze_period' );
+        }
+
+        #endregion
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -3557,8 +3706,8 @@
         static function _get_debug_log() {
             $logs = FS_Logger::load_db_logs(
                 fs_request_get( 'filters', false, 'post' ),
-                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? $_POST['limit'] : 200,
-                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? $_POST['offset'] : 0
+                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 200,
+                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? intval( $_POST['offset'] ) : 0
             );
 
             self::shoot_ajax_success( $logs );
@@ -3665,6 +3814,10 @@
 
                     switch_to_blog( $current_blog_id );
                 }
+            } else if ( fs_request_is_action( 'reset_deactivation_snoozing' ) ) {
+                check_admin_referer( 'reset_deactivation_snoozing' );
+
+                self::reset_deactivation_snoozing();
             } else if ( fs_request_is_action( 'simulate_trial' ) ) {
                 check_admin_referer( 'simulate_trial' );
 
@@ -3713,55 +3866,65 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         * 
+         * @return array
+         */
+        private static function get_all_modules_sites() {
+            self::$_static_logger->entrance();
+
+            $sites_by_type = array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(),
+                WP_FS__MODULE_TYPE_THEME  => array(),
+            );
+
+            $module_types = array_keys( $sites_by_type );
+
+            if ( ! is_multisite() ) {
+                foreach ( $module_types as $type ) {
+                    $sites_by_type[ $type ] = self::get_all_sites( $type );
+                }
+            } else {
+                $sites = self::get_sites();
+
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    foreach ( $module_types as $type ) {
+                        $installs = self::get_all_sites( $type, $blog_id );
+
+                        foreach ( $installs as $slug => $install ) {
+                            if ( ! isset( $sites_by_type[ $type ][ $slug ] ) ) {
+                                $sites_by_type[ $type ][ $slug ] = array();
+                            }
+
+                            $install->blog_id = $blog_id;
+
+                            $sites_by_type[ $type ][ $slug ][] = $install;
+                        }
+
+                    }
+                }
+            }
+
+            return $sites_by_type;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.0.8
          */
         static function _debug_page_render() {
             self::$_static_logger->entrance();
 
-            if ( ! is_multisite() ) {
-                $all_plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN );
-                $all_themes_installs  = self::get_all_sites( WP_FS__MODULE_TYPE_THEME );
-            } else {
-                $sites = self::get_sites();
-
-                $all_plugins_installs = array();
-                $all_themes_installs  = array();
-
-                foreach ( $sites as $site ) {
-                    $blog_id = self::get_site_blog_id( $site );
-
-                    $plugins_installs = self::get_all_sites( WP_FS__MODULE_TYPE_PLUGIN, $blog_id );
-
-                    foreach ( $plugins_installs as $slug => $install ) {
-                        if ( ! isset( $all_plugins_installs[ $slug ] ) ) {
-                            $all_plugins_installs[ $slug ] = array();
-                        }
-
-                        $install->blog_id = $blog_id;
-
-                        $all_plugins_installs[ $slug ][] = $install;
-                    }
-
-                    $themes_installs = self::get_all_sites( WP_FS__MODULE_TYPE_THEME, $blog_id );
-
-                    foreach ( $themes_installs as $slug => $install ) {
-                        if ( ! isset( $all_themes_installs[ $slug ] ) ) {
-                            $all_themes_installs[ $slug ] = array();
-                        }
-
-                        $install->blog_id = $blog_id;
-
-                        $all_themes_installs[ $slug ][] = $install;
-                    }
-                }
-            }
+            $all_modules_sites = self::get_all_modules_sites();
 
             $licenses_by_module_type = self::get_all_licenses_by_module_type();
 
             $vars = array(
-                'plugin_sites'    => $all_plugins_installs,
-                'theme_sites'     => $all_themes_installs,
+                'plugin_sites'    => $all_modules_sites[ WP_FS__MODULE_TYPE_PLUGIN ],
+                'theme_sites'     => $all_modules_sites[ WP_FS__MODULE_TYPE_THEME ],
                 'users'           => self::get_all_users(),
                 'addons'          => self::get_all_addons(),
                 'account_addons'  => self::get_all_account_addons(),
@@ -4308,7 +4471,7 @@
                                     )
                                 ),
                                 sprintf(
-                                    '<a href="%s" target="_blank"><b>%s</b></a> - %s',
+                                    '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
                                     sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
                                     $install_previous_title,
                                     $install_previous_desc
@@ -4415,7 +4578,7 @@
                                 )
                             ),
                             sprintf(
-                                '<a href="%s" target="_blank"><b>%s</b></a> - %s',
+                                '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
                                 sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
                                 $install_previous_title,
                                 $install_previous_desc
@@ -4885,10 +5048,8 @@
                      * @since  1.1.7.3
                      *
                      */
-                    if ( $this->is_registered() ) {
-                        if ( ! $this->is_sync_cron_on() && $this->is_tracking_allowed() ) {
-                            $this->schedule_sync_cron();
-                        }
+                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                        $this->maybe_schedule_sync_cron();
                     }
 
                     /**
@@ -4915,6 +5076,28 @@
             }
 
             if ( $this->is_user_in_admin() ) {
+                if ( $this->is_registered() && fs_request_has( 'purchase_completed' ) ) {
+                    $this->_admin_notices->add_sticky(
+                        sprintf(
+                        /* translators: %s: License type (e.g. you have a professional license) */
+                            $this->get_text_inline( 'You have purchased a %s license.', 'you-have-x-license' ),
+                            fs_request_get( 'purchased_plan' )
+                        ) .
+                        sprintf(
+                            $this->get_text_inline(" The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box.", 'post-purchase-email-sent-message' ),
+                            $this->get_module_label( true ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? "products' " : '' ),
+                            ( FS_Plugin::is_valid_id( $this->get_bundle_id() ) ? 's' : '' ),
+                            sprintf(
+                                '<strong>%s</strong>',
+                                fs_request_get( 'purchase_email' )
+                            )
+                        ),
+                        'plan_purchased',
+                        $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                    );
+                }
+
                 if ( $this->is_addon() ) {
                     if ( ! $this->is_parent_plugin_installed() ) {
                         $parent_name = $this->get_option( $plugin_info, 'parent_name', null );
@@ -4936,10 +5119,12 @@
                     } else {
                         $is_network_admin = fs_is_network_admin();
 
-                        if (
+                        if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
+                            // If add-on activated and parent not, automatically install parent for the user.
+                            $this->activate_parent_account( $this->_parent );
+                        } else if (
                             $this->_parent->is_registered() &&
                             ! $this->is_registered() &&
-                            $this->has_free_plan() &&
                             /**
                              * If not registered for add-on and the following conditions for the add-on are met, activate add-on account.
                              * * Network active and in network admin         - network activate add-on account.
@@ -4953,16 +5138,40 @@
                              */
                             ( $this->is_network_active() || ! $is_network_admin )
                         ) {
-                            // If parent plugin activated, automatically install add-on for the user.
-                            $this->_activate_addon_account(
-                                $this->_parent,
-                                ( $this->is_network_active() && $is_network_admin ) ?
-                                    true :
-                                    get_current_blog_id()
-                            );
-                        } else if ( ! $this->_parent->is_registered() && $this->is_registered() ) {
-                            // If add-on activated and parent not, automatically install parent for the user.
-                            $this->activate_parent_account( $this->_parent );
+                            $premium_license = null;
+
+                            if (
+                                ! $this->has_free_plan() &&
+                                $this->is_bundle_license_auto_activation_enabled() &&
+                                $this->_parent->is_activated_with_bundle_license()
+                            ) {
+                                /**
+                                 * If the add-on has no free plan, try to activate the account only when there's a bundle license.
+                                 *
+                                 * @author Leo Fajardo (@leorw)
+                                 * @since 2.4.0
+                                 */
+                                $bundle_license = $this->get_active_parent_license( $this->_parent->_get_license()->secret_key, false );
+
+                                if (
+                                    is_object( $bundle_license ) &&
+                                    ! empty( $bundle_license->products ) &&
+                                    in_array( $this->get_id(), $bundle_license->products )
+                                ) {
+                                    $premium_license = $bundle_license;
+                                }
+                            }
+
+                            if ( $this->has_free_plan() || is_object( $premium_license) ) {
+                                // If parent plugin activated, automatically install add-on for the user.
+                                $this->_activate_addon_account(
+                                    $this->_parent,
+                                    ( $this->is_network_active() && $is_network_admin ) ?
+                                        true :
+                                        get_current_blog_id(),
+                                    $premium_license
+                                );
+                            }
                         }
 
                         // @todo This should be only executed on activation. It should be migrated to register_activation_hook() together with other activation related logic.
@@ -5464,7 +5673,10 @@
          * @return bool
          */
         function is_extensions_tracking_allowed() {
-            return (true === $this->_storage->get( 'is_extensions_tracking_allowed', true ) );
+            return ( true === $this->apply_filters(
+                    'is_extensions_tracking_allowed',
+                    $this->_storage->get( 'is_extensions_tracking_allowed', null )
+                ) );
         }
 
         /**
@@ -5507,10 +5719,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.2
          *
-         * @param bool $is_enabled
+         * @param bool|null $is_enabled
          */
-        private function update_extensions_tracking_flag( $is_enabled ) {
-            $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
+        function update_extensions_tracking_flag( $is_enabled ) {
+            if ( is_bool( $is_enabled ) ) {
+                $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
+            }
         }
 
         /**
@@ -5650,6 +5864,7 @@
                 $this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
             }
             $this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
+            $this->_is_bundle_license_auto_activation_enabled = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
 
             if ( ! empty( $plugin_info['trial'] ) ) {
                 $this->_trial_days = $this->get_numeric_option(
@@ -6838,8 +7053,6 @@
          */
         function _sync_cron_method( array $blog_ids, $current_blog_id = null ) {
             if ( $this->is_registered() ) {
-                $this->sync_user_beta_mode();
-
                 if ( $this->has_paid_plan() ) {
                     // Initiate background plan sync.
                     $this->_sync_license( true, false, $current_blog_id );
@@ -6883,6 +7096,24 @@
          */
         private function is_sync_cron_on() {
             return $this->is_cron_on( 'sync' );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        private function maybe_schedule_sync_cron() {
+            $next_schedule = $this->next_sync_cron();
+
+            // The event is properly scheduled, so no need to reschedule it.
+            if (
+                is_numeric( $next_schedule ) &&
+                $next_schedule > time()
+            ) {
+                return;
+            }
+
+            $this->schedule_sync_cron();
         }
 
         /**
@@ -7079,13 +7310,20 @@
         /**
          * Show a notice that activation is currently pending.
          *
+         * @todo Add some sort of mechanism to allow users to update the email address they would like to opt-in with when $is_suspicious_email is true.
+         *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
          * @param bool|string $email
          * @param bool        $is_pending_trial Since 1.2.1.5
+         * @param bool        $is_suspicious_email Since 2.4.3 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
          */
-        function _add_pending_activation_notice( $email = false, $is_pending_trial = false ) {
+        function _add_pending_activation_notice(
+            $email = false,
+            $is_pending_trial = false,
+            $is_suspicious_email = false
+        ) {
             if ( ! is_string( $email ) ) {
                 $current_user = self::_get_current_wp_user();
                 $email        = $current_user->user_email;
@@ -7140,6 +7378,20 @@
                 if ( isset( $_GET['activate-multi'] ) ) {
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
+                     */
+                } else if (
+                    self::is_deactivation_snoozed() &&
+                    (
+                        // Either running the free code base.
+                        ! $this->is_premium() ||
+                        // Or if has a free version.
+                        ! $this->is_only_premium() ||
+                        // If premium only, don't redirect if license is activated.
+                        ( $this->is_registered() && ! $this->can_use_premium_code() )
+                    )
+                ) {
+                    /**
+                     * Don't redirect if activating during the deactivation snooze period (aka troubleshooting), unless activating a paid product version that the admin didn't enter its license key yet.
                      */
                 } else if ( ! $is_migration ) {
                     $this->_redirect_on_activation_hook();
@@ -7212,7 +7464,8 @@
                         }
 
                         if ( $this->is_plugin_new_install() || $this->is_only_premium() ) {
-                            if ( ! $this->_anonymous_mode ) {
+                            if ( ! $this->_anonymous_mode &&
+                                 ( ! $this->is_addon() || ! $this->_parent->is_anonymous() ) ) {
                                 // Show notice for new plugin installations.
                                 $this->_admin_notices->add(
                                     sprintf(
@@ -7263,6 +7516,10 @@
          * @return bool
          */
         private function should_add_sticky_optin_notice() {
+            if ( $this->is_addon() && $this->_parent->is_anonymous() ) {
+                return false;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     return false;
@@ -7322,8 +7579,6 @@
 
             fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
             fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
-
-            fs_enqueue_local_style( 'fs_connect', '/admin/connect.css' );
         }
 
         /**
@@ -7715,7 +7970,10 @@
                  * @author Leo Fajardo (@leorw)
                  * @since  1.2.2
                  */
-                if ( is_plugin_active( $other_version_basename ) ) {
+                if (
+                    is_plugin_active( $other_version_basename ) &&
+                    $this->apply_filters( 'deactivate_on_activation', true )
+                ) {
                     deactivate_plugins( $other_version_basename );
                 }
             }
@@ -7743,7 +8001,9 @@
                     $plugin_version = $this->_storage->is_anonymous_ms['version'];
                     $network        = true;
                 } else {
-                    $plugin_version = $this->_storage->is_anonymous['version'];
+                    $plugin_version = isset( $this->_storage->is_anonymous ) ?
+                        $this->_storage->is_anonymous['version'] :
+                        null;
                     $network        = false;
                 }
 
@@ -7867,8 +8127,17 @@
                 return;
             }
 
-            $license = $this->get_addon_active_parent_license();
+            $license = $this->get_active_parent_license();
             if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
+                $this->activate_bundle_license( $license );
+
                 return;
             }
 
@@ -7894,7 +8163,6 @@
             }
         }
 
-
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
@@ -7910,9 +8178,18 @@
 
             $license = ( ! is_null( $license ) ) ?
                 $license :
-                $this->get_addon_active_parent_license();
+                $this->get_active_parent_license();
 
             if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            if (
+                $this->is_bundle_license_auto_activation_enabled() &&
+                ! empty( $license->products )
+            ) {
+                $this->activate_bundle_license( $license );
+
                 return;
             }
 
@@ -7979,16 +8256,217 @@
         }
 
         /**
+         * Tries to activate a bundle license for all supported products if the current product is activated with a bundle license. This is called after activating an available license (not via the license activation dialog but by clicking on a license activation button) for a product via its "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $blog_id
+         */
+        private function maybe_activate_bundle_license( FS_Plugin_License $license = null, $sites = array(), $blog_id = 0 ) {
+            if ( ! is_object( $license ) && $this->has_active_valid_license() ) {
+                $license = $this->_license;
+            }
+
+            if ( ! is_object( $license ) ) {
+                return;
+            }
+
+            $parent_license = ( ! empty( $license->products ) ) ?
+                $license :
+                $this->get_active_parent_license( $license->secret_key );
+
+            if ( is_object( $parent_license ) ) {
+                $this->activate_bundle_license( $parent_license, $sites, $blog_id );
+            }
+        }
+
+        /**
+         * Try to activate a bundle license for all the bundle products installed on the site.
+         *  (1) If a child product install already has a license, the bundle license won't be activated.
+         *  (2) On multi-site networks, if the attempt to activate the bundle license is triggered from the network admin, the bundle license activation will only work for non-delegated sites and only if none of them is associated with a license. Even if one of the sites has the product installed with a license key, skip the bundle license activation for the product.
+         *  (3) On multi-site networks, if the attempt to activate the bundle license is triggered from a site-level admin, only activate the license if the product is site-level activated or delegated, and the product installation is not yet associated with a license.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.0
+         *
+         * @param FS_Plugin_License $license
+         * @param array             $sites
+         * @param int               $current_blog_id
+         */
+        private function activate_bundle_license( $license, $sites = array(), $current_blog_id = 0 ) {
+            $is_network_admin = fs_is_network_admin();
+
+            $installs_by_blog_map  = array();
+            $site_info_by_blog_map = array();
+
+            /**
+             * Try to activate the license for all supported products.
+             *
+             * @author Leo Fajardo
+             */
+            foreach ( $license->products as $product_id ) {
+                $fs = self::get_instance_by_id( $product_id );
+
+                if ( ! is_object( $fs ) ) {
+                    continue;
+                }
+
+                if ( ! $fs->has_paid_plan() ) {
+                    continue;
+                }
+
+                if (
+                    ! $fs->is_addon() &&
+                    ! FS_Plan_Manager::instance()->has_paid_plan( $fs->_plans )
+                ) {
+                    /**
+                     * The parent product can be free-only but can have its `has_paid_plan` flag set to `true` when
+                     * there is a context bundle.
+                     */
+                    continue;
+                }
+
+                if ( $current_blog_id > 0 ) {
+                    $fs->switch_to_blog( $current_blog_id );
+                }
+
+                if ( $fs->has_active_valid_license() ) {
+                    continue;
+                }
+
+                if ( ! $is_network_admin || $current_blog_id > 0 ) {
+                    if ( $fs->is_network_active() && ! $fs->is_delegated_connection( $current_blog_id ) ) {
+                        // Do not try to activate the license in the site level if the product is network active and the connection was not delegated.
+                        continue;
+                    }
+                } else {
+                    if ( ! $fs->is_network_active() ) {
+                        // Do not try to activate the license in the network level if the product is not network active.
+                        continue;
+                    }
+
+                    if ( $fs->is_network_delegated_connection() ) {
+                        // Do not try to activate the license in the network level if the activation has been delegated to site admins.
+                        continue;
+                    }
+
+                    $has_install_with_license = false;
+
+                    // Collection of sites that have an install entity that is not activated with a license or non-delegated sites that have no install entity, or both types of site.
+                    $filtered_sites = array();
+
+                    if ( empty( $sites ) ) {
+                        $all_sites = self::get_sites();
+
+                        foreach ( $all_sites as $site ) {
+                            $sites[] = array( 'blog_id' => self::get_site_blog_id( $site ) );
+                        }
+                    } else {
+                        // Populate the map here to avoid calling `$fs->get_site_info( $site );` in the other `for` loop below.
+                        foreach ( $sites as $site ) {
+                            if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                                continue;
+                            }
+
+                            $site_info_by_blog_map[ $site['blog_id'] ] = $site;
+                        }
+                    }
+
+                    foreach ( $sites as $site ) {
+                        if ( ! isset( $site['blog_id'] ) || ! is_numeric( $site['blog_id'] ) ) {
+                            continue;
+                        }
+
+                        $blog_id = $site['blog_id'];
+
+                        if ( ! isset( $installs_by_blog_map[ $blog_id ] ) ) {
+                            $installs_by_blog_map[ $blog_id ] = self::get_all_sites( $fs->get_module_type(), $blog_id );
+                        }
+
+                        $installs = $installs_by_blog_map[ $blog_id ];
+                        $install  = null;
+
+                        if ( isset( $installs[ $fs->get_slug() ] ) ) {
+                            $install = $installs[ $fs->get_slug() ];
+
+                            if (
+                                is_object( $install ) &&
+                                (
+                                    ! FS_Site::is_valid_id( $install->id ) ||
+                                    ! FS_User::is_valid_id( $install->user_id ) ||
+                                    ! FS_Plugin_Plan::is_valid_id( $install->plan_id )
+                                )
+                            ) {
+                                $install = null;
+                            }
+                        }
+
+                        if (
+                            is_object( $install ) &&
+                            FS_Plugin_License::is_valid_id( $install->license_id )
+                        ) {
+                            $has_install_with_license = true;
+                            break;
+                        }
+
+                        if ( $fs->is_site_delegated_connection( $blog_id ) ) {
+                            // Site activation delegated, don't activate bundle license on the site in the network admin.
+                            continue;
+                        }
+
+                        if ( ! isset( $site_info_by_blog_map[ $blog_id ] ) ) {
+                            $site_info_by_blog_map[ $blog_id ] = $fs->get_site_info( $site );
+                        }
+
+                        $filtered_sites[] = $site_info_by_blog_map[ $blog_id ];
+                    }
+
+                    if ( $has_install_with_license || empty( $filtered_sites ) ) {
+                        // Do not try to activate the license at the network level if there's any install with a license or there's no site to activate the license on.
+                        continue;
+                    }
+
+                    $sites = $filtered_sites;
+                }
+
+                $fs->activate_migrated_license(
+                    $license->secret_key,
+                    null,
+                    null,
+                    $sites,
+                    ( $current_blog_id > 0 ? $current_blog_id : null )
+                );
+            }
+        }
+
+        /**
+         * Returns a parent license that can be activated for the context product.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.3.0
          *
+         * @param string|null $license_key
+         * @param bool        $flush
+         *
          * @return FS_Plugin_License
          */
-        private function get_addon_active_parent_license() {
+        function get_active_parent_license( $license_key = null, $flush = true ) {
             $parent_licenses_endpoint = "/plugins/{$this->get_id()}/parent_licenses.json?filter=activatable";
-            $parent_instance          = $this->get_parent_instance();
 
-            $foreign_licenses = $parent_instance->get_foreign_licenses_info(
+            $fs = $this;
+            
+            if ( $this->is_addon() ) {
+                $parent_instance = $this->get_parent_instance();
+
+                if ( is_object( $parent_instance ) && $parent_instance->is_registered() ) {
+                    $fs = $parent_instance;
+                }
+            }
+
+            $foreign_licenses = $fs->get_foreign_licenses_info(
                 self::get_all_licenses( $this->get_parent_id() )
             );
 
@@ -8002,7 +8480,7 @@
                 $parent_licenses_endpoint = add_query_arg( $foreign_licenses, $parent_licenses_endpoint );
             }
 
-            $result = $parent_instance->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, true );
+            $result = $fs->get_current_or_network_user_api_scope()->get( $parent_licenses_endpoint, $flush );
 
             if (
                 ! $this->is_api_result_object( $result, 'licenses' ) ||
@@ -8012,9 +8490,24 @@
                 return null;
             }
 
-            $license = new FS_Plugin_License( $result->licenses[ 0 ] );
+            $parent_license = null;
 
-            return $license;
+            if ( empty( $license_key ) ) {
+                $parent_license = $result->licenses[0];
+            } else {
+                foreach ( $result->licenses as $license ) {
+                    if ( $license_key === $license->secret_key ) {
+                        $parent_license = $license;
+                        break;
+                    }
+                }
+            }
+
+            if ( ! is_null( $parent_license ) ) {
+                $parent_license = new FS_Plugin_License( $parent_license );
+            }
+
+            return $parent_license;
         }
 
         /**
@@ -8333,7 +8826,7 @@
          * @uses   Freemius::is_network_anonymous() to check if the super-admin network skipped.
          * @uses   Freemius::is_network_delegated_connection() to check if the super-admin network delegated the connection to the site admins.
          */
-        function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
+        public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
             if ( $this->is_premium() &&
@@ -8429,6 +8922,27 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param \WP_Site $new_site
+         */
+        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_new_blog_callback(
+                $new_site->id,
+                // Dummy user ID (not in use).
+                0,
+                $new_site->domain,
+                $new_site->path,
+                $new_site->network_id,
+                // Dummy meta, not in use.
+                array()
+            );
         }
 
         /**
@@ -8767,12 +9281,25 @@
                         'is_uninstalled' => false,
                     );
 
-                    $plugins_update_data[]                       = $new_plugin;
                     $network_plugins_cache->plugins[ $basename ] = $new_plugin;
+
+                    $is_site_level_active = (
+                        isset( $site_active_plugins[ $basename ] ) &&
+                        $site_active_plugins[ $basename ]['is_active']
+                    );
+
+                    /**
+                     * If not network active, set the activity status based on the site-level plugin status.
+                     */
+                    if ( ! $new_plugin['is_active'] ) {
+                        $new_plugin['is_active'] = $is_site_level_active;
+                    }
+
+                    $plugins_update_data[] = $new_plugin;
 
                     if ( isset( $site_active_plugins[ $basename ] ) ) {
                         $site_active_plugins_cache->plugins[ $basename ]              = $new_plugin;
-                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = true;
+                        $site_active_plugins_cache->plugins[ $basename ]['is_active'] = $is_site_level_active;
                     }
                 }
             }
@@ -10458,6 +10985,18 @@
          */
         function is_tracking_allowed() {
             return ( is_object( $this->_site ) && $this->_site->is_tracking_allowed() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.0
+         *
+         * @return bool
+         */
+        function is_bundle_license_auto_activation_enabled() {
+            return $this->is_addon() ?
+                ( is_object( $this->_parent ) && $this->_parent->is_bundle_license_auto_activation_enabled() ) :
+                $this->_is_bundle_license_auto_activation_enabled;
         }
 
         /**
@@ -12574,6 +13113,75 @@
         }
 
         /**
+         * Displays an email address update dialog box when the user clicks on the email address "Edit" button on the "Account" page.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         */
+        function _add_email_address_update_dialog_box() {
+            $vars = array( 'id' => $this->_module_id );
+
+            fs_require_template( 'forms/email-address-update.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _add_email_address_update_option() {
+            if ( ! $this->should_handle_user_change() ) {
+                return;
+            }
+
+            // Add email address update AJAX handler.
+            $this->add_ajax_action( 'update_email_address', array( &$this, '_email_address_update_ajax_handler' ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _email_address_update_ajax_handler() {
+            $this->check_ajax_referer( 'update_email_address' );
+
+            $new_email_address = fs_request_get( 'email_address' );
+            $transfer_type     = fs_request_get( 'transfer_type' );
+
+            $result = $this->update_email( $new_email_address );
+
+            if ( ! FS_Api::is_api_error( $result ) ) {
+                self::shoot_ajax_success();
+            }
+
+            $error = '';
+
+            if ( FS_Api::is_api_error_object( $result ) ) {
+                switch ( $result->error->code ) {
+                    case 'user_exist':
+                    case 'account_verification_required':
+                        $error = array(
+                            'code' => 'change_ownership',
+                            'url'  => $this->get_account_url( 'change_owner', array(
+                                'state'           => 'init',
+                                'candidate_email' => $new_email_address,
+                                'transfer_type'   => $transfer_type,
+                            ) ),
+                        );
+
+                        break;
+                }
+            }
+
+            if ( empty( $error ) ) {
+                $error = is_object( $result ) ?
+                    var_export( $result->error, true ) :
+                    $result;
+            }
+
+            self::shoot_ajax_failure( $error );
+        }
+
+        /**
          * Returns a collection of IDs of installs that are associated with the context product and its add-ons, and activated with foreign licenses.
          *
          * @author Leo Fajardo (@leorw)
@@ -12780,10 +13388,15 @@
                     ( $is_network_admin && $this->is_network_active() && ! $this->is_network_delegated_connection() ) ||
                     ( ! $is_network_admin && ( ! $this->is_network_active() || $this->is_delegated_connection() ) )
                 ) {
-                    /**
-                     * @since 1.2.0 Add license action link only on plugins page.
-                     */
-                    $this->_add_license_action_link();
+                    if (
+                        $this->is_premium() ||
+                        ( $this->has_paid_plan() && ! $this->has_premium_version() )
+                    ) {
+                        /**
+                         * @since 1.2.0 Add license action link only on plugins page.
+                         */
+                        $this->_add_license_action_link();
+                    }
                 }
             }
 
@@ -12865,6 +13478,61 @@
         }
 
         /**
+         * @author Edgar Melkonyan
+         * @since 2.4.1
+         *
+         * @throws Freemius_Exception
+         */
+        function _toggle_whitelabel_mode_ajax_handler() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'toggle_whitelabel_mode' );
+
+            if ( ! $this->is_user_admin() ) {
+                // Only for admins.
+                self::shoot_ajax_failure();
+            }
+
+            $license = $this->get_api_user_scope()->call(
+                "/licenses/{$this->_site->license_id}.json",
+                'put',
+                array( 'is_whitelabeled' => ! $this->_license->is_whitelabeled )
+            );
+
+            if ( ! $this->is_api_result_entity( $license ) ) {
+                self::shoot_ajax_failure(
+                FS_Api::is_api_error_object( $license ) ?
+                    $license->error->message :
+                    fs_text_inline( "An unknown error has occurred while trying to toggle the license's white-label mode.", 'unknown-error-occurred', $this->get_slug() )
+                );
+            }
+
+            $this->_license->is_whitelabeled = $license->is_whitelabeled;
+            $this->_store_licenses();
+
+            $this->_sync_license();
+
+            if ( ! $license->is_whitelabeled ) {
+                $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
+            } else {
+                $this->_admin_notices->add_sticky(
+                    sprintf(
+                        $this->get_text_inline(
+                            'Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s.',
+                            'license_whitelabeled'
+                        ),
+                        "<strong>{$this->get_plugin_title()}</strong>",
+                        sprintf( '<a href="https://users.freemius.com" target="_blank">%s</a>', $this->get_text_inline( 'User Dashboard', 'user-dashboard' ) ),
+                        sprintf( '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>', $this->get_text_inline( 'revert it now', 'revert-it-now' ) )
+                    ),
+                    'license_whitelabeled'
+                );
+            }
+
+            self::shoot_ajax_response( array( 'success' => true ) );
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.3.0
          */
@@ -12900,26 +13568,25 @@
                 self::shoot_ajax_failure();
             }
 
-            $user = $this->get_api_user_scope()->call(
+            $site = $this->get_api_site_scope()->call(
                 '',
                 'put',
                 array(
-                    'plugin_id' => $this->get_id(),
                     'is_beta'   => ( 'true' == $is_beta ),
                     'fields'    => 'is_beta'
                 )
             );
 
-            if ( ! $this->is_api_result_entity( $user ) ) {
+            if ( ! $this->is_api_result_entity( $site ) ) {
                 self::shoot_ajax_failure(
-                    FS_Api::is_api_error_object( $user ) ?
-                        $user->error->message :
+                    FS_Api::is_api_error_object( $site ) ?
+                        $site->error->message :
                         fs_text_inline( "An unknown error has occurred while trying to set the user's beta mode.", 'unknown-error-occurred', $this->get_slug() )
                 );
             }
 
-            $this->_user->is_beta = $user->is_beta;
-            $this->_store_user();
+            $this->_site->is_beta = $site->is_beta;
+            $this->_store_site();
 
             self::shoot_ajax_response( array( 'success' => true ) );
         }
@@ -12943,17 +13610,29 @@
                 exit;
             }
 
+            $sites = fs_is_network_admin() ?
+                fs_request_get( 'sites', array(), 'post' ) :
+                array();
+
             $result = $this->activate_license(
                 $license_key,
-                fs_is_network_admin() ?
-                    fs_request_get( 'sites', array(), 'post' ) :
-                    array(),
+                $sites,
                 fs_request_get_bool( 'is_marketing_allowed', null ),
                 fs_request_get( 'blog_id', null ),
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
-                fs_request_get_bool( 'is_extensions_tracking_allowed', true )
+                fs_request_get_bool( 'is_extensions_tracking_allowed', null )
             );
+
+            if (
+                $result['success'] &&
+                $this->is_bundle_license_auto_activation_enabled()
+            ) {
+                $license             = new FS_Plugin_License();
+                $license->secret_key = $license_key;
+
+                $this->maybe_activate_bundle_license( $license, $sites );
+            }
 
             echo json_encode( $result );
 
@@ -13089,6 +13768,8 @@
          * @param string      $license_key
          * @param null|bool   $is_marketing_allowed
          * @param null|number $plugin_id
+         * @param array       $sites
+         * @param int         $blog_id
          *
          * @return array {
          *      @var bool   $success
@@ -13102,15 +13783,16 @@
             $license_key,
             $is_marketing_allowed = null,
             $plugin_id = null,
+            $sites = array(),
             $blog_id = null
         ) {
             $this->_logger->entrance();
 
             $result = $this->activate_license(
                 $license_key,
-                $this->is_network_active() ?
+                ( empty( $sites ) && is_null( $blog_id ) && $this->is_network_active() ) ?
                     $this->get_sites_for_network_level_optin() :
-                    array(),
+                    $sites,
                 $is_marketing_allowed,
                 $blog_id,
                 $plugin_id
@@ -13129,7 +13811,31 @@
          * @return string
          */
         function get_pricing_js_path() {
-            return $this->apply_filters( 'freemius_pricing_js_path', WP_FS__DIR_INCLUDES . '/freemius-pricing/freemius-pricing.js' );
+            if ( ! isset( $this->_pricing_js_path ) ) {
+                $pricing_js_path = $this->apply_filters( 'freemius_pricing_js_path', '' );
+
+                if ( empty( $pricing_js_path ) ) {
+                    global $fs_active_plugins;
+
+                    foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
+                        if ( $data->plugin_path == $this->get_plugin_basename() ) {
+                            $plugin_or_theme_root_dir = ( $this->is_plugin() ? WP_PLUGIN_DIR : get_theme_root( get_stylesheet() ) );
+
+                            $pricing_js_path = $plugin_or_theme_root_dir
+                                . '/'
+                                // The basename will be `plugins`, `themes`, or the basename of a custom plugins or themes directory.
+                                . str_replace( '../' . basename( $plugin_or_theme_root_dir ) . '/', '', $sdk_path )
+                                . '/includes/freemius-pricing/freemius-pricing.js';
+
+                            break;
+                        }
+                    }
+                }
+
+                $this->_pricing_js_path = $pricing_js_path;
+            }
+
+            return $this->_pricing_js_path;
         }
 
         /**
@@ -13174,7 +13880,7 @@
             $blog_id = null,
             $plugin_id = null,
             $license_owner_id = null,
-            $is_extensions_tracking_allowed = true
+            $is_extensions_tracking_allowed = null
         ) {
             $this->_logger->entrance();
 
@@ -13316,6 +14022,12 @@
 
                 if ( empty( $error ) ) {
                     $fs->network_upgrade_mode_completed();
+
+                    $fs->_user = $user;
+
+                    if ( fs_is_network_admin() && ! $has_valid_blog_id ) {
+                        $fs->_site = $fs->get_network_install();
+                    }
 
                     $fs->_sync_license( true, $has_valid_blog_id );
 
@@ -13469,7 +14181,7 @@
 
                 $addon_info = $fs->_get_addon_info( $addon_id, $is_installed );
 
-                if ( ! $addon_info['is_connected'] ) {
+                if ( ! isset( $addon_info['is_connected'] ) || ! $addon_info['is_connected'] ) {
                     // Add-on is not associated with an install entity.
                     continue;
                 }
@@ -14740,12 +15452,17 @@
         }
 
         /**
+         * @todo Implement pagination when accessing the subsites collection.
+         *
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
+         * @param int $limit  Default to 1,000
+         * @param int $offset Default to 0
+         *
          * @return array Active & public sites collection.
          */
-        static function get_sites() {
+        static function get_sites( $limit = 1000, $offset = 0 ) {
             if ( ! is_multisite() ) {
                 return array();
             }
@@ -14767,6 +15484,8 @@
                 'mature'   => 0,
                 'spam'     => 0,
                 'deleted'  => 0,
+                'number'   => $limit,
+                'offset'   => $offset,
             );
 
             if ( function_exists( 'get_sites' ) ) {
@@ -15402,6 +16121,20 @@
             }
 
             $this->switch_to_blog( $current_blog_id );
+        }
+
+        /**
+         * Executed after site deletion, called from wp_delete_site
+         *
+         * @author Dario Curvino (@dudo)
+         * @since  2.4.3
+         *
+         * @param WP_Site $old_site
+         */
+        public function _after_wpsite_deleted_callback( WP_Site $old_site ) {
+            $this->_logger->entrance();
+
+            $this->_after_site_deleted_callback( $old_site->blog_id, true );
         }
 
         /**
@@ -16090,19 +16823,6 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.0
-         */
-        private function sync_user_beta_mode() {
-            $user = $this->get_api_user_scope()->get( '/?plugin_id=' . $this->get_id() . '&fields=is_beta' );
-
-            if ( $this->is_api_result_entity( $user ) ) {
-                $this->_user->is_beta = $user->is_beta;
-                $this->_store_user();
-            }
-        }
-
-        /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
@@ -16415,7 +17135,8 @@
                         true ),
                     false,
                     $filtered_license_key,
-                    ! empty( $params['trial_plan_id'] )
+                    ! empty( $params['trial_plan_id'] ),
+                    isset( $decoded->is_suspicious_email ) && $decoded->is_suspicious_email
                 );
             } else if ( isset( $decoded->install_secret_key ) ) {
                 return $this->install_with_new_user(
@@ -16690,7 +17411,13 @@
                         );
                     }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
-                    $this->set_pending_confirmation( fs_request_get( 'user_email' ), true );
+                    $this->set_pending_confirmation(
+                        fs_request_get( 'user_email' ),
+                        true,
+                        false,
+                        false,
+                        fs_request_get_bool( 'is_suspicious_email' )
+                    );
                 }
             }
         }
@@ -16793,9 +17520,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             return $this->setup_account(
                 $this->_user,
@@ -16840,9 +17565,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -16885,9 +17608,7 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            if ( ! is_null( $is_extensions_tracking_allowed ) ) {
-                $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-            }
+            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
             $install_ids = array();
 
@@ -16938,7 +17659,8 @@
             $email = false,
             $redirect = true,
             $license_key = false,
-            $is_pending_trial = false
+            $is_pending_trial = false,
+            $is_suspicious_email = false
         ) {
             if ( $this->_ignore_pending_mode ) {
                 /**
@@ -16953,7 +17675,7 @@
                 // Install must be activated via email since
                 // user with the same email already exist.
                 $this->_storage->is_pending_activation = true;
-                $this->_add_pending_activation_notice( $email, $is_pending_trial );
+                $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
             }
 
             if ( ! empty( $license_key ) ) {
@@ -16998,7 +17720,7 @@
                  */
                 $license_key = fs_request_get( 'license_secret_key' );
 
-                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', true ) );
+                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', null ) );
 
                 $this->install_with_current_user( $license_key );
             }
@@ -17199,10 +17921,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param Freemius      $parent_fs
-         * @param bool|int|null $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param Freemius          $parent_fs
+         * @param bool|int|null     $network_level_or_blog_id True for network level opt-in and integer for opt-in for specified blog in the network.
+         * @param FS_Plugin_License $bundle_license           Since 2.4.0. If provided, this license will be activated for the add-on.
          */
-        private function _activate_addon_account( Freemius $parent_fs, $network_level_or_blog_id = null ) {
+        private function _activate_addon_account(
+            Freemius $parent_fs,
+            $network_level_or_blog_id = null,
+            FS_Plugin_License $bundle_license = null
+        ) {
             if ( $this->is_registered() ) {
                 // Already activated.
                 return;
@@ -17241,6 +17968,10 @@
                 }
             }
 
+            if ( is_object( $bundle_license ) ) {
+                $params['license_key'] = $bundle_license->secret_key;
+            }
+
             // Activate add-on with parent plugin credentials.
             $result = $parent_fs->get_api_site_scope()->call(
                 "/addons/{$this->_plugin->id}/installs.json",
@@ -17249,16 +17980,25 @@
             );
 
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                $error_message = FS_Api::is_api_error_object( $result ) ?
-                    $result->error->message :
-                    $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
+                if ( is_object( $bundle_license ) ) {
+                    /**
+                     * When a license object is provided, it's an attempt by the SDK to activate a bundle license and not a user-initiated action, therefore, do not show any admin notice to avoid confusion (e.g.: the notice will show up just above the opt-in link). If the license activation fails, the admin will see an opt-in link instead.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since  2.4.0
+                     */
+                } else {
+                    $error_message = FS_Api::is_api_error_object( $result ) ?
+                        $result->error->message :
+                        $this->get_text_inline( 'An unknown error has occurred.', 'unknown-error' );
 
-                $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
-                    $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
-                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                    'error'
-                );
+                    $this->_admin_notices->add(
+                        sprintf( $this->get_text_inline( 'Couldn\'t activate %s.', 'could-not-activate-x' ), $this->get_plugin_name() ) . ' ' .
+                        $this->get_text_inline( 'Please contact us with the following message:', 'contact-us-with-error-message' ) . ' ' . '<b>' . $error_message . '</b>',
+                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                        'error'
+                    );
+                }
 
                 return;
             }
@@ -17291,21 +18031,29 @@
 
             if ( ! fs_is_network_admin() ) {
                 // Try to activate premium license.
-                $this->_activate_license( true );
-            } else {
-                $license_id = fs_request_get( 'license_id' );
+                $this->_activate_license( true, $bundle_license );
 
-                if ( is_object( $this->_site ) &&
-                    FS_Plugin_License::is_valid_id( $license_id ) &&
-                    $license_id == $this->_site->license_id
-                ) {
-                    // License is already activated.
-                    return;
+                if ( is_object( $bundle_license ) ) {
+                    $this->maybe_activate_bundle_license( $bundle_license );
                 }
+            } else {
+                if ( is_object( $bundle_license ) ) {
+                    $premium_license = $bundle_license;
+                } else {
+                    $license_id = fs_request_get( 'license_id' );
 
-                $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
-                    $this->_get_license_by_id( $license_id ) :
-                    $this->_get_available_premium_license();
+                    if ( is_object( $this->_site ) &&
+                        FS_Plugin_License::is_valid_id( $license_id ) &&
+                        $license_id == $this->_site->license_id
+                    ) {
+                        // License is already activated.
+                        return;
+                    }
+
+                    $premium_license = FS_Plugin_License::is_valid_id( $license_id ) ?
+                        $this->_get_license_by_id( $license_id ) :
+                        $this->_get_available_premium_license();
+                }
 
                 if ( is_object( $premium_license ) ) {
                     $this->maybe_network_activate_addon_license( $premium_license );
@@ -19763,6 +20511,22 @@
         }
 
         /**
+         * Checks if the product is activated with a bundle license.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.0
+         *
+         * @return bool
+         */
+        function is_activated_with_bundle_license() {
+            if ( ! $this->has_features_enabled_license() ) {
+                return false;
+            }
+
+            return FS_Plugin_License::is_valid_id( $this->_license->parent_license_id );
+        }
+
+        /**
          * Check if user is a trial or have feature enabled license.
          *
          * @author Vova Feldman (@svovaf)
@@ -20208,6 +20972,20 @@
                     }
                 }
 
+                if ( ! $this->is_addon() &&
+                     $this->_site->is_beta() !== $site->is_beta
+                ) {
+                    // Beta flag updated.
+                    $this->_site = $site;
+
+                    $this->_store_site(
+                        true,
+                        $is_site_level_sync ?
+                            null :
+                            $this->get_network_install_blog_id()
+                    );
+                }
+
                 if ( $this->is_addon() || $this->has_addons() ) {
                     /**
                      * Purge the valid user licenses cache so that when the "Account" or the "Add-Ons" page is loaded,
@@ -20354,6 +21132,13 @@
             }
 
             if ( 'none' !== $plan_change ) {
+                if (
+                    ! is_object( $this->_license ) ||
+                    ! $this->_license->is_whitelabeled
+                ) {
+                    $this->_admin_notices->remove_sticky( 'license_whitelabeled' );
+                }
+
                 $this->do_action( 'after_license_change', $plan_change, $this->get_plan() );
             }
         }
@@ -20894,7 +21679,7 @@
 
             if ( $this->has_secret_key() ) {
                 $endpoint = add_query_arg( 'type', 'all', $endpoint );
-            } else if ( $this->is_registered() && $this->_user->is_beta() ) {
+            } else if ( is_object( $this->_site ) && $this->_site->is_beta() ) {
                 $endpoint = add_query_arg( 'type', 'beta', $endpoint );
             }
 
@@ -21034,9 +21819,11 @@
         private function get_latest_download_api_url( $plugin_id = false ) {
             $this->_logger->entrance();
 
-            return $this->get_api_site_scope()->get_signed_url(
+            $download_api_url = $this->get_api_site_scope()->get_signed_url(
                 $this->_get_latest_version_endpoint( $plugin_id, 'zip' )
             );
+
+            return str_replace( 'http:', 'https:', $download_api_url );
         }
 
         /**
@@ -21077,7 +21864,7 @@
          */
         private function get_latest_download_link( $label, $plugin_id = false ) {
             return sprintf(
-                '<a target="_blank" href="%s">%s</a>',
+                '<a target="_blank" rel="noopener" href="%s">%s</a>',
                 $this->_get_latest_download_local_url( $plugin_id ),
                 $label
             );
@@ -21148,7 +21935,7 @@
                             $this->get_text_inline( 'Version %s was released.', 'version-x-released' ) . ' ' . $this->get_text_inline( 'Please download %s.', 'please-download-x' ),
                             $update->version,
                             sprintf(
-                                '<a href="%s" target="_blank">%s</a>',
+                                '<a href="%s" target="_blank" rel="noopener">%s</a>',
                                 $this->get_account_url( 'download_latest' ),
                                 sprintf(
                                 /* translators: %s: plan name (e.g. latest "Professional" version) */
@@ -21231,7 +22018,6 @@
         private function update_email( $new_email ) {
             $this->_logger->entrance();
 
-
             $api  = $this->get_api_user_scope();
             $user = $api->call( "?plugin_id={$this->_plugin->id}&fields=id,email,is_verified", 'put', array(
                 'email'                   => $new_email,
@@ -21247,7 +22033,6 @@
                 $this->_store_user();
             } else {
                 // handle different error cases.
-
             }
 
             return $user;
@@ -21323,15 +22108,32 @@
          * @uses   FS_Api
          *
          * @param string $candidate_email
+         * @param string $transfer_type
          *
          * @return bool Is ownership change successfully initiated.
          */
-        private function init_change_owner( $candidate_email ) {
+        private function init_change_owner( $candidate_email, $transfer_type ) {
             $this->_logger->entrance();
+
+            $installs_info_by_slug_map = $this->get_parent_and_addons_installs_info();
+            $install_ids               = array();
+
+            foreach ( $installs_info_by_slug_map as $slug => $install_info ) {
+                $install = $install_info['install'];
+
+                if ( $this->_user->id != $install->user_id ) {
+                    // Skip add-on installs that are not owned by the parent product's install's owner.
+                    continue;
+                }
+
+                $install_ids[ $slug ] = $install->id;
+            }
 
             $api    = $this->get_api_site_scope();
             $result = $api->call( "/users/{$this->_user->id}.json", 'put', array(
                 'email'             => $candidate_email,
+                'transfer_type'     => $transfer_type,
+                'install_ids'       => implode( ',', array_values( $install_ids ) ),
                 'after_confirm_url' => $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'change_owner' )
@@ -21353,28 +22155,113 @@
         private function complete_change_owner() {
             $this->_logger->entrance();
 
-            $site_result = $this->get_api_site_scope( true )->get();
-            $site        = new FS_Site( $site_result );
-            $this->_site = $site;
+            $install_ids = fs_request_get( 'install_ids' );
 
-            $user     = new FS_User();
-            $user->id = fs_request_get( 'user_id' );
+            if ( ! empty( $install_ids ) ) {
+                $install_ids = explode( ',', $install_ids );
 
-            // Validate install's user and given user.
-            if ( $user->id != $this->_site->user_id ) {
-                return false;
+                foreach ( $install_ids as $key => $install_id ) {
+                    if ( ! FS_Site::is_valid_id( $install_id ) ) {
+                        unset( $install_ids[ $key ] );
+                    }
+                }
             }
 
+            if ( ! is_array( $install_ids ) ) {
+                $install_ids = array();
+            }
+
+            $user             = new FS_User();
+            $user->id         = fs_request_get( 'user_id' );
             $user->public_key = fs_request_get( 'user_public_key' );
             $user->secret_key = fs_request_get( 'user_secret_key' );
 
-            // Fetch new user information.
+            $prev_user   = $this->_user;
             $this->_user = $user;
+
+            $result = $this->get_api_user_scope( true )->get(
+                "/installs.json?install_ids=" . implode( ',', $install_ids )
+            );
+
+            $current_blog_sites = self::get_all_sites( $this->get_module_type() );
+
+            if ( $this->is_api_result_object( $result, 'installs' ) ) {
+                $site_id_slug_map = array();
+
+                foreach ( $current_blog_sites as $slug => $site ) {
+                    $site_id_slug_map[ $site->id ] = $slug;
+                }
+
+                foreach ( $result->installs as $install ) {
+                    $site = new FS_Site( $install );
+
+                    if ( ! isset( $site_id_slug_map[ $install->id ] ) ) {
+                        continue;
+                    }
+
+                    $current_blog_sites[ $site_id_slug_map[ $install->id ] ] = clone $site;
+
+                    if ( $this->_site->id == $site->id ) {
+                        $this->_site = $site;
+                    }
+                }
+            }
+
+            // Validate install's user and given user.
+            if ( $user->id != $this->_site->user_id ) {
+                $this->_user = $prev_user;
+
+                return false;
+            }
+
+            $this->set_account_option( 'sites', $current_blog_sites, true );
+
+            // Fetch new user information.
             $user_result = $this->get_api_user_scope( true )->get();
             $user        = new FS_User( $user_result );
             $this->_user = $user;
 
-            $this->_set_account( $user, $site );
+            $this->_set_account( $user, $this->_site );
+
+            $remove_user       = true;
+            $all_modules_sites = self::get_all_modules_sites();
+
+            foreach ( $all_modules_sites as $sites_by_module_type ) {
+                foreach ( $sites_by_module_type as $sites_by_slug ) {
+                    foreach ( $sites_by_slug as $site ) {
+                        if ( $prev_user->id == $site->user_id ) {
+                            $remove_user = false;
+                            break;
+                        }
+                    }
+
+                    if ( ! $remove_user ) {
+                        break;
+                    }
+                }
+
+                if ( ! $remove_user ) {
+                    break;
+                }
+            }
+
+            if ( $remove_user ) {
+                $users = self::get_all_users();
+
+                if ( isset( $users[ $prev_user->id ] ) ) {
+                    unset( $users[ $prev_user->id ] );
+                } else {
+                    // If the prev user wasn't found by the key, iterate over the users collection.
+                    foreach ( $users as $key => $user ) {
+                        if ( $user->id == $prev_user->id ) {
+                            unset( $users[ $key ] );
+                            break;
+                        }
+                    }
+                }
+
+                $this->set_account_option( 'users', $users, true );
+            }
 
             return true;
         }
@@ -21635,7 +22522,7 @@
                                                 $this->get_plugin_title(),
                                                 fs_strip_url_protocol( get_site_url( $blog_id ) ),
                                                 sprintf(
-                                                    '<a href="%s" target="_blank">%s</a>',
+                                                    '<a href="%s" target="_blank" rel="noopener">%s</a>',
                                                     'https://freemius.com',
                                                     'freemius.com'
                                                 )
@@ -21734,6 +22621,18 @@
 
                     if ( is_object( $fs ) ) {
                         $fs->_activate_license();
+
+                        /**
+                         * Remove the product ID from `$_REQUEST` so that the syncing of the license for the other products will work properly.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.4.0
+                         */
+                        unset( $_REQUEST['plugin_id'] );
+
+                        if ( $this->is_bundle_license_auto_activation_enabled() ) {
+                            $fs->maybe_activate_bundle_license( null, array(), is_numeric( $blog_id ) ? $blog_id : 0 );
+                        }
                     }
 
                     return;
@@ -21774,10 +22673,15 @@
                     $state = fs_request_get( 'state', 'init' );
                     switch ( $state ) {
                         case 'init':
-                            $candidate_email = fs_request_get( 'candidate_email', '' );
+                            $candidate_email = fs_request_get( 'candidate_email' );
+                            $transfer_type   = fs_request_get( 'transfer_type' );
 
-                            if ( $this->init_change_owner( $candidate_email ) ) {
-                                $this->_admin_notices->add( sprintf( $this->get_text_inline( 'Please check your mailbox, you should receive an email via %s to confirm the ownership change. From security reasons, you must confirm the change within the next 15 min. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
+                            if ( $this->init_change_owner( $candidate_email, $transfer_type ) ) {
+                                if ( 'transfer' === $transfer_type ) {
+                                    $this->_admin_notices->add( sprintf( $this->get_text_inline( 'A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours.', 'change-owner-request-sent-x-transfer' ), '<b>' . $this->_user->email . '</b>' ) );
+                                } else {
+                                    $this->_admin_notices->add( sprintf( $this->get_text_inline( 'A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder.', 'change-owner-request-sent-x' ), '<b>' . $this->_user->email . '</b>' ) );
+                                }
                             }
                             break;
                         case 'owner_confirmed':
@@ -21796,37 +22700,6 @@
                                 // @todo Handle failed ownership change message.
                             }
                             break;
-                    }
-
-                    return;
-
-                case 'update_email':
-                    check_admin_referer( 'update_email' );
-
-                    $new_email = fs_request_get( 'fs_email_' . $this->get_unique_affix(), '' );
-                    $result    = $this->update_email( $new_email );
-
-                    if ( isset( $result->error ) ) {
-                        switch ( $result->error->code ) {
-                            case 'user_exist':
-                                $this->_admin_notices->add(
-                                    $this->get_text_inline( 'Sorry, we could not complete the email update. Another user with the same email is already registered.', 'user-exist-message' ) . ' ' .
-                                    sprintf( $this->get_text_inline( 'If you would like to give up the ownership of the %s\'s account to %s click the Change Ownership button.', 'user-exist-message_ownership' ), $this->_module_type, '<b>' . $new_email . '</b>' ) .
-                                    sprintf(
-                                        '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
-                                        $this->get_account_url( 'change_owner', array(
-                                            'state'           => 'init',
-                                            'candidate_email' => $new_email
-                                        ) ),
-                                        $this->get_text_inline( 'Change Ownership', 'change-ownership' )
-                                    ),
-                                    $oops_text,
-                                    'error'
-                                );
-                                break;
-                        }
-                    } else {
-                        $this->_admin_notices->add( $this->get_text_inline( 'Your email was successfully updated. You should receive an email with confirmation instructions in few moments.', 'email-updated-message' ) );
                     }
 
                     return;
@@ -21955,6 +22828,26 @@
             }
 
             $this->_handle_account_edits();
+
+            if (
+                is_object( $this->_license ) &&
+                $this->_license->user_id == $this->_user->id &&
+                ! $this->is_whitelabeled( true )
+            ) {
+                $this->_admin_notices->add(
+                    sprintf(
+                        $this->get_text_inline( "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin.", 'license_not_whitelabeled' ),
+                        sprintf(
+                            '<a href="#" class="fs-toggle-whitelabel-mode">%s</a>',
+                            $this->get_text_inline( 'Click here', 'click-here' )
+                        )
+                    ),
+                    '',
+                    'success',
+                    false,
+                    'license_not_whitelabeled'
+                );
+            }
 
             $this->do_action( 'account_page_load_before_departure' );
         }
@@ -22960,6 +23853,14 @@
                 return;
             }
 
+            if (
+                $this->is_addon() &&
+                ! $this->is_only_premium() &&
+                $this->get_parent_instance()->is_anonymous()
+            ) {
+                return;
+            }
+
             if ( fs_is_network_admin() ) {
                 if ( ! $this->_is_network_active ) {
                     // Don't add tracking links when browsing the network WP Admin and the plugin is not network active.
@@ -22990,14 +23891,18 @@
                 return;
             }
 
-            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
-                if ( ! $this->is_enable_anonymous() ) {
-                    // If opted in and tracking is allowed, don't allow to opt out if anonymous mode is disabled.
-                    return;
-                }
+            if (
+                $this->is_activation_mode() &&
+                $this->is_premium() &&
+                ! $this->is_registered()
+            ) {
+                // If not yet registered and running the premium code base, a license activation link will already be shown.
+                return;
+            }
 
-                if ( ! $this->is_free_plan() ) {
-                    // Don't allow to opt out if running in paid plan.
+            if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                if ( ! $this->is_premium() && ! $this->is_enable_anonymous() ) {
+                    // If opted in and tracking is allowed, don't allow to opt out if not premium and anonymous mode is disabled.
                     return;
                 }
             }
@@ -23112,10 +24017,12 @@
          * @since  1.0.3
          */
         function _redirect_on_activation_hook() {
-            $url = $this->get_after_plugin_activation_redirect_url();
+            if ( $this->apply_filters( 'redirect_on_activation', true ) ) {
+                $url = $this->get_after_plugin_activation_redirect_url();
 
-            if ( is_string( $url ) ) {
-                fs_redirect( $url );
+                if ( is_string( $url ) ) {
+                    fs_redirect( $url );
+                }
             }
         }
 
@@ -23155,7 +24062,7 @@
 
             foreach ( $this->_action_links as $new_links ) {
                 foreach ( $new_links as $link ) {
-                    $before_deactivate[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank"' : '' ) . '>' . $link['label'] . '</a>';
+                    $before_deactivate[ $link['key'] ] = '<a href="' . $link['href'] . '"' . ( $link['external'] ? ' target="_blank" rel="noopener"' : '' ) . '>' . $link['label'] . '</a>';
                 }
             }
 
@@ -23275,7 +24182,7 @@
                     '';
 
                 return sprintf(
-                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank">%s</a>).</li></ol>',
+                    ' %s: <ol><li>%s.</li>%s<li>%s (<a href="%s" target="_blank" rel="noopener">%s</a>).</li></ol>',
                     $this->get_text_inline( 'Please follow these steps to complete the upgrade', 'follow-steps-to-complete-upgrade' ),
                     ( empty( $activate_license_string ) ? '' : $activate_license_string . '</li><li>' ) .
                     $this->get_latest_download_link( sprintf(
