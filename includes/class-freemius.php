@@ -2491,6 +2491,13 @@
          * @since  1.1.2
          */
         function _add_deactivation_feedback_dialog_box() {
+            if (
+                $this->is_clone() ||
+                ( is_object( $this->_site ) && ! $this->is_registered() )
+            ) {
+                return;
+            }
+            
             $subscription_cancellation_dialog_box_template_params = $this->apply_filters( 'show_deactivation_subscription_cancellation', true ) ?
                 $this->_get_subscription_cancellation_dialog_box_template_params() :
                 array();
@@ -2499,10 +2506,7 @@
              * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
             $show_deactivation_feedback_form = true;
-
-            if ( $this->is_clone() ) {
-                $show_deactivation_feedback_form = false;
-            } else if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
+            if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
             } else if ( $this->is_addon() ) {
                 /**
@@ -4322,12 +4326,7 @@
         function is_on() {
             self::$_static_logger->entrance();
 
-            if (
-                $this->is_clone() &&
-                ! FS_Clone_Manager::instance()->is_temporary_duplicate() &&
-                ! empty( $this->_storage->user_was_recovered_from_install ) &&
-                true === $this->_storage->user_was_recovered_from_install
-            ) {
+            if ( is_object( $this->_site ) && ! $this->is_registered() ) {
                 return false;
             }
 
@@ -10496,7 +10495,10 @@
                     return;
                 }
 
-                if ( ! $fs->is_clone() ) {
+                if (
+                    ! $fs->is_clone() &&
+                    ( ! is_object( $fs->_site ) || $fs->is_registered() )
+                ) {
                     $fs->_uninstall_plugin_event();
                 }
 
@@ -16450,6 +16452,10 @@
                 }
             }
 
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             if ( $this->is_sync_cron_scheduled() &&
                  $context_blog_id == $this->get_sync_cron_blog_id()
             ) {
@@ -16483,6 +16489,10 @@
 
             $this->update_multisite_data_after_site_deactivation( $context_blog_id );
 
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             $current_blog_id = get_current_blog_id();
 
             $this->switch_to_blog( $context_blog_id );
@@ -16515,6 +16525,10 @@
             }
 
             $this->update_multisite_data_after_site_deactivation( $context_blog_id );
+
+            if ( ! $this->is_registered() ) {
+                return;
+            }
 
             $current_blog_id = get_current_blog_id();
 
@@ -17066,10 +17080,29 @@
                     /**
                      * This is a special fault tolerance mechanism to handle a scenario that the user data is missing.
                      */
-                    $user = $this->sync_user_by_current_install();
+                    if (
+                        ! isset( $this->_storage->user_recovery_from_install_last_attempt_timestamp ) ||
+                        time() > ( $this->_storage->user_recovery_from_install_last_attempt_timestamp + WP_FS__TIME_3_MIN_IN_SEC )
+                    ) {
+                        $user = $this->sync_user_by_current_install();
+                    } else {
+                        return;
+                    }
 
                     if ( is_object( $user ) ) {
                         $this->_storage->user_was_recovered_from_install = true;
+                    } else {
+                        $this->_storage->user_recovery_from_install_attempts = isset( $this->_storage->user_recovery_from_install_attempts ) ?
+                            ( $this->_storage->user_recovery_from_install_attempts + 1 ) :
+                            1;
+
+                        if ( $this->_storage->user_recovery_from_install_attempts >= 3 ) {
+                            $this->delete_current_install( false );
+                        } else {
+                            $this->_storage->user_recovery_from_install_last_attempt_timestamp = time();
+
+                            return;
+                        }
                     }
                 }
 
@@ -18648,6 +18681,10 @@
 //				return;
 //			}
 
+            if ( is_object( $this->_site ) && ! $this->is_registered() ) {
+                return;
+            }
+            
             /**
              * When running from a site admin with a network activated module and the connection
              * was NOT delegated and the user still haven't skipped or opted-in, then hide the
