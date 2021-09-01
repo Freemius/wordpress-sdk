@@ -4067,13 +4067,12 @@
         /**
          * Returns anonymous network ID.
          *
-         * @author Takhir Lugumanov (@tagire)
-         * @since  2.3.3
+         * @since  2.4.3
          *
          * @return string
          */
         function get_anonymous_network_id() {
-           return self::get_anonymous_id( get_network()->site_id );
+           return $this->get_anonymous_id( get_network()->site_id );
         }
 
         /**
