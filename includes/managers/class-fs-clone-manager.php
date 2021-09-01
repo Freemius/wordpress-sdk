@@ -97,27 +97,30 @@
             $this->update_option( 'clone_identification_timestamp', time() );
         }
 
-        private function is_handling_clones() {
+        private function should_handle_clones() {
             if ( ! isset( $this->_data[ 'request_handler_timestamp' ] ) ) {
-                return false;
+                return true;
             }
 
-            if ( ! is_numeric( $this->_data[ 'request_handler_timestamp' ] ) ) {
+            if ( $this->_data[ 'request_handler_retries' ] >= 3 ) {
                 return false;
             }
 
             // Give the logic that handles clones enough time to finish (it is given 3 minutes for now).
-            return ( ( $this->_data[ 'request_handler_timestamp' ] + ( WP_FS__TIME_12_HOURS_IN_SEC / 4 ) ) > time() );
+            return ( time() > ( $this->_data[ 'request_handler_timestamp' ] + WP_FS__TIME_3_MIN_IN_SEC ) );
         }
 
         function maybe_run_clone_resolution_handler() {
-            if (
-                ! empty( $this->_data ) &&
-                // If clones are already being handled, do not make another request.
-                $this->is_handling_clones()
-            ) {
+            if ( ! $this->should_handle_clones() ) {
                 return;
             }
+
+            $this->update_option(
+                'request_handler_retries',
+                ! empty( $this->_data['request_handler_retries'] ) ?
+                    $this->_data['request_handler_retries'] + 1 :
+                    1
+            );
 
             $this->update_option( 'request_handler_timestamp', time() );
 

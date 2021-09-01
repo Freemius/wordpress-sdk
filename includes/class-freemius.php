@@ -23757,8 +23757,6 @@
                 $site->url = $api_result->url;
 
                 $this->store_site( $site );
-
-                $stored_local_url = $stored_remote_url;
             }
 
             if ( $stored_remote_url !== trailingslashit( get_site_url() ) ) {
