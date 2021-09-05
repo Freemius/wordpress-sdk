@@ -251,9 +251,6 @@
     if ( ! defined( 'WP_FS__GDPR_OPTION_NAME' ) ) {
         define( 'WP_FS__GDPR_OPTION_NAME', WP_FS___OPTION_PREFIX . 'gdpr' );
     }
-    if ( ! defined( 'WP_FS__CLONE_MANAGEMENT_OPTION_NAME' ) ) {
-        define( 'WP_FS__CLONE_MANAGEMENT_OPTION_NAME', WP_FS___OPTION_PREFIX . 'clone_management' );
-    }
     define( 'WP_FS__OPTIONS_OPTION_NAME', WP_FS___OPTION_PREFIX . 'options' );
 
     /**
