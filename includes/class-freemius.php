@@ -10497,6 +10497,11 @@
 
                 if (
                     ! $fs->is_clone() &&
+                    /**
+                     * If there's a context install, run this method only when there's also a context user (e.g., when cloning a subsite of a multisite network into a single-site installation, it's possible for an install to be associated with a non-existing user entity; we want Freemius to be off in this case, while we are trying to recover the user).
+                     *
+                     * @author Leo Fajardo
+                     */
                     ( ! is_object( $fs->_site ) || $fs->is_registered() )
                 ) {
                     $fs->_uninstall_plugin_event();
@@ -11397,6 +11402,8 @@
         }
 
         /**
+         * Deletes the current install with an option to back it up in case restoration will be needed (e.g., if the automatic clone resolution attempt fails).
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          */
@@ -11409,7 +11416,7 @@
             self::$_accounts->set_option( 'unique_id', null );
 
             if ( $back_up ) {
-                // Back up and delete the current install.
+                // Back up the install before deleting it so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
                 $this->back_up_site();
             }
 
@@ -23730,6 +23737,8 @@
         }
 
         /**
+         * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
          *

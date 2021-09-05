@@ -212,7 +212,7 @@
                 }
 
                 /**
-                 * @since 2.4.3
+                 * @since 2.4.3 Include the site's URL, if available, in all API requests that are going through the API manager.
                  */
                 if ( ! empty( $this->_url ) ) {
                     if ( false === strpos( $path, 'url=' ) &&
