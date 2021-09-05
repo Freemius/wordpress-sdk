@@ -3599,7 +3599,7 @@
 
             $result = array();
 
-            if ( 'temporary_duplicate' === $clone_action ) {
+            if ( FS_Clone_Manager::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
                 FS_Clone_Manager::instance()->store_temporary_duplicate_timestamp();
             } else {
                 $result = self::resolve_cloned_sites( $clone_action );
@@ -3630,7 +3630,7 @@
 
                 $instances_with_clone_count ++;
                 
-                if ( 'new_home' === $clone_action ) {
+                if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
                     $instance->sync_install( array( 'is_new_site' => true ), true );
                 } else {
                     $instance->handle_long_term_duplicate();
