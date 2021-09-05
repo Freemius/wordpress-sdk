@@ -17,46 +17,51 @@
         $( document ).ready( function() {
             var $cloneResolutionNotice = $( 'div[data-id="clone_resolution_options_notice"], div[data-id="temporary_duplicate_notice"]' );
 
-            if ( 1 === $cloneResolutionNotice.length ) {
-                $errorMessage = $cloneResolutionNotice.find( '#fs_clone_resolution_error_message' );
-
-                $cloneResolutionNotice.on( 'click', '.button, #fs_temporary_duplicate_license_activation_link', function( evt ) {
-                    evt.preventDefault();
-
-                    var $this  = $( this ),
-                        cursor = $this.css( 'cursor' );
-
-                    if ( $this.hasClass( 'disabled' ) ) {
-                        return;
-                    }
-
-                    $.ajax( {
-                        url       : ajaxurl,
-                        method    : 'POST',
-                        data      : {
-                            action      : '<?php echo $VARS['ajax_action'] ?>',
-                            security    : '<?php echo wp_create_nonce( $VARS['ajax_action'] ) ?>',
-                            clone_action: $this.data( 'clone-action' )
-                        },
-                        beforeSend: function() {
-                            $this.css( { 'cursor': 'wait' } );
-
-                            $cloneResolutionNotice.find( '.button' ).addClass( 'disabled' );
-                        },
-                        success   : function( resultObj ) {
-                            if ( resultObj.data.redirect_url && '' !== resultObj.data.redirect_url ) {
-                                window.location = resultObj.data.redirect_url;
-                            } else {
-                                window.location.reload();
-                            }
-                        },
-                        complete  : function() {
-                            $this.css( { 'cursor': cursor } );
-                            $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
-                        }
-                    } );
-                } );
+            if ( 0 === $cloneResolutionNotice.length ) {
+                return;
             }
+
+            $errorMessage = $cloneResolutionNotice.find( '#fs_clone_resolution_error_message' );
+
+            /**
+             * Triggers an AJAX request when the license activation link or any of the buttons on the clone resolution options notice is clicked. The AJAX request will then handle the action the user has chosen.
+             */
+            $cloneResolutionNotice.on( 'click', '.button, #fs_temporary_duplicate_license_activation_link', function( evt ) {
+                evt.preventDefault();
+
+                var $this  = $( this ),
+                    cursor = $this.css( 'cursor' );
+
+                if ( $this.hasClass( 'disabled' ) ) {
+                    return;
+                }
+
+                $.ajax( {
+                    url       : ajaxurl,
+                    method    : 'POST',
+                    data      : {
+                        action      : '<?php echo $VARS['ajax_action'] ?>',
+                        security    : '<?php echo wp_create_nonce( $VARS['ajax_action'] ) ?>',
+                        clone_action: $this.data( 'clone-action' )
+                    },
+                    beforeSend: function() {
+                        $this.css( { 'cursor': 'wait' } );
+
+                        $cloneResolutionNotice.find( '.button' ).addClass( 'disabled' );
+                    },
+                    success   : function( resultObj ) {
+                        if ( resultObj.data.redirect_url && '' !== resultObj.data.redirect_url ) {
+                            window.location = resultObj.data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    },
+                    complete  : function() {
+                        $this.css( { 'cursor': cursor } );
+                        $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
+                    }
+                } );
+            } );
         } );
     } )( jQuery );
 </script>

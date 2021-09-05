@@ -3865,10 +3865,10 @@
             }
 
             $last_time_temporary_duplicate_notice_shown  = $clone_manager->last_time_temporary_duplicate_notice_was_shown();
-            $was_temporary_duplicate_notice_shown_before = ( false !== $last_time_temporary_duplicate_notice_shown );
+            $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
 
             if ( $was_temporary_duplicate_notice_shown_before ) {
-                $temporary_duplicate_mode_expiration_timestamp = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration();
+                $temporary_duplicate_mode_expiration_timestamp = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration_timestamp();
                 $current_time                                  = time();
 
                 if (
@@ -3900,7 +3900,7 @@
          * @return string
          */
         private static function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
-            $temporary_duplicate_end_date = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration();
+            $temporary_duplicate_end_date = FS_Clone_Manager::instance()->get_temporary_duplicate_expiration_timestamp();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
             $current_url = fs_strip_url_protocol( get_site_url() );
@@ -23731,7 +23731,7 @@
         private function api_site_scope_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
             $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
 
-            $this->maybe_update_local_install( $result );
+            $this->maybe_update_local_install_and_run_clones_handler( $result );
 
             return $result;
         }
@@ -23745,7 +23745,7 @@
          * @param array|mixed|string|void $api_result
          * @param bool                    $check_if_entity
          */
-        private function maybe_update_local_install( $api_result ) {
+        private function maybe_update_local_install_and_run_clones_handler($api_result ) {
             if ( ! $this->is_registered() ) {
                 return;
             }
