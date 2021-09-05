@@ -11,6 +11,16 @@
         exit;
     }
 
+    /**
+     * Manages the detection of clones and provides the logged-in WordPress user with options for manually resolving them.
+     *
+     * @property int    $clone_identification_timestamp
+     * @property int    $temporary_duplicate_mode_selection_timestamp
+     * @property int    $temporary_duplicate_notice_shown_timestamp
+     * @property string $request_handler_id
+     * @property int    $request_handler_timestamp
+     * @property int    $request_handler_retries_count
+     */
     class FS_Clone_Manager {
         /**
          * @var FS_Option_Manager
@@ -18,21 +28,31 @@
         private $_storage;
         /**
          * @var array {
-         * @type bool   $is_temporary_duplicate
          * @type int    $clone_identification_timestamp
-         * @type int    $request_handler_timestamp
+         * @type int    $temporary_duplicate_mode_selection_timestamp
+         * @type int    $temporary_duplicate_notice_shown_timestamp
          * @type string $request_handler_id
+         * @type int    $request_handler_timestamp
+         * @type int    $request_handler_retries_count
          * }
          */
         private $_data;
         /**
-         * @var string
-         */
-        private $_option_name;
-        /**
          * @var FS_Admin_Notices
          */
         private $_notices;
+        /**
+         * @var string
+         */
+        const OPTION_NAME = 'clone_resolution';
+        /**
+         * @var string
+         */
+        const OPTION_TEMPORARY_DUPLICATE = 'temporary_duplicate';
+        /**
+         * @var string
+         */
+        const OPTION_NEW_HOME = 'new_home';
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -57,13 +77,27 @@
         #endregion
 
         private function __construct() {
-            $this->_storage     = FS_Option_Manager::get_manager( WP_FS__CLONE_MANAGEMENT_OPTION_NAME, true );
-            $this->_option_name = 'clone_resolution';
-            $this->_data        = $this->_storage->get_option( $this->_option_name, array() );
-            $this->_notices     = FS_Admin_Notices::instance( 'clone_resolution' );
+            $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
+            $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
+            $this->_notices = FS_Admin_Notices::instance( self::OPTION_NAME );
+
+            $defaults = array(
+                'clone_identification_timestamp'               => null,
+                'temporary_duplicate_mode_selection_timestamp' => null,
+                'temporary_duplicate_notice_shown_timestamp'   => null,
+                'request_handler_id'                           => null,
+                'request_handler_timestamp'                    => null,
+                'request_handler_retries_count'                => null,
+            );
 
             if ( ! is_array( $this->_data ) ) {
-                $this->_data = array();
+                $this->_data = $defaults;
+            } else {
+                foreach ( $defaults as $name => $value ) {
+                    $this->_data[ $name ] = isset( $this->_data[ $name ] ) ?
+                        $this->_data[ $name ] :
+                        $value;
+                }
             }
         }
 
@@ -74,58 +108,68 @@
         }
 
         /**
+         * Retrieves the timestamp that was stored when a clone was identified.
+         *
          * @return int|null
          */
         function get_clone_identification_timestamp() {
-            return empty( $this->_data[ 'clone_identification_timestamp' ] ) ?
-                null :
-                $this->_data[ 'clone_identification_timestamp' ];
+            return $this->clone_identification_timestamp;
         }
 
         /**
+         * Stores the time when a clone was identified.
+         */
+        function store_clone_identification_timestamp() {
+            $this->clone_identification_timestamp = time();
+        }
+
+        /**
+         * Retrieves the timestamp for the temporary duplicate mode's expiration.
+         *
          * @return int
          */
-        function get_temporary_duplicate_expiration() {
+        function get_temporary_duplicate_expiration_timestamp() {
             $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
-                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
+                $this->temporary_duplicate_mode_selection_timestamp :
                 $this->get_clone_identification_timestamp();
 
             return ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) );
         }
 
-        function store_clone_identification_timestamp() {
-            $this->update_option( 'clone_identification_timestamp', time() );
-        }
-
+        /**
+         * Determines if the SDK should handle clones. The SDK handles clones only up to 3 times with 3 min interval.
+         *
+         * @return bool
+         */
         private function should_handle_clones() {
-            if ( ! isset( $this->_data[ 'request_handler_timestamp' ] ) ) {
+            if ( ! isset( $this->request_handler_timestamp ) ) {
                 return true;
             }
 
-            if ( $this->_data[ 'request_handler_retries' ] >= 3 ) {
+            if ( $this->request_handler_retries_count >= 3 ) {
                 return false;
             }
 
             // Give the logic that handles clones enough time to finish (it is given 3 minutes for now).
-            return ( time() > ( $this->_data[ 'request_handler_timestamp' ] + WP_FS__TIME_3_MIN_IN_SEC ) );
+            return ( time() > ( $this->request_handler_timestamp + WP_FS__TIME_3_MIN_IN_SEC ) );
         }
 
+        /**
+         * Executes the clones handler logic if it should be executed, i.e., based on the return value of the should_handle_clones() method.
+         */
         function maybe_run_clone_resolution_handler() {
             if ( ! $this->should_handle_clones() ) {
                 return;
             }
 
-            $this->update_option(
-                'request_handler_retries',
-                ! empty( $this->_data['request_handler_retries'] ) ?
-                    $this->_data['request_handler_retries'] + 1 :
-                    1
-            );
+            $this->request_handler_retries_count = isset( $this->request_handler_retries_count ) ?
+                ( $this->request_handler_retries_count + 1 ) :
+                1;
 
-            $this->update_option( 'request_handler_timestamp', time() );
+            $this->request_handler_timestamp = time();
 
-            $handler_id = ( rand() . microtime() );
-            $this->update_option( 'request_handler_id', $handler_id );
+            $handler_id               = ( rand() . microtime() );
+            $this->request_handler_id = $handler_id;
 
             // Add cookies to trigger request with the same user access permissions.
             $cookies = array();
@@ -152,6 +196,9 @@
             );
         }
 
+        /**
+         * Executes the clones handler logic.
+         */
         function _handle_clone_resolution() {
             $handler_id = fs_request_get( 'handler_id' );
 
@@ -160,9 +207,8 @@
             }
 
             if (
-                empty( $this->_data ) ||
-                empty( $this->_data['request_handler_id'] ) ||
-                $this->_data['request_handler_id'] !== $handler_id
+                ! isset( $this->request_handler_id ) ||
+                $this->request_handler_id !== $handler_id
             ) {
                 return;
             }
@@ -171,6 +217,8 @@
         }
 
         /**
+         * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
+         *
          * @param string[] $product_titles
          * @param string[] $site_urls
          * @param string   $current_url
@@ -336,59 +384,51 @@
         }
 
         /**
-         * @param string     $name
-         * @param int|string $value
-         */
-        private function update_option( $name, $value ) {
-            $this->_data[ $name ] = $value;
-
-            $this->_storage->set_option( $this->_option_name, $this->_data, true );
-        }
-
-        /**
-         * @return bool
-         */
-        function is_temporary_duplicate() {
-            $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
-                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
-                $this->get_clone_identification_timestamp();
-
-            return ( ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) > time() );
-        }
-
-        /**
+         * Determines if the temporary duplicate mode has already expired.
+         *
          * @return bool
          */
         function has_temporary_duplicate_mode_expired() {
             $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
-                $this->_data['temporary_duplicate_mode_selection_timestamp'] :
+                $this->temporary_duplicate_mode_selection_timestamp :
                 $this->get_clone_identification_timestamp();
+
+            if ( ! is_numeric( $temporary_duplicate_mode_start_timestamp ) ) {
+                return false;
+            }
 
             return ( time() > ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) );
         }
 
         /**
+         * Determines if the logged-in WordPress user manually selected the temporary duplicate mode for the site.
+         *
          * @return bool
          */
         function was_temporary_duplicate_mode_selected() {
             return (
-                isset( $this->_data['temporary_duplicate_mode_selection_timestamp'] ) &&
-                is_numeric( $this->_data['temporary_duplicate_mode_selection_timestamp'] )
+                isset( $this->temporary_duplicate_mode_selection_timestamp ) &&
+                is_numeric( $this->temporary_duplicate_mode_selection_timestamp )
             );
         }
 
+        /**
+         * Stores the time when the logged-in WordPress user selected the temporary duplicate mode for the site.
+         */
         function store_temporary_duplicate_timestamp() {
-            $this->update_option( 'temporary_duplicate_mode_selection_timestamp', time() );
+            $this->temporary_duplicate_mode_selection_timestamp = time();
         }
 
         /**
-         * Removes the notice that is shown when the user has flagged the clones as temporary duplicate.
+         * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
          */
         function remove_temporary_duplicate_notice() {
             $this->_notices->remove_sticky( 'temporary_duplicate_notice' );
         }
 
         /**
+         * Determines if the temporary duplicate notice is currently being shown.
+         *
          * @return bool
          */
         function is_temporary_duplicate_notice_shown() {
@@ -396,22 +436,26 @@
         }
 
         /**
-         * @return bool
+         * Determines the last time the temporary duplicate notice was shown.
+         *
+         * @return int|null
          */
         function last_time_temporary_duplicate_notice_was_shown() {
-            return empty( $this->_data['temporary_duplicate_notice_shown_at'] ) ?
-                false :
-                $this->_data['temporary_duplicate_notice_shown_at'];
+            return ( ! isset( $this->temporary_duplicate_notice_shown_timestamp ) ) ?
+                null :
+                $this->temporary_duplicate_notice_shown_timestamp;
         }
 
         /**
-         * @return bool
+         * Clears the time that has been stored when the temporary duplicate notice was shown.
          */
         function clear_temporary_duplicate_notice_shown_timestamp() {
-            $this->update_option( 'temporary_duplicate_notice_shown_at', null );
+            $this->temporary_duplicate_notice_shown_timestamp = null;
         }
 
         /**
+         * Adds a temporary duplicate notice that provides the logged-in WordPress user with an option to activate a license for the site.
+         *
          * @param string      $message
          * @param string|null $plugin_title
          */
@@ -427,6 +471,32 @@
                 true
             );
 
-            $this->update_option( 'temporary_duplicate_notice_shown_at', time() );
+            $this->temporary_duplicate_notice_shown_timestamp = time();
         }
+
+        #--------------------------------------------------------------------------------
+        #region Magic methods
+        #--------------------------------------------------------------------------------
+
+        function __set( $name, $value ) {
+            if ( ! array_key_exists( $name, $this->_data ) ) {
+                return;
+            }
+
+            $this->_data[ $name ] = $value;
+
+            $this->_storage->set_option( self::OPTION_NAME, $this->_data, true );
+        }
+
+        function __isset( $name ) {
+            return isset( $this->_data[ $name ] );
+        }
+
+        function __get( $name ) {
+            return isset( $this->_data[ $name ] ) ?
+                $this->_data[ $name ] :
+                null;
+        }
+
+        #endregion
     }
