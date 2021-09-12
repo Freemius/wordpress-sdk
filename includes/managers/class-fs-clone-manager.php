@@ -505,7 +505,7 @@
         }
 
         function __get( $name ) {
-            return isset( $this->_data[ $name ] ) ?
+            return array_key_exists( $name, $this->_data ) ?
                 $this->_data[ $name ] :
                 null;
         }
