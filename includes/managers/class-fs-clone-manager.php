@@ -169,7 +169,7 @@
         /**
          * Executes the clones handler logic if it should be executed, i.e., based on the return value of the should_handle_clones() method.
          */
-        function maybe_run_clone_resolution_handler() {
+        function maybe_run_clone_resolution() {
             if ( ! $this->should_handle_clones() ) {
                 return;
             }

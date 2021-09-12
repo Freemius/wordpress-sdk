@@ -23751,7 +23751,7 @@
             }
 
             if ( fs_strip_url_protocol( $stored_remote_url ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) ) ) {
-                FS_Clone_Manager::instance()->maybe_run_clone_resolution_handler();
+                    FS_Clone_Manager::instance()->maybe_run_clone_resolution();
             }
         }
 
