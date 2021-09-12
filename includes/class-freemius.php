@@ -3546,7 +3546,9 @@
                 return false;
             }
 
-            return ( trailingslashit( $this->_site->url ) !== trailingslashit( get_site_url() ) );
+            return (
+                fs_strip_url_protocol( trailingslashit( $this->_site->url ) ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) )
+            );
         }
 
         /**
@@ -3694,7 +3696,7 @@
          * @since 2.4.3
          */
         static function handle_clones() {
-            $current_url = trailingslashit( get_site_url() );
+            $current_url = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
             $has_clone   = false;
 
             foreach ( self::$_instances as $instance ) {
