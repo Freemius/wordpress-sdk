@@ -17089,7 +17089,7 @@
                      */
                     if (
                         ! isset( $this->_storage->user_recovery_from_install_last_attempt_timestamp ) ||
-                        time() > ( $this->_storage->user_recovery_from_install_last_attempt_timestamp + WP_FS__TIME_3_MIN_IN_SEC )
+                        time() > ( $this->_storage->user_recovery_from_install_last_attempt_timestamp + FS_Clone_Manager::CLONE_RESOLUTION_MAX_EXECUTION_TIME )
                     ) {
                         $user = $this->sync_user_by_current_install();
                     } else {

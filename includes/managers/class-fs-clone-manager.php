@@ -42,6 +42,18 @@
          */
         private $_notices;
         /**
+         * @var int 3 minutes
+         */
+        const CLONE_RESOLUTION_MAX_EXECUTION_TIME = 180;
+        /**
+         * @var int
+         */
+        const CLONE_RESOLUTION_MAX_RETRIES = 3;
+        /**
+         * @var int
+         */
+        const TEMPORARY_DUPLICATE_PERIOD = WP_FS__TIME_WEEK_IN_SEC * 2;
+        /**
          * @var string
          */
         const OPTION_NAME = 'clone_resolution';
@@ -133,7 +145,7 @@
                 $this->temporary_duplicate_mode_selection_timestamp :
                 $this->get_clone_identification_timestamp();
 
-            return ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) );
+            return ( $temporary_duplicate_mode_start_timestamp + self::TEMPORARY_DUPLICATE_PERIOD );
         }
 
         /**
@@ -146,12 +158,12 @@
                 return true;
             }
 
-            if ( $this->request_handler_retries_count >= 3 ) {
+            if ( $this->request_handler_retries_count >= self::CLONE_RESOLUTION_MAX_RETRIES ) {
                 return false;
             }
 
             // Give the logic that handles clones enough time to finish (it is given 3 minutes for now).
-            return ( time() > ( $this->request_handler_timestamp + WP_FS__TIME_3_MIN_IN_SEC ) );
+            return ( time() > ( $this->request_handler_timestamp + self::CLONE_RESOLUTION_MAX_EXECUTION_TIME ) );
         }
 
         /**
@@ -397,7 +409,7 @@
                 return false;
             }
 
-            return ( time() > ( $temporary_duplicate_mode_start_timestamp + ( WP_FS__TIME_WEEK_IN_SEC * 2 ) ) );
+            return ( time() > ( $temporary_duplicate_mode_start_timestamp + self::TEMPORARY_DUPLICATE_PERIOD ) );
         }
 
         /**
