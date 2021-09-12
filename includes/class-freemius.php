@@ -23731,46 +23731,31 @@
         private function api_site_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
             $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
 
-            $this->maybe_update_local_install_and_run_clones_handler( $result );
-
-            return $result;
-        }
-
         /**
          * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
-         *
-         * @param array|mixed|string|void $api_result
-         * @param bool                    $check_if_entity
          */
-        private function maybe_update_local_install_and_run_clones_handler($api_result ) {
-            if ( ! $this->is_registered() ) {
-                return;
-            }
-
-            if ( ! FS_Api::is_api_result_entity( $api_result ) ) {
-                return;
-            }
-
-            if ( ! isset( $api_result->url ) ) {
-                return;
-            }
-
+            if (
+                $this->is_registered() &&
+                FS_Api::is_api_result_entity( $result ) &&
+                isset( $result->url )
+            ) {
             $stored_local_url  = trailingslashit( $this->_site->url );
-            $stored_remote_url = trailingslashit( $api_result->url );
+                $stored_remote_url = trailingslashit( $result->url );
 
             if ( $stored_local_url !== $stored_remote_url ) {
-                $site      = clone $this->_site;
-                $site->url = $api_result->url;
-
-                $this->store_site( $site );
+                    $this->_site->url = $result->url;
+                $this->_store_site();
             }
 
             if ( fs_strip_url_protocol( $stored_remote_url ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) ) ) {
                 FS_Clone_Manager::instance()->maybe_run_clone_resolution_handler();
             }
+        }
+
+            return $result;
         }
 
         private $_plugin_api;
