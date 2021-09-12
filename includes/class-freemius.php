@@ -3699,6 +3699,8 @@
             $current_url = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
             $has_clone   = false;
 
+            $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
             foreach ( self::$_instances as $instance ) {
                 if ( ! $instance->is_registered() ) {
                     continue;
@@ -3736,7 +3738,7 @@
                     continue;
                 }
 
-                if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! FS_Site::is_localhost_by_address( $current_url ) ) {
+                if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! $is_localhost ) {
                     $has_clone = true;
                     continue;
                 }
@@ -3746,7 +3748,7 @@
                 if ( $instance->is_premium() ) {
                     $license = $instance->_get_license();
 
-                    if ( is_object( $license ) && ! $license->is_utilized( true ) ) {
+                    if ( is_object( $license ) && ! $license->is_utilized( $is_localhost ) ) {
                         $license_key = $license->secret_key;
                     }
                 }
