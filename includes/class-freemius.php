@@ -5727,7 +5727,7 @@
             }
 
             // Send update to FS.
-            $result = $this->api_site_scope_call( '/?fields=is_disconnected', 'put', array(
+            $result = $this->api_site_call( '/?fields=is_disconnected', 'put', array(
                 'is_disconnected' => true
             ) );
 
@@ -5876,7 +5876,7 @@
                 return true;
             }
 
-            $result = $this->api_site_scope_call( '/?is_disconnected', 'put', array(
+            $result = $this->api_site_call( '/?is_disconnected', 'put', array(
                 'is_disconnected' => false
             ) );
 
@@ -8499,7 +8499,7 @@
                 );
             } else {
                 // Activate the license.
-                $install = $this->api_site_scope_call(
+                $install = $this->api_site_call(
                     '/',
                     'put',
                     array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
@@ -10088,7 +10088,7 @@
             $this->set_keepalive_timestamp();
 
             // Send updated values to FS.
-            $site = $this->api_site_scope_call( '/', 'put', $params, true );
+            $site = $this->api_site_call( '/', 'put', $params, true );
 
             if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
                 /**
@@ -13977,7 +13977,7 @@
                 self::shoot_ajax_failure();
             }
 
-            $site = $this->api_site_scope_call(
+            $site = $this->api_site_call(
                 '',
                 'put',
                 array(
@@ -23728,7 +23728,7 @@
          * @return array|mixed|string|void
          * @throws Freemius_Exception
          */
-        private function api_site_scope_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
+        private function api_site_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
             $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
 
             $this->maybe_update_local_install_and_run_clones_handler( $result );
