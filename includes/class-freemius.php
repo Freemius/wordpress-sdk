@@ -3594,7 +3594,7 @@
 
             if ( empty( $clone_action ) ) {
                 self::shoot_ajax_failure( array(
-                    'message'      => fs_text_inline( 'Invalid clone resolution action param.', 'invalid-clone-resolution-action-param-error' ),
+                    'message'      => fs_text_inline( 'Invalid clone resolution action.', 'invalid-clone-resolution-action-error' ),
                     'redirect_url' => '',
                 ) );
             }
@@ -19958,7 +19958,7 @@
         }
 
         /**
-         * Update site information.
+         * Store the context site in the sites backup storage. This logic is used before deleting the site info so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
