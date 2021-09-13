@@ -3805,7 +3805,7 @@
 
                 $install = $instance->get_site();
 
-                $site_urls[]      = fs_strip_url_protocol( $install->url );
+                $site_urls[]      = $install->url;
                 $product_titles[] = $instance->get_plugin_title();
 
                 if ( is_null( $first_instance_with_clone ) ) {
@@ -3813,7 +3813,7 @@
                 }
 
                 if ( is_object( $instance->_get_license() ) ) {
-                    $sites_with_license_urls[] = fs_strip_url_protocol( $install->url );
+                    $sites_with_license_urls[] = $install->url;
                 }
                 
                 if ( $instance->is_premium() ) {
@@ -3851,7 +3851,7 @@
                     $clone_manager->add_manual_clone_resolution_admin_notice(
                         $product_titles,
                         $site_urls,
-                        fs_strip_url_protocol( get_site_url() ),
+                        get_site_url(),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
                         ( count( $site_urls ) === $sites_with_premium_version_count )
                     );

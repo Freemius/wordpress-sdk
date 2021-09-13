@@ -56,7 +56,7 @@
                             window.location.reload();
                         }
                     },
-                    complete  : function() {
+                    error  : function() {
                         $this.css( { 'cursor': cursor } );
                         $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
                     }

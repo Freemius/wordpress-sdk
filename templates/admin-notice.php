@@ -45,6 +45,9 @@
 			case 'promotion':
 				echo 'updated promotion';
 				break;
+			case 'warn':
+			    echo 'notice notice-warning';
+			    break;
 			case 'update':
 //			echo 'update-nag update';
 //			break;

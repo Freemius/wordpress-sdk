@@ -270,26 +270,95 @@
                 $products_list = '<ol>' . $products_list . '</ol>';
 
                 foreach ( $site_urls as $site_url ) {
-                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                    $sites_list .= sprintf(
+                        '<li><a href="%s" target="_blank">%s</a></li>',
+                        $site_url,
+                        fs_strip_url_protocol( $site_url )
+                    );
                 }
 
                 $sites_list = '<ol>' . $sites_list . '</ol>';
             }
 
+            $remote_site_link = '<b>' . (1 === $total_sites ?
+                sprintf(
+                    '<a href="%s" target="_blank">%s</a>',
+                    $site_urls[0],
+                    fs_strip_url_protocol( $site_urls[0] )
+                        ) :
+                fs_text_inline( 'the above-mentioned sites', 'above-mentioned-sites' )) . '</b>';
+
+            $current_site_link = sprintf(
+                '<b><a href="%s" target="_blank">%s</a></b>',
+                $current_url,
+                fs_strip_url_protocol( $current_url )
+            );
+
+            $button_template = '<button class="button" data-clone-action="%s">%s</button>';
+            $option_template = '<div class="fs-clone-resolution-option"><strong>%s</strong><p>%s</p><div>%s</div></div>';
+
+            $duplicate_option = sprintf(
+                $option_template,
+                fs_esc_html_inline( 'Is %2$s a duplicate of %3$s?', 'duplicate-site-confirmation-message' ),
+                fs_esc_html_inline( 'Yes, %2$s is a duplicate of %3$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
+                        sprintf(
+                    $button_template,
+                    'long_term_duplicate',
+                            fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
+                ) .
+                ($this->has_temporary_duplicate_mode_expired() ?
+                    '' :
+                    sprintf(
+                        $button_template,
+                        'temporary_duplicate',
+                        fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' )
+                    ))
+            );
+
+            $migration_option = sprintf(
+                $option_template,
+                fs_esc_html_inline( 'Is %2$s the new home of %3$s?', 'migrate-site-confirmation-message' ),
+                    sprintf(
+                    fs_esc_html_inline( 'Yes, %%2$s is replacing %%3$s. I would like to migrate my %s from %%3$s to %%2$s.', 'migrate-site-message' ),
+                    ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) )
+                    ),
+                    sprintf(
+                    $button_template,
+                    'new_home',
+                        $has_license ?
+                            fs_text_inline( 'Migrate License', 'migrate-product-license' ) :
+                            fs_text_inline( 'Migrate', 'migrate-product-data' )
+                    )
+            );
+
+            $new_website = sprintf(
+                $option_template,
+                fs_esc_html_inline( 'Is %2$s a new website?', 'new-site-confirmation-message' ),
+                fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %3$s.', 'new-site-message' ) .
+                ($is_premium ?
+                    ' ' . fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
+                            ''
+                    ),
+                    sprintf(
+                    $button_template,
+                    'new_website',
+                        ( ! $is_premium || ! $has_license ) ?
+                            fs_text_inline( 'New Website', 'new-website' ) :
+                            fs_text_inline( 'Activate License', 'activate-license' )
+                    )
+            );
+
             /**
              * %1$s - single product's title or product titles list.
              * %2$s - site's URL.
              * %3$s - single install's URL or install URLs list.
-             * %4$s - duplicate type options (temporary or long term).
-             * %5$s - migration or "new home" option.
-             * %6$s - new website option.
              */
-            $notice = ( $notice_header . '%4$s%5$s%6$s' );
-
-            $above_mentioned_sites_text = fs_text_inline( 'the above-mentioned sites', 'above-mentioned-sites' );
-
             $message = sprintf(
-                $notice,
+                $notice_header .
+                '<div class="fs-clone-resolution-options-container">' .
+                $duplicate_option .
+                $migration_option .
+                $new_website . '</div>',
                 // %1$s
                 ( 1 === $total_products ?
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
@@ -298,98 +367,17 @@
                         sprintf( '<div><p><strong>%s</strong>:</p>%s</div>', fs_esc_html_x_inline( 'Products', 'Clone resolution admin notice products list label', 'products' ), $products_list ) )
                 ),
                 // %2$s
-                sprintf( '<strong>%s</strong>', $current_url ),
+                $current_site_link,
                 // %3$s
                 ( 1 === $total_sites ?
-                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                    $sites_list ),
-                // %4$s
-                sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p><p>%s</p><div>%s</div></div>',
-                    sprintf(
-                        fs_esc_html_inline( 'Is %s a duplicate of %s?', 'duplicate-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text )
-                    ),
-                    sprintf(
-                        fs_esc_html_inline( 'Yes, %s is a duplicate of %s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url ),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text )
-                    ),
-                    $this->has_temporary_duplicate_mode_expired() ?
-                        sprintf(
-                            '<button class="button" data-clone-action="temporary_duplicate">%s</button>',
-                            fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' )
-                        ) :
-                        sprintf(
-                            '<button class="button" data-clone-action="temporary_duplicate">%s</button><button class="button" data-clone-action="long_term_duplicate">%s</button>',
-                            fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' ),
-                            fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
-                        )
-                ),
-                // %5$s
-                sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-migrate-site-option"><p>%s</p><p>%s</p><div>%s</div></div>',
-                    sprintf(
-                        fs_esc_html_inline( 'Is %s the new home of %s?', 'migrate-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text )
-                    ),
-                    sprintf(
-                        fs_esc_html_inline( 'Yes, %s is replacing %s. I would like to migrate my %s from %s to %s.', 'migrate-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text ),
-                        ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) ),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text ),
-                        sprintf( '<strong>%s</strong>', $current_url)
-                    ),
-                    sprintf(
-                        '<button class="button" data-clone-action="new_home">%s</button>',
-                        $has_license ?
-                            fs_text_inline( 'Migrate License', 'migrate-product-license' ) :
-                            fs_text_inline( 'Migrate', 'migrate-product-data' )
-                    )
-                ),
-                // %6$s
-                sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-new-site-option"><p>%s</p><p>%s</p><div>%s</div></div>',
-                    sprintf(
-                        fs_esc_html_inline( 'Is %s a new website?', 'new-site-confirmation-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url)
-                    ),
-                    sprintf(
-                        fs_esc_html_inline( 'Yes, %s is a new and different website that is separate from %s. %s', 'new-site-message' ),
-                        sprintf( '<strong>%s</strong>', $current_url),
-                        ( 1 === $total_sites ?
-                            sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                            $above_mentioned_sites_text ),
-                        $is_premium ?
-                            fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
-                            ''
-                    ),
-                    sprintf(
-                        '<button class="button" data-clone-action="new_website">%s</button>',
-                        ( ! $is_premium || ! $has_license ) ?
-                            fs_text_inline( 'New Website', 'new-website' ) :
-                            fs_text_inline( 'Activate License', 'activate-license' )
-                    )
-                )
+                    $remote_site_link :
+                    $sites_list )
             );
 
             $this->_notices->add(
                 $message,
                 '',
-                'promotion',
+                'warn',
                 false,
                 'clone_resolution_options_notice'
             );
