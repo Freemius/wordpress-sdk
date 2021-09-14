@@ -42,6 +42,11 @@
          */
         private $_notices;
         /**
+         * @var FS_Logger
+         */
+        protected $_logger;
+
+        /**
          * @var int 3 minutes
          */
         const CLONE_RESOLUTION_MAX_EXECUTION_TIME = 180;
@@ -92,6 +97,7 @@
             $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
             $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
             $this->_notices = FS_Admin_Notices::instance( self::OPTION_NAME );
+            $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
             $defaults = array(
                 'clone_identification_timestamp'               => null,
@@ -110,12 +116,6 @@
                         $this->_data[ $name ] :
                         $value;
                 }
-            }
-        }
-
-        function init() {
-            if ( Freemius::is_admin_post() ) {
-                add_action( 'admin_post_fs_clone_resolution', array( &$this, '_handle_clone_resolution' ) );
             }
         }
 
@@ -225,9 +225,407 @@
                 return;
             }
 
-            Freemius::handle_clones();
+            $this->handle_clones();
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _init() {
+            if ( is_admin() ) {
+                if ( Freemius::is_admin_post() ) {
+                    add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
+                }
+
+                if ( ! empty( $this->get_clone_identification_timestamp() ) ) {
+                    if ( Freemius::is_ajax() ) {
+                        Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
+                    } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
+                        $this->maybe_show_clone_admin_notice();
+
+                        add_action( 'admin_footer', array( $this, '_add_clone_resolution_javascript' ) );
+                    }
+                }
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _add_clone_resolution_javascript() {
+            $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
+
+            fs_require_once_template( 'clone-resolution-js.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _clone_resolution_action_ajax_handler() {
+            $this->_logger->entrance();
+
+            check_ajax_referer( Freemius::get_ajax_action_static( 'handle_clone_resolution' ), 'security' );
+
+            $clone_action = fs_request_get( 'clone_action' );
+
+            if ( empty( $clone_action ) ) {
+                Freemius::shoot_ajax_failure( array(
+                    'message'      => fs_text_inline( 'Invalid clone resolution action.', 'invalid-clone-resolution-action-error' ),
+                    'redirect_url' => '',
+                ) );
+            }
+
+            $result = array();
+
+            if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
+                $this->store_temporary_duplicate_timestamp();
+            } else {
+                $result = $this->resolve_cloned_sites( $clone_action );
+            }
+
+            Freemius::shoot_ajax_success( $result );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string $clone_action
+         */
+        private function resolve_cloned_sites( $clone_action ) {
+            $this->_logger->entrance();
+
+            $instances_with_clone_count = 0;
+            $instance_with_error        = null;
+            $has_error                  = false;
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $instances_with_clone_count ++;
+
+                if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
+                    $instance->sync_install( array( 'is_new_site' => true ), true );
+                } else {
+                    $instance->_handle_long_term_duplicate();
+
+                    if ( ! is_object( $instance->get_site() ) ) {
+                        $has_error = true;
+
+                        if ( ! is_object( $instance_with_error ) ) {
+                            $instance_with_error = $instance;
+                        }
+                    }
+                }
+            }
+
+            $redirect_url = '';
+
+            if (
+                1 === $instances_with_clone_count &&
+                $has_error
+            ) {
+                $redirect_url = $instance_with_error->get_activation_url();
+            }
+
+            return ( array( 'redirect_url' => $redirect_url ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function handle_clones() {
+            $this->_logger->entrance();
+
+            $current_url = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $has_clone   = false;
+
+            $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $current_install = $instance->get_site();
+
+                // Try to find a different install of the context product that is associated with the current URL and load it.
+                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) . "&all=true", true );
+
+                $associated_install = null;
+
+                if ( $instance->is_api_result_object( $result, 'installs' ) ) {
+                    foreach ( $result->installs as $install ) {
+                        if ( $install->id == $current_install->id ) {
+                            continue;
+                        }
+
+                        // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
+                        $associated_install = $install;
+
+                        break;
+                    }
+                }
+
+                if ( is_object( $associated_install ) ) {
+                    // Replace the current install with a different install that is associated with the current URL.
+                    $instance->store_site( new FS_Site( clone $associated_install ) );
+                    $instance->sync_install( array( 'is_new_site' => true ), true );
+
+                    continue;
+                }
+
+                if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! $is_localhost ) {
+                    $has_clone = true;
+                    continue;
+                }
+
+                $license_key = false;
+
+                if ( $instance->is_premium() ) {
+                    $license = $instance->_get_license();
+
+                    if ( is_object( $license ) && ! $license->is_utilized( $is_localhost ) ) {
+                        $license_key = $license->secret_key;
+                    }
+                }
+
+                $instance->delete_current_install( true );
+
+                $instance->opt_in(
+                    false,
+                    false,
+                    false,
+                    $license_key,
+                    false,
+                    false,
+                    false,
+                    null,
+                    array(),
+                    false
+                );
+
+                if ( ! is_object( $instance->get_site() ) ) {
+                    $instance->restore_backup_site();
+                    $has_clone = true;
+                }
+            }
+
+            if ( $has_clone ) {
+                $this->store_clone_identification_timestamp();
+                $this->clear_temporary_duplicate_notice_shown_timestamp();
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        private function maybe_show_clone_admin_notice() {
+            $this->_logger->entrance();
+
+            $first_instance_with_clone = null;
+
+            $site_urls                        = array();
+            $sites_with_license_urls          = array();
+            $sites_with_premium_version_count = 0;
+            $product_titles                   = array();
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered()  ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $install = $instance->get_site();
+
+                $site_urls[]      = $install->url;
+                $product_titles[] = $instance->get_plugin_title();
+
+                if ( is_null( $first_instance_with_clone ) ) {
+                    $first_instance_with_clone = $instance;
+                }
+
+                if ( is_object( $instance->_get_license() ) ) {
+                    $sites_with_license_urls[] = $install->url;
+                }
+
+                if ( $instance->is_premium() ) {
+                    $sites_with_premium_version_count ++;
+                }
+            }
+
+            if ( empty( $sites_with_license_urls ) ) {
+                $this->remove_temporary_duplicate_notice();
+            }
+
+            if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
+                return;
+            }
+
+            $site_urls               = array_unique( $site_urls );
+            $sites_with_license_urls = array_unique( $sites_with_license_urls );
+
+            $module_label              = fs_text_inline( 'products', 'products' );
+            $admin_notice_module_title = null;
+
+            $has_temporary_duplicate_mode_expired = $this->has_temporary_duplicate_mode_expired();
+
+            if (
+                ! $this->was_temporary_duplicate_mode_selected() ||
+                $has_temporary_duplicate_mode_expired
+            ) {
+                if ( ! empty( $site_urls ) ) {
+                    if ( $has_temporary_duplicate_mode_expired ) {
+                        $this->remove_temporary_duplicate_notice();
+                    }
+
+                    fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+                    $this->add_manual_clone_resolution_admin_notice(
+                        $product_titles,
+                        $site_urls,
+                        get_site_url(),
+                        ( count( $site_urls ) === count( $sites_with_license_urls ) ),
+                        ( count( $site_urls ) === $sites_with_premium_version_count )
+                    );
+                }
+
+                return;
+            }
+
+            if ( empty( $sites_with_license_urls ) ) {
+                return;
+            }
+
+            if ( $this->is_temporary_duplicate_notice_shown() ) {
+                return;
+            }
+
+            $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
+            $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
+
+            if ( $was_temporary_duplicate_notice_shown_before ) {
+                $temporary_duplicate_mode_expiration_timestamp = $this->get_temporary_duplicate_expiration_timestamp();
+                $current_time                                  = time();
+
+                if (
+                    $current_time > $temporary_duplicate_mode_expiration_timestamp ||
+                    $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
+                ) {
+                    // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
+                    return;
+                }
+            }
+
+            if ( 1 === count( $sites_with_license_urls ) ) {
+                $module_label              = $first_instance_with_clone->get_module_label( true );
+                $admin_notice_module_title = $first_instance_with_clone->get_plugin_title();
+            }
+
+            fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+            $this->add_temporary_duplicate_sticky_notice(
+                $this->get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $product_titles, $module_label ),
+                $admin_notice_module_title
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @return string
+         */
+        private function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
+            $this->_logger->entrance();
+
+            $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
+            $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
+
+            $current_url = fs_strip_url_protocol( get_site_url() );
+
+            $total_sites = count( $site_urls );
+            $sites_list  = '';
+
+            $total_products = count( $product_titles );
+            $products_list  = '';
+
+            if ( $total_sites > 1 ) {
+                foreach ( $site_urls as $site_url ) {
+                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                }
+
+                $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
+            }
+
+            if ( $total_products > 1 ) {
+                foreach ( $product_titles as $product_title ) {
+                    $products_list .= sprintf( '<li>%s</li>', $product_title );
+                }
+
+                $products_list = '<ol>' . $products_list . '</ol>';
+            }
+
+            return sprintf(
+                sprintf(
+                    '<div>%s</div>',
+                    ( 1 === $total_sites ?
+                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
+                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
+                ) . '%s',
+                sprintf( '<strong>%s</strong>', $current_url ),
+                ( 1 === $total_sites ?
+                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                    $sites_list ),
+                sprintf(
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
+                    sprintf(
+                        fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
+                        ( 1 === $total_products ?
+                            sprintf(
+                                fs_esc_html_x_inline( "The %s's", '"The <product_label>", e.g.: "The plugin"', 'the-product-x'),
+                                "<strong>{$module_label}</strong>"
+                            ) :
+                            fs_esc_html_inline( "The following products'", 'the-following-products' ) ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date )
+                    ),
+                    ( 1 === $total_products ?
+                        '' :
+                        sprintf( '<div>%s</div>', $products_list )
+                    ),
+                    sprintf(
+                        fs_esc_html_inline( 'If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s.', 'duplicate-site-message' ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date),
+                        sprintf( '<a href="#" id="fs_temporary_duplicate_license_activation_link" data-clone-action="temporary_duplicate_license_activation">%s</a>', fs_esc_html_inline( 'activate a license here', 'activate-license-here' ) )
+                    )
+                )
+            );
+        }
+        
         /**
          * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
          *
@@ -237,13 +635,15 @@
          * @param bool     $has_license
          * @param bool     $is_premium
          */
-        function add_manual_clone_resolution_admin_notice(
+        private function add_manual_clone_resolution_admin_notice(
             $product_titles,
             $site_urls,
             $current_url,
             $has_license = false,
             $is_premium = false
         ) {
+            $this->_logger->entrance();
+
             $total_sites = count( $site_urls );
             $sites_list  = '';
 
@@ -285,7 +685,7 @@
                     '<a href="%s" target="_blank">%s</a>',
                     $site_urls[0],
                     fs_strip_url_protocol( $site_urls[0] )
-                        ) :
+                ) :
                 fs_text_inline( 'the above-mentioned sites', 'above-mentioned-sites' )) . '</b>';
 
             $current_site_link = sprintf(
@@ -301,10 +701,10 @@
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a duplicate of %3$s?', 'duplicate-site-confirmation-message' ),
                 fs_esc_html_inline( 'Yes, %2$s is a duplicate of %3$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                        sprintf(
+                sprintf(
                     $button_template,
                     'long_term_duplicate',
-                            fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
+                    fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
                 ) .
                 ($this->has_temporary_duplicate_mode_expired() ?
                     '' :
@@ -318,17 +718,17 @@
             $migration_option = sprintf(
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s the new home of %3$s?', 'migrate-site-confirmation-message' ),
-                    sprintf(
+                sprintf(
                     fs_esc_html_inline( 'Yes, %%2$s is replacing %%3$s. I would like to migrate my %s from %%3$s to %%2$s.', 'migrate-site-message' ),
                     ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) )
-                    ),
-                    sprintf(
+                ),
+                sprintf(
                     $button_template,
                     'new_home',
-                        $has_license ?
-                            fs_text_inline( 'Migrate License', 'migrate-product-license' ) :
-                            fs_text_inline( 'Migrate', 'migrate-product-data' )
-                    )
+                    $has_license ?
+                        fs_text_inline( 'Migrate License', 'migrate-product-license' ) :
+                        fs_text_inline( 'Migrate', 'migrate-product-data' )
+                )
             );
 
             $new_website = sprintf(
@@ -337,15 +737,15 @@
                 fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %3$s.', 'new-site-message' ) .
                 ($is_premium ?
                     ' ' . fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
-                            ''
-                    ),
-                    sprintf(
+                    ''
+                ),
+                sprintf(
                     $button_template,
                     'new_website',
-                        ( ! $is_premium || ! $has_license ) ?
-                            fs_text_inline( 'New Website', 'new-website' ) :
-                            fs_text_inline( 'Activate License', 'activate-license' )
-                    )
+                    ( ! $is_premium || ! $has_license ) ?
+                        fs_text_inline( 'New Website', 'new-website' ) :
+                        fs_text_inline( 'Activate License', 'activate-license' )
+                )
             );
 
             /**
@@ -415,7 +815,7 @@
         /**
          * Stores the time when the logged-in WordPress user selected the temporary duplicate mode for the site.
          */
-        function store_temporary_duplicate_timestamp() {
+        private function store_temporary_duplicate_timestamp() {
             $this->temporary_duplicate_mode_selection_timestamp = time();
         }
 
@@ -460,6 +860,8 @@
          * @param string|null $plugin_title
          */
         function add_temporary_duplicate_sticky_notice( $message, $plugin_title = null ) {
+            $this->_logger->entrance();
+
             $this->_notices->add_sticky(
                 $message,
                 'temporary_duplicate_notice',
