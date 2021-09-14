@@ -3877,7 +3877,7 @@
          * 
          * @return array
          */
-        private static function get_all_modules_sites() {
+        static function get_all_modules_sites() {
             self::$_static_logger->entrance();
 
             $sites_by_type = array(
@@ -17826,7 +17826,7 @@
          *
          * @return object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
          */
-        private function install_with_current_user(
+        function install_with_current_user(
             $license_key = false,
             $trial_plan_id = false,
             $sites = array(),

@@ -14,6 +14,8 @@
     /**
      * Manages the detection of clones and provides the logged-in WordPress user with options for manually resolving them.
      *
+     * @since 2.4.3
+     *
      * @property int    $clone_identification_timestamp
      * @property int    $temporary_duplicate_mode_selection_timestamp
      * @property int    $temporary_duplicate_notice_shown_timestamp
@@ -225,7 +227,10 @@
                 return;
             }
 
-            $this->handle_clones();
+            if ( ! $this->try_automatic_resolution() ) {
+                $this->store_clone_identification_timestamp();
+                $this->clear_temporary_duplicate_notice_shown_timestamp();
+            }
         }
 
         /**
@@ -342,17 +347,177 @@
             return ( array( 'redirect_url' => $redirect_url ) );
         }
 
+        #--------------------------------------------------------------------------------
+        #region Automatic Clone Resolution
+        #--------------------------------------------------------------------------------
+
         /**
+         * @var array All installs cache.
+         */
+        private $all_installs;
+
+        /**
+         * Checks if a given instance's install is a clone of another subsite in the network.
+         *
+         * @author Vova Feldman (@svovaf)
+         */
+        private function is_clone_of_network_subsite( Freemius $instance ) {
+            if ( ! is_multisite() ) {
+                // Not a multi-site network.
+                return false;
+            }
+
+            if ( ! isset( $this->all_installs ) ) {
+                $this->all_installs = Freemius::get_all_modules_sites();
+            }
+
+            // Check if there's another blog that has the same site.
+            $module_type          = $instance->get_module_type();
+            $sites_by_module_type = ! empty( $this->all_installs[ $module_type ] ) ?
+                $this->all_installs[ $module_type ] :
+                array();
+
+            $slug          = $instance->get_slug();
+            $sites_by_slug = ! empty( $sites_by_module_type[ $slug ] ) ?
+                $sites_by_module_type[ $slug ] :
+                array();
+
+            $current_blog_id = get_current_blog_id();
+
+            $current_install = $instance->get_site();
+
+            foreach ( $sites_by_slug as $site ) {
+                if (
+                    $current_install->id == $site->id &&
+                    $current_blog_id != $site->blog_id
+                ) {
+                    // Clone is identical to an install on another subsite in the network.
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * Try to find a different install of the context product that is associated with the current URL and load it.
+         *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
+         *
+         * @param Freemius $instance
+         * @param string   $url
+         *
+         * @return object
          */
-        private function handle_clones() {
+        private function find_other_install_with_by_url( Freemius $instance, $url ) {
+            $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $url ) . "&all=true", true );
+
+            $current_install = $instance->get_site();
+
+            if ( $instance->is_api_result_object( $result, 'installs' ) ) {
+                foreach ( $result->installs as $install ) {
+                    if ( $install->id == $current_install->id ) {
+                        continue;
+                    }
+
+                    // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
+                    return $install;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Delete the current install associated with a given instance and opt-in/activate-license to create a fresh install.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since 2.4.3
+         *
+         * @param Freemius    $instance
+         * @param string|false $license_key
+         *
+         * @return bool TRUE if successfully connected. FALSE if failed and had to restore install from backup.
+         */
+        private function delete_install_and_connect( Freemius $instance, $license_key = false ) {
+            $instance->delete_current_install( true );
+
+            // When a clone is found, we want to use the same user of the original install for the opt-in.
+            $instance->install_with_current_user( $license_key, false, array(), false );
+
+            if ( is_object( $instance->get_site() ) ) {
+                // Install successfully created.
+                return true;
+            }
+
+            // Restore from backup.
+            $instance->restore_backup_site();
+
+            return false;
+        }
+
+        /**
+         * Try to resolve the clone situation automatically.
+         *
+         * @param Freemius $instance
+         * @param string   $current_url
+         * @param bool     $is_localhost
+         *
+         * @return bool If managed to automatically resolve the clone.
+         */
+        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
+            // Try to find a different install of the context product that is associated with the current URL.
+            $associated_install = $this->find_other_install_with_by_url( $instance, $current_url );
+
+            if ( is_object( $associated_install ) ) {
+                // Replace the current install with a different install that is associated with the current URL.
+                $instance->store_site( new FS_Site( clone $associated_install ) );
+                $instance->sync_install( array( 'is_new_site' => true ), true );
+
+                return true;
+            }
+
+            if ( ! $instance->is_premium() ) {
+                // For free products, opt-in with the context user to create new install.
+                return $this->delete_install_and_connect( $instance );
+            }
+
+            $license              = $instance->_get_license();
+            $can_activate_license = ( is_object( $license ) && ! $license->is_utilized( $is_localhost ) );
+
+            if ( ! $can_activate_license ) {
+                // License can't be activated, therefore, can't be automatically resolved.
+                return false;
+            }
+
+            if (
+                $this->is_clone_of_network_subsite( $instance ) ||
+                WP_FS__IS_LOCALHOST_FOR_SERVER ||
+                $is_localhost
+            ) {
+                // If the site is a clone of another subsite in the network, or a localhost one, try to auto activate the license.
+                return $this->delete_install_and_connect( $instance, $license->secret_key );
+            }
+
+            return false;
+        }
+
+        /**
+         * Try to resolve all clones automatically.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @return bool If managed to automatically resolve all clones.
+         */
+        private function try_automatic_resolution() {
             $this->_logger->entrance();
 
-            $current_url = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
-            $has_clone   = false;
-
+            $current_url  = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
             $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+            $require_manual_resolution = false;
 
             $instances = Freemius::_get_all_instances();
 
@@ -365,75 +530,15 @@
                     continue;
                 }
 
-                $current_install = $instance->get_site();
-
-                // Try to find a different install of the context product that is associated with the current URL and load it.
-                $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $current_url ) . "&all=true", true );
-
-                $associated_install = null;
-
-                if ( $instance->is_api_result_object( $result, 'installs' ) ) {
-                    foreach ( $result->installs as $install ) {
-                        if ( $install->id == $current_install->id ) {
-                            continue;
-                        }
-
-                        // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
-                        $associated_install = $install;
-
-                        break;
-                    }
-                }
-
-                if ( is_object( $associated_install ) ) {
-                    // Replace the current install with a different install that is associated with the current URL.
-                    $instance->store_site( new FS_Site( clone $associated_install ) );
-                    $instance->sync_install( array( 'is_new_site' => true ), true );
-
-                    continue;
-                }
-
-                if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! $is_localhost ) {
-                    $has_clone = true;
-                    continue;
-                }
-
-                $license_key = false;
-
-                if ( $instance->is_premium() ) {
-                    $license = $instance->_get_license();
-
-                    if ( is_object( $license ) && ! $license->is_utilized( $is_localhost ) ) {
-                        $license_key = $license->secret_key;
-                    }
-                }
-
-                $instance->delete_current_install( true );
-
-                $instance->opt_in(
-                    false,
-                    false,
-                    false,
-                    $license_key,
-                    false,
-                    false,
-                    false,
-                    null,
-                    array(),
-                    false
-                );
-
-                if ( ! is_object( $instance->get_site() ) ) {
-                    $instance->restore_backup_site();
-                    $has_clone = true;
+                if ( ! $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost ) ) {
+                    $require_manual_resolution = true;
                 }
             }
 
-            if ( $has_clone ) {
-                $this->store_clone_identification_timestamp();
-                $this->clear_temporary_duplicate_notice_shown_timestamp();
-            }
+            return ( ! $require_manual_resolution );
         }
+
+        #endregion
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -783,6 +888,10 @@
             );
         }
 
+        #--------------------------------------------------------------------------------
+        #region Temporary Duplicate (Short Term)
+        #--------------------------------------------------------------------------------
+
         /**
          * Determines if the temporary duplicate mode has already expired.
          *
@@ -876,10 +985,16 @@
             $this->temporary_duplicate_notice_shown_timestamp = time();
         }
 
+        #endregion
+
         #--------------------------------------------------------------------------------
         #region Magic methods
         #--------------------------------------------------------------------------------
 
+        /**
+         * @param string     $name
+         * @param int|string $value
+         */
         function __set( $name, $value ) {
             if ( ! array_key_exists( $name, $this->_data ) ) {
                 return;
@@ -890,10 +1005,20 @@
             $this->_storage->set_option( self::OPTION_NAME, $this->_data, true );
         }
 
+        /**
+         * @param string $name
+         *
+         * @return bool
+         */
         function __isset( $name ) {
             return isset( $this->_data[ $name ] );
         }
 
+        /**
+         * @param string $name
+         *
+         * @return null|int|string
+         */
         function __get( $name ) {
             return array_key_exists( $name, $this->_data ) ?
                 $this->_data[ $name ] :
