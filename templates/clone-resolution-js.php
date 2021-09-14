@@ -37,6 +37,10 @@
                     return;
                 }
 
+                var beforeUnload = function() {
+                    return '<?php fs_esc_js_echo_inline( 'Please wait', 'please-wait' ) ?>';
+                };
+
                 $.ajax( {
                     url       : ajaxurl,
                     method    : 'POST',
@@ -49,8 +53,12 @@
                         $body.css( { cursor: 'wait' } );
 
                         $cloneResolutionNotice.find( '.button' ).addClass( 'disabled' );
+
+                        $( window ).on( 'beforeunload', beforeUnload );
                     },
                     success   : function( resultObj ) {
+                        $( window ).off( 'beforeunload', beforeUnload );
+
                         if ( resultObj.data.redirect_url && '' !== resultObj.data.redirect_url ) {
                             window.location = resultObj.data.redirect_url;
                         } else {
