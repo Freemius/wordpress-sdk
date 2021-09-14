@@ -122,6 +122,28 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _init() {
+            if ( is_admin() ) {
+                if ( Freemius::is_admin_post() ) {
+                    add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
+                }
+
+                if ( ! empty( $this->get_clone_identification_timestamp() ) ) {
+                    if ( Freemius::is_ajax() ) {
+                        Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
+                    } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
+                        $this->maybe_show_clone_admin_notice();
+
+                        add_action( 'admin_footer', array( $this, '_add_clone_resolution_javascript' ) );
+                    }
+                }
+            }
+        }
+
+        /**
          * Retrieves the timestamp that was stored when a clone was identified.
          *
          * @return int|null
@@ -170,6 +192,9 @@
 
         /**
          * Executes the clones handler logic if it should be executed, i.e., based on the return value of the should_handle_clones() method.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
          */
         function maybe_run_clone_resolution() {
             if ( ! $this->should_handle_clones() ) {
@@ -212,6 +237,9 @@
 
         /**
          * Executes the clones handler logic.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
          */
         function _handle_clone_resolution() {
             $handler_id = fs_request_get( 'handler_id' );
@@ -231,120 +259,6 @@
                 $this->store_clone_identification_timestamp();
                 $this->clear_temporary_duplicate_notice_shown_timestamp();
             }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         */
-        function _init() {
-            if ( is_admin() ) {
-                if ( Freemius::is_admin_post() ) {
-                    add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
-                }
-
-                if ( ! empty( $this->get_clone_identification_timestamp() ) ) {
-                    if ( Freemius::is_ajax() ) {
-                        Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
-                    } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
-                        $this->maybe_show_clone_admin_notice();
-
-                        add_action( 'admin_footer', array( $this, '_add_clone_resolution_javascript' ) );
-                    }
-                }
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         */
-        function _add_clone_resolution_javascript() {
-            $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
-
-            fs_require_once_template( 'clone-resolution-js.php', $vars );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         */
-        function _clone_resolution_action_ajax_handler() {
-            $this->_logger->entrance();
-
-            check_ajax_referer( Freemius::get_ajax_action_static( 'handle_clone_resolution' ), 'security' );
-
-            $clone_action = fs_request_get( 'clone_action' );
-
-            if ( empty( $clone_action ) ) {
-                Freemius::shoot_ajax_failure( array(
-                    'message'      => fs_text_inline( 'Invalid clone resolution action.', 'invalid-clone-resolution-action-error' ),
-                    'redirect_url' => '',
-                ) );
-            }
-
-            $result = array();
-
-            if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
-                $this->store_temporary_duplicate_timestamp();
-            } else {
-                $result = $this->resolve_cloned_sites( $clone_action );
-            }
-
-            Freemius::shoot_ajax_success( $result );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         *
-         * @param string $clone_action
-         */
-        private function resolve_cloned_sites( $clone_action ) {
-            $this->_logger->entrance();
-
-            $instances_with_clone_count = 0;
-            $instance_with_error        = null;
-            $has_error                  = false;
-
-            $instances = Freemius::_get_all_instances();
-
-            foreach ( $instances as $instance ) {
-                if ( ! $instance->is_registered() ) {
-                    continue;
-                }
-
-                if ( ! $instance->is_clone() ) {
-                    continue;
-                }
-
-                $instances_with_clone_count ++;
-
-                if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
-                    $instance->sync_install( array( 'is_new_site' => true ), true );
-                } else {
-                    $instance->_handle_long_term_duplicate();
-
-                    if ( ! is_object( $instance->get_site() ) ) {
-                        $has_error = true;
-
-                        if ( ! is_object( $instance_with_error ) ) {
-                            $instance_with_error = $instance;
-                        }
-                    }
-                }
-            }
-
-            $redirect_url = '';
-
-            if (
-                1 === $instances_with_clone_count &&
-                $has_error
-            ) {
-                $redirect_url = $instance_with_error->get_activation_url();
-            }
-
-            return ( array( 'redirect_url' => $redirect_url ) );
         }
 
         #--------------------------------------------------------------------------------
@@ -540,6 +454,102 @@
 
         #endregion
 
+        #--------------------------------------------------------------------------------
+        #region Manual Clone Resolution
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _add_clone_resolution_javascript() {
+            $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
+
+            fs_require_once_template( 'clone-resolution-js.php', $vars );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         */
+        function _clone_resolution_action_ajax_handler() {
+            $this->_logger->entrance();
+
+            check_ajax_referer( Freemius::get_ajax_action_static( 'handle_clone_resolution' ), 'security' );
+
+            $clone_action = fs_request_get( 'clone_action' );
+
+            if ( empty( $clone_action ) ) {
+                Freemius::shoot_ajax_failure( array(
+                    'message'      => fs_text_inline( 'Invalid clone resolution action.', 'invalid-clone-resolution-action-error' ),
+                    'redirect_url' => '',
+                ) );
+            }
+
+            $result = array();
+
+            if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
+                $this->store_temporary_duplicate_timestamp();
+            } else {
+                $result = $this->resolve_cloned_sites( $clone_action );
+            }
+
+            Freemius::shoot_ajax_success( $result );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string $clone_action
+         */
+        private function resolve_cloned_sites( $clone_action ) {
+            $this->_logger->entrance();
+
+            $instances_with_clone_count = 0;
+            $instance_with_error        = null;
+            $has_error                  = false;
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $instances_with_clone_count ++;
+
+                if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
+                    $instance->sync_install( array( 'is_new_site' => true ), true );
+                } else {
+                    $instance->_handle_long_term_duplicate();
+
+                    if ( ! is_object( $instance->get_site() ) ) {
+                        $has_error = true;
+
+                        if ( ! is_object( $instance_with_error ) ) {
+                            $instance_with_error = $instance;
+                        }
+                    }
+                }
+            }
+
+            $redirect_url = '';
+
+            if (
+                1 === $instances_with_clone_count &&
+                $has_error
+            ) {
+                $redirect_url = $instance_with_error->get_activation_url();
+            }
+
+            return ( array( 'redirect_url' => $redirect_url ) );
+        }
+
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
@@ -659,78 +669,6 @@
             );
         }
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
-         *
-         * @return string
-         */
-        private function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
-            $this->_logger->entrance();
-
-            $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
-            $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
-
-            $current_url = fs_strip_url_protocol( get_site_url() );
-
-            $total_sites = count( $site_urls );
-            $sites_list  = '';
-
-            $total_products = count( $product_titles );
-            $products_list  = '';
-
-            if ( $total_sites > 1 ) {
-                foreach ( $site_urls as $site_url ) {
-                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
-                }
-
-                $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
-            }
-
-            if ( $total_products > 1 ) {
-                foreach ( $product_titles as $product_title ) {
-                    $products_list .= sprintf( '<li>%s</li>', $product_title );
-                }
-
-                $products_list = '<ol>' . $products_list . '</ol>';
-            }
-
-            return sprintf(
-                sprintf(
-                    '<div>%s</div>',
-                    ( 1 === $total_sites ?
-                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
-                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
-                ) . '%s',
-                sprintf( '<strong>%s</strong>', $current_url ),
-                ( 1 === $total_sites ?
-                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
-                    $sites_list ),
-                sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
-                    sprintf(
-                        fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
-                        ( 1 === $total_products ?
-                            sprintf(
-                                fs_esc_html_x_inline( "The %s's", '"The <product_label>", e.g.: "The plugin"', 'the-product-x'),
-                                "<strong>{$module_label}</strong>"
-                            ) :
-                            fs_esc_html_inline( "The following products'", 'the-following-products' ) ),
-                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date )
-                    ),
-                    ( 1 === $total_products ?
-                        '' :
-                        sprintf( '<div>%s</div>', $products_list )
-                    ),
-                    sprintf(
-                        fs_esc_html_inline( 'If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s.', 'duplicate-site-message' ),
-                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date),
-                        sprintf( '<a href="#" id="fs_temporary_duplicate_license_activation_link" data-clone-action="temporary_duplicate_license_activation">%s</a>', fs_esc_html_inline( 'activate a license here', 'activate-license-here' ) )
-                    )
-                )
-            );
-        }
-        
         /**
          * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
          *
@@ -888,9 +826,83 @@
             );
         }
 
+        #endregion
+
         #--------------------------------------------------------------------------------
         #region Temporary Duplicate (Short Term)
         #--------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @return string
+         */
+        private function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
+            $this->_logger->entrance();
+
+            $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
+            $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
+
+            $current_url = fs_strip_url_protocol( get_site_url() );
+
+            $total_sites = count( $site_urls );
+            $sites_list  = '';
+
+            $total_products = count( $product_titles );
+            $products_list  = '';
+
+            if ( $total_sites > 1 ) {
+                foreach ( $site_urls as $site_url ) {
+                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                }
+
+                $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
+            }
+
+            if ( $total_products > 1 ) {
+                foreach ( $product_titles as $product_title ) {
+                    $products_list .= sprintf( '<li>%s</li>', $product_title );
+                }
+
+                $products_list = '<ol>' . $products_list . '</ol>';
+            }
+
+            return sprintf(
+                sprintf(
+                    '<div>%s</div>',
+                    ( 1 === $total_sites ?
+                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
+                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
+                ) . '%s',
+                sprintf( '<strong>%s</strong>', $current_url ),
+                ( 1 === $total_sites ?
+                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                    $sites_list ),
+                sprintf(
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
+                    sprintf(
+                        fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
+                        ( 1 === $total_products ?
+                            sprintf(
+                                fs_esc_html_x_inline( "The %s's", '"The <product_label>", e.g.: "The plugin"', 'the-product-x'),
+                                "<strong>{$module_label}</strong>"
+                            ) :
+                            fs_esc_html_inline( "The following products'", 'the-following-products' ) ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date )
+                    ),
+                    ( 1 === $total_products ?
+                        '' :
+                        sprintf( '<div>%s</div>', $products_list )
+                    ),
+                    sprintf(
+                        fs_esc_html_inline( 'If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s.', 'duplicate-site-message' ),
+                        sprintf( '<strong>%s</strong>', $temporary_duplicate_end_date),
+                        sprintf( '<a href="#" id="fs_temporary_duplicate_license_activation_link" data-clone-action="temporary_duplicate_license_activation">%s</a>', fs_esc_html_inline( 'activate a license here', 'activate-license-here' ) )
+                    )
+                )
+            );
+        }
 
         /**
          * Determines if the temporary duplicate mode has already expired.
