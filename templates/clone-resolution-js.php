@@ -30,7 +30,8 @@
                 evt.preventDefault();
 
                 var $this  = $( this ),
-                    cursor = $this.css( 'cursor' );
+                    $body  = $( 'body' ),
+                    cursor = $body.css( 'cursor' );
 
                 if ( $this.hasClass( 'disabled' ) ) {
                     return;
@@ -45,7 +46,7 @@
                         clone_action: $this.data( 'clone-action' )
                     },
                     beforeSend: function() {
-                        $this.css( { 'cursor': 'wait' } );
+                        $body.css( { cursor: 'wait' } );
 
                         $cloneResolutionNotice.find( '.button' ).addClass( 'disabled' );
                     },
@@ -57,7 +58,7 @@
                         }
                     },
                     error  : function() {
-                        $this.css( { 'cursor': cursor } );
+                        $body.css( { cursor: cursor } );
                         $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
                     }
                 } );
