@@ -98,7 +98,7 @@
         private function __construct() {
             $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
             $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
-            $this->_notices = FS_Admin_Notices::instance( self::OPTION_NAME );
+            $this->_notices = FS_Admin_Notices::instance( 'global' );
             $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
             $defaults = array(
@@ -817,12 +817,16 @@
                     $sites_list )
             );
 
-            $this->_notices->add(
+            $this->_notices->add_sticky(
                 $message,
+                'clone_resolution_options_notice',
                 '',
                 'warn',
-                false,
-                'clone_resolution_options_notice'
+                true,
+                null,
+                null,
+                true,
+                false
             );
         }
 

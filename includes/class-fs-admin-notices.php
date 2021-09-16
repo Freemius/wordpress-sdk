@@ -125,7 +125,8 @@
             $is_sticky = false,
             $id = '',
             $store_if_sticky = true,
-            $network_level_or_blog_id = null
+            $network_level_or_blog_id = null,
+            $is_dimissible = null
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -139,7 +140,11 @@
                 $type,
                 $is_sticky,
                 $id,
-                $store_if_sticky
+                $store_if_sticky,
+                null,
+                null,
+                false,
+                $is_dimissible
             );
         }
 
@@ -200,6 +205,7 @@
          * @param string|null $plugin_title
          * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network and
          *                                                blog admin pages.
+         * @param bool        $is_dismissible
          */
         function add_sticky(
             $message,
@@ -209,7 +215,8 @@
             $network_level_or_blog_id = null,
             $wp_user_id = null,
             $plugin_title = null,
-            $is_network_and_blog_admins = false
+            $is_network_and_blog_admins = false,
+            $is_dismissible = true
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -217,7 +224,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible );
         }
 
         /**
