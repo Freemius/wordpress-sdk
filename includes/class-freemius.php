@@ -1642,7 +1642,25 @@
 
             if ( $this->is_plugin() ) {
                 if ( $this->_is_network_active ) {
-                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    // add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                    add_action( 'wp_initialize_site', function($new_site, $args) {
+
+                        $user_id = ! empty( $args['user_id'] ) ? $args['user_id'] : 0;
+                        $meta    = ! empty( $args['options'] ) ? $args['options'] : array();
+                        
+                        // WPLANG was passed with `$meta` to the `wpmu_new_blog` hook prior to 5.1.0.
+                        if ( ! array_key_exists( 'WPLANG', $meta ) ) {
+                                $meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
+                        }
+                        
+                        // Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+                        // The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+                        $allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+                        $meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
+                        
+                        return $this->_after_new_blog_callback($new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta);
+
+                    }, 10, 2);
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
