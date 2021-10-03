@@ -1667,7 +1667,7 @@
                 add_action( 'make_spam_blog', array( &$this, '_after_site_deactivated_callback' ) );
                 
                 // add_action( 'deleted_blog', array( &$this, '_after_site_deleted_callback' ), 10, 2 );
-                add_action( 'wp_delete_site', function(context_blog) {
+                add_action( 'wp_delete_site', function($context_blog) {
 
                     $this->_after_site_deleted_callback($context_blog->blog_id, true);
 
