@@ -42,7 +42,7 @@
                 };
 
                 $.ajax( {
-                    url       : ajaxurl,
+                    url       : $cloneResolutionNotice.find( '.fs-clone-resolution-options-container' ).data( 'ajax-url' ),
                     method    : 'POST',
                     data      : {
                         action      : '<?php echo $VARS['ajax_action'] ?>',

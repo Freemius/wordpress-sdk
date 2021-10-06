@@ -1,6 +1,6 @@
 @import "../start";
 
-.fs-notice[data-id="clone_resolution_options_notice"] {
+.fs-notice[data-id^="clone_resolution_options_notice"] {
     padding: 0;
     color: inherit !important;
 

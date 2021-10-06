@@ -3583,7 +3583,7 @@
                 $license_key = $this->_license->secret_key;
             }
 
-            $this->opt_in(
+            return $this->opt_in(
                 false,
                 false,
                 false,

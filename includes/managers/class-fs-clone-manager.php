@@ -131,7 +131,13 @@
                     add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
                 }
 
-                if ( ! empty( $this->get_clone_identification_timestamp() ) ) {
+                if (
+                    ! empty( $this->get_clone_identification_timestamp() ) ||
+                    (
+                        fs_is_network_admin() &&
+                        ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
+                    )
+                ) {
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
@@ -494,6 +500,12 @@
                 $result = $this->resolve_cloned_sites( $clone_action );
             }
 
+            if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
+                $this->_notices->remove_sticky( 'clone_resolution_options_notice', true );
+            } else {
+                $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+            }
+
             Freemius::shoot_ajax_success( $result );
         }
 
@@ -556,6 +568,13 @@
          */
         private function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
+
+            if ( fs_is_network_admin() ) {
+                // The admin notice that is shown on the network-level is added from a subsite based on the data that is stored in the site-level storage, so no need to execute the rest of the "calculation".
+                fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+                return;
+            }
 
             $first_instance_with_clone = null;
 
@@ -798,7 +817,7 @@
              */
             $message = sprintf(
                 $notice_header .
-                '<div class="fs-clone-resolution-options-container">' .
+                '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
                 $duplicate_option .
                 $migration_option .
                 $new_website . '</div>',
@@ -884,7 +903,8 @@
                     sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                     $sites_list ),
                 sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options" data-ajax-url="%s"><p>%s</p>%s<p>%s</p></div>',
+                    esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ),
                     sprintf(
                         fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
                         ( 1 === $total_products ?
@@ -948,7 +968,16 @@
          * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
          */
         function remove_temporary_duplicate_notice() {
-            $this->_notices->remove_sticky( 'temporary_duplicate_notice' );
+            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+        }
+
+        /**
+         * Determines if the manual clone resolution options notice is currently being shown.
+         *
+         * @return bool
+         */
+        function is_clone_resolution_options_notice_shown() {
+            return $this->_notices->has_sticky( 'clone_resolution_options_notice', true );
         }
 
         /**
@@ -992,7 +1021,7 @@
                 'temporary_duplicate_notice',
                 '',
                 'promotion',
-                null,
+                true,
                 null,
                 $plugin_title,
                 true
