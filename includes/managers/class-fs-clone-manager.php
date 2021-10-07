@@ -503,7 +503,7 @@
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
                 $this->_notices->remove_sticky( 'clone_resolution_options_notice', true );
             } else {
-                $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+                $this->remove_temporary_duplicate_notice();
             }
 
             Freemius::shoot_ajax_success( $result );
@@ -612,10 +612,6 @@
                 }
             }
 
-            if ( empty( $sites_with_license_urls ) ) {
-                $this->remove_temporary_duplicate_notice();
-            }
-
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
                 return;
             }
@@ -633,10 +629,6 @@
                 $has_temporary_duplicate_mode_expired
             ) {
                 if ( ! empty( $site_urls ) ) {
-                    if ( $has_temporary_duplicate_mode_expired ) {
-                        $this->remove_temporary_duplicate_notice();
-                    }
-
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
                     $this->add_manual_clone_resolution_admin_notice(
@@ -655,23 +647,21 @@
                 return;
             }
 
-            if ( $this->is_temporary_duplicate_notice_shown() ) {
-                return;
-            }
+            if ( ! $this->is_temporary_duplicate_notice_shown() ) {
+                $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
+                $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
 
-            $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
-            $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
+                if ( $was_temporary_duplicate_notice_shown_before ) {
+                    $temporary_duplicate_mode_expiration_timestamp = $this->get_temporary_duplicate_expiration_timestamp();
+                    $current_time                                  = time();
 
-            if ( $was_temporary_duplicate_notice_shown_before ) {
-                $temporary_duplicate_mode_expiration_timestamp = $this->get_temporary_duplicate_expiration_timestamp();
-                $current_time                                  = time();
-
-                if (
-                    $current_time > $temporary_duplicate_mode_expiration_timestamp ||
-                    $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
-                ) {
-                    // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
-                    return;
+                    if (
+                        $current_time > $temporary_duplicate_mode_expiration_timestamp ||
+                        $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
+                    ) {
+                        // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
+                        return;
+                    }
                 }
             }
 
@@ -903,7 +893,7 @@
                     sprintf( '<strong>%s</strong>', $site_urls[0] ) :
                     $sites_list ),
                 sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options" data-ajax-url="%s"><p>%s</p>%s<p>%s</p></div>',
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options" data-ajax-url="%s" data-blog-id="' . get_current_blog_id() . '"><p>%s</p>%s<p>%s</p></div>',
                     esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ),
                     sprintf(
                         fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
@@ -986,7 +976,7 @@
          * @return bool
          */
         function is_temporary_duplicate_notice_shown() {
-            return $this->_notices->has_sticky( 'temporary_duplicate_notice' );
+            return $this->_notices->has_sticky( 'temporary_duplicate_notice', true );
         }
 
         /**
