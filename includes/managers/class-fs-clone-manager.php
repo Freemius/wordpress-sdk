@@ -341,6 +341,10 @@
                         continue;
                     }
 
+                    if ( $url !== fs_strip_url_protocol( untrailingslashit( $install->url ) ) ) {
+                        continue;
+                    }
+
                     // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
                     return $install;
                 }
