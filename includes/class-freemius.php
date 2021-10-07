@@ -17600,7 +17600,7 @@
             $site->secret_key = $install_secret_key;
 
             $this->_site = $site;
-            $site_result = $this->get_api_site_scope()->get();
+            $site_result = $this->get_api_site_scope( true )->get();
             $site        = new FS_Site( $site_result );
             $this->_site = $site;
 
