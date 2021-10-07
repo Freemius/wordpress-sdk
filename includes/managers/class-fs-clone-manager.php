@@ -753,17 +753,16 @@
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a duplicate of %3$s?', 'duplicate-site-confirmation-message' ),
                 fs_esc_html_inline( 'Yes, %2$s is a duplicate of %3$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                sprintf(
-                    $button_template,
-                    'long_term_duplicate',
-                    fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
-                ) .
                 ($this->has_temporary_duplicate_mode_expired() ?
-                    '' :
+                    sprintf(
+                        $button_template,
+                        'long_term_duplicate',
+                        fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
+                    ) :
                     sprintf(
                         $button_template,
                         'temporary_duplicate',
-                        fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' )
+                        fs_text_inline( 'Duplicate Website', 'duplicate-site' )
                     ))
             );
 
