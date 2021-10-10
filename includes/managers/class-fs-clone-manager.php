@@ -715,8 +715,8 @@
                 $notice_header = sprintf(
                     '<div class="fs-notice-header"><p>%s</p></div>',
                     ( 1 === $total_sites ) ?
-                        fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s', 'multiple-products-cloned-site-safe-mode-message' ) :
-                        fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s', 'multiple-products-multiple-cloned-sites-safe-mode-message' )
+                        fs_esc_html_inline( 'The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s', 'multiple-products-cloned-site-safe-mode-message' ) :
+                        fs_esc_html_inline( 'The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s', 'multiple-products-multiple-cloned-sites-safe-mode-message' )
                 );
 
                 foreach ( $product_titles as $product_title ) {
@@ -755,8 +755,8 @@
 
             $duplicate_option = sprintf(
                 $option_template,
-                fs_esc_html_inline( 'Is %2$s a duplicate of %3$s?', 'duplicate-site-confirmation-message' ),
-                fs_esc_html_inline( 'Yes, %2$s is a duplicate of %3$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
+                fs_esc_html_inline( 'Is %2$s a duplicate of %4$s?', 'duplicate-site-confirmation-message' ),
+                fs_esc_html_inline( 'Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
                 ($this->has_temporary_duplicate_mode_expired() ?
                     sprintf(
                         $button_template,
@@ -772,9 +772,9 @@
 
             $migration_option = sprintf(
                 $option_template,
-                fs_esc_html_inline( 'Is %2$s the new home of %3$s?', 'migrate-site-confirmation-message' ),
+                fs_esc_html_inline( 'Is %2$s the new home of %4$s?', 'migrate-site-confirmation-message' ),
                 sprintf(
-                    fs_esc_html_inline( 'Yes, %%2$s is replacing %%3$s. I would like to migrate my %s from %%3$s to %%2$s.', 'migrate-site-message' ),
+                    fs_esc_html_inline( 'Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s.', 'migrate-site-message' ),
                     ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) )
                 ),
                 sprintf(
@@ -789,7 +789,7 @@
             $new_website = sprintf(
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a new website?', 'new-site-confirmation-message' ),
-                fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %3$s.', 'new-site-message' ) .
+                fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %4$s.', 'new-site-message' ) .
                 ($is_premium ?
                     ' ' . fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
                     ''
@@ -807,6 +807,7 @@
              * %1$s - single product's title or product titles list.
              * %2$s - site's URL.
              * %3$s - single install's URL or install URLs list.
+             * %4$s - Clone site's link or "the above-mentioned sites" if there are multiple clone sites.
              */
             $message = sprintf(
                 $notice_header .
@@ -826,7 +827,9 @@
                 // %3$s
                 ( 1 === $total_sites ?
                     $remote_site_link :
-                    $sites_list )
+                    $sites_list ),
+                // %4$s
+                $remote_site_link
             );
 
             $this->_notices->add_sticky(
@@ -860,7 +863,12 @@
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
-            $current_url = fs_strip_url_protocol( get_site_url() );
+            $current_url       = get_site_url();
+            $current_site_link = sprintf(
+                '<b><a href="%s" target="_blank">%s</a></b>',
+                $current_url,
+                fs_strip_url_protocol( $current_url )
+            );
 
             $total_sites = count( $site_urls );
             $sites_list  = '';
@@ -870,7 +878,11 @@
 
             if ( $total_sites > 1 ) {
                 foreach ( $site_urls as $site_url ) {
-                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                    $sites_list .= sprintf(
+                        '<li><a href="%s" target="_blank">%s</a></li>',
+                        $site_url,
+                        fs_strip_url_protocol( $site_url )
+                    );
                 }
 
                 $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
@@ -891,9 +903,13 @@
                         sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
                         sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
                 ) . '%s',
-                sprintf( '<strong>%s</strong>', $current_url ),
+                sprintf( '<strong>%s</strong>', $current_site_link ),
                 ( 1 === $total_sites ?
-                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                    sprintf(
+                        '<a href="%s" target="_blank">%s</a>',
+                        $site_urls[0],
+                        fs_strip_url_protocol( $site_urls[0] )
+                    ) :
                     $sites_list ),
                 sprintf(
                     '<div class="fs-clone-resolution-options-container fs-duplicate-site-options" data-ajax-url="%s" data-blog-id="' . get_current_blog_id() . '"><p>%s</p>%s<p>%s</p></div>',
