@@ -161,7 +161,9 @@
                             isset( $msg['wp_user_id'] ) ? $msg['wp_user_id'] : null,
                             ! empty( $msg['plugin'] ) ? $msg['plugin'] : null,
                             $is_network_and_blog_admins,
-                            $msg['dismissible']
+                            isset( $msg['dismissible'] ) ?
+                                $msg['dismissible'] :
+                                null
                         );
                     }
                 }

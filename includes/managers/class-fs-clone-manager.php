@@ -341,6 +341,7 @@
                         continue;
                     }
 
+                    // When searching for user installs by the current URL, make sure that the found candidate install's URL really matches the current URL as the directory part of the current URL can get stripped at the API level.
                     if ( $url !== fs_strip_url_protocol( untrailingslashit( $install->url ) ) ) {
                         continue;
                     }
@@ -841,6 +842,7 @@
                 null,
                 null,
                 true,
+                // Intentionally not dismissible.
                 false
             );
         }

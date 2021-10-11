@@ -3566,6 +3566,8 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
+         *
+         * @return string|object|bool
          */
         function _handle_long_term_duplicate() {
             $this->_logger->entrance();
