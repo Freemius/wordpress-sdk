@@ -815,7 +815,8 @@
                 '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
                 $duplicate_option .
                 $migration_option .
-                $new_website . '</div>',
+                $new_website . '</div>' .
+                '<div class="fs-clone-documentation-container">Unsure what to do? <a href="#">Read more here</a>.</div>',
                 // %1$s
                 ( 1 === $total_products ?
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
@@ -902,13 +903,13 @@
                 sprintf(
                     '<div>%s</div>',
                     ( 1 === $total_sites ?
-                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
-                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
+                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'You marked this website, %s, as a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
+                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'You marked this website, %s, as a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
                 ) . '%s',
-                sprintf( '<strong>%s</strong>', $current_site_link ),
+                $current_site_link,
                 ( 1 === $total_sites ?
                     sprintf(
-                        '<a href="%s" target="_blank">%s</a>',
+                        '<b><a href="%s" target="_blank">%s</a></b>',
                         $site_urls[0],
                         fs_strip_url_protocol( $site_urls[0] )
                     ) :
