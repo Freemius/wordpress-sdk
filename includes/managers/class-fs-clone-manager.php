@@ -636,12 +636,23 @@
                 if ( ! empty( $site_urls ) ) {
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
+                    $doc_url = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
+
+                    if ( 1 === count( $instances ) ) {
+                        $doc_url = fs_apply_filter(
+                            $first_instance_with_clone->get_unique_affix(),
+                            'clone_resolution_documentation_url',
+                            $doc_url
+                        );
+                    }
+
                     $this->add_manual_clone_resolution_admin_notice(
                         $product_titles,
                         $site_urls,
                         get_site_url(),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
-                        ( count( $site_urls ) === $sites_with_premium_version_count )
+                        ( count( $site_urls ) === $sites_with_premium_version_count ),
+                        $doc_url
                     );
                 }
 
@@ -691,13 +702,15 @@
          * @param string   $current_url
          * @param bool     $has_license
          * @param bool     $is_premium
+         * @param string   $doc_url
          */
         private function add_manual_clone_resolution_admin_notice(
             $product_titles,
             $site_urls,
             $current_url,
             $has_license = false,
-            $is_premium = false
+            $is_premium = false,
+            $doc_url
         ) {
             $this->_logger->entrance();
 
@@ -816,7 +829,7 @@
                 $duplicate_option .
                 $migration_option .
                 $new_website . '</div>' .
-                '<div class="fs-clone-documentation-container">Unsure what to do? <a href="#">Read more here</a>.</div>',
+                sprintf( '<div class="fs-clone-documentation-container">Unsure what to do? <a href="%s" target="_blank">Read more here</a>.</div>', $doc_url ),
                 // %1$s
                 ( 1 === $total_products ?
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
