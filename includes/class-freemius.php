@@ -2107,7 +2107,7 @@
          * Leverage backtrace to find caller plugin file path.
          *
          * @param bool   $is_init   Is initiation sequence.
-         * @param string $main_file Since 2.4.3 expects the module's main file path to potentially purge the cached path.
+         * @param string $main_file Since 2.5.0 expects the module's main file path to potentially purge the cached path.
          *
          * @return string
          * @since  1.0.6
@@ -2233,7 +2233,7 @@
          * @param number $module_id
          * @param string $slug
          *
-         * @return string Since 2.4.3 return the module's main file path.
+         * @return string Since 2.5.0 return the module's main file path.
          *
          * @since  1.2.2
          */
@@ -2284,7 +2284,7 @@
                  * If the module's main file path is identical to the main file path of another module then it means that the cached path of the current module or the other one with the same path is wrong, and therefore, we need to recalculate those paths.
                  *
                  * @author Vova Feldman (@svovaf)
-                 * @since  2.4.3
+                 * @since  2.5.0
                  */
                 if ( ! $find_caller ) {
                     if ( $id == $module_id ) {
@@ -2328,7 +2328,7 @@
          *         SDK an internal file instead of directly from functions.php.
          * @since  1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
          *
-         * @param number $module_id @since 2.4.3
+         * @param number $module_id @since 2.5.0
          */
         private function get_caller_main_file_and_type( $module_id ) {
             self::require_plugin_essentials();
@@ -3537,7 +3537,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @return bool
          */
@@ -3551,7 +3551,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function is_clone() {
             if ( ! is_object( $this->_site ) ) {
@@ -3565,7 +3565,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @return string|object|bool
          */
@@ -3875,7 +3875,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          * 
          * @return array
          */
@@ -7096,7 +7096,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          */
         private function maybe_schedule_sync_cron() {
             $next_schedule = $this->next_sync_cron();
@@ -7317,7 +7317,7 @@
          *
          * @param bool|string $email
          * @param bool        $is_pending_trial Since 1.2.1.5
-         * @param bool        $is_suspicious_email Since 2.4.3 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
+         * @param bool        $is_suspicious_email Since 2.5.0 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
          */
         function _add_pending_activation_notice(
             $email = false,
@@ -8912,7 +8912,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  2.4.3
+         * @since  2.5.0
          *
          * @param \WP_Site $new_site
          */
@@ -11032,7 +11032,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function store_site( $site ) {
             $this->_site = $site;
@@ -11043,7 +11043,7 @@
          * Deletes the current install with an option to back it up in case restoration will be needed (e.g., if the automatic clone resolution attempt fails).
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function delete_current_install( $back_up ) {
             // Back up and delete the unique ID.
@@ -11064,7 +11064,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function restore_backup_site() {
             self::$_accounts->set_option(
@@ -13163,7 +13163,7 @@
          * Displays an email address update dialog box when the user clicks on the email address "Edit" button on the "Account" page.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          */
         function _add_email_address_update_dialog_box() {
             $vars = array( 'id' => $this->_module_id );
@@ -13173,7 +13173,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _add_email_address_update_option() {
             if ( ! $this->should_handle_user_change() ) {
@@ -13186,7 +13186,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _email_address_update_ajax_handler() {
             $this->check_ajax_referer( 'update_email_address' );
@@ -15207,7 +15207,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          *
          * @return bool
          */
@@ -16196,7 +16196,7 @@
          * Executed after site deletion, called from wp_delete_site
          *
          * @author Dario Curvino (@dudo)
-         * @since  2.4.3
+         * @since  2.5.0
          *
          * @param WP_Site $old_site
          */
@@ -19595,7 +19595,7 @@
          * Store the context site in the sites backup storage. This logic is used before deleting the site info so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         private function back_up_site() {
             $this->_logger->entrance();
@@ -23356,7 +23356,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @param string $path
          * @param string $method
@@ -23373,7 +23373,7 @@
          * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
             if (
                 $this->is_registered() &&

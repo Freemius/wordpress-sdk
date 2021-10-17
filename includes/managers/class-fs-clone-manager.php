@@ -4,7 +4,7 @@
      * @copyright Copyright (c) 2015, Freemius, Inc.
      * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
      * @author    Leo Fajardo (@leorw)
-     * @since     2.4.3
+     * @since     2.5.0
      */
 
     if ( ! defined( 'ABSPATH' ) ) {
@@ -14,7 +14,7 @@
     /**
      * Manages the detection of clones and provides the logged-in WordPress user with options for manually resolving them.
      *
-     * @since 2.4.3
+     * @since 2.5.0
      *
      * @property int    $clone_identification_timestamp
      * @property int    $temporary_duplicate_mode_selection_timestamp
@@ -123,7 +123,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _init() {
             if ( is_admin() ) {
@@ -200,7 +200,7 @@
          * Executes the clones handler logic if it should be executed, i.e., based on the return value of the should_handle_clones() method.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function maybe_run_clone_resolution() {
             if ( ! $this->should_handle_clones() ) {
@@ -245,7 +245,7 @@
          * Executes the clones handler logic.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _handle_clone_resolution() {
             $handler_id = fs_request_get( 'handler_id' );
@@ -323,7 +323,7 @@
          * Try to find a different install of the context product that is associated with the current URL and load it.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @param Freemius $instance
          * @param string   $url
@@ -358,7 +358,7 @@
          * Delete the current install associated with a given instance and opt-in/activate-license to create a fresh install.
          *
          * @author Vova Feldman (@svovaf)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @param Freemius    $instance
          * @param string|false $license_key
@@ -432,7 +432,7 @@
          * Try to resolve all clones automatically.
          *
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @return bool If managed to automatically resolve all clones.
          */
@@ -471,7 +471,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _add_clone_resolution_javascript() {
             $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
@@ -481,7 +481,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _clone_resolution_action_ajax_handler() {
             $this->_logger->entrance();
@@ -516,7 +516,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @param string $clone_action
          */
@@ -569,7 +569,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         private function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
@@ -869,7 +869,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          *
          * @return string
          */
