@@ -341,7 +341,7 @@
                         continue;
                     }
 
-                    // When searching for user installs by the current URL, make sure that the found candidate install's URL really matches the current URL as the directory part of the current URL can get stripped at the API level.
+                    // When searching for installs by a URL, the API will first strip any paths and search for any matching installs by the subdomain. Therefore, we need to test if there's a match between the current URL and the install's URL before continuing.
                     if ( $url !== fs_strip_url_protocol( untrailingslashit( $install->url ) ) ) {
                         continue;
                     }
