@@ -1,6 +1,6 @@
 @import "../start";
 
-.fs-notice[data-id="clone_resolution_options_notice"] {
+.fs-notice[data-id^="clone_resolution_options_notice"] {
     padding: 0;
     color: inherit !important;
 
@@ -34,6 +34,14 @@
         flex: auto;
         margin: 5px;
 
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &:last-child {
+            margin-right: 0;
+        }
+
         strong {
             font-size: 1.2em;
             padding: 2px;
@@ -52,6 +60,10 @@
             margin-right: 0;
             margin-left: 10px;
         }
+    }
+
+    .fs-clone-documentation-container {
+        padding: 0 10px 15px;
     }
 }
 

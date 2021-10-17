@@ -98,7 +98,7 @@
         private function __construct() {
             $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
             $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
-            $this->_notices = FS_Admin_Notices::instance( self::OPTION_NAME );
+            $this->_notices = FS_Admin_Notices::instance( 'global_clone_resolution_notices', '', '', true );
             $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
             $defaults = array(
@@ -131,7 +131,13 @@
                     add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
                 }
 
-                if ( ! empty( $this->get_clone_identification_timestamp() ) ) {
+                if (
+                    ! empty( $this->get_clone_identification_timestamp() ) ||
+                    (
+                        fs_is_network_admin() &&
+                        ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
+                    )
+                ) {
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
@@ -335,6 +341,11 @@
                         continue;
                     }
 
+                    // When searching for installs by a URL, the API will first strip any paths and search for any matching installs by the subdomain. Therefore, we need to test if there's a match between the current URL and the install's URL before continuing.
+                    if ( $url !== fs_strip_url_protocol( untrailingslashit( $install->url ) ) ) {
+                        continue;
+                    }
+
                     // Found a different install that is associated with the current URL, load it and replace the current install with it if no updated install is found.
                     return $install;
                 }
@@ -494,6 +505,12 @@
                 $result = $this->resolve_cloned_sites( $clone_action );
             }
 
+            if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
+                $this->_notices->remove_sticky( 'clone_resolution_options_notice', true );
+            } else {
+                $this->remove_temporary_duplicate_notice();
+            }
+
             Freemius::shoot_ajax_success( $result );
         }
 
@@ -557,6 +574,13 @@
         private function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
 
+            if ( fs_is_network_admin() ) {
+                // The admin notice that is shown on the network-level is added from a subsite based on the data that is stored in the site-level storage, so no need to execute the rest of the "calculation".
+                fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+                return;
+            }
+
             $first_instance_with_clone = null;
 
             $site_urls                        = array();
@@ -593,10 +617,6 @@
                 }
             }
 
-            if ( empty( $sites_with_license_urls ) ) {
-                $this->remove_temporary_duplicate_notice();
-            }
-
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
                 return;
             }
@@ -614,18 +634,25 @@
                 $has_temporary_duplicate_mode_expired
             ) {
                 if ( ! empty( $site_urls ) ) {
-                    if ( $has_temporary_duplicate_mode_expired ) {
-                        $this->remove_temporary_duplicate_notice();
-                    }
-
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+
+                    $doc_url = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
+
+                    if ( 1 === count( $instances ) ) {
+                        $doc_url = fs_apply_filter(
+                            $first_instance_with_clone->get_unique_affix(),
+                            'clone_resolution_documentation_url',
+                            $doc_url
+                        );
+                    }
 
                     $this->add_manual_clone_resolution_admin_notice(
                         $product_titles,
                         $site_urls,
                         get_site_url(),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
-                        ( count( $site_urls ) === $sites_with_premium_version_count )
+                        ( count( $site_urls ) === $sites_with_premium_version_count ),
+                        $doc_url
                     );
                 }
 
@@ -636,23 +663,21 @@
                 return;
             }
 
-            if ( $this->is_temporary_duplicate_notice_shown() ) {
-                return;
-            }
+            if ( ! $this->is_temporary_duplicate_notice_shown() ) {
+                $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
+                $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
 
-            $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
-            $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
+                if ( $was_temporary_duplicate_notice_shown_before ) {
+                    $temporary_duplicate_mode_expiration_timestamp = $this->get_temporary_duplicate_expiration_timestamp();
+                    $current_time                                  = time();
 
-            if ( $was_temporary_duplicate_notice_shown_before ) {
-                $temporary_duplicate_mode_expiration_timestamp = $this->get_temporary_duplicate_expiration_timestamp();
-                $current_time                                  = time();
-
-                if (
-                    $current_time > $temporary_duplicate_mode_expiration_timestamp ||
-                    $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
-                ) {
-                    // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
-                    return;
+                    if (
+                        $current_time > $temporary_duplicate_mode_expiration_timestamp ||
+                        $current_time < ( $temporary_duplicate_mode_expiration_timestamp - ( 2 * WP_FS__TIME_24_HOURS_IN_SEC ) )
+                    ) {
+                        // Do not show the notice if the temporary duplicate mode has already expired or it will expire more than 2 days from now.
+                        return;
+                    }
                 }
             }
 
@@ -677,13 +702,15 @@
          * @param string   $current_url
          * @param bool     $has_license
          * @param bool     $is_premium
+         * @param string   $doc_url
          */
         private function add_manual_clone_resolution_admin_notice(
             $product_titles,
             $site_urls,
             $current_url,
             $has_license = false,
-            $is_premium = false
+            $is_premium = false,
+            $doc_url
         ) {
             $this->_logger->entrance();
 
@@ -702,8 +729,8 @@
                 $notice_header = sprintf(
                     '<div class="fs-notice-header"><p>%s</p></div>',
                     ( 1 === $total_sites ) ?
-                        fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s', 'multiple-products-cloned-site-safe-mode-message' ) :
-                        fs_esc_html_inline( 'The following products have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s', 'multiple-products-multiple-cloned-sites-safe-mode-message' )
+                        fs_esc_html_inline( 'The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s', 'multiple-products-cloned-site-safe-mode-message' ) :
+                        fs_esc_html_inline( 'The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s', 'multiple-products-multiple-cloned-sites-safe-mode-message' )
                 );
 
                 foreach ( $product_titles as $product_title ) {
@@ -742,27 +769,26 @@
 
             $duplicate_option = sprintf(
                 $option_template,
-                fs_esc_html_inline( 'Is %2$s a duplicate of %3$s?', 'duplicate-site-confirmation-message' ),
-                fs_esc_html_inline( 'Yes, %2$s is a duplicate of %3$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                sprintf(
-                    $button_template,
-                    'long_term_duplicate',
-                    fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
-                ) .
+                fs_esc_html_inline( 'Is %2$s a duplicate of %4$s?', 'duplicate-site-confirmation-message' ),
+                fs_esc_html_inline( 'Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
                 ($this->has_temporary_duplicate_mode_expired() ?
-                    '' :
+                    sprintf(
+                        $button_template,
+                        'long_term_duplicate',
+                        fs_text_inline( 'Long-Term Duplicate', 'long-term-duplicate' )
+                    ) :
                     sprintf(
                         $button_template,
                         'temporary_duplicate',
-                        fs_text_inline( 'Temporary Duplicate', 'temporary-duplicate' )
+                        fs_text_inline( 'Duplicate Website', 'duplicate-site' )
                     ))
             );
 
             $migration_option = sprintf(
                 $option_template,
-                fs_esc_html_inline( 'Is %2$s the new home of %3$s?', 'migrate-site-confirmation-message' ),
+                fs_esc_html_inline( 'Is %2$s the new home of %4$s?', 'migrate-site-confirmation-message' ),
                 sprintf(
-                    fs_esc_html_inline( 'Yes, %%2$s is replacing %%3$s. I would like to migrate my %s from %%3$s to %%2$s.', 'migrate-site-message' ),
+                    fs_esc_html_inline( 'Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s.', 'migrate-site-message' ),
                     ( $has_license ? fs_text_inline( 'license', 'license' ) : fs_text_inline( 'data', 'data' ) )
                 ),
                 sprintf(
@@ -777,7 +803,7 @@
             $new_website = sprintf(
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a new website?', 'new-site-confirmation-message' ),
-                fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %3$s.', 'new-site-message' ) .
+                fs_esc_html_inline( 'Yes, %2$s is a new and different website that is separate from %4$s.', 'new-site-message' ) .
                 ($is_premium ?
                     ' ' . fs_text_inline( 'It requires license activation.', 'new-site-requires-license-activation-message' ) :
                     ''
@@ -795,13 +821,15 @@
              * %1$s - single product's title or product titles list.
              * %2$s - site's URL.
              * %3$s - single install's URL or install URLs list.
+             * %4$s - Clone site's link or "the above-mentioned sites" if there are multiple clone sites.
              */
             $message = sprintf(
                 $notice_header .
-                '<div class="fs-clone-resolution-options-container">' .
+                '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
                 $duplicate_option .
                 $migration_option .
-                $new_website . '</div>',
+                $new_website . '</div>' .
+                sprintf( '<div class="fs-clone-documentation-container">Unsure what to do? <a href="%s" target="_blank">Read more here</a>.</div>', $doc_url ),
                 // %1$s
                 ( 1 === $total_products ?
                     sprintf( '<b>%s</b>', $product_titles[0] ) :
@@ -814,15 +842,22 @@
                 // %3$s
                 ( 1 === $total_sites ?
                     $remote_site_link :
-                    $sites_list )
+                    $sites_list ),
+                // %4$s
+                $remote_site_link
             );
 
-            $this->_notices->add(
+            $this->_notices->add_sticky(
                 $message,
+                'clone_resolution_options_notice',
                 '',
                 'warn',
-                false,
-                'clone_resolution_options_notice'
+                true,
+                null,
+                null,
+                true,
+                // Intentionally not dismissible.
+                false
             );
         }
 
@@ -844,7 +879,12 @@
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
-            $current_url = fs_strip_url_protocol( get_site_url() );
+            $current_url       = get_site_url();
+            $current_site_link = sprintf(
+                '<b><a href="%s" target="_blank">%s</a></b>',
+                $current_url,
+                fs_strip_url_protocol( $current_url )
+            );
 
             $total_sites = count( $site_urls );
             $sites_list  = '';
@@ -854,7 +894,11 @@
 
             if ( $total_sites > 1 ) {
                 foreach ( $site_urls as $site_url ) {
-                    $sites_list .= sprintf( '<li>%s</li>', $site_url );
+                    $sites_list .= sprintf(
+                        '<li><a href="%s" target="_blank">%s</a></li>',
+                        $site_url,
+                        fs_strip_url_protocol( $site_url )
+                    );
                 }
 
                 $sites_list = '<ol class="fs-sites-list">' . $sites_list . '</ol>';
@@ -872,15 +916,20 @@
                 sprintf(
                     '<div>%s</div>',
                     ( 1 === $total_sites ?
-                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
-                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'This website, %s, is a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
+                        sprintf( '<p>%s</p>', fs_esc_html_inline( 'You marked this website, %s, as a temporary duplicate of %s.', 'temporary-duplicate-message' ) ) :
+                        sprintf( '<p>%s:</p>', fs_esc_html_inline( 'You marked this website, %s, as a temporary duplicate of these sites', 'temporary-duplicate-of-sites-message' ) ) . '%s' )
                 ) . '%s',
-                sprintf( '<strong>%s</strong>', $current_url ),
+                $current_site_link,
                 ( 1 === $total_sites ?
-                    sprintf( '<strong>%s</strong>', $site_urls[0] ) :
+                    sprintf(
+                        '<b><a href="%s" target="_blank">%s</a></b>',
+                        $site_urls[0],
+                        fs_strip_url_protocol( $site_urls[0] )
+                    ) :
                     $sites_list ),
                 sprintf(
-                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options"><p>%s</p>%s<p>%s</p></div>',
+                    '<div class="fs-clone-resolution-options-container fs-duplicate-site-options" data-ajax-url="%s" data-blog-id="' . get_current_blog_id() . '"><p>%s</p>%s<p>%s</p></div>',
+                    esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ),
                     sprintf(
                         fs_esc_html_inline( "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first).", 'duplicate-site-confirmation-message' ),
                         ( 1 === $total_products ?
@@ -944,7 +993,16 @@
          * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
          */
         function remove_temporary_duplicate_notice() {
-            $this->_notices->remove_sticky( 'temporary_duplicate_notice' );
+            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+        }
+
+        /**
+         * Determines if the manual clone resolution options notice is currently being shown.
+         *
+         * @return bool
+         */
+        function is_clone_resolution_options_notice_shown() {
+            return $this->_notices->has_sticky( 'clone_resolution_options_notice', true );
         }
 
         /**
@@ -953,7 +1011,7 @@
          * @return bool
          */
         function is_temporary_duplicate_notice_shown() {
-            return $this->_notices->has_sticky( 'temporary_duplicate_notice' );
+            return $this->_notices->has_sticky( 'temporary_duplicate_notice', true );
         }
 
         /**
@@ -988,7 +1046,7 @@
                 'temporary_duplicate_notice',
                 '',
                 'promotion',
-                null,
+                true,
                 null,
                 $plugin_title,
                 true

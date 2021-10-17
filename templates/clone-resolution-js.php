@@ -42,7 +42,8 @@
                 };
 
                 $.ajax( {
-                    url       : ajaxurl,
+                    // Get the parent options container from the child as `$cloneResolutionNotice` can have different AJAX URLs if both the manual clone resolution options and temporary duplicate notices are shown (for different subsites in a multisite network).
+                    url       : $this.parents( '.fs-clone-resolution-options-container' ).data( 'ajax-url' ),
                     method    : 'POST',
                     data      : {
                         action      : '<?php echo $VARS['ajax_action'] ?>',

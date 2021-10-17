@@ -3566,6 +3566,8 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
+         *
+         * @return string|object|bool
          */
         function _handle_long_term_duplicate() {
             $this->_logger->entrance();
@@ -3583,7 +3585,7 @@
                 $license_key = $this->_license->secret_key;
             }
 
-            $this->opt_in(
+            return $this->opt_in(
                 false,
                 false,
                 false,
@@ -17600,7 +17602,7 @@
             $site->secret_key = $install_secret_key;
 
             $this->_site = $site;
-            $site_result = $this->get_api_site_scope()->get();
+            $site_result = $this->get_api_site_scope( true )->get();
             $site        = new FS_Site( $site_result );
             $this->_site = $site;
 
