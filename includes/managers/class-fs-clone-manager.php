@@ -506,7 +506,7 @@
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
-                $this->_notices->remove_sticky( 'clone_resolution_options_notice', true );
+                $this->remove_clone_resolution_options_notice();
             } else {
                 $this->remove_temporary_duplicate_notice();
             }
@@ -618,6 +618,9 @@
             }
 
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
+                $this->remove_clone_resolution_options_notice( false );
+                $this->remove_temporary_duplicate_notice( false );
+
                 return;
             }
 
@@ -991,9 +994,20 @@
 
         /**
          * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
+         *
+         * @param bool $store
          */
-        function remove_temporary_duplicate_notice() {
-            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+        function remove_clone_resolution_options_notice( $store = true ) {
+            $this->_notices->remove_sticky( 'clone_resolution_options_notice', true, $store );
+        }
+
+        /**
+         * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
+         *
+         * @param bool $store
+         */
+        function remove_temporary_duplicate_notice( $store = true ) {
+            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true, $store );
         }
 
         /**

@@ -414,15 +414,16 @@
          * @since  1.0.7
          *
          * @param string|string[] $ids
+         * @param bool            $store
          */
-        function remove_sticky( $ids ) {
+        function remove_sticky( $ids, $store = true ) {
             if ( ! is_array( $ids ) ) {
                 $ids = array( $ids );
             }
 
             foreach ( $ids as $id ) {
                 // Remove from sticky storage.
-                $this->_sticky_storage->remove( $id );
+                $this->_sticky_storage->remove( $id, $store );
 
                 if ( isset( $this->_notices[ $id ] ) ) {
                     unset( $this->_notices[ $id ] );

@@ -154,8 +154,9 @@
          *
          * @param string|string[] $ids
          * @param int|null        $network_level_or_blog_id
+         * @param bool            $store
          */
-        function remove_sticky( $ids, $network_level_or_blog_id = null ) {
+        function remove_sticky( $ids, $network_level_or_blog_id = null, $store = true ) {
             if ( ! is_array( $ids ) ) {
                 $ids = array( $ids );
             }
@@ -166,7 +167,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            return $notices->remove_sticky( $ids );
+            return $notices->remove_sticky( $ids, $store );
         }
 
         /**
