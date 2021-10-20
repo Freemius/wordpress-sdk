@@ -132,12 +132,14 @@
                 }
 
                 if (
-                    ! empty( $this->get_clone_identification_timestamp() ) ||
+                    empty( $this->get_clone_identification_timestamp() ) &&
                     (
-                        fs_is_network_admin() &&
-                        ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
+                        ! fs_is_network_admin() ||
+                        ! ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
                     )
                 ) {
+                    $this->hide_clone_admin_notices();
+                } else {
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
@@ -571,6 +573,15 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          */
+        private function hide_clone_admin_notices() {
+            $this->remove_clone_resolution_options_notice( false );
+            $this->remove_temporary_duplicate_notice( false );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
         private function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
 
@@ -618,8 +629,7 @@
             }
 
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
-                $this->remove_clone_resolution_options_notice( false );
-                $this->remove_temporary_duplicate_notice( false );
+                $this->hide_clone_admin_notices();
 
                 return;
             }
