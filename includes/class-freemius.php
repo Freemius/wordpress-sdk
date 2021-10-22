@@ -440,9 +440,13 @@
                 // Themes are always network activated, but the ACTUAL activation is per site.
                 $this->is_plugin() &&
                 (
-                    is_plugin_active_for_network( $this->_plugin_basename ) ||
-                    // Plugin network level activation or uninstall.
-                    ( fs_is_network_admin() && is_plugin_inactive( $this->_plugin_basename ) )
+                    apply_filters(
+                        'fs_is_network_active',
+                        is_plugin_active_for_network( $this->_plugin_basename ) ||
+                        // Plugin network level activation or uninstall.
+                        ( fs_is_network_admin() && is_plugin_inactive( $this->_plugin_basename ) ),
+                        $this->_plugin_basename
+                    )
                 )
             );
 
@@ -2172,7 +2176,7 @@
                 'path' => $id_slug_type_path_map[ $this->_module_id ]['path'],
             );
 
-            return $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] );
+            return apply_filters('fs_find_caller_plugin_file', $this->get_absolute_path( $id_slug_type_path_map[ $this->_module_id ]['path'] ), $id_slug_type_path_map[ $this->_module_id ]['slug'], $id_slug_type_path_map[ $this->_module_id ]['path']);
         }
 
         /**
