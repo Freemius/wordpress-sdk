@@ -586,8 +586,11 @@
             $this->_logger->entrance();
 
             if ( fs_is_network_admin() ) {
-                // The admin notice that is shown on the network-level is added from a subsite based on the data that is stored in the site-level storage, so no need to execute the rest of the "calculation".
-                fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+                $existing_notice_ids = $this->maybe_remove_notices();
+
+                if ( ! empty( $existing_notice_ids ) ) {
+                    fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+                }
 
                 return;
             }
@@ -597,6 +600,7 @@
             $site_urls                        = array();
             $sites_with_license_urls          = array();
             $sites_with_premium_version_count = 0;
+            $product_ids                      = array();
             $product_titles                   = array();
 
             $instances = Freemius::_get_all_instances();
@@ -613,6 +617,7 @@
                 $install = $instance->get_site();
 
                 $site_urls[]      = $install->url;
+                $product_ids[]    = $instance->get_id();
                 $product_titles[] = $instance->get_plugin_title();
 
                 if ( is_null( $first_instance_with_clone ) ) {
@@ -660,6 +665,7 @@
                     }
 
                     $this->add_manual_clone_resolution_admin_notice(
+                        $product_ids,
                         $product_titles,
                         $site_urls,
                         get_site_url(),
@@ -708,9 +714,87 @@
         }
 
         /**
+         * Removes the notices from the storage if the context product is either no longer active on the context subsite or it's active but there's no longer any clone. This prevents the notices from being shown on the network-level admin page when they are no longer relevant.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @return string[]
+         */
+        private function maybe_remove_notices() {
+            $notices = array(
+                'clone_resolution_options_notice' => $this->_notices->get_sticky( 'clone_resolution_options_notice', true ),
+                'temporary_duplicate_notice'      => $this->_notices->get_sticky( 'temporary_duplicate_notice', true ),
+            );
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $notices as $id => $notice ) {
+                if ( ! is_array( $notice ) ) {
+                    unset( $notices[ $id ] );
+                    continue;
+                }
+
+                if ( empty( $notice['data'] ) || ! is_array( $notice['data'] ) ) {
+                    continue;
+                }
+
+                if ( empty( $notice['data']['product_ids'] ) || empty( $notice['data']['blog_id'] ) ) {
+                    continue;
+                }
+
+                $product_ids = $notice['data']['product_ids'];
+                $blog_id     = $notice['data']['blog_id'];
+                $has_clone   = false;
+
+                foreach ( $product_ids as $product_id ) {
+                    if ( ! isset( $instances[ 'm_' . $product_id ] ) ) {
+                        continue;
+                    }
+
+                    $instance = $instances[ 'm_' . $product_id ];
+
+                    $plugin_basename = $instance->get_plugin_basename();
+
+                    $is_plugin_active = is_plugin_active_for_network( $plugin_basename );
+
+                    if ( ! $is_plugin_active ) {
+                        switch_to_blog( $blog_id );
+
+                        $is_plugin_active = is_plugin_active( $plugin_basename );
+
+                        restore_current_blog();
+                    }
+
+                    if ( ! $is_plugin_active ) {
+                        continue;
+                    }
+
+                    $install  = $instance->get_install_by_blog_id( $blog_id );
+
+                    if ( ! is_object( $install ) ) {
+                        continue;
+                    }
+
+                    $subsite_url = trailingslashit( get_site_url( $blog_id ) );
+                    $install_url = trailingslashit( $install->url );
+
+                    $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
+                }
+
+                if ( ! $has_clone ) {
+                    $this->_notices->remove_sticky( $id, true, false );
+                    unset( $notices[ $id ] );
+                }
+            }
+
+            return array_keys( $notices );
+        }
+
+        /**
          * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
          *
-         * @param string[] $product_titles
+         * @param number[] $product_ids
          * @param string[] $site_urls
          * @param string   $current_url
          * @param bool     $has_license
@@ -718,6 +802,7 @@
          * @param string   $doc_url
          */
         private function add_manual_clone_resolution_admin_notice(
+            $product_ids,
             $product_titles,
             $site_urls,
             $current_url,
@@ -870,7 +955,11 @@
                 null,
                 true,
                 // Intentionally not dismissible.
-                false
+                false,
+                array(
+                    'product_ids' => $product_ids,
+                    'blog_id'     => get_current_blog_id()
+                )
             );
         }
 

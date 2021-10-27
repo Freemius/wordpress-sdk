@@ -217,7 +217,8 @@
             $wp_user_id = null,
             $plugin_title = null,
             $is_network_and_blog_admins = false,
-            $is_dismissible = true
+            $is_dismissible = true,
+            $data = array()
         ) {
             if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
                 $notices = $this->_network_notices;
@@ -225,7 +226,28 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible, $data );
+        }
+
+        /**
+         * Retrieves the data of an sticky notice.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string   $id
+         * @param int|null $network_level_or_blog_id
+         *
+         * @return array|null
+         */
+        function get_sticky( $id, $network_level_or_blog_id ) {
+            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
+                $notices = $this->_network_notices;
+            } else {
+                $notices = $this->get_site_notices( $network_level_or_blog_id );
+            }
+
+            return $notices->get_sticky( $id );
         }
 
         /**
