@@ -368,10 +368,30 @@
          * @return bool TRUE if successfully connected. FALSE if failed and had to restore install from backup.
          */
         private function delete_install_and_connect( Freemius $instance, $license_key = false ) {
+            $user = Freemius::_get_user_by_id( $instance->get_site()->user_id );
+
             $instance->delete_current_install( true );
 
-            // When a clone is found, we want to use the same user of the original install for the opt-in.
-            $instance->install_with_current_user( $license_key, false, array(), false );
+            if ( ! is_object( $user ) ) {
+                // Get logged-in WordPress user.
+                $current_user = Freemius::_get_current_wp_user();
+
+                // Find the relevant FS user by email address.
+                $user = Freemius::_get_user_by_email( $current_user->user_email );
+            }
+
+            if ( is_object( $user ) ) {
+                // When a clone is found, we prefer to use the same user of the original install for the opt-in.
+                $instance->install_with_user( $user, $license_key, false, false );
+            } else {
+                // If no user is found, activate with the license.
+                $instance->opt_in(
+                    false,
+                    false,
+                    false,
+                    $license_key
+                );
+            }
 
             if ( is_object( $instance->get_site() ) ) {
                 // Install successfully created.
