@@ -767,39 +767,41 @@
                 $blog_id     = $notice['data']['blog_id'];
                 $has_clone   = false;
 
-                foreach ( $product_ids as $product_id ) {
-                    if ( ! isset( $instances[ 'm_' . $product_id ] ) ) {
-                        continue;
+                if ( ! is_null( get_site( $blog_id ) ) ) {
+                    foreach ( $product_ids as $product_id ) {
+                        if ( ! isset( $instances[ 'm_' . $product_id ] ) ) {
+                            continue;
+                        }
+
+                        $instance = $instances[ 'm_' . $product_id ];
+
+                        $plugin_basename = $instance->get_plugin_basename();
+
+                        $is_plugin_active = is_plugin_active_for_network( $plugin_basename );
+
+                        if ( ! $is_plugin_active ) {
+                            switch_to_blog( $blog_id );
+
+                            $is_plugin_active = is_plugin_active( $plugin_basename );
+
+                            restore_current_blog();
+                        }
+
+                        if ( ! $is_plugin_active ) {
+                            continue;
+                        }
+
+                        $install  = $instance->get_install_by_blog_id( $blog_id );
+
+                        if ( ! is_object( $install ) ) {
+                            continue;
+                        }
+
+                        $subsite_url = trailingslashit( get_site_url( $blog_id ) );
+                        $install_url = trailingslashit( $install->url );
+
+                        $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
                     }
-
-                    $instance = $instances[ 'm_' . $product_id ];
-
-                    $plugin_basename = $instance->get_plugin_basename();
-
-                    $is_plugin_active = is_plugin_active_for_network( $plugin_basename );
-
-                    if ( ! $is_plugin_active ) {
-                        switch_to_blog( $blog_id );
-
-                        $is_plugin_active = is_plugin_active( $plugin_basename );
-
-                        restore_current_blog();
-                    }
-
-                    if ( ! $is_plugin_active ) {
-                        continue;
-                    }
-
-                    $install  = $instance->get_install_by_blog_id( $blog_id );
-
-                    if ( ! is_object( $install ) ) {
-                        continue;
-                    }
-
-                    $subsite_url = trailingslashit( get_site_url( $blog_id ) );
-                    $install_url = trailingslashit( $install->url );
-
-                    $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
                 }
 
                 if ( ! $has_clone ) {
