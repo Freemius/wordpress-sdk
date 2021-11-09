@@ -128,11 +128,7 @@
             $network_level_or_blog_id = null,
             $is_dimissible = null
         ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             $notices->add(
                 $message,
@@ -182,11 +178,7 @@
          * @return bool
          */
         function has_sticky( $id, $network_level_or_blog_id = null ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             return $notices->has_sticky( $id );
         }
@@ -220,17 +212,32 @@
             $is_dismissible = true,
             $data = array()
         ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible, $data );
         }
 
         /**
-         * Retrieves the data of an sticky notice.
+         * Retrieves an instance of FS_Admin_Notice_Manager.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param string   $id
+         * @param int|null $network_level_or_blog_id
+         *
+         * @return FS_Admin_Notice_Manager
+         */
+        private function get_site_or_network_notices( $id, $network_level_or_blog_id ) {
+            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
+                return $this->_network_notices;
+            }
+
+            return $this->get_site_notices( $network_level_or_blog_id );
+        }
+
+        /**
+         * Retrieves the data of a sticky notice.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.4.3
@@ -241,11 +248,7 @@
          * @return array|null
          */
         function get_sticky( $id, $network_level_or_blog_id ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             return $notices->get_sticky( $id );
         }
