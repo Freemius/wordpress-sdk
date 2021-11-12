@@ -16794,6 +16794,13 @@
             if ( $this->is_theme() ) {
                 $this->_register_account_hooks();
             }
+
+            if (
+                $this->is_clone() &&
+                empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
+            ) {
+                FS_Clone_Manager::instance()->store_clone_identification_timestamp();
+            }
         }
 
         /**

@@ -132,12 +132,14 @@
                 }
 
                 if (
-                    ! empty( $this->get_clone_identification_timestamp() ) ||
+                    empty( $this->get_clone_identification_timestamp() ) &&
                     (
-                        fs_is_network_admin() &&
-                        ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
+                        ! fs_is_network_admin() ||
+                        ! ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
                     )
                 ) {
+                    $this->hide_clone_admin_notices();
+                } else {
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
@@ -366,10 +368,30 @@
          * @return bool TRUE if successfully connected. FALSE if failed and had to restore install from backup.
          */
         private function delete_install_and_connect( Freemius $instance, $license_key = false ) {
+            $user = Freemius::_get_user_by_id( $instance->get_site()->user_id );
+
             $instance->delete_current_install( true );
 
-            // When a clone is found, we want to use the same user of the original install for the opt-in.
-            $instance->install_with_current_user( $license_key, false, array(), false );
+            if ( ! is_object( $user ) ) {
+                // Get logged-in WordPress user.
+                $current_user = Freemius::_get_current_wp_user();
+
+                // Find the relevant FS user by email address.
+                $user = Freemius::_get_user_by_email( $current_user->user_email );
+            }
+
+            if ( is_object( $user ) ) {
+                // When a clone is found, we prefer to use the same user of the original install for the opt-in.
+                $instance->install_with_user( $user, $license_key, false, false );
+            } else {
+                // If no user is found, activate with the license.
+                $instance->opt_in(
+                    false,
+                    false,
+                    false,
+                    $license_key
+                );
+            }
 
             if ( is_object( $instance->get_site() ) ) {
                 // Install successfully created.
@@ -506,7 +528,7 @@
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
-                $this->_notices->remove_sticky( 'clone_resolution_options_notice', true );
+                $this->remove_clone_resolution_options_notice();
             } else {
                 $this->remove_temporary_duplicate_notice();
             }
@@ -571,12 +593,24 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          */
+        private function hide_clone_admin_notices() {
+            $this->remove_clone_resolution_options_notice( false );
+            $this->remove_temporary_duplicate_notice( false );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
         private function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
 
             if ( fs_is_network_admin() ) {
-                // The admin notice that is shown on the network-level is added from a subsite based on the data that is stored in the site-level storage, so no need to execute the rest of the "calculation".
-                fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+                $existing_notice_ids = $this->maybe_remove_notices();
+
+                if ( ! empty( $existing_notice_ids ) ) {
+                    fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
+                }
 
                 return;
             }
@@ -586,6 +620,7 @@
             $site_urls                        = array();
             $sites_with_license_urls          = array();
             $sites_with_premium_version_count = 0;
+            $product_ids                      = array();
             $product_titles                   = array();
 
             $instances = Freemius::_get_all_instances();
@@ -602,6 +637,7 @@
                 $install = $instance->get_site();
 
                 $site_urls[]      = $install->url;
+                $product_ids[]    = $instance->get_id();
                 $product_titles[] = $instance->get_plugin_title();
 
                 if ( is_null( $first_instance_with_clone ) ) {
@@ -618,6 +654,8 @@
             }
 
             if ( empty( $site_urls ) && empty( $sites_with_license_urls ) ) {
+                $this->hide_clone_admin_notices();
+
                 return;
             }
 
@@ -647,6 +685,7 @@
                     }
 
                     $this->add_manual_clone_resolution_admin_notice(
+                        $product_ids,
                         $product_titles,
                         $site_urls,
                         get_site_url(),
@@ -695,9 +734,89 @@
         }
 
         /**
+         * Removes the notices from the storage if the context product is either no longer active on the context subsite or it's active but there's no longer any clone. This prevents the notices from being shown on the network-level admin page when they are no longer relevant.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @return string[]
+         */
+        private function maybe_remove_notices() {
+            $notices = array(
+                'clone_resolution_options_notice' => $this->_notices->get_sticky( 'clone_resolution_options_notice', true ),
+                'temporary_duplicate_notice'      => $this->_notices->get_sticky( 'temporary_duplicate_notice', true ),
+            );
+
+            $instances = Freemius::_get_all_instances();
+
+            foreach ( $notices as $id => $notice ) {
+                if ( ! is_array( $notice ) ) {
+                    unset( $notices[ $id ] );
+                    continue;
+                }
+
+                if ( empty( $notice['data'] ) || ! is_array( $notice['data'] ) ) {
+                    continue;
+                }
+
+                if ( empty( $notice['data']['product_ids'] ) || empty( $notice['data']['blog_id'] ) ) {
+                    continue;
+                }
+
+                $product_ids = $notice['data']['product_ids'];
+                $blog_id     = $notice['data']['blog_id'];
+                $has_clone   = false;
+
+                if ( ! is_null( get_site( $blog_id ) ) ) {
+                    foreach ( $product_ids as $product_id ) {
+                        if ( ! isset( $instances[ 'm_' . $product_id ] ) ) {
+                            continue;
+                        }
+
+                        $instance = $instances[ 'm_' . $product_id ];
+
+                        $plugin_basename = $instance->get_plugin_basename();
+
+                        $is_plugin_active = is_plugin_active_for_network( $plugin_basename );
+
+                        if ( ! $is_plugin_active ) {
+                            switch_to_blog( $blog_id );
+
+                            $is_plugin_active = is_plugin_active( $plugin_basename );
+
+                            restore_current_blog();
+                        }
+
+                        if ( ! $is_plugin_active ) {
+                            continue;
+                        }
+
+                        $install  = $instance->get_install_by_blog_id( $blog_id );
+
+                        if ( ! is_object( $install ) ) {
+                            continue;
+                        }
+
+                        $subsite_url = trailingslashit( get_site_url( $blog_id ) );
+                        $install_url = trailingslashit( $install->url );
+
+                        $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
+                    }
+                }
+
+                if ( ! $has_clone ) {
+                    $this->_notices->remove_sticky( $id, true, false );
+                    unset( $notices[ $id ] );
+                }
+            }
+
+            return array_keys( $notices );
+        }
+
+        /**
          * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
          *
-         * @param string[] $product_titles
+         * @param number[] $product_ids
          * @param string[] $site_urls
          * @param string   $current_url
          * @param bool     $has_license
@@ -705,6 +824,7 @@
          * @param string   $doc_url
          */
         private function add_manual_clone_resolution_admin_notice(
+            $product_ids,
             $product_titles,
             $site_urls,
             $current_url,
@@ -857,7 +977,11 @@
                 null,
                 true,
                 // Intentionally not dismissible.
-                false
+                false,
+                array(
+                    'product_ids' => $product_ids,
+                    'blog_id'     => get_current_blog_id()
+                )
             );
         }
 
@@ -991,9 +1115,20 @@
 
         /**
          * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
+         *
+         * @param bool $store
          */
-        function remove_temporary_duplicate_notice() {
-            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true );
+        function remove_clone_resolution_options_notice( $store = true ) {
+            $this->_notices->remove_sticky( 'clone_resolution_options_notice', true, $store );
+        }
+
+        /**
+         * Removes the notice that is shown when the logged-in WordPress user has selected the temporary duplicate mode for the site.
+         *
+         * @param bool $store
+         */
+        function remove_temporary_duplicate_notice( $store = true ) {
+            $this->_notices->remove_sticky( 'temporary_duplicate_notice', true, $store );
         }
 
         /**

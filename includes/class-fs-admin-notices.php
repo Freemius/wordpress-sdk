@@ -128,11 +128,7 @@
             $network_level_or_blog_id = null,
             $is_dimissible = null
         ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             $notices->add(
                 $message,
@@ -154,8 +150,9 @@
          *
          * @param string|string[] $ids
          * @param int|null        $network_level_or_blog_id
+         * @param bool            $store
          */
-        function remove_sticky( $ids, $network_level_or_blog_id = null ) {
+        function remove_sticky( $ids, $network_level_or_blog_id = null, $store = true ) {
             if ( ! is_array( $ids ) ) {
                 $ids = array( $ids );
             }
@@ -166,7 +163,7 @@
                 $notices = $this->get_site_notices( $network_level_or_blog_id );
             }
 
-            return $notices->remove_sticky( $ids );
+            return $notices->remove_sticky( $ids, $store );
         }
 
         /**
@@ -181,11 +178,7 @@
          * @return bool
          */
         function has_sticky( $id, $network_level_or_blog_id = null ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
             return $notices->has_sticky( $id );
         }
@@ -216,15 +209,29 @@
             $wp_user_id = null,
             $plugin_title = null,
             $is_network_and_blog_admins = false,
-            $is_dismissible = true
+            $is_dismissible = true,
+            $data = array()
         ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                $notices = $this->_network_notices;
-            } else {
-                $notices = $this->get_site_notices( $network_level_or_blog_id );
-            }
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
 
-            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible );
+            $notices->add_sticky( $message, $id, $title, $type, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dismissible, $data );
+        }
+
+        /**
+         * Retrieves the data of a sticky notice.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.4.3
+         *
+         * @param string   $id
+         * @param int|null $network_level_or_blog_id
+         *
+         * @return array|null
+         */
+        function get_sticky( $id, $network_level_or_blog_id ) {
+            $notices = $this->get_site_or_network_notices( $id, $network_level_or_blog_id );
+
+            return $notices->get_sticky( $id );
         }
 
         /**
@@ -322,6 +329,23 @@
             }
 
             return fs_is_network_admin();
+        }
+
+        /**
+         * Retrieves an instance of FS_Admin_Notice_Manager.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param string   $id
+         * @param int|null $network_level_or_blog_id
+         *
+         * @return FS_Admin_Notice_Manager
+         */
+        private function get_site_or_network_notices( $id, $network_level_or_blog_id ) {
+            return $this->should_use_network_notices( $id, $network_level_or_blog_id ) ?
+                $this->_network_notices :
+                $this->get_site_notices( $network_level_or_blog_id );
         }
 
         #endregion
