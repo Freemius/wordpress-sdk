@@ -218,25 +218,6 @@
         }
 
         /**
-         * Retrieves an instance of FS_Admin_Notice_Manager.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         *
-         * @param string   $id
-         * @param int|null $network_level_or_blog_id
-         *
-         * @return FS_Admin_Notice_Manager
-         */
-        private function get_site_or_network_notices( $id, $network_level_or_blog_id ) {
-            if ( $this->should_use_network_notices( $id, $network_level_or_blog_id ) ) {
-                return $this->_network_notices;
-            }
-
-            return $this->get_site_notices( $network_level_or_blog_id );
-        }
-
-        /**
          * Retrieves the data of a sticky notice.
          *
          * @author Leo Fajardo (@leorw)
@@ -348,6 +329,23 @@
             }
 
             return fs_is_network_admin();
+        }
+
+        /**
+         * Retrieves an instance of FS_Admin_Notice_Manager.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param string   $id
+         * @param int|null $network_level_or_blog_id
+         *
+         * @return FS_Admin_Notice_Manager
+         */
+        private function get_site_or_network_notices( $id, $network_level_or_blog_id ) {
+            return $this->should_use_network_notices( $id, $network_level_or_blog_id ) ?
+                $this->_network_notices :
+                $this->get_site_notices( $network_level_or_blog_id );
         }
 
         #endregion
