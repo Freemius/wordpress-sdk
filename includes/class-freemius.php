@@ -2505,7 +2505,7 @@
             /**
              * @since 2.3.0 Developers can optionally hide the deactivation feedback form using the 'show_deactivation_feedback_form' filter.
              */
-            $show_deactivation_feedback_form = true;
+            $show_deactivation_feedback_form = ! self::is_deactivation_snoozed();
             if ( $this->has_filter( 'show_deactivation_feedback_form' ) ) {
                 $show_deactivation_feedback_form = $this->apply_filters( 'show_deactivation_feedback_form', true );
             } else if ( $this->is_addon() ) {
@@ -2610,7 +2610,7 @@
             $reason_temporary_deactivation = array(
                 'id'                => self::REASON_TEMPORARY_DEACTIVATION,
                 'text'              => sprintf(
-                    $this->get_text_inline( "It's a temporary %s. I'm just debugging an issue.", 'reason-temporary-x' ),
+                    $this->get_text_inline( "It's a temporary %s - I'm troubleshooting an issue", 'reason-temporary-x' ),
                     strtolower( $this->is_plugin() ?
                         $this->get_text_inline( 'Deactivation', 'deactivation' ) :
                         $this->get_text_inline( 'Theme Switch', 'theme-switch' )
@@ -2775,6 +2775,14 @@
 
             $this->_storage->store( 'uninstall_reason', $reason );
 
+            if ( self::REASON_TEMPORARY_DEACTIVATION == $reason->id ) {
+                $snooze_period = fs_request_get( 'snooze_period' );
+
+                if ( is_numeric( $snooze_period ) && 0 < $snooze_period ) {
+                    self::snooze_deactivation_form( (int) $snooze_period );
+                }
+            }
+
             /**
              * If the module type is "theme", trigger the uninstall event here (on theme deactivation) since themes do
              * not support uninstall hook.
@@ -2795,6 +2803,73 @@
             echo 1;
             exit;
         }
+
+        #--------------------------------------------------------------------------------
+        #region Deactivation Feedback Snoozing
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @param int $period
+         *
+         * @return bool True if the value was set, false otherwise.
+         */
+        private static function snooze_deactivation_form( $period ) {
+            return ( 0 < $period && self::reset_deactivation_snoozing( $period ) );
+        }
+
+        /**
+         * Check if deactivation feedback form is snoozed.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return bool
+         */
+        static function is_deactivation_snoozed() {
+            $is_snoozed = ( ! is_multisite() || fs_is_network_admin() ) ?
+                get_transient( 'fs_snooze_period' ) :
+                get_site_transient( 'fs_snooze_period' );
+
+
+            return ( 'true' === $is_snoozed );
+        }
+
+        /**
+         * Reset deactivation snoozing. When `$period` is `0` will stop deactivation snoozing by deleting the transients. Otherwise, will set the transients for the selected period.
+         *
+         * @param int $period Period in seconds.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         */
+        private static function reset_deactivation_snoozing( $period = 0 ) {
+            $value = ( 0 === $period ) ? null : 'true';
+
+            if ( ! is_multisite() || fs_is_network_admin() ) {
+                return set_transient( 'fs_snooze_period', $value, $period );
+            } else {
+                return set_site_transient( 'fs_snooze_period', $value, $period );
+            }
+        }
+
+        /**
+         * The deactivation snooze expiration UNIX timestamp (in sec).
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.4.3
+         *
+         * @return int
+         */
+        static function deactivation_snooze_expires_at() {
+            return ( ! is_multisite() || fs_is_network_admin() ) ?
+                (int) get_option( '_transient_timeout_fs_snooze_period' ) :
+                (int) get_site_option( '_site_transient_timeout_fs_snooze_period' );
+        }
+
+        #endregion
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -3826,6 +3901,10 @@
 
                     switch_to_blog( $current_blog_id );
                 }
+            } else if ( fs_request_is_action( 'reset_deactivation_snoozing' ) ) {
+                check_admin_referer( 'reset_deactivation_snoozing' );
+
+                self::reset_deactivation_snoozing();
             } else if ( fs_request_is_action( 'simulate_trial' ) ) {
                 check_admin_referer( 'simulate_trial' );
 
@@ -4056,18 +4135,24 @@
 
             $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
 
+            $params = array(
+                'is_update'    => json_encode( $is_update ),
+                'version'      => $version,
+                'sdk'          => $this->version,
+                'is_admin'     => json_encode( is_admin() ),
+                'is_ajax'      => json_encode( self::is_ajax() ),
+                'is_cron'      => json_encode( self::is_cron() ),
+                'is_gdpr_test' => $is_gdpr_test,
+                'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
+            );
+
+            if ( is_multisite() && function_exists( 'get_network' ) ) {
+                $params['network_uid'] = $this->get_anonymous_network_id();
+            }
+
             return $this->get_api_plugin_scope()->ping(
                 $this->get_anonymous_id( $blog_id ),
-                array(
-                    'is_update'    => json_encode( $is_update ),
-                    'version'      => $version,
-                    'sdk'          => $this->version,
-                    'is_admin'     => json_encode( is_admin() ),
-                    'is_ajax'      => json_encode( self::is_ajax() ),
-                    'is_cron'      => json_encode( self::is_cron() ),
-                    'is_gdpr_test' => $is_gdpr_test,
-                    'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
-                )
+                $params
             );
         }
 
@@ -4231,6 +4316,17 @@
             $this->_logger->departure( $unique_id );
 
             return $unique_id;
+        }
+
+        /**
+         * Returns anonymous network ID.
+         *
+         * @since  2.4.3
+         *
+         * @return string
+         */
+        function get_anonymous_network_id() {
+           return $this->get_anonymous_id( get_network()->site_id );
         }
 
         /**
@@ -7378,6 +7474,20 @@
                 if ( isset( $_GET['activate-multi'] ) ) {
                     /**
                      * Don't redirect if activating multiple plugins at once (bulk activation).
+                     */
+                } else if (
+                    self::is_deactivation_snoozed() &&
+                    (
+                        // Either running the free code base.
+                        ! $this->is_premium() ||
+                        // Or if has a free version.
+                        ! $this->is_only_premium() ||
+                        // If premium only, don't redirect if license is activated.
+                        ( $this->is_registered() && ! $this->can_use_premium_code() )
+                    )
+                ) {
+                    /**
+                     * Don't redirect if activating during the deactivation snooze period (aka troubleshooting), unless activating a paid product version that the admin didn't enter its license key yet.
                      */
                 } else if ( ! $is_migration ) {
                     $this->_redirect_on_activation_hook();
@@ -17010,6 +17120,10 @@
                     $params['salt'] .
                     $this->get_secret_key()
                 );
+            }
+
+            if ( is_multisite() && function_exists( 'get_network' ) ) {
+                $params['network_uid'] = $this->get_anonymous_network_id();
             }
 
             return array_merge( $params, $override_with );
