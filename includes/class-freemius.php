@@ -24139,10 +24139,13 @@
 
             if (
                 $this->is_addon() &&
-                ! $this->is_only_premium() &&
-                $this->get_parent_instance()->is_anonymous()
+                ! $this->is_only_premium()
             ) {
-                return;
+                $parent = $this->get_parent_instance();
+
+                if ( is_object( $parent ) && $parent->is_anonymous() ) {
+                    return;
+                }
             }
 
             if ( fs_is_network_admin() ) {
