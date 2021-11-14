@@ -160,7 +160,10 @@
                             false,
                             isset( $msg['wp_user_id'] ) ? $msg['wp_user_id'] : null,
                             ! empty( $msg['plugin'] ) ? $msg['plugin'] : null,
-                            $is_network_and_blog_admins
+                            $is_network_and_blog_admins,
+                            isset( $msg['dismissible'] ) ?
+                                $msg['dismissible'] :
+                                null
                         );
                     }
                 }
@@ -355,6 +358,8 @@
          * @param string|null $plugin_title
          * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network
          *                                                and blog admin pages.
+         * @param bool|null   $is_dismissible
+         * @param array       $data
          *
          * @uses   add_action()
          */
@@ -367,7 +372,9 @@
             $store_if_sticky = true,
             $wp_user_id = null,
             $plugin_title = null,
-            $is_network_and_blog_admins = false
+            $is_network_and_blog_admins = false,
+            $is_dismissible = null,
+            $data = array()
         ) {
             $notices_type = $this->get_notices_type();
 
@@ -387,14 +394,16 @@
             }
 
             $message_object = array(
-                'message'    => $message,
-                'title'      => $title,
-                'type'       => $type,
-                'sticky'     => $is_sticky,
-                'id'         => $id,
-                'manager_id' => $this->_id,
-                'plugin'     => ( ! is_null( $plugin_title ) ? $plugin_title : $this->_title ),
-                'wp_user_id' => $wp_user_id,
+                'message'     => $message,
+                'title'       => $title,
+                'type'        => $type,
+                'sticky'      => $is_sticky,
+                'id'          => $id,
+                'manager_id'  => $this->_id,
+                'plugin'      => ( ! is_null( $plugin_title ) ? $plugin_title : $this->_title ),
+                'wp_user_id'  => $wp_user_id,
+                'dismissible' => $is_dismissible,
+                'data'        => $data
             );
 
             if ( $is_sticky && $store_if_sticky ) {
@@ -409,15 +418,16 @@
          * @since  1.0.7
          *
          * @param string|string[] $ids
+         * @param bool            $store
          */
-        function remove_sticky( $ids ) {
+        function remove_sticky( $ids, $store = true ) {
             if ( ! is_array( $ids ) ) {
                 $ids = array( $ids );
             }
 
             foreach ( $ids as $id ) {
                 // Remove from sticky storage.
-                $this->_sticky_storage->remove( $id );
+                $this->_sticky_storage->remove( $id, $store );
 
                 if ( isset( $this->_notices[ $id ] ) ) {
                     unset( $this->_notices[ $id ] );
@@ -453,14 +463,32 @@
          * @param string|null $plugin_title
          * @param bool        $is_network_and_blog_admins Whether or not the message should be shown both on network
          *                                                and blog admin pages.
+         * @param bool        $is_dimissible
+         * @param array       $data
          */
-        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null, $is_network_and_blog_admins = false ) {
+        function add_sticky( $message, $id, $title = '', $type = 'success', $wp_user_id = null, $plugin_title = null, $is_network_and_blog_admins = false, $is_dimissible = true, $data = array() ) {
             if ( ! empty( $this->_module_unique_affix ) ) {
                 $message = fs_apply_filter( $this->_module_unique_affix, "sticky_message_{$id}", $message );
                 $title   = fs_apply_filter( $this->_module_unique_affix, "sticky_title_{$id}", $title );
             }
 
-            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title, $is_network_and_blog_admins );
+            $this->add( $message, $title, $type, true, $id, true, $wp_user_id, $plugin_title, $is_network_and_blog_admins, $is_dimissible, $data );
+        }
+
+        /**
+         * Retrieves the data of an sticky notice.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.4.3
+         *
+         * @param string $id Message ID.
+         *
+         * @return array|null
+         */
+        function get_sticky( $id ) {
+            return isset( $this->_sticky_storage->{$id} ) ?
+                $this->_sticky_storage->{$id} :
+                null;
         }
 
         /**

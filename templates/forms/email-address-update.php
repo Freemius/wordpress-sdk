@@ -5,7 +5,7 @@
 	 * @license   https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
      *
      * @author Leo Fajardo (@leorw)
-	 * @since 2.4.3
+	 * @since 2.5.0
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {

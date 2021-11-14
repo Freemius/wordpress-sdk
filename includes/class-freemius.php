@@ -2107,7 +2107,7 @@
          * Leverage backtrace to find caller plugin file path.
          *
          * @param bool   $is_init   Is initiation sequence.
-         * @param string $main_file Since 2.4.3 expects the module's main file path to potentially purge the cached path.
+         * @param string $main_file Since 2.5.0 expects the module's main file path to potentially purge the cached path.
          *
          * @return string
          * @since  1.0.6
@@ -2233,7 +2233,7 @@
          * @param number $module_id
          * @param string $slug
          *
-         * @return string Since 2.4.3 return the module's main file path.
+         * @return string Since 2.5.0 return the module's main file path.
          *
          * @since  1.2.2
          */
@@ -2284,7 +2284,7 @@
                  * If the module's main file path is identical to the main file path of another module then it means that the cached path of the current module or the other one with the same path is wrong, and therefore, we need to recalculate those paths.
                  *
                  * @author Vova Feldman (@svovaf)
-                 * @since  2.4.3
+                 * @since  2.5.0
                  */
                 if ( ! $find_caller ) {
                     if ( $id == $module_id ) {
@@ -2328,7 +2328,7 @@
          *         SDK an internal file instead of directly from functions.php.
          * @since  1.2.1.7 Knows how to handle cases when an add-on includes the parent module logic.
          *
-         * @param number $module_id @since 2.4.3
+         * @param number $module_id @since 2.5.0
          */
         private function get_caller_main_file_and_type( $module_id ) {
             self::require_plugin_essentials();
@@ -2491,6 +2491,13 @@
          * @since  1.1.2
          */
         function _add_deactivation_feedback_dialog_box() {
+            if (
+                $this->is_clone() ||
+                ( is_object( $this->_site ) && ! $this->is_registered() )
+            ) {
+                return;
+            }
+            
             $subscription_cancellation_dialog_box_template_params = $this->apply_filters( 'show_deactivation_subscription_cancellation', true ) ?
                 $this->_get_subscription_cancellation_dialog_box_template_params() :
                 array();
@@ -3060,6 +3067,13 @@
             return self::instance( $addon_id );
         }
 
+        /**
+         * @return Freemius[]
+         */
+        static function _get_all_instances() {
+            return self::$_instances;
+        }
+
         #endregion ------------------------------------------------------------------
 
         /**
@@ -3570,6 +3584,9 @@
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
             }
 
+            $clone_manager = FS_Clone_Manager::instance();
+            add_action( 'init', array( $clone_manager, '_init' ) );
+
             add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
             add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
 
@@ -3588,6 +3605,76 @@
 
             self::$_statics_loaded = true;
         }
+
+        #--------------------------------------------------------------------------------
+        #region Clone
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @return bool
+         */
+        private function is_unresolved_clone() {
+            if ( ! $this->is_clone() ) {
+                return false;
+            }
+
+            return FS_Clone_Manager::instance()->has_temporary_duplicate_mode_expired();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        function is_clone() {
+            if ( ! is_object( $this->_site ) ) {
+                return false;
+            }
+
+            return (
+                fs_strip_url_protocol( trailingslashit( $this->_site->url ) ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @return string|object|bool
+         */
+        function _handle_long_term_duplicate() {
+            $this->_logger->entrance();
+
+            $this->delete_current_install( false );
+
+            $license_key = false;
+
+            if (
+                is_object( $this->_license ) &&
+                ! $this->_license->is_utilized(
+                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( get_site_url() ) )
+                )
+            ) {
+                $license_key = $this->_license->secret_key;
+            }
+
+            return $this->opt_in(
+                false,
+                false,
+                false,
+                $license_key,
+                false,
+                false,
+                false,
+                null,
+                array(),
+                false
+            );
+        }
+
+        #endregion
 
         /**
          * @author Leo Fajardo (@leorw)
@@ -3867,11 +3954,11 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          * 
          * @return array
          */
-        private static function get_all_modules_sites() {
+        static function get_all_modules_sites() {
             self::$_static_logger->entrance();
 
             $sites_by_type = array(
@@ -3955,6 +4042,10 @@
          */
         function is_on() {
             self::$_static_logger->entrance();
+
+            if ( is_object( $this->_site ) && ! $this->is_registered() ) {
+                return false;
+            }
 
             if ( isset( $this->_is_on ) ) {
                 return $this->_is_on;
@@ -5221,7 +5312,8 @@
                      */
                     ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->premium_plugin_basename() ) ) )
                 ) &&
-                $this->has_release_on_freemius()
+                $this->has_release_on_freemius() &&
+                ( ! $this->is_unresolved_clone() )
             ) {
                 FS_Plugin_Updater::instance( $this );
             }
@@ -5369,7 +5461,7 @@
             }
 
             // Send update to FS.
-            $result = $this->get_api_site_scope()->call( '/?fields=is_disconnected', 'put', array(
+            $result = $this->api_site_call( '/?fields=is_disconnected', 'put', array(
                 'is_disconnected' => true
             ) );
 
@@ -5518,7 +5610,7 @@
                 return true;
             }
 
-            $result = $this->get_api_site_scope()->call( '/?is_disconnected', 'put', array(
+            $result = $this->api_site_call( '/?is_disconnected', 'put', array(
                 'is_disconnected' => false
             ) );
 
@@ -7100,7 +7192,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          */
         private function maybe_schedule_sync_cron() {
             $next_schedule = $this->next_sync_cron();
@@ -7294,6 +7386,10 @@
          * @param int|null $current_blog_id
          */
         function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
+            if ( $this->is_clone() ) {
+                return;
+            }
+
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -7317,7 +7413,7 @@
          *
          * @param bool|string $email
          * @param bool        $is_pending_trial Since 1.2.1.5
-         * @param bool        $is_suspicious_email Since 2.4.3 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
+         * @param bool        $is_suspicious_email Since 2.5.0 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
          */
         function _add_pending_activation_notice(
             $email = false,
@@ -8151,7 +8247,7 @@
                 );
             } else {
                 // Activate the license.
-                $install = $this->get_api_site_scope()->call(
+                $install = $this->api_site_call(
                     '/',
                     'put',
                     array( 'license_key' => $this->apply_filters( 'license_key', $license->secret_key ) )
@@ -8926,7 +9022,7 @@
 
         /**
          * @author Vova Feldman (@svovaf)
-         * @since  2.4.3
+         * @since  2.5.0
          *
          * @param \WP_Site $new_site
          */
@@ -9740,7 +9836,7 @@
             $this->set_keepalive_timestamp();
 
             // Send updated values to FS.
-            $site = $this->get_api_site_scope()->call( '/', 'put', $params );
+            $site = $this->api_site_call( '/', 'put', $params, true );
 
             if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
                 /**
@@ -9862,7 +9958,7 @@
          * @param string[] string $override
          * @param bool     $flush
          */
-        private function sync_install( $override = array(), $flush = false ) {
+        function sync_install( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
             $site = $this->send_install_update( $override, $flush );
@@ -10147,7 +10243,17 @@
                     return;
                 }
 
-                $fs->_uninstall_plugin_event();
+                if (
+                    ! $fs->is_clone() &&
+                    /**
+                     * If there's a context install, run this method only when there's also a context user (e.g., when cloning a subsite of a multisite network into a single-site installation, it's possible for an install to be associated with a non-existing user entity; we want Freemius to be off in this case, while we are trying to recover the user).
+                     *
+                     * @author Leo Fajardo
+                     */
+                    ( ! is_object( $fs->_site ) || $fs->is_registered() )
+                ) {
+                    $fs->_uninstall_plugin_event();
+                }
 
                 $fs->do_action( 'after_uninstall' );
             }
@@ -10607,9 +10713,14 @@
          */
         private static function get_all_sites(
             $module_type = WP_FS__MODULE_TYPE_PLUGIN,
-            $blog_id = null
+            $blog_id = null,
+            $is_backup = false
         ) {
-            $sites = self::get_account_option( 'sites', $module_type, $blog_id );
+            $sites = self::get_account_option(
+                ( $is_backup ? 'prev_' : '' ) . 'sites',
+                $module_type,
+                $blog_id
+            );
 
             if ( ! is_array( $sites ) ) {
                 $sites = array();
@@ -11027,6 +11138,52 @@
          */
         function get_site() {
             return $this->_site;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        function store_site( $site ) {
+            $this->_site = $site;
+            $this->_store_site( true );
+        }
+
+        /**
+         * Deletes the current install with an option to back it up in case restoration will be needed (e.g., if the automatic clone resolution attempt fails).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        function delete_current_install( $back_up ) {
+            // Back up and delete the unique ID.
+            if ( $back_up ) {
+                self::$_accounts->set_option( 'prev_unique_id', $this->get_anonymous_id() );
+            }
+
+            self::$_accounts->set_option( 'unique_id', null );
+
+            if ( $back_up ) {
+                // Back up the install before deleting it so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
+                $this->back_up_site();
+            }
+
+            $this->_delete_site();
+            $this->_site = null;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        function restore_backup_site() {
+            self::$_accounts->set_option(
+                'unique_id',
+                self::$_accounts->get_option( 'prev_unique_id' )
+            );
+
+            $sites = self::get_all_sites( $this->_module_type, null, true );
+            $this->store_site( clone $sites[ $this->_slug ] );
         }
 
         /**
@@ -13116,7 +13273,7 @@
          * Displays an email address update dialog box when the user clicks on the email address "Edit" button on the "Account" page.
          *
          * @author Leo Fajardo (@leorw)
-         * @since  2.4.3
+         * @since  2.5.0
          */
         function _add_email_address_update_dialog_box() {
             $vars = array( 'id' => $this->_module_id );
@@ -13126,7 +13283,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _add_email_address_update_option() {
             if ( ! $this->should_handle_user_change() ) {
@@ -13139,7 +13296,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.4.3
+         * @since 2.5.0
          */
         function _email_address_update_ajax_handler() {
             $this->check_ajax_referer( 'update_email_address' );
@@ -13568,7 +13725,7 @@
                 self::shoot_ajax_failure();
             }
 
-            $site = $this->get_api_site_scope()->call(
+            $site = $this->api_site_call(
                 '',
                 'put',
                 array(
@@ -15159,6 +15316,16 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.0
+         *
+         * @return bool
+         */
+        static function is_admin_post() {
+            return ( 'admin-post.php' === self::get_current_page() );
+        }
+
+        /**
          * Check if a real user is visiting the admin dashboard.
          *
          * @author Vova Feldman (@svovaf)
@@ -15171,7 +15338,7 @@
                 is_admin() &&
                 ! self::is_ajax() &&
                 ! self::is_cron() &&
-                ( 'admin-post.php' !== self::get_current_page() )
+                ! self::is_admin_post()
             );
         }
 
@@ -16040,6 +16207,10 @@
                 }
             }
 
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             if ( $this->is_sync_cron_scheduled() &&
                  $context_blog_id == $this->get_sync_cron_blog_id()
             ) {
@@ -16072,6 +16243,10 @@
             }
 
             $this->update_multisite_data_after_site_deactivation( $context_blog_id );
+
+            if ( ! $this->is_registered() ) {
+                return;
+            }
 
             $current_blog_id = get_current_blog_id();
 
@@ -16106,6 +16281,10 @@
 
             $this->update_multisite_data_after_site_deactivation( $context_blog_id );
 
+            if ( ! $this->is_registered() ) {
+                return;
+            }
+
             $current_blog_id = get_current_blog_id();
 
             $this->switch_to_blog( $context_blog_id );
@@ -16127,7 +16306,7 @@
          * Executed after site deletion, called from wp_delete_site
          *
          * @author Dario Curvino (@dudo)
-         * @since  2.4.3
+         * @since  2.5.0
          *
          * @param WP_Site $old_site
          */
@@ -16628,20 +16807,6 @@
             ) {
                 // Load site.
                 $this->_site = $site;
-
-                // Load plans.
-                $this->_plans = $plans[ $this->_slug ];
-                if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
-                    $this->_sync_plans();
-                } else {
-                    for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
-                        if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
-                            $this->_plans[ $i ] = self::decrypt_entity( $this->_plans[ $i ] );
-                        } else {
-                            unset( $this->_plans[ $i ] );
-                        }
-                    }
-                }
             }
 
             $user = null;
@@ -16670,7 +16835,30 @@
                     /**
                      * This is a special fault tolerance mechanism to handle a scenario that the user data is missing.
                      */
-                    $user = $this->sync_user_by_current_install();
+                    if (
+                        ! isset( $this->_storage->user_recovery_from_install_last_attempt_timestamp ) ||
+                        time() > ( $this->_storage->user_recovery_from_install_last_attempt_timestamp + FS_Clone_Manager::CLONE_RESOLUTION_MAX_EXECUTION_TIME )
+                    ) {
+                        $user = $this->sync_user_by_current_install();
+                    } else {
+                        return;
+                    }
+
+                    if ( is_object( $user ) ) {
+                        $this->_storage->user_was_recovered_from_install = true;
+                    } else {
+                        $this->_storage->user_recovery_from_install_attempts = isset( $this->_storage->user_recovery_from_install_attempts ) ?
+                            ( $this->_storage->user_recovery_from_install_attempts + 1 ) :
+                            1;
+
+                        if ( $this->_storage->user_recovery_from_install_attempts >= 3 ) {
+                            $this->delete_current_install( false );
+                        } else {
+                            $this->_storage->user_recovery_from_install_last_attempt_timestamp = time();
+
+                            return;
+                        }
+                    }
                 }
 
                 $this->_user = ( $user instanceof FS_User ) ?
@@ -16684,6 +16872,20 @@
             }
 
             if ( is_object( $this->_site ) ) {
+                // Load plans.
+                $this->_plans = $plans[ $this->_slug ];
+                if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
+                    $this->_sync_plans();
+                } else {
+                    for ( $i = 0, $len = count( $this->_plans ); $i < $len; $i ++ ) {
+                        if ( $this->_plans[ $i ] instanceof FS_Plugin_Plan ) {
+                            $this->_plans[ $i ] = self::decrypt_entity( $this->_plans[ $i ] );
+                        } else {
+                            unset( $this->_plans[ $i ] );
+                        }
+                    }
+                }
+
                 $this->_license = $this->_get_license_by_id( $this->_site->license_id );
 
                 if ( $this->_site->version != $this->get_plugin_version() ) {
@@ -16701,6 +16903,13 @@
 
             if ( $this->is_theme() ) {
                 $this->_register_account_hooks();
+            }
+
+            if (
+                $this->is_clone() &&
+                empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
+            ) {
+                FS_Clone_Manager::instance()->store_clone_identification_timestamp();
             }
         }
 
@@ -16938,6 +17147,7 @@
          * @param bool        $is_disconnected      Whether or not to opt in without tracking.
          * @param null|bool   $is_marketing_allowed
          * @param array       $sites                If network-level opt-in, an array of containing details of sites.
+         * @param bool        $redirect
          *
          * @return string|object
          * @use    WP_Error
@@ -16951,7 +17161,8 @@
             $trial_plan_id = false,
             $is_disconnected = false,
             $is_marketing_allowed = null,
-            $sites = array()
+            $sites = array(),
+            $redirect = true
         ) {
             $this->_logger->entrance();
 
@@ -16975,7 +17186,7 @@
                             $fs_user,
                             false,
                             $trial_plan_id,
-                            true,
+                            $redirect,
                             true,
                             $sites
                         );
@@ -17512,7 +17723,7 @@
             $site->secret_key = $install_secret_key;
 
             $this->_site = $site;
-            $site_result = $this->get_api_site_scope()->get();
+            $site_result = $this->get_api_site_scope( true )->get();
             $site        = new FS_Site( $site_result );
             $this->_site = $site;
 
@@ -17738,7 +17949,7 @@
          *
          * @return object|string If redirect is `false`, returns the next page the user should be redirected to, or the API error object if failed to install.
          */
-        private function install_with_current_user(
+        function install_with_current_user(
             $license_key = false,
             $trial_plan_id = false,
             $sites = array(),
@@ -18236,6 +18447,10 @@
 //				return;
 //			}
 
+            if ( is_object( $this->_site ) && ! $this->is_registered() ) {
+                return;
+            }
+            
             /**
              * When running from a site admin with a network activated module and the connection
              * was NOT delegated and the user still haven't skipped or opted-in, then hide the
@@ -19190,7 +19405,7 @@
          *
          * @return string
          */
-        private static function get_ajax_action_static( $tag, $module_id = null ) {
+        static function get_ajax_action_static( $tag, $module_id = null ) {
             $action = "fs_{$tag}";
 
             if ( ! empty( $module_id ) ) {
@@ -19444,7 +19659,7 @@
          * @param null|int $network_level_or_blog_id Since 2.0.0
          * @param \FS_Site $site                     Since 2.0.0
          */
-        private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null ) {
+        private function _store_site( $store = true, $network_level_or_blog_id = null, FS_Site $site = null, $is_backup = false ) {
             $this->_logger->entrance();
 
             if ( is_null( $site ) ) {
@@ -19459,9 +19674,12 @@
 
             $site_clone = clone $site;
 
-            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id );
+            $sites = self::get_all_sites( $this->_module_type, $network_level_or_blog_id, $is_backup );
 
-            if ( is_object( $this->_user ) && $this->_user->id != $site->user_id ) {
+            if (
+                ! $is_backup &&
+                is_object( $this->_user ) && $this->_user->id != $site->user_id
+            ) {
                 $this->sync_user_by_current_install( $site->user_id );
 
                 $prev_stored_user_id = $this->_storage->get( 'prev_user_id', false, $network_level_or_blog_id );
@@ -19486,7 +19704,26 @@
 
             $sites[ $this->_slug ] = $site_clone;
 
-            $this->set_account_option( 'sites', $sites, $store, $network_level_or_blog_id );
+            $this->set_account_option(
+                ( $is_backup ? 'prev_' : '' ) . 'sites',
+                $sites,
+                $store,
+                $network_level_or_blog_id
+            );
+        }
+
+        /**
+         * Store the context site in the sites backup storage. This logic is used before deleting the site info so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        private function back_up_site() {
+            $this->_logger->entrance();
+
+            $site_clone = clone $this->_site;
+
+            $this->_store_site( true, null, $site_clone, true );
         }
 
         /**
@@ -21707,6 +21944,10 @@
         ) {
             $this->_logger->entrance();
 
+            if ( $this->is_unresolved_clone() ) {
+                return false;
+            }
+
             $switch_to_blog_id = null;
 
             /**
@@ -23147,7 +23388,7 @@
          *
          * @return FS_Api
          */
-        private function get_api_user_scope( $flush = false ) {
+        function get_api_user_scope( $flush = false ) {
             if ( ! isset( $this->_user_api ) || $flush ) {
                 $this->_user_api = $this->get_api_user_scope_by_user( $this->_user );
             }
@@ -23226,11 +23467,54 @@
                     $this->_site->public_key,
                     ! $this->is_live(),
                     $this->_site->secret_key,
-                    $this->get_sdk_version()
+                    $this->get_sdk_version(),
+                    get_site_url()
                 );
             }
 
             return $this->_site_api;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param string $path
+         * @param string $method
+         * @param array  $params
+         * @param bool   $flush_instance
+         *
+         * @return array|mixed|string|void
+         * @throws Freemius_Exception
+         */
+        private function api_site_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
+            $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
+
+        /**
+         * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+            if (
+                $this->is_registered() &&
+                FS_Api::is_api_result_entity( $result ) &&
+                isset( $result->url )
+            ) {
+            $stored_local_url  = trailingslashit( $this->_site->url );
+                $stored_remote_url = trailingslashit( $result->url );
+
+            if ( $stored_local_url !== $stored_remote_url ) {
+                    $this->_site->url = $result->url;
+                $this->_store_site();
+            }
+
+            if ( fs_strip_url_protocol( $stored_remote_url ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) ) ) {
+                    FS_Clone_Manager::instance()->maybe_run_clone_resolution();
+            }
+        }
+
+            return $result;
         }
 
         private $_plugin_api;
