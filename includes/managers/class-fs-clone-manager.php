@@ -728,6 +728,7 @@
             fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
             $this->add_temporary_duplicate_sticky_notice(
+                $product_ids,
                 $this->get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $product_titles, $module_label ),
                 $admin_notice_module_title
             );
@@ -1170,10 +1171,12 @@
         /**
          * Adds a temporary duplicate notice that provides the logged-in WordPress user with an option to activate a license for the site.
          *
+         * @param number[]    $product_ids
+         * @param string      $message
          * @param string      $message
          * @param string|null $plugin_title
          */
-        function add_temporary_duplicate_sticky_notice( $message, $plugin_title = null ) {
+        function add_temporary_duplicate_sticky_notice( $product_ids, $message, $plugin_title = null ) {
             $this->_logger->entrance();
 
             $this->_notices->add_sticky(
@@ -1184,7 +1187,12 @@
                 true,
                 null,
                 $plugin_title,
-                true
+                true,
+                true,
+                array(
+                    'product_ids' => $product_ids,
+                    'blog_id'     => get_current_blog_id()
+                )
             );
 
             $this->temporary_duplicate_notice_shown_timestamp = time();
