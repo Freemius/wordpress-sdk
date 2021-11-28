@@ -16873,7 +16873,10 @@
 
             if ( is_object( $this->_site ) ) {
                 // Load plans.
-                $this->_plans = $plans[ $this->_slug ];
+                $this->_plans = isset( $plans[ $this->_slug ] ) ?
+                    $plans[ $this->_slug ] :
+                    array();
+
                 if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
                     $this->_sync_plans();
                 } else {
