@@ -322,7 +322,7 @@
         }
 
         /**
-         * Try to find a different install of the context product that is associated with the current URL and load it.
+         * Tries to find a different install of the context product that is associated with the current URL and loads it.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
@@ -332,7 +332,7 @@
          *
          * @return object
          */
-        private function find_other_install_with_by_url( Freemius $instance, $url ) {
+        private function find_other_install_by_url( Freemius $instance, $url ) {
             $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $url ) . "&all=true", true );
 
             $current_install = $instance->get_site();
@@ -415,7 +415,7 @@
          */
         private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
             // Try to find a different install of the context product that is associated with the current URL.
-            $associated_install = $this->find_other_install_with_by_url( $instance, $current_url );
+            $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
             if ( is_object( $associated_install ) ) {
                 // Replace the current install with a different install that is associated with the current URL.
@@ -451,7 +451,7 @@
         }
 
         /**
-         * Try to resolve all clones automatically.
+         * Tries to resolve all clones automatically.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
