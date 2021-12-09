@@ -8925,6 +8925,8 @@
         public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
+            $site = null;
+
             if ( $this->is_premium() &&
                  $this->is_network_connected() &&
                  is_object( $this->_license ) &&
@@ -8949,6 +8951,8 @@
                 );
 
                 if ( is_object( $this->_site ) ) {
+                    $site = $this->_site;
+
                     if ( $this->_site->license_id == $license->id ) {
                         /**
                          * If the license was activated successfully, sync the license data from the remote server.
@@ -8993,6 +8997,10 @@
                     false
                 );
 
+                if ( is_object( $this->_site ) ) {
+                    $site = $this->_site;
+                }
+
                 $this->switch_to_blog( $current_blog_id );
             } else {
                 /**
@@ -9017,6 +9025,27 @@
                 } else {
                     $this->skip_site_connection( $blog_id );
                 }
+            }
+
+            if ( is_object( $site ) ) {
+                /**
+                 * If a new install has been created, store its ID in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.5.0
+                 */
+                $new_blog_install_map = $this->_storage->new_blog_install_map;
+
+                if (
+                    empty( $new_blog_install_map ) ||
+                    ! is_array( $new_blog_install_map )
+                ) {
+                    $new_blog_install_map = array();
+                }
+
+                $new_blog_install_map[ $blog_id ] = $site->id;
+
+                $this->_storage->new_blog_install_map = $new_blog_install_map;
             }
         }
 

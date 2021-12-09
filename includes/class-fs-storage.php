@@ -348,6 +348,7 @@
                 'is_on'                        => 0,
                 'is_plugin_new_install'        => 0,
                 'network_install_blog_id'      => 0,
+                'new_blog_install_map'         => 0,
                 'pending_sites_info'           => 0,
                 'plugin_last_version'          => 0,
                 'plugin_main_file'             => 0,
