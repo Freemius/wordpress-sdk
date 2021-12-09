@@ -3613,6 +3613,84 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
+         */
+        private function maybe_resolve_new_subsite_install_automatically() {
+            if ( ! is_multisite() ) {
+                return;
+            }
+
+            $new_blog_install_map = $this->_storage->new_blog_install_map;
+
+            if ( empty( $new_blog_install_map ) || ! is_array( $new_blog_install_map ) ) {
+                return;
+            }
+
+            $is_network_admin    = fs_is_network_admin();
+            $blog_id             = null;
+            $expected_install_id = null;
+
+            if ( $is_network_admin && $this->is_network_active() ) {
+                $blog_ids            = array_keys( $new_blog_install_map );
+                $blog_id             = reset( $blog_ids );
+                $expected_install_id = $new_blog_install_map[ $blog_id ];
+            } else if ( ! $is_network_admin ) {
+                $blog_id = get_current_blog_id();
+
+                if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
+                    return;
+                }
+
+                $expected_install_id = $new_blog_install_map[ $blog_id ];
+            }
+
+            if ( is_null( $blog_id ) ) {
+                return;
+            }
+
+            $current_install    = $this->get_install_by_blog_id( $blog_id );
+            $current_install_id = is_object( $current_install ) ?
+                $current_install->id :
+                null;
+
+            if ( $expected_install_id == $current_install_id ) {
+                return;
+            }
+
+            $current_url          = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $current_install_url  = is_object( $current_install ) ?
+                fs_strip_url_protocol( trailingslashit( $current_install->url ) ) :
+                null;
+
+            $is_clone = ( ! is_null( $current_install_url ) && $current_url !== $current_install_url );
+
+            $this->switch_to_blog( $blog_id );
+
+            if ( ! FS_Site::is_valid_id( $expected_install_id ) ) {
+                $expected_install = null;
+            } else {
+                $expected_install = $this->get_current_or_network_user_api_scope()->get( "/installs/{$expected_install_id}.json" );
+            }
+
+            if ( FS_Api::is_api_result_entity( $expected_install ) ) {
+                // Replace the current install with a different install that is associated with the current URL.
+                $this->store_site( new FS_Site( clone $expected_install ) );
+                $this->sync_install( array( 'is_new_site' => true ), true );
+            } else if ( ! $is_clone ) {
+                $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+                FS_Clone_Manager::instance()->try_resolve_clone_automatically( $this, $current_url, $is_localhost );
+            }
+
+            $this->restore_current_blog();
+
+            unset( $new_blog_install_map[ $blog_id ] );
+
+            $this->_storage->new_blog_install_map = $new_blog_install_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
          *
          * @return bool
          */
@@ -16899,6 +16977,8 @@
             if ( is_object( $this->_user ) ) {
                 // Load licenses.
                 $this->_licenses = $this->get_user_licenses( $this->_user->id );
+
+                $this->maybe_resolve_new_subsite_install_automatically();
             }
 
             if ( is_object( $this->_site ) ) {

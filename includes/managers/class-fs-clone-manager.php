@@ -413,7 +413,7 @@
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
+        function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
             // Try to find a different install of the context product that is associated with the current URL.
             $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
