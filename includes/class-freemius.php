@@ -1647,7 +1647,7 @@
                     if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
                         add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
                     } else {
-                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
+                        add_action( 'wp_initialize_site', array( $this, '_after_wp_insert_site_callback' ), 11, 2 );
                     }
                 }
 
@@ -9025,8 +9025,9 @@
          * @since  2.5.0
          *
          * @param \WP_Site $new_site
+         * @param array    $args
          */
-        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+        public function _after_wp_insert_site_callback( WP_Site $new_site, $args ) {
             $this->_logger->entrance();
 
             $this->_after_new_blog_callback(
