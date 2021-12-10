@@ -316,3 +316,63 @@ label.fs-tag
         width: 100%;
     }
 }
+
+// Fixes for issue 453.
+// Just a patch, ideally need to tweak the markup a bit to make it more
+// maintainable.
+@media screen and (max-width: 639px) {
+    #fs_account {
+        // Make the [Deactivate License ; Change Plan] action row come in next line.
+        .fs-header-actions {
+            position: static;
+            padding: 0 15px 12px 15px;
+            margin: 0 0 12px 0;
+
+            li {
+                float: none;
+                display: inline-block;
+            }
+        }
+
+        // Optimize the table view by making it appear as blocked instead of "table".
+        #fs_account_details {
+            display: block;
+
+            tbody, tr, td, th {
+                display: block;
+            }
+
+            tr {
+                td {
+                    &:first-child {
+                        text-align: left;
+                    }
+
+                    &:nth-child(2) {
+                        padding: 0 12px;
+                        code {
+                            margin: 0;
+                            padding: 0;
+                        }
+
+                        label {
+                            margin-left: 0;
+                        }
+                    }
+
+                    &:nth-child(3) {
+                        text-align: left;
+                    }
+                }
+
+                &.fs-field-plan {
+                    // Discard the float of the button group so that they appear on the next line.
+                    td:nth-child(2) .button-group {
+                        float: none;
+                        margin: 12px 0;
+                    }
+                }
+            }
+        }
+    }
+}
