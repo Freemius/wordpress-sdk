@@ -1643,12 +1643,10 @@
             }
 
             if ( $this->is_plugin() ) {
-                if ( $this->_is_network_active ) {
-                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
-                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
-                    } else {
-                        add_action( 'wp_initialize_site', array( $this, '_after_wp_insert_site_callback' ), 11, 2 );
-                    }
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                } else {
+                    add_action( 'wp_initialize_site', array( $this, '_after_wp_insert_site_callback' ), 11, 2 );
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -3633,7 +3631,7 @@
             $blog_id             = null;
             $expected_install_id = null;
 
-            if ( $is_network_admin && $this->is_network_active() ) {
+            if ( $is_network_admin && $this->_is_network_active ) {
                 $blog_ids            = array_keys( $new_blog_install_map );
                 $blog_id             = reset( $blog_ids );
                 $expected_install_id = $new_blog_install_map[ $blog_id ];
@@ -5235,6 +5233,8 @@
             }
 
             if ( $this->is_registered() ) {
+                $this->maybe_resolve_new_subsite_install_automatically();
+
                 $this->hook_callback_to_install_sync();
             }
 
@@ -9007,7 +9007,10 @@
         public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
-            $site = null;
+            if ( ! $this->_is_network_active ) {
+                $this->store_new_blog_install_id( $blog_id, '' );
+                return;
+            }
 
             if ( $this->is_premium() &&
                  $this->is_network_connected() &&
@@ -9045,87 +9048,99 @@
                 }
 
                 $this->switch_to_blog( $current_blog_id );
-            }
 
-            if ( ! is_object( $site ) ) {
-                if ( $this->is_network_anonymous() ) {
-                    /**
-                     * Opt-in was network skipped so automatically skip the opt-in for the new site.
-                     */
-                    $this->skip_site_connection( $blog_id );
-                } else if ( $this->is_network_delegated_connection() ) {
-                    /**
-                     * Opt-in was network delegated so automatically delegate the opt-in for the new site's admin.
-                     */
-                    $this->delegate_site_connection( $blog_id );
-                } else if ( $this->is_network_connected() ) {
-                    /**
-                     * Opt-in was network activated so automatically opt-in with the network user and new site admin.
-                     */
-                    $current_blog_id = get_current_blog_id();
+                if ( is_object( $this->_site ) ) {
+                    $this->store_new_blog_install_id( $blog_id, $site->id );
 
-                    $this->switch_to_blog( $blog_id );
-
-                    // Opt-in with network user.
-                    $this->install_with_user(
-                        $this->get_network_user(),
-                        false,
-                        false,
-                        false,
-                        false
-                    );
-
-                    if ( is_object( $this->_site ) ) {
-                        $site = $this->_site;
-                    }
-
-                    $this->switch_to_blog( $current_blog_id );
-                } else {
-                    /**
-                     * If the super-admin mixed different options (connect, skip, delegated):
-                     *  a) If at least one site connection was delegated, then automatically delegate connection.
-                     *  b) Otherwise, it means that at least one site was skipped and at least one site was connected. For a simplified UX in the initial release of the multisite network integration, skip the connection for the newly created site. If the super-admin will want to opt-in they can still do that from the network level Account page.
-                     */
-                    $has_delegated_site = false;
-
-                    $sites = self::get_sites();
-                    foreach ( $sites as $site ) {
-                        $blog_id = self::get_site_blog_id( $site );
-
-                        if ( $this->is_site_delegated_connection( $blog_id ) ) {
-                            $has_delegated_site = true;
-                            break;
-                        }
-                    }
-
-                    if ( $has_delegated_site ) {
-                        $this->delegate_site_connection( $blog_id );
-                    } else {
-                        $this->skip_site_connection( $blog_id );
-                    }
+                    // Already connected (with or without a license), so no need to continue.
+                    return;
                 }
             }
 
-            if ( is_object( $site ) ) {
+            if ( $this->is_network_anonymous() ) {
                 /**
-                 * If a new install has been created, store its ID in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.5.0
+                 * Opt-in was network skipped so automatically skip the opt-in for the new site.
                  */
-                $new_blog_install_map = $this->_storage->new_blog_install_map;
+                $this->skip_site_connection( $blog_id );
+            } else if ( $this->is_network_delegated_connection() ) {
+                /**
+                 * Opt-in was network delegated so automatically delegate the opt-in for the new site's admin.
+                 */
+                $this->delegate_site_connection( $blog_id );
+            } else if ( $this->is_network_connected() ) {
+                /**
+                 * Opt-in was network activated so automatically opt-in with the network user and new site admin.
+                 */
+                $current_blog_id = get_current_blog_id();
 
-                if (
-                    empty( $new_blog_install_map ) ||
-                    ! is_array( $new_blog_install_map )
-                ) {
-                    $new_blog_install_map = array();
+                $this->switch_to_blog( $blog_id );
+
+                // Opt-in with network user.
+                $this->install_with_user(
+                    $this->get_network_user(),
+                    false,
+                    false,
+                    false,
+                    false
+                );
+
+                if ( is_object( $this->_site ) ) {
+                    $this->store_new_blog_install_id( $blog_id, $site->id );
                 }
 
-                $new_blog_install_map[ $blog_id ] = $site->id;
+                $this->switch_to_blog( $current_blog_id );
+            } else {
+                /**
+                 * If the super-admin mixed different options (connect, skip, delegated):
+                 *  a) If at least one site connection was delegated, then automatically delegate connection.
+                 *  b) Otherwise, it means that at least one site was skipped and at least one site was connected. For a simplified UX in the initial release of the multisite network integration, skip the connection for the newly created site. If the super-admin will want to opt-in they can still do that from the network level Account page.
+                 */
+                $has_delegated_site = false;
 
-                $this->_storage->new_blog_install_map = $new_blog_install_map;
+                $sites = self::get_sites();
+                foreach ( $sites as $site ) {
+                    $blog_id = self::get_site_blog_id( $site );
+
+                    if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                        $has_delegated_site = true;
+                        break;
+                    }
+                }
+
+                if ( $has_delegated_site ) {
+                    $this->delegate_site_connection( $blog_id );
+                } else {
+                    $this->skip_site_connection( $blog_id );
+                }
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int           $blog_id
+         * @param number|string $install_id
+         */
+        private function store_new_blog_install_id( $blog_id, $install_id ) {
+            /**
+             * If a new install has been created, store its ID in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.5.0
+             */
+            $new_blog_install_map = $this->_storage->new_blog_install_map;
+
+            if (
+                empty( $new_blog_install_map ) ||
+                ! is_array( $new_blog_install_map )
+            ) {
+                $new_blog_install_map = array();
+            }
+
+            $new_blog_install_map[ $blog_id ] = $install_id;
+
+            $this->_storage->new_blog_install_map = $new_blog_install_map;
         }
 
         /**
@@ -16978,8 +16993,6 @@
             if ( is_object( $this->_user ) ) {
                 // Load licenses.
                 $this->_licenses = $this->get_user_licenses( $this->_user->id );
-
-                $this->maybe_resolve_new_subsite_install_automatically();
             }
 
             if ( is_object( $this->_site ) ) {
