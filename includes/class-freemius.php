@@ -1646,7 +1646,7 @@
                 if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
                     add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
                 } else {
-                    add_action( 'wp_initialize_site', array( $this, '_after_wp_insert_site_callback' ), 11, 2 );
+                    add_action( 'wp_initialize_site', array( $this, '_after_wp_initialize_site_callback' ), 11, 2 );
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -9036,8 +9036,6 @@
                 );
 
                 if ( is_object( $this->_site ) ) {
-                    $site = $this->_site;
-
                     if ( $this->_site->license_id == $license->id ) {
                         /**
                          * If the license was activated successfully, sync the license data from the remote server.
@@ -9050,7 +9048,7 @@
                 $this->switch_to_blog( $current_blog_id );
 
                 if ( is_object( $this->_site ) ) {
-                    $this->store_new_blog_install_id( $blog_id, $site->id );
+                    $this->store_new_blog_install_id( $blog_id, $this->_site->id );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9085,7 +9083,7 @@
                 );
 
                 if ( is_object( $this->_site ) ) {
-                    $this->store_new_blog_install_id( $blog_id, $site->id );
+                    $this->store_new_blog_install_id( $blog_id, $this->_site->id );
                 }
 
                 $this->switch_to_blog( $current_blog_id );
@@ -9150,7 +9148,7 @@
          * @param \WP_Site $new_site
          * @param array    $args
          */
-        public function _after_wp_insert_site_callback( WP_Site $new_site, $args ) {
+        public function _after_wp_initialize_site_callback( WP_Site $new_site, $args ) {
             $this->_logger->entrance();
 
             $this->_after_new_blog_callback(
