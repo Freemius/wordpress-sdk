@@ -3632,26 +3632,21 @@
 
             $is_network_admin = fs_is_network_admin();
 
-            if ( $is_network_admin ) {
-                // If in network admin, handle only the first site.
-                $blog_ids            = array_keys( $new_blog_install_map );
-                $blog_id             = reset( $blog_ids );
-                $expected_install_id = $new_blog_install_map[ $blog_id ];
-            } else {
+            if ( ! $is_network_admin ) {
                 // If not in network admin, handle the current site.
                 $blog_id = get_current_blog_id();
-
-                if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
-                    return;
-                }
-
-                $expected_install_id = $new_blog_install_map[ $blog_id ];
+            } else {
+                // If in network admin, handle only the first site.
+                $blog_ids = array_keys( $new_blog_install_map );
+                $blog_id  = reset( $blog_ids );
             }
 
-            if ( is_null( $blog_id ) ) {
+            if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
                 // There's no site to handle.
                 return;
             }
+
+            $expected_install_id = $new_blog_install_map[ $blog_id ]['install_id'];
 
             $current_install    = $this->get_install_by_blog_id( $blog_id );
             $current_install_id = is_object( $current_install ) ?
@@ -3659,6 +3654,9 @@
                 null;
 
             if ( $expected_install_id == $current_install_id ) {
+                // Remove the current site's information from the map to prevent handling it again.
+                $this->remove_new_blog_install_info_from_storage( $blog_id );
+
                 return;
             }
 
@@ -3669,6 +3667,7 @@
                 fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
                 null;
 
+            // This can be `false` even if the install is a clone as the URL can be updated as part of the cloning process.
             $is_clone = ( ! is_null( $current_install_url ) && $current_url !== $current_install_url );
 
             if ( ! FS_Site::is_valid_id( $expected_install_id ) ) {
@@ -3681,18 +3680,26 @@
                 // Replace the current install with the expected install.
                 $this->store_site( new FS_Site( clone $expected_install ) );
                 $this->sync_install( array( 'is_new_site' => true ), true );
-            } else if ( $is_clone ) {
-                // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
-                $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+            } else {
+                $is_clone_of_network_subsite = null;
 
-                FS_Clone_Manager::instance()->try_resolve_clone_automatically( $this, $current_url, $is_localhost );
+                if ( ! $is_clone ) {
+                    // It is possible that `$is_clone` is `false` but the install is actually a clone as the following call checks the install ID and not the URL.
+                    $is_clone_of_network_subsite = FS_Clone_Manager::instance()->is_clone_of_network_subsite( $this );
+                }
+
+                if ( $is_clone || $is_clone_of_network_subsite ) {
+                    // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
+                    $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+                    FS_Clone_Manager::instance()->try_resolve_clone_automatically( $this, $current_url, $is_localhost, $is_clone_of_network_subsite );
+                }
             }
 
             $this->restore_current_blog();
 
-            // Remove the current site's ID from the map to prevent handling it again.
-            unset( $new_blog_install_map[ $blog_id ] );
-            $this->_storage->new_blog_install_map = $new_blog_install_map;
+            // Remove the current site's information from the map to prevent handling it again.
+            $this->remove_new_blog_install_info_from_storage( $blog_id );
         }
 
         /**
@@ -9013,9 +9020,12 @@
             $this->_logger->entrance();
 
             if ( ! $this->_is_network_active ) {
-                $this->store_new_blog_install_id( $blog_id, '' );
+                $this->store_new_blog_install_info( $blog_id );
                 return;
             }
+
+            $site        = null;
+            $new_blog_id = $blog_id;
 
             if ( $this->is_premium() &&
                  $this->is_network_connected() &&
@@ -9050,10 +9060,12 @@
                     }
                 }
 
+                $site = $this->_site;
+
                 $this->switch_to_blog( $current_blog_id );
 
-                if ( is_object( $this->_site ) ) {
-                    $this->store_new_blog_install_id( $blog_id, $this->_site->id );
+                if ( is_object( $site ) ) {
+                    $this->store_new_blog_install_info( $blog_id, $site );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9087,9 +9099,7 @@
                     false
                 );
 
-                if ( is_object( $this->_site ) ) {
-                    $this->store_new_blog_install_id( $blog_id, $this->_site->id );
-                }
+                $site = $this->_site;
 
                 $this->switch_to_blog( $current_blog_id );
             } else {
@@ -9101,8 +9111,8 @@
                 $has_delegated_site = false;
 
                 $sites = self::get_sites();
-                foreach ( $sites as $site ) {
-                    $blog_id = self::get_site_blog_id( $site );
+                foreach ( $sites as $wp_site ) {
+                    $blog_id = self::get_site_blog_id( $wp_site );
 
                     if ( $this->is_site_delegated_connection( $blog_id ) ) {
                         $has_delegated_site = true;
@@ -9116,22 +9126,26 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
-        }
 
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         *
-         * @param int           $blog_id
-         * @param number|string $install_id
-         */
-        private function store_new_blog_install_id( $blog_id, $install_id ) {
             /**
-             * If a new install has been created, store its ID in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+             * Store the new blog's information even if there's no install so that when a clone install is stored in the new blog's storage, we can try to resolve it automatically.
              *
              * @author Leo Fajardo (@leorw)
              * @since 2.5.0
              */
+            $this->store_new_blog_install_info( $new_blog_id, $site );
+        }
+
+        /**
+         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int     $blog_id
+         * @param FS_Site $site
+         */
+        private function store_new_blog_install_info( $blog_id, $site = null ) {
             $new_blog_install_map = $this->_storage->new_blog_install_map;
 
             if (
@@ -9141,8 +9155,27 @@
                 $new_blog_install_map = array();
             }
 
-            $new_blog_install_map[ $blog_id ] = $install_id;
+            $install_id = null;
 
+            if ( is_object( $site ) ) {
+                $install_id = $site->id;
+            }
+
+            $new_blog_install_map[ $blog_id ] = array( 'install_id' => $install_id );
+
+            $this->_storage->new_blog_install_map = $new_blog_install_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int $blog_id
+         */
+        private function remove_new_blog_install_info_from_storage($blog_id ) {
+            $new_blog_install_map = $this->_storage->new_blog_install_map;
+
+            unset( $new_blog_install_map[ $blog_id ] );
             $this->_storage->new_blog_install_map = $new_blog_install_map;
         }
 

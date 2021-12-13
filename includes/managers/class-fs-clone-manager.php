@@ -283,7 +283,7 @@
          *
          * @author Vova Feldman (@svovaf)
          */
-        private function is_clone_of_network_subsite( Freemius $instance ) {
+        function is_clone_of_network_subsite( Freemius $instance ) {
             if ( ! is_multisite() ) {
                 // Not a multi-site network.
                 return false;
@@ -407,13 +407,14 @@
         /**
          * Try to resolve the clone situation automatically.
          *
-         * @param Freemius $instance
-         * @param string   $current_url
-         * @param bool     $is_localhost
+         * @param Freemius  $instance
+         * @param string    $current_url
+         * @param bool      $is_localhost
+         * @param bool|null $is_clone_of_network_subsite
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
+        function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
             // Try to find a different install of the context product that is associated with the current URL.
             $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
@@ -438,8 +439,12 @@
                 return false;
             }
 
+            $is_clone_of_network_subsite = ( ! is_null( $is_clone_of_network_subsite ) ) ?
+                $is_clone_of_network_subsite :
+                $this->is_clone_of_network_subsite( $instance );
+
             if (
-                $this->is_clone_of_network_subsite( $instance ) ||
+                $is_clone_of_network_subsite ||
                 WP_FS__IS_LOCALHOST_FOR_SERVER ||
                 $is_localhost
             ) {
