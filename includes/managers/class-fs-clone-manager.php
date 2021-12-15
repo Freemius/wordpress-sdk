@@ -283,7 +283,7 @@
          *
          * @author Vova Feldman (@svovaf)
          */
-        function is_clone_of_network_subsite( Freemius $instance ) {
+        private function is_clone_of_network_subsite( Freemius $instance ) {
             if ( ! is_multisite() ) {
                 // Not a multi-site network.
                 return false;
@@ -414,7 +414,7 @@
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
+        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
             // Try to find a different install of the context product that is associated with the current URL.
             $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
@@ -453,6 +453,102 @@
             }
 
             return false;
+        }
+
+        /**
+         * Tries to recover the install of a newly created subsite or resolve it if it's a clone.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param Freemius $instance
+         */
+        function maybe_resolve_new_subsite_install_automatically( Freemius $instance ) {
+            if ( ! $instance->is_user_in_admin() ) {
+                // Try to recover an install or resolve a clone only when there's a user in admin to prevent doing it prematurely (e.g., the install can get replaced with clone data again).
+                return;
+            }
+
+            if ( ! is_multisite() ) {
+                return;
+            }
+
+            $new_blog_install_map = $instance->get_new_blog_install_map();
+
+            if ( empty( $new_blog_install_map ) || ! is_array( $new_blog_install_map ) ) {
+                return;
+            }
+
+            $is_network_admin = fs_is_network_admin();
+
+            if ( ! $is_network_admin ) {
+                // If not in network admin, handle the current site.
+                $blog_id = get_current_blog_id();
+            } else {
+                // If in network admin, handle only the first site.
+                $blog_ids = array_keys( $new_blog_install_map );
+                $blog_id  = $blog_ids[0];
+            }
+
+            if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
+                // There's no site to handle.
+                return;
+            }
+
+            $expected_install_id = $new_blog_install_map[ $blog_id ]['install_id'];
+
+            $current_install    = $instance->get_install_by_blog_id( $blog_id );
+            $current_install_id = is_object( $current_install ) ?
+                $current_install->id :
+                null;
+
+            if ( $expected_install_id == $current_install_id ) {
+                // Remove the current site's information from the map to prevent handling it again.
+                $instance->remove_new_blog_install_info_from_storage( $blog_id );
+
+                return;
+            }
+
+            $instance->switch_to_blog( $blog_id );
+
+            $current_url          = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $current_install_url  = is_object( $current_install ) ?
+                fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
+                null;
+
+            // This can be `false` even if the install is a clone as the URL can be updated as part of the cloning process.
+            $is_clone = ( ! is_null( $current_install_url ) && $current_url !== $current_install_url );
+
+            if ( ! FS_Site::is_valid_id( $expected_install_id ) ) {
+                $expected_install = null;
+            } else {
+                $expected_install = $instance->fetch_install_by_id( $expected_install_id );
+            }
+
+            if ( FS_Api::is_api_result_entity( $expected_install ) ) {
+                // Replace the current install with the expected install.
+                $instance->store_site( new FS_Site( clone $expected_install ) );
+                $instance->sync_install( array( 'is_new_site' => true ), true );
+            } else {
+                $is_clone_of_network_subsite = null;
+
+                if ( ! $is_clone ) {
+                    // It is possible that `$is_clone` is `false` but the install is actually a clone as the following call checks the install ID and not the URL.
+                    $is_clone_of_network_subsite = $this->is_clone_of_network_subsite( $instance );
+                }
+
+                if ( $is_clone || $is_clone_of_network_subsite ) {
+                    // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
+                    $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+                    $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, $is_clone_of_network_subsite );
+                }
+            }
+
+            $instance->restore_current_blog();
+
+            // Remove the current site's information from the map to prevent handling it again.
+            $instance->remove_new_blog_install_info_from_storage( $blog_id );
         }
 
         /**

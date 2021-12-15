@@ -3609,100 +3609,6 @@
         #--------------------------------------------------------------------------------
 
         /**
-         * Tries to recover the install of a newly created subsite or resolve it if it's a clone.
-         * 
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         */
-        private function maybe_resolve_new_subsite_install_automatically() {
-            if ( ! $this->is_user_in_admin() ) {
-                // Try to recover an install or resolve a clone only when there's a user in admin to prevent doing it prematurely (e.g., the install can get replaced with clone data again).
-                return;
-            }
-
-            if ( ! is_multisite() ) {
-                return;
-            }
-
-            $new_blog_install_map = $this->_storage->new_blog_install_map;
-
-            if ( empty( $new_blog_install_map ) || ! is_array( $new_blog_install_map ) ) {
-                return;
-            }
-
-            $is_network_admin = fs_is_network_admin();
-
-            if ( ! $is_network_admin ) {
-                // If not in network admin, handle the current site.
-                $blog_id = get_current_blog_id();
-            } else {
-                // If in network admin, handle only the first site.
-                $blog_ids = array_keys( $new_blog_install_map );
-                $blog_id  = reset( $blog_ids );
-            }
-
-            if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
-                // There's no site to handle.
-                return;
-            }
-
-            $expected_install_id = $new_blog_install_map[ $blog_id ]['install_id'];
-
-            $current_install    = $this->get_install_by_blog_id( $blog_id );
-            $current_install_id = is_object( $current_install ) ?
-                $current_install->id :
-                null;
-
-            if ( $expected_install_id == $current_install_id ) {
-                // Remove the current site's information from the map to prevent handling it again.
-                $this->remove_new_blog_install_info_from_storage( $blog_id );
-
-                return;
-            }
-
-            $this->switch_to_blog( $blog_id );
-
-            $current_url          = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
-            $current_install_url  = is_object( $current_install ) ?
-                fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
-                null;
-
-            // This can be `false` even if the install is a clone as the URL can be updated as part of the cloning process.
-            $is_clone = ( ! is_null( $current_install_url ) && $current_url !== $current_install_url );
-
-            if ( ! FS_Site::is_valid_id( $expected_install_id ) ) {
-                $expected_install = null;
-            } else {
-                $expected_install = $this->get_current_or_network_user_api_scope()->get( "/installs/{$expected_install_id}.json" );
-            }
-
-            if ( FS_Api::is_api_result_entity( $expected_install ) ) {
-                // Replace the current install with the expected install.
-                $this->store_site( new FS_Site( clone $expected_install ) );
-                $this->sync_install( array( 'is_new_site' => true ), true );
-            } else {
-                $is_clone_of_network_subsite = null;
-
-                if ( ! $is_clone ) {
-                    // It is possible that `$is_clone` is `false` but the install is actually a clone as the following call checks the install ID and not the URL.
-                    $is_clone_of_network_subsite = FS_Clone_Manager::instance()->is_clone_of_network_subsite( $this );
-                }
-
-                if ( $is_clone || $is_clone_of_network_subsite ) {
-                    // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
-                    $is_localhost = FS_Site::is_localhost_by_address( $current_url );
-
-                    FS_Clone_Manager::instance()->try_resolve_clone_automatically( $this, $current_url, $is_localhost, $is_clone_of_network_subsite );
-                }
-            }
-
-            $this->restore_current_blog();
-
-            // Remove the current site's information from the map to prevent handling it again.
-            $this->remove_new_blog_install_info_from_storage( $blog_id );
-        }
-
-        /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
@@ -3728,6 +3634,16 @@
             return (
                 fs_strip_url_protocol( trailingslashit( $this->_site->url ) ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) )
             );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param number $site_id
+         */
+        function fetch_install_by_id( $site_id ) {
+            return $this->get_current_or_network_user_api_scope()->get( "/installs/{$site_id}.json" );
         }
 
         /**
@@ -5245,7 +5161,7 @@
             }
 
             if ( $this->is_registered() ) {
-                $this->maybe_resolve_new_subsite_install_automatically();
+                FS_Clone_Manager::instance()->maybe_resolve_new_subsite_install_automatically( $this );
 
                 $this->hook_callback_to_install_sync();
             }
@@ -9169,10 +9085,18 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
+         */
+        function get_new_blog_install_map() {
+            return $this->_storage->new_blog_install_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
          *
          * @param int $blog_id
          */
-        private function remove_new_blog_install_info_from_storage($blog_id ) {
+        function remove_new_blog_install_info_from_storage( $blog_id ) {
             $new_blog_install_map = $this->_storage->new_blog_install_map;
 
             unset( $new_blog_install_map[ $blog_id ] );
