@@ -834,8 +834,8 @@
             $product_titles,
             $site_urls,
             $current_url,
-            $has_license = false,
-            $is_premium = false,
+            $has_license,
+            $is_premium,
             $doc_url
         ) {
             $this->_logger->entrance();
