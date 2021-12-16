@@ -306,11 +306,13 @@
          * Checks if a given instance's install is a clone of another subsite in the network.
          *
          * @author Vova Feldman (@svovaf)
+         *
+         * @return FS_Site
          */
-        private function is_clone_of_network_subsite( Freemius $instance ) {
+        private function find_network_subsite_clone_install( Freemius $instance ) {
             if ( ! is_multisite() ) {
                 // Not a multi-site network.
-                return false;
+                return null;
             }
 
             if ( ! isset( $this->all_installs ) ) {
@@ -338,11 +340,11 @@
                     $current_blog_id != $site->blog_id
                 ) {
                     // Clone is identical to an install on another subsite in the network.
-                    return true;
+                    return $site;
                 }
             }
 
-            return false;
+            return null;
         }
 
         /**
@@ -465,7 +467,7 @@
 
             $is_clone_of_network_subsite = ( ! is_null( $is_clone_of_network_subsite ) ) ?
                 $is_clone_of_network_subsite :
-                $this->is_clone_of_network_subsite( $instance );
+                is_object( $this->find_network_subsite_clone_install( $instance ) );
 
             if (
                 $is_clone_of_network_subsite ||
@@ -554,18 +556,30 @@
                 $instance->store_site( new FS_Site( clone $expected_install ) );
                 $instance->sync_install( array( 'is_new_site' => true ), true );
             } else {
-                $is_clone_of_network_subsite = null;
+                $network_subsite_clone_install = null;
 
                 if ( ! $is_clone ) {
                     // It is possible that `$is_clone` is `false` but the install is actually a clone as the following call checks the install ID and not the URL.
-                    $is_clone_of_network_subsite = $this->is_clone_of_network_subsite( $instance );
+                    $network_subsite_clone_install = $this->find_network_subsite_clone_install( $instance );
                 }
 
-                if ( $is_clone || $is_clone_of_network_subsite ) {
+                if ( $is_clone || is_object( $network_subsite_clone_install ) ) {
                     // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
                     $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
-                    $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, $is_clone_of_network_subsite );
+                    $resolved = $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, is_object( $network_subsite_clone_install ) );
+
+                    if (
+                        ! $resolved &&
+                        empty( $this->get_clone_identification_timestamp() )
+                    ) {
+                        $this->store_clone_identification_timestamp();
+
+                        if ( is_object( $network_subsite_clone_install ) ) {
+                            // Since the clone couldn't be identified based on the URL, replace the stored install with the cloned install so that the manual clone resolution notice will appear.
+                            $instance->store_site( clone $network_subsite_clone_install );
+                        }
+                    }
                 }
             }
 
