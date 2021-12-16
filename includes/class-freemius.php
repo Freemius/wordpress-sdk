@@ -8936,7 +8936,7 @@
             $this->_logger->entrance();
 
             if ( ! $this->_is_network_active ) {
-                $this->store_new_blog_install_info( $blog_id );
+                FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id );
                 return;
             }
 
@@ -8981,7 +8981,7 @@
                 $this->switch_to_blog( $current_blog_id );
 
                 if ( is_object( $site ) ) {
-                    $this->store_new_blog_install_info( $blog_id, $site );
+                    FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id, $site );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9049,58 +9049,7 @@
              * @author Leo Fajardo (@leorw)
              * @since 2.5.0
              */
-            $this->store_new_blog_install_info( $new_blog_id, $site );
-        }
-
-        /**
-         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         *
-         * @param int     $blog_id
-         * @param FS_Site $site
-         */
-        private function store_new_blog_install_info( $blog_id, $site = null ) {
-            $new_blog_install_map = $this->_storage->new_blog_install_map;
-
-            if (
-                empty( $new_blog_install_map ) ||
-                ! is_array( $new_blog_install_map )
-            ) {
-                $new_blog_install_map = array();
-            }
-
-            $install_id = null;
-
-            if ( is_object( $site ) ) {
-                $install_id = $site->id;
-            }
-
-            $new_blog_install_map[ $blog_id ] = array( 'install_id' => $install_id );
-
-            $this->_storage->new_blog_install_map = $new_blog_install_map;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         */
-        function get_new_blog_install_map() {
-            return $this->_storage->new_blog_install_map;
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         *
-         * @param int $blog_id
-         */
-        function remove_new_blog_install_info_from_storage( $blog_id ) {
-            $new_blog_install_map = $this->_storage->new_blog_install_map;
-
-            unset( $new_blog_install_map[ $blog_id ] );
-            $this->_storage->new_blog_install_map = $new_blog_install_map;
+            FS_Clone_Manager::instance()->store_new_blog_install_info( $new_blog_id, $site );
         }
 
         /**

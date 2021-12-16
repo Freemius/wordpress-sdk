@@ -29,6 +29,10 @@
          */
         private $_storage;
         /**
+         * @var FS_Option_Manager
+         */
+        private $_network_storage;
+        /**
          * @var array {
          * @type int    $clone_identification_timestamp
          * @type int    $temporary_duplicate_mode_selection_timestamp
@@ -39,6 +43,12 @@
          * }
          */
         private $_data;
+        /**
+         * @var array {
+         * @type array $new_blog_install_map
+         * }
+         */
+        private $_network_data;
         /**
          * @var FS_Admin_Notices
          */
@@ -64,6 +74,10 @@
          * @var string
          */
         const OPTION_NAME = 'clone_resolution';
+        /**
+         * @var string
+         */
+        const OPTION_MANAGER_NAME = 'clone_management';
         /**
          * @var string
          */
@@ -96,8 +110,11 @@
         #endregion
 
         private function __construct() {
-            $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
-            $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
+            $this->_storage         = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true );
+            $this->_network_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, true );
+            $this->_data            = $this->_storage->get_option( self::OPTION_NAME, array() );
+            $this->_network_data    = $this->_network_storage->get_option( self::OPTION_NAME, array() );
+
             $this->_notices = FS_Admin_Notices::instance( 'global_clone_resolution_notices', '', '', true );
             $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -118,6 +135,13 @@
                         $this->_data[ $name ] :
                         $value;
                 }
+            }
+
+            if (
+                ! is_array( $this->_network_data ) ||
+                ! isset( $this->_network_data['new_blog_install_map'] )
+            ) {
+                $this->_network_data = array( 'new_blog_install_map' => null );
             }
         }
 
@@ -473,7 +497,7 @@
                 return;
             }
 
-            $new_blog_install_map = $instance->get_new_blog_install_map();
+            $new_blog_install_map = $this->new_blog_install_map;
 
             if ( empty( $new_blog_install_map ) || ! is_array( $new_blog_install_map ) ) {
                 return;
@@ -504,7 +528,7 @@
 
             if ( $expected_install_id == $current_install_id ) {
                 // Remove the current site's information from the map to prevent handling it again.
-                $instance->remove_new_blog_install_info_from_storage( $blog_id );
+                $this->remove_new_blog_install_info_from_storage( $blog_id );
 
                 return;
             }
@@ -548,7 +572,50 @@
             $instance->restore_current_blog();
 
             // Remove the current site's information from the map to prevent handling it again.
-            $instance->remove_new_blog_install_info_from_storage( $blog_id );
+            $this->remove_new_blog_install_info_from_storage( $blog_id );
+        }
+
+        /**
+         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int     $blog_id
+         * @param FS_Site $site
+         */
+        function store_new_blog_install_info( $blog_id, $site = null ) {
+            $new_blog_install_map = $this->new_blog_install_map;
+
+            if (
+                empty( $new_blog_install_map ) ||
+                ! is_array( $new_blog_install_map )
+            ) {
+                $new_blog_install_map = array();
+            }
+
+            $install_id = null;
+
+            if ( is_object( $site ) ) {
+                $install_id = $site->id;
+            }
+
+            $new_blog_install_map[ $blog_id ] = array( 'install_id' => $install_id );
+
+            $this->new_blog_install_map = $new_blog_install_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int $blog_id
+         */
+        private function remove_new_blog_install_info_from_storage( $blog_id ) {
+            $new_blog_install_map = $this->new_blog_install_map;
+
+            unset( $new_blog_install_map[ $blog_id ] );
+            $this->new_blog_install_map = $new_blog_install_map;
         }
 
         /**
@@ -1301,6 +1368,18 @@
 
         #endregion
 
+        /**
+         * @author Leo Fajardo
+         * @since 2.5.0
+         *
+         * @param string $key
+         *
+         * @return bool
+         */
+        private function should_use_network_storage( $key ) {
+            return ( 'new_blog_install_map' === $key );
+        }
+
         #--------------------------------------------------------------------------------
         #region Magic methods
         #--------------------------------------------------------------------------------
@@ -1310,13 +1389,21 @@
          * @param int|string $value
          */
         function __set( $name, $value ) {
-            if ( ! array_key_exists( $name, $this->_data ) ) {
+            if ( ! $this->should_use_network_storage( $name ) ) {
+                $storage = $this->_storage;
+                $data    = $this->_data;
+            } else {
+                $storage = $this->_network_storage;
+                $data    = $this->_network_data;
+            }
+
+            if ( ! array_key_exists( $name, $data ) ) {
                 return;
             }
 
-            $this->_data[ $name ] = $value;
+            $data[ $name ] = $value;
 
-            $this->_storage->set_option( self::OPTION_NAME, $this->_data, true );
+            $storage->set_option( self::OPTION_NAME, $data, true );
         }
 
         /**
@@ -1325,7 +1412,10 @@
          * @return bool
          */
         function __isset( $name ) {
-            return isset( $this->_data[ $name ] );
+            return (
+                isset( $this->_data[ $name ] ) ||
+                isset( $this->_network_data[ $name ] )
+            );
         }
 
         /**
@@ -1334,8 +1424,12 @@
          * @return null|int|string
          */
         function __get( $name ) {
-            return array_key_exists( $name, $this->_data ) ?
-                $this->_data[ $name ] :
+            $data = ( ! $this->should_use_network_storage( $name ) ) ?
+                $this->_data :
+                $this->_network_data;
+
+            return array_key_exists( $name, $data ) ?
+                $data[ $name ] :
                 null;
         }
 
