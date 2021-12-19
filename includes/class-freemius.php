@@ -20995,9 +20995,6 @@
 	                        $add_notice = false;
 	                        if ( $background ) {
 		                        $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
-		                        if ( ! $counter ) {
-			                        $counter = 0;
-		                        }
 
 		                        if ( $counter >= 3 ) {
 			                        $add_notice = true;
