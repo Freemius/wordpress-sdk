@@ -21216,7 +21216,7 @@
                 }
 
                 if ( ! $this->is_addon() &&
-                     $this->_site->is_beta() !== $site->is_beta
+                     $this->_site->is_beta() !== $site->is_beta()
                 ) {
                     // Beta flag updated.
                     $this->_site = $site;
