@@ -15842,11 +15842,16 @@
          *
          * @param int     $blog_id
          * @param FS_Site $install
+         * @param bool    $flush
          *
          * @return bool Since 2.3.1 returns if a switch was made.
          */
-        function switch_to_blog( $blog_id, FS_Site $install = null ) {
-            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_context_is_network_or_blog_id ) {
+        function switch_to_blog( $blog_id, FS_Site $install = null, $flush = false ) {
+            if ( ! is_numeric( $blog_id ) ) {
+                return false;
+            }
+
+            if ( ! $flush && $blog_id == $this->_context_is_network_or_blog_id ) {
                 return false;
             }
 
@@ -15910,7 +15915,7 @@
             unset( $this->_site_api );
             unset( $this->_user_api );
 
-            return false;
+            return true;
         }
 
         /**
