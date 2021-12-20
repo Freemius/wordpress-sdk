@@ -18340,9 +18340,6 @@
                     $this->send_installs_update();
                 }
 
-                // Switch install context back to the first install.
-                $this->_site = $first_install;
-
                 $current_blog = get_current_blog_id();
 
                 foreach ( $blog_2_install_map as $blog_id => $install ) {
@@ -18351,7 +18348,8 @@
                     $this->do_action( 'after_account_connection', $this->_user, $install );
                 }
 
-                $this->switch_to_blog( $current_blog );
+                // Switch install context back to the first install.
+                $this->switch_to_blog( $current_blog, $first_install, true );
 
                 $this->do_action( 'after_network_account_connection', $this->_user, $blog_2_install_map );
             }
