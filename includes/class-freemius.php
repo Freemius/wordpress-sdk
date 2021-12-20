@@ -18349,7 +18349,11 @@
                 }
 
                 // Switch install context back to the first install.
-                $this->switch_to_blog( $current_blog, $first_install, true );
+                $this->switch_to_blog(
+                    $current_blog,
+                    $first_install,
+                    ( $this->_site->id != $first_install->id )
+                );
 
                 $this->do_action( 'after_network_account_connection', $this->_user, $blog_2_install_map );
             }
