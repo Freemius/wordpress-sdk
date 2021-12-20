@@ -569,16 +569,13 @@
 
                     $resolved = $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, is_object( $network_subsite_clone_install ) );
 
-                    if (
-                        ! $resolved &&
-                        empty( $this->get_clone_identification_timestamp() )
-                    ) {
-                        $this->store_clone_identification_timestamp();
-
-                        if ( is_object( $network_subsite_clone_install ) ) {
-                            // Since the clone couldn't be identified based on the URL, replace the stored install with the cloned install so that the manual clone resolution notice will appear.
-                            $instance->store_site( clone $network_subsite_clone_install );
+                    if ( ! $resolved && is_object( $network_subsite_clone_install ) ) {
+                        if ( empty( $this->get_clone_identification_timestamp() ) ) {
+                            $this->store_clone_identification_timestamp();
                         }
+
+                        // Since the clone couldn't be identified based on the URL, replace the stored install with the cloned install so that the manual clone resolution notice will appear.
+                        $instance->store_site( clone $network_subsite_clone_install );
                     }
                 }
             }
