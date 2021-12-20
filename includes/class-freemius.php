@@ -15842,11 +15842,16 @@
          *
          * @param int     $blog_id
          * @param FS_Site $install
+         * @param bool    $flush
          *
          * @return bool Since 2.3.1 returns if a switch was made.
          */
-        function switch_to_blog( $blog_id, FS_Site $install = null ) {
-            if ( ! is_numeric( $blog_id ) || $blog_id == $this->_context_is_network_or_blog_id ) {
+        function switch_to_blog( $blog_id, FS_Site $install = null, $flush = false ) {
+            if ( ! is_numeric( $blog_id ) ) {
+                return false;
+            }
+
+            if ( ! $flush && $blog_id == $this->_context_is_network_or_blog_id ) {
                 return false;
             }
 
@@ -15910,7 +15915,7 @@
             unset( $this->_site_api );
             unset( $this->_user_api );
 
-            return false;
+            return true;
         }
 
         /**
@@ -18335,9 +18340,6 @@
                     $this->send_installs_update();
                 }
 
-                // Switch install context back to the first install.
-                $this->_site = $first_install;
-
                 $current_blog = get_current_blog_id();
 
                 foreach ( $blog_2_install_map as $blog_id => $install ) {
@@ -18346,7 +18348,12 @@
                     $this->do_action( 'after_account_connection', $this->_user, $install );
                 }
 
-                $this->switch_to_blog( $current_blog );
+                // Switch install context back to the first install.
+                $this->switch_to_blog(
+                    $current_blog,
+                    $first_install,
+                    ( $this->_site->id != $first_install->id )
+                );
 
                 $this->do_action( 'after_network_account_connection', $this->_user, $blog_2_install_map );
             }
@@ -21213,7 +21220,7 @@
                 }
 
                 if ( ! $this->is_addon() &&
-                     $this->_site->is_beta() !== $site->is_beta
+                     $this->_site->is_beta() !== $site->is_beta()
                 ) {
                     // Beta flag updated.
                     $this->_site = $site;
