@@ -369,6 +369,13 @@
                         continue;
                     }
 
+                    if (
+                        $instance->is_only_premium() &&
+                        ! FS_Plugin_License::is_valid_id( $install->license_id )
+                    ) {
+                        continue;
+                    }
+
                     // When searching for installs by a URL, the API will first strip any paths and search for any matching installs by the subdomain. Therefore, we need to test if there's a match between the current URL and the install's URL before continuing.
                     if ( $url !== fs_strip_url_protocol( untrailingslashit( $install->url ) ) ) {
                         continue;
