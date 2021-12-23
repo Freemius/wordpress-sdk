@@ -521,7 +521,10 @@
                  * @author Leo Fajardo (@leorw)
                  * @since  1.2.2
                  */
-                ( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() ),
+                ( is_object( $this->_plugin ) && isset( $this->_plugin->title ) ?
+                    $this->_plugin->title :
+                    $this->get_plugin_name()
+                ),
                 $this->get_unique_affix()
             );
 
