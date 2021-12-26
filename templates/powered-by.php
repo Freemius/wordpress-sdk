@@ -38,7 +38,7 @@
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.min.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
 ?>
-<?php if ( ! $fs->is_whitelabeled() ) : ?>
+<?php if ( ! $fs->is_whitelabeled() && ! $fs->apply_filters( 'hide_freemius_powered_by', false ) ) : ?>
 <div id="pframe"></div>
 <script type="text/javascript">
 	(function ($) {
