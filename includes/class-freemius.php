@@ -9650,6 +9650,7 @@
          *
          * @param string[] string           $override
          * @param bool     $only_diff
+         * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
          * @param bool     $include_themes  Since 1.1.8 by default include plugin changes.
          *
@@ -9658,6 +9659,7 @@
         private function get_installs_data_for_api(
             array $override,
             $only_diff = false,
+            $is_keepalive = false,
             $include_plugins = true,
             $include_themes = true
         ) {
@@ -9773,7 +9775,7 @@
                     $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
                 }
 
-                if ( ! empty( $install_data ) || $is_common_diff ) {
+                if ( ! empty( $install_data ) || $is_common_diff || $is_keepalive ) {
                     // Add install ID and site unique ID.
                     $install_data['id']  = $install->id;
                     $install_data['uid'] = $uid;
@@ -9935,27 +9937,18 @@
         private function send_installs_update( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
-            $installs_data = $this->get_installs_data_for_api( $override, ! $flush );
+            /**
+             * Pass `true` to use the network level storage since the update is for many installs.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            $keepalive_only_update = $this->should_send_keepalive_update( true );
 
-            $keepalive_only_update = false;
+            $installs_data = $this->get_installs_data_for_api( $override, ! $flush, $keepalive_only_update );
+
             if ( empty( $installs_data ) ) {
-                /**
-                 * Pass `true` to use the network level storage since the update is for many installs.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.3
-                 */
-                $keepalive_only_update = $this->should_send_keepalive_update( true );
-
-                if ( ! $keepalive_only_update ) {
-                    /**
-                     * There are no updates to send including keepalive.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.3
-                     */
-                    return false;
-                }
+                return false;
             }
 
             if ( ! $keepalive_only_update ) {
