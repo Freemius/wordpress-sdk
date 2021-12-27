@@ -59,13 +59,60 @@
     if ( $is_network_activation ) {
         $all_sites = Freemius::get_sites();
 
+        $install_count_by_id_map     = array();
+        $site_info_by_install_id_map = array();
+
         foreach ( $all_sites as $site ) {
+            $blog_id = Freemius::get_site_blog_id( $site );
+            $install = $fs->get_install_by_blog_id( $blog_id );
+
+            if ( is_object( $install ) ) {
+                /**
+                 * The install counter is used in determining if an install has a duplicate.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.5.0
+                 */
+                $install_count_by_id_map[ $install->id ] = isset( $install_count_by_id_map[ $install->id ] ) ?
+                    ( $install_count_by_id_map[ $install->id ] = $install_count_by_id_map[ $install->id ] + 1 ) :
+                    1;
+
+                if ( $install_count_by_id_map[ $install->id ] > 1 ) {
+                    continue;
+                }
+            }
+
+            $site_info_by_install_id_map[] = array(
+                'site'    => $site,
+                'install' => $install,
+            );
+        }
+
+        foreach ( $site_info_by_install_id_map as $site_info )
+        {
+            $site    = $site_info['site'];
+            $install = $site_info['install'];
+            $blog_id = Freemius::get_site_blog_id( $site );
+
+            if (
+                is_object( $install ) &&
+                $install_count_by_id_map[ $install->id ] > 1
+            ) {
+                /**
+                 * If the install has a duplicate, skip it as it's a clone that has not been resolved automatically. Clones like this one shouldn't be updated and should be resolved manually via the manual clone resolution admin notice.
+                 *
+                 * @author Leo Fajardo (@leorw)
+                 * @since 2.5.0
+                 */
+                continue;
+            }
+
             $site_details = $fs->get_site_info( $site );
 
-            $blog_id = Freemius::get_site_blog_id( $site );
-            $install = $fs->get_install_by_blog_id($blog_id);
-
-            if ( is_object( $install ) && FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+            if (
+                is_object( $install ) &&
+                FS_Plugin_License::is_valid_id( $install->license_id )
+            ) {
                 $site_details['license_id'] = $install->license_id;
             }
 

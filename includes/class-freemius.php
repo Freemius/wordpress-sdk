@@ -9695,59 +9695,90 @@
 
             $sites = self::get_sites();
 
+            $site_info_by_install_id_map = array();
+            $duplicate_install_id_map    = array();
+
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
                 $install = $this->get_install_by_blog_id( $blog_id );
 
-                if ( is_object( $install ) ) {
-                    if ( $install->user_id != $this->_user->id ) {
-                        // Install belongs to a different owner.
-                        continue;
-                    }
+                if ( ! is_object( $install ) ) {
+                    continue;
+                }
 
-                    if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
-                        // Don't send updates regarding opted-out installs.
-                        continue;
-                    }
+                if ( isset( $site_info_by_install_id_map[ $install->id ] ) ) {
+                    /**
+                     * If the install already exists in the map, skip it as it's a clone that has not been resolved automatically. Clones like this one shouldn't be updated and should be resolved manually via the manual clone resolution admin notice.
+                     *
+                     * @author Leo Fajardo (@leorw)
+                     * @since 2.5.0
+                     */
+                    $duplicate_install_id_map[ $install->id ] = true;
+                    continue;
+                }
 
-                    $install_data = $this->get_site_info( $site );
+                if ( $install->user_id != $this->_user->id ) {
+                    // Install belongs to a different owner.
+                    continue;
+                }
 
-                    $uid = $install_data['uid'];
+                if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
+                    // Don't send updates regarding opted-out installs.
+                    continue;
+                }
 
-                    unset( $install_data['blog_id'] );
-                    unset( $install_data['uid'] );
+                $site_info_by_install_id_map[ $install->id ] = array(
+                    'site'    => $site,
+                    'install' => $install,
+                );
+            }
 
-                    $install_data['is_disconnected'] = $install->is_disconnected;
-                    $install_data['is_active']       = $this->is_active_for_site( $blog_id );
-                    $install_data['is_uninstalled']  = $install->is_uninstalled;
+            foreach ( $site_info_by_install_id_map as $site_info ) {
+                $install = $site_info['install'];
 
-                    $common_diff    = null;
-                    $is_common_diff = false;
-                    if ( $only_diff ) {
-                        $install_data = $this->get_install_diff_for_api( $install_data, $install, $override );
-                        $common_diff  = $this->get_install_diff_for_api( $common, $install, $override );
+                if ( isset( $duplicate_install_id_map[ $install->id ] ) ) {
+                    continue;
+                }
 
-                        $is_common_diff = ! empty( $common_diff );
+                $site         = $site_info['site'];
+                $blog_id      = self::get_site_blog_id( $site );
+                $install_data = $this->get_site_info( $site );
 
-                        if ( $is_common_diff ) {
-                            foreach ( $common_diff as $k => $v ) {
-                                if ( ! isset( $common_diff_union[ $k ] ) ) {
-                                    $common_diff_union[ $k ] = $v;
-                                }
+                $uid = $install_data['uid'];
+
+                unset( $install_data['blog_id'] );
+                unset( $install_data['uid'] );
+
+                $install_data['is_disconnected'] = $install->is_disconnected;
+                $install_data['is_active']       = $this->is_active_for_site( $blog_id );
+                $install_data['is_uninstalled']  = $install->is_uninstalled;
+
+                $common_diff    = null;
+                $is_common_diff = false;
+                if ( $only_diff ) {
+                    $install_data = $this->get_install_diff_for_api( $install_data, $install, $override );
+                    $common_diff  = $this->get_install_diff_for_api( $common, $install, $override );
+
+                    $is_common_diff = ! empty( $common_diff );
+
+                    if ( $is_common_diff ) {
+                        foreach ( $common_diff as $k => $v ) {
+                            if ( ! isset( $common_diff_union[ $k ] ) ) {
+                                $common_diff_union[ $k ] = $v;
                             }
                         }
-
-                        $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
                     }
 
-                    if ( ! empty( $install_data ) || $is_common_diff ) {
-                        // Add install ID and site unique ID.
-                        $install_data['id']  = $install->id;
-                        $install_data['uid'] = $uid;
+                    $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
+                }
 
-                        $installs_data[] = $install_data;
-                    }
+                if ( ! empty( $install_data ) || $is_common_diff ) {
+                    // Add install ID and site unique ID.
+                    $install_data['id']  = $install->id;
+                    $install_data['uid'] = $uid;
+
+                    $installs_data[] = $install_data;
                 }
             }
 
@@ -21051,7 +21082,7 @@
                                     'api_blocked'
                                 );
                             }
-                        } else {
+                        } else if ( is_object( $result ) ) {
                             // Authentication params are broken.
                             $this->_admin_notices->add(
                                 $this->get_text_inline( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'wrong-authentication-param-message' ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
