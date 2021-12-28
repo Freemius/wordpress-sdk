@@ -91,12 +91,15 @@
 		) );
 	}
 
-	$payments = $fs->_fetch_payments();
+    $show_billing = ( ! $is_whitelabeled && ! $fs->apply_filters( 'hide_billing_and_payments_info', false ) );
+    if ( $show_billing ) {
+        $payments = $fs->_fetch_payments();
 
-    $show_billing = ( ! $is_whitelabeled && is_array( $payments ) && 0 < count( $payments ) );
+        $show_billing = ( is_array( $payments ) && 0 < count( $payments ) );
+    }
 
 
-	$has_tabs = $fs->_add_tabs_before_content();
+    $has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
 		$query_params['tabs'] = 'true';
@@ -371,7 +374,7 @@
 
 										$profile   = array();
 
-										if ( ! $is_whitelabeled ) {
+    									if ( ! $is_whitelabeled ) {
                                             $profile[] = array(
                                                 'id'    => 'user_name',
                                                 'title' => fs_text_inline( 'Name', 'name', $slug ),
@@ -846,7 +849,7 @@
 
 						<?php
 							if ( $show_billing ) {
-								$view_params = array( 'id' => $VARS['id'] );
+								$view_params = array( 'id' => $VARS['id'], 'payments' => $payments );
 								fs_require_once_template( 'account/billing.php', $view_params );
 								fs_require_once_template( 'account/payments.php', $view_params );
 							}
@@ -1102,4 +1105,4 @@
 		'module_slug'    => $slug,
 		'module_version' => $fs->get_plugin_version(),
 	);
-	fs_require_template( 'powered-by.php', $params );
+    fs_require_template( 'powered-by.php', $params );
