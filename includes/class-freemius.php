@@ -20980,7 +20980,7 @@
                         $this->switch_to_blog( $this->_storage->network_install_blog_id );
                     }
 
-	                // Show API message only if not background sync or if paying customer. And if it's a background process, show message only if it's a paying customer.
+                    // Show API message only if not background sync or if paying customer. And if it's a background process, show message only if it's a paying customer.
                     if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
                         if ( ! FS_Api::test() ) {
