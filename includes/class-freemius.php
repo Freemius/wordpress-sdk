@@ -20981,7 +20981,7 @@
                     }
 
                     // Show API messages only if paying customer.
-                    if ( $this->is_paying() ) {
+                    if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
                         if ( ! FS_Api::test() ) {
                             /**
@@ -20996,12 +20996,13 @@
 	                        if ( $background ) {
 		                        $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
 
+                                // We only want to show the notice after 3 consecutive failures.
 		                        if ( $counter >= 3 ) {
 			                        $add_notice = true;
 			                        $counter    = 0;
 		                        }
 
-                                // Generally, background sync happens once in a day. So, setting expiration for a week time is fair enough.
+                                // Generally, background sync happens once a day. So, setting expiration for a week time should be enough.
 		                        set_transient( '_fs_api_connection_retry_counter', $counter + 1, WP_FS__TIME_WEEK_IN_SEC );
 	                        }
 
@@ -21025,6 +21026,9 @@
 		                        );
 	                        }
                         } else {
+                            // API is working now. Clear transient to start afresh.
+                            delete_transient('_fs_api_connection_retry_counter');
+
                             // Authentication params are broken.
                             $this->_admin_notices->add(
                                 $this->get_text_inline( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'wrong-authentication-param-message' ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
