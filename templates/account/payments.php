@@ -10,11 +10,15 @@
 		exit;
 	}
 
-	/**
-	 * @var array $VARS
-	 * @var Freemius $fs
-	 */
-    $fs       = freemius( $VARS['id'] );
+    /**
+     * @var array $VARS
+     * @var Freemius $fs
+     */
+    $fs = freemius( $VARS['id'] );
+
+    /**
+     * @var FS_Payment[] $payments
+     */
     $payments = freemius( $VARS['payments'] );
 
 	$slug = $fs->get_slug();
