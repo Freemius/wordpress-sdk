@@ -9748,9 +9748,11 @@
                 $install_data = $this->get_site_info( $site );
 
                 $uid = $install_data['uid'];
+                $url = $install_data['url'];
 
                 unset( $install_data['blog_id'] );
                 unset( $install_data['uid'] );
+                unset( $install_data['url'] );
 
                 $install_data['is_disconnected'] = $install->is_disconnected;
                 $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -9779,6 +9781,7 @@
                     // Add install ID and site unique ID.
                     $install_data['id']  = $install->id;
                     $install_data['uid'] = $uid;
+                    $install_data['url'] = $url;
 
                     $installs_data[] = $install_data;
                 }
