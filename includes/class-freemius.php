@@ -9947,9 +9947,9 @@
              * @author Leo Fajardo (@leorw)
              * @since 2.2.3
              */
-            $keepalive_only_update = $this->should_send_keepalive_update( true );
+            $should_send_keepalive = $this->should_send_keepalive_update( true );
 
-            $installs_data = $this->get_installs_data_for_api( $override, ! $flush, $keepalive_only_update );
+            $installs_data = $this->get_installs_data_for_api( $override, ! $flush, $should_send_keepalive );
 
             if ( empty( $installs_data ) ) {
                 return false;
