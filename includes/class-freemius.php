@@ -9890,10 +9890,9 @@
                 }
             }
 
-            if ( ! $keepalive_only_update ) {
+            if ( $is_two_way_sync ) {
                 /**
-                 * Do not update the last install sync timestamp after a keepalive-only call since there were no actual
-                 * updates sent.
+                 * Update last install sync timestamp during a two-way sync call as we expect that updates are sent during this call.
                  *
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.3
@@ -9956,8 +9955,8 @@
                 return false;
             }
 
-            if ( ! $keepalive_only_update ) {
-                // Update last install sync timestamp if there were actual updates sent (i.e., not a keepalive-only call).
+            if ( $is_two_way_sync ) {
+                // Update last install sync timestamp during a two-way sync call as we expect that updates are sent during this call.
                 $this->set_cron_execution_timestamp( 'install_sync' );
             }
 
