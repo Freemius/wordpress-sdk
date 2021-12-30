@@ -9860,10 +9860,11 @@
          *
          * @param string[] string $override
          * @param bool     $flush
+         * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
          * @return false|object|string
          */
-        private function send_install_update( $override = array(), $flush = false ) {
+        private function send_install_update( $override = array(), $flush = false, $is_two_way_sync = false ) {
             $this->_logger->entrance();
 
             $check_properties = $this->get_install_data_for_api( $override );
@@ -9910,9 +9911,9 @@
             // Send updated values to FS.
             $site = $this->api_site_call( '/', 'put', $params, true );
 
-            if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+            if ( $is_two_way_sync && $this->is_api_result_entity( $site ) ) {
                 /**
-                 * Do not clear scheduled sync after a keepalive-only call since there were no actual updates sent.
+                 * Clear scheduled install sync after a two-way sync call.
                  *
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.3
@@ -9934,10 +9935,11 @@
          *
          * @param string[] string $override
          * @param bool     $flush
+         * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
          * @return false|object|string
          */
-        private function send_installs_update( $override = array(), $flush = false ) {
+        private function send_installs_update( $override = array(), $flush = false, $is_two_way_sync = false ) {
             $this->_logger->entrance();
 
             /**
@@ -9970,8 +9972,8 @@
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
-            if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
-                // I successfully sent installs update (there was an actual update sent and it's not just a keepalive-only call), clear scheduled sync if exist.
+            if ( $is_two_way_sync && $this->is_api_result_object( $result, 'installs' ) ) {
+                // I successfully sent a two-way installs update, clear the scheduled install sync if it exists.
                 $this->clear_install_sync_cron();
             }
 
@@ -10024,7 +10026,7 @@
         function sync_install( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
-            $site = $this->send_install_update( $override, $flush );
+            $site = $this->send_install_update( $override, $flush, true );
 
             if ( false === $site ) {
                 // No sync required.
@@ -10053,7 +10055,7 @@
         private function sync_installs( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
-            $result = $this->send_installs_update( $override, $flush );
+            $result = $this->send_installs_update( $override, $flush, true );
 
             if ( false === $result ) {
                 // No sync required.
@@ -21037,10 +21039,10 @@
                         $this->switch_to_blog( $current_blog_id );
                     }
 
-                    $result   = $this->send_install_update( array(), true );
+                    $result   = $this->send_install_update( array(), true, true );
                     $is_valid = $this->is_api_result_entity( $result );
                 } else {
-                    $result   = $this->send_installs_update( array(), true );
+                    $result   = $this->send_installs_update( array(), true, true );
                     $is_valid = $this->is_api_result_object( $result, 'installs' );
                 }
 
