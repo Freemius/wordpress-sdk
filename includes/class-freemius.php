@@ -9697,97 +9697,98 @@
 
             $sites = self::get_sites();
 
-            $site_info_by_install_id_map = array();
-            $duplicate_install_id_map    = array();
+            $subsite_data_by_install_id = array();
+            $install_url_by_install_id  = array();
 
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
                 $install = $this->get_install_by_blog_id( $blog_id );
 
-                if ( ! is_object( $install ) ) {
-                    continue;
-                }
+                if ( is_object( $install ) ) {
+                    if ( $install->user_id != $this->_user->id ) {
+                        // Install belongs to a different owner.
+                        continue;
+                    }
 
-                if ( isset( $site_info_by_install_id_map[ $install->id ] ) ) {
-                    /**
-                     * If the install already exists in the map, skip it as it's a clone that has not been resolved automatically. Clones like this one shouldn't be updated and should be resolved manually via the manual clone resolution admin notice.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.5.0
-                     */
-                    $duplicate_install_id_map[ $install->id ] = true;
-                    continue;
-                }
+                    if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
+                        // Don't send updates regarding opted-out installs.
+                        continue;
+                    }
 
-                if ( $install->user_id != $this->_user->id ) {
-                    // Install belongs to a different owner.
-                    continue;
-                }
+                    $install_data = $this->get_site_info( $site, true );
 
-                if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
-                    // Don't send updates regarding opted-out installs.
-                    continue;
-                }
+                    if ( $install_data['is_temporary_duplicate'] ) {
+                        continue;
+                    }
 
-                $site_info_by_install_id_map[ $install->id ] = array(
-                    'site'    => $site,
-                    'install' => $install,
-                );
-            }
+                    $uid = $install_data['uid'];
+                    $url = $install_data['url'];
 
-            foreach ( $site_info_by_install_id_map as $site_info ) {
-                $install = $site_info['install'];
+                    if ( isset( $subsite_data_by_install_id[ $install->id ] ) ) {
+                        $clone_subsite_data = $subsite_data_by_install_id[ $install->id ];
+                        $clone_install_url  = $install_url_by_install_id[ $install->id ];
 
-                if ( isset( $duplicate_install_id_map[ $install->id ] ) ) {
-                    continue;
-                }
-
-                $site         = $site_info['site'];
-                $blog_id      = self::get_site_blog_id( $site );
-                $install_data = $this->get_site_info( $site );
-
-                $uid = $install_data['uid'];
-                $url = $install_data['url'];
-
-                unset( $install_data['blog_id'] );
-                unset( $install_data['uid'] );
-                unset( $install_data['url'] );
-
-                $install_data['is_disconnected'] = $install->is_disconnected;
-                $install_data['is_active']       = $this->is_active_for_site( $blog_id );
-                $install_data['is_uninstalled']  = $install->is_uninstalled;
-
-                $common_diff    = null;
-                $is_common_diff = false;
-                if ( $only_diff ) {
-                    $install_data = $this->get_install_diff_for_api( $install_data, $install, $override );
-                    $common_diff  = $this->get_install_diff_for_api( $common, $install, $override );
-
-                    $is_common_diff = ! empty( $common_diff );
-
-                    if ( $is_common_diff ) {
-                        foreach ( $common_diff as $k => $v ) {
-                            if ( ! isset( $common_diff_union[ $k ] ) ) {
-                                $common_diff_union[ $k ] = $v;
-                            }
+                        if (
+                            /**
+                             * If we already have an install with the same URL as the subsite it's stored in, skip the current subsite. Otherwise, replace the existing install's data with the current subsite's install's data if the URLs match.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.5.0
+                             */
+                            fs_strip_url_protocol( untrailingslashit( $clone_install_url ) ) === fs_strip_url_protocol( untrailingslashit( $clone_subsite_data['url'] ) ) ||
+                            fs_strip_url_protocol( untrailingslashit( $install->url ) ) !== fs_strip_url_protocol( untrailingslashit( $url ) )
+                        ) {
+                            continue;
                         }
                     }
 
-                    $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
-                }
+                    unset( $install_data['blog_id'] );
+                    unset( $install_data['uid'] );
+                    unset( $install_data['url'] );
+                    unset( $install_data['is_temporary_duplicate'] );
 
-                if ( ! empty( $install_data ) || $is_common_diff || $is_keepalive ) {
-                    // Add install ID and site unique ID.
-                    $install_data['id']  = $install->id;
-                    $install_data['uid'] = $uid;
-                    $install_data['url'] = $url;
+                    $install_data['is_disconnected'] = $install->is_disconnected;
+                    $install_data['is_active']       = $this->is_active_for_site( $blog_id );
+                    $install_data['is_uninstalled']  = $install->is_uninstalled;
 
-                    $installs_data[] = $install_data;
+                    $common_diff    = null;
+                    $is_common_diff = false;
+                    if ( $only_diff ) {
+                        $install_data = $this->get_install_diff_for_api( $install_data, $install, $override );
+                        $common_diff  = $this->get_install_diff_for_api( $common, $install, $override );
+
+                        $is_common_diff = ! empty( $common_diff );
+
+                        if ( $is_common_diff ) {
+                            foreach ( $common_diff as $k => $v ) {
+                                if ( ! isset( $common_diff_union[ $k ] ) ) {
+                                    $common_diff_union[ $k ] = $v;
+                                }
+                            }
+                        }
+
+                        $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
+                    }
+
+                    if ( ! empty( $install_data ) || $is_common_diff || $is_keepalive ) {
+                        // Add install ID and site unique ID.
+                        $install_data['id']  = $install->id;
+                        $install_data['uid'] = $uid;
+                        $install_data['url'] = $url;
+
+                        $subsite_data_by_install_id[ $install->id ] = $install_data;
+                        $install_url_by_install_id[ $install->id ]  = $install->url;
+                    }
                 }
             }
 
             restore_current_blog();
+
+            $installs_data = array_merge(
+                $installs_data,
+                array_values( $subsite_data_by_install_id )
+            );
 
             if ( 0 < count( $installs_data ) && ( $is_common_diff_for_any_site || ! $only_diff ) ) {
                 if ( ! $only_diff ) {
@@ -16013,13 +16014,16 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
+         * @param bool               $include_clone_info Since 2.5.0. If it's true, the clone info for the site will be retrieved (e.g., the value of the flag that tells if a site is a temporary duplicate will be retrieved).
          *
          * @return array
          */
-        function get_site_info( $site = null ) {
+        function get_site_info( $site = null, $include_clone_info = false ) {
             $this->_logger->entrance();
 
             $switched = false;
+
+            $clone_info = array();
 
             if ( is_null( $site ) ) {
                 $url     = get_site_url();
@@ -16040,15 +16044,19 @@
                     $url  = get_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
                 }
+
+                if ( $include_clone_info ) {
+                    $clone_info['is_temporary_duplicate'] = FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $blog_id );
+                }
             }
 
-            $info = array(
+            $info = array_merge( array(
                 'uid'      => $this->get_anonymous_id( $blog_id ),
                 'url'      => $url,
                 'title'    => $name,
                 'language' => get_bloginfo( 'language' ),
                 'charset'  => get_bloginfo( 'charset' ),
-            );
+            ), $clone_info );
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;

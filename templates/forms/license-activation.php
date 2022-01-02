@@ -59,70 +59,53 @@
     if ( $is_network_activation ) {
         $all_sites = Freemius::get_sites();
 
-        $install_count_by_id_map     = array();
-        $site_info_by_install_id_map = array();
+        $subsite_data_by_install_id = array();
+        $install_url_by_install_id  = array();
 
         foreach ( $all_sites as $site ) {
-            $blog_id = Freemius::get_site_blog_id( $site );
-            $install = $fs->get_install_by_blog_id( $blog_id );
+            $site_details = $fs->get_site_info( $site, true );
 
-            if ( is_object( $install ) ) {
-                /**
-                 * The install counter is used in determining if an install has a duplicate.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.5.0
-                 */
-                $install_count_by_id_map[ $install->id ] = isset( $install_count_by_id_map[ $install->id ] ) ?
-                    ( $install_count_by_id_map[ $install->id ] = $install_count_by_id_map[ $install->id ] + 1 ) :
-                    1;
-
-                if ( $install_count_by_id_map[ $install->id ] > 1 ) {
-                    continue;
-                }
-            }
-
-            $site_info_by_install_id_map[] = array(
-                'site'    => $site,
-                'install' => $install,
-            );
-        }
-
-        foreach ( $site_info_by_install_id_map as $site_info )
-        {
-            $site    = $site_info['site'];
-            $install = $site_info['install'];
-            $blog_id = Freemius::get_site_blog_id( $site );
-
-            if (
-                is_object( $install ) &&
-                $install_count_by_id_map[ $install->id ] > 1
-            ) {
-                /**
-                 * If the install has a duplicate, skip it as it's a clone that has not been resolved automatically. Clones like this one shouldn't be updated and should be resolved manually via the manual clone resolution admin notice.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.5.0
-                 */
+            if ( $site_details['is_temporary_duplicate' ] ) {
                 continue;
             }
 
-            $site_details = $fs->get_site_info( $site );
+            $blog_id = Freemius::get_site_blog_id( $site );
+            $install = $fs->get_install_by_blog_id($blog_id);
 
-            if (
-                is_object( $install ) &&
-                FS_Plugin_License::is_valid_id( $install->license_id )
-            ) {
-                $site_details['license_id'] = $install->license_id;
+            if ( is_object( $install ) ) {
+                if ( isset( $subsite_data_by_install_id[ $install->id ] ) ) {
+                    $clone_subsite_data = $subsite_data_by_install_id[ $install->id ];
+                    $clone_install_url  = $install_url_by_install_id[ $install->id ];
+
+                    if (
+                        /**
+                         * If we already have an install with the same URL as the subsite it's stored in, skip the current subsite. Otherwise, replace the existing install's data with the current subsite's install's data if the URLs match.
+                         *
+                         * @author Leo Fajardo (@leorw)
+                         * @since 2.5.0
+                         */
+                        fs_strip_url_protocol( untrailingslashit( $clone_install_url ) ) === fs_strip_url_protocol( untrailingslashit( $clone_subsite_data['url'] ) ) ||
+                        fs_strip_url_protocol( untrailingslashit( $install->url ) ) !== fs_strip_url_protocol( untrailingslashit( $site_details['url'] ) )
+                    ) {
+                        continue;
+                    }
+                }
+
+                if ( FS_Plugin_License::is_valid_id( $install->license_id ) ) {
+                    $site_details['license_id'] = $install->license_id;
+                }
+
+                unset( $site_details['is_temporary_duplicate' ] );
             }
 
-            $sites_details[] = $site_details;
+            $subsite_data_by_install_id[ $install->id ] = $site_details;
+            $install_url_by_install_id[ $install->id ]  = $install->url;
         }
 
         if ( $is_network_activation ) {
             $vars = array(
                 'id'                  => $fs->get_id(),
-                'sites'               => $sites_details,
+                'sites'               => array_values( $subsite_data_by_install_id ),
                 'require_license_key' => true
             );
 

@@ -1328,12 +1328,28 @@
         }
 
         /**
-         * Determines if the temporary duplicate notice is currently being shown.
+         * Determines if a site was marked as a temporary duplicate and if it's still a temporary duplicate.
          *
          * @return bool
          */
-        function is_temporary_duplicate_notice_shown() {
-            return $this->_notices->has_sticky( 'temporary_duplicate_notice', true );
+        function is_temporary_duplicate_by_blog_id( $blog_id ) {
+            $storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, $blog_id );
+            $data    = $storage->get_option( self::OPTION_NAME, array() );
+
+            if ( ! is_array( $data ) ) {
+                return false;
+            }
+
+            $was_temporary_duplicate_mode_selected = (
+                isset( $data['temporary_duplicate_mode_selection_timestamp'] ) &&
+                is_numeric( $data['temporary_duplicate_mode_selection_timestamp'] )
+            );
+
+            if ( ! $was_temporary_duplicate_mode_selected ) {
+                return false;
+            }
+
+            return ( time() < ( $data['temporary_duplicate_mode_selection_timestamp'] + self::TEMPORARY_DUPLICATE_PERIOD ) );
         }
 
         /**
