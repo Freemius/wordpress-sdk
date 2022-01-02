@@ -19,7 +19,7 @@
     /**
      * @var FS_Payment[] $payments
      */
-    $payments = freemius( $VARS['payments'] );
+    $payments = $VARS['payments'];
 
 	$slug = $fs->get_slug();
 
