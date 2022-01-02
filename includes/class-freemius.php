@@ -20992,40 +20992,46 @@
                              */
                             $api = $this->get_api_site_scope();
 
-                            $add_notice = false;
-                            if ( $background ) {
-                                $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
+                            if ( ! self::$_global_admin_notices->has_sticky( 'api_blocked' ) ) {
+                                // Add notice immediately if not a background sync.
+                                $add_notice = ( ! $background );
 
-                                // We only want to show the notice after 3 consecutive failures.
-                                if ( 3 <= $counter ) {
-                                    $add_notice = true;
+                                if ( ! $add_notice ) {
+                                    $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
 
-                                    // Resetting the counter as we are showing the notice now.
-                                    $counter = 0;
+                                    // We only want to add the notice after 3 consecutive failures.
+                                    $add_notice = ( 3 <= $counter );
+
+                                    if ( ! $add_notice ) {
+                                        /**
+                                         * Update counter transient only if notice shouldn't be added. If it is added the transient will be reset anyway, because the retries mechanism should only start counting if the admin isn't aware of the connectivity issue.
+                                         *
+                                         * Also, since the background sync happens once a day, setting the transient expiration for a week should be enough to count 3 failures, if there's an actual connectivity issue.
+                                         */
+                                        set_transient( '_fs_api_connection_retry_counter', $counter + 1, WP_FS__TIME_WEEK_IN_SEC );
+                                    }
                                 }
 
-                                // Generally, background sync happens once a day. So, setting expiration for a week time should be enough.
-                                set_transient( '_fs_api_connection_retry_counter', $counter + 1, WP_FS__TIME_WEEK_IN_SEC );
-                            }
+                                // Add notice instantly for not-background sync and only after 3 failed attempts for background sync.
+                                if ( $add_notice ) {
+                                    self::$_global_admin_notices->add(
+                                        sprintf(
+                                            $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
+                                            $this->get_plugin_name(),
+                                            '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
+                                                'api.freemius.com',
+                                                'wp.freemius.com'
+                                            ) ) ) . '</b>'
+                                        ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
+                                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                                        'error',
+                                        $background,
+                                        'api_blocked'
+                                    );
 
-                            // Add notice instantly for not-background sync and only after 3 failed attempts for background sync.
-                            if ( ( ! $background || $add_notice ) &&
-                                 ! self::$_global_admin_notices->has_sticky( 'api_blocked' )
-                            ) {
-                                self::$_global_admin_notices->add(
-                                    sprintf(
-                                        $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
-                                        $this->get_plugin_name(),
-                                        '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
-                                            'api.freemius.com',
-                                            'wp.freemius.com'
-                                        ) ) ) . '</b>'
-                                    ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
-                                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                                    'error',
-                                    $background,
-                                    'api_blocked'
-                                );
+                                    // Notice was just shown, reset connectivity counter.
+                                    delete_transient( '_fs_api_connection_retry_counter' );
+                                }
                             }
                         } else {
                             // Authentication params are broken.
