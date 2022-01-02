@@ -7710,14 +7710,14 @@
                             <?php
                             echo $this->apply_filters( 'optin_pointer_execute', "
 
-							optin.pointer('open');
+                            optin.pointer('open');
 
-							// Tag the opt-in pointer with custom class.
-							$('.wp-pointer #fs_connect')
-								.parents('.wp-pointer.wp-pointer-top')
-								.addClass('fs-opt-in-pointer');
+                            // Tag the opt-in pointer with custom class.
+                            $('.wp-pointer #fs_connect')
+                                .parents('.wp-pointer.wp-pointer-top')
+                                .addClass('fs-opt-in-pointer');
 
-							", 'element', 'optin' ) ?>
+                            ", 'element', 'optin' ) ?>
                         }
                     }
                 });
@@ -7765,7 +7765,7 @@
         }
 
         /* Events
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         /**
          * Delete site install from Database.
          *
@@ -10649,7 +10649,7 @@
         #endregion ------------------------------------------------------------------
 
         /* Account
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
 
         /**
          * Find plugin's slug by plugin's basename.
@@ -16562,7 +16562,7 @@
         }
 
         /* Logger
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         /**
          * @param string $id
          * @param bool   $prefix_slug
@@ -16587,7 +16587,7 @@
         }
 
         /* Security
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         private static function _encrypt( $str ) {
             if ( is_null( $str ) ) {
                 return null;
@@ -19651,7 +19651,7 @@
         }
 
         /* Account Page
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         /**
          * Update site information.
          *
@@ -20980,7 +20980,7 @@
                         $this->switch_to_blog( $this->_storage->network_install_blog_id );
                     }
 
-	                // Show API message only if not background sync or if paying customer. And if it's a background process, show message only if it's a paying customer.
+                    // Show API message only if not background sync or if paying customer.
                     if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
                         if ( ! FS_Api::test() ) {
@@ -20992,43 +20992,42 @@
                              */
                             $api = $this->get_api_site_scope();
 
-	                        $add_notice = false;
-	                        if ( $background ) {
-		                        $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
+                            $add_notice = false;
+                            if ( $background ) {
+                                $counter = (int) get_transient( '_fs_api_connection_retry_counter' );
 
                                 // We only want to show the notice after 3 consecutive failures.
-		                        if ( $counter >= 3 ) {
-			                        $add_notice = true;
-			                        $counter    = 0;
-		                        }
+                                if ( 3 <= $counter ) {
+                                    $add_notice = true;
+
+                                    // Resetting the counter as we are showing the notice now.
+                                    $counter = 0;
+                                }
 
                                 // Generally, background sync happens once a day. So, setting expiration for a week time should be enough.
-		                        set_transient( '_fs_api_connection_retry_counter', $counter + 1, WP_FS__TIME_WEEK_IN_SEC );
-	                        }
+                                set_transient( '_fs_api_connection_retry_counter', $counter + 1, WP_FS__TIME_WEEK_IN_SEC );
+                            }
 
-	                        // Add notice instantly for not-background sync and only after 3 failed attempts for background sync.
-	                        if ( ( ! $background || $add_notice ) &&
-	                             ! self::$_global_admin_notices->has_sticky( 'api_blocked' )
-	                        ) {
-		                        self::$_global_admin_notices->add(
-			                        sprintf(
-				                        $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
-				                        $this->get_plugin_name(),
-				                        '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
-					                        'api.freemius.com',
-					                        'wp.freemius.com'
-				                        ) ) ) . '</b>'
-			                        ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
-			                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-			                        'error',
-			                        $background,
-			                        'api_blocked'
-		                        );
-	                        }
+                            // Add notice instantly for not-background sync and only after 3 failed attempts for background sync.
+                            if ( ( ! $background || $add_notice ) &&
+                                 ! self::$_global_admin_notices->has_sticky( 'api_blocked' )
+                            ) {
+                                self::$_global_admin_notices->add(
+                                    sprintf(
+                                        $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
+                                        $this->get_plugin_name(),
+                                        '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
+                                            'api.freemius.com',
+                                            'wp.freemius.com'
+                                        ) ) ) . '</b>'
+                                    ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
+                                    $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                                    'error',
+                                    $background,
+                                    'api_blocked'
+                                );
+                            }
                         } else {
-                            // API is working now. Delete the transient and start afresh.
-                            delete_transient('_fs_api_connection_retry_counter');
-
                             // Authentication params are broken.
                             $this->_admin_notices->add(
                                 $this->get_text_inline( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'wrong-authentication-param-message' ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
@@ -21041,6 +21040,9 @@
                     // No reason to continue with license sync while there are API issues.
                     return;
                 }
+
+                // API is working now. Delete the transient and start afresh.
+                delete_transient('_fs_api_connection_retry_counter');
 
                 if ( $is_site_level_sync ) {
                     $site = new FS_Site( $result );
@@ -23230,7 +23232,7 @@
         }
 
         /* Pricing & Upgrade
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         /**
          * Render pricing page.
          *
@@ -23389,17 +23391,17 @@
         }
 
         /* CSS & JavaScript
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         /*		function _enqueue_script($handle, $src) {
-					$url = plugins_url( substr( WP_FS__DIR_JS, strlen( $this->_plugin_dir_path ) ) . '/assets/js/' . $src );
+                    $url = plugins_url( substr( WP_FS__DIR_JS, strlen( $this->_plugin_dir_path ) ) . '/assets/js/' . $src );
 
-					$this->_logger->entrance( 'script = ' . $url );
+                    $this->_logger->entrance( 'script = ' . $url );
 
-					wp_enqueue_script( $handle, $url );
-				}*/
+                    wp_enqueue_script( $handle, $url );
+                }*/
 
         /* SDK
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         private $_user_api;
 
         /**
@@ -23975,7 +23977,7 @@
         }
 
         /* Action Links
-		------------------------------------------------------------------------------------------------------------------*/
+        ------------------------------------------------------------------------------------------------------------------*/
         private $_action_links_hooked = false;
         private $_action_links = array();
 
