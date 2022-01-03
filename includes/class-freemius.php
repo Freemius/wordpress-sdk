@@ -521,7 +521,10 @@
                  * @author Leo Fajardo (@leorw)
                  * @since  1.2.2
                  */
-                ( is_object( $this->_plugin ) ? $this->_plugin->title : $this->get_plugin_name() ),
+                ( is_object( $this->_plugin ) && isset( $this->_plugin->title ) ?
+                    $this->_plugin->title :
+                    $this->get_plugin_name()
+                ),
                 $this->get_unique_affix()
             );
 
@@ -1643,12 +1646,10 @@
             }
 
             if ( $this->is_plugin() ) {
-                if ( $this->_is_network_active ) {
-                    if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
-                        add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
-                    } else {
-                        add_action( 'wp_insert_site', array( $this, '_after_wp_insert_site_callback' ) );
-                    }
+                if ( version_compare( $GLOBALS['wp_version'], '5.1', '<' ) ) {
+                    add_action( 'wpmu_new_blog', array( $this, '_after_new_blog_callback' ), 10, 6 );
+                } else {
+                    add_action( 'wp_initialize_site', array( $this, '_after_wp_initialize_site_callback' ), 11, 2 );
                 }
 
                 register_deactivation_hook( $this->_plugin_main_file_path, array( &$this, '_deactivate_plugin_hook' ) );
@@ -3642,6 +3643,16 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
+         * @param number $site_id
+         */
+        function fetch_install_by_id( $site_id ) {
+            return $this->get_current_or_network_user_api_scope()->get( "/installs/{$site_id}.json" );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
          * @return string|object|bool
          */
         function _handle_long_term_duplicate() {
@@ -5153,6 +5164,8 @@
             }
 
             if ( $this->is_registered() ) {
+                FS_Clone_Manager::instance()->maybe_resolve_new_subsite_install_automatically( $this );
+
                 $this->hook_callback_to_install_sync();
             }
 
@@ -8925,6 +8938,14 @@
         public function _after_new_blog_callback( $blog_id, $user_id, $domain, $path, $network_id, $meta ) {
             $this->_logger->entrance();
 
+            if ( ! $this->_is_network_active ) {
+                FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id );
+                return;
+            }
+
+            $site        = null;
+            $new_blog_id = $blog_id;
+
             if ( $this->is_premium() &&
                  $this->is_network_connected() &&
                  is_object( $this->_license ) &&
@@ -8958,9 +8979,13 @@
                     }
                 }
 
+                $site = $this->_site;
+
                 $this->switch_to_blog( $current_blog_id );
 
-                if ( is_object( $this->_site ) ) {
+                if ( is_object( $site ) ) {
+                    FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id, $site );
+
                     // Already connected (with or without a license), so no need to continue.
                     return;
                 }
@@ -8993,6 +9018,8 @@
                     false
                 );
 
+                $site = $this->_site;
+
                 $this->switch_to_blog( $current_blog_id );
             } else {
                 /**
@@ -9003,8 +9030,8 @@
                 $has_delegated_site = false;
 
                 $sites = self::get_sites();
-                foreach ( $sites as $site ) {
-                    $blog_id = self::get_site_blog_id( $site );
+                foreach ( $sites as $wp_site ) {
+                    $blog_id = self::get_site_blog_id( $wp_site );
 
                     if ( $this->is_site_delegated_connection( $blog_id ) ) {
                         $has_delegated_site = true;
@@ -9018,6 +9045,14 @@
                     $this->skip_site_connection( $blog_id );
                 }
             }
+
+            /**
+             * Store the new blog's information even if there's no install so that when a clone install is stored in the new blog's storage, we can try to resolve it automatically.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.5.0
+             */
+            FS_Clone_Manager::instance()->store_new_blog_install_info( $new_blog_id, $site );
         }
 
         /**
@@ -9025,8 +9060,9 @@
          * @since  2.5.0
          *
          * @param \WP_Site $new_site
+         * @param array    $args
          */
-        public function _after_wp_insert_site_callback( WP_Site $new_site ) {
+        public function _after_wp_initialize_site_callback( WP_Site $new_site, $args ) {
             $this->_logger->entrance();
 
             $this->_after_new_blog_callback(
@@ -9614,6 +9650,7 @@
          *
          * @param string[] string           $override
          * @param bool     $only_diff
+         * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
          * @param bool     $include_themes  Since 1.1.8 by default include plugin changes.
          *
@@ -9622,6 +9659,7 @@
         private function get_installs_data_for_api(
             array $override,
             $only_diff = false,
+            $is_keepalive = false,
             $include_plugins = true,
             $include_themes = true
         ) {
@@ -9659,6 +9697,9 @@
 
             $sites = self::get_sites();
 
+            $subsite_data_by_install_id = array();
+            $install_url_by_install_id  = array();
+
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
 
@@ -9677,10 +9718,34 @@
 
                     $install_data = $this->get_site_info( $site );
 
+                    if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $install_data['blog_id'] ) ) {
+                        continue;
+                    }
+
                     $uid = $install_data['uid'];
+                    $url = $install_data['url'];
+
+                    if ( isset( $subsite_data_by_install_id[ $install->id ] ) ) {
+                        $clone_subsite_data = $subsite_data_by_install_id[ $install->id ];
+                        $clone_install_url  = $install_url_by_install_id[ $install->id ];
+
+                        if (
+                            /**
+                             * If we already have an install with the same URL as the subsite it's stored in, skip the current subsite. Otherwise, replace the existing install's data with the current subsite's install's data if the URLs match.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.5.0
+                             */
+                            fs_strip_url_protocol( untrailingslashit( $clone_install_url ) ) === fs_strip_url_protocol( untrailingslashit( $clone_subsite_data['url'] ) ) ||
+                            fs_strip_url_protocol( untrailingslashit( $install->url ) ) !== fs_strip_url_protocol( untrailingslashit( $url ) )
+                        ) {
+                            continue;
+                        }
+                    }
 
                     unset( $install_data['blog_id'] );
                     unset( $install_data['uid'] );
+                    unset( $install_data['url'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -9705,17 +9770,24 @@
                         $is_common_diff_for_any_site = $is_common_diff_for_any_site || $is_common_diff;
                     }
 
-                    if ( ! empty( $install_data ) || $is_common_diff ) {
+                    if ( ! empty( $install_data ) || $is_common_diff || $is_keepalive ) {
                         // Add install ID and site unique ID.
                         $install_data['id']  = $install->id;
                         $install_data['uid'] = $uid;
+                        $install_data['url'] = $url;
 
-                        $installs_data[] = $install_data;
+                        $subsite_data_by_install_id[ $install->id ] = $install_data;
+                        $install_url_by_install_id[ $install->id ]  = $install->url;
                     }
                 }
             }
 
             restore_current_blog();
+
+            $installs_data = array_merge(
+                $installs_data,
+                array_values( $subsite_data_by_install_id )
+            );
 
             if ( 0 < count( $installs_data ) && ( $is_common_diff_for_any_site || ! $only_diff ) ) {
                 if ( ! $only_diff ) {
@@ -9788,10 +9860,11 @@
          *
          * @param string[] string $override
          * @param bool     $flush
+         * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
          * @return false|object|string
          */
-        private function send_install_update( $override = array(), $flush = false ) {
+        private function send_install_update( $override = array(), $flush = false, $is_two_way_sync = false ) {
             $this->_logger->entrance();
 
             $check_properties = $this->get_install_data_for_api( $override );
@@ -9817,10 +9890,9 @@
                 }
             }
 
-            if ( ! $keepalive_only_update ) {
+            if ( $is_two_way_sync ) {
                 /**
-                 * Do not update the last install sync timestamp after a keepalive-only call since there were no actual
-                 * updates sent.
+                 * Update last install sync timestamp during a two-way sync call as we expect that updates are sent during this call.
                  *
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.3
@@ -9838,9 +9910,9 @@
             // Send updated values to FS.
             $site = $this->api_site_call( '/', 'put', $params, true );
 
-            if ( ! $keepalive_only_update && $this->is_api_result_entity( $site ) ) {
+            if ( $is_two_way_sync && $this->is_api_result_entity( $site ) ) {
                 /**
-                 * Do not clear scheduled sync after a keepalive-only call since there were no actual updates sent.
+                 * Clear scheduled install sync after a two-way sync call.
                  *
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.3
@@ -9862,37 +9934,29 @@
          *
          * @param string[] string $override
          * @param bool     $flush
+         * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
          * @return false|object|string
          */
-        private function send_installs_update( $override = array(), $flush = false ) {
+        private function send_installs_update( $override = array(), $flush = false, $is_two_way_sync = false ) {
             $this->_logger->entrance();
 
-            $installs_data = $this->get_installs_data_for_api( $override, ! $flush );
+            /**
+             * Pass `true` to use the network level storage since the update is for many installs.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since 2.2.3
+             */
+            $should_send_keepalive = $this->should_send_keepalive_update( true );
 
-            $keepalive_only_update = false;
+            $installs_data = $this->get_installs_data_for_api( $override, ! $flush, $should_send_keepalive );
+
             if ( empty( $installs_data ) ) {
-                /**
-                 * Pass `true` to use the network level storage since the update is for many installs.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.3
-                 */
-                $keepalive_only_update = $this->should_send_keepalive_update( true );
-
-                if ( ! $keepalive_only_update ) {
-                    /**
-                     * There are no updates to send including keepalive.
-                     *
-                     * @author Leo Fajardo (@leorw)
-                     * @since 2.2.3
-                     */
-                    return false;
-                }
+                return false;
             }
 
-            if ( ! $keepalive_only_update ) {
-                // Update last install sync timestamp if there were actual updates sent (i.e., not a keepalive-only call).
+            if ( $is_two_way_sync ) {
+                // Update last install sync timestamp during a two-way sync call as we expect that updates are sent during this call.
                 $this->set_cron_execution_timestamp( 'install_sync' );
             }
 
@@ -9907,8 +9971,8 @@
             // Send updated values to FS.
             $result = $this->get_api_user_scope()->call( "/plugins/{$this->_plugin->id}/installs.json", 'put', $installs_data );
 
-            if ( ! $keepalive_only_update && $this->is_api_result_object( $result, 'installs' ) ) {
-                // I successfully sent installs update (there was an actual update sent and it's not just a keepalive-only call), clear scheduled sync if exist.
+            if ( $is_two_way_sync && $this->is_api_result_object( $result, 'installs' ) ) {
+                // I successfully sent a two-way installs update, clear the scheduled install sync if it exists.
                 $this->clear_install_sync_cron();
             }
 
@@ -9961,7 +10025,7 @@
         function sync_install( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
-            $site = $this->send_install_update( $override, $flush );
+            $site = $this->send_install_update( $override, $flush, true );
 
             if ( false === $site ) {
                 // No sync required.
@@ -9990,7 +10054,7 @@
         private function sync_installs( $override = array(), $flush = false ) {
             $this->_logger->entrance();
 
-            $result = $this->send_installs_update( $override, $flush );
+            $result = $this->send_installs_update( $override, $flush, true );
 
             if ( false === $result ) {
                 // No sync required.
@@ -19723,7 +19787,7 @@
         }
 
         /**
-         * Store the context site in the sites backup storage. This logic is used before deleting the site info so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
+         * Stores the context site in the sites backup storage. This logic is used before deleting the site info so that it can be restored later on if necessary (e.g., if the automatic clone resolution attempt fails).
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
@@ -20974,10 +21038,10 @@
                         $this->switch_to_blog( $current_blog_id );
                     }
 
-                    $result   = $this->send_install_update( array(), true );
+                    $result   = $this->send_install_update( array(), true, true );
                     $is_valid = $this->is_api_result_entity( $result );
                 } else {
-                    $result   = $this->send_installs_update( array(), true );
+                    $result   = $this->send_installs_update( array(), true, true );
                     $is_valid = $this->is_api_result_object( $result, 'installs' );
                 }
 
@@ -21039,7 +21103,7 @@
                                     delete_transient( '_fs_api_connection_retry_counter' );
                                 }
                             }
-                        } else {
+                        } else if ( is_object( $result ) ) {
                             // Authentication params are broken.
                             $this->_admin_notices->add(
                                 $this->get_text_inline( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'wrong-authentication-param-message' ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),

@@ -29,6 +29,10 @@
          */
         private $_storage;
         /**
+         * @var FS_Option_Manager
+         */
+        private $_network_storage;
+        /**
          * @var array {
          * @type int    $clone_identification_timestamp
          * @type int    $temporary_duplicate_mode_selection_timestamp
@@ -39,6 +43,12 @@
          * }
          */
         private $_data;
+        /**
+         * @var array {
+         * @type array $new_blog_install_map
+         * }
+         */
+        private $_network_data;
         /**
          * @var FS_Admin_Notices
          */
@@ -64,6 +74,10 @@
          * @var string
          */
         const OPTION_NAME = 'clone_resolution';
+        /**
+         * @var string
+         */
+        const OPTION_MANAGER_NAME = 'clone_management';
         /**
          * @var string
          */
@@ -96,8 +110,11 @@
         #endregion
 
         private function __construct() {
-            $this->_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . 'clone_management', true );
-            $this->_data    = $this->_storage->get_option( self::OPTION_NAME, array() );
+            $this->_storage         = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true );
+            $this->_network_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, true );
+            $this->_data            = $this->_storage->get_option( self::OPTION_NAME, array() );
+            $this->_network_data    = $this->_network_storage->get_option( self::OPTION_NAME, array() );
+
             $this->_notices = FS_Admin_Notices::instance( 'global_clone_resolution_notices', '', '', true );
             $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
 
@@ -118,6 +135,13 @@
                         $this->_data[ $name ] :
                         $value;
                 }
+            }
+
+            if (
+                ! is_array( $this->_network_data ) ||
+                ! isset( $this->_network_data['new_blog_install_map'] )
+            ) {
+                $this->_network_data = array( 'new_blog_install_map' => null );
             }
         }
 
@@ -282,11 +306,13 @@
          * Checks if a given instance's install is a clone of another subsite in the network.
          *
          * @author Vova Feldman (@svovaf)
+         *
+         * @return FS_Site
          */
-        private function is_clone_of_network_subsite( Freemius $instance ) {
+        private function find_network_subsite_clone_install( Freemius $instance ) {
             if ( ! is_multisite() ) {
                 // Not a multi-site network.
-                return false;
+                return null;
             }
 
             if ( ! isset( $this->all_installs ) ) {
@@ -314,15 +340,15 @@
                     $current_blog_id != $site->blog_id
                 ) {
                     // Clone is identical to an install on another subsite in the network.
-                    return true;
+                    return $site;
                 }
             }
 
-            return false;
+            return null;
         }
 
         /**
-         * Try to find a different install of the context product that is associated with the current URL and load it.
+         * Tries to find a different install of the context product that is associated with the current URL and loads it.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
@@ -332,7 +358,7 @@
          *
          * @return object
          */
-        private function find_other_install_with_by_url( Freemius $instance, $url ) {
+        private function find_other_install_by_url( Freemius $instance, $url ) {
             $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $url ) . "&all=true", true );
 
             $current_install = $instance->get_site();
@@ -340,6 +366,13 @@
             if ( $instance->is_api_result_object( $result, 'installs' ) ) {
                 foreach ( $result->installs as $install ) {
                     if ( $install->id == $current_install->id ) {
+                        continue;
+                    }
+
+                    if (
+                        $instance->is_only_premium() &&
+                        ! FS_Plugin_License::is_valid_id( $install->license_id )
+                    ) {
                         continue;
                     }
 
@@ -407,15 +440,16 @@
         /**
          * Try to resolve the clone situation automatically.
          *
-         * @param Freemius $instance
-         * @param string   $current_url
-         * @param bool     $is_localhost
+         * @param Freemius  $instance
+         * @param string    $current_url
+         * @param bool      $is_localhost
+         * @param bool|null $is_clone_of_network_subsite
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost ) {
+        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
             // Try to find a different install of the context product that is associated with the current URL.
-            $associated_install = $this->find_other_install_with_by_url( $instance, $current_url );
+            $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
             if ( is_object( $associated_install ) ) {
                 // Replace the current install with a different install that is associated with the current URL.
@@ -438,8 +472,12 @@
                 return false;
             }
 
+            $is_clone_of_network_subsite = ( ! is_null( $is_clone_of_network_subsite ) ) ?
+                $is_clone_of_network_subsite :
+                is_object( $this->find_network_subsite_clone_install( $instance ) );
+
             if (
-                $this->is_clone_of_network_subsite( $instance ) ||
+                $is_clone_of_network_subsite ||
                 WP_FS__IS_LOCALHOST_FOR_SERVER ||
                 $is_localhost
             ) {
@@ -451,7 +489,155 @@
         }
 
         /**
-         * Try to resolve all clones automatically.
+         * Tries to recover the install of a newly created subsite or resolve it if it's a clone.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param Freemius $instance
+         */
+        function maybe_resolve_new_subsite_install_automatically( Freemius $instance ) {
+            if ( ! $instance->is_user_in_admin() ) {
+                // Try to recover an install or resolve a clone only when there's a user in admin to prevent doing it prematurely (e.g., the install can get replaced with clone data again).
+                return;
+            }
+
+            if ( ! is_multisite() ) {
+                return;
+            }
+
+            $new_blog_install_map = $this->new_blog_install_map;
+
+            if ( empty( $new_blog_install_map ) || ! is_array( $new_blog_install_map ) ) {
+                return;
+            }
+
+            $is_network_admin = fs_is_network_admin();
+
+            if ( ! $is_network_admin ) {
+                // If not in network admin, handle the current site.
+                $blog_id = get_current_blog_id();
+            } else {
+                // If in network admin, handle only the first site.
+                $blog_ids = array_keys( $new_blog_install_map );
+                $blog_id  = $blog_ids[0];
+            }
+
+            if ( ! isset( $new_blog_install_map[ $blog_id ] ) ) {
+                // There's no site to handle.
+                return;
+            }
+
+            $expected_install_id = $new_blog_install_map[ $blog_id ]['install_id'];
+
+            $current_install    = $instance->get_install_by_blog_id( $blog_id );
+            $current_install_id = is_object( $current_install ) ?
+                $current_install->id :
+                null;
+
+            if ( $expected_install_id == $current_install_id ) {
+                // Remove the current site's information from the map to prevent handling it again.
+                $this->remove_new_blog_install_info_from_storage( $blog_id );
+
+                return;
+            }
+
+            $instance->switch_to_blog( $blog_id );
+
+            $current_url          = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $current_install_url  = is_object( $current_install ) ?
+                fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
+                null;
+
+            // This can be `false` even if the install is a clone as the URL can be updated as part of the cloning process.
+            $is_clone = ( ! is_null( $current_install_url ) && $current_url !== $current_install_url );
+
+            if ( ! FS_Site::is_valid_id( $expected_install_id ) ) {
+                $expected_install = null;
+            } else {
+                $expected_install = $instance->fetch_install_by_id( $expected_install_id );
+            }
+
+            if ( FS_Api::is_api_result_entity( $expected_install ) ) {
+                // Replace the current install with the expected install.
+                $instance->store_site( new FS_Site( clone $expected_install ) );
+                $instance->sync_install( array( 'is_new_site' => true ), true );
+            } else {
+                $network_subsite_clone_install = null;
+
+                if ( ! $is_clone ) {
+                    // It is possible that `$is_clone` is `false` but the install is actually a clone as the following call checks the install ID and not the URL.
+                    $network_subsite_clone_install = $this->find_network_subsite_clone_install( $instance );
+                }
+
+                if ( $is_clone || is_object( $network_subsite_clone_install ) ) {
+                    // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
+                    $is_localhost = FS_Site::is_localhost_by_address( $current_url );
+
+                    $resolved = $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, is_object( $network_subsite_clone_install ) );
+
+                    if ( ! $resolved && is_object( $network_subsite_clone_install ) ) {
+                        if ( empty( $this->get_clone_identification_timestamp() ) ) {
+                            $this->store_clone_identification_timestamp();
+                        }
+
+                        // Since the clone couldn't be identified based on the URL, replace the stored install with the cloned install so that the manual clone resolution notice will appear.
+                        $instance->store_site( clone $network_subsite_clone_install );
+                    }
+                }
+            }
+
+            $instance->restore_current_blog();
+
+            // Remove the current site's information from the map to prevent handling it again.
+            $this->remove_new_blog_install_info_from_storage( $blog_id );
+        }
+
+        /**
+         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int     $blog_id
+         * @param FS_Site $site
+         */
+        function store_new_blog_install_info( $blog_id, $site = null ) {
+            $new_blog_install_map = $this->new_blog_install_map;
+
+            if (
+                empty( $new_blog_install_map ) ||
+                ! is_array( $new_blog_install_map )
+            ) {
+                $new_blog_install_map = array();
+            }
+
+            $install_id = null;
+
+            if ( is_object( $site ) ) {
+                $install_id = $site->id;
+            }
+
+            $new_blog_install_map[ $blog_id ] = array( 'install_id' => $install_id );
+
+            $this->new_blog_install_map = $new_blog_install_map;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param int $blog_id
+         */
+        private function remove_new_blog_install_info_from_storage( $blog_id ) {
+            $new_blog_install_map = $this->new_blog_install_map;
+
+            unset( $new_blog_install_map[ $blog_id ] );
+            $this->new_blog_install_map = $new_blog_install_map;
+        }
+
+        /**
+         * Tries to resolve all clones automatically.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
@@ -829,8 +1015,8 @@
             $product_titles,
             $site_urls,
             $current_url,
-            $has_license = false,
-            $is_premium = false,
+            $has_license,
+            $is_premium,
             $doc_url
         ) {
             $this->_logger->entrance();
@@ -1142,12 +1328,28 @@
         }
 
         /**
-         * Determines if the temporary duplicate notice is currently being shown.
+         * Determines if a site was marked as a temporary duplicate and if it's still a temporary duplicate.
          *
          * @return bool
          */
-        function is_temporary_duplicate_notice_shown() {
-            return $this->_notices->has_sticky( 'temporary_duplicate_notice', true );
+        function is_temporary_duplicate_by_blog_id( $blog_id ) {
+            $storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, $blog_id );
+            $data    = $storage->get_option( self::OPTION_NAME, array() );
+
+            if ( ! is_array( $data ) ) {
+                return false;
+            }
+
+            $was_temporary_duplicate_mode_selected = (
+                isset( $data['temporary_duplicate_mode_selection_timestamp'] ) &&
+                is_numeric( $data['temporary_duplicate_mode_selection_timestamp'] )
+            );
+
+            if ( ! $was_temporary_duplicate_mode_selected ) {
+                return false;
+            }
+
+            return ( time() < ( $data['temporary_duplicate_mode_selection_timestamp'] + self::TEMPORARY_DUPLICATE_PERIOD ) );
         }
 
         /**
@@ -1200,6 +1402,18 @@
 
         #endregion
 
+        /**
+         * @author Leo Fajardo
+         * @since 2.5.0
+         *
+         * @param string $key
+         *
+         * @return bool
+         */
+        private function should_use_network_storage( $key ) {
+            return ( 'new_blog_install_map' === $key );
+        }
+
         #--------------------------------------------------------------------------------
         #region Magic methods
         #--------------------------------------------------------------------------------
@@ -1209,13 +1423,21 @@
          * @param int|string $value
          */
         function __set( $name, $value ) {
-            if ( ! array_key_exists( $name, $this->_data ) ) {
+            if ( ! $this->should_use_network_storage( $name ) ) {
+                $storage = $this->_storage;
+                $data    = $this->_data;
+            } else {
+                $storage = $this->_network_storage;
+                $data    = $this->_network_data;
+            }
+
+            if ( ! array_key_exists( $name, $data ) ) {
                 return;
             }
 
-            $this->_data[ $name ] = $value;
+            $data[ $name ] = $value;
 
-            $this->_storage->set_option( self::OPTION_NAME, $this->_data, true );
+            $storage->set_option( self::OPTION_NAME, $data, true );
         }
 
         /**
@@ -1224,7 +1446,10 @@
          * @return bool
          */
         function __isset( $name ) {
-            return isset( $this->_data[ $name ] );
+            return (
+                isset( $this->_data[ $name ] ) ||
+                isset( $this->_network_data[ $name ] )
+            );
         }
 
         /**
@@ -1233,8 +1458,12 @@
          * @return null|int|string
          */
         function __get( $name ) {
-            return array_key_exists( $name, $this->_data ) ?
-                $this->_data[ $name ] :
+            $data = ( ! $this->should_use_network_storage( $name ) ) ?
+                $this->_data :
+                $this->_network_data;
+
+            return array_key_exists( $name, $data ) ?
+                $data[ $name ] :
                 null;
         }
 

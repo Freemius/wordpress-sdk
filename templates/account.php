@@ -148,6 +148,7 @@
             $install     = $fs->get_install_by_blog_id( $site_info['blog_id'] );
             $view_params = array(
                 'freemius' => $fs,
+                'user'     => $fs->get_user(),
                 'license'  => $license,
                 'site'     => $site_info,
                 'install'  => $install,
@@ -740,12 +741,30 @@
                                     <div class="fs-table-body">
                                         <table class="widefat">
                                             <?php
+                                                $current_blog_id = get_current_blog_id();
+
                                                 foreach ( $site_view_params as $view_params ) {
                                                     fs_require_template(
                                                     	'account/partials/site.php',
 	                                                    $view_params
                                                     );
-                                            } ?>
+                                                }
+
+                                                /**
+                                                 * It's possible for the `Freemius::switch_to_blog()` method to be called within the `site.php` template and this changes the Freemius instance's context, so this check is for restoring the previous context based on the previously retrieved site.
+                                                 *
+                                                 * @author Leo Fajardo (@leorw)
+                                                 * @since 2.5.0
+                                                 */
+                                                $current_install = $fs->get_site();
+
+                                                if (
+                                                    is_object( $site ) &&
+                                                    ( ! is_object( $current_install ) || $current_install->id != $site->id )
+                                                ) {
+                                                    $fs->switch_to_blog( $current_blog_id, $site, true );
+                                                }
+                                            ?>
                                         </table>
                                     </div>
                                 </div>
