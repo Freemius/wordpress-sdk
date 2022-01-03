@@ -9716,9 +9716,9 @@
                         continue;
                     }
 
-                    $install_data = $this->get_site_info( $site, true );
+                    $install_data = $this->get_site_info( $site );
 
-                    if ( $install_data['is_temporary_duplicate'] ) {
+                    if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $install_data['blog_id'] ) ) {
                         continue;
                     }
 
@@ -9746,7 +9746,6 @@
                     unset( $install_data['blog_id'] );
                     unset( $install_data['uid'] );
                     unset( $install_data['url'] );
-                    unset( $install_data['is_temporary_duplicate'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -16014,16 +16013,13 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
-         * @param bool               $include_clone_info Since 2.5.0. If it's true, the clone info for the site will be retrieved (e.g., the value of the flag that tells if a site is a temporary duplicate will be retrieved).
          *
          * @return array
          */
-        function get_site_info( $site = null, $include_clone_info = false ) {
+        function get_site_info( $site = null ) {
             $this->_logger->entrance();
 
             $switched = false;
-
-            $clone_info = array();
 
             if ( is_null( $site ) ) {
                 $url     = get_site_url();
@@ -16044,19 +16040,15 @@
                     $url  = get_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
                 }
-
-                if ( $include_clone_info ) {
-                    $clone_info['is_temporary_duplicate'] = FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $blog_id );
-                }
             }
 
-            $info = array_merge( array(
+            $info = array(
                 'uid'      => $this->get_anonymous_id( $blog_id ),
                 'url'      => $url,
                 'title'    => $name,
                 'language' => get_bloginfo( 'language' ),
                 'charset'  => get_bloginfo( 'charset' ),
-            ), $clone_info );
+            );
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;

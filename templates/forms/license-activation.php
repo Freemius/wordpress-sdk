@@ -63,9 +63,9 @@
         $install_url_by_install_id  = array();
 
         foreach ( $all_sites as $site ) {
-            $site_details = $fs->get_site_info( $site, true );
+            $site_details = $fs->get_site_info( $site );
 
-            if ( $site_details['is_temporary_duplicate' ] ) {
+            if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $site_details['blog_id'] ) ) {
                 continue;
             }
 
@@ -94,8 +94,6 @@
                 if ( FS_Plugin_License::is_valid_id( $install->license_id ) ) {
                     $site_details['license_id'] = $install->license_id;
                 }
-
-                unset( $site_details['is_temporary_duplicate' ] );
             }
 
             $subsite_data_by_install_id[ $install->id ] = $site_details;
