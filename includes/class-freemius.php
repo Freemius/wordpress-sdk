@@ -21138,6 +21138,10 @@
                             $this->_store_site( true, $blog_id, new FS_Site( $install ) );
                         }
                     }
+
+                    if ( ! is_object( $site ) ) {
+                        $site = $this->_site;
+                    }
                 }
 
                 // Sync plans.
