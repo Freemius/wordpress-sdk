@@ -1328,6 +1328,15 @@
         }
 
         /**
+         * Determines if the temporary duplicate notice is currently being shown.
+         *
+         * @return bool
+         */
+        function is_temporary_duplicate_notice_shown() {
+            return $this->_notices->has_sticky( 'temporary_duplicate_notice', true );
+        }
+
+        /**
          * Determines if a site was marked as a temporary duplicate and if it's still a temporary duplicate.
          *
          * @return bool
