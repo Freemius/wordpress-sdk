@@ -605,6 +605,11 @@
 				updatePrimaryCtaText( actionType );
 			});
 
+            $sitesListContainer.delegate( 'td:not(:first-child)', 'click', function() {
+                // If a site row is clicked, trigger a click on the checkbox.
+                $( this ).parent().find( 'td:first-child input' ).click();
+            } );
+
 			$sitesListContainer.delegate( '.action', 'click', function( evt ) {
 				var $this = $( evt.target );
 				if ( $this.hasClass( 'selected' ) ) {

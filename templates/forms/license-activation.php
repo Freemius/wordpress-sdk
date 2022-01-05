@@ -94,10 +94,10 @@
                 if ( FS_Plugin_License::is_valid_id( $install->license_id ) ) {
                     $site_details['license_id'] = $install->license_id;
                 }
-            }
 
-            $subsite_data_by_install_id[ $install->id ] = $site_details;
-            $install_url_by_install_id[ $install->id ]  = $install->url;
+                $subsite_data_by_install_id[ $install->id ] = $site_details;
+                $install_url_by_install_id[ $install->id ]  = $install->url;
+            }
         }
 
         if ( $is_network_activation ) {
