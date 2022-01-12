@@ -1080,7 +1080,7 @@ if ( !isset($info->error) ) {
                 $this->_fs->get_plugin_version();
 
             // Get plugin's newest update.
-            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
+            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
                 $data->version = $plugin_version;
