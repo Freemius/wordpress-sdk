@@ -20,7 +20,8 @@
 	if ( ! empty( $plugin->info->selling_point_0 ) ||
 	     ! empty( $plugin->info->selling_point_1 ) ||
 	     ! empty( $plugin->info->selling_point_2 )
-	) : ?>
+	) :
+	?>
 		<div class="fs-selling-points">
 			<ul>
 				<?php for ( $i = 0; $i < 3; $i ++ ) : ?>
@@ -32,7 +33,11 @@
 				<?php endfor ?>
 			</ul>
 		</div>
-	<?php endif ?>
+	<?php
+	endif;
+	
+	if ( ! empty( $plugin->info->description ) ) :
+	?>
 	<div>
 		<?php
 			echo wp_kses( $plugin->info->description, array(
@@ -49,7 +54,11 @@
 			) );
 		?>
 	</div>
-<?php if ( ! empty( $plugin->info->screenshots ) ) : ?>
+	<?php
+	endif;
+
+	if ( ! empty( $plugin->info->screenshots ) ) :
+	?>
 	<?php $screenshots = $plugin->info->screenshots ?>
 	<div class="fs-screenshots clearfix">
 		<h2><?php fs_esc_html_echo_inline( 'Screenshots', 'screenshots', $plugin->slug ) ?></h2>
@@ -75,4 +84,5 @@
 					<?php $i ++; endforeach ?>
 		</ul>
 	</div>
-<?php endif ?>
+	<?php
+	endif;
