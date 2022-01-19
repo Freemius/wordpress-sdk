@@ -17332,7 +17332,7 @@
             $request = array(
                 'method'  => 'POST',
                 'body'    => $params,
-                'timeout' => WP_FS__DEBUG_SDK ? 60 : 30,
+                'timeout' => 60,
             );
 
             $url = $this->add_show_pending( WP_FS__ADDRESS . '/action/service/user/install/' );
