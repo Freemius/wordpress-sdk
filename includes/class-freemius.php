@@ -3581,6 +3581,8 @@
 
             self::add_ajax_action_static( 'set_db_option', array( 'Freemius', '_set_db_option' ) );
 
+            self::add_ajax_action_static( 'check_connectivity', array( 'Freemius', '_check_connectivity' ) );
+
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
             }
@@ -4032,6 +4034,26 @@
 
             fs_enqueue_local_style( 'fs_debug', '/admin/debug.css' );
             fs_require_once_template( 'debug.php', $vars );
+        }
+
+        /**
+         * @author Xiaheng Chen (@xhchen)
+         */
+        static function _check_connectivity() {
+            $ch = curl_init( 'https://api.freemius.com/v1/ping.json' );
+
+            curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
+            curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
+
+            curl_exec( $ch );
+
+            $httpcode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+
+            curl_close( $ch );
+
+            echo "\nCode: " . $httpcode;
+
+            exit;
         }
 
         #endregion

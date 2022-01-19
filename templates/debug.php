@@ -110,6 +110,9 @@
         <td>
             <button id="fs_set_db_option" class="button"><?php fs_esc_html_echo_inline( 'Set DB Option' ) ?></button>
         </td>
+        <td>
+            <button id="fs_check_connectivity_option" class="button"><?php fs_esc_html_echo_inline( 'Check Connectivity' ) ?></button>
+        </td>
     </tr>
     </tbody>
 </table>
@@ -150,6 +153,14 @@
                 }
             }
         });
+
+        $('#fs_check_connectivity_option').click(function () {
+            $.post(ajaxurl, {
+                action: 'fs_check_connectivity',
+            }, function (response) {
+                alert("Response: " + response);
+            });
+        })
     })(jQuery);
 </script>
 <?php
