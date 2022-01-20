@@ -149,6 +149,16 @@ $form_width: 480px;
         //        background: #F1F1F1;
         @include transition(background 0.5s ease);
 
+        .fs-permission {
+            &.fs-disabled {
+                color: #aaa;
+
+                .fs-permission-description span {
+                    color: #aaa;
+                }
+            }
+        }
+
         .fs-license-sync-disclaimer {
             text-align: center;
             margin-top: 0;
