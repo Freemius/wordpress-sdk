@@ -149,7 +149,7 @@ $form_width: 480px;
         //        background: #F1F1F1;
         @include transition(background 0.5s ease);
 
-        .fs-extensions {
+        .fs-permission {
             &.fs-disabled {
                 color: #aaa;
 

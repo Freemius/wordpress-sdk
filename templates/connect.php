@@ -437,7 +437,7 @@
 							foreach ( $permissions as $id => $permission ) : ?>
                                 <?php $is_permission_on = ( ! isset( $permission['default'] ) || true === $permission['default'] ); ?>
 								<li id="fs-permission-<?php echo esc_attr( $id ); ?>"
-								    class="fs-permission fs-<?php echo esc_attr( $id ); ?><?php echo ( ! $is_permission_on && 'extensions' === $id ) ? ' fs-disabled' : ''; ?>">
+								    class="fs-permission fs-<?php echo esc_attr( $id ); ?><?php echo ( ! $is_permission_on ) ? ' fs-disabled' : ''; ?>">
 									<i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
 									<?php if ( isset( $permission['optional'] ) && true === $permission['optional'] ) : ?>
 										<div class="fs-switch fs-small fs-round fs-<?php echo $is_permission_on ? 'on' : 'off' ?>">
@@ -889,11 +889,7 @@
 				.toggleClass( 'fs-on' )
 				.toggleClass( 'fs-off' );
 
-            var $parent = $( this ).parent();
-
-            if ( $parent.hasClass( 'fs-extensions' ) ) {
-                $parent.toggleClass( 'fs-disabled' );
-            }
+            $( this ).parent().toggleClass( 'fs-disabled' );
 		});
 
 		if (requireLicenseKey) {
