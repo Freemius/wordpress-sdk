@@ -3982,6 +3982,10 @@
             if ( ! is_multisite() ) {
                 foreach ( $module_types as $type ) {
                     $sites_by_type[ $type ] = self::get_all_sites( $type );
+
+                    foreach ( $sites_by_type[ $type ] as $slug => $install ) {
+                        $sites_by_type[ $type ][ $slug ] = array( $install );
+                    }
                 }
             } else {
                 $sites = self::get_sites();
