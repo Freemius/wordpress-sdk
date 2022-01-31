@@ -1079,8 +1079,15 @@ if ( !isset($info->error) ) {
                 $addon_version :
                 $this->_fs->get_plugin_version();
 
-            // Get plugin's newest update.
-            $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
+            // Get plugin's newest update. If it's a view details request, we want the latest available readme information not necessary the latest available version is newer than the current version.
+            if (
+                'plugin-information' === fs_request_get( 'tab', false ) &&
+                $this->_fs->get_slug() === fs_request_get('plugin', false)
+            ) {
+                $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false );
+            }
+            else
+                $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
                 $data->version = $plugin_version;
