@@ -3781,6 +3781,8 @@
          * @since  1.1.7.3
          */
         static function _toggle_debug_mode() {
+            check_admin_referer( 'fs_toggle_debug_mode' );
+
             if ( ! is_super_admin() ) {
                 return;
             }
@@ -3802,10 +3804,19 @@
          * @since  1.2.1.6
          */
         static function _get_debug_log() {
+            check_admin_referer( 'fs_get_debug_log' );
+
+            if ( ! is_super_admin() ) {
+                return;
+            }
+
+            $limit  = min( ! empty( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 200, 200 );
+            $offset = min( ! empty( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 200, 200 );
+
             $logs = FS_Logger::load_db_logs(
                 fs_request_get( 'filters', false, 'post' ),
-                ! empty( $_POST['limit'] ) && is_numeric( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 200,
-                ! empty( $_POST['offset'] ) && is_numeric( $_POST['offset'] ) ? intval( $_POST['offset'] ) : 0
+                $limit,
+                $offset
             );
 
             self::shoot_ajax_success( $logs );
@@ -4717,6 +4728,12 @@
          * @since  1.0.9
          */
         function _email_about_firewall_issue() {
+            check_admin_referer( 'fs_resolve_firewall_issues' );
+
+            if ( ! current_user_can( is_multisite() ? 'manage_options' : 'activate_plugins' ) ) {
+                return;
+            }
+
             $this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
             $pong = $this->ping();
@@ -4791,6 +4808,12 @@
          * @since  1.1.7.4
          */
         function _retry_connectivity_test() {
+            check_admin_referer( 'fs_retry_connectivity_test' );
+
+            if ( ! current_user_can( is_multisite() ? 'manage_options' : 'activate_plugins' ) ) {
+                return;
+            }
+
             $this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
 
             $pong = $this->ping();
