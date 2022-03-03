@@ -12931,7 +12931,21 @@
                 } else if ( $is_whitelabeled_flag ) {
                     $is_whitelabeled = true;
                 } else {
-                    $addon_ids        = $this->get_updated_account_addons();
+                    if ( $this->is_registered() || $this->is_premium() ) {
+                        $addon_ids = $this->get_updated_account_addons();
+                    } else {
+                        $addons = self::get_all_addons();
+
+                        $plugin_addons = isset( $addons[ $this->_plugin->id ] ) ?
+                            $addons[ $this->_plugin->id ] :
+                            array();
+
+                        $addon_ids = array();
+                        foreach ( $plugin_addons as $addon ) {
+                            $addon_ids[] = $addon->id;
+                        }
+                    }
+
                     $installed_addons = $this->get_installed_addons();
                     foreach ( $installed_addons as $fs_addon ) {
                         $addon_ids[] = $fs_addon->get_id();
