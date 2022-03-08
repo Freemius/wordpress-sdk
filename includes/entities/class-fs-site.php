@@ -190,7 +190,9 @@
                 // DesktopServer
                 fs_ends_with( $subdomain, '.dev.cc' ) ||
                 // Pressable
-                fs_ends_with( $subdomain, '.mystagingwebsite.com' )
+                fs_ends_with( $subdomain, '.mystagingwebsite.com' ) ||
+                // WPMU DEV
+                ( fs_ends_with( $subdomain, '.tempurl.host' ) || fs_ends_with( $subdomain, '.wpmudev.host' ) )
             );
         }
 
