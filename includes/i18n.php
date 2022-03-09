@@ -143,7 +143,7 @@
         'paypal-email-address-is-required'   => _fs_text( 'PayPal email address is required.' ),
         'processing'                         => _fs_text( 'Processing...' ),
         'non-expiring'                       => _fs_text( 'Non-expiring' ),
-        'account-is-pending-activation'      => _fs_text( 'Account is pending activation.' ),
+        'account-is-pending-activation'      => _fs_text( 'Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again' ),
         #endregion Affiliation
 
 		#region Account

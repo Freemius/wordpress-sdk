@@ -14980,7 +14980,7 @@
                             var_export( $next_page, true )
                     );
                 } else if ( $this->is_pending_activation() ) {
-                    self::shoot_ajax_failure( $this->get_text_inline( 'Account is pending activation.', 'account-is-pending-activation' ) );
+                    self::shoot_ajax_failure( $this->get_text_inline( 'Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again.', 'account-is-pending-activation' ) );
                 }
             }
 
