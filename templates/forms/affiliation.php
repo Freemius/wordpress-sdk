@@ -46,7 +46,7 @@
     $promotion_method_mobile_apps  = false;
     $statistics_information        = false;
     $promotion_method_description  = false;
-    $members_dashboard_login_url   = 'https://members.freemius.com/login/';
+    $members_dashboard_login_url   = 'https://users.freemius.com/login';
 
     $affiliate_application_data = $fs->get_affiliate_application_data();
 
