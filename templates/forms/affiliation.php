@@ -13,8 +13,10 @@
     /**
      * @var array    $VARS
      * @var Freemius $fs
+     * @var string   $plugin_title
      */
-    $fs = freemius( $VARS['id'] );
+    $fs           = freemius( $VARS['id'] );
+    $plugin_title = $VARS['plugin_title'];
 
     $slug = $fs->get_slug();
 
@@ -22,7 +24,6 @@
     $affiliate       = $fs->get_affiliate();
     $affiliate_terms = $fs->get_affiliate_terms();
 
-    $plugin_title = $fs->get_plugin_title();
     $module_type  = $fs->is_plugin() ?
         WP_FS__MODULE_TYPE_PLUGIN :
         WP_FS__MODULE_TYPE_THEME;

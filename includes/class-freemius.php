@@ -14825,14 +14825,41 @@
         }
 
         /**
+         * Get Plugin ID under which we will track affiliate application.
+         *
+         * This could either be the Bundle ID or the main plugin ID.
+         *
+         * @return number Bundle ID if developer has provided one, else the main plugin ID.
+         */
+        private function get_plugin_id_for_affiliate_terms() {
+            $bundle_id = $this->get_bundle_id();
+            if ( ! is_null( $bundle_id ) ) {
+                return $bundle_id;
+            }
+
+            return $this->_plugin->id;
+        }
+
+        /**
          * @author Leo Fajardo (@leorw)
          * @since  1.2.4
          */
         private function fetch_affiliate_terms() {
             if ( ! is_object( $this->plugin_affiliate_terms ) ) {
-                $plugins_api     = $this->get_api_plugin_scope();
+                /**
+                 * In case we have a bundle set in SDK configuration, we would like to use that for affiliates, not the main plugin.
+                 */
+                if ( ! is_null( $this->get_bundle_id() ) ) {
+                    $plugins_api = $this->get_api_bundle_scope();
+                } else {
+                    $plugins_api = $this->get_api_plugin_scope();
+                }
+
                 $affiliate_terms = $plugins_api->get( '/aff.json?type=affiliation', false );
 
+                /**
+                 * At this point, we intentionally don't fallback to the main plugin, because the developer has chosen to use bundle. So it makes sense the affiliate program should be in context to the bundle too.
+                 */
                 if ( ! $this->is_api_result_entity( $affiliate_terms ) ) {
                     return;
                 }
@@ -14850,8 +14877,10 @@
                 $application_data = $this->_storage->affiliate_application_data;
                 $flush            = ( ! isset( $application_data['status'] ) || 'pending' === $application_data['status'] );
 
+                $plugin_id_for_affiliate = $this->get_plugin_id_for_affiliate_terms();
+
                 $users_api = $this->get_api_user_scope();
-                $result    = $users_api->get( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", $flush );
+                $result    = $users_api->get( "/plugins/{$plugin_id_for_affiliate}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json", $flush );
                 if ( $this->is_api_result_object( $result, 'affiliates' ) ) {
                     if ( ! empty( $result->affiliates ) ) {
                         $affiliate = new FS_Affiliate( $result->affiliates[0] );
@@ -14957,9 +14986,11 @@
 
             $this->fetch_affiliate_terms();
 
+            $plugin_id_for_affiliate = $this->get_plugin_id_for_affiliate_terms();
+
             $api    = $this->get_api_user_scope();
             $result = $api->call(
-                ( "/plugins/{$this->_plugin->id}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json" ),
+                ( "/plugins/{$plugin_id_for_affiliate}/aff/{$this->plugin_affiliate_terms->id}/affiliates.json" ),
                 'post',
                 $affiliate
             );
@@ -23249,7 +23280,24 @@
 
             fs_enqueue_local_style( 'fs_affiliation', '/admin/affiliation.css' );
 
-            $vars = array( 'id' => $this->_module_id );
+            $is_bundle_context = ! is_null( $this->get_bundle_id() );
+
+            $plugin_title = $this->get_plugin_title();
+            if ( $is_bundle_context ) {
+                $plugin_title = $this->plugin_affiliate_terms->plugin_title;
+                // Add the suffix "Bundle" only if the word is not present in the title itself.
+                if ( false === mb_stripos( $plugin_title, fs_text_inline( 'Bundle', 'bundle' ) ) ) {
+                    $plugin_title = $this->apply_filters(
+                        'formatted_bundle_title',
+                        $plugin_title . fs_text_inline( ' Bundle', 'bundle-suffix' )
+                    );
+                }
+            }
+
+            $vars = array(
+                'id'           => $this->_module_id,
+                'plugin_title' => $plugin_title,
+            );
             echo $this->apply_filters( "/forms/affiliation.php", fs_get_template( '/forms/affiliation.php', $vars ) );
         }
 

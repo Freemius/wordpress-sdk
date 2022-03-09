@@ -552,6 +552,12 @@
 		'secure-x-page-header' => _fs_text( 'Secure HTTPS %s page, running from an external domain' ),
 		'pci-compliant'        => _fs_text( 'PCI compliant' ),
 		'view-paid-features'   => _fs_text( 'View paid features' ),
+
+        #--------------------------------------------------------------------------------
+        #region Bundle
+        #--------------------------------------------------------------------------------
+        'bundle'        => _fs_text( 'Bundle' ),
+        'bundle-suffix' => _fs_text( ' Bundle' ),
 	);
 
 	/**
