@@ -16082,12 +16082,19 @@
             }
 
             $info = array(
-                'uid'      => $this->get_anonymous_id( $blog_id ),
-                'url'      => $url,
-                'title'    => $name,
-                'language' => get_bloginfo( 'language' ),
-                'charset'  => get_bloginfo( 'charset' ),
+                'uid' => $this->get_anonymous_id( $blog_id ),
+                'url' => $url
             );
+
+            // Add these diagnostic information only if user allowed to track.
+            if ( $this->is_diagnostic_info_tracking_allowed() ) {
+                $info = array_merge( $info, array(
+                        'title'    => $name,
+                        'language' => get_bloginfo( 'language' ),
+                        'charset'  => get_bloginfo( 'charset' )
+                    )
+                );
+            }
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
