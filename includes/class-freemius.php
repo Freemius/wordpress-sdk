@@ -17108,9 +17108,13 @@
          */
         private function get_versions() {
             $versions = array();
-            $versions['platform_version']             = get_bloginfo( 'version' );
-            $versions['sdk_version']                  = $this->version;
-            $versions['programming_language_version'] = phpversion();
+            $versions['sdk_version'] = $this->version;
+            
+            // Collect these diagnostic information only if it's allowed.
+            if ( $this->is_diagnostic_info_tracking_allowed() ) {
+                $versions['platform_version']             = get_bloginfo( 'version' );
+                $versions['programming_language_version'] = phpversion();
+            }
 
             foreach ( $versions as $k => $version ) {
                 if ( is_string( $versions[ $k ] ) && ! empty( $versions[ $k ] ) ) {
