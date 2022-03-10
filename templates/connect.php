@@ -380,7 +380,7 @@
             $permissions['diagnostic'] = array(
                 'icon-class' => 'dashicons dashicons-admin-settings',
                 'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
-                'tooltip'    => $fs->get_text_inline( '', 'permissions-diagnostic_tooltip' ),
+                'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
                 'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
                 'priority'   => 25,
                 'optional'   => true,
