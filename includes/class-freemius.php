@@ -17109,7 +17109,7 @@
         private function get_versions() {
             $versions = array();
             $versions['sdk_version'] = $this->version;
-            
+
             // Collect these diagnostic information only if it's allowed.
             if ( $this->is_diagnostic_info_tracking_allowed() ) {
                 $versions['platform_version']             = get_bloginfo( 'version' );
@@ -17214,12 +17214,18 @@
 
                 $site = $this->get_site_info( $site );
 
-                $params = array_merge( $params, array(
+                $diagnostic_info = array();
+                if ( $this->is_diagnostic_info_tracking_allowed() ) {
+                    $diagnostic_info = array(
+                        'site_name' => $site['title'],
+                        'language'  => $site['language'],
+                        'charset'   => $site['charset']
+                    );
+                }
+
+                $params = array_merge( $params, $diagnostic_info, array(
                     'site_uid'  => $site['uid'],
-                    'site_url'  => $site['url'],
-                    'site_name' => $site['title'],
-                    'language'  => $site['language'],
-                    'charset'   => $site['charset'],
+                    'site_url'  => $site['url']
                 ) );
             }
 
