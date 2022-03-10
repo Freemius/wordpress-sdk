@@ -370,11 +370,21 @@
 			}
 
             $permissions['site'] = array(
-                'icon-class' => 'dashicons dashicons-admin-settings',
+                'icon-class' => 'dashicons dashicons-admin-site-alt3',
                 'tooltip'    => ( $require_license_key ? sprintf( $fs->get_text_inline( 'So you can manage and control your license remotely from the User Dashboard.', 'permissions-site_tooltip' ), $fs->get_module_type() ) : '' ),
                 'label'      => $fs->get_text_inline( 'Your Site Overview', 'permissions-site' ),
-                'desc'       => $fs->get_text_inline( 'Site URL, WP version, PHP version', 'permissions-site_desc' ),
+                'desc'       => $fs->get_text_inline( 'Site URL, SDK version, Plugin version', 'permissions-site_desc' ),
                 'priority'   => 10,
+            );
+
+            $permissions['diagnostic'] = array(
+                'icon-class' => 'dashicons dashicons-admin-settings',
+                'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                'tooltip'    => $fs->get_text_inline( '', 'permissions-diagnostic_tooltip' ),
+                'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
+                'priority'   => 25,
+                'optional'   => true,
+                'default'    => $fs->apply_filters( 'permission_extensions_default', ! $require_license_key )
             );
 
             if ( ! $require_license_key ) {
@@ -722,10 +732,21 @@
                     $extensionsPermission.hasClass('fs-on') :
                     null;
 
+            var $diagnosticInfoPermission = $('#fs-permission-diagnostic .fs-switch'),
+                isDiagnosticInfoTrackingAllowed = ($diagnosticInfoPermission.length > 0) ?
+                    $diagnosticInfoPermission.hasClass('fs-on') :
+                    null;
+
             if (null === isExtensionsTrackingAllowed) {
                 $('input[name=is_extensions_tracking_allowed]').remove();
             } else {
                 $('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
+            }
+
+            if (null === isDiagnosticInfoTrackingAllowed) {
+                $('input[name=is_diagnostic_tracking_allowed]').remove();
+            } else {
+                $('input[name=is_diagnostic_tracking_allowed]').val(isDiagnosticInfoTrackingAllowed ? 1 : 0);
             }
 
 			/**
@@ -782,6 +803,8 @@
                         data.is_marketing_allowed = isMarketingAllowed;
 
 						data.is_extensions_tracking_allowed = isExtensionsTrackingAllowed;
+
+						data.is_diagnostic_info_tracking_allowed = isDiagnosticInfoTrackingAllowed;
                     }
 
                     $marketingOptin.removeClass( 'error' );
