@@ -5794,10 +5794,10 @@
          *
          * @return bool
          */
-        function is_diagnostic_info_tracking_allowed() {
+        function is_diagnostic_tracking_allowed() {
             return ( true === $this->apply_filters(
-                    'is_diagnostic_info_tracking_allowed',
-                    $this->_storage->get( 'is_diagnostic_info_tracking_allowed', null )
+                    'is_diagnostic_tracking_allowed',
+                    $this->_storage->get( 'is_diagnostic_tracking_allowed', null )
                 ) );
         }
 
@@ -5823,7 +5823,7 @@
                     $this->update_extensions_tracking_flag( $is_enabled );
                     break;
                 case 'diagnostic_info':
-                    $this->update_diagnostic_info_tracking_flag( $is_enabled );
+                    $this->update_diagnostic_tracking_flag( $is_enabled );
                     break;
                 default:
                     $permission = 'no_match';
@@ -5858,9 +5858,9 @@
          *
          * @param bool|null $is_enabled
          */
-        function update_diagnostic_info_tracking_flag( $is_enabled ) {
+        function update_diagnostic_tracking_flag( $is_enabled ) {
             if ( is_bool( $is_enabled ) ) {
-                $this->_storage->store( 'is_diagnostic_info_tracking_allowed', $is_enabled );
+                $this->_storage->store( 'is_diagnostic_tracking_allowed', $is_enabled );
             }
         }
 
@@ -9653,14 +9653,17 @@
 
             $versions = $this->get_versions();
 
-            $blog_data = $include_blog_data ?
-                array(
-                    'language' => get_bloginfo( 'language' ),
-                    'charset'  => get_bloginfo( 'charset' ),
-                    'title'    => get_bloginfo( 'name' ),
-                    'url'      => get_site_url(),
-                ) :
-                array();
+            $blog_data = array();
+            if ( $include_blog_data ) {
+                $blog_data['url'] = get_site_url();
+                if ( $this->is_diagnostic_tracking_allowed() ) {
+                    $blog_data = array_merge( $blog_data, array(
+                        'language' => get_bloginfo( 'language' ),
+                        'charset'  => get_bloginfo( 'charset' ),
+                        'title'    => get_bloginfo( 'name' )
+                    ) );
+                }
+            }
 
             return array_merge( $versions, $blog_data, array(
                 'version'         => $this->get_plugin_version(),
@@ -13875,7 +13878,7 @@
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
                 fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
-                fs_request_get_bool( 'is_diagnostic_info_tracking_allowed', null )
+                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
             );
 
             if (
@@ -14112,7 +14115,7 @@
          * The implementation of this method was previously in `_activate_license_ajax_action()`.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  2.5.0.2 Added `$is_diagnostic_info_tracking_allowed` argument.
+         * @since  2.5.0.2 Added `$is_diagnostic_tracking_allowed` argument.
          * @since  2.2.4
          * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
          * @param string      $license_key
@@ -14122,7 +14125,7 @@
          * @param null|number $plugin_id
          * @param null|number $license_owner_id
          * @param bool|null   $is_extensions_tracking_allowed
-         * @param bool|null   $is_diagnostic_info_tracking_allowed
+         * @param bool|null   $is_diagnostic_tracking_allowed
          *
          * @return array {
          *      @var bool   $success
@@ -14138,7 +14141,7 @@
             $plugin_id = null,
             $license_owner_id = null,
             $is_extensions_tracking_allowed = null,
-            $is_diagnostic_info_tracking_allowed = null
+            $is_diagnostic_tracking_allowed = null
         ) {
             $this->_logger->entrance();
 
@@ -14160,7 +14163,7 @@
 
             $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
-            $this->update_diagnostic_info_tracking_flag( $is_diagnostic_info_tracking_allowed );
+            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
 
             $error     = false;
             $next_page = false;
@@ -16087,7 +16090,7 @@
             );
 
             // Add these diagnostic information only if user allowed to track.
-            if ( $this->is_diagnostic_info_tracking_allowed() ) {
+            if ( $this->is_diagnostic_tracking_allowed() ) {
                 $info = array_merge( $info, array(
                         'title'    => $name,
                         'language' => get_bloginfo( 'language' ),
@@ -17111,7 +17114,7 @@
             $versions['sdk_version'] = $this->version;
 
             // Collect these diagnostic information only if it's allowed.
-            if ( $this->is_diagnostic_info_tracking_allowed() ) {
+            if ( $this->is_diagnostic_tracking_allowed() ) {
                 $versions['platform_version']             = get_bloginfo( 'version' );
                 $versions['programming_language_version'] = phpversion();
             }
@@ -17215,7 +17218,7 @@
                 $site = $this->get_site_info( $site );
 
                 $diagnostic_info = array();
-                if ( $this->is_diagnostic_info_tracking_allowed() ) {
+                if ( $this->is_diagnostic_tracking_allowed() ) {
                     $diagnostic_info = array(
                         'site_name' => $site['title'],
                         'language'  => $site['language'],
@@ -17505,7 +17508,10 @@
                         $decoded->is_extensions_tracking_allowed :
                         null ),
                     $decoded->installs,
-                    false
+                    false,
+                    ( isset( $decoded->is_diagnostic_info_allowed ) && ! is_null( $decoded->is_diagnostic_info_allowed ) ?
+                        $decoded->is_diagnostic_info_allowed :
+                        null )
                 );
             }
 
@@ -17733,7 +17739,8 @@
                             fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
-                            $pending_sites_info['trial_plan_id']
+                            $pending_sites_info['trial_plan_id'],
+                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
                         );
                     } else {
                         $this->install_with_new_user(
@@ -17746,7 +17753,8 @@
                             fs_request_get( 'install_public_key' ),
                             fs_request_get( 'install_secret_key' ),
                             true,
-                            fs_request_get_bool( 'auto_install' )
+                            fs_request_get_bool( 'auto_install' ),
+                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
                         );
                     }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
@@ -17809,6 +17817,7 @@
          * @param string    $install_secret_key
          * @param bool      $redirect
          * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17822,7 +17831,8 @@
             $install_public_key,
             $install_secret_key,
             $redirect = true,
-            $auto_install = false
+            $auto_install = false,
+            $is_diagnostic_tracking_allowed = true
         ) {
             /**
              * This method is also executed after opting in with a license key since the
@@ -17861,6 +17871,8 @@
 
             $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
 
+            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
+
             return $this->setup_account(
                 $this->_user,
                 $this->_site,
@@ -17884,6 +17896,7 @@
          * @param bool      $license_key
          * @param bool      $trial_plan_id
          * @param bool      $redirect
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17896,7 +17909,8 @@
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
-            $redirect = true
+            $redirect = true,
+            $is_diagnostic_tracking_allowed = true
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
@@ -17905,6 +17919,8 @@
             }
 
             $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
+
+            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -17928,6 +17944,7 @@
          * @param object[]  $installs
          * @param bool      $redirect
          * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17939,7 +17956,8 @@
             $is_extensions_tracking_allowed,
             array $installs,
             $redirect = true,
-            $auto_install = false
+            $auto_install = false,
+            $is_diagnostic_tracking_allowed = true
         ) {
             $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
@@ -17948,6 +17966,8 @@
             }
 
             $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
+
+            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
 
             $install_ids = array();
 

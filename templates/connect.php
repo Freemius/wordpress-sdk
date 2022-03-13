@@ -330,6 +330,7 @@
 					       value="<?php echo $fs->get_unique_affix() ?>_activate_existing">
 					<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
+					<input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"><?php echo esc_html( $button_label ) ?></button>
 				</form>
@@ -340,6 +341,7 @@
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
+                    <input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
@@ -377,16 +379,18 @@
                 'priority'   => 10,
             );
 
-            if( $require_license_key ) {
-                $permissions['diagnostic'] = array(
-                    'icon-class' => 'dashicons dashicons-admin-settings',
-                    'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
-                    'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
-                    'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
-                    'priority'   => 25,
-                    'optional'   => true,
-                    'default'    => $fs->apply_filters( 'permission_diagnostic_info_default', ! $require_license_key )
-                );
+            $permissions['diagnostic'] = array(
+                'icon-class' => 'dashicons dashicons-admin-settings',
+                'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
+                'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
+                'priority'   => 25,
+                'optional'   => false,
+                'default'    => $fs->apply_filters( 'permission_diagnostic_info_default', ! $require_license_key )
+            );
+
+            if ( ! $require_license_key ) {
+                $permissions['diagnostic']['optional'] = true;
             }
 
             if ( ! $require_license_key ) {
@@ -732,9 +736,9 @@
                     $extensionsPermission.hasClass('fs-on') :
                     null;
 
-            var $diagnosticInfoPermission = $('#fs-permission-diagnostic .fs-switch'),
-                isDiagnosticInfoTrackingAllowed = ($diagnosticInfoPermission.length > 0) ?
-                    $diagnosticInfoPermission.hasClass('fs-on') :
+            var $diagnosticPermission = $('#fs-permission-diagnostic .fs-switch'),
+                isDiagnosticTrackingAllowed = ($diagnosticPermission.length > 0) ?
+                    $diagnosticPermission.hasClass('fs-on') :
                     null;
 
             if (null === isExtensionsTrackingAllowed) {
@@ -743,10 +747,10 @@
                 $('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
             }
 
-            if (null === isDiagnosticInfoTrackingAllowed) {
+            if (null === isDiagnosticTrackingAllowed) {
                 $('input[name=is_diagnostic_tracking_allowed]').remove();
             } else {
-                $('input[name=is_diagnostic_tracking_allowed]').val(isDiagnosticInfoTrackingAllowed ? 1 : 0);
+                $('input[name=is_diagnostic_tracking_allowed]').val(isDiagnosticTrackingAllowed ? 1 : 0);
             }
 
 			/**
@@ -804,7 +808,7 @@
 
 						data.is_extensions_tracking_allowed = isExtensionsTrackingAllowed;
 
-						data.is_diagnostic_info_tracking_allowed = isDiagnosticInfoTrackingAllowed;
+						data.is_diagnostic_tracking_allowed = isDiagnosticTrackingAllowed;
                     }
 
                     $marketingOptin.removeClass( 'error' );

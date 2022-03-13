@@ -390,6 +390,7 @@
                 'is_pending_activation'          => 2,
                 'pending_license_key'            => 2,
                 'is_extensions_tracking_allowed' => 2,
+                'is_diagnostic_tracking_allowed' => 2,
 
                 // Site level options.
                 'is_anonymous'                 => 3,
