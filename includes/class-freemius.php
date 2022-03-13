@@ -9653,14 +9653,17 @@
 
             $versions = $this->get_versions();
 
-            $blog_data = $include_blog_data ?
-                array(
-                    'language' => get_bloginfo( 'language' ),
-                    'charset'  => get_bloginfo( 'charset' ),
-                    'title'    => get_bloginfo( 'name' ),
-                    'url'      => get_site_url(),
-                ) :
-                array();
+            $blog_data = array();
+            if ( $include_blog_data ) {
+                $blog_data['url'] = get_site_url();
+                if ( $this->is_diagnostic_info_tracking_allowed() ) {
+                    $blog_data = array_merge( $blog_data, array(
+                        'language' => get_bloginfo( 'language' ),
+                        'charset'  => get_bloginfo( 'charset' ),
+                        'title'    => get_bloginfo( 'name' ),
+                    ) );
+                }
+            }
 
             return array_merge( $versions, $blog_data, array(
                 'version'         => $this->get_plugin_version(),
