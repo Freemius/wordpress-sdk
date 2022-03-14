@@ -5822,7 +5822,7 @@
                 case 'extensions':
                     $this->update_extensions_tracking_flag( $is_enabled );
                     break;
-                case 'diagnostic_info':
+                case 'diagnostic':
                     $this->update_diagnostic_tracking_flag( $is_enabled );
                     break;
                 default:
@@ -18080,6 +18080,8 @@
                 $license_key = fs_request_get( 'license_secret_key' );
 
                 $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', null ) );
+
+                $this->update_diagnostic_tracking_flag( fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ) );
 
                 $this->install_with_current_user( $license_key );
             }

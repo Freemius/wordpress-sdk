@@ -379,18 +379,16 @@
                 'priority'   => 10,
             );
 
-            $permissions['diagnostic'] = array(
-                'icon-class' => 'dashicons dashicons-admin-settings',
-                'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
-                'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
-                'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
-                'priority'   => 25,
-                'optional'   => false,
-                'default'    => $fs->apply_filters( 'permission_diagnostic_info_default', ! $require_license_key )
-            );
-
-            if ( ! $require_license_key ) {
-                $permissions['diagnostic']['optional'] = true;
+            if ( $require_license_key ) {
+                $permissions['diagnostic'] = array(
+                    'icon-class' => 'dashicons dashicons-admin-settings',
+                    'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                    'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
+                    'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
+                    'priority'   => 25,
+                    'optional'   => true,
+                    'default'    => $fs->apply_filters( 'permission_diagnostic_default', ! $require_license_key )
+                );
             }
 
             if ( ! $require_license_key ) {
