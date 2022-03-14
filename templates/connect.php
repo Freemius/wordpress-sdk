@@ -330,7 +330,6 @@
 					       value="<?php echo $fs->get_unique_affix() ?>_activate_existing">
 					<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
-					<input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"><?php echo esc_html( $button_label ) ?></button>
 				</form>
@@ -341,7 +340,6 @@
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
-                    <input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';

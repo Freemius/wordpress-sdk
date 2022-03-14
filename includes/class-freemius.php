@@ -17494,7 +17494,10 @@
                     $decoded->install_id,
                     $decoded->install_public_key,
                     $decoded->install_secret_key,
-                    false
+                    false,
+                    ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
+                        $decoded->is_diagnostic_tracking_allowed :
+                        null ),
                 );
             } else if ( is_array( $decoded->installs ) ) {
                 return $this->install_many_with_new_user(
@@ -17509,8 +17512,8 @@
                         null ),
                     $decoded->installs,
                     false,
-                    ( isset( $decoded->is_diagnostic_info_allowed ) && ! is_null( $decoded->is_diagnostic_info_allowed ) ?
-                        $decoded->is_diagnostic_info_allowed :
+                    ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
+                        $decoded->is_diagnostic_tracking_allowed :
                         null )
                 );
             }
@@ -17832,7 +17835,7 @@
             $install_secret_key,
             $redirect = true,
             $auto_install = false,
-            $is_diagnostic_tracking_allowed = true
+            $is_diagnostic_tracking_allowed = null
         ) {
             /**
              * This method is also executed after opting in with a license key since the
@@ -17910,7 +17913,7 @@
             $license_key = false,
             $trial_plan_id = false,
             $redirect = true,
-            $is_diagnostic_tracking_allowed = true
+            $is_diagnostic_tracking_allowed = null
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
@@ -17957,7 +17960,7 @@
             array $installs,
             $redirect = true,
             $auto_install = false,
-            $is_diagnostic_tracking_allowed = true
+            $is_diagnostic_tracking_allowed = null
         ) {
             $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
