@@ -5185,6 +5185,9 @@
                      * Check if requested for manual blocking background sync.
                      */
                     if ( fs_request_has( 'background_sync' ) ) {
+                        self::require_pluggable_essentials();
+                        self::wp_cookie_constants();
+
                         $this->run_manual_sync();
                     }
                 }
@@ -7145,8 +7148,6 @@
          * @since  1.1.7.3
          */
         private function run_manual_sync() {
-            self::require_pluggable_essentials();
-
             if ( ! $this->is_user_admin() ) {
                 return;
             }
