@@ -17491,13 +17491,13 @@
                     ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
                         $decoded->is_extensions_tracking_allowed :
                         null ),
-                    $decoded->install_id,
-                    $decoded->install_public_key,
-                    $decoded->install_secret_key,
-                    false,
                     ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
                         $decoded->is_diagnostic_tracking_allowed :
                         null ),
+                    $decoded->install_id,
+                    $decoded->install_public_key,
+                    $decoded->install_secret_key,
+                    false
                 );
             } else if ( is_array( $decoded->installs ) ) {
                 return $this->install_many_with_new_user(
@@ -17510,11 +17510,11 @@
                     ( isset( $decoded->is_extensions_tracking_allowed ) && ! is_null( $decoded->is_extensions_tracking_allowed ) ?
                         $decoded->is_extensions_tracking_allowed :
                         null ),
-                    $decoded->installs,
-                    false,
                     ( isset( $decoded->is_diagnostic_tracking_allowed ) && ! is_null( $decoded->is_diagnostic_tracking_allowed ) ?
                         $decoded->is_diagnostic_tracking_allowed :
-                        null )
+                        null ),
+                    $decoded->installs,
+                    false
                 );
             }
 
@@ -17740,10 +17740,10 @@
                             fs_request_get( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
                             fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
+                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                             $pending_sites_info['blog_ids'],
                             $pending_sites_info['license_key'],
-                            $pending_sites_info['trial_plan_id'],
-                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
+                            $pending_sites_info['trial_plan_id']
                         );
                     } else {
                         $this->install_with_new_user(
@@ -17752,12 +17752,12 @@
                             fs_request_get( 'user_secret_key' ),
                             fs_request_get_bool( 'is_marketing_allowed', null ),
                             fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
+                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                             fs_request_get( 'install_id' ),
                             fs_request_get( 'install_public_key' ),
                             fs_request_get( 'install_secret_key' ),
                             true,
-                            fs_request_get_bool( 'auto_install' ),
-                            fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
+                            fs_request_get_bool( 'auto_install' )
                         );
                     }
                 } else if ( fs_request_has( 'pending_activation' ) ) {
@@ -17815,12 +17815,12 @@
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
          * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          * @param number    $install_id
          * @param string    $install_public_key
          * @param string    $install_secret_key
          * @param bool      $redirect
          * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
-         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17830,12 +17830,12 @@
             $user_secret_key,
             $is_marketing_allowed,
             $is_extensions_tracking_allowed,
+            $is_diagnostic_tracking_allowed,
             $install_id,
             $install_public_key,
             $install_secret_key,
             $redirect = true,
-            $auto_install = false,
-            $is_diagnostic_tracking_allowed = null
+            $auto_install = false
         ) {
             /**
              * This method is also executed after opting in with a license key since the
@@ -17895,11 +17895,11 @@
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
          * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          * @param array     $site_ids
          * @param bool      $license_key
          * @param bool      $trial_plan_id
          * @param bool      $redirect
-         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17909,11 +17909,11 @@
             $user_secret_key,
             $is_marketing_allowed,
             $is_extensions_tracking_allowed,
+            $is_diagnostic_tracking_allowed,
             $site_ids,
             $license_key = false,
             $trial_plan_id = false,
-            $redirect = true,
-            $is_diagnostic_tracking_allowed = null
+            $redirect = true
         ) {
             $user = $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
@@ -17944,10 +17944,10 @@
          * @param string    $user_secret_key
          * @param bool|null $is_marketing_allowed
          * @param bool|null $is_extensions_tracking_allowed Since 2.3.2
+         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          * @param object[]  $installs
          * @param bool      $redirect
          * @param bool      $auto_install                   Since 1.2.1.7 If `true` and setting up an account with a valid license, will redirect (or return a URL) to the account page with a special parameter to trigger the auto installation processes.
-         * @param bool|null $is_diagnostic_tracking_allowed Since 2.5.0.2
          *
          * @return string If redirect is `false`, returns the next page the user should be redirected to.
          */
@@ -17957,10 +17957,10 @@
             $user_secret_key,
             $is_marketing_allowed,
             $is_extensions_tracking_allowed,
+            $is_diagnostic_tracking_allowed,
             array $installs,
             $redirect = true,
-            $auto_install = false,
-            $is_diagnostic_tracking_allowed = null
+            $auto_install = false
         ) {
             $this->setup_user( $user_id, $user_public_key, $user_secret_key );
 
