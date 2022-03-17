@@ -385,7 +385,7 @@
                     'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
                     'priority'   => 25,
                     'optional'   => true,
-                    'default'    => $fs->apply_filters( 'permission_diagnostic_default', ! $require_license_key )
+                    'default'    => $fs->apply_filters( 'permission_diagnostic_default', ! $require_license_key ),
                 );
             }
 

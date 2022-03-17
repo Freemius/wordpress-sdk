@@ -15,9 +15,11 @@
      *
      * A wrapper class for handling network level and single site level storage.
      *
-     * @property bool   $is_network_activation
-     * @property int    $network_install_blog_id
-     * @property object $sync_cron
+     * @property bool        $is_network_activation
+     * @property int         $network_install_blog_id
+     * @property bool|null   $is_extensions_tracking_allowed
+     * @property bool|null   $is_diagnostic_tracking_allowed
+     * @property object      $sync_cron
      */
     class FS_Storage {
         /**
@@ -390,6 +392,7 @@
                 'is_pending_activation'          => 2,
                 'pending_license_key'            => 2,
                 'is_extensions_tracking_allowed' => 2,
+                'is_diagnostic_tracking_allowed' => 2,
 
                 // Site level options.
                 'is_anonymous'                 => 3,

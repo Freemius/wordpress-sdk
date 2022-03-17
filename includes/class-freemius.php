@@ -5783,23 +5783,23 @@
          */
         function is_extensions_tracking_allowed() {
             return ( true === $this->apply_filters(
-                    'is_extensions_tracking_allowed',
-                    $this->_storage->get( 'is_extensions_tracking_allowed', null )
-                ) );
+                'is_extensions_tracking_allowed',
+                $this->_storage->is_extensions_tracking_allowed
+            ) );
         }
 
-        /**
-         * @author Malay Ladu (@msladu)
-         * @since  2.5.0.2
-         *
-         * @return bool
-         */
-        function is_diagnostic_tracking_allowed() {
+	    /**
+	     * @return bool
+	     * @since  2.5.0.2
+	     *
+	     * @author Malay Ladu (@msladu)
+	     */
+	    function is_diagnostic_tracking_allowed() {
             return ( true === $this->apply_filters(
-                    'is_diagnostic_tracking_allowed',
-                    $this->_storage->get( 'is_diagnostic_tracking_allowed', null )
-                ) );
-        }
+                'is_diagnostic_tracking_allowed',
+                $this->_storage->is_diagnostic_tracking_allowed
+            ) );
+	    }
 
         /**
          * @author Vova Feldman (@svovaf)
@@ -5847,9 +5847,9 @@
          * @param bool|null $is_enabled
          */
         function update_extensions_tracking_flag( $is_enabled ) {
-            if ( is_bool( $is_enabled ) ) {
-                $this->_storage->store( 'is_extensions_tracking_allowed', $is_enabled );
-            }
+	        if ( is_bool( $is_enabled ) ) {
+		        $this->_storage->is_extensions_tracking_allowed = $is_enabled;
+	        }
         }
 
         /**
@@ -5859,9 +5859,9 @@
          * @param bool|null $is_enabled
          */
         function update_diagnostic_tracking_flag( $is_enabled ) {
-            if ( is_bool( $is_enabled ) ) {
-                $this->_storage->store( 'is_diagnostic_tracking_allowed', $is_enabled );
-            }
+	        if ( is_bool( $is_enabled ) ) {
+		        $this->_storage->is_diagnostic_tracking_allowed = $is_enabled;
+	        }
         }
 
         /**
@@ -9656,11 +9656,12 @@
             $blog_data = array();
             if ( $include_blog_data ) {
                 $blog_data['url'] = get_site_url();
+
                 if ( $this->is_diagnostic_tracking_allowed() ) {
                     $blog_data = array_merge( $blog_data, array(
                         'language' => get_bloginfo( 'language' ),
                         'charset'  => get_bloginfo( 'charset' ),
-                        'title'    => get_bloginfo( 'name' )
+                        'title'    => get_bloginfo( 'name' ),
                     ) );
                 }
             }
@@ -14115,7 +14116,6 @@
          * The implementation of this method was previously in `_activate_license_ajax_action()`.
          *
          * @author Vova Feldman (@svovaf)
-         * @since  2.5.0.2 Added `$is_diagnostic_tracking_allowed` argument.
          * @since  2.2.4
          * @since  2.0.0 When a super-admin that hasn't connected before is network activating a license and excluding some of the sites for the license activation, go over the unselected sites in the network and if a site is not connected, skipped, nor delegated, if it's a freemium product then just skip the connection for the site, if it's a premium only product, delegate the connection and license activation to the site admin (Vova Feldman @svovaf).
          * @param string      $license_key
@@ -14125,7 +14125,8 @@
          * @param null|number $plugin_id
          * @param null|number $license_owner_id
          * @param bool|null   $is_extensions_tracking_allowed
-         * @param bool|null   $is_diagnostic_tracking_allowed
+         * @param bool|null   $is_diagnostic_tracking_allowed Since 2.5.0.2 to allow license activation with minimal data footprint.
+         *
          *
          * @return array {
          *      @var bool   $success
@@ -16090,14 +16091,13 @@
             );
 
             // Add these diagnostic information only if user allowed to track.
-            if ( $this->is_diagnostic_tracking_allowed() ) {
-                $info = array_merge( $info, array(
-                        'title'    => $name,
-                        'language' => get_bloginfo( 'language' ),
-                        'charset'  => get_bloginfo( 'charset' )
-                    )
-                );
-            }
+	        if ( $this->is_diagnostic_tracking_allowed() ) {
+		        $info = array_merge( $info, array(
+			        'title'    => $name,
+			        'language' => get_bloginfo( 'language' ),
+			        'charset'  => get_bloginfo( 'charset' ),
+		        ) );
+	        }
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
@@ -17222,13 +17222,13 @@
                     $diagnostic_info = array(
                         'site_name' => $site['title'],
                         'language'  => $site['language'],
-                        'charset'   => $site['charset']
+                        'charset'   => $site['charset'],
                     );
                 }
 
                 $params = array_merge( $params, $diagnostic_info, array(
                     'site_uid'  => $site['uid'],
-                    'site_url'  => $site['url']
+                    'site_url'  => $site['url'],
                 ) );
             }
 
