@@ -330,6 +330,7 @@
 					       value="<?php echo $fs->get_unique_affix() ?>_activate_existing">
 					<?php wp_nonce_field( 'activate_existing_' . $fs->get_public_key() ) ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
+					<input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"><?php echo esc_html( $button_label ) ?></button>
 				</form>
@@ -340,6 +341,7 @@
 						<input type="hidden" name="<?php echo $name ?>" value="<?php echo esc_attr( $value ) ?>">
 					<?php endforeach ?>
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
+                    <input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
@@ -743,9 +745,8 @@
                 $('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
             }
 
-            if (null === isDiagnosticTrackingAllowed) {
-                $('input[name=is_diagnostic_tracking_allowed]').remove();
-            } else {
+            // We are not showing switch to enable/disable diagnostic tracking while activating free version. So, don't remove hidden `is_diagnostic_tracking_allowed` element from DOM and change the value only if switch is available.
+            if (null !== isDiagnosticTrackingAllowed) {
                 $('input[name=is_diagnostic_tracking_allowed]').val(isDiagnosticTrackingAllowed ? 1 : 0);
             }
 

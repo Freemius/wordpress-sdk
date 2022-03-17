@@ -17385,8 +17385,10 @@
                 $params['is_marketing_allowed'] = $is_marketing_allowed;
             }
 
-            $params['is_disconnected']      = $is_disconnected;
-            $params['format']               = 'json';
+	        $params['is_disconnected']                = $is_disconnected;
+	        $params['format']                         = 'json';
+	        $params['is_extensions_tracking_allowed'] = $this->is_extensions_tracking_allowed();
+	        $params['is_diagnostic_tracking_allowed'] = $this->is_diagnostic_tracking_allowed();
 
             $request = array(
                 'method'  => 'POST',
