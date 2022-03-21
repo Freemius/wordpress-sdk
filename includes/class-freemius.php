@@ -23303,6 +23303,7 @@
 
             if ( $is_bundle_context ) {
                 $plugin_title = $this->plugin_affiliate_terms->plugin_title;
+
                 // Add the suffix "Bundle" only if the word is not present in the title itself.
                 if ( false === mb_stripos( $plugin_title, fs_text_inline( 'Bundle', 'bundle' ) ) ) {
                     $plugin_title = $this->apply_filters(
