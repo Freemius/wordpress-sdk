@@ -143,7 +143,7 @@
         'paypal-email-address-is-required'   => _fs_text( 'PayPal email address is required.' ),
         'processing'                         => _fs_text( 'Processing...' ),
         'non-expiring'                       => _fs_text( 'Non-expiring' ),
-        'account-is-pending-activation'      => _fs_text( 'Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again.' ),
+        'account-is-pending-activation'      => _fs_text( 'Account is pending activation.' ),
         #endregion Affiliation
 
 		#region Account
@@ -552,12 +552,6 @@
 		'secure-x-page-header' => _fs_text( 'Secure HTTPS %s page, running from an external domain' ),
 		'pci-compliant'        => _fs_text( 'PCI compliant' ),
 		'view-paid-features'   => _fs_text( 'View paid features' ),
-
-        #--------------------------------------------------------------------------------
-        #region Bundle
-        #--------------------------------------------------------------------------------
-        'bundle'        => _fs_text( 'Bundle' ),
-        'bundle-suffix' => _fs_text( ' Bundle' ),
 	);
 
 	/**
