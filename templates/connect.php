@@ -127,6 +127,14 @@
     if ( is_null( $is_gdpr_required ) ) {
         $is_gdpr_required = $fs->fetch_and_store_current_user_gdpr_anonymously();
     }
+
+    $activation_state = array(
+        'is_license_activation'       => $require_license_key,
+        'is_pending_activation'       => $is_pending_activation,
+        'is_gdpr_required'            => $is_gdpr_required,
+        'is_network_level_activation' => $is_network_level_activation,
+        'is_dialog'                   => $is_optin_dialog,
+    );
 ?>
 <?php
 	if ( $is_optin_dialog ) { ?>
@@ -147,7 +155,7 @@
 		 * @author Vova Feldman
 		 * @since 2.3.2
 		 */
-		$fs->do_action( 'connect/before' );
+		$fs->do_action( 'connect/before', $activation_state );
 	?>
 	<div id="fs_connect"
 	     class="wrap<?php if ( ! fs_is_network_admin() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
@@ -164,6 +172,8 @@
 			<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/logo/connect.svg"/>
 		</div>
 		<div class="fs-content">
+            <?php $fs->do_action( 'connect/before_message', $activation_state ) ?>
+
 			<?php if ( ! empty( $error ) ) : ?>
 				<p class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></p>
 			<?php endif ?>
@@ -270,7 +280,7 @@
 				 * @author Vova Feldman
 				 * @since 2.1.2
 				 */
-				 $fs->do_action( 'connect/after_license_input' );
+				 $fs->do_action( 'connect/after_license_input', $activation_state );
 				?>
 
                 <?php
@@ -315,8 +325,12 @@
                 echo fs_get_template( 'partials/network-activation.php', $vars );
             ?>
 			<?php endif ?>
+
+            <?php $fs->do_action( 'connect/after_message', $activation_state ) ?>
 		</div>
 		<div class="fs-actions">
+            <?php $fs->do_action( 'connect/before_actions', $activation_state ) ?>
+
 			<?php if ( $fs->is_enable_anonymous() && ! $is_pending_activation && ( ! $require_license_key || $is_network_upgrade_mode ) ) : ?>
 				<a id="skip_activation" href="<?php echo fs_nonce_url( $fs->_get_admin_page_url( '', array( 'fs_action' => $fs->get_unique_affix() . '_skip_activation' ), $is_network_level_activation ), $fs->get_unique_affix() . '_skip_activation' ) ?>"
 				   class="button button-secondary" tabindex="2"><?php fs_esc_html_echo_x_inline( 'Skip', 'verb', 'skip', $slug ) ?></a>
@@ -349,6 +363,8 @@
             <?php if ( $require_license_key ) : ?>
                 <a id="license_issues_link" href="<?php echo $fs->apply_filters( 'known_license_issues_url', 'https://freemius.com/help/documentation/wordpress-sdk/license-activation-issues/' ) ?>" target="_blank"><?php fs_esc_html_echo_inline( 'License issues?', 'license-issues', $slug ) ?></a>
             <?php endif ?>
+
+            <?php $fs->do_action( 'connect/after_actions', $activation_state ) ?>
 		</div><?php
 
 			// Set core permission list items.
@@ -482,7 +498,7 @@
 		 * @author Vova Feldman
 		 * @since 2.3.2
 		 */
-		$fs->do_action( 'connect/after' );
+		$fs->do_action( 'connect/after', $activation_state );
 
 		if ( $is_optin_dialog ) { ?>
 </div>
