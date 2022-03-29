@@ -208,16 +208,20 @@
 						$filter                = 'connect_message';
 						$default_optin_message = $is_gdpr_required ?
 							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug) :
-							fs_text_inline( 'Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug);
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug);
 
 						if ( $fs->is_plugin_update() ) {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
 							$default_optin_message = $is_gdpr_required ?
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug ) :
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug );
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s.', 'connect-message_on-update', $slug ) :
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message_on-update', $slug );
 
-							// If user customized the opt-in message on update, use
+                            if ( $fs->is_enable_anonymous() ) {
+                                $default_optin_message .= ' ' . fs_text_inline( 'If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update_skip', $slug );
+                            }
+
+                            // If user customized the opt-in message on update, use
 							// that message. Otherwise, fallback to regular opt-in
 							// custom message if exist.
 							if ( $fs->has_filter( 'connect_message_on_update' ) ) {
