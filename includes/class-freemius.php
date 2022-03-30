@@ -5847,9 +5847,9 @@
          * @param bool|null $is_enabled
          */
         function update_extensions_tracking_flag( $is_enabled ) {
-	        if ( is_bool( $is_enabled ) ) {
-		        $this->_storage->is_extensions_tracking_allowed = $is_enabled;
-	        }
+            if ( is_bool( $is_enabled ) ) {
+                $this->_storage->is_extensions_tracking_allowed = $is_enabled;
+            }
         }
 
         /**
@@ -5859,9 +5859,9 @@
          * @param bool|null $is_enabled
          */
         function update_diagnostic_tracking_flag( $is_enabled ) {
-	        if ( is_bool( $is_enabled ) ) {
-		        $this->_storage->is_diagnostic_tracking_allowed = $is_enabled;
-	        }
+            if ( is_bool( $is_enabled ) ) {
+                $this->_storage->is_diagnostic_tracking_allowed = $is_enabled;
+            }
         }
 
         /**
@@ -16087,17 +16087,17 @@
 
             $info = array(
                 'uid' => $this->get_anonymous_id( $blog_id ),
-                'url' => $url
+                'url' => $url,
             );
 
             // Add these diagnostic information only if user allowed to track.
-	        if ( $this->is_diagnostic_tracking_allowed() ) {
-		        $info = array_merge( $info, array(
-			        'title'    => $name,
-			        'language' => get_bloginfo( 'language' ),
-			        'charset'  => get_bloginfo( 'charset' ),
-		        ) );
-	        }
+            if ( $this->is_diagnostic_tracking_allowed() ) {
+                $info = array_merge( $info, array(
+                    'title'    => $name,
+                    'language' => get_bloginfo( 'language' ),
+                    'charset'  => get_bloginfo( 'charset' ),
+                ) );
+            }
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
@@ -17385,10 +17385,10 @@
                 $params['is_marketing_allowed'] = $is_marketing_allowed;
             }
 
-	        $params['is_disconnected']                = $is_disconnected;
-	        $params['format']                         = 'json';
-	        $params['is_extensions_tracking_allowed'] = $this->is_extensions_tracking_allowed();
-	        $params['is_diagnostic_tracking_allowed'] = $this->is_diagnostic_tracking_allowed();
+            $params['is_disconnected']                = $is_disconnected;
+            $params['format']                         = 'json';
+            $params['is_extensions_tracking_allowed'] = $this->is_extensions_tracking_allowed();
+            $params['is_diagnostic_tracking_allowed'] = $this->is_diagnostic_tracking_allowed();
 
             $request = array(
                 'method'  => 'POST',
