@@ -5788,18 +5788,18 @@
             ) );
         }
 
-	    /**
-	     * @return bool
-	     * @since  2.5.0.2
-	     *
-	     * @author Malay Ladu (@msladu)
-	     */
-	    function is_diagnostic_tracking_allowed() {
+        /**
+         * @return bool
+         * @since  2.5.0.2
+         *
+         * @author Malay Ladu (@msladu)
+         */
+        function is_diagnostic_tracking_allowed() {
             return ( true === $this->apply_filters(
                 'is_diagnostic_tracking_allowed',
                 $this->_storage->is_diagnostic_tracking_allowed
             ) );
-	    }
+        }
 
         /**
          * @author Vova Feldman (@svovaf)
