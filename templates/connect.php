@@ -436,15 +436,18 @@
 
 			if ( ! empty( $permissions ) ) : ?>
 				<div class="fs-permissions">
-                    <p class="fs-license-sync-disclaimer"><?php
-                        echo sprintf(
-                            fs_esc_html_inline( 'The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management.', 'license-sync-disclaimer', $slug ),
-                            $fs->get_module_label( true ),
-                            sprintf('<a class="fs-trigger" href="#" tabindex="1">%s</a>', fs_esc_html_inline('diagnostic data', 'send-data')),
-                            '<a class="fs-tooltip-trigger' . (is_rtl() ? ' rtl' : '') . '" href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com <i class="dashicons dashicons-editor-help" style="text-decoration: none;"><span class="fs-tooltip" style="width: 170px">' . $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) . '</span></i></a>'
-                        ) ?>
-                    </p>
-					<a class="fs-trigger" href="#" tabindex="1"><?php fs_esc_html_echo_inline( 'What permissions are being granted?', 'what-permissions', $slug ) ?></a>
+                    <?php if ( $require_license_key ) : ?>
+                        <p class="fs-license-sync-disclaimer"><?php
+                            echo sprintf(
+                                fs_esc_html_inline( 'The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management.', 'license-sync-disclaimer', $slug ),
+                                $fs->get_module_label( true ),
+                                sprintf('<a class="fs-trigger" href="#" tabindex="1">%s</a>', fs_esc_html_inline('diagnostic data', 'send-data')),
+                                '<a class="fs-tooltip-trigger' . (is_rtl() ? ' rtl' : '') . '" href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com <i class="dashicons dashicons-editor-help" style="text-decoration: none;"><span class="fs-tooltip" style="width: 170px">' . $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) . '</span></i></a>'
+                            ) ?>
+                        </p>
+                    <?php else : ?>
+                        <a class="fs-trigger" href="#" tabindex="1"><?php fs_esc_html_echo_inline( 'What permissions are being granted?', 'what-permissions', $slug ) ?></a>
+                    <?php endif ?>
 					<ul><?php
 							foreach ( $permissions as $id => $permission ) : ?>
                                 <?php $is_permission_on = ( ! isset( $permission['default'] ) || true === $permission['default'] ); ?>
