@@ -17180,23 +17180,22 @@
             $versions = $this->get_versions();
 
             $params = array_merge( $versions, array(
-                'user_firstname'               => $current_user->user_firstname,
-                'user_lastname'                => $current_user->user_lastname,
-                'user_nickname'                => $current_user->user_nicename,
-                'user_email'                   => $current_user->user_email,
-                'user_ip'                      => WP_FS__REMOTE_ADDR,
-                'plugin_slug'                  => $this->_slug,
-                'plugin_id'                    => $this->get_id(),
-                'plugin_public_key'            => $this->get_public_key(),
-                'plugin_version'               => $this->get_plugin_version(),
-                'return_url'                   => fs_nonce_url( $return_url, $activation_action ),
-                'account_url'                  => fs_nonce_url( $this->_get_admin_page_url(
+                'user_firstname'    => $current_user->user_firstname,
+                'user_lastname'     => $current_user->user_lastname,
+                'user_email'        => $current_user->user_email,
+                'user_ip'           => WP_FS__REMOTE_ADDR,
+                'plugin_slug'       => $this->_slug,
+                'plugin_id'         => $this->get_id(),
+                'plugin_public_key' => $this->get_public_key(),
+                'plugin_version'    => $this->get_plugin_version(),
+                'return_url'        => fs_nonce_url( $return_url, $activation_action ),
+                'account_url'       => fs_nonce_url( $this->_get_admin_page_url(
                     'account',
                     array( 'fs_action' => 'sync_user' )
                 ), 'sync_user' ),
-                'is_premium'                   => $this->is_premium(),
-                'is_active'                    => true,
-                'is_uninstalled'               => false,
+                'is_premium'        => $this->is_premium(),
+                'is_active'         => true,
+                'is_uninstalled'    => false,
             ) );
 
             if ( $this->is_addon() ) {
