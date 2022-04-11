@@ -594,7 +594,7 @@
         }
 
         /**
-         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone).
+         * If a new install was created after creating a new subsite, its ID is stored in the blog-install map so that it can be recovered in case it's replaced with a clone install (e.g., when the newly created subsite is a clone). The ID of the clone subsites that were created while not running this version of the SDK or a higher version will also be stored in the said map so that the clone manager can also try to resolve them later on.
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
@@ -602,7 +602,7 @@
          * @param int     $blog_id
          * @param FS_Site $site
          */
-        function store_new_blog_install_info( $blog_id, $site = null ) {
+        function store_blog_install_info( $blog_id, $site = null ) {
             $new_blog_install_map = $this->new_blog_install_map;
 
             if (

@@ -8967,7 +8967,7 @@
             $this->_logger->entrance();
 
             if ( ! $this->_is_network_active ) {
-                FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id );
+                FS_Clone_Manager::instance()->store_blog_install_info( $blog_id );
                 return;
             }
 
@@ -9012,7 +9012,7 @@
                 $this->switch_to_blog( $current_blog_id );
 
                 if ( is_object( $site ) ) {
-                    FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id, $site );
+                    FS_Clone_Manager::instance()->store_blog_install_info( $blog_id, $site );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9080,7 +9080,7 @@
              * @author Leo Fajardo (@leorw)
              * @since 2.5.0
              */
-            FS_Clone_Manager::instance()->store_new_blog_install_info( $new_blog_id, $site );
+            FS_Clone_Manager::instance()->store_blog_install_info( $new_blog_id, $site );
         }
 
         /**
