@@ -9774,6 +9774,7 @@
                     unset( $install_data['blog_id'] );
                     unset( $install_data['uid'] );
                     unset( $install_data['url'] );
+                    unset( $install_data['registration_date'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -16111,6 +16112,8 @@
 
             $switched = false;
 
+            $registration_date = null;
+
             if ( is_null( $site ) ) {
                 $url     = get_site_url();
                 $name    = get_bloginfo( 'name' );
@@ -16124,20 +16127,30 @@
                 }
 
                 if ( $site instanceof WP_Site ) {
-                    $url  = $site->siteurl;
-                    $name = $site->blogname;
+                    $url               = $site->siteurl;
+                    $name              = $site->blogname;
+                    $registration_date = $site->registered;
                 } else {
                     $url  = get_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
                 }
             }
 
+            if ( empty( $registration_date ) ) {
+                $blog_details = get_blog_details( $blog_id, false );
+
+                if ( is_object( $blog_details ) && isset( $blog_details->registered ) ) {
+                    $registration_date = $blog_details->registered;
+                }
+            }
+
             $info = array(
-                'uid'      => $this->get_anonymous_id( $blog_id ),
-                'url'      => $url,
-                'title'    => $name,
-                'language' => get_bloginfo( 'language' ),
-                'charset'  => get_bloginfo( 'charset' ),
+                'uid'                => $this->get_anonymous_id( $blog_id ),
+                'url'                => $url,
+                'title'              => $name,
+                'language'           => get_bloginfo( 'language' ),
+                'charset'            => get_bloginfo( 'charset' ),
+                'registration_date'  => $registration_date,
             );
 
             if ( is_numeric( $blog_id ) ) {
