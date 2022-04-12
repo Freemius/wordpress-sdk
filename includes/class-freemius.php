@@ -9760,6 +9760,8 @@
                         $clone_install_url               = $install_url_by_install_id[ $install->id ];
                         $clone_subsite_registration_date = $subsite_registration_date_by_install_id[ $install->id ];
 
+                        $skip = false;
+
                         if (
                             ! empty( $install_data['registration_date'] ) &&
                             ! empty( $clone_subsite_registration_date )
