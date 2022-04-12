@@ -9745,7 +9745,7 @@
                         continue;
                     }
 
-                    $install_data = $this->get_site_info( $site );
+                    $install_data = $this->get_site_info( $site, true );
 
                     if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $install_data['blog_id'] ) ) {
                         continue;
@@ -16125,10 +16125,11 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
+         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is puruly for performance optimization.
          *
          * @return array
          */
-        function get_site_info( $site = null ) {
+        function get_site_info( $site = null, $load_registration = false ) {
             $this->_logger->entrance();
 
             $switched = false;
@@ -16157,7 +16158,7 @@
                 }
             }
 
-            if ( empty( $registration_date ) ) {
+            if ( empty( $registration_date ) && $load_registration ) {
                 $blog_details = get_blog_details( $blog_id, false );
 
                 if ( is_object( $blog_details ) && isset( $blog_details->registered ) ) {
@@ -16171,11 +16172,14 @@
                 'title'              => $name,
                 'language'           => get_bloginfo( 'language' ),
                 'charset'            => get_bloginfo( 'charset' ),
-                'registration_date'  => $registration_date,
             );
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
+            }
+
+            if ( ! empty($registration_date) ) {
+                $info[ 'registration_date' ] = $registration_date;
             }
 
             if ( $switched ) {
