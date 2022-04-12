@@ -16127,7 +16127,7 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
-         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is puruly for performance optimization.
+         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is purely for performance optimization.
          *
          * @return array
          */
@@ -16180,7 +16180,7 @@
                 $info['blog_id'] = $blog_id;
             }
 
-            if ( ! empty($registration_date) ) {
+            if ( ! empty( $registration_date ) ) {
                 $info[ 'registration_date' ] = $registration_date;
             }
 
