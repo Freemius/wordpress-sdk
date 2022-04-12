@@ -9761,10 +9761,15 @@
                         $clone_subsite_registration_date = $subsite_registration_date_by_install_id[ $install->id ];
 
                         if (
-                            // Skip if the registration dates of the subsites are valid and the current subsite was created after the subsite that was handled earlier.
                             ! empty( $install_data['registration_date'] ) &&
                             ! empty( $clone_subsite_registration_date )
                         ) {
+                            /**
+                             * If the current subsite was created after the other subsite that is also linked to the same install ID, we assume that it's a clone (not the original), and therefore, would skip its processing.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.5.1
+                             */
                             $skip = ( strtotime( $install_data['registration_date'] ) > strtotime( $clone_subsite_registration_date ) );
                         } else if (
                             /**
