@@ -299,12 +299,12 @@
                                                     <?php wp_nonce_field( 'delete_account' ) ?>
                                                     <a class="fs-delete-account" href="#" onclick="if (confirm('<?php
                                                         if ( $is_active_subscription ) {
-                                                            echo esc_attr( sprintf( fs_text_inline( 'Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the deletion?', 'delete-account-x-confirm', $slug ), $plan->title ) );
+                                                            echo esc_attr( sprintf( fs_text_inline( 'Disconnecting the website from your account will also automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the disconnection?', 'disconnect-x-confirm', $slug ), $plan->title ) );
                                                         } else {
-                                                            echo esc_attr( sprintf( fs_text_inline( 'Deletion is not temporary. Only delete if you no longer want to use this %s anymore. Are you sure you would like to continue with the deletion?', 'delete-account-confirm', $slug ), $fs->get_module_label( true ) ) );
+                                                            echo esc_attr( sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $fs->get_module_label( true ) ) );
                                                         }
                                                     ?>'))  this.parentNode.submit(); return false;"><i
-                                                            class="dashicons dashicons-no"></i> <?php fs_esc_html_echo_inline( 'Delete Account', 'delete-account', $slug ) ?></a>
+                                                            class="dashicons dashicons-no"></i> <?php fs_esc_html_echo_inline( 'Disconnect', 'disconnect', $slug ) ?></a>
                                                 </form>
                                             </li>
                                             <li>&nbsp;&bull;&nbsp;</li>
