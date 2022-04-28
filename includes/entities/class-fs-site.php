@@ -40,10 +40,6 @@
          */
         public $language;
         /**
-         * @var string E.g. UTF-8
-         */
-        public $charset;
-        /**
          * @var string Platform version (e.g WordPress version).
          */
         public $platform_version;
