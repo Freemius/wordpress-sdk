@@ -9652,7 +9652,6 @@
             $blog_data = $include_blog_data ?
                 array(
                     'language' => get_bloginfo( 'language' ),
-                    'charset'  => get_bloginfo( 'charset' ),
                     'title'    => get_bloginfo( 'name' ),
                     'url'      => get_site_url(),
                 ) :
@@ -16137,7 +16136,6 @@
                 'url'      => $url,
                 'title'    => $name,
                 'language' => get_bloginfo( 'language' ),
-                'charset'  => get_bloginfo( 'charset' ),
             );
 
             if ( is_numeric( $blog_id ) ) {
@@ -17272,7 +17270,6 @@
                     'site_url'  => $site['url'],
                     'site_name' => $site['title'],
                     'language'  => $site['language'],
-                    'charset'   => $site['charset'],
                 ) );
             }
 

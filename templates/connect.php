@@ -824,7 +824,6 @@
 								url     : $this.find( '.url' ).val(),
 								title   : $this.find( '.title' ).val(),
 								language: $this.find( '.language' ).val(),
-								charset : $this.find( '.charset' ).val(),
 								blog_id : $this.find( '.blog-id' ).find( 'span' ).text()
 							};
 
