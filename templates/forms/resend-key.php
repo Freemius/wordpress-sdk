@@ -54,7 +54,7 @@ HTML;
 HTML;
 	}
 
-	$message_above_input_field = $fs->is_only_premium() ?
+    $message_above_input_field = $fs->is_only_premium() ?
         fs_esc_html_inline( "Enter the email address you've used during the purchase and we will resend you the license key.", 'ask-for-upgrade-email-address-premium-only', $slug ) :
         fs_esc_html_inline( "Enter the email address you've used for the upgrade below and we will resend you the license key.", 'ask-for-upgrade-email-address', $slug );
 
