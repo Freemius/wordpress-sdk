@@ -294,18 +294,14 @@
                                     <?php if ( ! $is_whitelabeled ) : ?>
                                         <?php if ( ! $is_paying ) : ?>
                                             <li>
-                                                <form action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">
-                                                    <input type="hidden" name="fs_action" value="delete_account">
-                                                    <?php wp_nonce_field( 'delete_account' ) ?>
-                                                    <a class="fs-delete-account" href="#" onclick="if (confirm('<?php
-                                                        if ( $is_active_subscription ) {
-                                                            echo esc_attr( sprintf( fs_text_inline( 'Disconnecting the website from your account will also automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the disconnection?', 'disconnect-x-confirm', $slug ), $plan->title ) );
-                                                        } else {
-                                                            echo esc_attr( sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $fs->get_module_label( true ) ) );
-                                                        }
-                                                    ?>'))  this.parentNode.submit(); return false;"><i
-                                                            class="dashicons dashicons-no"></i> <?php fs_esc_html_echo_inline( 'Disconnect', 'disconnect', $slug ) ?></a>
-                                                </form>
+                                                <?php
+                                                    $view_params = array(
+                                                        'freemius'               => $fs,
+                                                        'is_active_subscription' => $is_active_subscription,
+                                                        'slug'                   => $slug,
+                                                        'plan'                   => $plan
+                                                    );
+                                                    fs_require_template( 'account/is-paying-disconnect-button.php', $view_params ); ?>
                                             </li>
                                             <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
