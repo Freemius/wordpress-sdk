@@ -15,12 +15,13 @@
      * @var Freemius $fs
      */
     $fs                     = $VARS['freemius'];
-    $is_active_subscription = $VARS['is_active_subscription'];
+    $is_license_available   = $VARS['is_license_available'];
     $slug                   = $VARS['slug'];
     $plan                   = $VARS['plan'];
 
+
     $button_id = 'fs-disconnect-button-' . $fs->get_id();
-    $message   = $is_active_subscription ?
+    $message   = $is_license_available ?
         sprintf( fs_text_inline( 'Disconnecting the website from your account will also automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the disconnection?', 'disconnect-x-confirm', $slug ), $plan->title ) :
         sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $fs->get_module_label( true ) );
 

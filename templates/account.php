@@ -248,6 +248,8 @@
     $addons_to_show = array_unique( array_merge( $installed_addons_ids, $account_addons ) );
 
     $is_active_bundle_subscription = ( is_object( $bundle_subscription ) && $bundle_subscription->is_active() );
+
+    $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license($site->is_localhost()) : false
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -297,7 +299,7 @@
                                                 <?php
                                                     $view_params = array(
                                                         'freemius'               => $fs,
-                                                        'is_active_subscription' => $is_active_subscription,
+                                                        'is_license_available'   => is_object($available_license),
                                                         'slug'                   => $slug,
                                                         'plan'                   => $plan
                                                     );
@@ -547,7 +549,6 @@
 														<?php endif ?>
                                                         <?php if ( ! $is_whitelabeled ) : ?>
 														<div class="button-group">
-															<?php $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license( $site->is_localhost() ) : false ?>
                                                             <?php if ( is_object( $available_license ) ) : ?>
 																<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
                                                                 <?php
