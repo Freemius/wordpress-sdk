@@ -14,16 +14,17 @@
      * @var array $VARS
      * @var Freemius $fs
      */
-    $fs                     = $VARS['freemius'];
-    $is_license_available   = $VARS['is_license_available'];
-    $slug                   = $VARS['slug'];
-    $plan                   = $VARS['plan'];
+    $fs                 = $VARS['freemius'];
+    $premium_plan_title = $VARS['premium_plan_title'];
+    $slug               = $VARS['slug'];
 
+    $button_id = "fs-disconnect-button-{$fs->get_id()}";
 
-    $button_id = 'fs-disconnect-button-' . $fs->get_id();
-    $message   = $is_license_available ?
-        sprintf( fs_text_inline( 'Disconnecting the website from your account will also automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the "Cancel" button, and first "Downgrade" your account. Are you sure you would like to continue with the disconnection?', 'disconnect-x-confirm', $slug ), $plan->title ) :
-        sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $fs->get_module_label( true ) );
+    $product_type = $fs->get_module_label( true );
+
+    $message = $premium_plan_title ?
+        sprintf( fs_text_inline( 'Your %s plan is not active on this site at the moment and you can activate it on any other site. Only disconnect if you no longer want to use this %s anymore. If you wish to stop the recurring payment of the %s plan instead, then kindly click the CANCEL button, activate the %s plan and click on the "Downgrade" button to downgrade your account. Are you sure you would like to continue with this disconnection?', 'disconnect-x-confirm', $slug ), $premium_plan_title, $product_type, $premium_plan_title, $premium_plan_title ) :
+        sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $product_type );
 
 ?>
 <script type="text/javascript">

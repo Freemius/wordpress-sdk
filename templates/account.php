@@ -249,7 +249,9 @@
 
     $is_active_bundle_subscription = ( is_object( $bundle_subscription ) && $bundle_subscription->is_active() );
 
-    $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license($site->is_localhost()) : false
+    $available_license = $fs->is_free_plan() && ! fs_is_network_admin() ? $fs->_get_available_premium_license($site->is_localhost()) : false;
+
+    $premium_plan = is_object( $available_license ) ? $fs->_get_plan_by_id( $available_license->plan_id ) : null;
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -298,10 +300,9 @@
                                             <li>
                                                 <?php
                                                     $view_params = array(
-                                                        'freemius'               => $fs,
-                                                        'is_license_available'   => is_object($available_license),
-                                                        'slug'                   => $slug,
-                                                        'plan'                   => $plan
+                                                        'freemius'           => $fs,
+                                                        'premium_plan_title' => $premium_plan ? $premium_plan->title : null,
+                                                        'slug'               => $slug,
                                                     );
                                                     fs_require_template( 'account/is-paying-disconnect-button.php', $view_params ); ?>
                                             </li>
@@ -550,7 +551,6 @@
                                                         <?php if ( ! $is_whitelabeled ) : ?>
 														<div class="button-group">
                                                             <?php if ( is_object( $available_license ) ) : ?>
-																<?php $premium_plan = $fs->_get_plan_by_id( $available_license->plan_id ) ?>
                                                                 <?php
                                                                 $view_params = array(
                                                                     'freemius'     => $fs,
