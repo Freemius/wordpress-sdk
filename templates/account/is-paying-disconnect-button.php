@@ -22,6 +22,7 @@
 
     $product_type = $fs->get_module_label( true );
 
+    /** translators: %1$s is replaced by the premium plan name, %2$s is replaced by the type of the module */
     $message = $premium_plan_title ?
         sprintf( fs_text_inline( 'Your %1$s plan is not active on this site at the moment and you can activate it on any other site. Only disconnect if you no longer want to use this %2$s anymore. If you wish to stop the recurring payment of the %1$s plan instead, then kindly click the CANCEL button, activate the %1$s plan and click on the "Downgrade" button to downgrade your account. Are you sure you would like to continue with this disconnection?', 'disconnect-x-confirm', $slug ), $premium_plan_title, $product_type ) :
         sprintf( fs_text_inline( 'Only disconnect if you no longer want to use this %s anymore. Are you sure you would like to continue with the disconnection?', 'disconnect-confirm', $slug ), $product_type );
