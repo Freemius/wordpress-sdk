@@ -73,29 +73,6 @@
             }
         }
     }
-
-    .fs-button-inline
-    {
-        background-color: white;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        color: #2271b1;
-
-        &:hover {
-            color: #135e96;
-        }
-
-        &:active {
-            color: #135e96;
-        }
-
-        &:focus {
-            color: #043959;
-            box-shadow: 0 0 0 1px #4f94d4, 0 0 2px 1px rgb(79 148 212 / 80%);
-            outline: 1px solid transparent;
-        }
-    }
 }
 
 #fs_account_details .button-group {
