@@ -17068,6 +17068,7 @@
             }
 
             if (
+                $this->is_user_in_admin() &&
                 $this->is_clone() &&
                 empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
             ) {
