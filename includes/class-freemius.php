@@ -16589,9 +16589,17 @@
          * @return bool
          */
         function is_product_settings_page() {
+            $page      = fs_request_get( 'page', '', 'get' );
+            $menu_slug = $this->_menu->get_slug();
+
+            if ( $page === $menu_slug ) {
+                return true;
+            }
+
             return fs_starts_with(
-                fs_request_get( 'page', '', 'get' ),
-                $this->_menu->get_slug()
+                // e.g., {$menu_slug}-account, {$menu_slug}-affiliation, etc.
+                $page,
+                ( $menu_slug . '-' )
             );
         }
 
