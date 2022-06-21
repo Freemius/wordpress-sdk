@@ -5194,7 +5194,11 @@
             }
 
             if ( $this->is_registered() ) {
-                FS_Clone_Manager::instance()->maybe_resolve_new_subsite_install_automatically( $this );
+                if ( is_multisite() ) {
+                    FS_Clone_Manager::instance()->maybe_resolve_new_subsite_install_automatically( $this );
+                } else {
+                    FS_Clone_Manager::instance()->try_resolve_clone_automatically_by_config();
+                }
 
                 $this->hook_callback_to_install_sync();
             }

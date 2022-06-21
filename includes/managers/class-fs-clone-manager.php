@@ -85,6 +85,10 @@
         /**
          * @var string
          */
+        const OPTION_LONG_TERM_DUPLICATE = 'long_term_duplicate';
+        /**
+         * @var string
+         */
         const OPTION_NEW_HOME = 'new_home';
 
         #--------------------------------------------------------------------------------
@@ -489,6 +493,30 @@
         }
 
         /**
+         * Try to resolve the clone situation automatically based on the config in the wp-config.php file.
+         *
+         * @return bool If managed to automatically resolve the clone based on the relevant config in the wp-config.php file.
+         */
+        function try_resolve_clone_automatically_by_config() {
+            if ( ! defined( 'FS__RESOLVE_CLONE_AS' ) ) {
+                return false;
+            }
+
+            if ( ! in_array(
+                FS__RESOLVE_CLONE_AS,
+                array(
+                    FS_Clone_Manager::OPTION_NEW_HOME,
+                    FS_Clone_Manager::OPTION_TEMPORARY_DUPLICATE,
+                    FS_Clone_Manager::OPTION_LONG_TERM_DUPLICATE,
+                )
+            ) ) {
+                return false;
+            }
+
+            return ( ! empty( $this->resolve_cloned_sites( FS__RESOLVE_CLONE_AS ) ) );
+        }
+
+        /**
          * Tries to recover the install of a newly created subsite or resolve it if it's a clone.
          *
          * @author Leo Fajardo (@leorw)
@@ -705,19 +733,7 @@
                 ) );
             }
 
-            $result = array();
-
-            if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
-                $this->store_temporary_duplicate_timestamp();
-            } else {
-                $result = $this->resolve_cloned_sites( $clone_action );
-            }
-
-            if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
-                $this->remove_clone_resolution_options_notice();
-            } else {
-                $this->remove_temporary_duplicate_notice();
-            }
+            $result = $this->resolve_cloned_sites( $clone_action );
 
             Freemius::shoot_ajax_success( $result );
         }
@@ -727,52 +743,68 @@
          * @since 2.5.0
          *
          * @param string $clone_action
+         *
+         * @return array
          */
         private function resolve_cloned_sites( $clone_action ) {
             $this->_logger->entrance();
 
-            $instances_with_clone_count = 0;
-            $instance_with_error        = null;
-            $has_error                  = false;
+            $result = array();
 
-            $instances = Freemius::_get_all_instances();
+            if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
+                $this->store_temporary_duplicate_timestamp();
+            } else {
+                $instances_with_clone_count = 0;
+                $instance_with_error        = null;
+                $has_error                  = false;
 
-            foreach ( $instances as $instance ) {
-                if ( ! $instance->is_registered() ) {
-                    continue;
-                }
+                $instances = Freemius::_get_all_instances();
 
-                if ( ! $instance->is_clone() ) {
-                    continue;
-                }
+                foreach ( $instances as $instance ) {
+                    if ( ! $instance->is_registered() ) {
+                        continue;
+                    }
 
-                $instances_with_clone_count ++;
+                    if ( ! $instance->is_clone() ) {
+                        continue;
+                    }
 
-                if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
-                    $instance->sync_install( array( 'is_new_site' => true ), true );
-                } else {
-                    $instance->_handle_long_term_duplicate();
+                    $instances_with_clone_count ++;
 
-                    if ( ! is_object( $instance->get_site() ) ) {
-                        $has_error = true;
+                    if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
+                        $instance->sync_install( array( 'is_new_site' => true ), true );
+                    } else {
+                        $instance->_handle_long_term_duplicate();
 
-                        if ( ! is_object( $instance_with_error ) ) {
-                            $instance_with_error = $instance;
+                        if ( ! is_object( $instance->get_site() ) ) {
+                            $has_error = true;
+
+                            if ( ! is_object( $instance_with_error ) ) {
+                                $instance_with_error = $instance;
+                            }
                         }
                     }
                 }
+
+                $redirect_url = '';
+
+                if (
+                    1 === $instances_with_clone_count &&
+                    $has_error
+                ) {
+                    $redirect_url = $instance_with_error->get_activation_url();
+                }
+
+                $result = ( array( 'redirect_url' => $redirect_url ) );
             }
 
-            $redirect_url = '';
-
-            if (
-                1 === $instances_with_clone_count &&
-                $has_error
-            ) {
-                $redirect_url = $instance_with_error->get_activation_url();
+            if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
+                $this->remove_clone_resolution_options_notice();
+            } else {
+                $this->remove_temporary_duplicate_notice();
             }
 
-            return ( array( 'redirect_url' => $redirect_url ) );
+            return $result;
         }
 
         /**
