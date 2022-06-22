@@ -572,7 +572,7 @@
 
             $instance->switch_to_blog( $blog_id );
 
-            $current_url          = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $current_url          = fs_strip_url_protocol( untrailingslashit( Freemius::get_site_url() ) );
             $current_install_url  = is_object( $current_install ) ?
                 fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
                 null;
@@ -675,7 +675,7 @@
         private function try_automatic_resolution() {
             $this->_logger->entrance();
 
-            $current_url  = fs_strip_url_protocol( untrailingslashit( get_site_url() ) );
+            $current_url  = fs_strip_url_protocol( untrailingslashit( Freemius::get_site_url() ) );
             $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
             $require_manual_resolution = false;
@@ -906,7 +906,7 @@
                         $product_ids,
                         $product_titles,
                         $site_urls,
-                        get_site_url(),
+                        Freemius::get_site_url(),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
                         ( count( $site_urls ) === $sites_with_premium_version_count ),
                         $doc_url
@@ -1016,7 +1016,7 @@
                             continue;
                         }
 
-                        $subsite_url = trailingslashit( get_site_url( $blog_id ) );
+                        $subsite_url = trailingslashit( Freemius::get_site_url( $blog_id ) );
                         $install_url = trailingslashit( $install->url );
 
                         $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
@@ -1222,7 +1222,7 @@
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
-            $current_url       = get_site_url();
+            $current_url       = Freemius::get_site_url();
             $current_site_link = sprintf(
                 '<b><a href="%s" target="_blank">%s</a></b>',
                 $current_url,
