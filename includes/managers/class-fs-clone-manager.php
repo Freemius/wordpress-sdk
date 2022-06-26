@@ -171,6 +171,7 @@
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
+                        $this->try_resolve_clone_automatically_by_config();
                         $this->maybe_show_clone_admin_notice();
 
                         add_action( 'admin_footer', array( $this, '_add_clone_resolution_javascript' ) );
@@ -495,11 +496,61 @@
         /**
          * Try to resolve the clone situation automatically based on the config in the wp-config.php file.
          *
-         * @return bool If managed to automatically resolve the clone based on the relevant config in the wp-config.php file.
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
          */
-        function try_resolve_clone_automatically_by_config() {
+        private function try_resolve_clone_automatically_by_config() {
+            $clone_action = $this->get_clone_resolution_action_from_config();
+
+            if ( empty( $clone_action ) ) {
+                return;
+            }
+
+            $fs_instances = array();
+
+            if ( FS_Clone_Manager::OPTION_LONG_TERM_DUPLICATE === $clone_action ) {
+                $instances = Freemius::_get_all_instances();
+
+                foreach ( $instances as $instance ) {
+                    if ( ! $instance->is_registered() ) {
+                        continue;
+                    }
+
+                    if ( ! $instance->is_clone() ) {
+                        continue;
+                    }
+
+                    $license = $instance->has_features_enabled_license() ?
+                        $instance->_get_license() :
+                        null;
+
+                    if (
+                        is_object( $license ) &&
+                        ! $license->is_utilized(
+                            ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( Freemius::get_site_url() ) )
+                        )
+                    ) {
+                        $fs_instances[] = $instance;
+                    }
+                }
+
+                if ( empty( $fs_instances ) ) {
+                    return;
+                }
+            }
+
+            $this->resolve_cloned_sites( $clone_action, $fs_instances );
+        }
+
+        /**
+         * @author Leo Fajard (@leorw)
+         * @since 2.5.0
+         *
+         * @return string|null
+         */
+        private function get_clone_resolution_action_from_config() {
             if ( ! defined( 'FS__RESOLVE_CLONE_AS' ) ) {
-                return false;
+                return null;
             }
 
             if ( ! in_array(
@@ -510,10 +561,10 @@
                     FS_Clone_Manager::OPTION_LONG_TERM_DUPLICATE,
                 )
             ) ) {
-                return false;
+                return null;
             }
 
-            return ( ! empty( $this->resolve_cloned_sites( FS__RESOLVE_CLONE_AS ) ) );
+            return FS__RESOLVE_CLONE_AS;
         }
 
         /**
@@ -742,11 +793,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
-         * @param string $clone_action
+         * @param string     $clone_action
+         * @param Freemius[] $fs_instances
          *
          * @return array
          */
-        private function resolve_cloned_sites( $clone_action ) {
+        private function resolve_cloned_sites( $clone_action, $fs_instances = array() ) {
             $this->_logger->entrance();
 
             $result = array();
@@ -758,7 +810,9 @@
                 $instance_with_error        = null;
                 $has_error                  = false;
 
-                $instances = Freemius::_get_all_instances();
+                $instances = ( ! empty( $fs_instances ) ) ?
+                    $fs_instances :
+                    Freemius::_get_all_instances();
 
                 foreach ( $instances as $instance ) {
                     if ( ! $instance->is_registered() ) {
