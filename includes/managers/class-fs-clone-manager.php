@@ -508,7 +508,7 @@
 
             $fs_instances = array();
 
-            if ( FS_Clone_Manager::OPTION_LONG_TERM_DUPLICATE === $clone_action ) {
+            if ( self::OPTION_LONG_TERM_DUPLICATE === $clone_action ) {
                 $instances = Freemius::_get_all_instances();
 
                 foreach ( $instances as $instance ) {
@@ -556,9 +556,9 @@
             if ( ! in_array(
                 FS__RESOLVE_CLONE_AS,
                 array(
-                    FS_Clone_Manager::OPTION_NEW_HOME,
-                    FS_Clone_Manager::OPTION_TEMPORARY_DUPLICATE,
-                    FS_Clone_Manager::OPTION_LONG_TERM_DUPLICATE,
+                    self::OPTION_NEW_HOME,
+                    self::OPTION_TEMPORARY_DUPLICATE,
+                    self::OPTION_LONG_TERM_DUPLICATE,
                 )
             ) ) {
                 return null;
@@ -825,7 +825,7 @@
 
                     $instances_with_clone_count ++;
 
-                    if ( FS_Clone_Manager::OPTION_NEW_HOME === $clone_action ) {
+                    if ( self::OPTION_NEW_HOME === $clone_action ) {
                         $instance->sync_install( array( 'is_new_site' => true ), true );
                     } else {
                         $instance->_handle_long_term_duplicate();
