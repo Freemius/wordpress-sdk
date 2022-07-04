@@ -18015,7 +18015,8 @@
 
                 $installs = array_merge( $installs, $result->installs );
 
-                $left -= 25;
+                $left   -= 25;
+                $offset += 25;
             }
 
             foreach ( $installs as &$install ) {
