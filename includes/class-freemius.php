@@ -18002,12 +18002,13 @@
                 $install_ids[] = $install->id;
             }
 
-            $left   = count( $install_ids );
-            $offset = 0;
+            $items_per_request = 25;
+            $left              = count( $install_ids );
+            $offset            = 0;
 
             $installs = array();
             while ( $left > 0 ) {
-                $result = $this->get_api_user_scope()->get( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', array_slice( $install_ids, $offset, 25 ) ) );
+                $result = $this->get_api_user_scope()->get( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', array_slice( $install_ids, $offset, $items_per_request ) ) );
 
                 if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
                     // @todo Handle API error.
@@ -18015,8 +18016,8 @@
 
                 $installs = array_merge( $installs, $result->installs );
 
-                $left   -= 25;
-                $offset += 25;
+                $left   -= $items_per_request;
+                $offset += $items_per_request;
             }
 
             foreach ( $installs as &$install ) {
