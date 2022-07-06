@@ -2,9 +2,10 @@
 # This file is distributed under the same license as the freemius package.
 # Translators:
 # Alessandro Pelly Benassi <plasmax@gmail.com>, 2016
-# Daniele Scasciafratte Mte90 <mte90net@gmail.com>, 2015-2019
+# Daniele Scasciafratte Mte90 <mte90net@gmail.com>, 2015-2019,2022
 # Dario Curvino <d.curvino@gmail.com>, 2018,2020
 # Tropicalista <francescopepe@email.it>, 2019
+# Leo Fajardo <leo@freemius.com>, 2022
 # Alessandro Pelly Benassi <plasmax@gmail.com>, 2016-2017
 # Vova Feldman <vova@freemius.com>, 2015-2016
 msgid ""
@@ -12,14 +13,14 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2022-01-05 13:47+0000\n"
-"Last-Translator: Vova Feldman <vova@freemius.com>\n"
-"Language: it_IT\n"
+"PO-Revision-Date: 2015-10-01 21:38+0000\n"
+"Last-Translator: Leo Fajardo <leo@freemius.com>, 2022\n"
 "Language-Team: Italian (Italy) (http://www.transifex.com/freemius/wordpress-sdk/language/it_IT/)\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"MIME-Version: 1.0\n"
+"Language: it_IT\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -52,7 +53,7 @@ msgstr "Qual è il nome di %s?"
 
 #: includes/class-freemius.php:2614
 msgid "It's a temporary %s - I'm troubleshooting an issue"
-msgstr "It's a temporary %s - I'm troubleshooting an issue"
+msgstr "È una %s temporanea. Sto solo cercando di risolvere un problema."
 
 #: includes/class-freemius.php:2616
 msgid "Deactivation"
@@ -177,11 +178,11 @@ msgstr "Grazie per averci dato la possibilità di risolvere il problema! È stat
 
 #: includes/class-freemius.php:5187
 msgid "You have purchased a %s license."
-msgstr "You have purchased a %s license."
+msgstr "Hai la licenza %s."
 
 #: includes/class-freemius.php:5191
 msgid " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
-msgstr " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
+msgstr "Il %s %slink per scaricare%s, la licenza e le istruzioni d'installazione sono state inviate a %s. Se non trovi l'email entro 5 minuti cerca nella cartella dello spam."
 
 #: includes/class-freemius.php5201, includes/class-freemius.php6177,
 #: includes/class-freemius.php17574, includes/class-freemius.php17585,
@@ -211,7 +212,7 @@ msgid "Premium %s version was successfully activated."
 msgstr "La versione 1%s Permium è stata attivata con successo."
 
 #: includes/class-freemius.php6158, includes/class-freemius.php:8104
-msgctxt ""
+msgctxt "Used to express elation, enthusiasm, or triumph (especially in electronic communication)."
 msgid "W00t"
 msgstr "Forte"
 
@@ -289,19 +290,19 @@ msgstr "Tema"
 
 #: includes/class-freemius.php:13727
 msgid "An unknown error has occurred while trying to toggle the license's white-label mode."
-msgstr "An unknown error has occurred while trying to toggle the license's white-label mode."
+msgstr "Un errore sconosciuto è avvenuto mentre si passava alla licenza in modalità whitelabel."
 
 #: includes/class-freemius.php:13741
 msgid "Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s."
-msgstr "Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s."
+msgstr "La tua licenza%s è stata segnata come white label per nascondere informazioni sensibili dalla bacheca di WP (es: la tua email, licenza, prezzi e indirizzi). Se vuoi tornare indietro puoi farlo semplicemente tramite%s. Se è stato un errore guarda anche %s."
 
 #: includes/class-freemius.php:13746
 msgid "User Dashboard"
-msgstr "User Dashboard"
+msgstr "Bacheca Utente"
 
 #: includes/class-freemius.php:13747
 msgid "revert it now"
-msgstr "revert it now"
+msgstr "torna indietro"
 
 #: includes/class-freemius.php:13805
 msgid "An unknown error has occurred while trying to set the user's beta mode."
@@ -309,7 +310,7 @@ msgstr "Un errore sconosciuto è avvenuto durante l'attivazione della modalità 
 
 #: includes/class-freemius.php:13878
 msgid "Invalid new user ID or email address."
-msgstr "Invalid new user ID or email address."
+msgstr "Nuovo utente ID o indirizzo email non valido."
 
 #: includes/class-freemius.php:13908
 msgid "Sorry, we could not complete the email update. Another user with the same email is already registered."
@@ -475,7 +476,7 @@ msgstr "Sembra che uno dei parametri di autenticazione sia sbagliato. Aggiorna l
 
 #: includes/class-freemius.php21340, includes/class-freemius.php21583,
 #: includes/class-freemius.php21638, includes/class-freemius.php:21745
-msgctxt ""
+msgctxt "something somebody says when they are thinking about what you have just said."
 msgid "Hmm"
 msgstr "Uhm"
 
@@ -551,7 +552,7 @@ msgstr "Sembra che la disattivazione della licenza non sia riuscita."
 
 #: includes/class-freemius.php:21695
 msgid "Your %s license was successfully deactivated."
-msgstr "Your %s license was successfully deactivated."
+msgstr "La tua licenza%s è stata disattivata con successo."
 
 #: includes/class-freemius.php:21696
 msgid "Your license was successfully deactivated, you are back to the %s plan."
@@ -651,11 +652,11 @@ msgstr "Non possiamo più inviare i dati di utilizzo di %ssu %sa %s."
 
 #: includes/class-freemius.php:23023
 msgid "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
-msgstr "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
+msgstr "Un email di conferma è stata inviata a %s. Il proprietario dell'email deve confermare l'aggiornamento nelle prossime 4 ore."
 
 #: includes/class-freemius.php:23025
 msgid "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
-msgstr "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
+msgstr "Una email di conferma è stata inviata a %s. Puoi confermare l'aggiornamento nelle prossime 4 ore. Se non puoi trovare l'email verifica la tua cartella dello spam."
 
 #: includes/class-freemius.php:23032
 msgid "Thanks for confirming the ownership change. An email was just sent to %s for final approval."
@@ -684,11 +685,11 @@ msgstr "Hai aggiornato con successo il tuo %s."
 
 #: includes/class-freemius.php:23181
 msgid "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin."
-msgstr "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin."
+msgstr "Si tratta di un sito di un cliente?%sse vuoi puoi nascondere informazioni sensibili come la tua email, licenza, prezzi e indirizzi dalla tua bacheca di WP."
 
 #: includes/class-freemius.php:23184
 msgid "Click here"
-msgstr "Click here"
+msgstr "Clicca qui"
 
 #: includes/class-freemius.php:23282
 msgid "Just letting you know that the add-ons information of %s is being pulled from an external server."
@@ -1137,7 +1138,7 @@ msgstr "Scaricato"
 
 #: includes/fs-plugin-info-dialog.php:1366
 msgid "%s time"
-msgstr "% volta"
+msgstr "%s volta"
 
 #: includes/fs-plugin-info-dialog.php:1368
 msgid "%s times"
@@ -1462,7 +1463,7 @@ msgstr "Scarica la versione %s"
 
 #: templates/account.php:640
 msgid "Download Paid Version"
-msgstr "Download Paid Version"
+msgstr "Scarica la versione a pagamento"
 
 #: templates/account.php658, templates/account.php921,
 #: templates/account/partials/site.php248,
@@ -1482,7 +1483,7 @@ msgstr "Modifica"
 
 #: templates/account.php687, templates/forms/user-change.php:27
 msgid "Change User"
-msgstr "Change User"
+msgstr "Cambia utente"
 
 #: templates/account.php:711
 msgid "Sites"
@@ -1549,11 +1550,11 @@ msgstr "Disattiva la tua licenza bloccando tutte le funzionalità premium ma pot
 
 #: templates/account.php:1104
 msgid "Disabling white-label mode"
-msgstr "Disabling white-label mode"
+msgstr "Disabilita la modalità white label"
 
 #: templates/account.php:1105
 msgid "Enabling white-label mode"
-msgstr "Enabling white-label mode"
+msgstr "Abilita la modalità white label"
 
 #: templates/add-ons.php:38
 msgid "View details"
@@ -1635,7 +1636,7 @@ msgstr "Accetta e attiva la licenza"
 
 #: templates/connect.php:193
 msgid "Welcome to %s! To get started, please enter your license key:"
-msgstr "Welcome to %s! To get started, please enter your license key:"
+msgstr "Benvenuto nel %s! Per iniziare inserisci la tua licenza:"
 
 #: templates/connect.php:200
 msgid "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s."
@@ -1702,7 +1703,7 @@ msgstr "Se fai clic questa decisione sarà delegata agli amministratori del sito
 
 #: templates/connect.php:350
 msgid "License issues?"
-msgstr "License issues?"
+msgstr "Problemi di licenza?"
 
 #: templates/connect.php:366
 msgid "Your Profile Overview"
@@ -1714,7 +1715,7 @@ msgstr "Nome ed indirizzo email"
 
 #: templates/connect.php:374
 msgid "So you can manage and control your license remotely from the User Dashboard."
-msgstr "So you can manage and control your license remotely from the User Dashboard."
+msgstr "Puoi gestire e controllare la tua licenza in remoto dalla bacheca utente."
 
 #: templates/connect.php:375
 msgid "Your Site Overview"
@@ -1722,7 +1723,7 @@ msgstr "Panoramica del tuo sito"
 
 #: templates/connect.php:376
 msgid "Site URL, WP version, PHP info"
-msgstr "Site URL, WP version, PHP info"
+msgstr "URL sito, versione WP, informazioni PHP"
 
 #: templates/connect.php:383
 msgid "Admin Notices"
@@ -1734,15 +1735,15 @@ msgstr "Aggiornamenti, annunci, marketing, no spam"
 
 #: templates/connect.php:391
 msgid "So you can reuse the license when the %s is no longer active."
-msgstr "So you can reuse the license when the %s is no longer active."
+msgstr "Puoi riutilizzare la licenza quando %s non è piu attivo."
 
 #: templates/connect.php:392
 msgid "Current %s Status"
-msgstr "Current %s Status"
+msgstr "Stato attuale %s"
 
 #: templates/connect.php:393
 msgid "Active, deactivated, or uninstalled"
-msgstr "Active, deactivated, or uninstalled"
+msgstr "Attiva, disattiva o disinstalla"
 
 #: templates/connect.php:401
 msgid "Newsletter"
@@ -1754,27 +1755,27 @@ msgstr "Plugin e temi"
 
 #: templates/connect.php:409
 msgid "optional"
-msgstr "optional"
+msgstr "opzionale"
 
 #: templates/connect.php:410
 msgid "To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts."
-msgstr "To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts."
+msgstr "Aiutaci nel comprendere qualunque possibile problema che potrebbe avvenire da altri plugin o temi."
 
 #: templates/connect.php:411
 msgid "Title, slug, version, and is active"
-msgstr "Title, slug, version, and is active"
+msgstr "Titolo, slug, versione e se attivo"
 
 #: templates/connect.php:428
 msgid "The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management."
-msgstr "The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management."
+msgstr "IL %1$s manderà periodicamente %2$s a %3$s per motivi di sicurezza, funzionalità e gestione della licenza."
 
 #: templates/connect.php:430
 msgid "diagnostic data"
-msgstr "diagnostic data"
+msgstr "dati diagnostici"
 
 #: templates/connect.php:431
 msgid "Freemius is our licensing and software updates engine"
-msgstr "Freemius is our licensing and software updates engine"
+msgstr "Freemius è il nostro servizio di licenze e aggiornamenti"
 
 #: templates/connect.php:434
 msgid "What permissions are being granted?"
@@ -1856,7 +1857,7 @@ msgstr "Svuota le Transient degli aggiornamenti"
 
 #: templates/debug.php:86
 msgid "Reset Deactivation Snoozing"
-msgstr "Reset Deactivation Snoozing"
+msgstr "Resetta l'avviso di disattivazione"
 
 #: templates/debug.php:94
 msgid "Sync Data From Server"
@@ -2092,47 +2093,47 @@ msgstr "Richieste"
 
 #: includes/managers/class-fs-clone-manager.php:703
 msgid "Invalid clone resolution action."
-msgstr "Invalid clone resolution action."
+msgstr "Azione di risoluzione del clone fallita."
 
 #: includes/managers/class-fs-clone-manager.php:851
 msgid "products"
-msgstr "products"
+msgstr "prodotti"
 
 #: includes/managers/class-fs-clone-manager.php:1033
 msgid "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
-msgstr "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
+msgstr "%1$s è entrato in modalità sicurezza perché è stato rilevato che %2$s è una copia esatta di %3$s./"
 
 #: includes/managers/class-fs-clone-manager.php:1039
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
-msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
+msgstr "Il prodotto sottostante è stato messo in modalità sicurezza perchè abbiamo notato che %2$s è una copia esatta di %3$s: %1$s"
 
 #: includes/managers/class-fs-clone-manager.php:1040
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
-msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
+msgstr "Il prodotto sottostante è stato messo in modalità sicurezza perchè abbiamo notato che %2$s è una copia esatta di questi siti %3$s: %1$s"
 
 #: includes/managers/class-fs-clone-manager.php:1066
 msgid "the above-mentioned sites"
-msgstr "the above-mentioned sites"
+msgstr "i siti menzionati sopra stante"
 
 #: includes/managers/class-fs-clone-manager.php:1079
 msgid "Is %2$s a duplicate of %4$s?"
-msgstr "Is %2$s a duplicate of %4$s?"
+msgstr "%2$s è un duplicato di %4$s?"
 
 #: includes/managers/class-fs-clone-manager.php:1080
 msgid "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
-msgstr "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
+msgstr "Si, %2$s è un duplicato di %4$s per il motivo di test, staging o sviluppo."
 
 #: includes/managers/class-fs-clone-manager.php:1085
 msgid "Long-Term Duplicate"
-msgstr "Long-Term Duplicate"
+msgstr "Duplicato a lungo termine"
 
 #: includes/managers/class-fs-clone-manager.php:1090
 msgid "Duplicate Website"
-msgstr "Duplicate Website"
+msgstr "Sito duplicato"
 
 #: includes/managers/class-fs-clone-manager.php:1096
 msgid "Is %2$s the new home of %4$s?"
-msgstr "Is %2$s the new home of %4$s?"
+msgstr "%2$s è la nuova home di %4$s?"
 
 #: includes/managers/class-fs-clone-manager.php:1098
 msgid "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
@@ -2149,61 +2150,61 @@ msgstr "data"
 
 #: includes/managers/class-fs-clone-manager.php:1105
 msgid "Migrate License"
-msgstr "Migrate License"
+msgstr "Sposta la licenza"
 
 #: includes/managers/class-fs-clone-manager.php:1106
 msgid "Migrate"
-msgstr "Migrate"
+msgstr "Sposta"
 
 #: includes/managers/class-fs-clone-manager.php:1112
 msgid "Is %2$s a new website?"
-msgstr "Is %2$s a new website?"
+msgstr "%2$s è un nuovo sito?"
 
 #: includes/managers/class-fs-clone-manager.php:1113
 msgid "Yes, %2$s is a new and different website that is separate from %4$s."
-msgstr "Yes, %2$s is a new and different website that is separate from %4$s."
+msgstr "Si %2$s è un nuovo e sito differente che è separato da %4$s."
 
 #: includes/managers/class-fs-clone-manager.php:1115
 msgid "It requires license activation."
-msgstr "It requires license activation."
+msgstr "Richiede la attivazione della licenza."
 
 #: includes/managers/class-fs-clone-manager.php:1122
 msgid "New Website"
-msgstr "New Website"
+msgstr "Nuovo sito"
 
 #: includes/managers/class-fs-clone-manager.php:1145
 msgctxt "Clone resolution admin notice products list label"
 msgid "Products"
-msgstr "Products"
+msgstr "Prodotti"
 
 #: includes/managers/class-fs-clone-manager.php:1230
 msgid "You marked this website, %s, as a temporary duplicate of %s."
-msgstr "You marked this website, %s, as a temporary duplicate of %s."
+msgstr "Hai segnato questo sito, %s, come duplicato temporaneo di %s."
 
 #: includes/managers/class-fs-clone-manager.php:1231
 msgid "You marked this website, %s, as a temporary duplicate of these sites"
-msgstr "You marked this website, %s, as a temporary duplicate of these sites"
+msgstr "Hai marchiato questo sito, %s, come duplicato temporaneo di questi siti"
 
 #: includes/managers/class-fs-clone-manager.php:1245
 msgid "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
-msgstr "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
+msgstr "%s con aggiornamenti automatici di sicurezza e funzionalità con le funzionalità a pagamento manterrà il funzionamento senza interruzioni fino a %s (o quando la licenza scade, oppure quello che avviene prima)."
 
 #: includes/managers/class-fs-clone-manager.php:1248
 msgctxt "\"The <product_label>\", e.g.: \"The plugin\""
 msgid "The %s's"
-msgstr "The %s's"
+msgstr "Il %s"
 
 #: includes/managers/class-fs-clone-manager.php:1251
 msgid "The following products'"
-msgstr "The following products'"
+msgstr "I prodotti seguenti"
 
 #: includes/managers/class-fs-clone-manager.php:1259
 msgid "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
-msgstr "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
+msgstr "Se questo è un duplicato a lungo termine per mantenere gli aggiornamenti automatico e funzionalità a pagamento dopo %s, verifica %s."
 
 #: includes/managers/class-fs-clone-manager.php:1261
 msgid "activate a license here"
-msgstr "activate a license here"
+msgstr "attiva una licenza qui"
 
 #: templates/account/billing.php:22
 msgctxt "verb"
@@ -2521,7 +2522,7 @@ msgstr "Chiave utente"
 
 #: templates/forms/email-address-update.php:32
 msgid "Email address update"
-msgstr "Email address update"
+msgstr "Aggiorna l'indirizzo email"
 
 #: templates/forms/email-address-update.php33,
 #: templates/forms/user-change.php:81
@@ -2531,40 +2532,40 @@ msgstr "Chiudi"
 
 #: templates/forms/email-address-update.php:38
 msgid "Enter the new email address"
-msgstr "Enter the new email address"
+msgstr "Inserisci il nuovo indirizzo email"
 
 #: templates/forms/email-address-update.php:42
 msgid "Are both %s and %s your email addresses?"
-msgstr "Are both %s and %s your email addresses?"
+msgstr "Sono entrambi %s e %s tuoi indirizzi email?"
 
 #: templates/forms/email-address-update.php:50
 msgid "Yes - both addresses are mine"
-msgstr "Yes - both addresses are mine"
+msgstr "Si entrambi gli indirizzi sono miei"
 
 #: templates/forms/email-address-update.php:57
 msgid "%s is my client's email address"
-msgstr "%s is my client's email address"
+msgstr "%s è il mio indirizzo email"
 
 #: templates/forms/email-address-update.php:66
 msgid "%s is my email address"
-msgstr "%s is my email address"
+msgstr "%s è il mio indirizzo email"
 
 #: templates/forms/email-address-update.php:75
 msgid "Would you like to merge %s into %s?"
-msgstr "Would you like to merge %s into %s?"
+msgstr "Vuoi fondere %s in %s?"
 
 #: templates/forms/email-address-update.php:84
 msgid "Yes - move all my data and assets from %s to %s"
-msgstr "Yes - move all my data and assets from %s to %s"
+msgstr "Si muovi tutti i miei e risorse da %s a %s"
 
 #: templates/forms/email-address-update.php:94
 msgid "No - only move this site's data to %s"
-msgstr "No - only move this site's data to %s"
+msgstr "No sposta solo i dati di questo sito su %s"
 
 #: templates/forms/email-address-update.php292,
 #: templates/forms/email-address-update.php:298
 msgid "Update"
-msgstr "Update"
+msgstr "Aggiorna"
 
 #: templates/forms/license-activation.php:23
 msgid "Please enter the license key that you received in the email right after the purchase:"
@@ -2580,7 +2581,7 @@ msgstr " Il %1$s invierà periodicamente dei dati a %2$s per verificare aggiorna
 
 #: templates/forms/license-activation.php:211
 msgid "Associate with the license owner's account."
-msgstr "Associate with the license owner's account."
+msgstr "Associa con il proprietario della licenza"
 
 #: templates/forms/optout.php:30
 msgctxt "verb"
@@ -2594,19 +2595,21 @@ msgstr "Iscriviti"
 
 #: templates/forms/optout.php:34
 msgid "Connectivity to the licensing engine was successfully re-established. Automatic security & feature updates are now available through the WP Admin Dashboard."
-msgstr "Connectivity to the licensing engine was successfully re-established. Automatic security & feature updates are now available through the WP Admin Dashboard."
+msgstr ""
+"Connettività alla verifica della licenza è stata riattivata con successo.\n"
+"Aggiornamenti di sicurezza e funzionalità sono disponibili dalla bacheca di WP."
 
 #: templates/forms/optout.php:36
 msgid "Warning: Opting out will block automatic updates"
-msgstr "Warning: Opting out will block automatic updates"
+msgstr "Attenzione: disattivarsi bloccherà aggiornamenti automatici"
 
 #: templates/forms/optout.php:37
 msgid "Ongoing connectivity with the licensing engine is essential for receiving automatic security & feature updates of the paid product. To receive these updates, data like your license key, %1$s version, and WordPress version, is periodically sent to the server to check for updates. By opting out, you understand that your site won't receive automatic updates for %2$s from within the WP Admin Dashboard. This can put your site at risk, and we highly recommend to keep this connection active. If you do choose to opt-out, you'll need to check for %1$s updates and install them manually."
-msgstr "Ongoing connectivity with the licensing engine is essential for receiving automatic security & feature updates of the paid product. To receive these updates, data like your license key, %1$s version, and WordPress version, is periodically sent to the server to check for updates. By opting out, you understand that your site won't receive automatic updates for %2$s from within the WP Admin Dashboard. This can put your site at risk, and we highly recommend to keep this connection active. If you do choose to opt-out, you'll need to check for %1$s updates and install them manually."
+msgstr "La connettività insieme al sistema di licenze sono necessari per gli aggiornamenti di funzionalità e sicurezza del prodotto a pagamento/ Per ricevere questi aggiornamenti, dati come la tua licenza, %1$s versione e la versione di WordPress sono inviati periodicamente al server per nuovi aggiornamenti. Disattivando accetti che il tuo sito non riceverà aggiornamenti automatici per %2$s dalla bacheca WP. Questo può mettere in pericolo il tuo sito e consigliamo di lasciare questa connessione. Se vuoi disattivare devi verificare e installare manualmente gli aggiornamenti per %1$s."
 
 #: templates/forms/optout.php:39
 msgid "I'd like to keep automatic updates"
-msgstr "I'd like to keep automatic updates"
+msgstr "Voglio tenere gli aggiornamenti automatici"
 
 #: templates/forms/optout.php:44
 msgid "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking."
@@ -2622,11 +2625,11 @@ msgstr "Cliccando su \"Cancella iscrizione\", non invieremo più nessuna informa
 
 #: templates/forms/optout.php:74
 msgid "Plugins & themes tracking"
-msgstr "Plugins & themes tracking"
+msgstr "Tracciamento plugin e temi"
 
 #: templates/forms/optout.php:261
 msgid "Saved"
-msgstr "Saved"
+msgstr "Salvato"
 
 #: templates/forms/premium-versions-upgrade-handler.php:40
 msgid "There is a new version of %s available."
@@ -2696,15 +2699,15 @@ msgstr "Per essere accettato del regolamento WordPress.org, prima di attivare il
 
 #: templates/forms/user-change.php:26
 msgid "By changing the user, you agree to transfer the account ownership to:"
-msgstr "By changing the user, you agree to transfer the account ownership to:"
+msgstr "Cambiando l'utente accetti di trasferire la proprietà dell'account a:"
 
 #: templates/forms/user-change.php:28
 msgid "I Agree - Change User"
-msgstr "I Agree - Change User"
+msgstr "Accetto - Cambia utente"
 
 #: templates/forms/user-change.php:30
 msgid "Enter email address"
-msgstr "Enter email address"
+msgstr "Inserisci l'indirizzo email"
 
 #: templates/js/style-premium-theme.php:39
 msgid "Premium"
@@ -2811,16 +2814,16 @@ msgstr "Feedback anonimo"
 
 #: templates/forms/deactivation/form.php:71
 msgid "hour"
-msgstr "hour"
+msgstr "ora"
 
 #: templates/forms/deactivation/form.php:76
 msgid "hours"
-msgstr "hours"
+msgstr "ore"
 
 #: templates/forms/deactivation/form.php81,
 #: templates/forms/deactivation/form.php:86
 msgid "days"
-msgstr "days"
+msgstr "giorni"
 
 #: templates/forms/deactivation/form.php:106
 msgid "Deactivate"
@@ -2856,7 +2859,7 @@ msgstr "Spiegandoci il motivo ci aiuterai a migliorare."
 
 #: templates/forms/deactivation/form.php:478
 msgid "Snooze & %s"
-msgstr "Snooze & %s"
+msgstr "Silenzia e %s"
 
 #: templates/forms/deactivation/form.php:638
 msgid "Yes - %s"
