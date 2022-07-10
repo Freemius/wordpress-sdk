@@ -154,14 +154,17 @@
 		     echo ' fs-anonymous-disabled';
 	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
 		<div class="fs-visual">
-			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress"></i></b>
-			<i class="dashicons dashicons-plus fs-first"></i>
+			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress-alt"></i></b>
 			<?php
-				$vars = array( 'id' => $fs->get_id() );
+                $size = 50;
+				$vars = array(
+                    'id'   => $fs->get_id(),
+                    'size' => $size,
+                );
+
 				fs_require_once_template( 'plugin-icon.php', $vars );
 			?>
-			<i class="dashicons dashicons-plus fs-second"></i>
-			<img class="fs-connect-logo" width="80" height="80" src="//img.freemius.com/logo/connect.svg"/>
+			<img class="fs-connect-logo" width="<?php echo $size ?>" height="<?php echo $size ?>" src="//img.freemius.com/logo/connect.svg"/>
 		</div>
 		<div class="fs-content">
 			<?php if ( ! empty( $error ) ) : ?>
