@@ -10561,7 +10561,7 @@
         function get_eula_url() {
             return $this->apply_filters(
                 'eula_url',
-                "https://freemius.com/terms/{$this->_plugin->id}/{$this->_slug}/"
+                "https://freemius.com/product/{$this->_plugin->id}/{$this->_slug}/legal/eula/"
             );
         }
 
