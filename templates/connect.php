@@ -197,15 +197,15 @@
 					} else {
 						$filter                = 'connect_message';
 						$default_optin_message = $is_gdpr_required ?
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug) :
-							fs_text_inline( 'Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s.', 'connect-message', $slug);
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive non-sensitive info sharing.', 'connect-message', $slug) :
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug);
 
 						if ( $fs->is_plugin_update() ) {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
 							$default_optin_message = $is_gdpr_required ?
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug ) :
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug );
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug ) :
+								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing. If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update', $slug );
 
 							// If user customized the opt-in message on update, use
 							// that message. Otherwise, fallback to regular opt-in
@@ -221,8 +221,7 @@
 								esc_html( $default_optin_message ),
 								'<b>' . esc_html( $fs->get_plugin_name() ) . '</b>',
 								'<b>' . $current_user->user_login . '</b>',
-								'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>',
-								$freemius_link
+								'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>'
 							),
 							$first_name,
 							$fs->get_plugin_name(),
@@ -484,6 +483,8 @@
 			</div>
 		<?php endif ?>
 		<div class="fs-terms">
+            <a class="fs-tooltip-trigger<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo $freemius_site_url ?>" target="_blank" rel="noopener" tabindex="1">Powered by Freemius<?php if ( $require_license_key ) : ?> <span class="fs-tooltip" style="width: 170px"><?php echo $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) ?></span><?php endif ?></a>
+            &nbsp;&nbsp;-&nbsp;&nbsp;
 			<a href="https://freemius.com/privacy/" target="_blank" rel="noopener"
 			   tabindex="1"><?php fs_esc_html_echo_inline( 'Privacy Policy', 'privacy-policy', $slug ) ?></a>
 			&nbsp;&nbsp;-&nbsp;&nbsp;
