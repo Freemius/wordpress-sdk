@@ -367,48 +367,96 @@
 			if ( ! $require_license_key ) {
 				$permissions['profile'] = array(
 					'icon-class' => 'dashicons dashicons-admin-users',
-					'label'      => $fs->get_text_inline( 'Your Profile Overview', 'permissions-profile' ),
-					'desc'       => $fs->get_text_inline( 'Name and email address', 'permissions-profile_desc' ),
+                    'tooltip'    => $fs->get_text_inline( 'Never miss important updates, get security warnings before they become public knowledge, and receive notifications about special offers and awesome new features.', 'permissions-profile_tooltip' ),
+                    'label'      => $fs->get_text_inline( 'View Basic Profile Info', 'permissions-profile' ),
+					'desc'       => $fs->get_text_inline( 'Your WordPress user\'s: first & last name, and email address', 'permissions-profile_desc' ),
 					'priority'   => 5,
 				);
 			}
 
-            $permissions['site'] = array(
-                'icon-class' => 'dashicons dashicons-admin-site-alt3',
-                'tooltip'    => ( $require_license_key ? sprintf( $fs->get_text_inline( 'So you can manage and control your license remotely from the User Dashboard.', 'permissions-site_tooltip' ), $fs->get_module_type() ) : '' ),
-                'label'      => $fs->get_text_inline( 'Your Site Overview', 'permissions-site' ),
-                'desc'       => $fs->get_text_inline( 'Site URL, SDK version, Plugin version', 'permissions-site_desc' ),
-                'priority'   => 10,
-            );
+            if ( $require_license_key ) {
+                $permissions['essentials'] = array(
+                    'icon-class' => 'dashicons dashicons-admin-links',
+                    'tooltip'    => sprintf(
+                        /* translators: %s: 'Plugin' or 'Theme' */
+                        $fs->get_text_inline( 'To let you manage & control where the license is activated and ensure %s security & feature updates are only delivered to websites you authorize.', 'permissions-essentials_tooltip' ),
+                        $fs->get_module_label( true )
+                    ),
+                    'label'      => $fs->get_text_inline( 'View License Essentials', 'permissions-essentials' ),
+                    'desc'       => $fs->get_text_inline(
+                       sprintf(
+                            /* translators: %s: 'Plugin' or 'Theme' */
+                           'Homepage URL, %s version, SDK version',
+                           $fs->get_module_label()
+                       ),
+                       'permissions-essentials_desc'
+                    ),
+                    'priority'   => 10,
+                );
+            } else {
+                $permissions['site'] = array(
+                    'icon-class' => 'dashicons dashicons-admin-links',
+                    'tooltip'    => sprintf(
+                        /* translators: %s: 'Plugin' or 'Theme' */
+                        $fs->get_text_inline( 'To provide additional functionality that\'s relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s should be translated and tailored to.', 'permissions-site_tooltip' ),
+                        $fs->get_module_label( true )
+                    ),
+                    'label'      => $fs->get_text_inline( 'View Basic Website Info', 'permissions-site' ),
+                    'desc'       => $fs->get_text_inline( 'Homepage URL & title, WP & PHP versions, and site language', 'permissions-site_desc' ),
+                    'priority'   => 10,
+                );
+            }
 
             if ( $require_license_key ) {
                 $permissions['diagnostic'] = array(
-                    'icon-class' => 'dashicons dashicons-admin-settings',
-                    'label'      => $fs->get_text_inline( 'Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
-                    'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise due to WordPress or PHP version.', 'permissions-diagnostic_tooltip' ),
-                    'desc'       => $fs->get_text_inline( 'Title, WP version, locale & PHP version', 'permissions-diagnostic_desc' ),
+                    'icon-class' => 'dashicons dashicons-wordpress-alt',
+                    'label'      => $fs->get_text_inline( 'View Diagnostic Info', 'permissions-diagnostic' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                    'tooltip'    => sprintf(
+                        /* translators: %s: 'Plugin' or 'Theme' */
+                        $fs->get_text_inline( 'To avoid breaking your website due to WordPress or PHP version incompatibilities, and recognize which languages & regions the %s should be translated and tailored to.', 'permissions-diagnostic_tooltip' ),
+                        $fs->get_module_label( true )
+                    ),
+                    'desc'       => $fs->get_text_inline( 'WordPress & PHP versions, site language & title', 'permissions-diagnostic_desc' ),
                     'priority'   => 25,
                     'optional'   => true,
-                    'default'    => $fs->apply_filters( 'permission_diagnostic_default', ! $require_license_key ),
+                    'default'    => $fs->apply_filters( 'permission_diagnostic_default', true ),
                 );
             }
 
             if ( ! $require_license_key ) {
                 $permissions['notices'] = array(
                     'icon-class' => 'dashicons dashicons-testimonial',
-                    'label'      => $fs->get_text_inline( 'Admin Notices', 'permissions-admin-notices' ),
-                    'desc'       => $fs->get_text_inline( 'Updates, announcements, marketing, no spam', 'permissions-newsletter_desc' ),
-                    'priority'   => 13,
+                    'label'      => $fs->get_text_inline( 'Show Admin Notices', 'permissions-admin-notices' ),
+                    'desc'       => $fs->get_text_inline( 'Updates, announcements, and marketing notices (no spam)', 'permissions-newsletter_desc' ),
+                    'priority'   => 23,
                 );
             }
 
-            $permissions['events'] = array(
-                'icon-class' => 'dashicons dashicons-admin-' . ( $fs->is_plugin() ? 'plugins' : 'appearance' ),
-                'tooltip'    => ( $require_license_key ? sprintf( $fs->get_text_inline( 'So you can reuse the license when the %s is no longer active.', 'permissions-events_tooltip' ), $fs->get_module_type() ) : '' ),
-                'label'      => sprintf( $fs->get_text_inline( 'Current %s Status', 'permissions-events' ), ucfirst( $fs->get_module_type() ) ),
-                'desc'       => $fs->get_text_inline( 'Active, deactivated, or uninstalled', 'permissions-events_desc' ),
-                'priority'   => 20,
-            );
+            if ( $require_license_key ) {
+                $permissions['events'] = array(
+                    'icon-class' => 'dashicons dashicons-admin-' . ( $fs->is_plugin() ? 'plugins' : 'appearance' ),
+                    'tooltip'    => sprintf( $fs->get_text_inline( 'So you can reuse the license when the %s is no longer active.', 'permissions-events_tooltip' ), $fs->get_module_label( true ) ),
+                    'label'      => sprintf( $fs->get_text_inline( 'View %s State', 'permissions-events' ), $fs->get_module_label() ),
+                    'desc'       => sprintf(
+                    /* translators: %s: 'Plugin' or 'Theme' */
+                        $fs->get_text_inline( 'Is active, deactivated, or uninstalled', 'permissions-events_desc-paid' ),
+                        $fs->get_module_label( true )
+                    ),
+                    'priority'   => 20,
+                );
+            } else {
+                $permissions['events'] = array(
+                    'icon-class' => 'dashicons dashicons-admin-' . ( $fs->is_plugin() ? 'plugins' : 'appearance' ),
+                    'tooltip'    => '',
+                    'label'      => sprintf( $fs->get_text_inline( 'View Basic %s Info', 'permissions-events' ), $fs->get_module_label() ),
+                    'desc'       => sprintf(
+                    /* translators: %s: 'Plugin' or 'Theme' */
+                        $fs->get_text_inline( 'Current %s & SDK versions, and if active or uninstalled', 'permissions-events_desc' ),
+                        $fs->get_module_label( true )
+                    ),
+                    'priority'   => 20,
+                );
+            }
 
 			// Add newsletter permissions if enabled.
 			if ( $is_gdpr_required || $fs->is_permission_requested( 'newsletter' ) ) {
@@ -421,10 +469,10 @@
 			}
 
             $permissions['extensions'] = array(
-                'icon-class' => 'dashicons dashicons-menu',
-                'label'      => $fs->get_text_inline( 'Plugins & Themes', 'permissions-extensions' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
-                'tooltip'    => $fs->get_text_inline( 'To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts.', 'permissions-events_tooltip' ),
-                'desc'       => $fs->get_text_inline( 'Title, slug, version, and is active', 'permissions-extensions_desc' ),
+                'icon-class' => 'dashicons dashicons-block-default',
+                'label'      => $fs->get_text_inline( 'View Plugins & Themes List', 'permissions-extensions' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
+                'tooltip'    => $fs->get_text_inline( 'To ensure compatibility and avoid conflicts with your installed plugins and themes.', 'permissions-events_tooltip' ),
+                'desc'       => $fs->get_text_inline( 'Names, slugs, versions, and if active or not - that\'s it', 'permissions-extensions_desc' ),
                 'priority'   => 25,
                 'optional'   => true,
                 'default'    => $fs->apply_filters( 'permission_extensions_default', ! $require_license_key )
@@ -439,16 +487,15 @@
 			if ( ! empty( $permissions ) ) : ?>
 				<div class="fs-permissions">
                     <?php if ( $require_license_key ) : ?>
-                        <p class="fs-license-sync-disclaimer"><?php
-                            echo sprintf(
-                                fs_esc_html_inline( 'The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management.', 'license-sync-disclaimer', $slug ),
-                                $fs->get_module_label( true ),
-                                sprintf('<a class="fs-trigger" href="#" tabindex="1">%s</a>', fs_esc_html_inline('diagnostic data', 'send-data')),
-                                '<a class="fs-tooltip-trigger' . (is_rtl() ? ' rtl' : '') . '" href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="1">freemius.com <i class="dashicons dashicons-editor-help" style="text-decoration: none;"><span class="fs-tooltip" style="width: 170px">' . $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) . '</span></i></a>'
-                            ) ?>
-                        </p>
+                        <a class="fs-trigger wp-core-ui" href="#" tabindex="1" style="color: inherit;"><?php echo sprintf(
+                                fs_esc_html_inline( 'For delivery of security & feature updates, and license management, %s needs to →', 'license-sync-disclaimer', $slug ),
+                                sprintf( '<nobr class="button-link" style="text-decoration: none;">%s</nobr>', $fs->get_plugin_title() )
+                            ) ?></a>
                     <?php else : ?>
-                        <a class="fs-trigger" href="#" tabindex="1"><?php fs_esc_html_echo_inline( 'What permissions are being granted?', 'what-permissions', $slug ) ?></a>
+                        <a class="fs-trigger wp-core-ui" href="#" tabindex="1" style="color: inherit;"><?php printf(
+                                fs_esc_html_inline( 'This will allow %s to →', 'this-will-allow-x', $slug ),
+                                sprintf( '<nobr class="button-link" style="text-decoration: none;">%s</nobr>', $fs->get_plugin_title() )
+                            ) ?></a>
                     <?php endif ?>
 					<ul><?php
 							foreach ( $permissions as $id => $permission ) : ?>
