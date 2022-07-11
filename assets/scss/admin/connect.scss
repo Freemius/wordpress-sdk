@@ -4,12 +4,14 @@ $form_width: 480px;
 $permission-icon-size: 30px;
 $icon_padding: 3px;
 $icon_border_width: 1px;
+$box_border_radius: 3px;
 
 #fs_connect
 {
     width:  $form_width;
     @include box-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
     margin: 60px auto 20px auto;
+    border-radius: $box_border_radius;
 
     @media screen and (max-width: ($form_width - 1)) {
         @include box-shadow(none);
@@ -405,6 +407,8 @@ $icon_border_width: 1px;
 {
     #fs_connect
     {
+        border-radius: 3px;
+
         .fs-actions
         {
             padding:    10px 20px;
