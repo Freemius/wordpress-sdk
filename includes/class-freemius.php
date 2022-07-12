@@ -3650,17 +3650,26 @@
         static function get_site_url( $blog_id = null ) {
             global $wp_filter;
 
-            $site_url_filters = null;
+            $site_url_filters = array(
+                'site_url'               => null,
+                'pre_option_siteurl'     => null,
+                'default_option_siteurl' => null,
+                'option_siteurl'         => null,
+            );
 
-            if ( ! empty( $wp_filter['site_url'] ) ) {
-                $site_url_filters = $wp_filter['site_url'];
-                unset( $wp_filter['site_url'] );
+            foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
+                if ( ! empty( $wp_filter[ $hook_name ] ) ) {
+                    $site_url_filters[ $hook_name ] = $wp_filter[ $hook_name ];
+                    unset( $wp_filter[ $hook_name ] );
+                }
             }
 
             $url = get_site_url( $blog_id );
 
-            if ( ! empty( $site_url_filters ) ) {
-                $wp_filter['site_url'] = $site_url_filters;
+            foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
+                if ( ! empty( $site_url_filter ) ) {
+                    $wp_filter[ $hook_name ] = $site_url_filter;
+                }
             }
 
             return $url;
