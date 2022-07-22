@@ -167,7 +167,7 @@
 
                 $cache_group = $this->get_cache_group();
 
-                if ( WP_FS__DEBUG_SDK ) {
+                if ( ! $this->is_cache_enabled() ) {
 
                     // Don't use cache layer in DEBUG mode.
                     $load_options = empty( $this->_options );
@@ -206,7 +206,7 @@
                     $cached = false;
                 }
 
-                if ( ! WP_FS__DEBUG_SDK && ! $cached ) {
+                if ( $this->is_cache_enabled() && ! $cached ) {
                     // Set non encoded cache.
                     wp_cache_set( $option_name, $this->_options, $cache_group );
                 }
@@ -437,9 +437,29 @@
                 update_option( $option_name, $this->_options, $this->_autoload );
             }
 
-            if ( ! WP_FS__DEBUG_SDK ) {
+            if ( $this->is_cache_enabled() ) {
                 wp_cache_set( $option_name, $this->_options, $this->get_cache_group() );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @return bool
+         */
+        private function is_cache_enabled() {
+            if ( WP_FS__DEBUG_SDK ) {
+                return false;
+            }
+
+            if ( defined( 'WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED' ) && WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED ) {
+                return false;
+            }
+
+            return (
+                ! defined( 'WP_FS__CACHE_ENABLED' ) || WP_FS__CACHE_ENABLED
+            );
         }
 
         /**
