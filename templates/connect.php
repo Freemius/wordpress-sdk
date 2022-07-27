@@ -41,7 +41,7 @@
 		$first_name = $current_user->nickname;
 	}
 
-	$site_url     = Freemius::get_site_url();
+	$site_url     = Freemius::get_unfiltered_site_url();
 	$protocol_pos = strpos( $site_url, '://' );
 	if ( false !== $protocol_pos ) {
 		$site_url = substr( $site_url, $protocol_pos + 3 );

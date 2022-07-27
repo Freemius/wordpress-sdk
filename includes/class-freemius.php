@@ -3635,7 +3635,7 @@
             }
 
             return (
-                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !== self::get_site_url( null, true, true )
+                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !== self::get_unfiltered_site_url( null, true, true )
             );
         }
 
@@ -3649,7 +3649,7 @@
          *
          * @return string
          */
-        static function get_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
+        static function get_unfiltered_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
             global $wp_filter;
 
             $site_url_filters = array(
@@ -3713,7 +3713,7 @@
             if (
                 is_object( $this->_license ) &&
                 ! $this->_license->is_utilized(
-                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( self::get_site_url() ) )
+                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( self::get_unfiltered_site_url() ) )
                 )
             ) {
                 $license_key = $this->_license->secret_key;
@@ -4363,7 +4363,7 @@
             $unique_id = self::$_accounts->get_option( 'unique_id', null, $blog_id );
 
             if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
-                $key = self::get_site_url( $blog_id, true );
+                $key = self::get_unfiltered_site_url( $blog_id, true );
 
                 $secure_auth = defined( 'SECURE_AUTH_KEY' ) ? SECURE_AUTH_KEY : '';
                 if ( empty( $secure_auth ) ||
@@ -9702,7 +9702,7 @@
                     'language' => get_bloginfo( 'language' ),
                     'charset'  => get_bloginfo( 'charset' ),
                     'title'    => get_bloginfo( 'name' ),
-                    'url'      => self::get_site_url(),
+                    'url'      => self::get_unfiltered_site_url(),
                 ) :
                 array();
 
@@ -12629,7 +12629,7 @@
                 } else {
                     $url = is_object( $site ) ?
                         $site->siteurl :
-                        self::get_site_url( $blog_id );
+                        self::get_unfiltered_site_url( $blog_id );
 
                     $disconnected_site_ids[] = $blog_id;
                 }
@@ -15924,7 +15924,7 @@
             $address_to_blog_map = array();
             foreach ( $sites as $site ) {
                 $blog_id                         = self::get_site_blog_id( $site );
-                $address                         = self::get_site_url( $blog_id, true, true );
+                $address                         = self::get_unfiltered_site_url( $blog_id, true, true );
                 $address_to_blog_map[ $address ] = $blog_id;
             }
 
@@ -16160,7 +16160,7 @@
             $switched = false;
 
             if ( is_null( $site ) ) {
-                $url     = self::get_site_url();
+                $url     = self::get_unfiltered_site_url();
                 $name    = get_bloginfo( 'name' );
                 $blog_id = null;
             } else {
@@ -16175,7 +16175,7 @@
                     $url  = $site->siteurl;
                     $name = $site->blogname;
                 } else {
-                    $url  = self::get_site_url( $blog_id );
+                    $url  = self::get_unfiltered_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
                 }
             }
@@ -23001,7 +23001,7 @@
                                             sprintf(
                                                 $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
                                                 $this->get_plugin_title(),
-                                                self::get_site_url( $blog_id, true ),
+                                                self::get_unfiltered_site_url( $blog_id, true ),
                                                 sprintf(
                                                     '<a href="%s" target="_blank" rel="noopener">%s</a>',
                                                     'https://freemius.com',
@@ -23727,7 +23727,7 @@
                     ! $this->is_live(),
                     $this->_site->secret_key,
                     $this->get_sdk_version(),
-                    self::get_site_url()
+                    self::get_unfiltered_site_url()
                 );
             }
 
@@ -23768,7 +23768,7 @@
                 $this->_store_site();
             }
 
-            if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_site_url( null, true, true ) ) {
+            if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_unfiltered_site_url( null, true, true ) ) {
                     FS_Clone_Manager::instance()->maybe_run_clone_resolution();
             }
         }

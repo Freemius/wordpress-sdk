@@ -72,7 +72,7 @@
         $current_user  = Freemius::_get_current_wp_user();
         $full_name     = trim( $current_user->user_firstname . ' ' . $current_user->user_lastname );
         $email_address = $current_user->user_email;
-        $domain        = Freemius::get_site_url( null, true );
+        $domain        = Freemius::get_unfiltered_site_url( null, true );
     }
 
     $affiliate_tracking = 30;

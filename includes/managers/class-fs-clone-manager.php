@@ -527,7 +527,7 @@
                     if (
                         is_object( $license ) &&
                         ! $license->is_utilized(
-                            ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( Freemius::get_site_url() ) )
+                            ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( Freemius::get_unfiltered_site_url() ) )
                         )
                     ) {
                         $fs_instances[] = $instance;
@@ -623,7 +623,7 @@
 
             $instance->switch_to_blog( $blog_id );
 
-            $current_url          = untrailingslashit( Freemius::get_site_url( null, true ) );
+            $current_url          = untrailingslashit( Freemius::get_unfiltered_site_url( null, true ) );
             $current_install_url  = is_object( $current_install ) ?
                 fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
                 null;
@@ -726,7 +726,7 @@
         private function try_automatic_resolution() {
             $this->_logger->entrance();
 
-            $current_url  = untrailingslashit( Freemius::get_site_url( null, true ) );
+            $current_url  = untrailingslashit( Freemius::get_unfiltered_site_url( null, true ) );
             $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
             $require_manual_resolution = false;
@@ -960,7 +960,7 @@
                         $product_ids,
                         $product_titles,
                         $site_urls,
-                        Freemius::get_site_url(),
+                        Freemius::get_unfiltered_site_url(),
                         ( count( $site_urls ) === count( $sites_with_license_urls ) ),
                         ( count( $site_urls ) === $sites_with_premium_version_count ),
                         $doc_url
@@ -1070,7 +1070,7 @@
                             continue;
                         }
 
-                        $subsite_url = Freemius::get_site_url( $blog_id, true, true );
+                        $subsite_url = Freemius::get_unfiltered_site_url( $blog_id, true, true );
 
                         $has_clone = ( fs_strip_url_protocol( trailingslashit( $install->url ) ) !== $subsite_url );
                     }
@@ -1275,7 +1275,7 @@
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
             $temporary_duplicate_end_date = date( 'M j, Y', $temporary_duplicate_end_date );
 
-            $current_url       = Freemius::get_site_url();
+            $current_url       = Freemius::get_unfiltered_site_url();
             $current_site_link = sprintf(
                 '<b><a href="%s" target="_blank">%s</a></b>',
                 $current_url,
