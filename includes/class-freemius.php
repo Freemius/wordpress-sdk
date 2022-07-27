@@ -3657,6 +3657,7 @@
                 'option_siteurl'         => null,
             );
 
+            // Detach all URL-related filters to get the actual site's URL (stripped of potential manipulations by multilingual plugins).
             foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
                 if ( ! empty( $wp_filter[ $hook_name ] ) ) {
                     $site_url_filters[ $hook_name ] = $wp_filter[ $hook_name ];
@@ -3666,6 +3667,7 @@
 
             $url = get_site_url( $blog_id );
 
+            // Re-attach the filters back.
             foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
                 if ( ! empty( $site_url_filter ) ) {
                     $wp_filter[ $hook_name ] = $site_url_filter;
