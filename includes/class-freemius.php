@@ -3635,19 +3635,21 @@
             }
 
             return (
-                fs_strip_url_protocol( trailingslashit( $this->_site->url ) ) !== fs_strip_url_protocol( trailingslashit( self::get_site_url() ) )
+                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !== self::get_site_url( null, true, true )
             );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
-         *
+         *        
          * @param int|null $blog_id
+         * @param bool     $strip_protocol
+         * @param bool     $add_trailing_slash
          *
          * @return string
          */
-        static function get_site_url( $blog_id = null ) {
+        static function get_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
             global $wp_filter;
 
             $site_url_filters = array(
@@ -3672,6 +3674,14 @@
                 if ( ! empty( $site_url_filter ) ) {
                     $wp_filter[ $hook_name ] = $site_url_filter;
                 }
+            }
+
+            if ( $strip_protocol ) {
+                $url = fs_strip_url_protocol( $url );
+            }
+
+            if ( $add_trailing_slash ) {
+                $url = trailingslashit( $url );
             }
 
             return $url;
@@ -4353,7 +4363,7 @@
             $unique_id = self::$_accounts->get_option( 'unique_id', null, $blog_id );
 
             if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
-                $key = fs_strip_url_protocol( self::get_site_url( $blog_id ) );
+                $key = self::get_site_url( $blog_id, true );
 
                 $secure_auth = defined( 'SECURE_AUTH_KEY' ) ? SECURE_AUTH_KEY : '';
                 if ( empty( $secure_auth ) ||
@@ -15914,7 +15924,7 @@
             $address_to_blog_map = array();
             foreach ( $sites as $site ) {
                 $blog_id                         = self::get_site_blog_id( $site );
-                $address                         = trailingslashit( fs_strip_url_protocol( self::get_site_url( $blog_id ) ) );
+                $address                         = self::get_site_url( $blog_id, true, true );
                 $address_to_blog_map[ $address ] = $blog_id;
             }
 
@@ -22991,7 +23001,7 @@
                                             sprintf(
                                                 $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
                                                 $this->get_plugin_title(),
-                                                fs_strip_url_protocol( self::get_site_url( $blog_id ) ),
+                                                self::get_site_url( $blog_id, true ),
                                                 sprintf(
                                                     '<a href="%s" target="_blank" rel="noopener">%s</a>',
                                                     'https://freemius.com',
@@ -23758,7 +23768,7 @@
                 $this->_store_site();
             }
 
-            if ( fs_strip_url_protocol( $stored_remote_url ) !== fs_strip_url_protocol( trailingslashit( self::get_site_url() ) ) ) {
+            if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_site_url( null, true, true ) ) {
                     FS_Clone_Manager::instance()->maybe_run_clone_resolution();
             }
         }

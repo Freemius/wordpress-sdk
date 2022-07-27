@@ -623,7 +623,7 @@
 
             $instance->switch_to_blog( $blog_id );
 
-            $current_url          = fs_strip_url_protocol( untrailingslashit( Freemius::get_site_url() ) );
+            $current_url          = untrailingslashit( Freemius::get_site_url( null, true ) );
             $current_install_url  = is_object( $current_install ) ?
                 fs_strip_url_protocol( untrailingslashit( $current_install->url ) ) :
                 null;
@@ -726,7 +726,7 @@
         private function try_automatic_resolution() {
             $this->_logger->entrance();
 
-            $current_url  = fs_strip_url_protocol( untrailingslashit( Freemius::get_site_url() ) );
+            $current_url  = untrailingslashit( Freemius::get_site_url( null, true ) );
             $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
             $require_manual_resolution = false;
@@ -1070,10 +1070,9 @@
                             continue;
                         }
 
-                        $subsite_url = trailingslashit( Freemius::get_site_url( $blog_id ) );
-                        $install_url = trailingslashit( $install->url );
+                        $subsite_url = Freemius::get_site_url( $blog_id, true, true );
 
-                        $has_clone = ( fs_strip_url_protocol( $install_url ) !== fs_strip_url_protocol( $subsite_url ) );
+                        $has_clone = ( fs_strip_url_protocol( trailingslashit( $install->url ) ) !== $subsite_url );
                     }
                 }
 
