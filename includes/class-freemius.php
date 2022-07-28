@@ -7403,6 +7403,10 @@
          * @param int $except_blog_id Since 2.0.0 when running in a multisite network environment, the cron execution is consolidated. This param allows excluding excluded specified blog ID from being the cron executor.
          */
         private function schedule_install_sync( $except_blog_id = 0 ) {
+            if ( $this->is_clone() ) {
+                return;
+            }
+
             $this->schedule_cron( 'install_sync', 'install_sync', 'single', WP_FS__SCRIPT_START_TIME, false, $except_blog_id );
         }
 
@@ -7475,10 +7479,6 @@
          * @param int|null $current_blog_id
          */
         function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
-            if ( $this->is_clone() ) {
-                return;
-            }
-
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -9015,7 +9015,7 @@
             $this->_logger->entrance();
 
             if ( ! $this->_is_network_active ) {
-                FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id );
+                FS_Clone_Manager::instance()->store_blog_install_info( $blog_id );
                 return;
             }
 
@@ -9060,7 +9060,7 @@
                 $this->switch_to_blog( $current_blog_id );
 
                 if ( is_object( $site ) ) {
-                    FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id, $site );
+                    FS_Clone_Manager::instance()->store_blog_install_info( $blog_id, $site );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9128,7 +9128,7 @@
              * @author Leo Fajardo (@leorw)
              * @since 2.5.0
              */
-            FS_Clone_Manager::instance()->store_new_blog_install_info( $new_blog_id, $site );
+            FS_Clone_Manager::instance()->store_blog_install_info( $new_blog_id, $site );
         }
 
         /**
@@ -9772,8 +9772,9 @@
 
             $sites = self::get_sites();
 
-            $subsite_data_by_install_id = array();
-            $install_url_by_install_id  = array();
+            $subsite_data_for_api_by_install_id      = array();
+            $install_url_by_install_id               = array();
+            $subsite_registration_date_by_install_id = array();
 
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
@@ -9791,20 +9792,35 @@
                         continue;
                     }
 
-                    $install_data = $this->get_site_info( $site );
+                    $install_data = $this->get_site_info( $site, true );
 
                     if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $install_data['blog_id'] ) ) {
                         continue;
                     }
 
-                    $uid = $install_data['uid'];
-                    $url = $install_data['url'];
+                    $uid               = $install_data['uid'];
+                    $url               = $install_data['url'];
+                    $registration_date = $install_data['registration_date'];
 
-                    if ( isset( $subsite_data_by_install_id[ $install->id ] ) ) {
-                        $clone_subsite_data = $subsite_data_by_install_id[ $install->id ];
-                        $clone_install_url  = $install_url_by_install_id[ $install->id ];
+                    if ( isset( $subsite_data_for_api_by_install_id[ $install->id ] ) ) {
+                        $clone_subsite_data              = $subsite_data_for_api_by_install_id[ $install->id ];
+                        $clone_install_url               = $install_url_by_install_id[ $install->id ];
+                        $clone_subsite_registration_date = $subsite_registration_date_by_install_id[ $install->id ];
+
+                        $skip = false;
 
                         if (
+                            ! empty( $install_data['registration_date'] ) &&
+                            ! empty( $clone_subsite_registration_date )
+                        ) {
+                            /**
+                             * If the current subsite was created after the other subsite that is also linked to the same install ID, we assume that it's a clone (not the original), and therefore, would skip its processing.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.5.1
+                             */
+                            $skip = ( strtotime( $install_data['registration_date'] ) > strtotime( $clone_subsite_registration_date ) );
+                        } else if (
                             /**
                              * If we already have an install with the same URL as the subsite it's stored in, skip the current subsite. Otherwise, replace the existing install's data with the current subsite's install's data if the URLs match.
                              *
@@ -9814,6 +9830,12 @@
                             fs_strip_url_protocol( untrailingslashit( $clone_install_url ) ) === fs_strip_url_protocol( untrailingslashit( $clone_subsite_data['url'] ) ) ||
                             fs_strip_url_protocol( untrailingslashit( $install->url ) ) !== fs_strip_url_protocol( untrailingslashit( $url ) )
                         ) {
+                            $skip = true;
+                        }
+
+                        if ( $skip ) {
+                            // Store the skipped subsite's ID so that the clone resolution manager can try to resolve the clone install that is stored in that subsite later on.
+                            FS_Clone_Manager::instance()->store_blog_install_info( $blog_id );
                             continue;
                         }
                     }
@@ -9821,6 +9843,7 @@
                     unset( $install_data['blog_id'] );
                     unset( $install_data['uid'] );
                     unset( $install_data['url'] );
+                    unset( $install_data['registration_date'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -9851,8 +9874,9 @@
                         $install_data['uid'] = $uid;
                         $install_data['url'] = $url;
 
-                        $subsite_data_by_install_id[ $install->id ] = $install_data;
-                        $install_url_by_install_id[ $install->id ]  = $install->url;
+                        $subsite_data_for_api_by_install_id[ $install->id ]       = $install_data;
+                        $install_url_by_install_id[ $install->id ]                = $install->url;
+                        $subsite_registration_date_by_install_id[ $install->id ]  = $registration_date;
                     }
                 }
             }
@@ -9861,7 +9885,7 @@
 
             $installs_data = array_merge(
                 $installs_data,
-                array_values( $subsite_data_by_install_id )
+                array_values( $subsite_data_for_api_by_install_id )
             );
 
             if ( 0 < count( $installs_data ) && ( $is_common_diff_for_any_site || ! $only_diff ) ) {
@@ -16150,13 +16174,16 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
+         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is purely for performance optimization.
          *
          * @return array
          */
-        function get_site_info( $site = null ) {
+        function get_site_info( $site = null, $load_registration = false ) {
             $this->_logger->entrance();
 
             $switched = false;
+
+            $registration_date = null;
 
             if ( is_null( $site ) ) {
                 $url     = self::get_unfiltered_site_url();
@@ -16171,11 +16198,20 @@
                 }
 
                 if ( $site instanceof WP_Site ) {
-                    $url  = $site->siteurl;
-                    $name = $site->blogname;
+                    $url               = $site->siteurl;
+                    $name              = $site->blogname;
+                    $registration_date = $site->registered;
                 } else {
                     $url  = self::get_unfiltered_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
+                }
+            }
+
+            if ( empty( $registration_date ) && $load_registration ) {
+                $blog_details = get_blog_details( $blog_id, false );
+
+                if ( is_object( $blog_details ) && isset( $blog_details->registered ) ) {
+                    $registration_date = $blog_details->registered;
                 }
             }
 
@@ -16188,6 +16224,10 @@
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
+            }
+
+            if ( ! empty( $registration_date ) ) {
+                $info[ 'registration_date' ] = $registration_date;
             }
 
             if ( $switched ) {
