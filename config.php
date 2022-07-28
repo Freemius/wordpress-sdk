@@ -389,3 +389,16 @@
     if ( ! defined( 'FS_SDK__SSLVERIFY' ) ) {
         define( 'FS_SDK__SSLVERIFY', false );
     }
+
+    #--------------------------------------------------------------------------------
+    #region Caching
+    #--------------------------------------------------------------------------------
+
+    if ( ! defined( 'FS__CACHE_DISABLED' ) ) {
+        define( 'FS__CACHE_DISABLED', false );
+    }
+    if ( ! defined( 'FS__OBJECT_CACHE_DISABLED' ) ) {
+        define( 'FS__OBJECT_CACHE_DISABLED', false );
+    }
+
+    #endregion

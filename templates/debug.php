@@ -185,6 +185,22 @@
             'key' => 'WP_FS__DIR',
             'val' => WP_FS__DIR,
         ),
+        array(
+            'key' => 'FS__CACHE_DISABLED',
+            'val' => FS__CACHE_DISABLED ? 'true' : 'false',
+        ),
+        array(
+            'key' => 'FS__OBJECT_CACHE_DISABLED',
+            'val' => FS__OBJECT_CACHE_DISABLED ? 'true' : 'false',
+        ),
+        array(
+            'key' => 'WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED',
+            'val' => defined( 'WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED' ) && WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED ? 'true' : 'false',
+        ),
+        array(
+            'key' => 'wp_using_ext_object_cache()',
+            'val' => wp_using_ext_object_cache() ? 'true' : 'false',
+        ),
     )
 ?>
 <br>

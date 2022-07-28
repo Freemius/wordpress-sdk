@@ -450,16 +450,29 @@
          */
         private function is_cache_enabled() {
             if ( WP_FS__DEBUG_SDK ) {
+                // Disable cache in debug mode.
                 return false;
             }
 
-            if ( defined( 'WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED' ) && WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED ) {
+            if ( FS__CACHE_DISABLED ) {
+                // Cache is explicitly disabled.
                 return false;
             }
 
-            return (
-                ! defined( 'WP_FS__CACHE_ENABLED' ) || WP_FS__CACHE_ENABLED
-            );
+            if ( FS__OBJECT_CACHE_DISABLED && wp_using_ext_object_cache() ) {
+                // Object cache is on and explicitly disabled.
+                return false;
+            }
+
+            if (
+                defined( 'WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED' ) &&
+                WPMUDEV_HOSTING_OBJECT_CACHE_ENABLED
+            ) {
+                // Disable caching when WPMUDEV object caching is on.
+                return false;
+            }
+
+            return true;
         }
 
         /**
