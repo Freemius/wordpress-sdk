@@ -40,10 +40,6 @@
          */
         public $language;
         /**
-         * @var string E.g. UTF-8
-         */
-        public $charset;
-        /**
          * @var string Platform version (e.g WordPress version).
          */
         public $platform_version;
@@ -192,7 +188,11 @@
                 // Pressable
                 fs_ends_with( $subdomain, '.mystagingwebsite.com' ) ||
                 // WPMU DEV
-                ( fs_ends_with( $subdomain, '.tempurl.host' ) || fs_ends_with( $subdomain, '.wpmudev.host' ) )
+                ( fs_ends_with( $subdomain, '.tempurl.host' ) || fs_ends_with( $subdomain, '.wpmudev.host' ) ) ||
+                // Vendasta
+                ( fs_ends_with( $subdomain, '.websitepro-staging.com' ) || fs_ends_with( $subdomain, '.websitepro.hosting' ) ) ||
+                // InstaWP
+                fs_ends_with( $subdomain, '.instawp.xyz' )
             );
         }
 
