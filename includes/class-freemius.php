@@ -377,6 +377,8 @@
         const REASON_DIDNT_WORK_AS_EXPECTED = 14;
         const REASON_TEMPORARY_DEACTIVATION = 15;
 
+        #endregion
+
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
@@ -392,7 +394,8 @@
          */
         private $_pricing_js_path = null;
 
-        #endregion
+        const VERSION_MAX_CHARS = 16;
+        const LANGUAGE_MAX_CHARS = 8;
 
         /* Ctor
 ------------------------------------------------------------------------------------------------------------------*/
@@ -9699,7 +9702,7 @@
 
             $blog_data = $include_blog_data ?
                 array(
-                    'language' => get_bloginfo( 'language' ),
+                    'language' => self::get_sanitized_language(),
                     'title'    => get_bloginfo( 'name' ),
                     'url'      => self::get_unfiltered_site_url(),
                 ) :
@@ -9925,8 +9928,12 @@
                     if ( ( is_bool( $install->{$p} ) || ! empty( $install->{$p} ) ) &&
                          $install->{$p} != $v
                     ) {
-                        $install->{$p} = $v;
-                        $diff[ $p ]    = $v;
+                        $val = self::get_api_sanitized_property( $p, $v );
+
+                        if ( $install->{$p} != $val ) {
+                            $install->{$p} = $val;
+                            $diff[ $p ]    = $val;
+                        }
                     }
                 } else {
                     $special[ $p ] = $v;
@@ -16219,7 +16226,7 @@
                 'uid'      => $this->get_anonymous_id( $blog_id ),
                 'url'      => $url,
                 'title'    => $name,
-                'language' => get_bloginfo( 'language' ),
+                'language' => self::get_sanitized_language(),
             );
 
             if ( is_numeric( $blog_id ) ) {
@@ -17251,18 +17258,110 @@
          * @return array
          */
         private function get_versions() {
-            $versions = array();
-            $versions['platform_version']             = get_bloginfo( 'version' );
-            $versions['sdk_version']                  = $this->version;
-            $versions['programming_language_version'] = phpversion();
+            $versions = array(
+                'platform_version'             => get_bloginfo( 'version' ),
+                'sdk_version'                  => $this->version,
+                'programming_language_version' => phpversion(),
+            );
 
             foreach ( $versions as $k => $version ) {
-                if ( is_string( $versions[ $k ] ) && ! empty( $versions[ $k ] ) ) {
-                    $versions[ $k ] = substr( $versions[ $k ], 0, 16 );
-                }
+                $versions[ $k ] = self::get_api_sanitized_property( $k, $version );
             }
 
             return $versions;
+        }
+
+        /**
+         * Get sanitized site language.
+         *
+         * @param string $language
+         * @param int    $max_len
+         *
+         * @since  2.5.1
+         * @author Vova Feldman (@svovaf)
+         *
+         * @return string
+         */
+        private static function get_sanitized_language( $language = '', $max_len = self::LANGUAGE_MAX_CHARS ) {
+            if ( empty( $language ) ) {
+                $language = get_bloginfo( 'language' );
+            }
+
+            return substr( $language, 0, $max_len );
+        }
+
+        /**
+         * Get core version stripped from pre-release and build.
+         *
+         * @since  2.5.1
+         * @author Vova Feldman (@svovaf)
+         *
+         * @param string $version
+         * @param int    $parts
+         * @param int    $max_len
+         * @param bool   $include_pre_release
+         *
+         * @return string
+         */
+        private static function get_core_version(
+            $version,
+            $parts = 3,
+            $max_len = self::VERSION_MAX_CHARS,
+            $include_pre_release = false
+        ) {
+            if ( empty( $version ) || ! is_string( $version ) ) {
+                // Version is empty or not a string.
+                return '';
+            }
+
+            if ( $parts < 1 ) {
+                return '';
+            }
+
+            $pre_release_regex = $include_pre_release ?
+                '(\-(alpha|beta|RC)([0-9]+)?)?' :
+                '';
+
+            if ( 0 === preg_match( '/^([0-9]+(\.[0-9]+){0,' . ( $parts - 1 ) . '}' . $pre_release_regex . ')/i', $version, $matches ) ) {
+                // Version is not starting with a digit.
+                return '';
+            }
+
+            return substr( $matches[1], 0, $max_len );
+        }
+
+        /**
+         * @param string $prop
+         * @param mixed  $val
+         *
+         * @return mixed
+         *@author Vova Feldman (@svovaf)
+         *
+         * @since  2.5.1
+         */
+        private static function get_api_sanitized_property( $prop, $val ) {
+            if ( ! is_string( $val ) || empty( $val ) ) {
+                return $val;
+            }
+
+            switch ( $prop ) {
+                case 'programming_language_version':
+                    // Get core PHP version, which can have up to 3 parts (ignore pre-releases).
+                    return self::get_core_version( $val );
+                case 'platform_version':
+                    // Get the exact WordPress version, which can have up to 3 parts (including pre-releases).
+                    return self::get_core_version( $val, 3, self::VERSION_MAX_CHARS, true );
+                case 'sdk_version':
+                    // Get the exact SDK version, which can have up to 4 parts.
+                    return self::get_core_version( $val, 4 );
+                case 'version':
+                    // Get the entire version but just limited in length.
+                    return substr( $val, 0, self::VERSION_MAX_CHARS );
+                case 'language':
+                    return self::get_sanitized_language( $val );
+                default:
+                    return $val;
+            }
         }
 
         /**
@@ -17358,7 +17457,7 @@
                     'site_uid'  => $site['uid'],
                     'site_url'  => $site['url'],
                     'site_name' => $site['title'],
-                    'language'  => $site['language'],
+                    'language'  => self::get_sanitized_language( $site['language'] ),
                 ) );
             }
 
