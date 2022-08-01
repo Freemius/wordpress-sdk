@@ -3638,8 +3638,56 @@
             }
 
             return (
-                fs_strip_url_protocol( trailingslashit( $this->_site->url ) ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) )
+                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !== self::get_unfiltered_site_url( null, true, true )
             );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *        
+         * @param int|null $blog_id
+         * @param bool     $strip_protocol
+         * @param bool     $add_trailing_slash
+         *
+         * @return string
+         */
+        static function get_unfiltered_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
+            global $wp_filter;
+
+            $site_url_filters = array(
+                'site_url'               => null,
+                'pre_option_siteurl'     => null,
+                'default_option_siteurl' => null,
+                'option_siteurl'         => null,
+            );
+
+            // Detach all URL-related filters to get the actual site's URL (stripped of potential manipulations by multilingual plugins).
+            foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
+                if ( ! empty( $wp_filter[ $hook_name ] ) ) {
+                    $site_url_filters[ $hook_name ] = $wp_filter[ $hook_name ];
+                    unset( $wp_filter[ $hook_name ] );
+                }
+            }
+
+            $url = get_site_url( $blog_id );
+
+            // Re-attach the filters back.
+            foreach ( $site_url_filters as $hook_name => $site_url_filter ) {
+                if ( ! empty( $site_url_filter ) ) {
+                    $wp_filter[ $hook_name ] = $site_url_filter;
+                }
+            }
+
+            if ( $strip_protocol ) {
+                $url = fs_strip_url_protocol( $url );
+            }
+
+            if ( $add_trailing_slash ) {
+                $url = trailingslashit( $url );
+            }
+
+            return $url;
         }
 
         /**
@@ -3668,7 +3716,7 @@
             if (
                 is_object( $this->_license ) &&
                 ! $this->_license->is_utilized(
-                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( get_site_url() ) )
+                    ( WP_FS__IS_LOCALHOST_FOR_SERVER || FS_Site::is_localhost_by_address( self::get_unfiltered_site_url() ) )
                 )
             ) {
                 $license_key = $this->_license->secret_key;
@@ -4318,7 +4366,7 @@
             $unique_id = self::$_accounts->get_option( 'unique_id', null, $blog_id );
 
             if ( empty( $unique_id ) || ! is_string( $unique_id ) ) {
-                $key = fs_strip_url_protocol( get_site_url( $blog_id ) );
+                $key = self::get_unfiltered_site_url( $blog_id, true );
 
                 $secure_auth = defined( 'SECURE_AUTH_KEY' ) ? SECURE_AUTH_KEY : '';
                 if ( empty( $secure_auth ) ||
@@ -7358,6 +7406,10 @@
          * @param int $except_blog_id Since 2.0.0 when running in a multisite network environment, the cron execution is consolidated. This param allows excluding excluded specified blog ID from being the cron executor.
          */
         private function schedule_install_sync( $except_blog_id = 0 ) {
+            if ( $this->is_clone() ) {
+                return;
+            }
+
             $this->schedule_cron( 'install_sync', 'install_sync', 'single', WP_FS__SCRIPT_START_TIME, false, $except_blog_id );
         }
 
@@ -7430,10 +7482,6 @@
          * @param int|null $current_blog_id
          */
         function _sync_install_cron_method( array $blog_ids, $current_blog_id = null ) {
-            if ( $this->is_clone() ) {
-                return;
-            }
-
             if ( $this->is_registered() ) {
                 if ( 1 < count( $blog_ids ) ) {
                     $this->sync_installs( array(), true );
@@ -8970,7 +9018,7 @@
             $this->_logger->entrance();
 
             if ( ! $this->_is_network_active ) {
-                FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id );
+                FS_Clone_Manager::instance()->store_blog_install_info( $blog_id );
                 return;
             }
 
@@ -9015,7 +9063,7 @@
                 $this->switch_to_blog( $current_blog_id );
 
                 if ( is_object( $site ) ) {
-                    FS_Clone_Manager::instance()->store_new_blog_install_info( $blog_id, $site );
+                    FS_Clone_Manager::instance()->store_blog_install_info( $blog_id, $site );
 
                     // Already connected (with or without a license), so no need to continue.
                     return;
@@ -9083,7 +9131,7 @@
              * @author Leo Fajardo (@leorw)
              * @since 2.5.0
              */
-            FS_Clone_Manager::instance()->store_new_blog_install_info( $new_blog_id, $site );
+            FS_Clone_Manager::instance()->store_blog_install_info( $new_blog_id, $site );
         }
 
         /**
@@ -9614,7 +9662,7 @@
          * @param string[] $override
          * @param bool     $include_plugins   Since 1.1.8 by default include plugin changes.
          * @param bool     $include_themes    Since 1.1.8 by default include plugin changes.
-         * @param bool     $include_blog_data Since 2.3.0 by default include the current blog's data (language, charset, title, and URL).
+         * @param bool     $include_blog_data Since 2.3.0 by default include the current blog's data (language, title, and URL).
          *
          * @return array
          */
@@ -9655,9 +9703,8 @@
             $blog_data = $include_blog_data ?
                 array(
                     'language' => self::get_sanitized_language(),
-                    'charset'  => get_bloginfo( 'charset' ),
                     'title'    => get_bloginfo( 'name' ),
-                    'url'      => get_site_url(),
+                    'url'      => self::get_unfiltered_site_url(),
                 ) :
                 array();
 
@@ -9728,8 +9775,9 @@
 
             $sites = self::get_sites();
 
-            $subsite_data_by_install_id = array();
-            $install_url_by_install_id  = array();
+            $subsite_data_for_api_by_install_id      = array();
+            $install_url_by_install_id               = array();
+            $subsite_registration_date_by_install_id = array();
 
             foreach ( $sites as $site ) {
                 $blog_id = self::get_site_blog_id( $site );
@@ -9747,20 +9795,35 @@
                         continue;
                     }
 
-                    $install_data = $this->get_site_info( $site );
+                    $install_data = $this->get_site_info( $site, true );
 
                     if ( FS_Clone_Manager::instance()->is_temporary_duplicate_by_blog_id( $install_data['blog_id'] ) ) {
                         continue;
                     }
 
-                    $uid = $install_data['uid'];
-                    $url = $install_data['url'];
+                    $uid               = $install_data['uid'];
+                    $url               = $install_data['url'];
+                    $registration_date = $install_data['registration_date'];
 
-                    if ( isset( $subsite_data_by_install_id[ $install->id ] ) ) {
-                        $clone_subsite_data = $subsite_data_by_install_id[ $install->id ];
-                        $clone_install_url  = $install_url_by_install_id[ $install->id ];
+                    if ( isset( $subsite_data_for_api_by_install_id[ $install->id ] ) ) {
+                        $clone_subsite_data              = $subsite_data_for_api_by_install_id[ $install->id ];
+                        $clone_install_url               = $install_url_by_install_id[ $install->id ];
+                        $clone_subsite_registration_date = $subsite_registration_date_by_install_id[ $install->id ];
+
+                        $skip = false;
 
                         if (
+                            ! empty( $install_data['registration_date'] ) &&
+                            ! empty( $clone_subsite_registration_date )
+                        ) {
+                            /**
+                             * If the current subsite was created after the other subsite that is also linked to the same install ID, we assume that it's a clone (not the original), and therefore, would skip its processing.
+                             *
+                             * @author Leo Fajardo (@leorw)
+                             * @since 2.5.1
+                             */
+                            $skip = ( strtotime( $install_data['registration_date'] ) > strtotime( $clone_subsite_registration_date ) );
+                        } else if (
                             /**
                              * If we already have an install with the same URL as the subsite it's stored in, skip the current subsite. Otherwise, replace the existing install's data with the current subsite's install's data if the URLs match.
                              *
@@ -9770,6 +9833,12 @@
                             fs_strip_url_protocol( untrailingslashit( $clone_install_url ) ) === fs_strip_url_protocol( untrailingslashit( $clone_subsite_data['url'] ) ) ||
                             fs_strip_url_protocol( untrailingslashit( $install->url ) ) !== fs_strip_url_protocol( untrailingslashit( $url ) )
                         ) {
+                            $skip = true;
+                        }
+
+                        if ( $skip ) {
+                            // Store the skipped subsite's ID so that the clone resolution manager can try to resolve the clone install that is stored in that subsite later on.
+                            FS_Clone_Manager::instance()->store_blog_install_info( $blog_id );
                             continue;
                         }
                     }
@@ -9777,6 +9846,7 @@
                     unset( $install_data['blog_id'] );
                     unset( $install_data['uid'] );
                     unset( $install_data['url'] );
+                    unset( $install_data['registration_date'] );
 
                     $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
@@ -9807,8 +9877,9 @@
                         $install_data['uid'] = $uid;
                         $install_data['url'] = $url;
 
-                        $subsite_data_by_install_id[ $install->id ] = $install_data;
-                        $install_url_by_install_id[ $install->id ]  = $install->url;
+                        $subsite_data_for_api_by_install_id[ $install->id ]       = $install_data;
+                        $install_url_by_install_id[ $install->id ]                = $install->url;
+                        $subsite_registration_date_by_install_id[ $install->id ]  = $registration_date;
                     }
                 }
             }
@@ -9817,7 +9888,7 @@
 
             $installs_data = array_merge(
                 $installs_data,
-                array_values( $subsite_data_by_install_id )
+                array_values( $subsite_data_for_api_by_install_id )
             );
 
             if ( 0 < count( $installs_data ) && ( $is_common_diff_for_any_site || ! $only_diff ) ) {
@@ -10244,8 +10315,8 @@
                     // Send uninstall event.
                     $this->send_installs_update( $params );
                 } else {
-                    // Send uninstall event.
-                    $this->send_install_update( $params );
+                    // Send uninstall event and handle the result.
+                    $this->sync_install( $params );
                 }
             }
 
@@ -12588,7 +12659,7 @@
                 } else {
                     $url = is_object( $site ) ?
                         $site->siteurl :
-                        get_site_url( $blog_id );
+                        self::get_unfiltered_site_url( $blog_id );
 
                     $disconnected_site_ids[] = $blog_id;
                 }
@@ -15883,7 +15954,7 @@
             $address_to_blog_map = array();
             foreach ( $sites as $site ) {
                 $blog_id                         = self::get_site_blog_id( $site );
-                $address                         = trailingslashit( fs_strip_url_protocol( get_site_url( $blog_id ) ) );
+                $address                         = self::get_unfiltered_site_url( $blog_id, true, true );
                 $address_to_blog_map[ $address ] = $blog_id;
             }
 
@@ -16110,16 +16181,19 @@
          * @since  2.0.0
          *
          * @param array|WP_Site|null $site
+         * @param bool               $load_registration Since 2.5.1 When set to `true` the method will attempt to return the subsite's registration date, regardless of the `$site` type and value. In most calls, the registration date will be returned anyway, even when the value is `false`. This param is purely for performance optimization.
          *
          * @return array
          */
-        function get_site_info( $site = null ) {
+        function get_site_info( $site = null, $load_registration = false ) {
             $this->_logger->entrance();
 
             $switched = false;
 
+            $registration_date = null;
+
             if ( is_null( $site ) ) {
-                $url     = get_site_url();
+                $url     = self::get_unfiltered_site_url();
                 $name    = get_bloginfo( 'name' );
                 $blog_id = null;
             } else {
@@ -16131,11 +16205,20 @@
                 }
 
                 if ( $site instanceof WP_Site ) {
-                    $url  = $site->siteurl;
-                    $name = $site->blogname;
+                    $url               = $site->siteurl;
+                    $name              = $site->blogname;
+                    $registration_date = $site->registered;
                 } else {
-                    $url  = get_site_url( $blog_id );
+                    $url  = self::get_unfiltered_site_url( $blog_id );
                     $name = get_bloginfo( 'name' );
+                }
+            }
+
+            if ( empty( $registration_date ) && $load_registration ) {
+                $blog_details = get_blog_details( $blog_id, false );
+
+                if ( is_object( $blog_details ) && isset( $blog_details->registered ) ) {
+                    $registration_date = $blog_details->registered;
                 }
             }
 
@@ -16144,11 +16227,14 @@
                 'url'      => $url,
                 'title'    => $name,
                 'language' => self::get_sanitized_language(),
-                'charset'  => get_bloginfo( 'charset' ),
             );
 
             if ( is_numeric( $blog_id ) ) {
                 $info['blog_id'] = $blog_id;
+            }
+
+            if ( ! empty( $registration_date ) ) {
+                $info[ 'registration_date' ] = $registration_date;
             }
 
             if ( $switched ) {
@@ -16596,9 +16682,17 @@
          * @return bool
          */
         function is_product_settings_page() {
+            $page      = fs_request_get( 'page', '', 'get' );
+            $menu_slug = $this->_menu->get_slug();
+
+            if ( $page === $menu_slug ) {
+                return true;
+            }
+
             return fs_starts_with(
-                fs_request_get( 'page', '', 'get' ),
-                $this->_menu->get_slug()
+                // e.g., {$menu_slug}-account, {$menu_slug}-affiliation, etc.
+                $page,
+                ( $menu_slug . '-' )
             );
         }
 
@@ -16678,16 +16772,21 @@
          *
          * @param bool|string $topic
          * @param bool|string $message
+         * @param bool|string $summary Since 2.5.1.
          *
          * @return string
          */
-        function contact_url( $topic = false, $message = false ) {
+        function contact_url( $topic = false, $message = false, $summary = false ) {
             $params = array();
             if ( is_string( $topic ) ) {
                 $params['topic'] = $topic;
             }
             if ( is_string( $message ) ) {
                 $params['message'] = $message;
+            }
+
+            if ( is_string( $summary ) ) {
+                $params['summary'] = $summary;
             }
 
             if ( $this->is_addon() ) {
@@ -17075,6 +17174,7 @@
             }
 
             if (
+                $this->is_user_in_admin() &&
                 $this->is_clone() &&
                 empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
             ) {
@@ -17358,7 +17458,6 @@
                     'site_url'  => $site['url'],
                     'site_name' => $site['title'],
                     'language'  => self::get_sanitized_language( $site['language'] ),
-                    'charset'   => $site['charset'],
                 ) );
             }
 
@@ -18088,12 +18187,13 @@
                 $install_ids[] = $install->id;
             }
 
-            $left   = count( $install_ids );
-            $offset = 0;
+            $items_per_request = 25;
+            $left              = count( $install_ids );
+            $offset            = 0;
 
             $installs = array();
             while ( $left > 0 ) {
-                $result = $this->get_api_user_scope()->get( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', array_slice( $install_ids, $offset, 25 ) ) );
+                $result = $this->get_api_user_scope()->get( "/plugins/{$this->_module_id}/installs.json?ids=" . implode( ',', array_slice( $install_ids, $offset, $items_per_request ) ) );
 
                 if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
                     // @todo Handle API error.
@@ -18101,7 +18201,8 @@
 
                 $installs = array_merge( $installs, $result->installs );
 
-                $left -= 25;
+                $left   -= $items_per_request;
+                $offset += $items_per_request;
             }
 
             foreach ( $installs as &$install ) {
@@ -23051,7 +23152,7 @@
                                             sprintf(
                                                 $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
                                                 $this->get_plugin_title(),
-                                                fs_strip_url_protocol( get_site_url( $blog_id ) ),
+                                                self::get_unfiltered_site_url( $blog_id, true ),
                                                 sprintf(
                                                     '<a href="%s" target="_blank" rel="noopener">%s</a>',
                                                     'https://freemius.com',
@@ -23777,7 +23878,7 @@
                     ! $this->is_live(),
                     $this->_site->secret_key,
                     $this->get_sdk_version(),
-                    get_site_url()
+                    self::get_unfiltered_site_url()
                 );
             }
 
@@ -23818,7 +23919,7 @@
                 $this->_store_site();
             }
 
-            if ( fs_strip_url_protocol( $stored_remote_url ) !== fs_strip_url_protocol( trailingslashit( get_site_url() ) ) ) {
+            if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_unfiltered_site_url( null, true, true ) ) {
                     FS_Clone_Manager::instance()->maybe_run_clone_resolution();
             }
         }

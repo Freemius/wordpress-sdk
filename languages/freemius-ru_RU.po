@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2022-01-05 13:47+0000\n"
-"Last-Translator: Vova Feldman <vova@freemius.com>\n"
-"Language: ru_RU\n"
+"PO-Revision-Date: 2015-10-01 21:38+0000\n"
+"Last-Translator: Leo Fajardo <leo@freemius.com>, 2021\n"
 "Language-Team: Russian (Russia) (http://www.transifex.com/freemius/wordpress-sdk/language/ru_RU/)\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
-"MIME-Version: 1.0\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -207,7 +207,7 @@ msgid "Premium %s version was successfully activated."
 msgstr "Премиум версия %s была успешно активирована. "
 
 #: includes/class-freemius.php6158, includes/class-freemius.php:8104
-msgctxt ""
+msgctxt "Used to express elation, enthusiasm, or triumph (especially in electronic communication)."
 msgid "W00t"
 msgstr "Вау!"
 
@@ -471,7 +471,7 @@ msgstr "Вероятно один из параметров является н�
 
 #: includes/class-freemius.php21340, includes/class-freemius.php21583,
 #: includes/class-freemius.php21638, includes/class-freemius.php:21745
-msgctxt ""
+msgctxt "something somebody says when they are thinking about what you have just said."
 msgid "Hmm"
 msgstr "Хм..."
 
@@ -2560,7 +2560,7 @@ msgstr "No - only move this site's data to %s"
 #: templates/forms/email-address-update.php292,
 #: templates/forms/email-address-update.php:298
 msgid "Update"
-msgstr "Update"
+msgstr "Обновить "
 
 #: templates/forms/license-activation.php:23
 msgid "Please enter the license key that you received in the email right after the purchase:"
