@@ -17309,8 +17309,25 @@
             $max_len = self::VERSION_MAX_CHARS,
             $include_pre_release = false
         ) {
-            if ( empty( $version ) || ! is_string( $version ) ) {
-                // Version is empty or not a string.
+            if ( empty( $version ) ) {
+                // Version is empty.
+                return '';
+            }
+
+            if ( is_numeric( $version ) ) {
+                $is_float_version = is_float( $version );
+
+                $version = (string) $version;
+
+                /**
+                 * Casting a whole float number to a string cuts the decimal point. This part make sure to add the missing decimal part to the version.
+                 */
+                if ( $is_float_version && false === strpos( $version, '.' ) ) {
+                    $version .= '.0';
+                }
+            }
+
+            if ( ! is_string( $version ) ) {
                 return '';
             }
 
