@@ -185,6 +185,10 @@
             'key' => 'WP_FS__DIR',
             'val' => WP_FS__DIR,
         ),
+        array(
+            'key' => 'wp_using_ext_object_cache()',
+            'val' => wp_using_ext_object_cache() ? 'true' : 'false',
+        ),
     )
 ?>
 <br>
