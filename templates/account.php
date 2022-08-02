@@ -444,7 +444,7 @@
 											'value' => $fs->get_plugin_version()
 										);
 
-										if ( ! fs_is_network_admin() && $is_premium && ! $is_whitelabeled ) {
+										if ( ! fs_is_network_admin() && $is_premium ) {
 										    $profile[] = array(
                                                 'id'    => 'beta_program',
                                                 'title' => '',
