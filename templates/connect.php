@@ -155,17 +155,17 @@
 	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
         <div class="fs-header">
             <!--			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress-alt"></i></b>-->
-			<?php
+            <?php
                 $size = 50;
-				$vars = array(
+                $vars = array(
                     'id'   => $fs->get_id(),
                     'size' => $size,
                 );
 
-				fs_require_once_template( 'plugin-icon.php', $vars );
-			?>
+                fs_require_once_template( 'plugin-icon.php', $vars );
+            ?>
             <!--			<img class="fs-connect-logo" width="--><?php //echo $size ?><!--" height="--><?php //echo $size ?><!--" src="//img.freemius.com/logo/connect.svg"/>-->
-		</div>
+        </div>
         <div class="fs-box-container">
 		<div class="fs-content">
 			<?php if ( ! empty( $error ) ) : ?>
@@ -422,7 +422,7 @@
                 );
             }
 
-            if ( ! $require_license_key ) {
+            if ( false && ! $require_license_key ) {
                 $permissions['notices'] = array(
                     'icon-class' => 'dashicons dashicons-testimonial',
                     'label'      => $fs->get_text_inline( 'Show Admin Notices', 'permissions-admin-notices' ),
