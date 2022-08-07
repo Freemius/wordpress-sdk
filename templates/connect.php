@@ -153,8 +153,8 @@
 	     class="wrap<?php if ( ! fs_is_network_admin() && ( ! $fs->is_enable_anonymous() || $is_pending_activation || $require_license_key ) ) {
 		     echo ' fs-anonymous-disabled';
 	     } ?><?php echo $require_license_key ? ' require-license-key' : '' ?>">
-		<div class="fs-visual">
-			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress-alt"></i></b>
+        <div class="fs-header">
+            <!--			<b class="fs-site-icon"><i class="dashicons dashicons-wordpress-alt"></i></b>-->
 			<?php
                 $size = 50;
 				$vars = array(
@@ -164,8 +164,9 @@
 
 				fs_require_once_template( 'plugin-icon.php', $vars );
 			?>
-			<img class="fs-connect-logo" width="<?php echo $size ?>" height="<?php echo $size ?>" src="//img.freemius.com/logo/connect.svg"/>
+            <!--			<img class="fs-connect-logo" width="--><?php //echo $size ?><!--" height="--><?php //echo $size ?><!--" src="//img.freemius.com/logo/connect.svg"/>-->
 		</div>
+        <div class="fs-box-container">
 		<div class="fs-content">
 			<?php if ( ! empty( $error ) ) : ?>
 				<p class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></p>
@@ -187,9 +188,7 @@
 							fs_text_inline( 'complete the install', 'complete-the-install', $slug )
 						) );
 					} else if ( $require_license_key ) {
-						$button_label = $is_network_upgrade_mode ?
-                            fs_text_inline( 'Activate License', 'agree-activate-license', $slug ) :
-                            fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
+						$button_label = fs_text_inline( 'Activate License', 'activate-license', $slug );
 
 						$message = $fs->apply_filters(
 						    'connect-message_on-premium',
@@ -489,12 +488,12 @@
                     <?php if ( $require_license_key ) : ?>
                         <a class="fs-trigger wp-core-ui" href="#" tabindex="1" style="color: inherit;"><?php echo sprintf(
                                 fs_esc_html_inline( 'For delivery of security & feature updates, and license management, %s needs to →', 'license-sync-disclaimer', $slug ),
-                                sprintf( '<nobr class="button-link" style="text-decoration: none;">%s</nobr>', $fs->get_plugin_title() )
+                                sprintf( '<nobr class="button-link" style="color: inherit;">%s</nobr>', $fs->get_plugin_title() )
                             ) ?></a>
                     <?php else : ?>
                         <a class="fs-trigger wp-core-ui" href="#" tabindex="1" style="color: inherit;"><?php printf(
                                 fs_esc_html_inline( 'This will allow %s to →', 'this-will-allow-x', $slug ),
-                                sprintf( '<nobr class="button-link" style="text-decoration: none;">%s</nobr>', $fs->get_plugin_title() )
+                                sprintf( '<nobr class="button-link" style="color: inherit;">%s</nobr>', $fs->get_plugin_title() )
                             ) ?></a>
                     <?php endif ?>
 					<ul><?php
@@ -532,6 +531,7 @@
 				</p>
 			</div>
 		<?php endif ?>
+        </div>
 		<div class="fs-terms">
             <a class="fs-tooltip-trigger<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo $freemius_site_url ?>" target="_blank" rel="noopener" tabindex="1">Powered by Freemius<?php if ( $require_license_key ) : ?> <span class="fs-tooltip" style="width: 170px"><?php echo $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) ?></span><?php endif ?></a>
             &nbsp;&nbsp;-&nbsp;&nbsp;

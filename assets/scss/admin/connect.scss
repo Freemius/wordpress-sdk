@@ -9,21 +9,39 @@ $box_border_radius: 3px;
 #fs_connect
 {
     width:  $form_width;
-    @include box-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
     margin: 60px auto 20px auto;
-    border-radius: $box_border_radius;
+
+    a {
+        color: inherit;
+
+        &:not(.button) {
+            text-decoration: underline;
+        }
+    }
+
+    .fs-box-container {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        border-radius: $box_border_radius;
+        overflow: hidden;
+        padding-top: 40px;
+        //position: relative;
+        //top: -40px;
+    }
 
     @media screen and (max-width: ($form_width - 1)) {
-        @include box-shadow(none);
         width:                    auto;
         margin:                   0 0 0 -10px;
+
+        .fs-box-container {
+            @include box-shadow(none);
+        }
     }
 
     .fs-content
     {
         background: #fff;
         padding: 30px 20px;
-        border-top: 1px solid #efefef;
+        //border-top: 1px solid #efefef;
 
         .fs-error {
             background: snow;
@@ -60,6 +78,14 @@ $box_border_radius: 3px;
     }
 
     &.require-license-key {
+        .fs-content {
+            padding-bottom: 10px;
+        }
+
+        .fs-actions {
+            border-top: none;
+        }
+
         .fs-sites-list-container {
             td {
                 cursor: pointer;
@@ -86,7 +112,10 @@ $box_border_radius: 3px;
     .fs-actions
     {
         padding:    10px 20px;
-        background: #C0C7CA;
+        background: #fff;
+        border-width: 1px 0;
+        border-style: solid;
+        border-color: $body-color;
 
         .button
         {
@@ -151,8 +180,8 @@ $box_border_radius: 3px;
     .fs-permissions
     {
         padding:    10px 20px;
-        background: #FEFEFE;
-        //        background: #F1F1F1;
+        background: #fff;
+        //        background: $body-color;
         @include transition(background 0.5s ease);
 
         .fs-permission {
@@ -277,7 +306,7 @@ $box_border_radius: 3px;
         }
 
         a {
-            color: #C2EEFF;
+            color: inherit;
             text-decoration: underline;
         }
     }
@@ -290,13 +319,14 @@ $box_border_radius: 3px;
     $header_height: 40px;
     $icon_position: (($form_width - $plugin_icon_size) / 2 - $icon_size);
 
-    .fs-visual
+    .fs-header
     {
         padding:     0;
         line-height: 0;
-        height:      $header_height;
+        //height:      $header_height;
+        height:      0;
         position:    relative;
-        border-radius: $box_border_radius $box_border_radius 0 0;
+        //border-radius: $box_border_radius $box_border_radius 0 0;
 
         .fs-site-icon,
         .fs-connect-logo
@@ -384,8 +414,8 @@ $box_border_radius: 3px;
     {
         text-align: center;
         font-size:  0.85em;
-        padding:    5px;
-        background: rgba(0, 0, 0, 0.05);
+        padding:    10px 5px;
+        //background: rgba(0, 0, 0, 0.05);
 
         &, a
         {
@@ -471,7 +501,7 @@ $box_border_radius: 3px;
             }
         }
 
-        .fs-visual
+        .fs-header
         {
             .fs-site-icon
             {
