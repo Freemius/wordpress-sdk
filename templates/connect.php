@@ -471,7 +471,7 @@
                 'icon-class' => 'dashicons dashicons-block-default',
                 'label'      => $fs->get_text_inline( 'View Plugins & Themes List', 'permissions-extensions' ) . ( $require_license_key ? ' (' . $fs->get_text_inline( 'optional' ) . ')' : '' ),
                 'tooltip'    => $fs->get_text_inline( 'To ensure compatibility and avoid conflicts with your installed plugins and themes.', 'permissions-events_tooltip' ),
-                'desc'       => $fs->get_text_inline( 'Names, slugs, versions, and if active or not - that\'s it', 'permissions-extensions_desc' ),
+                'desc'       => $fs->get_text_inline( 'Names, slugs, versions, and if active or not', 'permissions-extensions_desc' ),
                 'priority'   => 25,
                 'optional'   => true,
                 'default'    => $fs->apply_filters( 'permission_extensions_default', ! $require_license_key )
