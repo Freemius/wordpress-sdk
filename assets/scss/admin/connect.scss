@@ -357,7 +357,8 @@ $box_border_radius: 3px;
 
         .fs-plugin-icon
         {
-            position:    absolute;
+            position: absolute;
+            overflow: hidden;
             //top:         $icons_top - ($plugin_icon_size - $icon_size) / 2 - $icon_padding - $icon_border_width;
             top: - (($plugin_icon_size - $header_height) / 2 + $icon_padding);
             left:        50%;
