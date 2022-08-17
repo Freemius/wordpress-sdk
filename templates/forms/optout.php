@@ -74,8 +74,64 @@
 		<label class=\"fs-permission-extensions\"><div class=\"fs-switch fs-small fs-round fs-" . ( $fs->is_extensions_tracking_allowed() ? 'on' : 'off' ) . "\"><div class=\"fs-toggle\"></div></div> " . fs_text_inline( 'Plugins & themes tracking' ) . " <span class=\"fs-switch-feedback success\"></span></label>";
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
+	fs_enqueue_local_style( 'fs_optout', '/admin/optout.css' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+
+    $permission_manager = FS_Permission_Manager::instance( $fs );
+
+//    $permissions        = $permission_manager->get_permissions( true );
+
+    $form_id = "fs_opt_out_{$fs->get_id()}";
 ?>
+<div id="<?php echo $form_id ?>" class="fs-modal fs-modal-opt-out" style="display: none">
+    <div class="fs-modal-dialog">
+        <div class="fs-modal-header">
+            <h4><?php echo esc_html( $opt_out_text ) ?></h4>
+        </div>
+        <div class="fs-modal-body">
+            <?php
+                // @todo UPDATE DESCRIPTIONS TO TRANSLATABLE
+                $permission_groups = array(
+                    array(
+                        'title' => $fs->esc_html_inline( 'Required', 'required' ),
+                        'desc' => 'For delivery of security &amp; feature updates, and license management, PluginX needs to:',
+                        'permissions' => $permission_manager->get_license_required_permissions(),
+                    ),
+                    array(
+                        'title' => $fs->esc_html_inline( 'Optional', 'optional' ),
+                        'desc' => 'For ___ ______ short explanation of the values, you can optionally allow PluginX to view:',
+                        'permissions' => $permission_manager->get_license_optional_permissions(),
+                    ),
+                );
+            ?>
+            <div class="fs-permissions fs-open">
+            <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
+                <div class="fs-permissions-section">
+                    <div>
+                        <div class="fs-permissions-section--header">
+                            <a class="fs-permissions-section--header-optout" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
+                            <span class="fs-permissions-section--header-title"><?php echo $permission_group['title'] ?></span>
+                        </div>
+                        <p class="fs-permissions-section--desc"><?php echo $permission_group['desc'] ?></p></div>
+                    <ul>
+                        <?php
+                            foreach ($permission_group['permissions'] as $permission) {
+                                $permission_manager->render_permission( $permission );
+                            }
+                        ?>
+                    </ul>
+                </div>
+                <?php if ( 0 === $i ) : ?><hr><?php endif ?>
+            <?php endforeach ?>
+            </div>
+            <!--            <div class="fs-modal-panel active">' + modalContentHtml + '</div>-->
+        </div>
+        <div class="fs-modal-footer">
+            <button class="button button-primary button-close" tabindex="1"><?php echo $fs->esc_html_inline( 'Done', 'done' ) ?></button>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
 	(function( $ ) {
 		$( document ).ready(function() {
@@ -95,7 +151,7 @@
 				    + '		</div>'
 				    + '	</div>'
 				    + '</div>',
-                $modal              = $(modalHtml),
+                $modal              = $('#<?php echo $form_id ?>'),
                 $adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
                 action              = '<?php echo $action ?>',
                 actionLinkSelector  = 'span.opt-in-or-opt-out.<?php echo $slug ?> a',
@@ -106,7 +162,7 @@
                 moduleID            = '<?php echo $fs->get_id() ?>';
 
 			$modal.data( 'action', action );
-			$modal.appendTo( $body );
+			//$modal.appendTo( $body );
 
 			function registerActionLinkClick() {
                 $body.on( 'click', actionLinkSelector, function( evt ) {
@@ -151,6 +207,7 @@
 				resetModal();
 
 				// Display the dialog box.
+                $modal.show();
 				$modal.addClass( 'active' );
 				$body.addClass( 'has-fs-modal' );
 			}
@@ -331,6 +388,8 @@
 				}
 			});
 			<?php endif ?>
+
+            <?php $permission_manager->require_permissions_js() ?>
 		});
 	})( jQuery );
 </script>

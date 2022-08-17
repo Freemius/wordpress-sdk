@@ -1,7 +1,8 @@
+@use "tooltip";
+
 @import "../start";
 
 $form_width: 480px;
-$permission-icon-size: 30px;
 $icon_padding: 3px;
 $icon_border_width: 1px;
 $box_border_radius: 3px;
@@ -181,18 +182,7 @@ $box_border_radius: 3px;
     {
         padding:    10px 20px;
         background: #fff;
-        //        background: $body-color;
         @include transition(background 0.5s ease);
-
-        .fs-permission {
-            &.fs-disabled {
-                color: #aaa;
-
-                .fs-permission-description span {
-                    color: #aaa;
-                }
-            }
-        }
 
         .fs-license-sync-disclaimer {
             text-align: center;
@@ -205,86 +195,28 @@ $box_border_radius: 3px;
             text-decoration: none;
             text-align:      center;
             display:         block;
+
+            .fs-arrow::after {
+                content: "→";
+                width: 20px;
+                display: inline-block;
+            }
         }
 
-        ul
-        {
-            height:   0;
-            overflow: hidden;
-            margin:   0;
-
-            li
-            {
-                margin-bottom: 20px;
-
-                &:last-child
-                {
-                    margin-bottom: 0;
-                }
-
-                & > i.dashicons
-                {
-                    float:     left;
-                    font-size:  $permission-icon-size;
-                    width:      $permission-icon-size;
-                    height:     $permission-icon-size;
-                    margin-top: 5px;
-                }
-
-                .fs-switch {
-                    float: right;
-                }
-
-                .fs-permission-description
-                {
-                    margin-left: 55px;
-
-                    span
-                    {
-                        font-size:   14px;
-                        font-weight: 500;
-                        color:          #23282d;
-                    }
-
-                    .fs-tooltip
-                    {
-                        font-size: 13px;
-                        font-weight: bold;
-                    }
-
-                    .fs-tooltip-trigger .dashicons
-                    {
-                        margin: -1px 2px 0 2px;
-                    }
-
-                    p
-                    {
-                        margin: 2px 0 0 0;
-                    }
+        &.fs-open {
+            & > .fs-trigger {
+                .fs-arrow::after {
+                    content: "↓" !important;
                 }
             }
         }
 
-        &.fs-open
-        {
-            background: #fff;
-
-            ul
-            {
-                overflow: initial;
-                height: auto;
-                margin: 20px 0 10px 0;
-            }
+        ul li {
+            padding-left: 0;
+            padding-right: 0;
         }
 
         @media screen and (max-width: ($form_width - 1)) {
-            background:               #fff;
-
-            .fs-trigger
-            {
-                display: none;
-            }
-
             ul
             {
                 height: auto;
@@ -431,7 +363,6 @@ $box_border_radius: 3px;
 }
 
 @import "multisite-options";
-@import "tooltip";
 @import "gdpr-consent";
 
 .rtl
@@ -477,31 +408,6 @@ $box_border_radius: 3px;
             }
         }
 
-        .fs-permissions
-        {
-            ul
-            {
-                li
-                {
-                    .fs-permission-description
-                    {
-                        margin-right: 55px;
-                        margin-left:  0;
-                    }
-
-                    .fs-switch {
-                        float: left;
-                    }
-
-                    i.dashicons
-                    {
-                        float: right;
-                    }
-
-                }
-            }
-        }
-
         .fs-header
         {
             .fs-site-icon
@@ -514,6 +420,14 @@ $box_border_radius: 3px;
             {
                 right: auto;
                 left:  20px;
+            }
+        }
+    }
+
+    #fs_connect .fs-permissions {
+        & > .fs-trigger {
+            .fs-arrow::after {
+                content: "←";
             }
         }
     }
@@ -639,3 +553,5 @@ $box_border_radius: 3px;
     font-size: 0.9em;
     margin-top: 10px;
 }
+
+@import "permissions";

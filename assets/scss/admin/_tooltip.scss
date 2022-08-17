@@ -1,3 +1,5 @@
+@import "../start";
+
 .fs-tooltip-trigger
 {
     &:not(a)
@@ -6,6 +8,10 @@
     }
 
     position: relative;
+
+    .dashicons {
+        float: none !important;
+    }
 
     .fs-tooltip
     {

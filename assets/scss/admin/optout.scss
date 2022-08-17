@@ -1,0 +1,47 @@
+@import "permissions";
+
+.fs-modal-opt-out {
+    .fs-permissions {
+        margin-top: 0 !important;
+
+        .fs-permissions-section--header-optout {
+            float:        right;
+            line-height:  1.1em;
+            color: inherit;
+        }
+
+        .fs-permissions-section--header-title {
+            font-size:      1.1em;
+            font-weight:    600;
+            text-transform: uppercase;
+            display:        block;
+            line-height:    1.1em;
+            margin: 0.5em 0;
+        }
+
+        .fs-permissions-section--desc {
+            margin-top: 0;
+        }
+
+        hr {
+            border: 0;
+            border-top: #eee solid 1px;
+            margin: 25px 0 20px 0;
+        }
+
+        ul {
+            border: 1px solid #c3c4c7;
+            border-radius: 3px;
+            margin: 10px 0 0 0;
+            box-shadow: 0 1px 1px rgb(0, 0, 0, 0.04);
+
+            li {
+                border-bottom: 1px solid #d7dde1;
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+        }
+    }
+}
