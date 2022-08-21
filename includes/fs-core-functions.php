@@ -756,7 +756,7 @@
             } // If b has a priority and a does not, b wins.
             elseif ( isset( $a['priority'] ) && ! isset( $b['priority'] ) ) {
                 return - 1;
-            } // If neither has a priority or both priorities are equal its a tie.
+            } // If neither has a priority or both priorities are equal it's a tie.
             elseif ( ( ! isset( $a['priority'] ) && ! isset( $b['priority'] ) ) || $a['priority'] === $b['priority'] ) {
                 return 0;
             }
