@@ -91,16 +91,20 @@
         <div class="fs-modal-body">
             <?php
                 // @todo UPDATE DESCRIPTIONS TO TRANSLATABLE
+                $optional_permissions = $permission_manager->get_license_optional_permissions( false, true );
+
                 $permission_groups = array(
                     array(
-                        'title' => $fs->esc_html_inline( 'Required', 'required' ),
-                        'desc' => 'For delivery of security &amp; feature updates, and license management, PluginX needs to:',
+                        'type'        => 'required',
+                        'title'       => $fs->esc_html_inline( 'Required', 'required' ),
+                        'desc'        => 'For delivery of security &amp; feature updates, and license management, PluginX needs to:',
                         'permissions' => $permission_manager->get_license_required_permissions(),
                     ),
                     array(
-                        'title' => $fs->esc_html_inline( 'Optional', 'optional' ),
-                        'desc' => 'For ___ ______ short explanation of the values, you can optionally allow PluginX to view:',
-                        'permissions' => $permission_manager->get_license_optional_permissions(),
+                        'type'        => 'optional',
+                        'title'       => $fs->esc_html_inline( 'Optional', 'optional' ),
+                        'desc'        => 'For ___ ______ short explanation of the values, you can optionally allow PluginX to view:',
+                        'permissions' => $optional_permissions,
                     ),
                 );
             ?>
@@ -109,7 +113,7 @@
                 <div class="fs-permissions-section">
                     <div>
                         <div class="fs-permissions-section--header">
-                            <a class="fs-permissions-section--header-optout" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
+                            <a class="fs-permissions-section--header-optout" data-type="<?php echo $permission_group['type'] ?>" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
                             <span class="fs-permissions-section--header-title"><?php echo $permission_group['title'] ?></span>
                         </div>
                         <p class="fs-permissions-section--desc"><?php echo $permission_group['desc'] ?></p></div>
@@ -157,7 +161,6 @@
                 actionLinkSelector  = 'span.opt-in-or-opt-out.<?php echo $slug ?> a',
                 $optOutButton       = $modal.find( '.button-opt-out' ),
                 $optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
-                $extensionsTracking = $modal.find( '.fs-permission-extensions' ),
                 $body               = $( 'body' ),
                 moduleID            = '<?php echo $fs->get_id() ?>';
 
@@ -192,6 +195,66 @@
 					optOut();
 				});
 
+                var isOptingOut = false;
+                $modal.on( 'click', '.fs-permissions-section--header-optout', function ( evt ) {
+                    if (isOptingOut) {
+                        return;
+                    }
+
+                    var $optOutButton = $( this );
+
+                    if ( 'optional' === $optOutButton.attr( 'data-type' ) ) {
+                        isOptingOut = true;
+
+                        // Remove previously added feedback element.
+                        $modal.find( '.fs-switch-feedback' )
+                              .remove();
+
+                        var $switches = $optOutButton.parents( '.fs-permissions-section' )
+                                                     .find( '.fs-permission .fs-switch' );
+
+                        var switchStates = [];
+                        for (var i = 0; i < $switches.length; i++) {
+                            switchStates.push($($switches[i]).hasClass( 'fs-on' ));
+                        }
+
+                        $switches
+                            .removeClass( 'fs-on' )
+                            .addClass( 'fs-off' );
+
+                        $switches.parents( '.fs-permission' )
+                                 .addClass( 'fs-disabled' );
+
+                        var $switchFeedback = $( '<span class="fs-switch-feedback"><i class="fs-ajax-spinner"></i></span>' );
+
+                        $optOutButton.after( $switchFeedback )
+
+                        updatePermissions(
+                            '<?php echo $optional_permissions[0]['id'] ?>,<?php echo $optional_permissions[1]['id'] ?>',
+                            false,
+                            function () {
+                                $switchFeedback.addClass( 'success' );
+                                $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $fs->get_slug() ) ) ?>' );
+                            },
+                            function () {
+                                // Revert switches to their previous state.
+                                for (var i = 0; i < switchStates.length; i++) {
+                                    if (switchStates[i]) {
+                                        $($switches[i]).addClass( 'fs-on' )
+                                                       .removeClass( 'fs-disabled' )
+                                                       .removeClass( 'fs-off' );
+                                    }
+                                }
+                            },
+                            function () {
+                                isOptingOut = false;
+                            }
+                        )
+                    } else {
+
+                    }
+                });
+
 				// If the user has clicked outside the window, close the modal.
 				$modal.on( 'click', '.fs-close, .button-close', function() {
 					closeModal();
@@ -215,6 +278,7 @@
 			function closeModal() {
 				$modal.removeClass( 'active' );
 				$body.removeClass( 'has-fs-modal' );
+                $modal.hide();
 			}
 
 			function resetOptOutButton() {
@@ -285,48 +349,6 @@
 				});
 			}
 
-			var isUpdatingPermission = false;
-            $extensionsTracking.on('click', function() {
-                if (isUpdatingPermission) {
-                    return false;
-                }
-
-                isUpdatingPermission = true;
-
-                var $switch         = $extensionsTracking.find( '.fs-switch' ),
-                    $switchFeedback = $extensionsTracking.find( '.fs-switch-feedback' );
-
-                $switch
-                    .toggleClass( 'fs-on' )
-                    .toggleClass( 'fs-off' );
-
-                $switchFeedback.html( '<i class="fs-ajax-spinner"></i>' );
-
-                $.ajax({
-                    url: ajaxurl,
-                    method: 'POST',
-                    data: {
-                        action    : '<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>',
-                        security  : '<?php echo $fs->get_ajax_security( 'update_tracking_permission' ) ?>',
-                        module_id : moduleID,
-                        _wp_http_referer: '<?php echo $fs->current_page_url() ?>',
-                        permission: 'extensions',
-                        is_enabled: $switch.hasClass('fs-on')
-                    },
-                    success: function( resultObj ) {
-                        if ( resultObj.success ) {
-                            $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $slug ) ) ?>' )
-                        } else {
-                            $switch
-                                .toggleClass( 'fs-on' )
-                                .toggleClass( 'fs-off' );
-                        }
-
-	                    isUpdatingPermission = false;
-                    }
-                });
-            });
-
 			function enableOptOutButton() {
 				$optOutButton.removeClass( 'disabled' );
 			}
@@ -389,7 +411,7 @@
 			});
 			<?php endif ?>
 
-            <?php $permission_manager->require_permissions_js() ?>
+            <?php $permission_manager->require_permissions_js( true ) ?>
 		});
 	})( jQuery );
 </script>

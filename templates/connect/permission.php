@@ -26,7 +26,7 @@
 
     $is_permission_on = ( ! isset( $permission['default'] ) || true === $permission['default'] );
 ?>
-<li id="fs-permission-<?php echo esc_attr( $permission['id'] ); ?>"
+<li id="fs_permission_<?php echo esc_attr( $permission['id'] ); ?>"
     class="fs-permission fs-<?php echo esc_attr( $permission['id'] ); ?><?php echo ( ! $is_permission_on ) ? ' fs-disabled' : ''; ?>">
     <i class="<?php echo esc_attr( $permission['icon-class'] ); ?>"></i>
     <?php if ( isset( $permission['optional'] ) && true === $permission['optional'] ) : ?>

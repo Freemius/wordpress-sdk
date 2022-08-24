@@ -1,4 +1,5 @@
 @use "tooltip";
+@import "../start";
 
 $permission-icon-size: 30px;
 
@@ -11,6 +12,12 @@ $permission-icon-size: 30px;
                 color: #aaa;
             }
         }
+
+        .fs-switch-feedback {
+            position: absolute;
+            right:    15px;
+            top:      52px;
+        }
     }
 
     ul {
@@ -21,6 +28,7 @@ $permission-icon-size: 30px;
         li {
             padding: 17px 15px;
             margin: 0;
+            position: relative;
 
             & > i.dashicons {
                 float:      left;
@@ -66,6 +74,27 @@ $permission-icon-size: 30px;
             overflow: initial;
             height:   auto;
             margin:   20px 0 10px 0;
+        }
+    }
+
+    .fs-switch-feedback {
+        .fs-ajax-spinner {
+            margin-right: 10px;
+        }
+
+        &.success {
+            color: $fs-logo-green-color;
+        }
+
+        .rtl &
+        {
+            right: auto;
+            left: 15px;
+
+            .fs-ajax-spinner {
+                margin-left:  10px;
+                margin-right: 0;
+            }
         }
     }
 }

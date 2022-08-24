@@ -5779,25 +5779,41 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.3.2
          *
+         * @param bool $default
+         *
          * @return bool
          */
-        function is_extensions_tracking_allowed() {
-            return ( true === $this->apply_filters(
-                'is_extensions_tracking_allowed',
-                $this->_storage->is_extensions_tracking_allowed
-            ) );
+        function is_extensions_tracking_allowed( $default = false ) {
+            return $this->is_permission_allowed( 'extensions', $default );
         }
 
         /**
-         * @return bool
          * @since  2.5.0.2
-         *
          * @author Malay Ladu (@msladu)
+         *
+         * @param bool $default
+         *
+         * @return bool
          */
-        function is_diagnostic_tracking_allowed() {
+        function is_diagnostic_tracking_allowed( $default = true ) {
+            return $this->is_permission_allowed( 'diagnostic', $default );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @param string $permission
+         * @param bool   $default
+         *
+         * @return bool
+         */
+        function is_permission_allowed( $permission, $default = false ) {
+            $tag = "is_{$permission}_tracking_allowed";
+
             return ( true === $this->apply_filters(
-                'is_diagnostic_tracking_allowed',
-                $this->_storage->is_diagnostic_tracking_allowed
+                $tag,
+                $this->_storage->get( $tag, $default )
             ) );
         }
 
@@ -5816,27 +5832,36 @@
                 self::shoot_ajax_failure();
             }
 
-            $permission = fs_request_get( 'permission' );
+            $result      = array();
+            $permissions = fs_request_get( 'permissions' );
 
-            switch ( $permission ) {
-                case 'extensions':
-                    $this->update_extensions_tracking_flag( $is_enabled );
-                    break;
-                case 'diagnostic':
-                    $this->update_diagnostic_tracking_flag( $is_enabled );
-                    break;
-                default:
-                    $permission = 'no_match';
+            if ( ! empty( $permissions ) ) {
+                $permissions = explode( ',', $permissions );
+
+                foreach ( $permissions as $permission ) {
+                    $permission = trim( $permission );
+
+                    switch ( $permission ) {
+                        case 'extensions':
+                            $this->update_extensions_tracking_flag( $is_enabled );
+                            break;
+                        case 'diagnostic':
+                            $this->update_diagnostic_tracking_flag( $is_enabled );
+                            break;
+                        default:
+                            $permission = 'no_match';
+                    }
+
+                    $result[ $permission ] = $is_enabled;
+                }
             }
 
-            if ( 'no_match' === $permission ) {
+            if ( isset( $result['no_match'] ) ) {
                 self::shoot_ajax_failure();
             }
 
             self::shoot_ajax_success( array(
-                'permissions' => array(
-                    $permission => $is_enabled,
-                )
+                'permissions' => $result,
             ) );
         }
 

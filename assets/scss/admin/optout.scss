@@ -10,6 +10,16 @@
             color: inherit;
         }
 
+        .fs-permissions-section--header .fs-switch-feedback {
+            float: right;
+            line-height: 1.1em;
+            margin-right: 10px;
+
+            .fs-ajax-spinner {
+                margin: -2px 0 0;
+            }
+        }
+
         .fs-permissions-section--header-title {
             font-size:      1.1em;
             font-weight:    600;
@@ -37,6 +47,16 @@
 
             li {
                 border-bottom: 1px solid #d7dde1;
+                border-left: 4px solid #72aee6;
+
+                .rtl & {
+                    border-left: none;
+                    border-right: 4px solid #72aee6;
+                }
+
+                &.fs-disabled {
+                    border-left-color: rgba(114,174,230,0);
+                }
 
                 &:last-child {
                     border-bottom: none;

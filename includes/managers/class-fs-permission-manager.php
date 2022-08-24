@@ -182,17 +182,28 @@
         /**
          * @return array[]
          */
-        function get_license_optional_permissions( $include_optional_label = false ) {
+        function get_license_optional_permissions(
+            $include_optional_label = false,
+            $load_default_from_storage = false
+        ) {
             return array(
-                $this->get_diagnostic_permission( $include_optional_label ),
-                $this->get_extensions_permission( true, $include_optional_label ),
+                $this->get_diagnostic_permission( $include_optional_label, $load_default_from_storage ),
+                $this->get_extensions_permission( true, $include_optional_label, $load_default_from_storage ),
             );
         }
 
         /**
-         * @return array[]
+         * @param bool $include_optional_label
+         * @param bool $load_default_from_storage
+         *
+         * @return array
          */
-        function get_diagnostic_permission( $include_optional_label = false ) {
+        function get_diagnostic_permission(
+            $include_optional_label = false,
+            $load_default_from_storage = false
+        ) {
+            $is_on_by_default = true;
+
             return $this->get_permission(
                 'diagnostic',
                 'wordpress-alt',
@@ -205,7 +216,9 @@
                 ),
                 25,
                 true,
-                true
+                $load_default_from_storage ?
+                    $this->_fs->is_diagnostic_tracking_allowed( $is_on_by_default ) :
+                    $is_on_by_default
             );
         }
 
@@ -216,9 +229,19 @@
         #--------------------------------------------------------------------------------
 
         /**
-         * @return array[]
+         * @param bool $is_license_activation
+         * @param bool $include_optional_label
+         * @param bool $load_default_from_storage
+         *
+         * @return array
          */
-        function get_extensions_permission( $is_license_activation, $include_optional_label = false ) {
+        function get_extensions_permission(
+            $is_license_activation,
+            $include_optional_label = false,
+            $load_default_from_storage = false
+        ) {
+            $is_on_by_default = ! $is_license_activation;
+
             return $this->get_permission(
                 'extensions',
                 'block-default',
@@ -227,7 +250,9 @@
                 $this->_fs->get_text_inline( 'To ensure compatibility and avoid conflicts with your installed plugins and themes.', 'permissions-events_tooltip' ),
                 25,
                 true,
-                ! $is_license_activation
+                $load_default_from_storage ?
+                    $this->_fs->is_extensions_tracking_allowed( $is_on_by_default ) :
+                    $is_on_by_default
             );
         }
 
@@ -264,16 +289,14 @@
             fs_require_template( 'connect/permission.php', $permission );
         }
 
-        function require_permissions_js() {
-?>
-            $( '.fs-permissions .fs-switch' ).click( function () {
-                $(this)
-                    .toggleClass( 'fs-on' )
-                    .toggleClass( 'fs-off' );
+        function require_permissions_js( $interactive = false, $inline = true ) {
+            $params = array(
+                'fs'          => $this->_fs,
+                'inline'      => $inline,
+                'interactive' => $interactive,
+            );
 
-                $( this ).parent().toggleClass( 'fs-disabled' );
-            });
-<?php
+            fs_require_template( 'js/permissions.php', $params );
         }
 
         #endregion
