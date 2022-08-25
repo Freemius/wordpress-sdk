@@ -9220,29 +9220,19 @@
             if ( ! $skip_all_network && empty( $sites ) ) {
                 $this->skip_site_connection();
             } else {
-                $uids = array();
-
                 if ( $skip_all_network ) {
                     $this->set_anonymous_mode( true, true );
 
                     $sites = self::get_sites();
                     foreach ( $sites as $site ) {
                         $blog_id = self::get_site_blog_id( $site );
-                        $this->skip_site_connection( $blog_id, false );
-                        $uids[] = $this->get_anonymous_id( $blog_id );
+                        $this->skip_site_connection( $blog_id );
                     }
                 } else if ( ! empty( $sites ) ) {
                     foreach ( $sites as $site ) {
-                        $uids[] = $site['uid'];
-                        $this->skip_site_connection( $site['blog_id'], false );
+                        $this->skip_site_connection( $site['blog_id'] );
                     }
                 }
-
-                // Send anonymous skip event.
-                // No user identified info nor any tracking will be sent after the user skips the opt-in.
-                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                    'uids' => $uids,
-                ) );
             }
 
             $this->network_upgrade_mode_completed();
@@ -9257,18 +9247,12 @@
          * @param int|null $blog_id
          * @param bool     $send_skip
          */
-        private function skip_site_connection( $blog_id = null, $send_skip = true ) {
+        private function skip_site_connection( $blog_id = null ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account', $blog_id );
 
             $this->set_anonymous_mode( true, $blog_id );
-
-            if ( $send_skip ) {
-                $this->get_api_plugin_scope()->call( 'skip.json', 'put', array(
-                    'uids' => array( $this->get_anonymous_id( $blog_id ) ),
-                ) );
-            }
         }
 
         /**
