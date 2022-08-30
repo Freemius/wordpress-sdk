@@ -452,7 +452,12 @@
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        private function try_resolve_clone_automatically_by_instance( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
+        private function try_resolve_clone_automatically_by_instance(
+            Freemius $instance,
+            $current_url,
+            $is_localhost,
+            $is_clone_of_network_subsite = null
+        ) {
             // Try to find a different install of the context product that is associated with the current URL.
             $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
@@ -1278,7 +1283,11 @@
          *
          * @return string
          */
-        private function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
+        private function get_temporary_duplicate_admin_notice_string(
+            $site_urls,
+            $product_titles,
+            $module_label
+        ) {
             $this->_logger->entrance();
 
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
@@ -1481,7 +1490,11 @@
          * @param string      $message
          * @param string|null $plugin_title
          */
-        function add_temporary_duplicate_sticky_notice( $product_ids, $message, $plugin_title = null ) {
+        function add_temporary_duplicate_sticky_notice(
+            $product_ids,
+            $message,
+            $plugin_title = null
+        ) {
             $this->_logger->entrance();
 
             $this->_notices->add_sticky(
