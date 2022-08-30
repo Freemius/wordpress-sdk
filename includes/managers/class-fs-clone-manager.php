@@ -171,7 +171,7 @@
                     if ( Freemius::is_ajax() ) {
                         Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
-                        $this->try_resolve_clone_automatically_by_config();
+                        $this->try_resolve_clone_automatically();
                         $this->maybe_show_clone_admin_notice();
 
                         add_action( 'admin_footer', array( $this, '_add_clone_resolution_javascript' ) );
@@ -452,7 +452,12 @@
          *
          * @return bool If managed to automatically resolve the clone.
          */
-        private function try_resolve_clone_automatically( Freemius $instance, $current_url, $is_localhost, $is_clone_of_network_subsite = null ) {
+        private function try_resolve_clone_automatically_by_instance(
+            Freemius $instance,
+            $current_url,
+            $is_localhost,
+            $is_clone_of_network_subsite = null
+        ) {
             // Try to find a different install of the context product that is associated with the current URL.
             $associated_install = $this->find_other_install_by_url( $instance, $current_url );
 
@@ -477,35 +482,44 @@
                 return false;
             }
 
-            $is_clone_of_network_subsite = ( ! is_null( $is_clone_of_network_subsite ) ) ?
-                $is_clone_of_network_subsite :
-                is_object( $this->find_network_subsite_clone_install( $instance ) );
+            if ( ! WP_FS__IS_LOCALHOST_FOR_SERVER && ! $is_localhost ) {
+                $is_clone_of_network_subsite = ( ! is_null( $is_clone_of_network_subsite ) ) ?
+                    $is_clone_of_network_subsite :
+                    is_object( $this->find_network_subsite_clone_install( $instance ) );
 
-            if (
-                $is_clone_of_network_subsite ||
-                WP_FS__IS_LOCALHOST_FOR_SERVER ||
-                $is_localhost
-            ) {
-                // If the site is a clone of another subsite in the network, or a localhost one, try to auto activate the license.
-                return $this->delete_install_and_connect( $instance, $license->secret_key );
+                if ( ! $is_clone_of_network_subsite ) {
+                    return false;
+                }
             }
 
-            return false;
+            // If the site is a clone of another subsite in the network, or a localhost one, try to auto activate the license.
+            return $this->delete_install_and_connect( $instance, $license->secret_key );
         }
 
         /**
-         * Try to resolve the clone situation automatically based on the config in the wp-config.php file.
-         *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          */
-        private function try_resolve_clone_automatically_by_config() {
+        private function try_resolve_clone_automatically() {
             $clone_action = $this->get_clone_resolution_action_from_config();
 
-            if ( empty( $clone_action ) ) {
+            if ( ! empty( $clone_action ) ) {
+                $this->try_resolve_clone_automatically_by_config( $clone_action );
                 return;
             }
 
+            $this->try_automatic_resolution();
+        }
+
+        /**
+         * Tries to resolve the clone situation automatically based on the config in the wp-config.php file.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         *
+         * @param string $clone_action
+         */
+        private function try_resolve_clone_automatically_by_config( $clone_action ) {
             $fs_instances = array();
 
             if ( self::OPTION_LONG_TERM_DUPLICATE === $clone_action ) {
@@ -653,7 +667,7 @@
                     // If there's no expected install (or it couldn't be fetched) and the current install is a clone, try to resolve the clone automatically.
                     $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
-                    $resolved = $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost, is_object( $network_subsite_clone_install ) );
+                    $resolved = $this->try_resolve_clone_automatically_by_instance( $instance, $current_url, $is_localhost, is_object( $network_subsite_clone_install ) );
 
                     if ( ! $resolved && is_object( $network_subsite_clone_install ) ) {
                         if ( empty( $this->get_clone_identification_timestamp() ) ) {
@@ -742,7 +756,7 @@
                     continue;
                 }
 
-                if ( ! $this->try_resolve_clone_automatically( $instance, $current_url, $is_localhost ) ) {
+                if ( ! $this->try_resolve_clone_automatically_by_instance( $instance, $current_url, $is_localhost ) ) {
                     $require_manual_resolution = true;
                 }
             }
@@ -1269,7 +1283,11 @@
          *
          * @return string
          */
-        private function get_temporary_duplicate_admin_notice_string( $site_urls, $product_titles, $module_label ) {
+        private function get_temporary_duplicate_admin_notice_string(
+            $site_urls,
+            $product_titles,
+            $module_label
+        ) {
             $this->_logger->entrance();
 
             $temporary_duplicate_end_date = $this->get_temporary_duplicate_expiration_timestamp();
@@ -1472,7 +1490,11 @@
          * @param string      $message
          * @param string|null $plugin_title
          */
-        function add_temporary_duplicate_sticky_notice( $product_ids, $message, $plugin_title = null ) {
+        function add_temporary_duplicate_sticky_notice(
+            $product_ids,
+            $message,
+            $plugin_title = null
+        ) {
             $this->_logger->entrance();
 
             $this->_notices->add_sticky(
