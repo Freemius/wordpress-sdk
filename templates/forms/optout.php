@@ -32,28 +32,9 @@
 
 	if ( $fs->is_premium() ) {
 		$opt_in_message_appreciation = fs_text_inline( 'Connectivity to the licensing engine was successfully re-established. Automatic security & feature updates are now available through the WP Admin Dashboard.', 'premium-opt-in-message-appreciation', $slug );
-
-		$opt_out_message_subtitle       = sprintf( fs_text_inline( 'Warning: Opting out will block automatic updates', 'premium-opt-out-message-appreciation', $slug ), $fs->get_module_type() );
-		$opt_out_message_usage_tracking = sprintf( fs_text_inline( 'Ongoing connectivity with the licensing engine is essential for receiving automatic security & feature updates of the paid product. To receive these updates, data like your license key, %1$s version, and WordPress version, is periodically sent to the server to check for updates. By opting out, you understand that your site won\'t receive automatic updates for %2$s from within the WP Admin Dashboard. This can put your site at risk, and we highly recommend to keep this connection active. If you do choose to opt-out, you\'ll need to check for %1$s updates and install them manually.', 'premium-opt-out-message-usage-tracking', $slug ), $fs->get_module_type(), $plugin_title );
-
-		$primary_cta_label = fs_text_inline( 'I\'d like to keep automatic updates', 'premium-opt-out-cancel', $slug );
 	} else {
-		$opt_in_message_appreciation = sprintf( fs_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-in-message-appreciation', $slug ), $fs->get_module_type() );
-
-		$opt_out_message_subtitle       = $opt_in_message_appreciation;
-		$opt_out_message_usage_tracking = sprintf( fs_text_inline( "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking.", 'opt-out-message-usage-tracking', $slug ), $plugin_title );
-		$primary_cta_label              = fs_text_inline( 'On second thought - I want to continue helping', 'opt-out-cancel', $slug );
+		$opt_in_message_appreciation = sprintf( fs_text_inline( 'We appreciate your help in making the %s better by letting us track some diagnostic data.', 'opt-in-message-appreciation', $slug ), $fs->get_module_type() );
 	}
-
-	$opt_out_message_clicking_opt_out = sprintf(
-		fs_text_inline( 'By clicking "Opt Out", we will no longer be sending any data from %s to %s.', 'opt-out-message-clicking-opt-out', $slug ),
-		$plugin_title,
-		sprintf(
-			'<a href="%s" target="_blank" rel="noopener">%s</a>',
-			'https://freemius.com',
-			'freemius.com'
-		)
-	);
 
 	$admin_notice_params = array(
 		'id'      => '',
@@ -66,192 +47,351 @@
 
 	$admin_notice_html = fs_get_template( 'admin-notice.php', $admin_notice_params );
 
-    $modal_content_html = "
-		<h2" . ( $fs->is_premium() ? ' style="color: red"' : '' ) . ">{$opt_out_message_subtitle}</h2>
-		<div class=\"notice notice-error inline opt-out-error-message\"><p></p></div>
-		<p>{$opt_out_message_usage_tracking}</p>
-		<p>{$opt_out_message_clicking_opt_out}</p>
-		<label class=\"fs-permission-extensions\"><div class=\"fs-switch fs-small fs-round fs-" . ( $fs->is_extensions_tracking_allowed() ? 'on' : 'off' ) . "\"><div class=\"fs-toggle\"></div></div> " . fs_text_inline( 'Plugins & themes tracking' ) . " <span class=\"fs-switch-feedback success\"></span></label>";
+    $permission_manager = FS_Permission_Manager::instance( $fs );
 
 	fs_enqueue_local_style( 'fs_dialog_boxes', '/admin/dialog-boxes.css' );
 	fs_enqueue_local_style( 'fs_optout', '/admin/optout.css' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
-    $permission_manager = FS_Permission_Manager::instance( $fs );
+    if ( ! $fs->is_premium() ) {
+        $optional_permissions = array( $permission_manager->get_extensions_permission( false,
+            false,
+            true
+        ) );
 
-//    $permissions        = $permission_manager->get_permissions( true );
+        $permission_groups = array(
+            array(
+                'id'          => 'communication',
+                'type'        => 'required',
+                'title'       => $fs->get_text_inline( 'Communication', 'communication' ),
+                'desc'        => '',
+                'permissions' => $permission_manager->get_opt_in_required_permissions( true ),
+                'action'      => 'toggle_user_tracking',
+                'is_enabled'  => $fs->is_registered(),
+                'prompt'      => array(
+                    sprintf( $fs->esc_html_inline( "Sharing your name and email allows us to keep you in the loop about new features and important updates, warn you about security issues before they become public knowledge, and send you special offers.",
+                        'opt-out-message_profile' ), $plugin_title ),
+                    sprintf(
+                        $fs->esc_html_inline( 'By clicking "Opt Out", %s will no longer be able to view your name and email.',
+                            'opt-out-message-clicking-opt-out' ),
+                        "<b>{$plugin_title}</b>"
+                    ),
+                ),
+                'prompt_cancel_label' => $fs->get_text_inline( 'Stay Connected', 'stay-connected' )
+            ),
+            array(
+                'id'          => 'diagnostic',
+                'type'        => 'required',
+                'title'       => $fs->get_text_inline( 'Diagnostic Info', 'diagnostic-info' ),
+                'desc'        => '',
+                'permissions' => $permission_manager->get_opt_in_diagnostic_permissions( true ),
+                'action'      => 'toggle_site_tracking',
+                'is_enabled'  => $fs->is_tracking_allowed(),
+                'prompt'      => array(
+                    sprintf(
+                        $fs->esc_html_inline( 'Sharing diagnostic data helps to provide additional functionality that\'s relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s should be translated and tailored to.',
+                            'opt-out-message-clicking-opt-out' ),
+                        $fs->get_module_type()
+                    ),
+                    sprintf(
+                        $fs->esc_html_inline( 'By clicking "Opt Out", diagnostic data will no longer be sent to %s.',
+                            'opt-out-message-clicking-opt-out' ),
+                        "<b>{$plugin_title}</b>"
+                    ),
+                ),
+                'prompt_cancel_label' => $fs->get_text_inline( 'Keep Sharing', 'keep-sharing' )
+            ),
+            array(
+                'id'          => 'optional',
+                'type'        => 'optional',
+                'title'       => $fs->get_text_inline( 'Extensions', 'extensions' ),
+                'desc'        => '',
+                'permissions' => $optional_permissions,
+            ),
+        );
+    } else {
+        $optional_permissions = $permission_manager->get_license_optional_permissions( false, true );
+
+        $permission_groups = array(
+            array(
+                'id'          => 'essentials',
+                'type'        => 'required',
+                'title'       => $fs->esc_html_inline( 'Required', 'required' ),
+                'desc'        => sprintf( $fs->esc_html_inline( 'For delivery of security & feature updates, and license management, %s needs to',
+                        'license-sync-disclaimer' ),
+                        '<b>' . esc_html( $fs->get_plugin_title() ) . '</b>' ) . ':',
+                'permissions' => $permission_manager->get_license_required_permissions(),
+                'prompt'      => array(
+                    sprintf( $fs->esc_html_inline( 'For automatic delivery of security & feature updates directly to your WordPress Admin Dashboard, %2$s needs to view the website’s homepage URL, %1$s version, SDK version, and whether the %1$s is active or uninstalled.', 'premium-opt-out-message-usage-tracking' ), $fs->get_module_type(), $plugin_title ),
+                    sprintf( $fs->esc_html_inline( 'By opting out from sharing this information with the updates server, you’ll have to check for new %1$s releases and manually download & install them. Missing an update can put your site at risk, so we highly recommend keeping these essential permissions on.', 'opt-out-message-clicking-opt-out' ), $fs->get_module_type(), $plugin_title ),
+                ),
+                'prompt_cancel_label' => $fs->get_text_inline( 'Keep automatic updates', 'premium-opt-out-cancel' )
+            ),
+            array(
+                'id'          => 'optional',
+                'type'        => 'optional',
+                'title'       => $fs->esc_html_inline( 'Optional', 'optional' ),
+                'desc'        => sprintf( $fs->esc_html_inline( 'For ___ ______ short explanation of the values, you can optionally allow PluginX to view',
+                        'optional-permissions-disclaimer' ),
+                        '<b>' . esc_html( $fs->get_plugin_title() ) . '</b>' ) . ':',
+                'permissions' => $optional_permissions,
+            ),
+        );
+    }
 
     $form_id = "fs_opt_out_{$fs->get_id()}";
 ?>
-<div id="<?php echo $form_id ?>" class="fs-modal fs-modal-opt-out" style="display: none">
+<div id="<?php echo $form_id ?>"
+     class="fs-modal fs-modal-opt-out"
+     data-plugin-id="<?php echo $fs->get_id() ?>"
+     style="display: none">
     <div class="fs-modal-dialog">
         <div class="fs-modal-header">
             <h4><?php echo esc_html( $opt_out_text ) ?></h4>
         </div>
-        <div class="fs-modal-body">
-            <?php
-                // @todo UPDATE DESCRIPTIONS TO TRANSLATABLE
-                $optional_permissions = $permission_manager->get_license_optional_permissions( false, true );
-
-                $permission_groups = array(
-                    array(
-                        'type'        => 'required',
-                        'title'       => $fs->esc_html_inline( 'Required', 'required' ),
-                        'desc'        => 'For delivery of security &amp; feature updates, and license management, PluginX needs to:',
-                        'permissions' => $permission_manager->get_license_required_permissions(),
-                    ),
-                    array(
-                        'type'        => 'optional',
-                        'title'       => $fs->esc_html_inline( 'Optional', 'optional' ),
-                        'desc'        => 'For ___ ______ short explanation of the values, you can optionally allow PluginX to view:',
-                        'permissions' => $optional_permissions,
-                    ),
-                );
-            ?>
-            <div class="fs-permissions fs-open">
-            <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
-                <div class="fs-permissions-section">
-                    <div>
-                        <div class="fs-permissions-section--header">
-                            <a class="fs-permissions-section--header-optout" data-type="<?php echo $permission_group['type'] ?>" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
-                            <span class="fs-permissions-section--header-title"><?php echo $permission_group['title'] ?></span>
-                        </div>
-                        <p class="fs-permissions-section--desc"><?php echo $permission_group['desc'] ?></p></div>
-                    <ul>
-                        <?php
-                            foreach ($permission_group['permissions'] as $permission) {
-                                $permission_manager->render_permission( $permission );
-                            }
-                        ?>
-                    </ul>
+        <div class="fs-opt-out-permissions">
+            <div class="fs-modal-body">
+                <div class="fs-permissions fs-open"
+                     data-action="<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>"
+                     data-security="<?php echo $fs->get_ajax_security( 'update_tracking_permission' ) ?>">
+                <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
+                    <?php $permission_manager->render_permissions_group( $permission_group ) ?>
+                    <?php if ( $i < count( $permission_groups ) - 1 ) : ?><hr><?php endif ?>
+                <?php endforeach ?>
                 </div>
-                <?php if ( 0 === $i ) : ?><hr><?php endif ?>
-            <?php endforeach ?>
             </div>
-            <!--            <div class="fs-modal-panel active">' + modalContentHtml + '</div>-->
+            <div class="fs-modal-footer">
+                <button class="button button-primary button-close" tabindex="1"><?php echo $fs->esc_html_inline( 'Done', 'done' ) ?></button>
+            </div>
         </div>
-        <div class="fs-modal-footer">
-            <button class="button button-primary button-close" tabindex="1"><?php echo $fs->esc_html_inline( 'Done', 'done' ) ?></button>
-        </div>
+        <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
+            <?php if ( ! empty( $permission_group[ 'prompt' ] ) ) : ?>
+                <div class="fs-<?php echo $permission_group[ 'id' ] ?>-opt-out fs-opt-out-disclaimer" data-group="<?php echo $permission_group[ 'id' ] ?>" style="display: none">
+                    <div class="fs-modal-body">
+                        <div class="fs-modal-panel active">
+                            <div class="notice notice-error inline opt-out-error-message"><p></p></div>
+                            <?php foreach ( $permission_group[ 'prompt' ] as $p ) : ?>
+                                <p><?php echo $p ?></p>
+                            <?php endforeach ?>
+                        </div>
+                    </div>
+                    <div class="fs-modal-footer">
+                        <a class="fs-opt-out-button" tabindex="2" data-action="<?php echo $fs->get_ajax_action( $permission_group[ 'action' ] ) ?>" data-security="<?php echo $fs->get_ajax_security( $permission_group[ 'action' ] ) ?>" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
+                        <button class="button button-primary" tabindex="1"><?php echo esc_html( $permission_group[ 'prompt_cancel_label' ] ) ?></button>
+                    </div>
+                </div>
+            <?php endif ?>
+        <?php endforeach ?>
     </div>
 </div>
 
 <script type="text/javascript">
 	(function( $ ) {
 		$( document ).ready(function() {
-			var modalContentHtml = <?php echo json_encode( $modal_content_html ) ?>,
-			    modalHtml =
-				    '<div class="fs-modal fs-modal-opt-out">'
-				    + '	<div class="fs-modal-dialog">'
-				    + '		<div class="fs-modal-header">'
-				    + '		    <h4><?php echo esc_js( $opt_out_text ) ?></h4>'
-				    + '		</div>'
-				    + '		<div class="fs-modal-body">'
-				    + '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
-				    + '		</div>'
-				    + '		<div class="fs-modal-footer">'
-				    + '			<button class="button <?php echo $fs->is_premium() ? 'button-primary warn' : 'button-secondary' ?> button-opt-out" tabindex="1"><?php echo esc_js( $opt_out_text ) ?></button>'
-				    + '			<button class="button <?php echo $fs->is_premium() ? 'button-secondary' : 'button-primary' ?> button-close" tabindex="2"><?php echo esc_js( $primary_cta_label ) ?></button>'
-				    + '		</div>'
-				    + '	</div>'
-				    + '</div>',
-                $modal              = $('#<?php echo $form_id ?>'),
+			var $modal              = $('#<?php echo $form_id ?>'),
                 $adminNotice        = $( <?php echo json_encode( $admin_notice_html ) ?> ),
                 action              = '<?php echo $action ?>',
                 actionLinkSelector  = 'span.opt-in-or-opt-out.<?php echo $slug ?> a',
-                $optOutButton       = $modal.find( '.button-opt-out' ),
-                $optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
+                //$primaryOptOutButton = $modal.find( '.fs-modal-footer .fs-opt-out-button' ),
+                //$optOutErrorMessage = $modal.find( '.opt-out-error-message' ),
                 $body               = $( 'body' ),
                 moduleID            = '<?php echo $fs->get_id() ?>';
 
 			$modal.data( 'action', action );
-			//$modal.appendTo( $body );
 
 			function registerActionLinkClick() {
                 $body.on( 'click', actionLinkSelector, function( evt ) {
 					evt.preventDefault();
 
-					if ( 'stop_tracking' == $modal.data( 'action' ) ) {
-						showModal();
-					} else {
-						optIn();
-					}
+                    showModal();
+					//if ( 'stop_tracking' === $modal.data( 'action' ) ) {
+					//	showModal();
+					//} else {
+					//	optIn();
+					//}
 
 					return false;
 				});
 			}
 
+            function backToPermissionsList() {
+                $modal.find( '.fs-opt-out-disclaimer' )
+                      .hide();
+
+                $modal.find( '.fs-opt-out-permissions' )
+                      .show();
+            }
+
+            function removeFeedbackIndicators() {
+                $modal.find( '.fs-switch-feedback' )
+                      .remove();
+            }
+
 			function registerEventHandlers() {
 				registerActionLinkClick();
 
-				$modal.on( 'click', '.button-opt-out', function( evt ) {
-					evt.preventDefault();
+                //$primaryOptOutButton.on( 'click', function( evt ) {
+				//	evt.preventDefault();
+                //
+				//	if ( $( this ).hasClass( 'disabled' ) ) {
+				//		return;
+				//	}
+                //
+				//	disableOptOutButton();
+				//	optOut();
+				//});
 
-					if ( $( this ).hasClass( 'disabled' ) ) {
-						return;
-					}
+                $modal.on( 'click', '.fs-opt-out-disclaimer .button-primary', function ( evt ) {
+                    backToPermissionsList();
+                });
 
-					disableOptOutButton();
-					optOut();
-				});
+                var isUpdatingPermissions = false;
 
-                var isOptingOut = false;
-                $modal.on( 'click', '.fs-permissions-section--header-optout', function ( evt ) {
-                    if (isOptingOut) {
+                $modal.on( 'click', '.fs-modal-footer .fs-opt-out-button', function ( evt ) {
+                    var
+                        $optOutButton     = $( this ),
+                        $actionLink       = $( actionLinkSelector ),
+                        isEnabled         = true,
+                        $optOutDisclaimer = $( $optOutButton.parents( '.fs-opt-out-disclaimer' )[ 0 ] ),
+                        groupID           = $optOutDisclaimer.attr( 'data-group' ),
+                        $errorMessage     = $optOutDisclaimer.find( '.opt-out-error-message' );
+
+                    $optOutButton.text( isEnabled ?
+                        '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out', $slug ) ?>...' :
+                        '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...'
+                    );
+
+                    updateGroupPermissions(
+                        moduleID,
+                        groupID,
+                        ! isEnabled,
+                        function () {
+                            hideError( $errorMessage );
+
+                            if ( 'communication' === groupID ) {
+                                window.location.reload();
+                            } else {
+                                if (isEnabled) {
+                                    action = 'stop_tracking';
+                                    $actionLink.text('<?php echo esc_js( $opt_out_text ) ?>');
+                                } else {
+                                    action = 'allow_tracking';
+                                    $actionLink.text('<?php echo esc_js( $opt_in_text ) ?>');
+                                }
+
+                                backToPermissionsList();
+
+                                $modal.data('action', action);
+                            }
+                        },
+                        function ( resultObj ) {
+                            showError( $errorMessage, resultObj.error );
+                        },
+                        function () {
+                            if ( 'communication' !== groupID ) {
+                                $optOutButton.text( <?php echo json_encode( $opt_out_text ) ?> );
+                            }
+                        }
+                    );
+                } );
+
+                $modal.on( 'click', '.fs-opt-out-permissions .fs-opt-out-button', function ( evt ) {
+                    if (isUpdatingPermissions) {
                         return;
                     }
 
-                    var $optOutButton = $( this );
+                    evt.preventDefault();
 
-                    if ( 'optional' === $optOutButton.attr( 'data-type' ) ) {
-                        isOptingOut = true;
+                    var
+                        $optOutButton = $( this ),
+                        groupID = $optOutButton.attr('data-group'),
+                        isEnabled = ( 'true' === $optOutButton.attr( 'data-is-enabled' ) );
+
+                    if ( 'required' === $optOutButton.attr( 'data-type' ) ) {
+                        if ( isEnabled ) {
+                            // Move to disclaimer window.
+
+                            $modal.find('.fs-opt-out-permissions')
+                                  .hide();
+
+                            $modal.find('.fs-' + groupID + '-opt-out')
+                                  .show();
+                        } else {
+                            // Opt-in.
+                            updateGroupPermissions(
+                                moduleID,
+                                groupID,
+                                ! isEnabled,
+                                ( 'communication' !== groupID ) ?
+                                    null :
+                                    function () {
+                                        window.location.reload();
+                                    }
+                            );
+                        }
+                    } else {
+                        isUpdatingPermissions = true;
 
                         // Remove previously added feedback element.
-                        $modal.find( '.fs-switch-feedback' )
-                              .remove();
+                        removeFeedbackIndicators();
 
                         var $switches = $optOutButton.parents( '.fs-permissions-section' )
                                                      .find( '.fs-permission .fs-switch' );
 
                         var switchStates = [];
                         for (var i = 0; i < $switches.length; i++) {
-                            switchStates.push($($switches[i]).hasClass( 'fs-on' ));
+                            switchStates.push($($switches[i]).hasClass(
+                                isEnabled ? 'fs-on' : 'fs-off'
+                            ));
                         }
 
                         $switches
-                            .removeClass( 'fs-on' )
-                            .addClass( 'fs-off' );
+                            .removeClass( isEnabled ? 'fs-on' : 'fs-off' )
+                            .addClass( isEnabled ? 'fs-off' : 'fs-on' );
 
                         $switches.parents( '.fs-permission' )
-                                 .addClass( 'fs-disabled' );
+                                 .toggleClass( 'fs-disabled', isEnabled );
 
                         var $switchFeedback = $( '<span class="fs-switch-feedback"><i class="fs-ajax-spinner"></i></span>' );
 
                         $optOutButton.after( $switchFeedback )
 
+                        $optOutButton.text( isEnabled ?
+                            '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out', $slug ) ?>...' :
+                            '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...'
+                        );
+
                         updatePermissions(
-                            '<?php echo $optional_permissions[0]['id'] ?>,<?php echo $optional_permissions[1]['id'] ?>',
-                            false,
+                            moduleID,
+                            '<?php foreach ($optional_permissions as $i => $optional_permission) {
+                                    if (0 < $i)
+                                        echo ',';
+
+                                    echo $optional_permission['id'];
+                                } ?>',
+                            ! isEnabled,
                             function () {
                                 $switchFeedback.addClass( 'success' );
                                 $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $fs->get_slug() ) ) ?>' );
+
+                                toggleGroupOptOut( $optOutButton, ! isEnabled );
                             },
                             function () {
                                 // Revert switches to their previous state.
                                 for (var i = 0; i < switchStates.length; i++) {
                                     if (switchStates[i]) {
-                                        $($switches[i]).addClass( 'fs-on' )
+                                        $($switches[i]).addClass( isEnabled ? 'fs-on' : 'fs-off' )
                                                        .removeClass( 'fs-disabled' )
-                                                       .removeClass( 'fs-off' );
+                                                       .removeClass( isEnabled ? 'fs-off' : 'fs-on' );
                                     }
                                 }
+
+                                toggleGroupOptOut( $optOutButton, isEnabled );
                             },
                             function () {
-                                isOptingOut = false;
+                                isUpdatingPermissions = false;
                             }
                         )
-                    } else {
-
                     }
                 });
 
@@ -262,7 +402,7 @@
 				});
 			}
 
-			<?php if ( $fs->is_registered() ) : ?>
+			<?php if ( $fs->is_registered( true ) ) : ?>
 			registerEventHandlers();
 			<?php endif ?>
 
@@ -282,12 +422,13 @@
 			}
 
 			function resetOptOutButton() {
-				enableOptOutButton();
-				$optOutButton.text( <?php echo json_encode( $opt_out_text ) ?> );
+				//enableOptOutButton();
+				//$primaryOptOutButton.text( <?php //echo json_encode( $opt_out_text ) ?>// );
 			}
 
 			function resetModal() {
 				hideError();
+                removeFeedbackIndicators();
 				resetOptOutButton();
 			}
 
@@ -300,33 +441,29 @@
 			}
 
 			function sendRequest() {
-			    var $actionLink = $( actionLinkSelector );
+			    var
+                    $actionLink = $( actionLinkSelector ),
+                    isEnabled = ( 'true' === $actionLink.attr( 'data-is-enabled' ) );
 
 				$.ajax({
 					url: ajaxurl,
 					method: 'POST',
 					data: {
-						action   : ( 'stop_tracking' == action ?
-								'<?php echo $fs->get_ajax_action( 'stop_tracking' ) ?>' :
-								'<?php echo $fs->get_ajax_action( 'allow_tracking' ) ?>'
-						),
-						security : ( 'stop_tracking' == action ?
-								'<?php echo $fs->get_ajax_security( 'stop_tracking' ) ?>' :
-								'<?php echo $fs->get_ajax_security( 'allow_tracking' ) ?>'
-						),
-						module_id: moduleID,
-                        _wp_http_referer: '<?php echo $fs->current_page_url() ?>'
+						action    : $actionLink.attr( 'data-action' ),
+						security  : $actionLink.attr( 'data-security' ),
+                        is_enabled: isEnabled,
+						module_id : moduleID,
+                        _wp_http_referer: '<?php echo Freemius::current_page_url() ?>'
 					},
 					beforeSend: function() {
-						if ( 'allow_tracking' == action ) {
-							$actionLink.text( '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...' );
-						} else {
-							$optOutButton.text( '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out', $slug ) ?>...' );
-						}
+                        $actionLink.text( isEnabled ?
+                            '<?php echo esc_js( $opt_in_text ) ?>' :
+                            '<?php echo esc_js( $opt_out_text ) ?>'
+                        );
 					},
 					success: function( resultObj ) {
 						if ( resultObj.success ) {
-							if ( 'allow_tracking' == action ) {
+							if ( isEnabled ) {
 								action = 'stop_tracking';
 								$actionLink.text( '<?php echo esc_js( $opt_out_text ) ?>' );
 								showOptInAppreciationMessageAndScrollToTop();
@@ -334,6 +471,8 @@
 								action = 'allow_tracking';
 								$actionLink.text( '<?php echo esc_js( $opt_in_text ) ?>' );
 								closeModal();
+
+                                backToPermissionsList();
 
 								if ( $adminNotice.length > 0 ) {
 									$adminNotice.remove();
@@ -349,15 +488,8 @@
 				});
 			}
 
-			function enableOptOutButton() {
-				$optOutButton.removeClass( 'disabled' );
-			}
-
-			function disableOptOutButton() {
-				$optOutButton.addClass( 'disabled' );
-			}
-
-			function hideError() {
+			function hideError( $optOutErrorMessage ) {
+                $optOutErrorMessage = $optOutErrorMessage || $modal.find( '.opt-out-error-message' );
 				$optOutErrorMessage.hide();
 			}
 
@@ -366,7 +498,7 @@
 				window.scrollTo(0, 0);
 			}
 
-			function showError( msg ) {
+			function showError( $optOutErrorMessage, msg ) {
 				$optOutErrorMessage.find( ' > p' ).html( msg );
 				$optOutErrorMessage.show();
 			}
@@ -394,7 +526,7 @@
 					    '<?php echo esc_js( $opt_out_text ) ?>' :
 				        '<?php echo esc_js( $opt_in_text ) ?>'),
                     href = (('stop_tracking' != action) ?
-                        '<?php echo ( $fs->is_registered() ? '' : esc_js( $reconnect_url ) ) ?>' :
+                        '<?php echo ( $fs->is_registered( true ) ? '' : esc_js( $reconnect_url ) ) ?>' :
                         '');
 
 				var $actionLink = $('<a id="fs_theme_opt_in_out" href="' + encodeURI(href) + '" class="button">' + label + '</a>');

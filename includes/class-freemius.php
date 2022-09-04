@@ -5399,41 +5399,63 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         *
-         * @since  1.2.1.5
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
          */
-        function _stop_tracking_callback() {
+        function _toggle_user_tracking_callback() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'stop_tracking' );
+            $this->check_ajax_referer( 'toggle_user_tracking' );
 
-            $result = $this->stop_tracking( fs_is_network_admin() );
+            $is_enabled = fs_request_get_bool( 'is_enabled', true );
 
-            if ( true === $result ) {
-                self::shoot_ajax_success();
+            // Send update to FS.
+            $result = array();//$this->get_current_or_network_user_api_scope()->call( "/", 'delete', array( ) );
+
+            if ( $this->is_api_error( $result ) ) {
+                $this->_logger->api_error( $result );
+
+                return $result;
             }
 
-            $this->_logger->api_error( $result );
+//            $this->_user->is_deleted = ( ! $is_enabled );
+//            $this->_store_user();
 
-            self::shoot_ajax_failure(
-                sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.', 'unexpected-api-error' ), $this->_module_type ) .
-                ( $this->is_api_error( $result ) && isset( $result->error ) ?
-                    $result->error->message :
-                    var_export( $result, true ) )
+            $this->update_tracking_permissions(
+                'profile',
+                $is_enabled
             );
+
+            if ( $is_enabled ) {
+                $this->reset_anonymous_mode( fs_is_network_admin() );
+            } else {
+                $this->skip_connection( null, fs_is_network_admin() );
+            }
+
+            self::shoot_ajax_success();
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
          */
-        function _allow_tracking_callback() {
+        function _toggle_site_tracking_callback() {
             $this->_logger->entrance();
 
-            $this->check_ajax_referer( 'allow_tracking' );
+            $this->check_ajax_referer( 'toggle_site_tracking' );
 
-            $result = $this->allow_tracking( fs_is_network_admin() );
+            $is_enabled = fs_request_get_bool( 'is_enabled' );
+
+            if ( $is_enabled ) {
+                $result = $this->allow_tracking( fs_is_network_admin() );
+            } else {
+                $result = $this->stop_tracking( fs_is_network_admin() );
+            }
+
+            $this->update_tracking_permissions(
+                fs_request_get( 'permissions' ),
+                $is_enabled
+            );
 
             if ( true === $result ) {
                 self::shoot_ajax_success();
@@ -5778,48 +5800,6 @@
         /**
          * @author Vova Feldman (@svovaf)
          * @since  2.3.2
-         *
-         * @param bool $default
-         *
-         * @return bool
-         */
-        function is_extensions_tracking_allowed( $default = false ) {
-            return $this->is_permission_allowed( 'extensions', $default );
-        }
-
-        /**
-         * @since  2.5.0.2
-         * @author Malay Ladu (@msladu)
-         *
-         * @param bool $default
-         *
-         * @return bool
-         */
-        function is_diagnostic_tracking_allowed( $default = true ) {
-            return $this->is_permission_allowed( 'diagnostic', $default );
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.5.1
-         *
-         * @param string $permission
-         * @param bool   $default
-         *
-         * @return bool
-         */
-        function is_permission_allowed( $permission, $default = false ) {
-            $tag = "is_{$permission}_tracking_allowed";
-
-            return ( true === $this->apply_filters(
-                $tag,
-                $this->_storage->get( $tag, $default )
-            ) );
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.3.2
          */
         function _update_tracking_permission_callback() {
             $this->_logger->entrance();
@@ -5832,29 +5812,10 @@
                 self::shoot_ajax_failure();
             }
 
-            $result      = array();
-            $permissions = fs_request_get( 'permissions' );
-
-            if ( ! empty( $permissions ) ) {
-                $permissions = explode( ',', $permissions );
-
-                foreach ( $permissions as $permission ) {
-                    $permission = trim( $permission );
-
-                    switch ( $permission ) {
-                        case 'extensions':
-                            $this->update_extensions_tracking_flag( $is_enabled );
-                            break;
-                        case 'diagnostic':
-                            $this->update_diagnostic_tracking_flag( $is_enabled );
-                            break;
-                        default:
-                            $permission = 'no_match';
-                    }
-
-                    $result[ $permission ] = $is_enabled;
-                }
-            }
+            $result = $this->update_tracking_permissions(
+                fs_request_get( 'permissions' ),
+                $is_enabled
+            );
 
             if ( isset( $result['no_match'] ) ) {
                 self::shoot_ajax_failure();
@@ -5866,27 +5827,31 @@
         }
 
         /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.3.2
+         * @param string $permissions
+         * @param bool   $is_enabled
          *
-         * @param bool|null $is_enabled
+         * @return array
          */
-        function update_extensions_tracking_flag( $is_enabled ) {
-            if ( is_bool( $is_enabled ) ) {
-                $this->_storage->is_extensions_tracking_allowed = $is_enabled;
-            }
-        }
+        private function update_tracking_permissions( $permissions, $is_enabled ) {
+            $result = array();
 
-        /**
-         * @author Malay Ladu (@msladu)
-         * @since 2.5.0.2
-         *
-         * @param bool|null $is_enabled
-         */
-        function update_diagnostic_tracking_flag( $is_enabled ) {
-            if ( is_bool( $is_enabled ) ) {
-                $this->_storage->is_diagnostic_tracking_allowed = $is_enabled;
+            if ( ! empty( $permissions ) ) {
+                $permissions = explode( ',', $permissions );
+
+                foreach ( $permissions as $permission ) {
+                    $permission = trim( $permission );
+
+                    $is_permission_supported = FS_Permission_Manager::instance( $this )->update_permission_tracking_flag( $permission, $is_enabled );
+
+                    if ( ! $is_permission_supported ) {
+                        $permission = 'no_match';
+                    }
+
+                    $result[ $permission ] = $is_enabled;
+                }
             }
+
+            return $result;
         }
 
         /**
@@ -9634,7 +9599,10 @@
             $include_themes = true,
             $include_blog_data = true
         ) {
-            if ( $this->is_extensions_tracking_allowed() ) {
+            // Alias.
+            $permissions = FS_Permission_Manager::instance( $this );
+
+            if ( $permissions->is_extensions_tracking_allowed() ) {
                 if ( ! defined( 'WP_FS__TRACK_PLUGINS' ) || false !== WP_FS__TRACK_PLUGINS ) {
                     /**
                      * @since 1.1.8 Also send plugin updates.
@@ -9666,7 +9634,7 @@
             if ( $include_blog_data ) {
                 $blog_data['url'] = get_site_url();
 
-                if ( $this->is_diagnostic_tracking_allowed() ) {
+                if ( $permissions->is_diagnostic_tracking_allowed() ) {
                     $blog_data = array_merge( $blog_data, array(
                         'language' => get_bloginfo( 'language' ),
                         'charset'  => get_bloginfo( 'charset' ),
@@ -11189,10 +11157,20 @@
          *
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
+         *
+         * @param bool $ignore_anonymous_state
+         *
          * @return bool
          */
-        function is_registered() {
-            return is_object( $this->_user );
+        function is_registered( $ignore_anonymous_state = false ) {
+            return (
+                is_object( $this->_user ) &&
+                (
+                    $this->is_premium() ||
+                    $ignore_anonymous_state ||
+                    ! $this->is_anonymous()
+                )
+            );
         }
 
         /**
@@ -14171,9 +14149,10 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-
-            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
+                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
+            ));
 
             $error     = false;
             $next_page = false;
@@ -16100,7 +16079,7 @@
             );
 
             // Add these diagnostic information only if user allowed to track.
-            if ( $this->is_diagnostic_tracking_allowed() ) {
+            if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed() ) {
                 $info = array_merge( $info, array(
                     'title'    => $name,
                     'language' => get_bloginfo( 'language' ),
@@ -17123,7 +17102,7 @@
             $versions['sdk_version'] = $this->version;
 
             // Collect these diagnostic information only if it's allowed.
-            if ( $this->is_diagnostic_tracking_allowed() ) {
+            if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed() ) {
                 $versions['platform_version']             = get_bloginfo( 'version' );
                 $versions['programming_language_version'] = phpversion();
             }
@@ -17226,7 +17205,7 @@
                 $site = $this->get_site_info( $site );
 
                 $diagnostic_info = array();
-                if ( $this->is_diagnostic_tracking_allowed() ) {
+                if ( FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed() ) {
                     $diagnostic_info = array(
                         'site_name' => $site['title'],
                         'language'  => $site['language'],
@@ -17395,8 +17374,8 @@
 
             $params['is_disconnected']                = $is_disconnected;
             $params['format']                         = 'json';
-            $params['is_extensions_tracking_allowed'] = $this->is_extensions_tracking_allowed();
-            $params['is_diagnostic_tracking_allowed'] = $this->is_diagnostic_tracking_allowed();
+            $params['is_extensions_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed();
+            $params['is_diagnostic_tracking_allowed'] = FS_Permission_Manager::instance( $this )->is_diagnostic_tracking_allowed();
 
             $request = array(
                 'method'  => 'POST',
@@ -17882,9 +17861,10 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-
-            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
+                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
+            ));
 
             return $this->setup_account(
                 $this->_user,
@@ -17931,9 +17911,10 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-
-            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
+                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
+            ));
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -17978,9 +17959,10 @@
                 $this->disable_opt_in_notice_and_lock_user();
             }
 
-            $this->update_extensions_tracking_flag( $is_extensions_tracking_allowed );
-
-            $this->update_diagnostic_tracking_flag( $is_diagnostic_tracking_allowed );
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
+                FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
+            ));
 
             $install_ids = array();
 
@@ -18092,9 +18074,10 @@
                  */
                 $license_key = fs_request_get( 'license_secret_key' );
 
-                $this->update_extensions_tracking_flag( fs_request_get_bool( 'is_extensions_tracking_allowed', null ) );
-
-                $this->update_diagnostic_tracking_flag( fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ) );
+                FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                    FS_Permission_Manager::PERMISSION_DIAGNOSTIC => fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
+                    FS_Permission_Manager::PERMISSION_EXTENSIONS => fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
+                ));
 
                 $this->install_with_current_user( $license_key );
             }
@@ -24386,11 +24369,11 @@
                 }
             }
 
-            if ( $this->add_ajax_action( 'stop_tracking', array( &$this, '_stop_tracking_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'toggle_user_tracking', array( &$this, '_toggle_user_tracking_callback' ) ) ) {
                 return;
             }
 
-            if ( $this->add_ajax_action( 'allow_tracking', array( &$this, '_allow_tracking_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'toggle_site_tracking', array( &$this, '_toggle_site_tracking_callback' ) ) ) {
                 return;
             }
 
@@ -24401,8 +24384,8 @@
             $link_text_id = '';
             $url          = '#';
 
-            if ( $this->is_registered() ) {
-                if ( $this->is_tracking_allowed() ) {
+            if ( $this->is_registered( true ) ) {
+                if ( $this->is_registered() && $this->is_tracking_allowed() ) {
                     $link_text_id = $this->get_text_inline( 'Opt Out', 'opt-out' );
                 } else {
                     $link_text_id = $this->get_text_inline( 'Opt In', 'opt-in' );

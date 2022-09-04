@@ -11,9 +11,10 @@
 
     /**
      * @var array $VARS
-     * @var Freemius $fs
      */
-    $fs = $VARS['fs'];
+    $opt_out_text = fs_text_x_inline( 'Opt Out', 'verb', 'opt-out' );
+    $opt_in_text  = fs_text_x_inline( 'Opt In', 'verb', 'opt-in' );
+
 ?>
 <?php if ( ! $VARS[ 'inline' ] ) : ?>
 <script type="text/javascript">
@@ -22,20 +23,24 @@
         var isUpdatingPermission = false;
 
         function updatePermissions(
+            pluginID,
             permissions,
             isEnabled,
             success,
             failure,
             complete
         ) {
-            var request = {
+            var
+                $permissionsContainer = $( '#fs_opt_out_' + pluginID + ' .fs-permissions' );
+
+            $.ajax({
                 url: ajaxurl,
                 method: 'POST',
                 data: {
-                    action          : '<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>',
-                    security        : '<?php echo $fs->get_ajax_security( 'update_tracking_permission' ) ?>',
-                    module_id       : <?php echo $fs->get_id() ?>,
-                    _wp_http_referer: '<?php echo $fs->current_page_url() ?>',
+                    action          : $permissionsContainer.attr('data-action'),
+                    security        : $permissionsContainer.attr('data-security'),
+                    module_id       : pluginID,
+                    _wp_http_referer: '<?php echo Freemius::current_page_url() ?>',
                     permissions     : permissions,
                     is_enabled      : isEnabled
                 },
@@ -49,14 +54,93 @@
                             failure();
                         }
                     }
-                }
-            };
+                },
+                complete: complete
+            });
+        }
 
-            if (complete) {
-                request.complete = complete;
+        function toggleGroupOptOut( $button, isEnabled ) {
+            $button.text( isEnabled ?
+                '<?php echo esc_js( $opt_out_text ) ?>' :
+                '<?php echo esc_js( $opt_in_text ) ?>'
+            );
+
+            $button.attr( 'data-is-enabled', isEnabled ? 'true' : 'false' );
+        }
+
+        var isUpdatingPermissionGroup = false;
+
+        function updateGroupPermissions(
+            pluginID,
+            groupID,
+            isEnabled,
+            success,
+            failure,
+            complete
+        ) {
+            if (isUpdatingPermissionGroup) {
+                return;
             }
 
-            $.ajax(request);
+            isUpdatingPermissionGroup = true;
+
+            var
+                $modal              = $( '#fs_opt_out_' + pluginID ),
+                $permissionsSection = $modal.find( '.fs-permissions-section.fs-' + groupID + '-permissions' ),
+                $optOutButton       = $permissionsSection.find( '.fs-opt-out-button' ),
+                $permissions        = $permissionsSection.find( 'ul li'),
+                permissions         = [];
+
+            $permissions.each( function() {
+                permissions.push( $( this ).attr( 'data-permission-id' ) );
+            });
+
+            $.ajax({
+                url: ajaxurl,
+                method: 'POST',
+                data: {
+                    action          : $optOutButton.attr('data-action'),
+                    security        : $optOutButton.attr('data-security'),
+                    is_enabled      : isEnabled,
+                    permissions     : permissions.join(','),
+                    module_id       : pluginID,
+                    _wp_http_referer: '<?php echo Freemius::current_page_url() ?>',
+                },
+                beforeSend: function() {
+                    $optOutButton.text( isEnabled ?
+                        '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in' ) ?>...' :
+                        '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out' ) ?>...'
+                    );
+                },
+                success: function( resultObj ) {
+                    if ( resultObj.success ) {
+                        toggleGroupOptOut( $optOutButton, isEnabled );
+
+                        // Update permissions state.
+                        $permissions.toggleClass( 'fs-disabled', ! isEnabled );
+
+                        // Update switches state, if there are any.
+                        $permissions.find( '.fs-switch' )
+                                    .toggleClass( 'fs-on', isEnabled )
+                                    .toggleClass( 'fs-off', ! isEnabled );
+
+                        if (success) {
+                            success();
+                        }
+                    } else {
+                        if (failure) {
+                            failure( resultObj );
+                        }
+                    }
+                },
+                complete: function () {
+                    if (complete) {
+                        complete();
+                    }
+
+                    isUpdatingPermissionGroup = false;
+                }
+            });
         }
 
         $( '.fs-permissions .fs-switch' ).on( 'click', function () {
@@ -88,11 +172,12 @@
                 var permissionID = $permission.attr( 'id' ).substring( 'fs_permission_'.length );
 
                 updatePermissions(
+                    $switch.parents( '.fs-modal-opt-out' ).attr( 'data-plugin-id' ),
                     permissionID,
                     $switch.hasClass('fs-on'),
                     function () {
                         $switchFeedback.addClass('success');
-                        $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $fs->get_slug() ) ) ?>' );
+                        $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved' ) ) ?>' );
                     },
                     function () {
                         // Revert switch.
