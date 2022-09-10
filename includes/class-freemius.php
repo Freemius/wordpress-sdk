@@ -5402,43 +5402,6 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.5.1
          */
-        function _toggle_user_tracking_callback() {
-            $this->_logger->entrance();
-
-            $this->check_ajax_referer( 'toggle_user_tracking' );
-
-            $is_enabled = fs_request_get_bool( 'is_enabled', true );
-
-            // Send update to FS.
-            $result = array();//$this->get_current_or_network_user_api_scope()->call( "/", 'delete', array( ) );
-
-            if ( $this->is_api_error( $result ) ) {
-                $this->_logger->api_error( $result );
-
-                return $result;
-            }
-
-//            $this->_user->is_deleted = ( ! $is_enabled );
-//            $this->_store_user();
-
-            $this->update_tracking_permissions(
-                'profile',
-                $is_enabled
-            );
-
-            if ( $is_enabled ) {
-                $this->reset_anonymous_mode( fs_is_network_admin() );
-            } else {
-                $this->skip_connection( null, fs_is_network_admin() );
-            }
-
-            self::shoot_ajax_success();
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.5.1
-         */
         function _toggle_site_tracking_callback() {
             $this->_logger->entrance();
 
@@ -5469,6 +5432,80 @@
                     $result->error->message :
                     var_export( $result, true ) )
             );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         */
+        function _toggle_permission_tracking() {
+            $this->_logger->entrance();
+
+            $this->check_ajax_referer( 'toggle_permission_tracking' );
+
+            if ( ! $this->is_registered( true ) ) {
+                // User never opted-in.
+                return false;
+            }
+
+            $is_enabled  = fs_request_get_bool( 'is_enabled' );
+            $permissions = fs_request_get( 'permissions' );
+
+            $filtered_permissions = array_intersect(
+                explode( ',', $permissions ),
+                array(
+                    FS_Permission_Manager::PERMISSION_USER,
+                    FS_Permission_Manager::PERMISSION_SITE,
+                    FS_Permission_Manager::PERMISSION_EXTENSIONS,
+                )
+            );
+
+            if ( fs_is_network_admin() ) {
+
+            } else {
+                $result = $this->api_site_call( '/permissions.json', 'put', array(
+                    'permissions' => implode( ',', $filtered_permissions ),
+                    'is_enabled'  => $is_enabled,
+                ) );
+
+                if (
+                    ! $this->is_api_result_object( $result ) ||
+                    ! isset( $result->install_id )
+                ) {
+                    $this->_logger->api_error( $result );
+
+                    self::shoot_ajax_failure(
+                        sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.', 'unexpected-api-error' ), $this->_module_type ) .
+                        ( $this->is_api_error( $result ) && isset( $result->error ) ?
+                            ' ' . $result->error->message :
+                            var_export( $result, true ) )
+                    );
+                }
+
+                if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $filtered_permissions ) ) {
+                    $this->_site->is_disconnected = ! $is_enabled;
+                    $this->_store_site();
+
+                    if ( $is_enabled ) {
+                        $this->schedule_sync_cron();
+                    }
+                }
+            }
+
+            if ( in_array( FS_Permission_Manager::PERMISSION_USER, $filtered_permissions ) ) {
+                if ( $is_enabled ) {
+                    $this->reset_anonymous_mode( fs_is_network_admin() );
+                } else {
+                    $this->skip_connection( null, fs_is_network_admin() );
+                }
+            }
+
+            $this->update_tracking_permissions(
+                $permissions,
+                $is_enabled
+            );
+
+            self::shoot_ajax_success();
         }
 
         /**
@@ -24369,13 +24406,10 @@
                 }
             }
 
-            if ( $this->add_ajax_action( 'toggle_user_tracking', array( &$this, '_toggle_user_tracking_callback' ) ) ) {
+            if ( $this->add_ajax_action( 'toggle_permission_tracking', array( &$this, '_toggle_permission_tracking' ) ) ) {
                 return;
             }
 
-            if ( $this->add_ajax_action( 'toggle_site_tracking', array( &$this, '_toggle_site_tracking_callback' ) ) ) {
-                return;
-            }
 
             if ( $this->add_ajax_action( 'update_tracking_permission', array( &$this, '_update_tracking_permission_callback' ) ) ) {
                 return;

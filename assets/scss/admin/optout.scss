@@ -1,13 +1,23 @@
 @import "permissions";
 
 .fs-modal-opt-out {
+    .fs-opt-out-button {
+        //color: inherit;
+    }
+
+    .fs-modal-footer {
+        .fs-opt-out-button {
+            line-height: 30px;
+            margin-right: 10px;
+        }
+    }
+
     .fs-permissions {
         margin-top: 0 !important;
 
-        .fs-permissions-section--header-optout {
+        .fs-permissions-section--header .fs-opt-out-button {
             float:        right;
             line-height:  1.1em;
-            color: inherit;
         }
 
         .fs-permissions-section--header .fs-switch-feedback {

@@ -66,11 +66,11 @@
                 'title'       => $fs->get_text_inline( 'Communication', 'communication' ),
                 'desc'        => '',
                 'permissions' => $permission_manager->get_opt_in_required_permissions( true ),
-                'action'      => 'toggle_user_tracking',
+                'action'      => 'toggle_permission_tracking',
                 'is_enabled'  => $fs->is_registered(),
                 'prompt'      => array(
                     sprintf( $fs->esc_html_inline( "Sharing your name and email allows us to keep you in the loop about new features and important updates, warn you about security issues before they become public knowledge, and send you special offers.",
-                        'opt-out-message_profile' ), $plugin_title ),
+                        'opt-out-message_user' ), $plugin_title ),
                     sprintf(
                         $fs->esc_html_inline( 'By clicking "Opt Out", %s will no longer be able to view your name and email.',
                             'opt-out-message-clicking-opt-out' ),
@@ -85,7 +85,7 @@
                 'title'       => $fs->get_text_inline( 'Diagnostic Info', 'diagnostic-info' ),
                 'desc'        => '',
                 'permissions' => $permission_manager->get_opt_in_diagnostic_permissions( true ),
-                'action'      => 'toggle_site_tracking',
+                'action'      => 'toggle_permission_tracking',
                 'is_enabled'  => $fs->is_tracking_allowed(),
                 'prompt'      => array(
                     sprintf(
@@ -261,13 +261,13 @@
                         '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...'
                     );
 
+                    hideError( $errorMessage );
+
                     updateGroupPermissions(
                         moduleID,
                         groupID,
                         ! isEnabled,
                         function () {
-                            hideError( $errorMessage );
-
                             if ( 'communication' === groupID ) {
                                 window.location.reload();
                             } else {
@@ -285,6 +285,8 @@
                             }
                         },
                         function ( resultObj ) {
+                            $optOutButton.text( '<?php fs_esc_js_echo_inline( 'Opt Out', 'opt-out' ) ?>' );
+
                             showError( $errorMessage, resultObj.error );
                         },
                         function () {

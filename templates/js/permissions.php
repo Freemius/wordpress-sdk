@@ -44,17 +44,18 @@
                     permissions     : permissions,
                     is_enabled      : isEnabled
                 },
-                success: function( resultObj ) {
+                success: function ( resultObj ) {
                     if ( resultObj.success ) {
                         if (success) {
                             success();
                         }
                     } else {
                         if (failure) {
-                            failure();
+                            failure( resultObj );
                         }
                     }
                 },
+                error: failure,
                 complete: complete
             });
         }
@@ -128,9 +129,24 @@
                             success();
                         }
                     } else {
+                        $optOutButton.text( isEnabled ?
+                            '<?php fs_esc_js_echo_inline( 'Opt In', 'opt-in' ) ?>' :
+                            '<?php fs_esc_js_echo_inline( 'Opt Out', 'opt-out' ) ?>'
+                        );
+
                         if (failure) {
                             failure( resultObj );
                         }
+                    }
+                },
+                error: function ( resultObj ) {
+                    $optOutButton.text( isEnabled ?
+                        '<?php fs_esc_js_echo_inline( 'Opt In', 'opt-in' ) ?>' :
+                        '<?php fs_esc_js_echo_inline( 'Opt Out', 'opt-out' ) ?>'
+                    );
+
+                    if (failure) {
+                        failure( resultObj );
                     }
                 },
                 complete: function () {

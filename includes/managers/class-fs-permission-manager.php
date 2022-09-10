@@ -31,7 +31,7 @@
          */
         private static $_instances = array();
 
-        const PERMISSION_PROFILE    = 'profile';
+        const PERMISSION_USER       = 'user';
         const PERMISSION_SITE       = 'site';
         const PERMISSION_EVENTS     = 'events';
         const PERMISSION_ESSENTIALS = 'essentials';
@@ -67,7 +67,7 @@
          */
         static function get_all_permission_ids() {
             return array(
-                self::PERMISSION_PROFILE,
+                self::PERMISSION_USER,
                 self::PERMISSION_SITE,
                 self::PERMISSION_EVENTS,
                 self::PERMISSION_ESSENTIALS,
@@ -127,7 +127,7 @@
          * @return array[]
          */
         function get_opt_in_required_permissions( $load_default_from_storage = false ) {
-            return array( $this->get_profile_permission( $load_default_from_storage ) );
+            return array( $this->get_user_permission( $load_default_from_storage ) );
         }
 
         /**
@@ -347,9 +347,9 @@
          *
          * @return array
          */
-        function get_profile_permission( $load_default_from_storage = false ) {
+        function get_user_permission( $load_default_from_storage = false ) {
             return $this->get_permission(
-                self::PERMISSION_PROFILE,
+                self::PERMISSION_USER,
                 'admin-users',
                 $this->_fs->get_text_inline( 'View Basic Profile Info', 'permissions-profile' ),
                 $this->_fs->get_text_inline( 'Your WordPress user\'s: first & last name, and email address', 'permissions-profile_desc' ),
