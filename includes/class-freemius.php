@@ -5857,6 +5857,12 @@
             $params = array();
             foreach ( $installs_map as $blog_id => $install ) {
                 if ( $install->is_tracking_allowed() ) {
+                    // Already opted-in.
+                    continue;
+                }
+
+                if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                    // Opt-out only from non-delegated installs.
                     continue;
                 }
 
