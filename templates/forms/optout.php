@@ -100,7 +100,7 @@
                 'prompt_cancel_label' => $fs->get_text_inline( 'Keep Sharing', 'keep-sharing' )
             ),
             array(
-                'id'          => 'optional',
+                'id'          => 'extensions',
                 'type'        => 'optional',
                 'title'       => $fs->get_text_inline( 'Extensions', 'extensions' ),
                 'desc'        => '',
