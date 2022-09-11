@@ -5434,11 +5434,119 @@
             );
         }
 
+
+        /**
+         * @param string[] $permissions
+         * @param bool     $is_enabled
+         *
+         * @return true|object `true` on success, API error object on failure.
+         */
+        private function update_site_permissions( array $permissions, $is_enabled ) {
+            $this->_logger->entrance();
+
+            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
+                return true;
+            }
+
+            $params = array(
+                'permissions' => implode( ',', $permissions ),
+                'is_enabled'  => $is_enabled,
+            );
+
+            $result = $this->api_site_call( '/permissions.json', 'put', $params );
+
+            if (
+                ! $this->is_api_result_object( $result ) ||
+                ! isset( $result->install_id )
+            ) {
+                $this->_logger->api_error( $result );
+
+                return $result;
+            }
+
+            if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $permissions ) ) {
+                $this->_site->is_disconnected = ! $is_enabled;
+                $this->_store_site();
+            }
+
+            return true;
+        }
+
+        /**
+         * @param string[] $permissions
+         * @param bool     $is_enabled
+         * @param bool     $has_site_deleted_connection
+         *
+         * @return true|object `true` on success, API error object on failure.
+         */
+        private function update_network_permissions(
+            array $permissions,
+            $is_enabled,
+            &$has_site_deleted_connection
+        ) {
+            $this->_logger->entrance();
+
+            $install_id_2_blog_id = array();
+            $install_by_blog_id   = $this->get_blog_install_map();
+
+            $has_site_deleted_connection = false;
+
+            foreach ( $install_by_blog_id as $blog_id => $install ) {
+                if ( $this->is_site_delegated_connection( $blog_id ) ) {
+                    // Only update permissions of non-delegated installs.
+                    $has_site_deleted_connection = true;
+                    continue;
+                }
+
+                if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
+                    // Install's permissions are already in sync.
+                    continue;
+                }
+
+                $install_id_2_blog_id[ $install->id ] = $blog_id;
+            }
+
+            if ( empty( $install_id_2_blog_id ) ) {
+                return true;
+            }
+
+            $params = array(
+                'permissions' => implode( ',', $permissions ),
+                'is_enabled'  => $is_enabled,
+                'install_ids' => implode( ',', array_keys( $install_id_2_blog_id ) ),
+            );
+
+            // Send update to FS.
+            $result = $this->get_current_or_network_user_api_scope()->call(
+                "/plugins/{$this->_module_id}/installs.json",
+                'put',
+                $params
+            );
+
+
+            if ( ! $this->is_api_result_object( $result, 'installs_metadata' ) ) {
+                $this->_logger->api_error( $result );
+
+                return $result;
+            }
+
+            if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $permissions ) ) {
+                foreach ( $result->installs_metadata as $install_metadata ) {
+                    $blog_id                  = $install_id_2_blog_id[ $install_metadata->install_id ];
+                    $install                  = $install_by_blog_id[ $blog_id ];
+                    $install->is_disconnected = ! $install_metadata->permissions->site;
+                    $this->_store_site( true, $blog_id, $install );
+                }
+            }
+
+            return true;
+        }
+
         /**
          * @author Vova Feldman (@svovaf)
          * @since  2.5.1
          */
-        function _toggle_permission_tracking() {
+        function _toggle_permission_tracking_callback() {
             $this->_logger->entrance();
 
             $this->check_ajax_referer( 'toggle_permission_tracking' );
@@ -5451,53 +5559,65 @@
             $is_enabled  = fs_request_get_bool( 'is_enabled' );
             $permissions = fs_request_get( 'permissions' );
 
-            $filtered_permissions = array_intersect(
+            $api_managed_permissions = array_intersect(
                 explode( ',', $permissions ),
-                array(
-                    FS_Permission_Manager::PERMISSION_USER,
-                    FS_Permission_Manager::PERMISSION_SITE,
-                    FS_Permission_Manager::PERMISSION_EXTENSIONS,
-                )
+                FS_Permission_Manager::get_api_managed_permission_ids()
             );
 
-            if ( fs_is_network_admin() ) {
-
-            } else {
-                $result = $this->api_site_call( '/permissions.json', 'put', array(
-                    'permissions' => implode( ',', $filtered_permissions ),
-                    'is_enabled'  => $is_enabled,
-                ) );
+            if ( ! empty( $api_managed_permissions ) ) {
+                $has_site_delegated_connection = false;
 
                 if (
-                    ! $this->is_api_result_object( $result ) ||
-                    ! isset( $result->install_id )
+                    ! $is_enabled &&
+                    ! in_array( FS_Permission_Manager::PERMISSION_EXTENSIONS, $api_managed_permissions ) &&
+                    false === FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed()
                 ) {
-                    $this->_logger->api_error( $result );
+                    /**
+                     * If we are turning off a permission and the extensions permission is off too, enrich the permissions update request to also turn off extensions tracking, as currently when opting in with extensions tracking disabled the extensions tracking is off but the API isn't aware of it.
+                     *
+                     * @todo Remove this entire `if` after implementing granular opt-in that also sends the permissions to the API when opting in.
+                     */
+                    $api_managed_permissions[] = FS_Permission_Manager::PERMISSION_EXTENSIONS;
+                }
 
+                if ( fs_is_network_admin() ) {
+                    $result = $this->update_network_permissions(
+                        $api_managed_permissions,
+                        $is_enabled,
+                        $has_site_delegated_connection
+                    );
+                } else {
+                    $result = $this->update_site_permissions(
+                        $api_managed_permissions,
+                        $is_enabled
+                    );
+                }
+
+                if (true !== $result) {
                     self::shoot_ajax_failure(
-                        sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.', 'unexpected-api-error' ), $this->_module_type ) .
+                        sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.',
+                            'unexpected-api-error' ), $this->_module_type ) .
                         ( $this->is_api_error( $result ) && isset( $result->error ) ?
                             ' ' . $result->error->message :
                             var_export( $result, true ) )
                     );
                 }
 
-                if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $filtered_permissions ) ) {
-                    $this->_site->is_disconnected = ! $is_enabled;
-                    $this->_store_site();
-
+                if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $api_managed_permissions ) ) {
                     if ( $is_enabled ) {
                         $this->schedule_sync_cron();
-                    }
+                    } else {
+                        $this->clear_sync_cron( ! $has_site_delegated_connection );
                 }
             }
 
-            if ( in_array( FS_Permission_Manager::PERMISSION_USER, $filtered_permissions ) ) {
+                if ( in_array( FS_Permission_Manager::PERMISSION_USER, $api_managed_permissions ) ) {
                 if ( $is_enabled ) {
                     $this->reset_anonymous_mode( fs_is_network_admin() );
                 } else {
                     $this->skip_connection( null, fs_is_network_admin() );
                 }
+            }
             }
 
             $this->update_tracking_permissions(
@@ -5832,35 +5952,6 @@
                     }
                 }
             }
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.3.2
-         */
-        function _update_tracking_permission_callback() {
-            $this->_logger->entrance();
-
-            $this->check_ajax_referer( 'update_tracking_permission' );
-
-            $is_enabled = fs_request_get_bool( 'is_enabled', null );
-
-            if ( ! is_bool( $is_enabled ) ) {
-                self::shoot_ajax_failure();
-            }
-
-            $result = $this->update_tracking_permissions(
-                fs_request_get( 'permissions' ),
-                $is_enabled
-            );
-
-            if ( isset( $result['no_match'] ) ) {
-                self::shoot_ajax_failure();
-            }
-
-            self::shoot_ajax_success( array(
-                'permissions' => $result,
-            ) );
         }
 
         /**
@@ -24406,7 +24497,7 @@
                 }
             }
 
-            if ( $this->add_ajax_action( 'toggle_permission_tracking', array( &$this, '_toggle_permission_tracking' ) ) ) {
+            if ( $this->add_ajax_action( 'toggle_permission_tracking', array( &$this, '_toggle_permission_tracking_callback' ) ) ) {
                 return;
             }
 

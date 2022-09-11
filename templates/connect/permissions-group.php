@@ -52,7 +52,6 @@
                 data-type="<?php echo $permission_group['type'] ?>"
                 data-group="<?php echo $permission_group[ 'id' ] ?>"
                 data-is-enabled="<?php echo $is_enabled ? 'true' : 'false' ?>"
-                <?php if ( ! empty( $permission_group[ 'action' ] ) ) : ?>data-action="<?php echo $fs->get_ajax_action( $permission_group[ 'action' ] ) ?>" data-security="<?php echo $fs->get_ajax_security( $permission_group[ 'action' ] ) ?>"<?php endif ?>
                 href="#"><?php echo esc_html( $is_enabled ? $opt_out_text : $opt_in_text ) ?></a>
             <span class="fs-permissions-section--header-title"><?php echo $permission_group[ 'title' ] ?></span>
         </div>

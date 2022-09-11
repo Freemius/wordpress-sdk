@@ -66,7 +66,6 @@
                 'title'       => $fs->get_text_inline( 'Communication', 'communication' ),
                 'desc'        => '',
                 'permissions' => $permission_manager->get_opt_in_required_permissions( true ),
-                'action'      => 'toggle_permission_tracking',
                 'is_enabled'  => $fs->is_registered(),
                 'prompt'      => array(
                     sprintf( $fs->esc_html_inline( "Sharing your name and email allows us to keep you in the loop about new features and important updates, warn you about security issues before they become public knowledge, and send you special offers.",
@@ -85,7 +84,6 @@
                 'title'       => $fs->get_text_inline( 'Diagnostic Info', 'diagnostic-info' ),
                 'desc'        => '',
                 'permissions' => $permission_manager->get_opt_in_diagnostic_permissions( true ),
-                'action'      => 'toggle_permission_tracking',
                 'is_enabled'  => $fs->is_tracking_allowed(),
                 'prompt'      => array(
                     sprintf(
@@ -139,11 +137,15 @@
         );
     }
 
+    $ajax_action = 'toggle_permission_tracking';
+
     $form_id = "fs_opt_out_{$fs->get_id()}";
 ?>
 <div id="<?php echo $form_id ?>"
      class="fs-modal fs-modal-opt-out"
      data-plugin-id="<?php echo $fs->get_id() ?>"
+     data-action="<?php echo $fs->get_ajax_action( $ajax_action ) ?>"
+     data-security="<?php echo $fs->get_ajax_security( $ajax_action ) ?>"
      style="display: none">
     <div class="fs-modal-dialog">
         <div class="fs-modal-header">
@@ -151,9 +153,7 @@
         </div>
         <div class="fs-opt-out-permissions">
             <div class="fs-modal-body">
-                <div class="fs-permissions fs-open"
-                     data-action="<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>"
-                     data-security="<?php echo $fs->get_ajax_security( 'update_tracking_permission' ) ?>">
+                <div class="fs-permissions fs-open">
                 <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
                     <?php $permission_manager->render_permissions_group( $permission_group ) ?>
                     <?php if ( $i < count( $permission_groups ) - 1 ) : ?><hr><?php endif ?>
@@ -176,7 +176,7 @@
                         </div>
                     </div>
                     <div class="fs-modal-footer">
-                        <a class="fs-opt-out-button" tabindex="2" data-action="<?php echo $fs->get_ajax_action( $permission_group[ 'action' ] ) ?>" data-security="<?php echo $fs->get_ajax_security( $permission_group[ 'action' ] ) ?>" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
+                        <a class="fs-opt-out-button" tabindex="2" href="#"><?php echo esc_html( $opt_out_text ) ?></a>
                         <button class="button button-primary" tabindex="1"><?php echo esc_html( $permission_group[ 'prompt_cancel_label' ] ) ?></button>
                     </div>
                 </div>
@@ -297,105 +297,6 @@
                     );
                 } );
 
-                $modal.on( 'click', '.fs-opt-out-permissions .fs-opt-out-button', function ( evt ) {
-                    if (isUpdatingPermissions) {
-                        return;
-                    }
-
-                    evt.preventDefault();
-
-                    var
-                        $optOutButton = $( this ),
-                        groupID = $optOutButton.attr('data-group'),
-                        isEnabled = ( 'true' === $optOutButton.attr( 'data-is-enabled' ) );
-
-                    if ( 'required' === $optOutButton.attr( 'data-type' ) ) {
-                        if ( isEnabled ) {
-                            // Move to disclaimer window.
-
-                            $modal.find('.fs-opt-out-permissions')
-                                  .hide();
-
-                            $modal.find('.fs-' + groupID + '-opt-out')
-                                  .show();
-                        } else {
-                            // Opt-in.
-                            updateGroupPermissions(
-                                moduleID,
-                                groupID,
-                                ! isEnabled,
-                                ( 'communication' !== groupID ) ?
-                                    null :
-                                    function () {
-                                        window.location.reload();
-                                    }
-                            );
-                        }
-                    } else {
-                        isUpdatingPermissions = true;
-
-                        // Remove previously added feedback element.
-                        removeFeedbackIndicators();
-
-                        var $switches = $optOutButton.parents( '.fs-permissions-section' )
-                                                     .find( '.fs-permission .fs-switch' );
-
-                        var switchStates = [];
-                        for (var i = 0; i < $switches.length; i++) {
-                            switchStates.push($($switches[i]).hasClass(
-                                isEnabled ? 'fs-on' : 'fs-off'
-                            ));
-                        }
-
-                        $switches
-                            .removeClass( isEnabled ? 'fs-on' : 'fs-off' )
-                            .addClass( isEnabled ? 'fs-off' : 'fs-on' );
-
-                        $switches.parents( '.fs-permission' )
-                                 .toggleClass( 'fs-disabled', isEnabled );
-
-                        var $switchFeedback = $( '<span class="fs-switch-feedback"><i class="fs-ajax-spinner"></i></span>' );
-
-                        $optOutButton.after( $switchFeedback )
-
-                        $optOutButton.text( isEnabled ?
-                            '<?php fs_esc_js_echo_inline( 'Opting out', 'opting-out', $slug ) ?>...' :
-                            '<?php fs_esc_js_echo_inline( 'Opting in', 'opting-in', $slug ) ?>...'
-                        );
-
-                        updatePermissions(
-                            moduleID,
-                            '<?php foreach ($optional_permissions as $i => $optional_permission) {
-                                    if (0 < $i)
-                                        echo ',';
-
-                                    echo $optional_permission['id'];
-                                } ?>',
-                            ! isEnabled,
-                            function () {
-                                $switchFeedback.addClass( 'success' );
-                                $switchFeedback.html( '<i class="dashicons dashicons-yes"></i> <?php echo esc_js( fs_text_inline( 'Saved', 'saved', $fs->get_slug() ) ) ?>' );
-
-                                toggleGroupOptOut( $optOutButton, ! isEnabled );
-                            },
-                            function () {
-                                // Revert switches to their previous state.
-                                for (var i = 0; i < switchStates.length; i++) {
-                                    if (switchStates[i]) {
-                                        $($switches[i]).addClass( isEnabled ? 'fs-on' : 'fs-off' )
-                                                       .removeClass( 'fs-disabled' )
-                                                       .removeClass( isEnabled ? 'fs-off' : 'fs-on' );
-                                    }
-                                }
-
-                                toggleGroupOptOut( $optOutButton, isEnabled );
-                            },
-                            function () {
-                                isUpdatingPermissions = false;
-                            }
-                        )
-                    }
-                });
 
 				// If the user has clicked outside the window, close the modal.
 				$modal.on( 'click', '.fs-close, .button-close', function() {

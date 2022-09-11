@@ -58,7 +58,7 @@
          * @param Freemius $fs
          */
         protected function __construct( Freemius $fs ) {
-            $this->_fs = $fs;
+            $this->_fs      = $fs;
             $this->_storage = FS_Storage::instance( $fs->get_module_type(), $fs->get_slug() );
         }
 
@@ -74,6 +74,17 @@
                 self::PERMISSION_DIAGNOSTIC,
                 self::PERMISSION_EXTENSIONS,
                 self::PERMISSION_NEWSLETTER,
+            );
+        }
+
+        /**
+         * @return string[]
+         */
+        static function get_api_managed_permission_ids() {
+            return array(
+                self::PERMISSION_USER,
+                self::PERMISSION_SITE,
+                self::PERMISSION_EXTENSIONS,
             );
         }
 
@@ -422,9 +433,6 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.5.1
-         *
          * @param string $permission
          * @param bool   $default
          *
@@ -441,6 +449,60 @@
                     $tag,
                     $this->_storage->get( $tag, $default )
                 ) );
+        }
+
+        /**
+         * @param string $permission
+         * @param bool   $is_allowed
+         *
+         * @return bool
+         */
+        function is_permission( $permission, $is_allowed ) {
+            if ( ! self::is_supported_permission( $permission ) ) {
+                return false;
+            }
+
+            $tag = "is_{$permission}_tracking_allowed";
+
+            return ( $is_allowed === $this->_fs->apply_filters(
+                    $tag,
+                    $this->_storage->get( $tag, $this->get_permission_default( $permission ) )
+                ) );
+        }
+
+        /**
+         * @todo THIS NEEDS TO BE ENRICHED FOR SPECIFIC SITES
+         *
+         * @param string[] $permission
+         * @param bool     $is_allowed
+         *
+         * @return bool `true` if all given permissions are in sync with `$is_allowed`.
+         */
+        function are_permissions( $permissions, $is_allowed ) {
+            foreach ( $permissions as $permission ) {
+                if ( ! $this->is_permission( $permission, $is_allowed )) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * @param string $permission
+         *
+         * @return bool
+         */
+        function get_permission_default( $permission ) {
+            if (
+                $this->_fs->is_premium() &&
+                self::PERMISSION_EXTENSIONS === $permission
+            ) {
+                return false;
+            }
+
+            // All permissions except for the extensions in paid version are on by default when the user opts in to usage tracking.
+            return true;
         }
 
         /**
