@@ -5399,40 +5399,6 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.5.1
-         */
-        function _toggle_site_tracking_callback() {
-            $this->_logger->entrance();
-
-            $this->check_ajax_referer( 'toggle_site_tracking' );
-
-            $is_enabled = fs_request_get_bool( 'is_enabled' );
-
-            if ( $is_enabled ) {
-                $result = $this->allow_tracking( fs_is_network_admin() );
-            } else {
-                $result = $this->stop_tracking( fs_is_network_admin() );
-            }
-
-            $this->update_tracking_permissions(
-                fs_request_get( 'permissions' ),
-                $is_enabled
-            );
-
-            if ( true === $result ) {
-                self::shoot_ajax_success();
-            }
-
-            $this->_logger->api_error( $result );
-
-            self::shoot_ajax_failure(
-                $this->get_api_error_message( $result )
-            );
-        }
-
-
-        /**
          * @param string[] $permissions
          * @param bool     $is_enabled
          *
@@ -15801,7 +15767,7 @@
         }
 
         /**
-         * Check if delegated the connection. When running within the the network admin,
+         * Check if delegated the connection. When running within the network admin,
          * and haven't specified the blog ID, checks if network level delegated. If running
          * within a site admin or specified a blog ID, check if delegated the connection for
          * the current context site.
@@ -17409,7 +17375,7 @@
          *                                          In this case, the user and site info will be sent to the server but no
          *                                          data will be saved to the WP installation's database.
          * @param number|bool $trial_plan_id
-         * @param bool        $is_disconnected      Whether or not to opt in without tracking.
+         * @param bool        $is_disconnected      Whether to opt in without tracking.
          * @param null|bool   $is_marketing_allowed
          * @param array       $sites                If network-level opt-in, an array of containing details of sites.
          * @param bool        $redirect
@@ -24516,11 +24482,6 @@
             }
 
             if ( $this->add_ajax_action( 'toggle_permission_tracking', array( &$this, '_toggle_permission_tracking_callback' ) ) ) {
-                return;
-            }
-
-
-            if ( $this->add_ajax_action( 'update_tracking_permission', array( &$this, '_update_tracking_permission_callback' ) ) ) {
                 return;
             }
 
