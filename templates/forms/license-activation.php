@@ -30,17 +30,10 @@
 	if ( $fs->is_registered() ) {
 		$activate_button_text = $header_title;
 	} else {
-		$freemius_site_url = $fs->has_paid_plan() ?
-			'https://freemius.com/' :
-			// Insights platform information.
-			$fs->get_usage_tracking_terms_url();
-
-		$freemius_link = '<a href="' . $freemius_site_url . '" target="_blank" rel="noopener" tabindex="0">freemius.com</a>';
-
 		$message_below_input_field = sprintf(
-			fs_text_inline( 'The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
+			fs_text_inline( 'The %1$s will be periodically sending essential license data to %2$s to check for security and feature updates, and verify the validity of your license.', 'license-sync-disclaimer', $slug ),
 			$fs->get_module_label( true ),
-			$freemius_link
+			"<b>{$fs->get_plugin_title()}</b>"
 		);
 
 		$activate_button_text = fs_text_inline( 'Agree & Activate License', 'agree-activate-license', $slug );
