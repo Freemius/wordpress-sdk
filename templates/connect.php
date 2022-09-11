@@ -653,12 +653,12 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-            var $extensionsPermission = $('#fs-permission-extensions .fs-switch'),
+            var $extensionsPermission = $('#fs_permission_extensions .fs-switch'),
                 isExtensionsTrackingAllowed = ($extensionsPermission.length > 0) ?
                     $extensionsPermission.hasClass('fs-on') :
                     null;
 
-            var $diagnosticPermission = $('#fs-permission-diagnostic .fs-switch'),
+            var $diagnosticPermission = $('#fs_permission_diagnostic .fs-switch'),
                 isDiagnosticTrackingAllowed = ($diagnosticPermission.length > 0) ?
                     $diagnosticPermission.hasClass('fs-on') :
                     null;
