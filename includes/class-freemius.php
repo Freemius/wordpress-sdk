@@ -5515,11 +5515,10 @@
 
             // Send update to FS.
             $result = $this->get_current_or_network_user_api_scope()->call(
-                "/plugins/{$this->_module_id}/installs.json",
+                "/plugins/{$this->_module_id}/installs/permissions.json",
                 'put',
                 $params
             );
-
 
             if ( ! $this->is_api_result_object( $result, 'installs_metadata' ) ) {
                 $this->_logger->api_error( $result );
