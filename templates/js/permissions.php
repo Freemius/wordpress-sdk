@@ -211,6 +211,7 @@
                             $groupPermissions = $permissionsGroup.find('ul li');
 
                         var allGroupPermissionsUseSameValue = false;
+
                         if (
                             isEnabled &&
                             0 === $groupPermissions.filter( '.fs-disabled' ).length )
@@ -232,6 +233,8 @@
                         $switch
                             .toggleClass( 'fs-on' )
                             .toggleClass( 'fs-off' );
+
+                        $switchFeedback.remove();
                     },
                     function () {
                         isUpdatingPermission = false;
@@ -254,7 +257,10 @@
                     $modal            = $optOutButton.closest( '.fs-modal-opt-out' ),
                     pluginID          = $modal.attr( 'data-plugin-id' ),
                     $optOutDisclaimer = $modal.find( '.fs-' + groupID + '-opt-out' ),
-                    isConfirmRequired = ( 0 < $optOutDisclaimer.length );
+                    isConfirmRequired = ( 0 < $optOutDisclaimer.length ),
+                    $errorMessage     = $modal.find( '.fs-opt-out-permissions .opt-out-error-message' );
+
+                $errorMessage.hide();
 
                 if ( isConfirmRequired ) {
                     if ( isEnabled ) {
@@ -273,7 +279,11 @@
                                 null :
                                 function () {
                                     window.location.reload();
-                                }
+                                },
+                            function ( resultObj ) {
+                                $errorMessage.find( ' > p' ).html( resultObj.error );
+                                $errorMessage.show();
+                            }
                         );
                     }
                 } else {

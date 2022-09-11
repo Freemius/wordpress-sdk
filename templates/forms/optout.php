@@ -153,6 +153,7 @@
         </div>
         <div class="fs-opt-out-permissions">
             <div class="fs-modal-body">
+                <div class="notice notice-error inline opt-out-error-message"><p></p></div>
                 <div class="fs-permissions fs-open">
                 <?php foreach ( $permission_groups as $i => $permission_group ) : ?>
                     <?php $permission_manager->render_permissions_group( $permission_group ) ?>

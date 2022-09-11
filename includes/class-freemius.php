@@ -5427,10 +5427,7 @@
             $this->_logger->api_error( $result );
 
             self::shoot_ajax_failure(
-                sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.', 'unexpected-api-error' ), $this->_module_type ) .
-                ( $this->is_api_error( $result ) && isset( $result->error ) ?
-                    $result->error->message :
-                    var_export( $result, true ) )
+                $this->get_api_error_message( $result )
             );
         }
 
@@ -5543,6 +5540,29 @@
         }
 
         /**
+         * @param mixed $result
+         *
+         * @return string
+         */
+        private function get_api_error_message( $result ) {
+            $error_message = sprintf( $this->get_text_inline( 'There was an unexpected API error while processing your request. Please try again in a few minutes and if it still doesn\'t work, contact the %s\'s author with the following:',
+                    'unexpected-api-error' ), $this->_module_type ) . ' ';
+
+            if (
+                $this->is_api_error( $result ) &&
+                isset( $result->error )
+            ) {
+                $code = empty( $result->error->code ) ? '' : " Code: {$result->error->code}";
+
+                $error_message .= "<b>{$result->error->message}{$code}</b>";
+            } else {
+                $error_message .= var_export( $result, true );
+            }
+
+            return $error_message;
+        }
+
+        /**
          * @author Vova Feldman (@svovaf)
          * @since  2.5.1
          */
@@ -5594,13 +5614,7 @@
                 }
 
                 if (true !== $result) {
-                    self::shoot_ajax_failure(
-                        sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.',
-                            'unexpected-api-error' ), $this->_module_type ) .
-                        ( $this->is_api_error( $result ) && isset( $result->error ) ?
-                            ' ' . $result->error->message :
-                            var_export( $result, true ) )
-                    );
+                    self::shoot_ajax_failure( $this->get_api_error_message( $result ) );
                 }
 
                 if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $api_managed_permissions ) ) {
@@ -22074,8 +22088,7 @@
             if ( ! $this->is_api_result_entity( $plan ) ) {
                 // Some API error while trying to start the trial.
                 $this->_admin_notices->add(
-                    sprintf( $this->get_text_inline( 'Unexpected API error. Please contact the %s\'s author with the following error.', 'unexpected-api-error' ), $this->_module_type )
-                    . ' ' . var_export( $plan, true ),
+                    $this->get_api_error_message( $plan ),
                     $oops_text,
                     'error'
                 );
