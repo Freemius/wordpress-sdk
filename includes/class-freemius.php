@@ -7902,7 +7902,7 @@
          *
          * @return string
          */
-        function current_page_url() {
+        static function current_page_url() {
             $url = 'http';
 
             if ( isset( $_SERVER["HTTPS"] ) ) {
