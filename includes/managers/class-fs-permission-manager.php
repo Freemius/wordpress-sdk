@@ -124,7 +124,7 @@
             $is_optional = false
         ) {
             $permissions = array_merge(
-                $this->get_opt_in_required_permissions( $load_default_from_storage, $is_optional ),
+                $this->get_opt_in_required_permissions( $load_default_from_storage ),
                 $this->get_opt_in_optional_permissions( $load_default_from_storage, $is_optional  ),
                 $extra_permissions
             );
@@ -547,7 +547,7 @@
         }
 
         /**
-         * @param array $permission
+         * @param array $permissions_group
          */
         function render_permissions_group( array $permissions_group ) {
             $permissions_group[ 'fs' ] = $this->_fs;
@@ -555,10 +555,16 @@
             fs_require_template( 'connect/permissions-group.php', $permissions_group );
         }
 
-        function require_permissions_js( $interactive = false, $inline = true ) {
+        /**
+         * @param bool $is_interactive
+         * @param bool $is_inline
+         *
+         * @return void
+         */
+        function require_permissions_js( $is_interactive = false, $is_inline = true ) {
             $params = array(
-                'inline'      => $inline,
-                'interactive' => $interactive,
+                'inline'      => $is_inline,
+                'interactive' => $is_interactive,
             );
 
             fs_require_once_template( 'js/permissions.php', $params );
