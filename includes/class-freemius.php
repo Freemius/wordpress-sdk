@@ -6722,7 +6722,25 @@
             if ( ! isset( $this->_is_anonymous ) ) {
                 if ( $this->is_network_anonymous() ) {
                     $this->_is_anonymous = true;
-                } else if ( ! fs_is_network_admin() ) {
+                } else if ( fs_is_network_admin() ) {
+                    /**
+                     * When not-network-anonymous, yet, running in the network admin, consider as anonymous only when ALL non-delegated sites are set to anonymous.
+                     */
+                    $non_delegated_sites = $this->get_blog_ids( false );
+
+                    foreach ( $non_delegated_sites as $blog_id ) {
+                        $is_anonymous = $this->_storage->get( 'is_anonymous', false, $blog_id );
+
+                        if ( empty( $is_anonymous ) || false === $is_anonymous[ 'is' ] ) {
+                            $this->_is_anonymous = false;
+                            break;
+                        }
+                    }
+
+                    if ( false !== $this->_is_anonymous ) {
+                        $this->_is_anonymous = true;
+                    }
+                } else {
                     if ( ! isset( $this->_storage->is_anonymous ) ) {
                         // Not skipped.
                         $this->_is_anonymous = false;
@@ -15968,6 +15986,32 @@
             }
 
             return $install_map;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @param bool|null $is_delegated When `true`, returns only connection delegated blog IDs. When `false`, only non-delegated blog IDs.
+         *
+         * @return array
+         */
+        private function get_blog_ids( $is_delegated = null ) {
+            $blog_ids = array();
+
+            $sites = self::get_sites();
+            foreach ( $sites as $site ) {
+                $blog_id = self::get_site_blog_id( $site );
+
+                if (
+                    is_null( $is_delegated ) ||
+                    $is_delegated === $this->is_site_delegated_connection( $blog_id )
+                ) {
+                    $blog_ids[] = $blog_id;
+                }
+            }
+
+            return $blog_ids;
         }
 
         /**
