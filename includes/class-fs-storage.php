@@ -314,19 +314,6 @@
                     // Migrate option to the network storage.
                     $this->_network_storage->store( $option, $this->_storage->{$option}, false );
 
-                    /**
-                     * Remove the option from site level storage.
-                     *
-                     * IMPORTANT:
-                     *      The line below is intentionally commented since we want to preserve the option
-                     *      on the site storage level for "downgrade compatibility". Basically, if the user
-                     *      will downgrade to an older version of the plugin with the prev storage structure,
-                     *      it will continue working.
-                     *
-                     * @todo After a few releases we can remove this.
-                     */
-//                    $this->_storage->remove($option, false);
-
                     $updated = true;
                 }
             }
@@ -427,7 +414,7 @@
          * @param string $key
          * @param int    $option_level Since 2.5.1
          *
-         * @return bool|mixed
+         * @return bool
          */
         private function is_multisite_option( $key, $option_level = self::OPTION_LEVEL_UNDEFINED ) {
             if ( ! isset( self::$_NETWORK_OPTIONS_MAP ) ) {
