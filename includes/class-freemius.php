@@ -5449,6 +5449,15 @@
         ) {
             $this->_logger->entrance();
 
+            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
+                /**
+                 * Network opted-in installs' permissions are already in sync.
+                 *
+                 * Note: There's no need to iterate through all the installs individually since network opt-in permissions are managed for ALL non-delegated installs through a single option (per permission) on the network-level storage.
+                 */
+                return true;
+            }
+
             $install_id_2_blog_id = array();
             $install_by_blog_id   = $this->get_blog_install_map();
 
@@ -5458,11 +5467,6 @@
                 if ( $this->is_site_delegated_connection( $blog_id ) ) {
                     // Only update permissions of non-delegated installs.
                     $has_site_deleted_connection = true;
-                    continue;
-                }
-
-                if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
-                    // Install's permissions are already in sync.
                     continue;
                 }
 
@@ -15707,7 +15711,7 @@
 
             if ( is_null( $sites ) ) {
                 // All sites delegation.
-                $this->_storage->store( 'is_delegated_connection', true, true, true );
+                $this->_storage->store( 'is_delegated_connection', true, true );
             } else {
                 // Specified sites delegation.
                 foreach ( $sites as $site ) {
@@ -15727,7 +15731,7 @@
          * @param int $blog_id
          */
         private function delegate_site_connection( $blog_id ) {
-            $this->_storage->store( 'is_delegated_connection', true, $blog_id, true );
+            $this->_storage->store( 'is_delegated_connection', true, $blog_id );
         }
 
         /**

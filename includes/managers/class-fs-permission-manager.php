@@ -443,12 +443,7 @@
                 return $default;
             }
 
-            $tag = "is_{$permission}_tracking_allowed";
-
-            return ( true === $this->_fs->apply_filters(
-                    $tag,
-                    $this->_storage->get( $tag, $default )
-                ) );
+            return $this->is_permission( $permission, true );
         }
 
         /**
@@ -466,14 +461,17 @@
 
             return ( $is_allowed === $this->_fs->apply_filters(
                     $tag,
-                    $this->_storage->get( $tag, $this->get_permission_default( $permission ) )
+                    $this->_storage->get(
+                        $tag,
+                        $this->get_permission_default( $permission ),
+                        null,
+                        FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
+                    )
                 ) );
         }
 
         /**
-         * @todo THIS NEEDS TO BE ENRICHED FOR SPECIFIC SITES
-         *
-         * @param string[] $permission
+         * @param string[] $permissions
          * @param bool     $is_allowed
          *
          * @return bool `true` if all given permissions are in sync with `$is_allowed`.
@@ -513,7 +511,12 @@
          */
         function update_permission_tracking_flag( $permission, $is_enabled ) {
             if ( is_bool( $is_enabled ) && self::is_supported_permission( $permission ) ) {
-                $this->_storage->store( "is_{$permission}_tracking_allowed", $is_enabled );
+                $this->_storage->store(
+                    "is_{$permission}_tracking_allowed",
+                    $is_enabled,
+                    null,
+                    FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
+                );
 
                 return true;
             }
