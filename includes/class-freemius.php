@@ -5595,11 +5595,7 @@
             }
 
                 if ( in_array( FS_Permission_Manager::PERMISSION_USER, $api_managed_permissions ) ) {
-                if ( $is_enabled ) {
-                    $this->reset_anonymous_mode( fs_is_network_admin() );
-                } else {
-                    $this->skip_connection( null, fs_is_network_admin() );
-                }
+                    $this->toggle_user_permission( $is_enabled );
             }
             }
 
@@ -5609,6 +5605,46 @@
             );
 
             self::shoot_ajax_success();
+        }
+
+        /**
+         * @param bool $is_enabled
+         */
+        private function toggle_user_permission( $is_enabled ) {
+            $is_network_wide_action = false;
+            $sites                  = null;
+
+            if ( $is_enabled ) {
+                if ( fs_is_network_admin() ) {
+                    $is_network_wide_action = $this->is_network_anonymous();
+
+                    if ( ! $is_network_wide_action ) {
+                        // Get non-delegated sites.
+                        $sites = $this->get_blog_ids(false);
+                    }
+                }
+
+                $this->reset_anonymous_mode(
+                    $is_network_wide_action ?
+                        // Network reset.
+                        true :
+                        ( fs_is_network_admin() ?
+                            // Only reset non-delegated sites.
+                            $sites :
+                            0 )
+                );
+            } else {
+                if ( fs_is_network_admin() ) {
+                    $is_network_wide_action = $this->is_network_connected();
+
+                    if ( ! $is_network_wide_action ) {
+                        // Get non-delegated sites.
+                        $sites = $this->get_blog_ids( false );
+                    }
+                }
+
+                $this->skip_connection( $sites, $is_network_wide_action );
+            }
         }
 
         /**
