@@ -226,7 +226,8 @@
                     <td>
                         <nobr><?php fs_esc_html_echo_inline( 'Public Key', 'public-key', $slug ) ?>:</nobr>
                     </td>
-                    <td colspan="2"><code><?php echo htmlspecialchars( $install->public_key ) ?></code></td>
+                    <td><code><?php echo htmlspecialchars( $install->public_key ) ?></code></td>
+                    <td></td>
                 </tr>
                 <?php $row_index ++ ?>
                 <!--/ Public Key -->
