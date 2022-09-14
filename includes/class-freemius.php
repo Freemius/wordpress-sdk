@@ -5407,10 +5407,6 @@
         private function update_site_permissions( array $permissions, $is_enabled ) {
             $this->_logger->entrance();
 
-            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
-                return true;
-            }
-
             $params = array(
                 'permissions' => implode( ',', $permissions ),
                 'is_enabled'  => $is_enabled,
@@ -5448,15 +5444,6 @@
             &$has_site_deleted_connection
         ) {
             $this->_logger->entrance();
-
-            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
-                /**
-                 * Network opted-in installs' permissions are already in sync.
-                 *
-                 * Note: There's no need to iterate through all the installs individually since network opt-in permissions are managed for ALL non-delegated installs through a single option (per permission) on the network-level storage.
-                 */
-                return true;
-            }
 
             $install_id_2_blog_id = array();
             $install_by_blog_id   = $this->get_blog_install_map();
@@ -5541,17 +5528,37 @@
             $this->check_ajax_referer( 'toggle_permission_tracking' );
 
             if ( ! $this->is_registered( true ) ) {
-                // User never opted-in.
-                return false;
+                self::shoot_ajax_failure( 'User never opted-in.' );
             }
 
             $is_enabled  = fs_request_get_bool( 'is_enabled' );
             $permissions = fs_request_get( 'permissions' );
 
+            if ( ! is_string( $permissions ) ) {
+                self::shoot_ajax_failure( 'The permissions param must be a string.' );
+            }
+
+            $permissions = explode( ',', $permissions );
+
+            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
+                /**
+                 * Note:
+                 *  When running on the network admin, there's no need to iterate through all the installs individually since network opt-in permissions are managed for ALL non-delegated installs through a single option (per permission) on the network-level storage.
+                 */
+                self::shoot_ajax_success();
+            }
+
             $api_managed_permissions = array_intersect(
-                explode( ',', $permissions ),
+                $permissions,
                 FS_Permission_Manager::get_api_managed_permission_ids()
             );
+
+            if (
+                in_array( FS_Permission_Manager::PERMISSION_ESSENTIALS, $permissions ) &&
+                ! in_array( FS_Permission_Manager::PERMISSION_SITE, $permissions )
+            ) {
+                $api_managed_permissions[] = FS_Permission_Manager::PERMISSION_SITE;
+            }
 
             if ( ! empty( $api_managed_permissions ) ) {
                 $has_site_delegated_connection = false;
@@ -5980,7 +5987,7 @@
         }
 
         /**
-         * @param string $permissions
+         * @param string[] $permissions
          * @param bool   $is_enabled
          *
          * @return array
@@ -5989,8 +5996,6 @@
             $result = array();
 
             if ( ! empty( $permissions ) ) {
-                $permissions = explode( ',', $permissions );
-
                 foreach ( $permissions as $permission ) {
                     $permission = trim( $permission );
 
