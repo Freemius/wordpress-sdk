@@ -945,75 +945,7 @@
                 return;
             }
 
-            if ( version_compare( $sdk_prev_version, '2.1.0', '<' ) &&
-                 version_compare( $sdk_version, '2.1.0', '>=' )
-            ) {
-                $this->_storage->handle_gdpr_admin_notice = true;
-            }
-
-            if ( version_compare( $sdk_prev_version, '2.0.0', '<' ) &&
-                 version_compare( $sdk_version, '2.0.0', '>=' )
-            ) {
-                $this->migrate_to_subscriptions_collection();
-
-                $this->consolidate_licenses();
-
-                // Clear trial_plan since it's now loaded from the plans collection when needed.
-                $this->_storage->remove( 'trial_plan', true, false );
-            }
-
-            if ( version_compare( $sdk_prev_version, '1.2.3', '<' ) &&
-                 version_compare( $sdk_version, '1.2.3', '>=' )
-            ) {
-                /**
-                 * Starting from version 1.2.3, paths are stored as relative instead of absolute and some of them can be
-                 * invalid.
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 */
-                $this->remove_invalid_paths();
-            }
-
-            if ( version_compare( $sdk_prev_version, '1.1.5', '<' ) &&
-                 version_compare( $sdk_version, '1.1.5', '>=' )
-            ) {
-                // On version 1.1.5 merged connectivity and is_on data.
-                if ( isset( $this->_storage->connectivity_test ) ) {
-                    if ( ! isset( $this->_storage->is_on ) ) {
-                        unset( $this->_storage->connectivity_test );
-                    } else {
-                        $connectivity_data              = $this->_storage->connectivity_test;
-                        $connectivity_data['is_active'] = $this->_storage->is_on['is_active'];
-                        $connectivity_data['timestamp'] = $this->_storage->is_on['timestamp'];
-
-                        // Override.
-                        $this->_storage->connectivity_test = $connectivity_data;
-
-                        // Remove previous structure.
-                        unset( $this->_storage->is_on );
-                    }
-
-                }
-            }
-
-            if (
-                version_compare( $sdk_prev_version, '2.2.1', '<' ) &&
-                version_compare( $sdk_version, '2.2.1', '>=' )
-            ) {
-                /**
-                 * Clear the file cache without storing the previous path since it could be a wrong path. For example,
-                 * in the versions of the SDK lower than 2.2.1, it's possible for the path of an add-on to be the same
-                 * as the parent plugin's when the add-on was auto-installed since the relevant method names were not
-                 * skipped in the logic that determines the right path in the `get_caller_main_file_and_type` method
-                 * (e.g. `try_activate_plugin`). Since it was an auto-installation, the caller was the parent plugin
-                 * and so its path was used. In case the stored path is wrong, clearing the cache will resolve issues
-                 * related to data mix-up between plugins (e.g. titles and versions of an add-on and its parent plugin).
-                 *
-                 * @author Leo Fajardo (@leorw)
-                 * @since 2.2.1
-                 */
-                $this->clear_module_main_file_cache( false );
-            }
+            
         }
 
         /**
@@ -1061,102 +993,6 @@
                     true,
                     $blog_id
                 );
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.0.0
-         */
-        private function migrate_to_subscriptions_collection() {
-            if ( ! is_object( $this->_site ) ) {
-                return;
-            }
-
-            if ( isset( $this->_storage->subscription ) && is_object( $this->_storage->subscription ) ) {
-                $this->_storage->subscriptions = array( fs_get_entity( $this->_storage->subscription, FS_Subscription::get_class_name() ) );
-            }
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.0.0
-         */
-        private function consolidate_licenses() {
-            $plugin_licenses = self::get_account_option( 'licenses', WP_FS__MODULE_TYPE_PLUGIN );
-            if ( isset( $plugin_licenses[ $this->_slug ] ) ) {
-                $plugin_licenses = $plugin_licenses[ $this->_slug ];
-            } else {
-                $plugin_licenses = array();
-            }
-
-            $theme_licenses = self::get_account_option( 'licenses', WP_FS__MODULE_TYPE_THEME );
-            if ( isset( $theme_licenses[ $this->_slug ] ) ) {
-                $theme_licenses = $theme_licenses[ $this->_slug ];
-            } else {
-                $theme_licenses = array();
-            }
-
-            if ( empty( $plugin_licenses ) && empty( $theme_licenses ) ) {
-                return;
-            }
-
-            $all_licenses            = array();
-            $user_id_license_ids_map = array();
-
-            foreach ( $plugin_licenses as $user_id => $user_licenses ) {
-                if ( is_array( $user_licenses ) ) {
-                    if ( ! isset( $user_license_ids[ $user_id ] ) ) {
-                        $user_id_license_ids_map[ $user_id ] = array();
-                    }
-
-                    foreach ( $user_licenses as $user_license ) {
-                        $all_licenses[]                        = $user_license;
-                        $user_id_license_ids_map[ $user_id ][] = $user_license->id;
-                    }
-                }
-            }
-
-            foreach ( $theme_licenses as $user_id => $user_licenses ) {
-                if ( is_array( $user_licenses ) ) {
-                    if ( ! isset( $user_license_ids[ $user_id ] ) ) {
-                        $user_id_license_ids_map[ $user_id ] = array();
-                    }
-
-                    foreach ( $user_licenses as $user_license ) {
-                        $all_licenses[]                        = $user_license;
-                        $user_id_license_ids_map[ $user_id ][] = $user_license->id;
-                    }
-                }
-            }
-
-            self::store_user_id_license_ids_map(
-                $user_id_license_ids_map,
-                $this->_module_id
-            );
-
-            $this->_store_licenses( true, $this->_module_id, $all_licenses );
-        }
-
-        /**
-         * Remove invalid paths.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.3
-         */
-        private function remove_invalid_paths() {
-            // Remove invalid path that is still associated with the current slug if there's any.
-            $file_slug_map = self::$_accounts->get_option( 'file_slug_map', array() );
-            foreach ( $file_slug_map as $plugin_basename => $slug ) {
-                if ( $slug === $this->_slug &&
-                     $plugin_basename !== $this->_plugin_basename &&
-                     ! file_exists( $this->get_absolute_path( $plugin_basename ) )
-                ) {
-                    unset( $file_slug_map[ $plugin_basename ] );
-                    self::$_accounts->set_option( 'file_slug_map', $file_slug_map, true );
-
-                    break;
-                }
             }
         }
 
@@ -5621,12 +5457,12 @@
                         $this->schedule_sync_cron();
                     } else {
                         $this->clear_sync_cron( ! $has_site_delegated_connection );
+                    }
                 }
-            }
 
                 if ( in_array( FS_Permission_Manager::PERMISSION_USER, $api_managed_permissions ) ) {
                     $this->toggle_user_permission( $is_enabled );
-            }
+                }
             }
 
             $this->update_tracking_permissions(
@@ -5702,7 +5538,7 @@
             $permission_names = array();
             foreach ( $permissions as $permission ) {
                 $permission_names[] = $permission['id'];
-        }
+            }
 
             return $this->toggle_permission_tracking(
                 $permission_names,
@@ -5748,7 +5584,7 @@
 
         /**
          * @param string[] $permissions
-         * @param bool   $is_enabled
+         * @param bool     $is_enabled
          *
          * @return array
          */
@@ -6793,13 +6629,13 @@
                     is_numeric( $network_install_blog_id ) &&
                     $except_blog_id != $network_install_blog_id &&
                     self::is_site_active( $network_install_blog_id )
-            ) {
-                // Try to run cron from the main network blog.
+                ) {
+                    // Try to run cron from the main network blog.
                     $install = $this->get_install_by_blog_id( $network_install_blog_id );
 
-                if ( is_object( $install ) &&
+                    if ( is_object( $install ) &&
                          ( $this->is_premium() || $this->is_tracking_allowed( $install, $network_install_blog_id ) )
-                ) {
+                    ) {
                         return $network_install_blog_id;
                     }
                 }
@@ -9674,7 +9510,7 @@
                         continue;
                     }
 
-                    if ( 
+                    if (
                         ! $this->is_premium() &&
                         ! $this->is_tracking_allowed( $install, $blog_id )
                     ) {
