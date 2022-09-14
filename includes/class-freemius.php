@@ -5738,7 +5738,7 @@
                     /**
                      * @var FS_Site $install
                      */
-                    if ( $install->is_tracking_prohibited() ) {
+                    if ( ! $this->is_tracking_allowed( $install, $blog_id ) ) {
                         $install->is_disconnected = false;
                         $this->_store_site( true, $blog_id, $install );
                     }
@@ -6786,18 +6786,22 @@
                 return 0;
             }
 
-            if ( $this->_is_network_active &&
-                 is_numeric( $this->_storage->network_install_blog_id ) &&
-                 $except_blog_id != $this->_storage->network_install_blog_id &&
-                 self::is_site_active( $this->_storage->network_install_blog_id )
+            if ( $this->_is_network_active ) {
+                $network_install_blog_id = $this->_storage->network_install_blog_id;
+
+                if (
+                    is_numeric( $network_install_blog_id ) &&
+                    $except_blog_id != $network_install_blog_id &&
+                    self::is_site_active( $network_install_blog_id )
             ) {
                 // Try to run cron from the main network blog.
-                $install = $this->get_install_by_blog_id( $this->_storage->network_install_blog_id );
+                    $install = $this->get_install_by_blog_id( $network_install_blog_id );
 
                 if ( is_object( $install ) &&
-                     ( $this->is_premium() || $install->is_tracking_allowed() )
+                         ( $this->is_premium() || $this->is_tracking_allowed( $install, $network_install_blog_id ) )
                 ) {
-                    return $this->_storage->network_install_blog_id;
+                        return $network_install_blog_id;
+                    }
                 }
             }
 
@@ -6806,7 +6810,7 @@
             foreach ( $installs as $blog_id => $install ) {
                 if ( $except_blog_id != $blog_id &&
                      self::is_site_active( $blog_id ) &&
-                     ( $this->is_premium() || $install->is_tracking_allowed() )
+                     ( $this->is_premium() || $this->is_tracking_allowed( $install, $blog_id ) )
                 ) {
                     return $blog_id;
                 }
@@ -6838,7 +6842,7 @@
                     /**
                      * @var FS_Site $install
                      */
-                    if ( $install->is_tracking_allowed() ) {
+                    if ( $this->is_tracking_allowed( $install, $blog_id ) ) {
                         $clear_cron = false;
                         break;
                     }
@@ -9670,7 +9674,10 @@
                         continue;
                     }
 
-                    if ( ! $this->is_premium() && $install->is_tracking_prohibited() ) {
+                    if ( 
+                        ! $this->is_premium() &&
+                        ! $this->is_tracking_allowed( $install, $blog_id )
+                    ) {
                         // Don't send updates regarding opted-out installs.
                         continue;
                     }
@@ -11104,7 +11111,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.1
          *
-         * @param bool $ignore_anonymous_state
+         * @param bool $ignore_anonymous_state Since 2.5.1
          *
          * @return bool
          */
@@ -11127,10 +11134,14 @@
          *
          * @return bool
          */
-        function is_tracking_allowed() {
+        function is_tracking_allowed( $install = null, $blog_id = null ) {
+            if ( is_null( $install ) ) {
+                $install = $this->_site;
+            }
+
             return (
-                is_object( $this->_site ) &&
-                FS_Permission_Manager::instance( $this )->is_homepage_url_tracking_allowed()
+                is_object( $install ) &&
+                FS_Permission_Manager::instance( $this )->is_homepage_url_tracking_allowed( $blog_id )
             );
         }
 

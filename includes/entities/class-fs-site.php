@@ -233,16 +233,6 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @return bool
-         */
-        function is_tracking_prohibited() {
-            return ! $this->is_tracking_allowed();
-        }
-
-        /**
          * @author Edgar Melkonyan
          *
          * @return bool

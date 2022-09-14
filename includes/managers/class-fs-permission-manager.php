@@ -439,35 +439,37 @@
         }
 
         /**
-         * @param bool $default
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_homepage_url_tracking_allowed( $default = true ) {
-            return $this->is_permission_allowed( $this->get_site_permission_name(), $default );
+        function is_homepage_url_tracking_allowed( $blog_id = null ) {
+            return $this->is_permission_allowed( $this->get_site_permission_name(), true, $blog_id );
         }
 
         /**
          * @param string $permission
          * @param bool   $default
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_permission_allowed( $permission, $default = false ) {
+        function is_permission_allowed( $permission, $default = false, $blog_id = null ) {
             if ( ! self::is_supported_permission( $permission ) ) {
                 return $default;
             }
 
-            return $this->is_permission( $permission, true );
+            return $this->is_permission( $permission, true, $blog_id );
         }
 
         /**
          * @param string $permission
          * @param bool   $is_allowed
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_permission( $permission, $is_allowed ) {
+        function is_permission( $permission, $is_allowed, $blog_id = null ) {
             if ( ! self::is_supported_permission( $permission ) ) {
                 return false;
             }
@@ -479,7 +481,7 @@
                     $this->_storage->get(
                         $tag,
                         $this->get_permission_default( $permission ),
-                        null,
+                        $blog_id,
                         FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
                     )
                 ) );
