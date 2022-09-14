@@ -5540,12 +5540,35 @@
 
             $permissions = explode( ',', $permissions );
 
+            $result = $this->toggle_permission_tracking( $permissions, $is_enabled );
+
+            if ( true !== $result ) {
+                self::shoot_ajax_failure( $this->get_api_error_message( $result ) );
+            }
+
+            self::shoot_ajax_success();
+        }
+
+        /**
+         * @param string[] $permissions
+         * @param bool     $is_enabled
+         * @param bool     $force_site_level
+         *
+         * @return bool|mixed `true` if updated successfully or no update is needed.
+         */
+        private function toggle_permission_tracking( $permissions, $is_enabled, $force_site_level = false ) {
+            if ( ! $this->is_registered( true ) ) {
+                // User never opted-in.
+                return false;
+            }
+
+            // Check if permissions are already set as needed.
             if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
                 /**
                  * Note:
                  *  When running on the network admin, there's no need to iterate through all the installs individually since network opt-in permissions are managed for ALL non-delegated installs through a single option (per permission) on the network-level storage.
                  */
-                self::shoot_ajax_success();
+                return true;
             }
 
             $api_managed_permissions = array_intersect(
@@ -5576,7 +5599,7 @@
                     $api_managed_permissions[] = FS_Permission_Manager::PERMISSION_EXTENSIONS;
                 }
 
-                if ( fs_is_network_admin() ) {
+                if ( ! $force_site_level && fs_is_network_admin() ) {
                     $result = $this->update_network_permissions(
                         $api_managed_permissions,
                         $is_enabled,
@@ -5590,7 +5613,7 @@
                 }
 
                 if (true !== $result) {
-                    self::shoot_ajax_failure( $this->get_api_error_message( $result ) );
+                    return $result;
                 }
 
                 if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $api_managed_permissions ) ) {
@@ -5611,7 +5634,7 @@
                 $is_enabled
             );
 
-            self::shoot_ajax_success();
+            return true;
         }
 
         /**
@@ -5655,156 +5678,6 @@
         }
 
         /**
-         * Opt-out from usage tracking.
-         *
-         * Note: This will not delete the account information but will stop all tracking.
-         *
-         * Returns:
-         *  1. FALSE  - If the user never opted-in.
-         *  2. TRUE   - If successfully opted-out.
-         *  3. object - API result on failure.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
-         *
-         * @return bool|object
-         */
-        function stop_site_tracking() {
-            $this->_logger->entrance();
-
-            if ( ! $this->is_registered() ) {
-                // User never opted-in.
-                return false;
-            }
-
-            if ( $this->is_tracking_prohibited() ) {
-                // Already disconnected.
-                return true;
-            }
-
-            // Send update to FS.
-            $result = $this->api_site_call( '/?fields=is_disconnected', 'put', array(
-                'is_disconnected' => true
-            ) );
-
-            if ( ! $this->is_api_result_entity( $result ) ||
-                 ! isset( $result->is_disconnected ) ||
-                 ! $result->is_disconnected
-            ) {
-                $this->_logger->api_error( $result );
-
-                return $result;
-            }
-
-            $this->_site->is_disconnected = $result->is_disconnected;
-            $this->_store_site();
-
-            $this->clear_sync_cron();
-
-            // Successfully disconnected.
-            return true;
-        }
-
-        /**
-         * Opt-out network from usage tracking.
-         *
-         * Note: This will not delete the account information but will stop all tracking.
-         *
-         * Returns:
-         *  1. FALSE  - If the user never opted-in.
-         *  2. TRUE   - If successfully opted-out.
-         *  3. object - API result on failure.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
-         *
-         * @return bool|object
-         */
-        function stop_network_tracking() {
-            $this->_logger->entrance();
-
-            if ( ! $this->is_registered() ) {
-                // User never opted-in.
-                return false;
-            }
-
-            $install_id_2_blog_id = array();
-            $installs_map         = $this->get_blog_install_map();
-
-            $opt_out_all = true;
-
-            $params = array();
-            foreach ( $installs_map as $blog_id => $install ) {
-                if ( $install->is_tracking_prohibited() ) {
-                    // Already opted-out.
-                    continue;
-                }
-
-                if ( $this->is_site_delegated_connection( $blog_id ) ) {
-                    // Opt-out only from non-delegated installs.
-                    $opt_out_all = false;
-                    continue;
-                }
-
-                $params[] = array( 'id' => $install->id );
-
-                $install_id_2_blog_id[ $install->id ] = $blog_id;
-            }
-
-            if ( empty( $install_id_2_blog_id ) ) {
-                return true;
-            }
-
-            $params[] = array( 'is_disconnected' => true );
-
-            // Send update to FS.
-            $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
-
-            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                $this->_logger->api_error( $result );
-
-                return $result;
-            }
-
-            foreach ( $result->installs as $r_install ) {
-                $blog_id                  = $install_id_2_blog_id[ $r_install->id ];
-                $install                  = $installs_map[ $blog_id ];
-                $install->is_disconnected = $r_install->is_disconnected;
-                $this->_store_site( true, $blog_id, $install );
-            }
-
-            $this->clear_sync_cron( $opt_out_all );
-
-            // Successfully disconnected.
-            return true;
-        }
-
-        /**
-         * Opt-out from usage tracking.
-         *
-         * Note: This will not delete the account information but will stop all tracking.
-         *
-         * Returns:
-         *  1. FALSE  - If the user never opted-in.
-         *  2. TRUE   - If successfully opted-out.
-         *  3. object - API result on failure.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
-         *
-         * @param bool $is_network_action
-         *
-         * @return bool|object
-         */
-        function stop_tracking( $is_network_action = false ) {
-            $this->_logger->entrance();
-
-            return $is_network_action ?
-                $this->stop_network_tracking() :
-                $this->stop_site_tracking();
-        }
-
-        /**
          * Opt-in back into usage tracking.
          *
          * Note: This will only work if the user opted-in previously.
@@ -5817,138 +5690,25 @@
          * @author Leo Fajardo (@leorw)
          * @since  1.2.1.5
          *
+         * @bool $is_enabled
+         *
          * @return bool|object
          */
-        function allow_site_tracking() {
+        private function toggle_site_tracking( $is_enabled ) {
             $this->_logger->entrance();
 
-            if ( ! $this->is_registered() ) {
-                // User never opted-in.
-                return false;
-            }
+            $permissions = FS_Permission_Manager::instance( $this )->get_opt_in_diagnostic_permissions();
 
-            if ( $this->is_tracking_allowed() ) {
-                // Tracking already allowed.
-                return true;
-            }
-
-            $result = $this->api_site_call( '/?is_disconnected', 'put', array(
-                'is_disconnected' => false
-            ) );
-
-            if ( ! $this->is_api_result_entity( $result ) ||
-                 ! isset( $result->is_disconnected ) ||
-                 $result->is_disconnected
-            ) {
-                $this->_logger->api_error( $result );
-
-                return $result;
-            }
-
-            $this->_site->is_disconnected = $result->is_disconnected;
-            $this->_store_site();
-
-            $this->schedule_sync_cron();
-
-            // Successfully reconnected.
-            return true;
+            $permission_names = array();
+            foreach ( $permissions as $permission ) {
+                $permission_names[] = $permission['id'];
         }
 
-        /**
-         * Opt-in network back into usage tracking.
-         *
-         * Note: This will only work if the user opted-in previously.
-         *
-         * Returns:
-         *  1. FALSE  - If the user never opted-in.
-         *  2. TRUE   - If successfully opted-in back to usage tracking.
-         *  3. object - API result on failure.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
-         *
-         * @return bool|object
-         */
-        function allow_network_tracking() {
-            $this->_logger->entrance();
-
-            if ( ! $this->is_registered() ) {
-                // User never opted-in.
-                return false;
-            }
-
-            $install_id_2_blog_id = array();
-            $installs_map         = $this->get_blog_install_map();
-
-            $params = array();
-            foreach ( $installs_map as $blog_id => $install ) {
-                if ( $install->is_tracking_allowed() ) {
-                    // Already opted-in.
-                    continue;
-                }
-
-                if ( $this->is_site_delegated_connection( $blog_id ) ) {
-                    // Opt-out only from non-delegated installs.
-                    continue;
-                }
-
-                $params[] = array( 'id' => $install->id );
-
-                $install_id_2_blog_id[ $install->id ] = $blog_id;
-            }
-
-            if ( empty( $install_id_2_blog_id ) ) {
-                return true;
-            }
-
-            $params[] = array( 'is_disconnected' => false );
-
-            // Send update to FS.
-            $result = $this->get_current_or_network_user_api_scope()->call( "/plugins/{$this->_module_id}/installs.json", 'put', $params );
-
-
-            if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
-                $this->_logger->api_error( $result );
-
-                return $result;
-            }
-
-            foreach ( $result->installs as $r_install ) {
-                $blog_id                  = $install_id_2_blog_id[ $r_install->id ];
-                $install                  = $installs_map[ $blog_id ];
-                $install->is_disconnected = $r_install->is_disconnected;
-                $this->_store_site( true, $blog_id, $install );
-            }
-
-            $this->schedule_sync_cron();
-
-            // Successfully reconnected.
-            return true;
-        }
-
-        /**
-         * Opt-in back into usage tracking.
-         *
-         * Note: This will only work if the user opted-in previously.
-         *
-         * Returns:
-         *  1. FALSE  - If the user never opted-in.
-         *  2. TRUE   - If successfully opted-in back to usage tracking.
-         *  3. object - API result on failure.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  1.2.1.5
-         *
-         * @param bool $is_network_action
-         *
-         * @return bool|object
-         */
-        function allow_tracking( $is_network_action = false ) {
-            $this->_logger->entrance();
-
-            return $is_network_action ?
-                $this->allow_network_tracking() :
-                $this->allow_site_tracking();
+            return $this->toggle_permission_tracking(
+                $permission_names,
+                $is_enabled,
+                true
+            );
         }
 
         /**
@@ -11368,7 +11128,10 @@
          * @return bool
          */
         function is_tracking_allowed() {
-            return ( is_object( $this->_site ) && $this->_site->is_tracking_allowed() );
+            return (
+                is_object( $this->_site ) &&
+                FS_Permission_Manager::instance( $this )->is_homepage_url_tracking_allowed()
+            );
         }
 
         /**
@@ -23133,26 +22896,20 @@
 
                     if ( $is_parent_plugin_action ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
-                            if ( $this->is_registered() ) {
+                            if ( $this->is_registered( true ) ) {
                                 if ( $this->is_tracking_prohibited() ) {
-                                    if ( $this->allow_site_tracking() ) {
+                                    if ( $this->toggle_site_tracking( true ) ) {
                                         $this->_admin_notices->add(
-                                            sprintf( $this->get_text_inline( 'We appreciate your help in making the %s better by letting us track some usage data.', 'opt-out-message-appreciation' ), $this->_module_type ),
+                                            sprintf( $this->get_text_inline( 'Sharing diagnostic data with %s helps to provide functionality that\'s more relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the plugin should be translated and tailored to.', 'opt-out-message-appreciation' ), "<b>{$this->get_plugin_title()}</b>" ),
                                             $this->get_text_inline( 'Thank you!', 'thank-you' )
                                         );
                                     }
                                 } else {
-                                    if ( $this->stop_site_tracking() ) {
+                                    if ( $this->toggle_site_tracking( false ) ) {
                                         $this->_admin_notices->add(
                                             sprintf(
-                                                $this->get_text_inline( 'We will no longer be sending any usage data of %s on %s to %s.', 'opted-out-successfully' ),
-                                                $this->get_plugin_title(),
-                                                fs_strip_url_protocol( get_site_url( $blog_id ) ),
-                                                sprintf(
-                                                    '<a href="%s" target="_blank" rel="noopener">%s</a>',
-                                                    'https://freemius.com',
-                                                    'freemius.com'
-                                                )
+                                                $this->get_text_inline( 'Diagnostic data will no longer be sent to %s.', 'opted-out-successfully' ),
+                                                "<b>{$this->get_plugin_title()}</b>"
                                             )
                                         );
                                     }
