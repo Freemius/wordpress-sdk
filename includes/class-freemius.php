@@ -9274,13 +9274,27 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.3
          *
-         * @param bool|int $network_or_blog_id Since 2.0.0.
+         * @param bool|int|int[] $network_or_blog_ids Since 2.0.0.
          */
-        private function reset_anonymous_mode( $network_or_blog_id = 0 ) {
-            if ( true === $network_or_blog_id ) {
+        private function reset_anonymous_mode( $network_or_blog_ids = 0 ) {
+            if ( true === $network_or_blog_ids ) {
                 unset( $this->_storage->is_anonymous_ms );
+
+                if ( fs_is_network_admin() ) {
+                    $this->_is_anonymous = null;
+                }
             } else {
-                $this->_storage->remove( 'is_anonymous', true, $network_or_blog_id );
+                if ( ! is_array( $network_or_blog_ids ) ) {
+                    $network_or_blog_ids = array( $network_or_blog_ids );
+                }
+
+                foreach ( $network_or_blog_ids as $blog_id ) {
+                    $this->_storage->remove( 'is_anonymous', true, $blog_id );
+
+                    if ( 0 === $blog_id || get_current_blog_id() == $blog_id ) {
+                        $this->_is_anonymous = null;
+                    }
+                }
             }
 
             /**
@@ -9291,11 +9305,7 @@
              * @author Leo Fajardo (@leorw)
              * @since  1.2.2
              */
-            if ( ! $this->_is_network_active ||
-                 0 === $network_or_blog_id ||
-                 get_current_blog_id() == $network_or_blog_id ||
-                 ( true === $network_or_blog_id && fs_is_network_admin() )
-            ) {
+            if ( ! $this->_is_network_active ) {
                 $this->_is_anonymous = null;
             }
         }
