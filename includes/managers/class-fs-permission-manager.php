@@ -423,6 +423,15 @@
          *
          * @return bool
          */
+        function is_essentials_tracking_allowed( $default = false ) {
+            return $this->is_permission_allowed( self::PERMISSION_ESSENTIALS, $default );
+        }
+
+        /**
+         * @param bool $default
+         *
+         * @return bool
+         */
         function is_diagnostic_tracking_allowed( $default = true ) {
             return $this->_fs->is_premium() ?
                 $this->is_permission_allowed( self::PERMISSION_DIAGNOSTIC, $default ) :
@@ -435,9 +444,7 @@
          * @return bool
          */
         function is_homepage_url_tracking_allowed( $default = true ) {
-            return $this->_fs->is_premium() ?
-                $this->is_permission_allowed( self::PERMISSION_ESSENTIALS, $default ) :
-                $this->is_permission_allowed( self::PERMISSION_SITE, $default );
+            return $this->is_permission_allowed( $this->get_site_permission_name(), $default );
         }
 
         /**
@@ -542,6 +549,16 @@
         }
 
         #endregion
+
+
+        /**
+         * @return string
+         */
+        function get_site_permission_name() {
+            return $this->_fs->is_premium() ?
+                self::PERMISSION_ESSENTIALS :
+                self::PERMISSION_SITE;
+        }
 
         #--------------------------------------------------------------------------------
         #region Rendering
