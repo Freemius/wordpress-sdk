@@ -236,9 +236,11 @@
         }
 
         /**
+         * @param bool $load_default_from_storage
+         *
          * @return array[]
          */
-        function get_license_required_permissions() {
+        function get_license_required_permissions( $load_default_from_storage = false ) {
             // Alias.
             $fs = $this->_fs;
 
@@ -261,7 +263,10 @@
                     $fs->get_text_inline( 'To let you manage & control where the license is activated and ensure %s security & feature updates are only delivered to websites you authorize.', 'permissions-essentials_tooltip' ),
                     $fs->get_module_label( true )
                 ),
-                10
+                10,
+                false,
+                true,
+                $load_default_from_storage
             );
 
             $permissions[] = $this->get_permission(
@@ -274,7 +279,10 @@
                     $fs->get_module_label( true )
                 ),
                 sprintf( $fs->get_text_inline( 'So you can reuse the license when the %s is no longer active.', 'permissions-events_tooltip' ), $fs->get_module_label( true ) ),
-                20
+                20,
+                false,
+                true,
+                $load_default_from_storage
             );
 
             return $permissions;

@@ -118,7 +118,7 @@
                 'desc'        => sprintf( $fs->esc_html_inline( 'For delivery of security & feature updates, and license management, %s needs to',
                         'license-sync-disclaimer' ),
                         '<b>' . esc_html( $fs->get_plugin_title() ) . '</b>' ) . ':',
-                'permissions' => $permission_manager->get_license_required_permissions(),
+                'permissions' => $permission_manager->get_license_required_permissions( true ),
                 'prompt'      => array(
                     sprintf( $fs->esc_html_inline( 'For automatic delivery of security & feature updates directly to your WordPress Admin Dashboard, %2$s needs to view the website’s homepage URL, %1$s version, SDK version, and whether the %1$s is active or uninstalled.', 'premium-opt-out-message-usage-tracking' ), $fs->get_module_type(), $plugin_title ),
                     sprintf( $fs->esc_html_inline( 'By opting out from sharing this information with the updates server, you’ll have to check for new %1$s releases and manually download & install them. Missing an update can put your site at risk, so we highly recommend keeping these essential permissions on.', 'opt-out-message-clicking-opt-out' ), $fs->get_module_type(), $plugin_title ),
