@@ -87,7 +87,7 @@
                 'is_enabled'  => $fs->is_tracking_allowed(),
                 'prompt'      => array(
                     sprintf(
-                        $fs->esc_html_inline( 'Sharing diagnostic data helps to provide additional functionality that\'s relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s should be translated and tailored to.',
+                        $fs->esc_html_inline( 'Sharing diagnostic data helps to provide additional functionality that\'s relevant to your website, avoid WordPress or PHP version incompatibilities that can break the website, and recognize which languages & regions the %s should be translated and tailored to.',
                             'opt-out-message-clicking-opt-out' ),
                         $fs->get_module_type()
                     ),

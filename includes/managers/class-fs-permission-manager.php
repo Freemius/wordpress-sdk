@@ -407,9 +407,6 @@
         #--------------------------------------------------------------------------------
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.3.2
-         *
          * @param bool $default
          *
          * @return bool
@@ -448,8 +445,8 @@
         }
 
         /**
-         * @param string $permission
-         * @param bool   $default
+         * @param string   $permission
+         * @param bool     $default
          * @param int|null $blog_id
          *
          * @return bool
@@ -463,8 +460,8 @@
         }
 
         /**
-         * @param string $permission
-         * @param bool   $is_allowed
+         * @param string   $permission
+         * @param bool     $is_allowed
          * @param int|null $blog_id
          *
          * @return bool
@@ -505,23 +502,6 @@
 
         /**
          * @param string $permission
-         *
-         * @return bool
-         */
-        function get_permission_default( $permission ) {
-            if (
-                $this->_fs->is_premium() &&
-                self::PERMISSION_EXTENSIONS === $permission
-            ) {
-                return false;
-            }
-
-            // All permissions except for the extensions in paid version are on by default when the user opts in to usage tracking.
-            return true;
-        }
-
-        /**
-         * @param string $permission
          * @param bool   $is_enabled
          *
          * @return bool `false` if permission not supported or `$is_enabled` is not a boolean.
@@ -552,6 +532,23 @@
 
         #endregion
 
+
+        /**
+         * @param string $permission
+         *
+         * @return bool
+         */
+        function get_permission_default( $permission ) {
+            if (
+                $this->_fs->is_premium() &&
+                self::PERMISSION_EXTENSIONS === $permission
+            ) {
+                return false;
+            }
+
+            // All permissions except for the extensions in paid version are on by default when the user opts in to usage tracking.
+            return true;
+        }
 
         /**
          * @return string

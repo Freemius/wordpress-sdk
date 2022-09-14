@@ -650,7 +650,7 @@
         }
 
         /**
-         * Get module's required data for the updates mechanism.
+         * Get module's required data for the updates' mechanism.
          *
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0

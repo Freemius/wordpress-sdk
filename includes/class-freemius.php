@@ -5310,7 +5310,7 @@
              * because the updater has some logic that needs to be executed
              * during AJAX calls.
              *
-             * Currently we need to hook to the `http_request_host_is_external` filter.
+             * Currently, we need to hook to the `http_request_host_is_external` filter.
              * In the future, there might be additional logic added.
              *
              * @author Vova Feldman
@@ -9841,7 +9841,6 @@
                 $params = $this->get_install_diff_for_api( $check_properties, $this->_site, $override );
             }
 
-            $keepalive_only_update = false;
             if ( empty( $params ) ) {
                 $keepalive_only_update = $this->should_send_keepalive_update();
 
@@ -18030,8 +18029,8 @@
 
             $next_page = $this->get_after_activation_url( 'after_pending_connect_url' );
 
-            // Reload the page with with pending activation message.
             if ( $redirect ) {
+                // Reload the page with a pending activation message.
                 fs_redirect( $next_page );
             }
 
