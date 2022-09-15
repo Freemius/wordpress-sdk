@@ -946,7 +946,7 @@
                  version_compare( $sdk_prev_version, '2.5.1', '<' ) &&
                  version_compare( $sdk_version, '2.5.1', '>=' )
             ) {
-                if ( $this->is_registered() ) {
+                if ( $this->is_registered( true ) ) {
                     /**
                      * Migrate to new permissions layer.
                      */
@@ -959,7 +959,6 @@
                     fs_migrate_251( $this, $install_by_blog_id );
                 }
             }
-
         }
 
         /**
