@@ -630,15 +630,13 @@
         }
 
         /**
-         * @param bool $is_interactive
          * @param bool $is_inline
          *
          * @return void
          */
-        function require_permissions_js( $is_interactive = false, $is_inline = true ) {
+        function require_permissions_js( $is_inline = true ) {
             $params = array(
-                'inline'      => $is_inline,
-                'interactive' => $is_interactive,
+                'inline' => $is_inline,
             );
 
             fs_require_once_template( 'js/permissions.php', $params );

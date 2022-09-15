@@ -169,11 +169,11 @@
             }
 
             $( '.fs-permissions .fs-switch' ).on( 'click', function () {
-                if (isUpdatingPermission) {
+                if ( isUpdatingPermission ) {
                     return false;
                 }
 
-                var $switch = $(this),
+                var $switch = $( this ),
                     $permission = $switch.parent();
 
                 $switch
@@ -182,7 +182,12 @@
 
                 $permission.toggleClass( 'fs-disabled' );
 
-                <?php if ( $VARS[ 'interactive' ] ) : ?>
+                var $optOutContainer = $switch.closest( '.fs-modal-opt-out' );
+
+                if ( 0 === $optOutContainer.length ) {
+                    return;
+                }
+
                 isUpdatingPermission = true;
 
                 // Remove previously added feedback element.
@@ -199,7 +204,7 @@
                     isEnabled = $switch.hasClass('fs-on');
 
                 updatePermissions(
-                    $switch.closest( '.fs-modal-opt-out' ).attr( 'data-plugin-id' ),
+                    $optOutContainer.attr( 'data-plugin-id' ),
                     [permissionID],
                     isEnabled,
                     function () {
@@ -240,7 +245,6 @@
                         isUpdatingPermission = false;
                     }
                 )
-                <?php endif ?>
             });
 
             $( '.fs-opt-out-permissions .fs-opt-out-button' ).on( 'click', function ( evt ) {

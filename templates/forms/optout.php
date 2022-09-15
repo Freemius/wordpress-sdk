@@ -448,7 +448,7 @@
 			});
 			<?php endif ?>
 
-            <?php $permission_manager->require_permissions_js( true ) ?>
+            <?php $permission_manager->require_permissions_js() ?>
 		});
 	})( jQuery );
 </script>
