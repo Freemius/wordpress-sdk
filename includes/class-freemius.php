@@ -5251,10 +5251,11 @@
         /**
          * @param string[] $permissions
          * @param bool     $is_enabled
+         * @param int|null $blog_id
          *
          * @return true|object `true` on success, API error object on failure.
          */
-        private function update_site_permissions( array $permissions, $is_enabled ) {
+        private function update_site_permissions( array $permissions, $is_enabled, $blog_id = null ) {
             $this->_logger->entrance();
 
             $params = array(
@@ -5262,7 +5263,17 @@
                 'is_enabled'  => $is_enabled,
             );
 
+            $current_blog_id  = get_current_blog_id();
+            $is_blog_switched = false;
+            if ( is_numeric( $blog_id ) && $current_blog_id != $blog_id ) {
+                $is_blog_switched = $this->switch_to_blog( $blog_id );
+            }
+
             $result = $this->api_site_call( '/permissions.json', 'put', $params );
+
+            if ( $is_blog_switched ) {
+                $this->switch_to_blog( $current_blog_id );
+            }
 
             if (
                 ! $this->is_api_result_object( $result ) ||
@@ -5271,11 +5282,6 @@
                 $this->_logger->api_error( $result );
 
                 return $result;
-            }
-
-            if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $permissions ) ) {
-                $this->_site->is_disconnected = ! $is_enabled;
-                $this->_store_site();
             }
 
             return true;
@@ -5331,15 +5337,6 @@
                 $this->_logger->api_error( $result );
 
                 return $result;
-            }
-
-            if ( in_array( FS_Permission_Manager::PERMISSION_SITE, $permissions ) ) {
-                foreach ( $result->installs_metadata as $install_metadata ) {
-                    $blog_id                  = $install_id_2_blog_id[ $install_metadata->install_id ];
-                    $install                  = $install_by_blog_id[ $blog_id ];
-                    $install->is_disconnected = ! $install_metadata->permissions->site;
-                    $this->_store_site( true, $blog_id, $install );
-                }
             }
 
             return true;
@@ -5402,18 +5399,18 @@
         /**
          * @param string[] $permissions
          * @param bool     $is_enabled
-         * @param bool     $force_site_level
+         * @param int|null $blog_id
          *
          * @return bool|mixed `true` if updated successfully or no update is needed.
          */
-        private function toggle_permission_tracking( $permissions, $is_enabled, $force_site_level = false ) {
+        private function toggle_permission_tracking( $permissions, $is_enabled, $blog_id = null ) {
             if ( ! $this->is_registered( true ) ) {
                 // User never opted-in.
                 return false;
             }
 
             // Check if permissions are already set as needed.
-            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled ) ) {
+            if ( FS_Permission_Manager::instance( $this )->are_permissions( $permissions, $is_enabled, $blog_id ) ) {
                 /**
                  * Note:
                  *  When running on the network admin, there's no need to iterate through all the installs individually since network opt-in permissions are managed for ALL non-delegated installs through a single option (per permission) on the network-level storage.
@@ -5439,7 +5436,7 @@
                 if (
                     ! $is_enabled &&
                     ! in_array( FS_Permission_Manager::PERMISSION_EXTENSIONS, $api_managed_permissions ) &&
-                    false === FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed()
+                    false === FS_Permission_Manager::instance( $this )->is_extensions_tracking_allowed( $blog_id )
                 ) {
                     /**
                      * If we are turning off a permission and the extensions permission is off too, enrich the permissions update request to also turn off extensions tracking, as currently when opting in with extensions tracking disabled the extensions tracking is off but the API isn't aware of it.
@@ -5449,7 +5446,7 @@
                     $api_managed_permissions[] = FS_Permission_Manager::PERMISSION_EXTENSIONS;
                 }
 
-                if ( ! $force_site_level && fs_is_network_admin() ) {
+                if ( is_null( $blog_id ) && fs_is_network_admin() ) {
                     $result = $this->update_network_permissions(
                         $api_managed_permissions,
                         $is_enabled,
@@ -5458,7 +5455,8 @@
                 } else {
                     $result = $this->update_site_permissions(
                         $api_managed_permissions,
-                        $is_enabled
+                        $is_enabled,
+                        $blog_id
                     );
                 }
 
@@ -5475,55 +5473,32 @@
                 }
 
                 if ( in_array( FS_Permission_Manager::PERMISSION_USER, $api_managed_permissions ) ) {
-                    $this->toggle_user_permission( $is_enabled );
+                    $this->toggle_user_permission( $is_enabled, $blog_id );
                 }
             }
 
             $this->update_tracking_permissions(
                 $permissions,
-                $is_enabled
+                $is_enabled,
+                $blog_id
             );
 
             return true;
         }
 
         /**
-         * @param bool $is_enabled
+         * @param bool     $is_enabled
+         * @param int|null $blog_id
          */
-        private function toggle_user_permission( $is_enabled ) {
-            $is_network_wide_action = false;
-            $sites                  = null;
+        private function toggle_user_permission( $is_enabled, $blog_id = null ) {
+            $network_or_blog_ids = is_numeric( $blog_id ) ?
+                $blog_id :
+                fs_is_network_admin();
 
             if ( $is_enabled ) {
-                if ( fs_is_network_admin() ) {
-                    $is_network_wide_action = $this->is_network_anonymous();
-
-                    if ( ! $is_network_wide_action ) {
-                        // Get non-delegated sites.
-                        $sites = $this->get_blog_ids(false);
-                    }
-                }
-
-                $this->reset_anonymous_mode(
-                    $is_network_wide_action ?
-                        // Network reset.
-                        true :
-                        ( fs_is_network_admin() ?
-                            // Only reset non-delegated sites.
-                            $sites :
-                            0 )
-                );
+                $this->reset_anonymous_mode( $network_or_blog_ids );
             } else {
-                if ( fs_is_network_admin() ) {
-                    $is_network_wide_action = $this->is_network_connected();
-
-                    if ( ! $is_network_wide_action ) {
-                        // Get non-delegated sites.
-                        $sites = $this->get_blog_ids( false );
-                    }
-                }
-
-                $this->skip_connection( $sites, $is_network_wide_action );
+                $this->skip_connection( $network_or_blog_ids );
             }
         }
 
@@ -5544,20 +5519,13 @@
          *
          * @return bool|object
          */
-        private function toggle_site_tracking( $is_enabled ) {
+        private function toggle_site_tracking( $is_enabled, $blog_id = null ) {
             $this->_logger->entrance();
 
-            $permissions = FS_Permission_Manager::instance( $this )->get_opt_in_diagnostic_permissions();
-
-            $permission_names = array();
-            foreach ( $permissions as $permission ) {
-                $permission_names[] = $permission['id'];
-            }
-
             return $this->toggle_permission_tracking(
-                $permission_names,
+                FS_Permission_Manager::instance( $this )->get_site_tracking_permission_names(),
                 $is_enabled,
-                true
+                $blog_id
             );
         }
 
@@ -5579,8 +5547,7 @@
 
             if ( ! fs_is_network_admin() || $is_context_single_site ) {
                 if ( $this->is_tracking_prohibited() ) {
-                    $this->_site->is_disconnected = false;
-                    $this->_store_site();
+                    FS_Permission_Manager::instance( $this )->update_site_tracking( true );
                 }
             } else {
                 $installs_map = $this->get_blog_install_map();
@@ -5588,35 +5555,66 @@
                     /**
                      * @var FS_Site $install
                      */
-                    if ( ! $this->is_tracking_allowed( $install, $blog_id ) ) {
-                        $install->is_disconnected = false;
-                        $this->_store_site( true, $blog_id, $install );
+                    if ( ! $this->is_tracking_allowed( $blog_id, $install ) ) {
+                        FS_Permission_Manager::instance( $this )->update_site_tracking( true, $blog_id );
                     }
                 }
             }
         }
 
         /**
+         * Update permission tracking flags. When updating in a network context, in addition to updating the network-level flags, also update the permissions on the site-level for all non-delegated sites.
+         *
          * @param string[] $permissions
          * @param bool     $is_enabled
+         * @param int|null $blog_id
          *
          * @return array
          */
-        private function update_tracking_permissions( $permissions, $is_enabled ) {
-            $result = array();
+        private function update_tracking_permissions( $permissions, $is_enabled, $blog_id = null ) {
+            // Alias.
+            $permission_manager = FS_Permission_Manager::instance( $this );
 
-            if ( ! empty( $permissions ) ) {
-                foreach ( $permissions as $permission ) {
-                    $permission = trim( $permission );
+            $network_or_blog_ids = is_numeric( $blog_id ) ?
+                $blog_id :
+                fs_is_network_admin();
 
-                    $is_permission_supported = FS_Permission_Manager::instance( $this )->update_permission_tracking_flag( $permission, $is_enabled );
+            if ( true === $network_or_blog_ids ) {
+                // Update the permission for all non-delegated sub-sites.
+                $blog_ids = $this->get_non_delegated_blog_ids();
 
-                    if ( ! $is_permission_supported ) {
-                        $permission = 'no_match';
-                    }
-
-                    $result[ $permission ] = $is_enabled;
+                // Add the network-level to the array, to update the permission on the network-level storage.
+                array_unshift( $blog_ids, null );
+            }
+            else
+            {
+                if ( false === $network_or_blog_ids ) {
+                    $network_or_blog_ids = null;
                 }
+
+                $blog_ids = is_array( $network_or_blog_ids ) ?
+                    $network_or_blog_ids :
+                    array( $network_or_blog_ids );
+            }
+
+            $result = array();
+            foreach ( $permissions as $permission ) {
+                $permission              = trim( $permission );
+                $is_permission_supported = true;
+
+                foreach ( $blog_ids as $id ) {
+                    $is_permission_supported = $permission_manager->update_permission_tracking_flag(
+                        $permission,
+                        $is_enabled,
+                        $id
+                    );
+                }
+
+                if ( ! $is_permission_supported ) {
+                    $permission = 'no_match';
+                }
+
+                $result[ $permission ] = $is_enabled;
             }
 
             return $result;
@@ -6377,7 +6375,7 @@
                     /**
                      * When not-network-anonymous, yet, running in the network admin, consider as anonymous only when ALL non-delegated sites are set to anonymous.
                      */
-                    $non_delegated_sites = $this->get_blog_ids( false );
+                    $non_delegated_sites = $this->get_non_delegated_blog_ids();
 
                     foreach ( $non_delegated_sites as $blog_id ) {
                         $is_anonymous = $this->_storage->get( 'is_anonymous', false, $blog_id );
@@ -6648,7 +6646,7 @@
                     $install = $this->get_install_by_blog_id( $network_install_blog_id );
 
                     if ( is_object( $install ) &&
-                         ( $this->is_premium() || $this->is_tracking_allowed( $install, $network_install_blog_id ) )
+                         ( $this->is_premium() || $this->is_tracking_allowed( $network_install_blog_id, $install ) )
                     ) {
                         return $network_install_blog_id;
                     }
@@ -6660,7 +6658,7 @@
             foreach ( $installs as $blog_id => $install ) {
                 if ( $except_blog_id != $blog_id &&
                      self::is_site_active( $blog_id ) &&
-                     ( $this->is_premium() || $this->is_tracking_allowed( $install, $blog_id ) )
+                     ( $this->is_premium() || $this->is_tracking_allowed( $blog_id, $install ) )
                 ) {
                     return $blog_id;
                 }
@@ -6692,7 +6690,7 @@
                     /**
                      * @var FS_Site $install
                      */
-                    if ( $this->is_tracking_allowed( $install, $blog_id ) ) {
+                    if ( $this->is_tracking_allowed( $blog_id, $install ) ) {
                         $clear_cron = false;
                         break;
                     }
@@ -7327,7 +7325,7 @@
             if ( fs_request_is_action( $this->get_unique_affix() . '_skip_activation' ) ) {
                 check_admin_referer( $this->get_unique_affix() . '_skip_activation' );
 
-                $this->skip_connection( null, fs_is_network_admin() );
+                $this->skip_connection( fs_is_network_admin() );
 
                 fs_redirect( $this->get_after_activation_url( 'after_skip_url' ) );
             }
@@ -8733,6 +8731,20 @@
 
         /**
          * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @param bool|int $network_or_blog_id
+         */
+        private function unset_anonymous_mode( $network_or_blog_id = 0 ) {
+            if ( true === $network_or_blog_id ) {
+                unset( $this->_storage->is_anonymous_ms );
+            } else {
+                $this->_storage->remove( 'is_anonymous', true, $network_or_blog_id );
+            }
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
          * @param int    $blog_id    Site ID.
@@ -8895,25 +8907,36 @@
          *
          * @param bool|int|int[] $network_or_blog_ids Since 2.0.0.
          */
-        private function reset_anonymous_mode( $network_or_blog_ids = 0 ) {
+        private function reset_anonymous_mode( $network_or_blog_ids = false ) {
             if ( true === $network_or_blog_ids ) {
-                unset( $this->_storage->is_anonymous_ms );
+                $this->unset_anonymous_mode( true );
 
                 if ( fs_is_network_admin() ) {
                     $this->_is_anonymous = null;
                 }
-            } else {
-                if ( ! is_array( $network_or_blog_ids ) ) {
-                    $network_or_blog_ids = array( $network_or_blog_ids );
+
+                // Rest anonymous mode for all non-delegated sub-sites.
+                $blog_ids = $this->get_non_delegated_blog_ids();
+            }
+            else
+            {
+                if ( false === $network_or_blog_ids ) {
+                    $network_or_blog_ids = 0;
                 }
 
-                foreach ( $network_or_blog_ids as $blog_id ) {
-                    $this->_storage->remove( 'is_anonymous', true, $blog_id );
+                $blog_ids = is_array( $network_or_blog_ids ) ?
+                    $network_or_blog_ids :
+                    array( $network_or_blog_ids );
 
+                foreach ( $blog_ids as $blog_id ) {
                     if ( 0 === $blog_id || get_current_blog_id() == $blog_id ) {
                         $this->_is_anonymous = null;
                     }
                 }
+            }
+
+            foreach ( $blog_ids as $blog_id ) {
+                $this->unset_anonymous_mode( $blog_id );
             }
 
             /**
@@ -8970,34 +8993,42 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.1
          *
-         * @param array|null $sites            Since 2.0.0. Specific sites.
-         * @param bool       $skip_all_network Since 2.0.0. If true, skip connection for all sites.
+         * @param bool|int|int[] $network_or_blog_ids Since 2.5.1
          */
-        function skip_connection( $sites = null, $skip_all_network = false ) {
+        function skip_connection( $network_or_blog_ids = false ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
-            if ( $skip_all_network ) {
+            if ( true === $network_or_blog_ids ) {
                 $this->set_anonymous_mode( true, true );
+
+                if ( fs_is_network_admin() ) {
+                    $this->_is_anonymous = null;
+                }
+
+                // Rest anonymous mode for all non-delegated sub-sites.
+                $blog_ids = $this->get_non_delegated_blog_ids();
             }
+            else
+            {
+                if ( false === $network_or_blog_ids ) {
+                    $network_or_blog_ids = 0;
+                }
 
-            if ( ! $skip_all_network && empty( $sites ) ) {
-                $this->skip_site_connection();
-            } else {
-                if ( $skip_all_network ) {
-                    $this->set_anonymous_mode( true, true );
+                $blog_ids = is_array( $network_or_blog_ids ) ?
+                    $network_or_blog_ids :
+                    array( $network_or_blog_ids );
 
-                    $sites = self::get_sites();
-                    foreach ( $sites as $site ) {
-                        $blog_id = self::get_site_blog_id( $site );
-                        $this->skip_site_connection( $blog_id );
-                    }
-                } else if ( ! empty( $sites ) ) {
-                    foreach ( $sites as $site ) {
-                        $this->skip_site_connection( $site['blog_id'] );
+                foreach ( $blog_ids as $blog_id ) {
+                    if ( 0 === $blog_id || get_current_blog_id() == $blog_id ) {
+                        $this->_is_anonymous = null;
                     }
                 }
+            }
+
+            foreach ( $blog_ids as $blog_id ) {
+                $this->skip_site_connection( $blog_id );
             }
 
             $this->network_upgrade_mode_completed();
@@ -9448,7 +9479,6 @@
                 'is_premium'      => $this->is_premium(),
                 // Special params.
                 'is_active'       => true,
-                'is_disconnected' => $this->is_tracking_prohibited(),
                 'is_uninstalled'  => false,
             ), $override );
         }
@@ -9526,7 +9556,7 @@
 
                     if (
                         ! $this->is_premium() &&
-                        ! $this->is_tracking_allowed( $install, $blog_id )
+                        ! $this->is_tracking_allowed( $blog_id, $install )
                     ) {
                         // Don't send updates regarding opted-out installs.
                         continue;
@@ -9563,7 +9593,6 @@
                     unset( $install_data['uid'] );
                     unset( $install_data['url'] );
 
-                    $install_data['is_disconnected'] = $install->is_disconnected;
                     $install_data['is_active']       = $this->is_active_for_site( $blog_id );
                     $install_data['is_uninstalled']  = $install->is_uninstalled;
 
@@ -10983,14 +11012,33 @@
          *
          * @return bool
          */
-        function is_tracking_allowed( $install = null, $blog_id = null ) {
+        function is_tracking_allowed( $blog_id = null, $install = null ) {
             if ( is_null( $install ) ) {
-                $install = $this->_site;
+                $install = is_null( $blog_id ) ?
+                    $this->_site :
+                    $this->get_install_by_blog_id( $blog_id );
             }
 
             return (
                 is_object( $install ) &&
                 FS_Permission_Manager::instance( $this )->is_homepage_url_tracking_allowed( $blog_id )
+            );
+        }
+
+        /**
+         * Returns TRUE if the user never opted-in or manually opted-out.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since 1.2.1.5
+         *
+         * @param int|null $blog_id
+         *
+         * @return bool
+         */
+        function is_tracking_prohibited( $blog_id = null ) {
+            return (
+                ! $this->is_registered( true ) ||
+                ! $this->is_tracking_allowed( $blog_id )
             );
         }
 
@@ -14126,8 +14174,8 @@
                             }
                         }
 
-                        $all_sites     = self::get_sites();
-                        $pending_sites = array();
+                        $all_sites        = self::get_sites();
+                        $pending_blog_ids = array();
 
                         /**
                          * Check if there are any sites that are not connected, skipped, nor delegated. For every site that falls into that category, if the product is freemium, skip the connection. If the product is premium only, delegate the connection to the site administrator.
@@ -14157,14 +14205,14 @@
                                 continue;
                             }
 
-                            $pending_sites[] = self::get_site_info( $site );
+                            $pending_blog_ids[] = $blog_id;
                         }
 
-                        if ( ! empty( $pending_sites ) ) {
+                        if ( ! empty( $pending_blog_ids ) ) {
                             if ( $fs->is_freemium() && $fs->is_enable_anonymous() ) {
-                                $fs->skip_connection( $pending_sites );
+                                $fs->skip_connection( $pending_blog_ids );
                             } else {
-                                $fs->delegate_connection( $pending_sites );
+                                $fs->delegate_connection( $pending_blog_ids );
                             }
                         }
                     }
@@ -14300,11 +14348,11 @@
                     $this->delegate_connection();
                 } else {
                     if ( ! empty( $sites_by_action['delegate'] ) ) {
-                        $this->delegate_connection( $sites_by_action['delegate'] );
+                        $this->delegate_connection( self::get_sites_blog_ids( $sites_by_action['delegate'] ) );
                     }
 
                     if ( ! empty( $sites_by_action['skip'] ) ) {
-                        $this->skip_connection( $sites_by_action['skip'] );
+                        $this->skip_connection( self::get_sites_blog_ids( $sites_by_action['skip'] ) );
                     }
 
                     if ( empty( $sites_by_action['allow'] ) ) {
@@ -15394,20 +15442,20 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.0.0
          *
-         * @param array|null $sites
+         * @param bool|int[] $all_or_blog_ids
          */
-        private function delegate_connection( $sites = null ) {
+        private function delegate_connection( $all_or_blog_ids = true ) {
             $this->_logger->entrance();
 
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
-            if ( is_null( $sites ) ) {
+            if ( true === $all_or_blog_ids ) {
                 // All sites delegation.
                 $this->_storage->store( 'is_delegated_connection', true, true );
             } else {
                 // Specified sites delegation.
-                foreach ( $sites as $site ) {
-                    $this->delegate_site_connection( $site['blog_id'] );
+                foreach ( $all_or_blog_ids as $blog_id ) {
+                    $this->delegate_site_connection( $blog_id );
                 }
             }
 
@@ -15668,7 +15716,7 @@
          *
          * @param bool|null $is_delegated When `true`, returns only connection delegated blog IDs. When `false`, only non-delegated blog IDs.
          *
-         * @return array
+         * @return int[]
          */
         private function get_blog_ids( $is_delegated = null ) {
             $blog_ids = array();
@@ -15686,6 +15734,16 @@
             }
 
             return $blog_ids;
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @return int[]
+         */
+        private function get_non_delegated_blog_ids() {
+            return $this->get_blog_ids( false );
         }
 
         /**
@@ -15872,6 +15930,23 @@
                 ( is_object( $site ) && isset( $site->userblog_id ) ?
                     $site->userblog_id :
                     $site['blog_id'] );
+        }
+
+        /**
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @param WP_Site[]|array[] $sites
+         *
+         * @return int[]
+         */
+        static function get_sites_blog_ids( $sites ) {
+            $blog_ids = array();
+            foreach ( $sites as $site ) {
+                $blog_ids[] = self::get_site_blog_id( $site );
+            }
+
+            return $blog_ids;
         }
 
         /**
@@ -17859,7 +17934,7 @@
                  * @author Vova Feldman
                  * @since  1.2.1.6
                  */
-                $this->skip_connection( null, fs_is_network_admin() );
+                $this->skip_connection( fs_is_network_admin() );
             } else {
                 // Install must be activated via email since
                 // user with the same email already exist.
@@ -22757,18 +22832,21 @@
                     if ( $is_parent_plugin_action ) {
                         if ( $is_network_action && ! empty( $blog_id ) ) {
                             if ( $this->is_registered( true ) ) {
-                                if ( $this->is_tracking_prohibited() ) {
-                                    if ( $this->toggle_site_tracking( true ) ) {
+                                if ( $this->is_tracking_prohibited( $blog_id ) ) {
+                                    if ( $this->toggle_site_tracking( true, $blog_id ) ) {
                                         $this->_admin_notices->add(
                                             sprintf( $this->get_text_inline( 'Sharing diagnostic data with %s helps to provide functionality that\'s more relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the plugin should be translated and tailored to.', 'opt-out-message-appreciation' ), "<b>{$this->get_plugin_title()}</b>" ),
                                             $this->get_text_inline( 'Thank you!', 'thank-you' )
                                         );
                                     }
                                 } else {
-                                    if ( $this->toggle_site_tracking( false ) ) {
+                                    if ( $this->toggle_site_tracking( false, $blog_id ) ) {
+                                        $install = $this->get_install_by_blog_id( $blog_id );
+
                                         $this->_admin_notices->add(
                                             sprintf(
-                                                $this->get_text_inline( 'Diagnostic data will no longer be sent to %s.', 'opted-out-successfully' ),
+                                                $this->get_text_inline( 'Diagnostic data will no longer be sent from %s to %s.', 'opted-out-successfully' ),
+                                                $install->get_link(),
                                                 "<b>{$this->get_plugin_title()}</b>"
                                             )
                                         );

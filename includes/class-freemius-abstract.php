@@ -65,37 +65,6 @@
 		#endregion
 
 		#----------------------------------------------------------------------------------
-		#region Usage Tracking
-		#----------------------------------------------------------------------------------
-
-		/**
-		 * Returns TRUE if the user opted-in and didn't disconnect (opt-out).
-		 *
-		 * @author Leo Fajardo (@leorw)
-		 * @since 1.2.1.5
-		 *
-		 * @return bool
-		 */
-		abstract function is_tracking_allowed();
-
-		/**
-		 * Returns TRUE if the user never opted-in or manually opted-out.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since 1.2.1.5
-		 *
-		 * @return bool
-		 */
-		function is_tracking_prohibited() {
-			return (
-                ! $this->is_registered( true ) ||
-                ! $this->is_tracking_allowed()
-            );
-		}
-
-		#endregion
-
-		#----------------------------------------------------------------------------------
 		#region Module Type
 		#----------------------------------------------------------------------------------
 

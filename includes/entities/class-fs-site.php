@@ -86,6 +86,8 @@
          * @author Leo Fajardo (@leorw)
          *
          * @since  1.2.1.5
+         * @deprecated Since 2.5.1
+         * @todo Remove after a few releases.
          *
          * @var bool
          */
@@ -223,21 +225,22 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @return bool
-         */
-        function is_tracking_allowed() {
-            return ( true !== $this->is_disconnected );
-        }
-
-        /**
          * @author Edgar Melkonyan
          *
          * @return bool
          */
         function is_beta() {
             return ( isset( $this->is_beta ) && true === $this->is_beta );
+        }
+
+        /**
+         * @return string
+         */
+        function get_link() {
+            return sprintf(
+                '<a target="_blank" href="%s">%s</a>',
+                $this->url,
+                fs_strip_url_protocol( untrailingslashit( $this->url ) )
+            );
         }
     }

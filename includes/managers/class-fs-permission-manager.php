@@ -407,21 +407,21 @@
         #--------------------------------------------------------------------------------
 
         /**
-         * @param bool $default
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_extensions_tracking_allowed( $default = false ) {
-            return $this->is_permission_allowed( self::PERMISSION_EXTENSIONS, $default );
+        function is_extensions_tracking_allowed( $blog_id = null ) {
+            return $this->is_permission_allowed( self::PERMISSION_EXTENSIONS, ! $this->_fs->is_premium(), $blog_id );
         }
 
         /**
-         * @param bool $default
+         * @param int|null $blog_id
          *
          * @return bool
          */
-        function is_essentials_tracking_allowed( $default = false ) {
-            return $this->is_permission_allowed( self::PERMISSION_ESSENTIALS, $default );
+        function is_essentials_tracking_allowed( $blog_id = null ) {
+            return $this->is_permission_allowed( self::PERMISSION_ESSENTIALS, true, $blog_id );
         }
 
         /**
@@ -442,6 +442,22 @@
          */
         function is_homepage_url_tracking_allowed( $blog_id = null ) {
             return $this->is_permission_allowed( $this->get_site_permission_name(), true, $blog_id );
+        }
+
+        /**
+         * @param int|null $blog_id
+         *
+         * @return bool
+         */
+        function update_site_tracking( $is_enabled, $blog_id = null ) {
+            $permissions = $this->get_site_tracking_permission_names();
+
+            $result = true;
+            foreach ( $permissions as $permission ) {
+                $result = ( $result && $this->update_permission_tracking_flag( $permission, $is_enabled, $blog_id ) );
+            }
+
+            return $result;
         }
 
         /**
@@ -490,9 +506,9 @@
          *
          * @return bool `true` if all given permissions are in sync with `$is_allowed`.
          */
-        function are_permissions( $permissions, $is_allowed ) {
+        function are_permissions( $permissions, $is_allowed, $blog_id = null ) {
             foreach ( $permissions as $permission ) {
-                if ( ! $this->is_permission( $permission, $is_allowed )) {
+                if ( ! $this->is_permission( $permission, $is_allowed, $blog_id ) ) {
                     return false;
                 }
             }
@@ -501,17 +517,18 @@
         }
 
         /**
-         * @param string $permission
-         * @param bool   $is_enabled
+         * @param string   $permission
+         * @param bool     $is_enabled
+         * @param int|null $blog_id
          *
          * @return bool `false` if permission not supported or `$is_enabled` is not a boolean.
          */
-        function update_permission_tracking_flag( $permission, $is_enabled ) {
+        function update_permission_tracking_flag( $permission, $is_enabled, $blog_id = null  ) {
             if ( is_bool( $is_enabled ) && self::is_supported_permission( $permission ) ) {
                 $this->_storage->store(
                     "is_{$permission}_tracking_allowed",
                     $is_enabled,
-                    null,
+                    $blog_id,
                     FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
                 );
 
@@ -557,6 +574,18 @@
             return $this->_fs->is_premium() ?
                 self::PERMISSION_ESSENTIALS :
                 self::PERMISSION_SITE;
+        }
+
+        /**
+         * @return string[]
+         */
+        function get_site_tracking_permission_names() {
+            return $this->_fs->is_premium() ?
+                array(
+                    FS_Permission_Manager::PERMISSION_ESSENTIALS,
+                    FS_Permission_Manager::PERMISSION_EVENTS,
+                ) :
+                array( FS_Permission_Manager::PERMISSION_SITE );
         }
 
         #--------------------------------------------------------------------------------
