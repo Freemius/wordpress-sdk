@@ -449,12 +449,14 @@
          *
          * @return bool
          */
-        function update_site_tracking( $is_enabled, $blog_id = null ) {
+        function update_site_tracking( $is_enabled, $blog_id = null, $only_if_not_set = false ) {
             $permissions = $this->get_site_tracking_permission_names();
 
             $result = true;
             foreach ( $permissions as $permission ) {
-                $result = ( $result && $this->update_permission_tracking_flag( $permission, $is_enabled, $blog_id ) );
+                if ( ! $only_if_not_set || $this->is_permission_set( $permission, $blog_id ) ) {
+                    $result = ( $result && $this->update_permission_tracking_flag( $permission, $is_enabled, $blog_id ) );
+                }
             }
 
             return $result;
@@ -498,6 +500,25 @@
                         FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
                     )
                 ) );
+        }
+
+        /**
+         * @param string   $permission
+         * @param int|null $blog_id
+         *
+         * @return bool
+         */
+        function is_permission_set( $permission, $blog_id = null ) {
+            $tag = "is_{$permission}_tracking_allowed";
+
+            $permission = $this->_storage->get(
+                $tag,
+                null,
+                $blog_id,
+                FS_Storage::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED
+            );
+
+            return is_bool( $permission );
         }
 
         /**

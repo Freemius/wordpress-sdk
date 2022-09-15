@@ -21,7 +21,9 @@
                 if ( true === $install->is_disconnected ) {
                     $permission_manager->update_site_tracking(
                         false,
-                        (0 == $blog_id) ? null : $blog_id
+                        (0 == $blog_id) ? null : $blog_id,
+                        // Update only if permissions are not yet set.
+                        true
                     );
                 }
             }
