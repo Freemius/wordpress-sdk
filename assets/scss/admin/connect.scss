@@ -25,6 +25,7 @@ $box_border_radius: 3px;
         border-radius: $box_border_radius;
         overflow: hidden;
         padding-top: 40px;
+        background: #f0f0f1;
         //position: relative;
         //top: -40px;
     }
@@ -467,7 +468,7 @@ $box_border_radius: 3px;
         text-align: left;
         display: inline-block;
         vertical-align: middle;
-        margin-top: 52px;
+        margin-top: 0;
         margin-bottom: 20px;
 
         .fs-terms
