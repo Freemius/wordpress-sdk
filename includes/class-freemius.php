@@ -15607,25 +15607,7 @@
                 'offset'   => $offset,
             );
 
-            if ( function_exists( 'get_sites' ) ) {
-                // For WP 4.6 and above.
-                return get_sites( $args );
-            } else if ( function_exists( 'wp_' . 'get_sites' ) ) {
-                // For WP 3.7 to WP 4.5.
-                /**
-                 * This is a hack suggested previously proposed by the TRT. Our SDK is compliant with older WP versions and we'd like to keep it that way.
-                 *
-                 * @todo Remove this hack once this false-positive error is removed from the Theme Sniffer.
-                 *
-                 * @since 2.3.3
-                 * @author Vova Feldman (@svovaf)
-                 */
-                $fn = 'wp_' . 'get_sites';
-                return $fn( $args );
-            } else {
-                // For WP 3.6 and below.
-                return get_blog_list( 0, 'all' );
-            }
+            return get_sites( $args );
         }
 
         /**
