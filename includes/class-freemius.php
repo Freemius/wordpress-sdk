@@ -938,14 +938,28 @@
          * @param string $sdk_version
          */
         function _sdk_version_update( $sdk_prev_version, $sdk_version ) {
-            /**
-             * @since 1.1.7.3 Fixed unwanted connectivity test cleanup.
-             */
             if ( empty( $sdk_prev_version ) ) {
                 return;
             }
 
-            
+            if (
+                 version_compare( $sdk_prev_version, '2.5.1', '<' ) &&
+                 version_compare( $sdk_version, '2.5.1', '>=' )
+            ) {
+                if ( $this->is_registered() ) {
+                    /**
+                     * Migrate to new permissions layer.
+                     */
+                    require_once WP_FS__DIR_INCLUDES . '/supplements/fs-migration-2.5.1.php';
+
+                    $install_by_blog_id = is_multisite() ?
+                        $this->get_blog_install_map() :
+                        array( 0 => $this->_site );
+
+                    fs_migrate_251( $this, $install_by_blog_id );
+                }
+            }
+
         }
 
         /**
