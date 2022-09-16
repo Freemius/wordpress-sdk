@@ -1910,7 +1910,12 @@
                 return;
             }
 
-            $this->_add_tracking_links();
+            if (
+                ( self::is_plugins_page() && $this->is_plugin() ) ||
+                ( self::is_themes_page() && $this->is_theme() )
+            ) {
+                $this->_add_tracking_links();
+            }
 
             if ( self::is_plugins_page() && $this->is_plugin() ) {
                 $this->hook_plugin_action_links();
