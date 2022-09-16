@@ -472,13 +472,12 @@
                 // Reset loading mode.
                 $primaryCta.html(primaryCtaLabel);
                 $primaryCta.prop('disabled', false);
-                $(document.body).css({'cursor': 'auto'});
-                $('.fs-loading').removeClass('fs-loading');
+                $( '.fs-loading' ).removeClass( 'fs-loading' );
 
                 console.log('resetLoadingMode - Primary button was enabled');
             },
 			setLoadingMode = function () {
-				$(document.body).css({'cursor': 'wait'});
+				$(document.body).addClass( 'fs-loading' );
 			};
 
 		$('.fs-actions .button').on('click', function () {
@@ -816,6 +815,12 @@
 			return true;
 		});
 
+        $( '#fs_connect .fs-permissions .fs-switch' ).on( 'click', function () {
+            $( this )
+                .toggleClass( 'fs-on' )
+                .toggleClass( 'fs-off' );
+        });
+
 		$primaryCta.on('click', function () {
 			console.log('Primary button was clicked');
 
@@ -831,8 +836,6 @@
 
 			return false;
 		});
-
-		<?php $permission_manager->require_permissions_js() ?>
 
 		if (requireLicenseKey) {
 			/**

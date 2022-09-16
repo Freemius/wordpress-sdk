@@ -48,9 +48,9 @@
 <div class="fs-permissions-section fs-<?php echo $permission_group[ 'id' ] ?>-permissions">
     <div>
         <div class="fs-permissions-section--header">
-            <a class="fs-opt-out-button"
+            <a class="fs-group-opt-out-button"
                 data-type="<?php echo $permission_group['type'] ?>"
-                data-group="<?php echo $permission_group[ 'id' ] ?>"
+                data-group-id="<?php echo $permission_group[ 'id' ] ?>"
                 data-is-enabled="<?php echo $is_enabled ? 'true' : 'false' ?>"
                 href="#"><?php echo esc_html( $is_enabled ? $opt_out_text : $opt_in_text ) ?></a>
             <span class="fs-permissions-section--header-title"><?php echo $permission_group[ 'title' ] ?></span>

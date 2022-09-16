@@ -629,16 +629,7 @@
             fs_require_template( 'connect/permissions-group.php', $permissions_group );
         }
 
-        /**
-         * @param bool $is_inline
-         *
-         * @return void
-         */
-        function require_permissions_js( $is_inline = true ) {
-            $params = array(
-                'inline' => $is_inline,
-            );
-
+        function require_permissions_js() {
             fs_require_once_template( 'js/permissions.php', $params );
         }
 
