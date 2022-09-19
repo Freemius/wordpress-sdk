@@ -152,6 +152,10 @@
 	if ( ! function_exists( 'fs_get_ip' ) ) {
 		/**
 		 * Get client IP.
+         *
+         * @deprecated Since 2.5.1
+         *
+         * @todo Remove this method in the future.
 		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.2
@@ -159,22 +163,6 @@
 		 * @return string|null
 		 */
 		function fs_get_ip() {
-			$fields = array(
-				'HTTP_CF_CONNECTING_IP',
-				'HTTP_CLIENT_IP',
-				'HTTP_X_FORWARDED_FOR',
-				'HTTP_X_FORWARDED',
-				'HTTP_FORWARDED_FOR',
-				'HTTP_FORWARDED',
-				'REMOTE_ADDR',
-			);
-
-			foreach ( $fields as $ip_field ) {
-				if ( ! empty( $_SERVER[ $ip_field ] ) ) {
-					return $_SERVER[ $ip_field ];
-				}
-			}
-
 			return null;
 		}
 	}
