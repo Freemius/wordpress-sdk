@@ -59,6 +59,11 @@
     $show_upgrade           = ( ! $is_whitelabeled && $has_paid_plan && ! $is_paying && ! $is_paid_trial );
     $trial_plan             = $fs->get_trial_plan();
 
+    $is_plan_change_supported = (
+        ! $fs->is_single_plan() &&
+        ! $fs->apply_filters( 'hide_plan_change', false )
+    );
+
 	if ( $has_paid_plan ) {
         $fs->_add_license_activation_dialog_box();
 	}
@@ -339,7 +344,7 @@
                                                 </li>
                                                 <li>&nbsp;&bull;&nbsp;</li>
                                             <?php endif ?>
-                                            <?php if ( ! $fs->is_single_plan() ) : ?>
+                                            <?php if ( $is_plan_change_supported ) : ?>
                                                 <li>
                                                     <a href="<?php echo $fs->get_upgrade_url() ?>"><i
                                                             class="dashicons dashicons-grid-view"></i> <?php echo esc_html( $change_plan_text ) ?></a>
@@ -571,7 +576,7 @@
 																	<input type="hidden" name="fs_action"
 																	       value="<?php echo $fs->get_unique_affix() ?>_sync_license">
 																	<?php wp_nonce_field( $fs->get_unique_affix() . '_sync_license' ) ?>
-																	<?php if ( $show_upgrade || ! $fs->is_single_plan() ) : ?>
+																	<?php if ( $show_upgrade || $is_plan_change_supported ) : ?>
 																	<a href="<?php echo $fs->get_upgrade_url() ?>"
 																	   class="button<?php
 																		   echo $show_upgrade ?
