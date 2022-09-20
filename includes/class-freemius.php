@@ -17423,7 +17423,6 @@
             $params = array_merge( $versions, array(
                 'user_firstname'    => $current_user->user_firstname,
                 'user_lastname'     => $current_user->user_lastname,
-                'user_nickname'                => $current_user->user_nicename,
                 'user_email'        => $current_user->user_email,
                 'plugin_slug'       => $this->_slug,
                 'plugin_id'         => $this->get_id(),
