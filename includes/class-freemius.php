@@ -17468,6 +17468,7 @@
                  ! empty( $this->_storage->pending_license_key )
             ) {
                 $params['license_key'] = $this->_storage->pending_license_key;
+                $params['is_localhost'] = WP_FS__IS_LOCALHOST;
             }
 
             if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
@@ -17582,6 +17583,7 @@
             if ( is_string( $license_key ) ) {
                 $filtered_license_key  = $this->apply_filters( 'license_key', $license_key );
                 $params['license_key'] = $filtered_license_key;
+                $params['is_localhost'] = WP_FS__IS_LOCALHOST;
             } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
                 $params['trial_plan_id'] = $trial_plan_id;
             }
