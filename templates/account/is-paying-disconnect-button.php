@@ -51,8 +51,8 @@
     <input type="hidden" name="fs_action" value="delete_account">
     <?php wp_nonce_field( 'delete_account' ) ?>
 
-    <button class="fs-button-inline" id="<?php echo esc_attr( $button_id ); ?>">
+    <a href="#" class="fs-button-inline" id="<?php echo esc_attr( $button_id ); ?>">
         <i class="dashicons dashicons-no"></i>
         <?php fs_esc_html_echo_inline( 'Disconnect', 'disconnect', $slug ) ?>
-    </button>
+    </a>
 </form>
