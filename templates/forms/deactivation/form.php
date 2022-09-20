@@ -366,12 +366,12 @@ HTML;
 					return;
 				}
 
-                var snoozePeriod = 0;
-                  
-                if ( <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID ) {
+                var snoozePeriod = 0,
+                    shouldSnooze = $feedbackSnooze.find( '.feedback-from-snooze-checkbox' ).is( ':checked' );
+
+                if ( shouldSnooze && <?php echo Freemius::REASON_TEMPORARY_DEACTIVATION ?> == selectedReasonID ) {
                     snoozePeriod = parseInt($feedbackSnooze.find('select').val(), 10);
                 }
-                  
 
 				$.ajax({
 					url       : ajaxurl,
