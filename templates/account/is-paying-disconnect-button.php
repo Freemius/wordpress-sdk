@@ -35,6 +35,8 @@
     );
 
     $button_id = "fs_disconnect_button_{$fs->get_id()}";
+
+    $website_link = sprintf( '<a href="#" tabindex="-1">%s</a>', fs_strip_url_protocol( untrailingslashit( Freemius::get_unfiltered_site_url() ) ) );
 ?>
 <script type="text/javascript">
     // Wrap in a IFFE to prevent leaking global variables.
@@ -69,13 +71,11 @@
             <?php if ( ! is_object( $license ) ) : ?>
             <p><?php echo
                     // translators: %1$s is replaced with the website's homepage address, %2$s is replaced with the plugin name.
-                    sprintf( esc_html( $fs->get_text_inline( 'By disconnecting the website, previously shared diagnostic data about %1$s will be deleted and no longer visible to %2$s.', 'disconnect-intro-paid' ) ), sprintf( '<a href="#" tabindex="-1">%s</a>', fs_strip_url_protocol( untrailingslashit( home_url() ) ) ), '<b>' . $fs->get_plugin_title() . '</b>'
-                ) ?></p>
+                    sprintf( esc_html( $fs->get_text_inline( 'By disconnecting the website, previously shared diagnostic data about %1$s will be deleted and no longer visible to %2$s.', 'disconnect-intro-paid' ) ), $website_link, '<b>' . $fs->get_plugin_title() . '</b>' ) ?></p>
             <?php else : ?>
                 <p><?php echo
                         // translators: %s is replaced with the website's homepage address.
-                        sprintf( esc_html( $fs->get_text_inline( 'Disconnecting the website will permanently remove %s from your User Dashboard\'s account.', 'disconnect-intro-paid' ) ), sprintf( '<a href="#" tabindex="-1">%s</a>', fs_strip_url_protocol( untrailingslashit( home_url() ) ) )
-                        ) ?></p>
+                        sprintf( esc_html( $fs->get_text_inline( 'Disconnecting the website will permanently remove %s from your User Dashboard\'s account.', 'disconnect-intro-paid' ) ), $website_link ) ?></p>
             <?php endif ?>
 
             <?php if ( $has_active_subscription ) : ?>
