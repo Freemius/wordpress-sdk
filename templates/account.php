@@ -250,10 +250,12 @@
     $is_active_bundle_subscription = ( is_object( $bundle_subscription ) && $bundle_subscription->is_active() );
 
     $available_license = ( $fs->is_free_plan() && ! fs_is_network_admin() ) ?
-        $fs->_get_available_premium_license($site->is_localhost()) :
-        false;
+        $fs->_get_available_premium_license( $site->is_localhost() ) :
+        null;
 
-    $paid_plan = is_object( $available_license ) ? $fs->_get_plan_by_id( $available_license->plan_id ) : null;
+    $available_license_paid_plan = is_object( $available_license ) ?
+        $fs->_get_plan_by_id( $available_license->plan_id ) :
+        null;
 ?>
 	<div class="wrap fs-section">
 		<?php if ( ! $has_tabs && ! $fs->apply_filters( 'hide_account_tabs', false ) ) : ?>
@@ -302,9 +304,9 @@
                                             <li>
                                                 <?php
                                                     $view_params = array(
-                                                        'freemius'           => $fs,
-                                                        'paid_plan_title' => $paid_plan ? $paid_plan->title : null,
-                                                        'slug'               => $slug,
+                                                        'freemius'          => $fs,
+                                                        'license'           => $available_license,
+                                                        'license_paid_plan' => $available_license_paid_plan,
                                                     );
                                                     fs_require_template( 'account/is-paying-disconnect-button.php', $view_params ); ?>
                                             </li>
@@ -558,7 +560,7 @@
                                                                     'freemius'     => $fs,
                                                                     'slug'         => $slug,
                                                                     'license'      => $available_license,
-                                                                    'plan'         => $paid_plan,
+                                                                    'plan'         => $available_license_paid_plan,
                                                                     'is_localhost' => $site->is_localhost(),
                                                                     'install_id'   => $site->id,
                                                                     'class'        => 'button-primary',
