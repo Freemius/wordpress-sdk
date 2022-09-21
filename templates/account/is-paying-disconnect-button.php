@@ -88,7 +88,7 @@
             <p><?php echo esc_html( $fs->get_text_inline( 'Are you sure you would like to proceed with the disconnection?', 'disconnect-confirm' ) ) ?></p>
         </div>
         <div class="fs-modal-footer">
-            <button class="button button-primary warn" tabindex="2"><?php echo $fs->esc_html_inline( 'Yes', 'yes' ) . ' - ' .  $fs->esc_html_inline( 'Disconnect', 'disconnect' ) ?></button>
+            <button class="button button-primary<?php if ( is_object( $license ) ) : ?> warn<?php endif ?>" tabindex="2"><?php echo $fs->esc_html_inline( 'Yes', 'yes' ) . ' - ' .  $fs->esc_html_inline( 'Disconnect', 'disconnect' ) ?></button>
             <button class="button button-secondary button-close" tabindex="1"><?php echo esc_html( $fs->get_text_inline( 'Cancel', 'cancel' ) ) ?></button>
         </div>
     </div>
