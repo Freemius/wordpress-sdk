@@ -294,7 +294,7 @@
                                         <li>&nbsp;&bull;&nbsp;</li>
                                     <?php endif ?>
 									<?php if ( $show_billing ) : ?>
-										<li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></li>
+                                        <li><a href="#fs_billing"><i class="dashicons dashicons-portfolio"></i> <?php fs_esc_html_echo_inline( 'Billing & Invoices', 'billing-invoices', $slug ) ?></a></li>
 										<li>&nbsp;&bull;&nbsp;</li>
 									<?php endif ?>
                                     <?php if ( ! $is_whitelabeled ) : ?>
