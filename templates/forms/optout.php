@@ -182,7 +182,7 @@
 			    var $actionLink = $( actionLinkSelector );
 
 				$.ajax({
-					url: ajaxurl,
+					url: <?php echo Freemius::ajax_url() ?>,
 					method: 'POST',
 					data: {
 						action   : ( 'stop_tracking' == action ?
@@ -246,7 +246,7 @@
                 $switchFeedback.html( '<i class="fs-ajax-spinner"></i>' );
 
                 $.ajax({
-                    url: ajaxurl,
+                    url: <?php echo Freemius::ajax_url() ?>,
                     method: 'POST',
                     data: {
                         action    : '<?php echo $fs->get_ajax_action( 'update_tracking_permission' ) ?>',

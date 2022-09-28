@@ -954,7 +954,7 @@
 
                 if ( ! isChecked || confirm( '<?php echo $confirmation_message ?>' ) ) {
                     $.ajax( {
-                        url   : ajaxurl,
+                        url   : <?php echo Freemius::ajax_url() ?>,
                         method: 'POST',
                         data  : {
                             action   : '<?php echo $fs->get_ajax_action( 'set_beta_mode' ) ?>',
@@ -1097,7 +1097,7 @@
                 var $toggleLink = $( this );
 
                 $.ajax( {
-                    url   : ajaxurl,
+                    url   : <?php echo Freemius::ajax_url() ?>,
                     method: 'POST',
                     data  : {
                         action   : '<?php echo $fs->get_ajax_action( 'toggle_whitelabel_mode' ) ?>',
