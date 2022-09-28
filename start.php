@@ -68,7 +68,11 @@
 
 	if ( ! isset( $fs_active_plugins ) ) {
 		// Load all Freemius powered active plugins.
-		$fs_active_plugins = get_option( 'fs_active_plugins', new stdClass() );
+		$fs_active_plugins = get_option( 'fs_active_plugins' );
+
+        if ( ! is_object( $fs_active_plugins ) ) {
+            $fs_active_plugins = new stdClass();
+        }
 
 		if ( ! isset( $fs_active_plugins->plugins ) ) {
 			$fs_active_plugins->plugins = array();
