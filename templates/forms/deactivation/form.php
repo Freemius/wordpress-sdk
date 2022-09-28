@@ -180,7 +180,7 @@ HTML;
                 ?>
 
                 $.ajax({
-                    url       : ajaxurl,
+                    url       : <?php echo Freemius::ajax_url() ?>,
                     method    : 'POST',
                     data      : {
                         action   : '<?php echo $fs->get_ajax_action( 'cancel_subscription_or_trial' ) ?>',
@@ -347,7 +347,7 @@ HTML;
                         window.location.href = redirectLink;
                     } else {
                         $.ajax({
-                            url       : ajaxurl,
+                            url       : <?php echo Freemius::ajax_url() ?>,
                             method    : 'POST',
                             data      : {
                                 action   : '<?php echo $fs->get_ajax_action( 'delete_theme_update_data' ) ?>',
@@ -374,7 +374,7 @@ HTML;
                 }
 
 				$.ajax({
-					url       : ajaxurl,
+					url       : <?php echo Freemius::ajax_url() ?>,
 					method    : 'POST',
 					data      : {
 						action       : '<?php echo $fs->get_ajax_action( 'submit_uninstall_reason' ) ?>',

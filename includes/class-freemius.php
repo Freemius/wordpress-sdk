@@ -1349,46 +1349,6 @@
         }
 
         /**
-         * Add special parameter to WP admin AJAX calls so when we
-         * process AJAX calls we can identify its source properly.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since  2.0.0
-         */
-        static function _enrich_ajax_url() {
-            $admin_param = is_network_admin() ?
-                '_fs_network_admin' :
-                '_fs_blog_admin';
-            ?>
-            <script type="text/javascript">
-                (function ($) {
-                    $(document).ajaxSend(function (event, jqxhr, settings) {
-                        if (settings.url &&
-                            -1 < settings.url.indexOf('admin-ajax.php') &&
-                            ! ( settings.url.indexOf( '<?php echo $admin_param ?>' ) > 0 )
-                        ) {
-                            if (
-                                'string' === typeof settings.data &&
-                                settings.data.indexOf( 'action=heartbeat' ) > 0
-                            ) {
-                                return;
-                            }
-
-                            if (settings.url.indexOf('?') > 0) {
-                                settings.url += '&';
-                            } else {
-                                settings.url += '?';
-                            }
-
-                            settings.url += '<?php echo $admin_param ?>=true';
-                        }
-                    });
-                })(jQuery);
-            </script>
-            <?php
-        }
-
-        /**
          * Opens the support forum subemenu item in a new browser page.
          *
          * @author Vova Feldman (@svovaf)
@@ -3445,7 +3405,6 @@
             $clone_manager = FS_Clone_Manager::instance();
             add_action( 'init', array( $clone_manager, '_init' ) );
 
-            add_action( 'admin_footer', array( 'Freemius', '_enrich_ajax_url' ) );
             add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
 
             if ( self::is_plugins_page() || self::is_themes_page() ) {
@@ -19903,6 +19862,33 @@
             }
 
             wp_send_json( $result );
+        }
+
+        /**
+         * Returns an AJAX URL with a special extra param to indicate whether the request was triggered from the network admin or blog admin.
+         *
+         * @author Vova Feldman (@svovaf)
+         * @since  2.5.1
+         *
+         * @param string $wrap_with By default, returns the AJAX URL wrapped with single quotes.
+         *
+         * @return string
+         */
+        static function ajax_url( $wrap_with = "'") {
+            $path = 'admin-ajax.php';
+
+            if ( fs_is_network_admin() ) {
+                $url        = network_admin_url( $path );
+                $param_name = '_fs_network_admin';
+            } else {
+                $url        = admin_url( $path );
+                $param_name = '_fs_blog_admin';
+            }
+
+            $url .= ( false === strpos( $url, '?' ) ) ? '?' : '&';
+            $url .= "{$param_name}=true";
+
+            return "{$wrap_with}{$url}{$wrap_with}";
         }
 
         /**

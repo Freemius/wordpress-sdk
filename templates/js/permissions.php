@@ -127,9 +127,9 @@
                         $permissionsContainer = $( '#fs_opt_out_' + pluginID );
 
                     $.ajax({
-                        url: ajaxurl,
-                        method: 'POST',
-                        data: {
+                        url     : <?php echo Freemius::ajax_url() ?>,
+                        method  : 'POST',
+                        data    : {
                             action          : $permissionsContainer.data( 'action' ),
                             security        : $permissionsContainer.data( 'security' ),
                             module_id       : pluginID,
@@ -137,7 +137,7 @@
                             permissions     : permissions.join(','),
                             is_enabled      : isEnabled
                         },
-                        success: function ( resultObj ) {
+                        success : function ( resultObj ) {
                             if ( resultObj.success ) {
                                 if (success) {
                                     success( resultObj );
@@ -148,7 +148,7 @@
                                 }
                             }
                         },
-                        error: failure,
+                        error   : failure,
                         complete: function () {
                             if (complete) {
                                 complete();
