@@ -8079,7 +8079,7 @@
             FS_Api::clear_cache();
 
             $is_premium_version_activation = $this->is_plugin() ?
-                ( current_filter() === ( 'activate_' . $this->premium_plugin_basename() ) ) :
+                ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) ) :
                 $this->is_premium();
 
             if ( $is_premium_version_activation && $this->is_pending_activation() ) {
