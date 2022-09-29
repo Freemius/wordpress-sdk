@@ -151,19 +151,19 @@
 
 	if ( ! function_exists( 'fs_get_ip' ) ) {
 		/**
-		 * Get client IP.
+		 * Get server IP.
          *
-         * @deprecated Since 2.5.1
+         * @since 2.5.1 This method returns the server IP.
          *
-         * @todo Remove this method in the future.
-		 *
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.1.2
 		 *
 		 * @return string|null
 		 */
 		function fs_get_ip() {
-			return null;
+			return empty( $_SERVER[ 'SERVER_ADDR' ] ) ?
+                null :
+                $_SERVER[ 'SERVER_ADDR' ];
 		}
 	}
 

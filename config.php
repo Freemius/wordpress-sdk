@@ -167,7 +167,7 @@
     }
 
     if ( ! defined( 'WP_FS__REMOTE_ADDR' ) ) {
-        define( 'WP_FS__REMOTE_ADDR', empty( $_SERVER[ 'SERVER_ADDR' ] ) ? null : $_SERVER[ 'SERVER_ADDR' ] );
+        define( 'WP_FS__REMOTE_ADDR', fs_get_ip() );
     }
 
     if ( ! defined( 'WP_FS__IS_LOCALHOST' ) ) {
