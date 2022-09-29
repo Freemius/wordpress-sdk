@@ -17433,9 +17433,10 @@
                     'account',
                     array( 'fs_action' => 'sync_user' )
                 ), 'sync_user' ),
-                'is_premium'                   => $this->is_premium(),
-                'is_active'                    => true,
-                'is_uninstalled'               => false,
+                'is_premium'        => $this->is_premium(),
+                'is_active'         => true,
+                'is_uninstalled'    => false,
+                'is_localhost'      => WP_FS__IS_LOCALHOST,
             ) );
 
             if ( $this->is_addon() ) {
@@ -17468,7 +17469,6 @@
                  ! empty( $this->_storage->pending_license_key )
             ) {
                 $params['license_key'] = $this->_storage->pending_license_key;
-                $params['is_localhost'] = WP_FS__IS_LOCALHOST;
             }
 
             if ( WP_FS__SKIP_EMAIL_ACTIVATION && $this->has_secret_key() ) {
@@ -17583,7 +17583,6 @@
             if ( is_string( $license_key ) ) {
                 $filtered_license_key  = $this->apply_filters( 'license_key', $license_key );
                 $params['license_key'] = $filtered_license_key;
-                $params['is_localhost'] = WP_FS__IS_LOCALHOST;
             } else if ( FS_Plugin_Plan::is_valid_id( $trial_plan_id ) ) {
                 $params['trial_plan_id'] = $trial_plan_id;
             }
