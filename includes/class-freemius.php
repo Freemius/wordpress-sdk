@@ -19919,16 +19919,13 @@
          * @return string
          */
         static function ajax_url( $wrap_with = "'") {
-            $path = 'admin-ajax.php';
-
             if ( fs_is_network_admin() ) {
-                $url        = network_admin_url( $path );
                 $param_name = '_fs_network_admin';
             } else {
-                $url        = admin_url( $path );
                 $param_name = '_fs_blog_admin';
             }
 
+            $url = admin_url( 'admin-ajax.php', 'relative' );
             $url .= ( false === strpos( $url, '?' ) ) ? '?' : '&';
             $url .= "{$param_name}=true";
 
