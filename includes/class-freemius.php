@@ -6486,6 +6486,18 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.0
+         */
+        private function clear_pending_activation_mode() {
+            // Remove the pending activation sticky notice (if it still exists).
+            $this->_admin_notices->remove_sticky( 'activation_pending' );
+
+            // Clear the plugin's pending activation mode.
+            unset( $this->_storage->is_pending_activation );
+        }
+
+        /**
          * Check if plugin must be WordPress.org compliant.
          *
          * @since 1.0.7
@@ -7879,6 +7891,10 @@
             $is_premium_version_activation = $this->is_plugin() ?
                 ( current_filter() !== ( 'activate_' . $this->_free_plugin_basename ) ) :
                 $this->is_premium();
+
+            if ( $is_premium_version_activation && $this->is_pending_activation() ) {
+                $this->clear_pending_activation_mode();
+            }
 
             $this->_logger->info( 'Activating ' . ( $is_premium_version_activation ? 'premium' : 'free' ) . ' plugin version.' );
 
@@ -17315,7 +17331,6 @@
                 'user_firstname'    => $current_user->user_firstname,
                 'user_lastname'     => $current_user->user_lastname,
                 'user_email'        => $current_user->user_email,
-                'user_ip'           => WP_FS__REMOTE_ADDR,
                 'plugin_slug'       => $this->_slug,
                 'plugin_id'         => $this->get_id(),
                 'plugin_public_key' => $this->get_public_key(),
@@ -17328,6 +17343,7 @@
                 'is_premium'        => $this->is_premium(),
                 'is_active'         => true,
                 'is_uninstalled'    => false,
+                'is_localhost'      => WP_FS__IS_LOCALHOST,
             ) );
 
             if ( $this->is_addon() ) {
@@ -17742,11 +17758,7 @@
             $this->_admin_notices->remove_sticky( 'connect_account' );
 
             if ( $this->is_pending_activation() || ! $this->has_settings_menu() ) {
-                // Remove pending activation sticky notice (if still exist).
-                $this->_admin_notices->remove_sticky( 'activation_pending' );
-
-                // Remove plugin from pending activation mode.
-                unset( $this->_storage->is_pending_activation );
+                $this->clear_pending_activation_mode();
 
                 if ( ! $this->is_paying_or_trial() ) {
                     $this->_admin_notices->add_sticky(
@@ -18684,9 +18696,7 @@
             $parent_fs->_admin_notices->remove_sticky( 'connect_account' );
 
             if ( $parent_fs->is_pending_activation() ) {
-                $parent_fs->_admin_notices->remove_sticky( 'activation_pending' );
-
-                unset( $parent_fs->_storage->is_pending_activation );
+                $parent_fs->clear_pending_activation_mode();
             }
 
             // Get user information based on parent's plugin.
