@@ -308,7 +308,7 @@
                                                         'license'           => $available_license,
                                                         'license_paid_plan' => $available_license_paid_plan,
                                                     );
-                                                    fs_require_template( 'account/is-paying-disconnect-button.php', $view_params ); ?>
+                                                    fs_require_template( 'account/partials/disconnect-button.php', $view_params ); ?>
                                             </li>
                                             <li>&nbsp;&bull;&nbsp;</li>
                                         <?php endif ?>
