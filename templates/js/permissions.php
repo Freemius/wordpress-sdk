@@ -474,7 +474,7 @@
 
                         $optOutButton.after( $switchFeedback )
 
-                        setUpdatingLabel( $optOutButton, isEnabled );
+                        setUpdatingLabel( $optOutButton, ! isEnabled );
 
                         FS.Permissions.updatePermissions(
                             pluginID,
