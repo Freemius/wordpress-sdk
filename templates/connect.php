@@ -209,7 +209,7 @@
 					} else {
 						$filter                = 'connect_message';
 						$default_optin_message = $is_gdpr_required ?
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive non-sensitive info sharing.', 'connect-message', $slug) :
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug) :
 							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug);
 
 						if ( $fs->is_plugin_update() ) {
