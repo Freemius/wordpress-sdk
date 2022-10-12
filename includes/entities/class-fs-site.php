@@ -234,15 +234,4 @@
         function is_beta() {
             return ( isset( $this->is_beta ) && true === $this->is_beta );
         }
-
-        /**
-         * @return string
-         */
-        function get_link() {
-            return sprintf(
-                '<a target="_blank" href="%s">%s</a>',
-                $this->url,
-                fs_strip_url_protocol( untrailingslashit( $this->url ) )
-            );
-        }
     }
