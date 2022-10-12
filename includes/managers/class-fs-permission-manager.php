@@ -454,7 +454,7 @@
 
             $result = true;
             foreach ( $permissions as $permission ) {
-                if ( ! $only_if_not_set || $this->is_permission_set( $permission, $blog_id ) ) {
+                if ( ! $only_if_not_set || ! $this->is_permission_set( $permission, $blog_id ) ) {
                     $result = ( $result && $this->update_permission_tracking_flag( $permission, $is_enabled, $blog_id ) );
                 }
             }
