@@ -237,7 +237,8 @@
 								esc_html( $default_optin_message ),
 								'<b>' . esc_html( $fs->get_plugin_name() ) . '</b>',
 								'<b>' . $current_user->user_login . '</b>',
-								'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>'
+								'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>',
+                                $freemius_link
 							),
 							$first_name,
 							$fs->get_plugin_name(),
