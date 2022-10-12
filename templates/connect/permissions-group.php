@@ -45,17 +45,23 @@
         $is_enabled = ( isset($permission_group['is_enabled']) && true === $permission_group['is_enabled'] );
     }
 ?>
-<div class="fs-permissions-section fs-<?php echo $permission_group[ 'id' ] ?>-permissions">
+<div class="fs-permissions-section fs-<?php echo esc_attr( $permission_group[ 'id' ] ) ?>-permissions">
     <div>
         <div class="fs-permissions-section--header">
             <a class="fs-group-opt-out-button"
-                data-type="<?php echo $permission_group['type'] ?>"
-                data-group-id="<?php echo $permission_group[ 'id' ] ?>"
+                data-type="<?php echo esc_attr( $permission_group['type'] ) ?>"
+                data-group-id="<?php echo esc_attr( $permission_group[ 'id' ] ) ?>"
                 data-is-enabled="<?php echo $is_enabled ? 'true' : 'false' ?>"
                 href="#"><?php echo esc_html( $is_enabled ? $opt_out_text : $opt_in_text ) ?></a>
-            <span class="fs-permissions-section--header-title"><?php echo $permission_group[ 'title' ] ?></span>
+            <span class="fs-permissions-section--header-title"><?php
+                    // The title is already HTML-escaped.
+                    echo $permission_group[ 'title' ]
+                ?></span>
         </div>
-        <p class="fs-permissions-section--desc"><?php echo $permission_group['desc'] ?></p></div>
+        <p class="fs-permissions-section--desc"><?php
+                // The description is already HTML-escaped.
+                echo $permission_group['desc']
+            ?></p></div>
     <ul>
         <?php
             foreach ($permission_group['permissions'] as $permission) {
