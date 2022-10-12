@@ -6699,8 +6699,9 @@
                     // Try to run cron from the main network blog.
                     $install = $this->get_install_by_blog_id( $network_install_blog_id );
 
-                    if ( is_object( $install ) &&
-                         ( $this->is_premium() || $this->is_tracking_allowed( $network_install_blog_id, $install ) )
+                    if (
+                        is_object( $install ) &&
+                        $this->is_tracking_allowed( $network_install_blog_id, $install )
                     ) {
                         return $network_install_blog_id;
                     }
@@ -6712,7 +6713,7 @@
             foreach ( $installs as $blog_id => $install ) {
                 if ( $except_blog_id != $blog_id &&
                      self::is_site_active( $blog_id ) &&
-                     ( $this->is_premium() || $this->is_tracking_allowed( $blog_id, $install ) )
+                     $this->is_tracking_allowed( $blog_id, $install )
                 ) {
                     return $blog_id;
                 }
@@ -6903,7 +6904,7 @@
             } else {
                 $installs = $this->get_blog_install_map();
                 foreach ( $installs as $blog_id => $install ) {
-                    if ( $this->is_premium() || $install->is_tracking_allowed() ) {
+                    if ( $this->is_tracking_allowed( $blog_id, $install ) ) {
                         if ( ! isset( $users_2_blog_ids[ $install->user_id ] ) ) {
                             $users_2_blog_ids[ $install->user_id ] = array();
                         }
@@ -9596,10 +9597,7 @@
                         continue;
                     }
 
-                    if (
-                        ! $this->is_premium() &&
-                        ! $this->is_tracking_allowed( $blog_id, $install )
-                    ) {
+                    if ( ! $this->is_tracking_allowed( $blog_id, $install ) ) {
                         // Don't send updates regarding opted-out installs.
                         continue;
                     }
@@ -22307,7 +22305,8 @@
              * @since 1.1.7.3 Check for plugin updates from Freemius only if opted-in.
              * @since 1.1.7.4 Also check updates for add-ons.
              */
-            if ( ! $this->is_registered() &&
+            if (
+                 ( ! $this->is_registered() || ! FS_Permission_Manager::instance( $this )->is_essentials_tracking_allowed() ) &&
                  ! $this->_is_addon_id( $addon_id )
             ) {
                 if ( ! is_multisite() ) {
@@ -22317,6 +22316,10 @@
                 $installs_map = $this->get_blog_install_map();
 
                 foreach ( $installs_map as $blog_id => $install ) {
+                    if ( ! FS_Permission_Manager::instance( $this )->is_essentials_tracking_allowed( $blog_id ) ) {
+                        continue;
+                    }
+
                     /**
                      * @var FS_Site $install
                      */
