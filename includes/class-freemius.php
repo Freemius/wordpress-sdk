@@ -5003,7 +5003,7 @@
 
             /**
              * This should be executed even if Freemius is off for the core module,
-             * otherwise, the add-ons dialogbox won't work properly. This is esepcially
+             * otherwise, the add-ons dialog box won't work properly. This is especially
              * relevant when the developer decided to turn FS off for existing users.
              *
              * @author Vova Feldman (@svovaf)
@@ -5863,8 +5863,7 @@
             if ( $this->is_activation_mode() ) {
                 if ( ! is_admin() ) {
                     /**
-                     * If in activation mode, don't execute Freemius outside of the
-                     * admin dashboard.
+                     * If in activation mode, don't execute Freemius outside the admin dashboard.
                      *
                      * @author Vova Feldman (@svovaf)
                      * @since  1.1.7.3
