@@ -5330,26 +5330,26 @@
         /**
          * @param string[] $permissions
          * @param bool     $is_enabled
-         * @param bool     $has_site_deleted_connection
+         * @param bool     $has_site_delegated_connection
          *
          * @return true|object `true` on success, API error object on failure.
          */
         private function update_network_permissions(
             array $permissions,
             $is_enabled,
-            &$has_site_deleted_connection
+            &$has_site_delegated_connection
         ) {
             $this->_logger->entrance();
 
             $install_id_2_blog_id = array();
             $install_by_blog_id   = $this->get_blog_install_map();
 
-            $has_site_deleted_connection = false;
+            $has_site_delegated_connection = false;
 
             foreach ( $install_by_blog_id as $blog_id => $install ) {
                 if ( $this->is_site_delegated_connection( $blog_id ) ) {
                     // Only update permissions of non-delegated installs.
-                    $has_site_deleted_connection = true;
+                    $has_site_delegated_connection = true;
                     continue;
                 }
 
