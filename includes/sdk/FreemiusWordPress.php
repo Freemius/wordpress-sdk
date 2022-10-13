@@ -305,6 +305,8 @@
 		 * @return mixed
 		 */
 		private static function ExecuteRequest( $pUrl, &$pWPRemoteArgs ) {
+            $bt = debug_backtrace();
+
 			$start = microtime( true );
 
 			$response = wp_remote_request( $pUrl, $pWPRemoteArgs );
@@ -327,7 +329,7 @@
 						$response['body'] :
 						json_encode( $response->get_error_messages() ),
 					'code'      => ! $is_http_error ? $response['response']['code'] : null,
-					'backtrace' => debug_backtrace(),
+					'backtrace' => $bt,
 				);
 			}
 
