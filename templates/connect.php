@@ -207,25 +207,44 @@
 							$fs->get_plugin_name()
 						);
 					} else {
-						$filter                = 'connect_message';
-						$default_optin_message = $is_gdpr_required ?
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug ) :
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug );
+                        $filter = 'connect_message';
 
-						if ( $fs->is_plugin_update() ) {
+						if ( ! $fs->is_plugin_update() ) {
+                            $default_optin_message = $is_gdpr_required ?
+                                fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug ) :
+                                fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug );
+
+                            $default_optin_message = esc_html( $default_optin_message );
+                        } else {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
-							$default_optin_message = $is_gdpr_required ?
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug ) :
-								fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug );
+
+                            $default_optin_message = sprintf(
+                                '<h2>%s</h2>',
+                                sprintf(
+                                    esc_html(
+                                    /* translators: %1$s: plugin name (e.g., "Awesome Plugin"); %2$s: version (e.g., "1.2.3") */
+                                        fs_text_inline('Thank you for updating to %1$s v%2$s!', 'thank-you-for-updating' )
+                                    ),
+                                    esc_html( $fs->get_plugin_name() ),
+                                    $fs->get_plugin_version()
+                                )
+                            );
+
+                            /* translators: %s: module type (plugin, theme, or add-on) */
+                            $default_optin_message .= esc_html( sprintf( fs_text_inline( 'We have introduced this opt-in so you never miss an important update and help us improve the %s\'s functionality to better meet your needs.', 'connect-message_on-update_why' ), $fs->get_module_label( true ) ) );
+
+							$default_optin_message .= '<br><br>' . esc_html( $is_gdpr_required ?
+								fs_text_inline( 'Opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug ) :
+								fs_text_inline( 'Opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug ) );
 
                             if ( $fs->is_enable_anonymous() ) {
-                                $default_optin_message .= ' ' . fs_text_inline( 'If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update_skip', $slug );
+                                $default_optin_message .= ' ' . esc_html( fs_text_inline( 'If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update_skip', $slug ) );
                             }
 
                             // If user customized the opt-in message on update, use
 							// that message. Otherwise, fallback to regular opt-in
-							// custom message if exist.
+							// custom message if exists.
 							if ( $fs->has_filter( 'connect_message_on_update' ) ) {
 								$filter = 'connect_message_on_update';
 							}
@@ -234,7 +253,7 @@
 						$message = $fs->apply_filters(
 						    $filter,
 							sprintf(
-								esc_html( $default_optin_message ),
+								$default_optin_message,
 								'<b>' . esc_html( $fs->get_plugin_name() ) . '</b>',
 								'<b>' . $current_user->user_login . '</b>',
 								'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>',
