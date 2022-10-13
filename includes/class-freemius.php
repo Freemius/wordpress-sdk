@@ -10497,7 +10497,7 @@
          * @return string
          */
         function get_premium_slug() {
-            return is_object( $this->_plugin ) ?
+            return ( is_object( $this->_plugin ) && ! empty( $this->_plugin->premium_slug ) ) ?
                 $this->_plugin->premium_slug :
                 "{$this->_slug}-premium";
         }
