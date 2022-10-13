@@ -5500,7 +5500,7 @@
                     );
                 }
 
-                if (true !== $result) {
+                if ( true !== $result ) {
                     return $result;
                 }
 
@@ -14112,7 +14112,7 @@
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
                 FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
-            ));
+            ) );
 
             $error     = false;
             $next_page = false;
@@ -18017,7 +18017,7 @@
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
                 FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
-            ));
+            ) );
 
             return $this->setup_account(
                 $this->_user,
@@ -18067,7 +18067,7 @@
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
                 FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
-            ));
+            ) );
 
             $sites = array();
             foreach ( $site_ids as $site_id ) {
@@ -18115,7 +18115,7 @@
             FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                 FS_Permission_Manager::PERMISSION_DIAGNOSTIC => $is_diagnostic_tracking_allowed,
                 FS_Permission_Manager::PERMISSION_EXTENSIONS => $is_extensions_tracking_allowed,
-            ));
+            ) );
 
             $install_ids = array();
 
@@ -18232,7 +18232,7 @@
                 FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                     FS_Permission_Manager::PERMISSION_DIAGNOSTIC => fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
                     FS_Permission_Manager::PERMISSION_EXTENSIONS => fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
-                ));
+                ) );
 
                 $this->install_with_current_user( $license_key );
             }

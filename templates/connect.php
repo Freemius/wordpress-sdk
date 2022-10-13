@@ -209,8 +209,8 @@
 					} else {
 						$filter                = 'connect_message';
 						$default_optin_message = $is_gdpr_required ?
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug) :
-							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug);
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug ) :
+							fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug );
 
 						if ( $fs->is_plugin_update() ) {
 							// If Freemius was added on a plugin update, set different
@@ -498,7 +498,7 @@
                 console.log('resetLoadingMode - Primary button was enabled');
             },
 			setLoadingMode = function () {
-				$(document.body).addClass( 'fs-loading' );
+				$( document.body ).addClass( 'fs-loading' );
 			};
 
 		$('.fs-actions .button').on('click', function () {
@@ -673,25 +673,25 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
-            var $extensionsPermission = $('#fs_permission_extensions .fs-switch'),
-                isExtensionsTrackingAllowed = ($extensionsPermission.length > 0) ?
-                    $extensionsPermission.hasClass('fs-on') :
+            var $extensionsPermission = $( '#fs_permission_extensions .fs-switch' ),
+                isExtensionsTrackingAllowed = ( $extensionsPermission.length > 0 ) ?
+                    $extensionsPermission.hasClass( 'fs-on' ) :
                     null;
 
-            var $diagnosticPermission = $('#fs_permission_diagnostic .fs-switch'),
-                isDiagnosticTrackingAllowed = ($diagnosticPermission.length > 0) ?
-                    $diagnosticPermission.hasClass('fs-on') :
+            var $diagnosticPermission = $( '#fs_permission_diagnostic .fs-switch' ),
+                isDiagnosticTrackingAllowed = ( $diagnosticPermission.length > 0 ) ?
+                    $diagnosticPermission.hasClass( 'fs-on' ) :
                     null;
 
-            if (null === isExtensionsTrackingAllowed) {
-                $('input[name=is_extensions_tracking_allowed]').remove();
+            if ( null === isExtensionsTrackingAllowed ) {
+                $( 'input[name=is_extensions_tracking_allowed]' ).remove();
             } else {
-                $('input[name=is_extensions_tracking_allowed]').val(isExtensionsTrackingAllowed ? 1 : 0);
+                $( 'input[name=is_extensions_tracking_allowed]' ).val( isExtensionsTrackingAllowed ? 1 : 0 );
             }
 
             // We are not showing switch to enable/disable diagnostic tracking while activating free version. So, don't remove hidden `is_diagnostic_tracking_allowed` element from DOM and change the value only if switch is available.
-            if (null !== isDiagnosticTrackingAllowed) {
-                $('input[name=is_diagnostic_tracking_allowed]').val(isDiagnosticTrackingAllowed ? 1 : 0);
+            if ( null !== isDiagnosticTrackingAllowed ) {
+                $( 'input[name=is_diagnostic_tracking_allowed]' ).val( isDiagnosticTrackingAllowed ? 1 : 0 );
             }
 
 			/**

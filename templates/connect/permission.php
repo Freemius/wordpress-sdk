@@ -36,7 +36,7 @@
     <?php endif ?>
 
     <div class="fs-permission-description">
-        <span<?php if ( ! empty($permission['tooltip']) ) : ?> class="fs-tooltip-trigger"<?php endif ?>><?php echo esc_html( $permission['label'] ); ?><?php if ( ! empty($permission['tooltip']) ) : ?><i class="dashicons dashicons-editor-help"><span class="fs-tooltip" style="width: 200px"><?php echo esc_html( $permission['tooltip'] ) ?></span></i><?php endif ?></span>
+        <span<?php if ( ! empty( $permission['tooltip'] ) ) : ?> class="fs-tooltip-trigger"<?php endif ?>><?php echo esc_html( $permission['label'] ); ?><?php if ( ! empty( $permission['tooltip'] ) ) : ?><i class="dashicons dashicons-editor-help"><span class="fs-tooltip" style="width: 200px"><?php echo esc_html( $permission['tooltip'] ) ?></span></i><?php endif ?></span>
 
         <p><?php echo esc_html( $permission['desc'] ); ?></p>
     </div>

@@ -34,7 +34,7 @@
     if ( empty( $permission_group[ 'prompt' ] ) ) {
         $is_enabled = false;
 
-        foreach ( $permission_group[ 'permissions' ] as $permission) {
+        foreach ( $permission_group[ 'permissions' ] as $permission ) {
             if ( true === $permission[ 'default' ] ) {
                 // Even if one of the permissions is on, treat as if the entire group is on.
                 $is_enabled = true;
@@ -42,7 +42,7 @@
             }
         }
     } else {
-        $is_enabled = ( isset($permission_group['is_enabled']) && true === $permission_group['is_enabled'] );
+        $is_enabled = ( isset( $permission_group['is_enabled'] ) && true === $permission_group['is_enabled'] );
     }
 ?>
 <div class="fs-permissions-section fs-<?php echo esc_attr( $permission_group[ 'id' ] ) ?>-permissions">
@@ -64,7 +64,7 @@
             ?></p></div>
     <ul>
         <?php
-            foreach ($permission_group['permissions'] as $permission) {
+            foreach ( $permission_group['permissions'] as $permission ) {
                 $permission_manager->render_permission( $permission );
             }
         ?>

@@ -125,7 +125,7 @@
         ) {
             $permissions = array_merge(
                 $this->get_opt_in_required_permissions( $load_default_from_storage ),
-                $this->get_opt_in_optional_permissions( $load_default_from_storage, $is_optional  ),
+                $this->get_opt_in_optional_permissions( $load_default_from_storage, $is_optional ),
                 $extra_permissions
             );
 
@@ -544,7 +544,7 @@
          *
          * @return bool `false` if permission not supported or `$is_enabled` is not a boolean.
          */
-        function update_permission_tracking_flag( $permission, $is_enabled, $blog_id = null  ) {
+        function update_permission_tracking_flag( $permission, $is_enabled, $blog_id = null ) {
             if ( is_bool( $is_enabled ) && self::is_supported_permission( $permission ) ) {
                 $this->_storage->store(
                     "is_{$permission}_tracking_allowed",
@@ -563,7 +563,7 @@
          * @param array<string,bool> $permissions
          */
         function update_permissions_tracking_flag( $permissions ) {
-            foreach ($permissions as $permission => $is_enabled ) {
+            foreach ( $permissions as $permission => $is_enabled ) {
                 $this->update_permission_tracking_flag( $permission, $is_enabled );
             }
         }
@@ -684,7 +684,7 @@
          *
          * @return array[]
          */
-        private function get_sorted_permissions_by_priority(array $permissions ) {
+        private function get_sorted_permissions_by_priority( array $permissions ) {
             // Allow filtering of the permissions list.
             $permissions = $this->_fs->apply_filters( 'permission_list', $permissions );
 

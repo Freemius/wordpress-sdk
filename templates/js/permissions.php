@@ -10,7 +10,7 @@
     }
 ?>
 <script type="text/javascript">
-    (function ($) {
+    ( function ( $ ) {
         var global = this;
 
         // Namespace.
@@ -30,8 +30,8 @@
 
         function getSwitchesStates( $switches, isEnabled ) {
             var switchStates = [];
-            for (var i = 0; i < $switches.length; i++) {
-                switchStates.push( isSwitch( $( $switches[i] ), isEnabled ) );
+            for ( var i = 0; i < $switches.length; i++ ) {
+                switchStates.push( isSwitch( $( $switches[ i ] ), isEnabled ) );
             }
 
             return switchStates;
@@ -126,7 +126,7 @@
                     var
                         $permissionsContainer = $( '#fs_opt_out_' + pluginID );
 
-                    $.ajax({
+                    $.ajax( {
                         url     : <?php echo Freemius::ajax_url() ?>,
                         method  : 'POST',
                         data    : {
@@ -134,23 +134,23 @@
                             security        : $permissionsContainer.data( 'security' ),
                             module_id       : pluginID,
                             _wp_http_referer: '<?php echo Freemius::current_page_url() ?>',
-                            permissions     : permissions.join(','),
+                            permissions     : permissions.join( ',' ),
                             is_enabled      : isEnabled
                         },
                         success : function ( resultObj ) {
                             if ( resultObj.success ) {
-                                if (success) {
+                                if ( success ) {
                                     success( resultObj );
                                 }
                             } else {
-                                if (failure) {
+                                if ( failure ) {
                                     failure( resultObj );
                                 }
                             }
                         },
                         error   : failure,
                         complete: function () {
-                            if (complete) {
+                            if ( complete ) {
                                 complete();
                             }
 
@@ -197,7 +197,7 @@
                                 // Update switches state, if there are any.
                                 toggleSwitches( $permissions.find( '.fs-switch' ), isEnabled );
 
-                                if (success) {
+                                if ( success ) {
                                     success();
                                 }
                             }
@@ -205,7 +205,7 @@
                         function ( resultObj ) {
                             setOptInLabel( $optOutButton, isEnabled );
 
-                            if (failure) {
+                            if ( failure ) {
                                 failure( resultObj );
                             }
                         },
@@ -215,7 +215,7 @@
             };
         }();
 
-        var $body = $('body')
+        var $body = $( 'body' )
 
         global.FS.OptOut = function (
             pluginID,
@@ -295,7 +295,7 @@
                 $modal.on( 'click', '.fs-close, .button-close', function() {
                     closeModal();
                     return false;
-                });
+                } );
 
                 $modal.on( 'click', '.fs-permissions .fs-switch', function () {
                     if ( FS.Permissions.isUpdating() ) {
@@ -330,7 +330,7 @@
 
                     FS.Permissions.updatePermissions(
                         $optOutContainer.data( 'plugin-id' ),
-                        [permissionID],
+                        [ permissionID ],
                         isEnabled,
                         function () {
                             $switchFeedback.addClass( 'success' );
@@ -338,7 +338,7 @@
 
                             var
                                 $permissionsGroup = $switch.closest( '.fs-permissions-section' ),
-                                $groupPermissions = $permissionsGroup.find('ul li');
+                                $groupPermissions = $permissionsGroup.find( 'ul li' );
 
                             var allGroupPermissionsUseSameValue = false;
 
@@ -383,7 +383,7 @@
 
                     setUpdatingLabel( $optOutButton, ! isEnabled );
 
-                    $optOutDisclaimer.find( '.button-primary' ).prop('disabled', true);
+                    $optOutDisclaimer.find( '.button-primary' ).prop( 'disabled', true );
 
                     hideError( $errorMessage );
 
@@ -410,7 +410,7 @@
                                 setOptInLabel( $optOutButton, false );
                             }
 
-                            $optOutDisclaimer.find( '.button-primary' ).prop('disabled', false);
+                            $optOutDisclaimer.find( '.button-primary' ).prop( 'disabled', false );
                         }
                     );
                 } );
@@ -435,7 +435,7 @@
                     if ( isConfirmRequired ) {
                         if ( isEnabled ) {
                             // Move to disclaimer window.
-                            $modal.find('.fs-opt-out-permissions')
+                            $modal.find( '.fs-opt-out-permissions' )
                                   .hide();
 
                             $optOutDisclaimer.show();
@@ -510,13 +510,13 @@
                  * @author Vova Feldman (@svovaf)
                  * @since 1.2.2.7
                  */
-                $( '.theme-overlay' ).contentChange(function () {
-                    if (0 === $( '.theme-overlay.active' ).length) {
+                $( '.theme-overlay' ).contentChange( function () {
+                    if ( 0 === $( '.theme-overlay.active' ).length ) {
                         // Add opt-in/out button only to the currently active theme.
                         return;
                     }
 
-                    if ( $( '#fs_theme_opt_in_out' ).length > 0 ){
+                    if ( $( '#fs_theme_opt_in_out' ).length > 0 ) {
                         // Button already there.
                         return;
                     }
@@ -525,7 +525,7 @@
                         href        = ( isTrackingAllowed || isRegistered ) ? '' : reconnectUrl,
                         $actionLink = $( '<a id="fs_theme_opt_in_out" href="' + encodeURI( href ) + '" class="button">' + label + '</a>' );
 
-                    $('.theme-wrap .theme-actions .active-theme').append( $actionLink );
+                    $( '.theme-wrap .theme-actions .active-theme' ).append( $actionLink );
 
                     if ( isRegistered && '' === href ) {
                         registerActionLinkClick();
@@ -542,5 +542,5 @@
             }
 
         };
-    })(jQuery);
+    } )( jQuery );
 </script>
