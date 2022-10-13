@@ -19765,9 +19765,9 @@
          * @uses   do_action()
          */
         function do_action( $tag, $arg = '' ) {
-            $this->_logger->entrance( $tag );
-
             $args = func_get_args();
+
+            $this->_logger->entrance( $tag );
 
             call_user_func_array( 'do_action', array_merge(
                     array( $this->get_action_tag( $tag ) ),
@@ -19946,9 +19946,10 @@
          * @uses   apply_filters()
          */
         function apply_filters( $tag, $value ) {
+            $args = func_get_args();
+
             $this->_logger->entrance( $tag );
 
-            $args = func_get_args();
             array_unshift( $args, $this->get_unique_affix() );
 
             return call_user_func_array( 'fs_apply_filter', $args );
