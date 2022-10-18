@@ -858,6 +858,9 @@
             $( this )
                 .toggleClass( 'fs-on' )
                 .toggleClass( 'fs-off' );
+
+            $( this ).closest( '.fs-permission' )
+                .toggleClass( 'fs-disabled' );
         });
 
 		$primaryCta.on('click', function () {
