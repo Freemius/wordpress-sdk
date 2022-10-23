@@ -3596,8 +3596,19 @@
                 return false;
             }
 
+            $blog_id = null;
+
+            if (
+                fs_is_network_admin() &&
+                FS_Site::is_valid_id( $this->_storage->network_install_blog_id )
+            ) {
+                // Ensure that we're comparing the network install's URL with the relevant subsite's URL.
+                $blog_id = $this->_storage->network_install_blog_id;
+            }
+
             return (
-                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !== self::get_unfiltered_site_url( null, true, true )
+                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !==
+                self::get_unfiltered_site_url( $blog_id, true, true )
             );
         }
 
