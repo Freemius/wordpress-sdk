@@ -24501,15 +24501,6 @@
 
             $this->_logger->entrance();
 
-            /**
-             * @author Vova Feldman (@svovaf)
-             * @since 2.3.2 Allow opting out from usage-tracking for paid products too by giving the appropriate warning letting the user know the automatic updates mechanism cannot function without an ongoing connection to the licensing and updates engine.
-             */
-            /*if ( $this->is_premium() ) {
-                // Don't add opt-in/out for premium code base.
-                return;
-            }*/
-
             if ( $this->is_only_premium() && $this->is_free_plan() ) {
                 // Don't add tracking links for premium-only products that were opted-in by relation (add-on or a parent product) before activating any license.
                 return;
