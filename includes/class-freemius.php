@@ -24501,11 +24501,6 @@
 
             $this->_logger->entrance();
 
-            if ( ! is_object( $this->_site ) && ! fs_is_network_admin() ) {
-                // No point to add opt-in/out links on the site-admin if there's no install yet.
-                return;
-            }
-
             /**
              * @author Vova Feldman (@svovaf)
              * @since 2.3.2 Allow opting out from usage-tracking for paid products too by giving the appropriate warning letting the user know the automatic updates mechanism cannot function without an ongoing connection to the licensing and updates engine.
