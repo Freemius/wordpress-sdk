@@ -7798,10 +7798,19 @@
          * @author Leo Fajardo (@leorw)
          * @since  1.2.2
          *
-         * @return string
+         * @return bool
          */
         private function can_activate_previous_theme() {
-            $slug = $this->get_previous_theme_slug();
+            return $this->can_activate_theme( $this->get_previous_theme_slug() );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.0
+         *
+         * @return bool
+         */
+        private function can_activate_theme( $slug ) {
             if ( false !== $slug && current_user_can( 'switch_themes' ) ) {
                 $theme_instance = wp_get_theme( $slug );
 
@@ -24768,7 +24777,12 @@
          */
         private function is_premium_version_installed() {
             $premium_plugin_basename = $this->premium_plugin_basename();
-            $premium_plugin          = get_plugins( '/' . dirname( $premium_plugin_basename ) );
+
+            if ( $this->is_theme() ) {
+                return $this->can_activate_theme( $this->get_premium_slug() );
+            }
+
+            $premium_plugin = get_plugins( '/' . dirname( $premium_plugin_basename ) );
 
             return ! empty( $premium_plugin );
         }
@@ -24806,7 +24820,9 @@
                  * @author Leo Fajardo (@leorw)
                  * @since 2.2.1
                  */
-                $premium_plugin_basename = $this->premium_plugin_basename();
+                $premium_theme_slug_or_plugin_basename = $this->is_theme() ?
+                    $this->get_premium_slug() :
+                    $this->premium_plugin_basename();
 
                 return sprintf(
                 /* translators: %1$s: Product title; %2$s: Plan title */
@@ -24815,7 +24831,9 @@
                     $plan_title,
                     sprintf(
                         '<a style="margin-left: 10px;" href="%s"><button class="button button-primary">%s</button></a>',
-                        wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_plugin_basename, 'activate-plugin_' . $premium_plugin_basename ),
+                        ( $this->is_theme() ?
+                            wp_nonce_url( 'themes.php?action=activate&amp;stylesheet=' . $premium_theme_slug_or_plugin_basename, 'switch-theme_' . $premium_theme_slug_or_plugin_basename ) :
+                            wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $premium_theme_slug_or_plugin_basename, 'activate-plugin_' . $premium_theme_slug_or_plugin_basename ) ),
                         esc_html( sprintf(
                         /* translators: %s: Plan title */
                             $this->get_text_inline( 'Activate %s features', 'activate-x-features' ),
