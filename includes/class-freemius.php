@@ -1875,7 +1875,8 @@
 
             if (
                 ( self::is_plugins_page() && $this->is_plugin() ) ||
-                ( self::is_themes_page() && $this->is_theme() )
+                ( self::is_themes_page() && $this->is_theme() ) ||
+                fs_request_is_action_secure( $this->get_unique_affix() . '_reconnect' )
             ) {
                 $this->_add_tracking_links();
             }
