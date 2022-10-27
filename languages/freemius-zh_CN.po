@@ -2,14 +2,15 @@
 # This file is distributed under the same license as the freemius package.
 # Translators:
 # Xiaheng Chen <futureman.tech@gmail.com>, 2020
-# Yulinn <melittleloli@gmail.com>, 2021
+# Yulinn <977869645@qq.com>, 2022
+# Yulinn <977869645@qq.com>, 2021-2022
 msgid ""
 msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2022-01-05 13:47+0000\n"
-"Last-Translator: Vova Feldman <vova@freemius.com>\n"
+"PO-Revision-Date: 2015-10-01 21:38+0000\n"
+"Last-Translator: Yulinn <977869645@qq.com>, 2022\n"
 "Language: zh_CN\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/freemius/wordpress-sdk/language/zh_CN/)\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,844 +23,848 @@ msgstr ""
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: includes/class-freemius.php1932, templates/account.php:941
+#: includes/class-freemius.php1744, templates/account.php:947
 msgid "An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned."
 msgstr "测试版的更新将用最新的测试版替换您安装的%s版本-请小心使用，不要在生产站点上使用。你被警告了。"
 
-#: includes/class-freemius.php:1939
+#: includes/class-freemius.php:1751
 msgid "Would you like to proceed with the update?"
 msgstr "是否继续更新？"
 
-#: includes/class-freemius.php:2158
+#: includes/class-freemius.php:1976
 msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr "Freemius SDK找不到插件的主文件。请关于当前错误与sdk@freemius.com联系。"
 
-#: includes/class-freemius.php:2160
+#: includes/class-freemius.php:1978
 msgid "Error"
 msgstr "错误"
 
-#: includes/class-freemius.php:2606
+#: includes/class-freemius.php:2424
 msgid "I found a better %s"
 msgstr "我找到了更好的%s"
 
-#: includes/class-freemius.php:2608
+#: includes/class-freemius.php:2426
 msgid "What's the %s's name?"
 msgstr "%s的名字是什么？"
 
-#: includes/class-freemius.php:2614
+#: includes/class-freemius.php:2432
 msgid "It's a temporary %s - I'm troubleshooting an issue"
-msgstr "It's a temporary %s - I'm troubleshooting an issue"
+msgstr "这是一个临时的 %s - 我正在解决一个问题"
 
-#: includes/class-freemius.php:2616
+#: includes/class-freemius.php:2434
 msgid "Deactivation"
 msgstr "停用"
 
-#: includes/class-freemius.php:2617
+#: includes/class-freemius.php:2435
 msgid "Theme Switch"
 msgstr "主题切换"
 
-#: includes/class-freemius.php2626, templates/forms/resend-key.php24,
+#: includes/class-freemius.php2444, templates/forms/resend-key.php24,
 #: templates/forms/user-change.php:29
 msgid "Other"
 msgstr "其他"
 
-#: includes/class-freemius.php:2634
+#: includes/class-freemius.php:2452
 msgid "I no longer need the %s"
 msgstr "我不再需要%s"
 
-#: includes/class-freemius.php:2641
+#: includes/class-freemius.php:2459
 msgid "I only needed the %s for a short period"
 msgstr "我只需要在短时间内使用%s"
 
-#: includes/class-freemius.php:2647
+#: includes/class-freemius.php:2465
 msgid "The %s broke my site"
 msgstr "%s破坏了我的网站"
 
-#: includes/class-freemius.php:2654
+#: includes/class-freemius.php:2472
 msgid "The %s suddenly stopped working"
 msgstr "%s突然停止工作"
 
-#: includes/class-freemius.php:2664
+#: includes/class-freemius.php:2482
 msgid "I can't pay for it anymore"
 msgstr "我再也付不起了"
 
-#: includes/class-freemius.php:2666
+#: includes/class-freemius.php:2484
 msgid "What price would you feel comfortable paying?"
 msgstr "你愿意付出什么价钱？"
 
-#: includes/class-freemius.php:2672
+#: includes/class-freemius.php:2490
 msgid "I don't like to share my information with you"
 msgstr "我不想和你分享我的信息"
 
-#: includes/class-freemius.php:2693
+#: includes/class-freemius.php:2511
 msgid "The %s didn't work"
 msgstr "%s不起作用"
 
-#: includes/class-freemius.php:2703
+#: includes/class-freemius.php:2521
 msgid "I couldn't understand how to make it work"
 msgstr "我不明白该怎么做"
 
-#: includes/class-freemius.php:2711
+#: includes/class-freemius.php:2529
 msgid "The %s is great, but I need specific feature that you don't support"
 msgstr "%s很好，但我需要您不支持的特定功能"
 
-#: includes/class-freemius.php:2713
+#: includes/class-freemius.php:2531
 msgid "What feature?"
 msgstr "什么功能？"
 
-#: includes/class-freemius.php:2717
+#: includes/class-freemius.php:2535
 msgid "The %s is not working"
 msgstr "%s不起作用"
 
-#: includes/class-freemius.php:2719
+#: includes/class-freemius.php:2537
 msgid "Kindly share what didn't work so we can fix it for future users..."
 msgstr "请分享什么地方出了错，以便我们可以为未来的用户修复它..."
 
-#: includes/class-freemius.php:2723
+#: includes/class-freemius.php:2541
 msgid "It's not what I was looking for"
 msgstr "这不是我要找的"
 
-#: includes/class-freemius.php:2725
+#: includes/class-freemius.php:2543
 msgid "What you've been looking for?"
 msgstr "你在找什么？"
 
-#: includes/class-freemius.php:2729
+#: includes/class-freemius.php:2547
 msgid "The %s didn't work as expected"
 msgstr "%s没有按预期工作"
 
-#: includes/class-freemius.php:2731
+#: includes/class-freemius.php:2549
 msgid "What did you expect?"
 msgstr "你期望什么？"
 
-#: includes/class-freemius.php3751, templates/debug.php:20
+#: includes/class-freemius.php3627, templates/debug.php:20
 msgid "Freemius Debug"
 msgstr "Freemius 调试"
 
-#: includes/class-freemius.php:4538
+#: includes/class-freemius.php:4434
 msgid "I don't know what is cURL or how to install it, help me!"
 msgstr "我不知道cURL是什么，也不知道如何安装，帮帮我！"
 
-#: includes/class-freemius.php:4540
+#: includes/class-freemius.php:4436
 msgid "We'll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update."
 msgstr "我们将确保与您的托管公司联系并解决问题。一旦我们有更新，您将收到一封%s的后续电子邮件。"
 
-#: includes/class-freemius.php:4547
+#: includes/class-freemius.php:4443
 msgid "Great, please install cURL and enable it in your php.ini file. In addition, search for the 'disable_functions' directive in your php.ini file and remove any disabled methods starting with 'curl_'. To make sure it was successfully activated, use 'phpinfo()'. Once activated, deactivate the %s and reactivate it back again."
 msgstr "很好，请安装cURL并在php.ini文件中启用它。此外，在php.ini文件中搜索\"disable_functions\"指令，并删除以\"curl_\"开头的所有禁用方法。要确保成功激活，请使用\"phpinfo()\"。一旦激活，停用%s并重新把它激活。"
 
-#: includes/class-freemius.php:4652
+#: includes/class-freemius.php:4548
 msgid "Yes - do your thing"
 msgstr "是 - 做你该做的"
 
-#: includes/class-freemius.php:4657
+#: includes/class-freemius.php:4553
 msgid "No - just deactivate"
 msgstr "否 - 只需停用"
 
-#: includes/class-freemius.php4702, includes/class-freemius.php5218,
-#: includes/class-freemius.php6480, includes/class-freemius.php13907,
-#: includes/class-freemius.php14649, includes/class-freemius.php18176,
-#: includes/class-freemius.php18281, includes/class-freemius.php18458,
-#: includes/class-freemius.php20718, includes/class-freemius.php21096,
-#: includes/class-freemius.php21110, includes/class-freemius.php21798,
-#: includes/class-freemius.php22810, includes/class-freemius.php22943,
-#: includes/class-freemius.php23073, templates/add-ons.php:57
+#: includes/class-freemius.php4598, includes/class-freemius.php5129,
+#: includes/class-freemius.php6324, includes/class-freemius.php13916,
+#: includes/class-freemius.php14665, includes/class-freemius.php18430,
+#: includes/class-freemius.php18535, includes/class-freemius.php18712,
+#: includes/class-freemius.php20995, includes/class-freemius.php21373,
+#: includes/class-freemius.php21387, includes/class-freemius.php22075,
+#: includes/class-freemius.php23091, includes/class-freemius.php23221,
+#: includes/class-freemius.php23351, templates/add-ons.php:57
 msgctxt "exclamation"
 msgid "Oops"
 msgstr "哎呀"
 
-#: includes/class-freemius.php:4771
+#: includes/class-freemius.php:4673
 msgid "Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience."
 msgstr "谢谢你给我们机会把它修好！刚刚给我们的技术人员发了一条信息。我们一有%s的更新就会给您回复。谢谢您的耐心。"
 
-#: includes/class-freemius.php:5187
+#: includes/class-freemius.php:5098
 msgid "You have purchased a %s license."
-msgstr "You have purchased a %s license."
+msgstr "您购买了 %s 许可证。"
 
-#: includes/class-freemius.php:5191
+#: includes/class-freemius.php:5102
 msgid " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
-msgstr " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
+msgstr "%s 的 %s 下载链接 %s、许可证密钥和安装说明已发送到 %s。如果您在 5 分钟后找不到该电子邮件，请检查您的垃圾邮件箱。"
 
-#: includes/class-freemius.php5201, includes/class-freemius.php6177,
-#: includes/class-freemius.php17574, includes/class-freemius.php17585,
-#: includes/class-freemius.php20987, includes/class-freemius.php21378,
-#: includes/class-freemius.php21447, includes/class-freemius.php:21619
+#: includes/class-freemius.php5112, includes/class-freemius.php6021,
+#: includes/class-freemius.php17806, includes/class-freemius.php17817,
+#: includes/class-freemius.php21264, includes/class-freemius.php21655,
+#: includes/class-freemius.php21724, includes/class-freemius.php:21896
 msgctxt "interjection expressing joy or exuberance"
 msgid "Yee-haw"
 msgstr "哟哈"
 
-#: includes/class-freemius.php:5215
+#: includes/class-freemius.php:5126
 msgctxt "addonX cannot run without pluginY"
 msgid "%s cannot run without %s."
 msgstr "没有%s，%s无法运行。"
 
-#: includes/class-freemius.php:5216
+#: includes/class-freemius.php:5127
 msgctxt "addonX cannot run..."
 msgid "%s cannot run without the plugin."
 msgstr "没有插件，%s无法运行。"
 
-#: includes/class-freemius.php5416, includes/class-freemius.php5441,
-#: includes/class-freemius.php:21869
-msgid "Unexpected API error. Please contact the %s's author with the following error."
-msgstr "意外的API错误。请与%s的作者联系，并举报出现的以下错误。"
+#: includes/class-freemius.php:5408
+msgid "There was an unexpected API error while processing your request. Please try again in a few minutes and if it still doesn't work, contact the %s's author with the following:"
+msgstr "There was an unexpected API error while processing your request. Please try again in a few minutes and if it still doesn't work, contact the %s's author with the following:"
 
-#: includes/class-freemius.php:6146
+#: includes/class-freemius.php:5990
 msgid "Premium %s version was successfully activated."
 msgstr "高级%s版本已成功激活。"
 
-#: includes/class-freemius.php6158, includes/class-freemius.php:8104
+#: includes/class-freemius.php6002, includes/class-freemius.php:7982
 msgctxt ""
 msgid "W00t"
 msgstr "W00t"
 
-#: includes/class-freemius.php:6173
+#: includes/class-freemius.php:6017
 msgid "You have a %s license."
 msgstr "您有%s许可证。"
 
-#: includes/class-freemius.php:6463
+#: includes/class-freemius.php:6307
 msgid "%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you'll have to purchase a license."
 msgstr "%s免费试用已成功取消。因为附加组件是高级的，所以它被自动停用。如果你想在将来使用它，你必须购买许可证。"
 
-#: includes/class-freemius.php:6467
+#: includes/class-freemius.php:6311
 msgid "%s is a premium only add-on. You have to purchase a license first before activating the plugin."
 msgstr "%s是一款仅限高级的附加组件。在激活插件之前，必须先购买许可证。"
 
-#: includes/class-freemius.php6476, templates/add-ons.php186,
-#: templates/account/partials/addon.php:381
+#: includes/class-freemius.php6320, templates/add-ons.php186,
+#: templates/account/partials/addon.php:386
 msgid "More information about %s"
 msgstr "有关%s的详细信息"
 
-#: includes/class-freemius.php:6477
+#: includes/class-freemius.php:6321
 msgid "Purchase License"
 msgstr "购买许可证"
 
-#: includes/class-freemius.php7443, templates/connect.php:180
+#: includes/class-freemius.php7308, templates/connect.php:216
 msgid "You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s."
 msgstr "您应该在%s的邮箱中收到一封%s的激活电子邮件。请确保单击发送到%s的该电子邮件中的激活按钮。"
 
-#: includes/class-freemius.php:7447
+#: includes/class-freemius.php:7312
 msgid "start the trial"
 msgstr "开始试用"
 
-#: includes/class-freemius.php7448, templates/connect.php:184
+#: includes/class-freemius.php7313, templates/connect.php:220
 msgid "complete the install"
 msgstr "完成安装"
 
-#: includes/class-freemius.php:7581
+#: includes/class-freemius.php:7446
 msgid "You are just one step away - %s"
 msgstr "你离%s只差一步。"
 
-#: includes/class-freemius.php:7584
+#: includes/class-freemius.php:7449
 msgctxt "%s - plugin name. As complete \"PluginX\" activation now"
 msgid "Complete \"%s\" Activation Now"
 msgstr "立即完成”%s“激活"
 
-#: includes/class-freemius.php:7666
+#: includes/class-freemius.php:7531
 msgid "We made a few tweaks to the %s, %s"
 msgstr "我们对%s，%s进行了一些调整"
 
-#: includes/class-freemius.php:7670
+#: includes/class-freemius.php:7535
 msgid "Opt in to make \"%s\" better!"
 msgstr "选择加入以使“%s”更好！"
 
-#: includes/class-freemius.php:8103
+#: includes/class-freemius.php:7981
 msgid "The upgrade of %s was successfully completed."
 msgstr "%s的升级已成功完成。"
 
-#: includes/class-freemius.php10669, includes/class-fs-plugin-updater.php1089,
+#: includes/class-freemius.php10627, includes/class-fs-plugin-updater.php1089,
 #: includes/class-fs-plugin-updater.php1284,
 #: includes/class-fs-plugin-updater.php1291,
 #: templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "附加组件"
 
-#: includes/class-freemius.php10671, templates/account.php403,
-#: templates/account.php411, templates/debug.php368, templates/debug.php:566
+#: includes/class-freemius.php10629, templates/account.php411,
+#: templates/account.php419, templates/debug.php376, templates/debug.php:571
 msgid "Plugin"
 msgstr "插件"
 
-#: includes/class-freemius.php10672, templates/account.php404,
-#: templates/account.php412, templates/debug.php368, templates/debug.php566,
+#: includes/class-freemius.php10630, templates/account.php412,
+#: templates/account.php420, templates/debug.php376, templates/debug.php571,
 #: templates/forms/deactivation/form.php:107
 msgid "Theme"
 msgstr "主题"
 
-#: includes/class-freemius.php:13727
+#: includes/class-freemius.php:13735
 msgid "An unknown error has occurred while trying to toggle the license's white-label mode."
 msgstr "尝试切换许可证的白标模式时发生未知错误。"
 
-#: includes/class-freemius.php:13741
+#: includes/class-freemius.php:13749
 msgid "Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it back, you can easily do it through your %s. If this was a mistake you can also %s."
 msgstr "您的%s许可证被标记为白标，以对WP管理员隐藏敏感信息（例如，您的电子邮件，许可证密钥，价格，账单地址和发票）。如果您希望将其还原，则可以通过%s轻松完成。如果这是一个错误，您也可以%s。"
 
-#: includes/class-freemius.php:13746
+#: includes/class-freemius.php13754,
+#: templates/account/partials/disconnect-button.php:84
 msgid "User Dashboard"
 msgstr "用户仪表盘"
 
-#: includes/class-freemius.php:13747
+#: includes/class-freemius.php:13755
 msgid "revert it now"
 msgstr "现在还原"
 
-#: includes/class-freemius.php:13805
+#: includes/class-freemius.php:13813
 msgid "An unknown error has occurred while trying to set the user's beta mode."
 msgstr "尝试设置用户的测试模式时发生了未知错误。"
 
-#: includes/class-freemius.php:13878
+#: includes/class-freemius.php:13887
 msgid "Invalid new user ID or email address."
 msgstr "无效的新用户ID或电子邮件地址。"
 
-#: includes/class-freemius.php:13908
+#: includes/class-freemius.php:13917
 msgid "Sorry, we could not complete the email update. Another user with the same email is already registered."
 msgstr "对不起，我们无法完成电子邮件更新。具有相同电子邮件的另一个用户已注册。"
 
-#: includes/class-freemius.php:13909
+#: includes/class-freemius.php:13918
 msgid "If you would like to give up the ownership of the %s's account to %s click the Change Ownership button."
 msgstr "如果要将%s帐户的所有权放弃给%s，请单击“更改所有权”按钮。"
 
-#: includes/class-freemius.php:13916
+#: includes/class-freemius.php:13925
 msgid "Change Ownership"
 msgstr "变更所有权"
 
-#: includes/class-freemius.php:14516
+#: includes/class-freemius.php:14532
 msgid "Invalid site details collection."
 msgstr "无效网站详细信息集合。"
 
-#: includes/class-freemius.php:14636
+#: includes/class-freemius.php:14652
 msgid "We couldn't find your email address in the system, are you sure it's the right address?"
 msgstr "我们在系统中找不到您的电子邮件地址，您确定地址正确吗？"
 
-#: includes/class-freemius.php:14638
+#: includes/class-freemius.php:14654
 msgid "We can't see any active licenses associated with that email address, are you sure it's the right address?"
 msgstr "我们看不到与该电子邮件地址关联的任何活动许可证，您确定它是正确的地址吗？"
 
-#: includes/class-freemius.php:14912
-msgid "Account is pending activation."
-msgstr "帐户正在等待激活。"
+#: includes/class-freemius.php:14952
+msgid "Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again."
+msgstr "Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again."
 
-#: includes/class-freemius.php15024,
+#: includes/class-freemius.php15066,
 #: templates/forms/premium-versions-upgrade-handler.php:47
 msgid "Buy a license now"
 msgstr "立即购买许可证"
 
-#: includes/class-freemius.php15036,
+#: includes/class-freemius.php15078,
 #: templates/forms/premium-versions-upgrade-handler.php:46
 msgid "Renew your license now"
 msgstr "立即续订许可证"
 
-#: includes/class-freemius.php:15040
+#: includes/class-freemius.php:15082
 msgid "%s to access version %s security & feature updates, and support."
 msgstr "%s以访问版本%s的安全和功能更新以及支持。"
 
-#: includes/class-freemius.php:17556
-msgid "%s activation was successfully completed."
-msgstr "%s激活已成功完成。"
+#: includes/class-freemius.php:17788
+msgid "%s opt-in was successfully completed."
+msgstr "%s opt-in was successfully completed."
 
-#: includes/class-freemius.php:17570
+#: includes/class-freemius.php:17802
 msgid "Your account was successfully activated with the %s plan."
 msgstr "您的帐户已用%s计划成功激活。"
 
-#: includes/class-freemius.php17581, includes/class-freemius.php:21443
+#: includes/class-freemius.php17813, includes/class-freemius.php:21720
 msgid "Your trial has been successfully started."
 msgstr "您的试用已成功开始。"
 
-#: includes/class-freemius.php18174, includes/class-freemius.php18279,
-#: includes/class-freemius.php:18456
+#: includes/class-freemius.php18428, includes/class-freemius.php18533,
+#: includes/class-freemius.php:18710
 msgid "Couldn't activate %s."
 msgstr "无法激活%s。"
 
-#: includes/class-freemius.php18175, includes/class-freemius.php18280,
-#: includes/class-freemius.php:18457
+#: includes/class-freemius.php18429, includes/class-freemius.php18534,
+#: includes/class-freemius.php:18711
 msgid "Please contact us with the following message:"
 msgstr "请通过以下信息与我们联系："
 
-#: includes/class-freemius.php18276, templates/forms/data-debug-mode.php:162
+#: includes/class-freemius.php18530, templates/forms/data-debug-mode.php:162
 msgid "An unknown error has occurred."
 msgstr "发生未知错误。"
 
-#: includes/class-freemius.php18818, includes/class-freemius.php:24152
+#: includes/class-freemius.php19070, includes/class-freemius.php:24449
 msgid "Upgrade"
 msgstr "升级"
 
-#: includes/class-freemius.php:18824
+#: includes/class-freemius.php:19076
 msgid "Start Trial"
 msgstr "开始试用"
 
-#: includes/class-freemius.php:18826
+#: includes/class-freemius.php:19078
 msgid "Pricing"
 msgstr "定价"
 
-#: includes/class-freemius.php18906, includes/class-freemius.php:18908
+#: includes/class-freemius.php19158, includes/class-freemius.php:19160
 msgid "Affiliation"
 msgstr "推广联盟"
 
-#: includes/class-freemius.php18936, includes/class-freemius.php18938,
-#: templates/account.php251, templates/debug.php:334
+#: includes/class-freemius.php19188, includes/class-freemius.php19190,
+#: templates/account.php264, templates/debug.php:342
 msgid "Account"
 msgstr "帐户"
 
-#: includes/class-freemius.php18952, includes/class-freemius.php18954,
+#: includes/class-freemius.php19204, includes/class-freemius.php19206,
 #: includes/customizer/class-fs-customizer-support-section.php:60
 msgid "Contact Us"
 msgstr "联系我们"
 
-#: includes/class-freemius.php18965, includes/class-freemius.php18967,
-#: includes/class-freemius.php24166, templates/account.php129,
-#: templates/account/partials/addon.php:44
+#: includes/class-freemius.php19217, includes/class-freemius.php19219,
+#: includes/class-freemius.php24463, templates/account.php134,
+#: templates/account/partials/addon.php:49
 msgid "Add-Ons"
 msgstr "附加组件"
 
-#: includes/class-freemius.php:19001
+#: includes/class-freemius.php:19253
 msgctxt "ASCII arrow left icon"
 msgid "&#x2190;"
 msgstr "&#x2190;"
 
-#: includes/class-freemius.php:19001
+#: includes/class-freemius.php:19253
 msgctxt "ASCII arrow right icon"
 msgid "&#x27a4;"
 msgstr "&#x27a4;"
 
-#: includes/class-freemius.php19003, templates/pricing.php:109
+#: includes/class-freemius.php19255, templates/pricing.php:110
 msgctxt "noun"
 msgid "Pricing"
 msgstr "定价"
 
-#: includes/class-freemius.php19216,
+#: includes/class-freemius.php19468,
 #: includes/customizer/class-fs-customizer-support-section.php:67
 msgid "Support Forum"
 msgstr "支持论坛"
 
-#: includes/class-freemius.php:20212
+#: includes/class-freemius.php:20489
 msgid "Your email has been successfully verified - you are AWESOME!"
 msgstr "你的电子邮件已被成功验证-你太棒了！"
 
-#: includes/class-freemius.php:20213
+#: includes/class-freemius.php:20490
 msgctxt "a positive response"
 msgid "Right on"
 msgstr "就在"
 
-#: includes/class-freemius.php:20719
+#: includes/class-freemius.php:20996
 msgid "seems like the key you entered doesn't match our records."
 msgstr "好像你输入的钥匙和我们的记录不符。"
 
-#: includes/class-freemius.php:20743
+#: includes/class-freemius.php:21020
 msgid "Debug mode was successfully enabled and will be automatically disabled in 60 min. You can also disable it earlier by clicking the \"Stop Debug\" link."
 msgstr "调试模式已成功启用，将在60分钟以内自动禁用。您也可以通过单击“停止调试”链接提前禁用。"
 
-#: includes/class-freemius.php:20978
+#: includes/class-freemius.php:21255
 msgid "Your %s Add-on plan was successfully upgraded."
 msgstr "%s加载项计划已成功升级。"
 
-#: includes/class-freemius.php:20980
+#: includes/class-freemius.php:21257
 msgid "%s Add-on was successfully purchased."
 msgstr "已成功购买%s加载项。"
 
-#: includes/class-freemius.php:20983
+#: includes/class-freemius.php:21260
 msgid "Download the latest version"
 msgstr "下载最新版本"
 
-#: includes/class-freemius.php:21089
+#: includes/class-freemius.php:21366
 msgid "Your server is blocking the access to Freemius' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s"
 msgstr "您的服务器正在阻止对Freemius API的访问，这对%1$s同步至关重要。请与您的主机联系以获取白名单%2$s"
 
-#: includes/class-freemius.php21095, includes/class-freemius.php21109,
-#: includes/class-freemius.php21578, includes/class-freemius.php:21667
+#: includes/class-freemius.php21372, includes/class-freemius.php21386,
+#: includes/class-freemius.php21855, includes/class-freemius.php:21944
 msgid "Error received from the server:"
 msgstr "从服务器收到错误："
 
-#: includes/class-freemius.php:21109
+#: includes/class-freemius.php:21386
 msgid "It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again."
 msgstr "似乎身份验证参数中的一个不正确。请更新您的公钥、密钥和用户ID，然后重试。"
 
-#: includes/class-freemius.php21340, includes/class-freemius.php21583,
-#: includes/class-freemius.php21638, includes/class-freemius.php:21745
+#: includes/class-freemius.php21617, includes/class-freemius.php21860,
+#: includes/class-freemius.php21915, includes/class-freemius.php:22022
 msgctxt ""
 msgid "Hmm"
 msgstr "嗯"
 
-#: includes/class-freemius.php:21353
+#: includes/class-freemius.php:21630
 msgid "It looks like you are still on the %s plan. If you did upgrade or change your plan, it's probably an issue on our side - sorry."
 msgstr "看来你还在%s计划中。如果你确实升级或更改了计划，这可能是我们这边的问题-对不起。"
 
-#: includes/class-freemius.php21354, templates/account.php131,
-#: templates/add-ons.php250, templates/account/partials/addon.php:46
+#: includes/class-freemius.php21631, templates/account.php136,
+#: templates/add-ons.php250, templates/account/partials/addon.php:51
 msgctxt "trial period"
 msgid "Trial"
 msgstr "试用"
 
-#: includes/class-freemius.php:21359
+#: includes/class-freemius.php:21636
 msgid "I have upgraded my account but when I try to Sync the License, the plan remains %s."
 msgstr "我已经升级了我的帐户，但是当我尝试同步许可证时，计划仍然是%s。"
 
-#: includes/class-freemius.php21363, includes/class-freemius.php:21422
+#: includes/class-freemius.php21640, includes/class-freemius.php:21699
 msgid "Please contact us here"
 msgstr "请在这里联系我们"
 
-#: includes/class-freemius.php:21374
+#: includes/class-freemius.php:21651
 msgid "Your plan was successfully activated."
 msgstr "您的计划已成功激活。"
 
-#: includes/class-freemius.php:21375
+#: includes/class-freemius.php:21652
 msgid "Your plan was successfully upgraded."
 msgstr "您的计划已成功升级。"
 
-#: includes/class-freemius.php:21392
+#: includes/class-freemius.php:21669
 msgid "Your plan was successfully changed to %s."
 msgstr "您的计划已成功更改为%s。"
 
-#: includes/class-freemius.php:21408
+#: includes/class-freemius.php:21685
 msgid "Your license has expired. You can still continue using the free %s forever."
 msgstr "您的许可证过期了。您仍然可以继续永远使用免费的%s。"
 
-#: includes/class-freemius.php:21410
+#: includes/class-freemius.php:21687
 msgid "Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
 msgstr "您的许可证过期了。%1$s立即升级%2$s以继续使用%3$s而不中断。"
 
-#: includes/class-freemius.php:21418
+#: includes/class-freemius.php:21695
 msgid "Your license has been cancelled. If you think it's a mistake, please contact support."
 msgstr "你的许可证被取消了。如果您认为这是一个错误，请联系支持人员。"
 
-#: includes/class-freemius.php:21431
+#: includes/class-freemius.php:21708
 msgid "Your license has expired. You can still continue using all the %s features, but you'll need to renew your license to continue getting updates and support."
 msgstr "您的许可证过期了。您仍然可以继续使用所有%s功能，但您需要续订许可证才能继续获取更新和支持。"
 
-#: includes/class-freemius.php:21457
+#: includes/class-freemius.php:21734
 msgid "Your free trial has expired. You can still continue using all our free features."
 msgstr "您的免费试用已过期。您仍然可以继续使用我们所有的免费功能。"
 
-#: includes/class-freemius.php:21459
+#: includes/class-freemius.php:21736
 msgid "Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
 msgstr "您的免费试用已过期。%1$s立即升级%2$s以继续使用%3$s而不中断。"
 
-#: includes/class-freemius.php:21574
+#: includes/class-freemius.php:21851
 msgid "It looks like the license could not be activated."
 msgstr "似乎无法激活许可证。"
 
-#: includes/class-freemius.php:21616
+#: includes/class-freemius.php:21893
 msgid "Your license was successfully activated."
 msgstr "您的许可证已成功激活。"
 
-#: includes/class-freemius.php:21642
+#: includes/class-freemius.php:21919
 msgid "It looks like your site currently doesn't have an active license."
 msgstr "您的站点当前似乎没有活动许可证。"
 
-#: includes/class-freemius.php:21666
+#: includes/class-freemius.php:21943
 msgid "It looks like the license deactivation failed."
 msgstr "许可证停用似乎失败。"
 
-#: includes/class-freemius.php:21695
+#: includes/class-freemius.php:21972
 msgid "Your %s license was successfully deactivated."
 msgstr "您的%s许可证已成功停用。"
 
-#: includes/class-freemius.php:21696
+#: includes/class-freemius.php:21973
 msgid "Your license was successfully deactivated, you are back to the %s plan."
 msgstr "您的许可证已成功停用，您回到了%s计划。"
 
-#: includes/class-freemius.php:21699
+#: includes/class-freemius.php:21976
 msgid "O.K"
 msgstr "好"
 
-#: includes/class-freemius.php:21752
+#: includes/class-freemius.php:22029
 msgid "Seems like we are having some temporary issue with your subscription cancellation. Please try again in few minutes."
 msgstr "似乎关于您的订阅取消发生了一些暂时的问题。请过几分钟再试一次。"
 
-#: includes/class-freemius.php:21761
+#: includes/class-freemius.php:22038
 msgid "Your subscription was successfully cancelled. Your %s plan license will expire in %s."
 msgstr "您的订阅已成功取消。您的%s计划许可证将在%s后过期。"
 
-#: includes/class-freemius.php:21803
+#: includes/class-freemius.php:22080
 msgid "You are already running the %s in a trial mode."
 msgstr "您已经在试用模式下运行%s。"
 
-#: includes/class-freemius.php:21814
+#: includes/class-freemius.php:22091
 msgid "You already utilized a trial before."
 msgstr "您以前已经试用过。"
 
-#: includes/class-freemius.php:21828
+#: includes/class-freemius.php:22105
 msgid "Plan %s do not exist, therefore, can't start a trial."
 msgstr "计划%s不存在，因此无法启动试用。"
 
-#: includes/class-freemius.php:21839
+#: includes/class-freemius.php:22116
 msgid "Plan %s does not support a trial period."
 msgstr "计划%s不支持试用期。"
 
-#: includes/class-freemius.php:21850
+#: includes/class-freemius.php:22127
 msgid "None of the %s's plans supports a trial period."
 msgstr "%s的任何计划都不支持试用期。"
 
-#: includes/class-freemius.php:21900
+#: includes/class-freemius.php:22176
 msgid "It looks like you are not in trial mode anymore so there's nothing to cancel :)"
 msgstr "看起来您不再处于试用模式，所以没有什么需要取消的：）"
 
-#: includes/class-freemius.php:21936
+#: includes/class-freemius.php:22212
 msgid "Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes."
 msgstr "看来关于您的试用取消发生了一些暂时的问题。请过几分钟再试一次。"
 
-#: includes/class-freemius.php:21955
+#: includes/class-freemius.php:22231
 msgid "Your %s free trial was successfully cancelled."
 msgstr "您的%s免费试用已成功取消。"
 
-#: includes/class-freemius.php:22277
+#: includes/class-freemius.php:22558
 msgid "Version %s was released."
 msgstr "版本%s已发布。"
 
-#: includes/class-freemius.php:22277
+#: includes/class-freemius.php:22558
 msgid "Please download %s."
 msgstr "请下载%s。"
 
-#: includes/class-freemius.php:22284
+#: includes/class-freemius.php:22565
 msgid "the latest %s version here"
 msgstr "这儿有最新的%s版本"
 
-#: includes/class-freemius.php:22289
+#: includes/class-freemius.php:22570
 msgid "New"
 msgstr "新的"
 
-#: includes/class-freemius.php:22294
+#: includes/class-freemius.php:22575
 msgid "Seems like you got the latest release."
 msgstr "好像你得到了最新的版本。"
 
-#: includes/class-freemius.php:22295
+#: includes/class-freemius.php:22576
 msgid "You are all good!"
 msgstr "你们都很好！"
 
-#: includes/class-freemius.php:22698
+#: includes/class-freemius.php:22979
 msgid "Verification mail was just sent to %s. If you can't find it after 5 min, please check your spam box."
 msgstr "验证邮件刚刚发送到%s。如果5分钟后找不到，请检查垃圾邮件框。"
 
-#: includes/class-freemius.php:22838
+#: includes/class-freemius.php:23119
 msgid "Site successfully opted in."
 msgstr "站点已成功选择加入。"
 
-#: includes/class-freemius.php22839, includes/class-freemius.php:23862
+#: includes/class-freemius.php23120, includes/class-freemius.php:24159
 msgid "Awesome"
 msgstr "真棒"
 
-#: includes/class-freemius.php22855, templates/forms/optout.php:41
-msgid "We appreciate your help in making the %s better by letting us track some usage data."
-msgstr "感谢您让我们跟踪一些使用数据，帮助我们改进%s。"
+#: includes/class-freemius.php:23136
+msgid "Sharing diagnostic data with %s helps to provide functionality that's more relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the plugin should be translated and tailored to."
+msgstr "Sharing diagnostic data with %s helps to provide functionality that's more relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the plugin should be translated and tailored to."
 
-#: includes/class-freemius.php:22856
+#: includes/class-freemius.php:23137
 msgid "Thank you!"
 msgstr "谢谢您！"
 
-#: includes/class-freemius.php:22863
-msgid "We will no longer be sending any usage data of %s on %s to %s."
-msgstr "我们不会再将%s在%s上的任何使用数据发送到%s。"
+#: includes/class-freemius.php:23146
+msgid "Diagnostic data will no longer be sent from %s to %s."
+msgstr "Diagnostic data will no longer be sent from %s to %s."
 
-#: includes/class-freemius.php:23023
+#: includes/class-freemius.php:23301
 msgid "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
-msgstr "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
+msgstr "刚刚向 %s 发送了一封确认电子邮件。电子邮件所有者必须在接下来的 4 小时内确认更新。"
 
-#: includes/class-freemius.php:23025
+#: includes/class-freemius.php:23303
 msgid "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
-msgstr "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
+msgstr "刚刚向 %s 发送了一封确认电子邮件。您必须在接下来的 4 小时内确认更新。如果您找不到该电子邮件，请检查您的垃圾邮件文件夹。"
 
-#: includes/class-freemius.php:23032
+#: includes/class-freemius.php:23310
 msgid "Thanks for confirming the ownership change. An email was just sent to %s for final approval."
 msgstr "感谢您确认所有权变更。刚刚向%s发送了一封电子邮件以获得最终批准。"
 
-#: includes/class-freemius.php:23037
+#: includes/class-freemius.php:23315
 msgid "%s is the new owner of the account."
 msgstr "%s是帐户的新主人。"
 
-#: includes/class-freemius.php:23039
+#: includes/class-freemius.php:23317
 msgctxt "as congratulations"
 msgid "Congrats"
 msgstr "恭喜"
 
-#: includes/class-freemius.php:23056
+#: includes/class-freemius.php:23334
 msgid "Please provide your full name."
 msgstr "请提供您的全名。"
 
-#: includes/class-freemius.php:23061
+#: includes/class-freemius.php:23339
 msgid "Your name was successfully updated."
 msgstr "您的姓名已成功更新。"
 
-#: includes/class-freemius.php:23122
+#: includes/class-freemius.php:23400
 msgid "You have successfully updated your %s."
 msgstr "您已成功更新%s。"
 
-#: includes/class-freemius.php:23181
+#: includes/class-freemius.php:23459
 msgid "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin."
 msgstr "这是您客户的网站吗？如果您希望从WP管理员那里隐藏敏感信息，例如电子邮件，许可证密钥，价格，账单地址和发票，则为%s。"
 
-#: includes/class-freemius.php:23184
+#: includes/class-freemius.php:23462
 msgid "Click here"
 msgstr "点击这里"
 
-#: includes/class-freemius.php:23282
+#: includes/class-freemius.php23499, includes/class-freemius.php:23496
+msgid "Bundle"
+msgstr "Bundle"
+
+#: includes/class-freemius.php:23579
 msgid "Just letting you know that the add-ons information of %s is being pulled from an external server."
 msgstr "只是让您知道%s的加载项信息是从外部服务器提取的。"
 
-#: includes/class-freemius.php:23283
+#: includes/class-freemius.php:23580
 msgctxt "advance notice of something that will need attention."
 msgid "Heads up"
 msgstr "抬头"
 
-#: includes/class-freemius.php:23902
+#: includes/class-freemius.php:24199
 msgctxt "exclamation"
 msgid "Hey"
 msgstr "嘿"
 
-#: includes/class-freemius.php:23902
+#: includes/class-freemius.php:24199
 msgid "How do you like %s so far? Test all our %s premium features with a %d-day free trial."
 msgstr "到目前为止，您觉得%s怎么样？使用%d天免费试用来测试我们所有的%s高级功能。"
 
-#: includes/class-freemius.php:23910
+#: includes/class-freemius.php:24207
 msgid "No commitment for %s days - cancel anytime!"
 msgstr "%s天没有承诺-随时取消！"
 
-#: includes/class-freemius.php:23911
+#: includes/class-freemius.php:24208
 msgid "No credit card required"
 msgstr "不需要信用卡"
 
-#: includes/class-freemius.php23918, templates/forms/trial-start.php:53
+#: includes/class-freemius.php24215, templates/forms/trial-start.php:53
 msgctxt "call to action"
 msgid "Start free trial"
 msgstr "开始免费试用"
 
-#: includes/class-freemius.php:23995
+#: includes/class-freemius.php:24292
 msgid "Hey there, did you know that %s has an affiliate program? If you like the %s you can become our ambassador and earn some cash!"
 msgstr "嘿，你知道%s有会员计划吗？如果您喜欢%s，您可以成为我们的大使并赚取一些现金！"
 
-#: includes/class-freemius.php:24004
+#: includes/class-freemius.php:24301
 msgid "Learn more"
 msgstr "了解更多"
 
-#: includes/class-freemius.php24190, templates/account.php567,
-#: templates/account.php719, templates/connect.php188,
-#: templates/connect.php465, includes/managers/class-fs-clone-manager.php1123,
+#: includes/class-freemius.php24487, templates/account.php573,
+#: templates/account.php725, templates/connect.php223,
+#: templates/connect.php449, includes/managers/class-fs-clone-manager.php1222,
 #: templates/forms/license-activation.php27,
-#: templates/account/partials/addon.php:321
+#: templates/account/partials/addon.php:326
 msgid "Activate License"
 msgstr "激活许可证"
 
-#: includes/class-freemius.php24191, templates/account.php661,
-#: templates/account.php718, templates/account/partials/addon.php322,
-#: templates/account/partials/site.php:271
+#: includes/class-freemius.php24488, templates/account.php667,
+#: templates/account.php724, templates/account/partials/addon.php327,
+#: templates/account/partials/site.php:273
 msgid "Change License"
 msgstr "更改许可证"
 
-#: includes/class-freemius.php24315, templates/account/partials/site.php:169
+#: includes/class-freemius.php24595, templates/account/partials/site.php:170
 msgid "Opt Out"
 msgstr "选择退出"
 
-#: includes/class-freemius.php24317, includes/class-freemius.php24323,
+#: includes/class-freemius.php24597, includes/class-freemius.php24603,
 #: templates/account/partials/site.php49,
-#: templates/account/partials/site.php:169
+#: templates/account/partials/site.php:170
 msgid "Opt In"
 msgstr "选择加入"
 
-#: includes/class-freemius.php:24553
+#: includes/class-freemius.php:24840
 msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
 msgstr "已安装%1$s的付费版本。请激活它以开始使用%2$s功能。%3$s公司"
 
-#: includes/class-freemius.php:24561
+#: includes/class-freemius.php:24850
 msgid "Activate %s features"
 msgstr "激活%s功能"
 
-#: includes/class-freemius.php:24574
+#: includes/class-freemius.php:24863
 msgid "Please follow these steps to complete the upgrade"
 msgstr "请按照以下步骤完成升级"
 
-#: includes/class-freemius.php:24578
+#: includes/class-freemius.php:24867
 msgid "Download the latest %s version"
 msgstr "下载最新的%s版本"
 
-#: includes/class-freemius.php:24582
+#: includes/class-freemius.php:24871
 msgid "Upload and activate the downloaded version"
 msgstr "上传并激活下载的版本"
 
-#: includes/class-freemius.php:24584
+#: includes/class-freemius.php:24873
 msgid "How to upload and activate?"
 msgstr "如何上传和激活？"
 
-#: includes/class-freemius.php:24718
+#: includes/class-freemius.php:25007
 msgid "%sClick here%s to choose the sites where you'd like to activate the license on."
 msgstr "%s单击此处%s可选择要激活许可证的站点。"
 
-#: includes/class-freemius.php:24887
+#: includes/class-freemius.php:25176
 msgid "Auto installation only works for opted-in users."
 msgstr "自动安装仅适用于已选择的用户。"
 
-#: includes/class-freemius.php24897, includes/class-freemius.php24930,
+#: includes/class-freemius.php25186, includes/class-freemius.php25219,
 #: includes/class-fs-plugin-updater.php1263,
 #: includes/class-fs-plugin-updater.php:1277
 msgid "Invalid module ID."
 msgstr "模块ID无效。"
 
-#: includes/class-freemius.php24906, includes/class-fs-plugin-updater.php:1299
+#: includes/class-freemius.php25195, includes/class-fs-plugin-updater.php:1299
 msgid "Premium version already active."
 msgstr "高级版本已激活。"
 
-#: includes/class-freemius.php:24913
+#: includes/class-freemius.php:25202
 msgid "You do not have a valid license to access the premium version."
 msgstr "您没有访问高级版本的有效许可证。"
 
-#: includes/class-freemius.php:24920
+#: includes/class-freemius.php:25209
 msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
 msgstr "插件是一个“服务软件”，这意味着它没有高级代码版本。"
 
-#: includes/class-freemius.php24938, includes/class-fs-plugin-updater.php:1298
+#: includes/class-freemius.php25227, includes/class-fs-plugin-updater.php:1298
 msgid "Premium add-on version already installed."
 msgstr "已安装高级加载项版本。"
 
-#: includes/class-freemius.php:25288
+#: includes/class-freemius.php:25577
 msgid "View paid features"
 msgstr "查看付费功能"
 
-#: includes/class-freemius.php:25610
+#: includes/class-freemius.php:25899
 msgid "Thank you so much for using %s and its add-ons!"
 msgstr "非常感谢您使用%s及其附加组件！"
 
-#: includes/class-freemius.php:25611
+#: includes/class-freemius.php:25900
 msgid "Thank you so much for using %s!"
 msgstr "非常感谢您使用%s！"
 
-#: includes/class-freemius.php:25617
+#: includes/class-freemius.php:25906
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving the %s."
 msgstr "您已经选择加入我们的使用情况跟踪，这有助于我们不断改进%s。"
 
-#: includes/class-freemius.php:25621
+#: includes/class-freemius.php:25910
 msgid "Thank you so much for using our products!"
 msgstr "非常感谢您使用我们的产品！"
 
-#: includes/class-freemius.php:25622
+#: includes/class-freemius.php:25911
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving them."
 msgstr "您已经选择了我们的使用情况跟踪，这有助于我们不断改进它们。"
 
-#: includes/class-freemius.php:25641
+#: includes/class-freemius.php:25930
 msgid "%s and its add-ons"
 msgstr "%s及其附加组件"
 
-#: includes/class-freemius.php:25650
+#: includes/class-freemius.php:25939
 msgid "Products"
 msgstr "产品"
 
-#: includes/class-freemius.php25657, templates/connect.php:279
+#: includes/class-freemius.php25946, templates/connect.php:324
 msgid "Yes"
 msgstr "是"
 
-#: includes/class-freemius.php25658, templates/connect.php:280
+#: includes/class-freemius.php25947, templates/connect.php:325
 msgid "send me security & feature updates, educational content and offers."
 msgstr "请给我发送安全和功能更新，教育内容和优惠。"
 
-#: includes/class-freemius.php25659, templates/connect.php:285
+#: includes/class-freemius.php25948, templates/connect.php:330
 msgid "No"
 msgstr "不"
 
-#: includes/class-freemius.php25661, templates/connect.php:287
+#: includes/class-freemius.php25950, templates/connect.php:332
 msgid "do %sNOT%s send me security & feature updates, educational content and offers."
 msgstr "不%s要%s向我发送安全和功能更新、教育内容和服务。"
 
-#: includes/class-freemius.php:25671
+#: includes/class-freemius.php:25960
 msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard :-)"
 msgstr "由于新的%sEU通用数据保护条例（GDPR）%s的合规性要求，要求您再次明确表示同意，确认您已经加入：-）"
 
-#: includes/class-freemius.php25673, templates/connect.php:294
+#: includes/class-freemius.php25962, templates/connect.php:339
 msgid "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:"
 msgstr "如果您希望我们与您联系以获取安全和功能更新、教育内容和偶尔的优惠，请告知我们："
 
-#: includes/class-freemius.php:25955
+#: includes/class-freemius.php:26244
 msgid "License key is empty."
 msgstr "许可证密钥为空。"
 
@@ -909,7 +914,7 @@ msgid "Purchase More"
 msgstr "购买更多"
 
 #: includes/fs-plugin-info-dialog.php542,
-#: templates/account/partials/addon.php:385
+#: templates/account/partials/addon.php:390
 msgctxt "verb"
 msgid "Purchase"
 msgstr "购买"
@@ -922,7 +927,7 @@ msgstr "开始我的免费%s"
 msgid "Install Free Version Update Now"
 msgstr "立即安装免费版本更新"
 
-#: includes/fs-plugin-info-dialog.php745, templates/account.php:650
+#: includes/fs-plugin-info-dialog.php745, templates/account.php:656
 msgid "Install Update Now"
 msgstr "立即安装更新"
 
@@ -932,8 +937,8 @@ msgstr "立即安装免费版本"
 
 #: includes/fs-plugin-info-dialog.php755, templates/add-ons.php323,
 #: templates/auto-installation.php111,
-#: templates/account/partials/addon.php365,
-#: templates/account/partials/addon.php:418
+#: templates/account/partials/addon.php370,
+#: templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "立即安装"
 
@@ -942,24 +947,24 @@ msgctxt "as download latest version"
 msgid "Download Latest Free Version"
 msgstr "下载最新免费版本"
 
-#: includes/fs-plugin-info-dialog.php772, templates/account.php109,
-#: templates/add-ons.php37, templates/account/partials/addon.php:25
+#: includes/fs-plugin-info-dialog.php772, templates/account.php114,
+#: templates/add-ons.php37, templates/account/partials/addon.php:30
 msgctxt "as download latest version"
 msgid "Download Latest"
 msgstr "下载最新版本"
 
 #: includes/fs-plugin-info-dialog.php787, templates/add-ons.php329,
-#: templates/account/partials/addon.php356,
-#: templates/account/partials/addon.php:412
+#: templates/account/partials/addon.php361,
+#: templates/account/partials/addon.php:417
 msgid "Activate this add-on"
 msgstr "激活此加载项"
 
-#: includes/fs-plugin-info-dialog.php789, templates/connect.php:462
+#: includes/fs-plugin-info-dialog.php789, templates/connect.php:446
 msgid "Activate Free Version"
 msgstr "激活免费版本"
 
-#: includes/fs-plugin-info-dialog.php790, templates/account.php133,
-#: templates/add-ons.php330, templates/account/partials/addon.php:48
+#: includes/fs-plugin-info-dialog.php790, templates/account.php138,
+#: templates/add-ons.php330, templates/account/partials/addon.php:53
 msgid "Activate"
 msgstr "激活"
 
@@ -1094,9 +1099,9 @@ msgstr "免费%s后，只需支付%s"
 msgid "Details"
 msgstr "细节"
 
-#: includes/fs-plugin-info-dialog.php1318, templates/account.php120,
-#: templates/debug.php211, templates/debug.php248, templates/debug.php465,
-#: templates/account/partials/addon.php:36
+#: includes/fs-plugin-info-dialog.php1318, templates/account.php125,
+#: templates/debug.php219, templates/debug.php256, templates/debug.php470,
+#: templates/account/partials/addon.php:41
 msgctxt "product version"
 msgid "Version"
 msgstr "版本"
@@ -1110,7 +1115,7 @@ msgstr "作者"
 msgid "Last Updated"
 msgstr "上次更新时间"
 
-#: includes/fs-plugin-info-dialog.php1337, templates/account.php:536
+#: includes/fs-plugin-info-dialog.php1337, templates/account.php:544
 msgctxt "x-ago"
 msgid "%s ago"
 msgstr "%s以前"
@@ -1221,333 +1226,321 @@ msgstr "已安装最新版本"
 msgid "Latest Free Version Installed"
 msgstr "已安装最新的免费版本"
 
-#: templates/account.php110, templates/forms/subscription-cancellation.php96,
-#: templates/account/partials/addon.php26,
-#: templates/account/partials/site.php:311
+#: templates/account.php115, templates/forms/subscription-cancellation.php96,
+#: templates/account/partials/addon.php31,
+#: templates/account/partials/site.php:313
 msgid "Downgrading your plan"
 msgstr "降低您的计划"
 
-#: templates/account.php111, templates/forms/subscription-cancellation.php97,
-#: templates/account/partials/addon.php27,
-#: templates/account/partials/site.php:312
+#: templates/account.php116, templates/forms/subscription-cancellation.php97,
+#: templates/account/partials/addon.php32,
+#: templates/account/partials/site.php:314
 msgid "Cancelling the subscription"
 msgstr "取消订阅"
 
 #. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
 #. subscription'
-#: templates/account.php113, templates/forms/subscription-cancellation.php99,
-#: templates/account/partials/site.php:314
+#: templates/account.php118, templates/forms/subscription-cancellation.php99,
+#: templates/account/partials/site.php:316
 msgid "%1$s will immediately stop all future recurring payments and your %2$s plan license will expire in %3$s."
 msgstr "%1$s将立即停止所有未来的定期付款，并且您的%2$s计划许可证将在%3$s过期。"
 
-#: templates/account.php114, templates/forms/subscription-cancellation.php100,
-#: templates/account/partials/addon.php30,
-#: templates/account/partials/site.php:315
+#: templates/account.php119, templates/forms/subscription-cancellation.php100,
+#: templates/account/partials/addon.php35,
+#: templates/account/partials/site.php:317
 msgid "Please note that we will not be able to grandfather outdated pricing for renewals/new subscriptions after a cancellation. If you choose to renew the subscription manually in the future, after a price increase, which typically occurs once a year, you will be charged the updated price."
 msgstr "请注意，取消后，我们将无法获取更新/新订阅的过期定价。如果您选择在未来手动续订，在价格上涨后，将向您收取更新后的价格。"
 
-#: templates/account.php115, templates/forms/subscription-cancellation.php106,
-#: templates/account/partials/addon.php:31
+#: templates/account.php120, templates/forms/subscription-cancellation.php106,
+#: templates/account/partials/addon.php:36
 msgid "Cancelling the trial will immediately block access to all premium features. Are you sure?"
 msgstr "取消试用将立即阻止使用所有高级功能。你确定吗？"
 
-#: templates/account.php116, templates/forms/subscription-cancellation.php101,
-#: templates/account/partials/addon.php32,
-#: templates/account/partials/site.php:316
+#: templates/account.php121, templates/forms/subscription-cancellation.php101,
+#: templates/account/partials/addon.php37,
+#: templates/account/partials/site.php:318
 msgid "You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support."
 msgstr "您仍然可以享受所有%s功能，但您将无法获得%s安全和功能更新以及支持服务。"
 
-#: templates/account.php117, templates/forms/subscription-cancellation.php102,
-#: templates/account/partials/addon.php33,
-#: templates/account/partials/site.php:317
+#: templates/account.php122, templates/forms/subscription-cancellation.php102,
+#: templates/account/partials/addon.php38,
+#: templates/account/partials/site.php:319
 msgid "Once your license expires you can still use the Free version but you will NOT have access to the %s features."
 msgstr "许可证过期后，您仍然可以使用免费版本，但您将无法使用%s功能。"
 
 #. translators: %s: Plan title (e.g. "Professional")
-#: templates/account.php119,
+#: templates/account.php124,
 #: templates/account/partials/activate-license-button.php31,
-#: templates/account/partials/addon.php:35
+#: templates/account/partials/addon.php:40
 msgid "Activate %s Plan"
 msgstr "激活%s计划"
 
 #. translators: %s: Time period (e.g. Auto renews in "2 months")
-#: templates/account.php122, templates/account/partials/addon.php38,
-#: templates/account/partials/site.php:291
+#: templates/account.php127, templates/account/partials/addon.php43,
+#: templates/account/partials/site.php:293
 msgid "Auto renews in %s"
 msgstr "在%s中自动续订"
 
 #. translators: %s: Time period (e.g. Expires in "2 months")
-#: templates/account.php124, templates/account/partials/addon.php40,
-#: templates/account/partials/site.php:293
+#: templates/account.php129, templates/account/partials/addon.php45,
+#: templates/account/partials/site.php:295
 msgid "Expires in %s"
 msgstr "%s后过期"
 
-#: templates/account.php:125
+#: templates/account.php:130
 msgctxt "as synchronize license"
 msgid "Sync License"
 msgstr "同步许可证"
 
-#: templates/account.php126, templates/account/partials/addon.php:41
+#: templates/account.php131, templates/account/partials/addon.php:46
 msgid "Cancel Trial"
 msgstr "取消试用"
 
-#: templates/account.php127, templates/account/partials/addon.php:42
+#: templates/account.php132, templates/account/partials/addon.php:47
 msgid "Change Plan"
 msgstr "变更计划"
 
-#: templates/account.php128, templates/account/partials/addon.php:43
+#: templates/account.php133, templates/account/partials/addon.php:48
 msgctxt "verb"
 msgid "Upgrade"
 msgstr "升级"
 
-#: templates/account.php130, templates/account/partials/addon.php45,
-#: templates/account/partials/site.php:318
+#: templates/account.php135, templates/account/partials/addon.php50,
+#: templates/account/partials/site.php:320
 msgctxt "verb"
 msgid "Downgrade"
 msgstr "降级"
 
-#: templates/account.php132, templates/add-ons.php246,
+#: templates/account.php137, templates/add-ons.php246,
 #: templates/plugin-info/features.php72,
-#: templates/account/partials/addon.php47,
+#: templates/account/partials/addon.php52,
 #: templates/account/partials/site.php:33
 msgid "Free"
 msgstr "免费的"
 
-#: templates/account.php134, templates/debug.php381,
+#: templates/account.php139, templates/debug.php389,
 #: includes/customizer/class-fs-customizer-upsell-control.php110,
-#: templates/account/partials/addon.php:49
+#: templates/account/partials/addon.php:54
 msgctxt "as product pricing plan"
 msgid "Plan"
 msgstr "计划"
 
-#: templates/account.php:135
+#: templates/account.php:140
 msgid "Bundle Plan"
 msgstr "捆绑计划"
 
-#: templates/account.php:259
+#: templates/account.php:272
 msgid "Free Trial"
 msgstr "免费试用"
 
-#: templates/account.php:270
+#: templates/account.php:283
 msgid "Account Details"
 msgstr "帐户详细信息"
 
-#: templates/account.php277, templates/forms/data-debug-mode.php:33
+#: templates/account.php290, templates/forms/data-debug-mode.php:33
 msgid "Start Debug"
 msgstr "开始调试"
 
-#: templates/account.php:279
+#: templates/account.php:292
 msgid "Stop Debug"
 msgstr "停止调试"
 
-#: templates/account.php:286
+#: templates/account.php:299
 msgid "Billing & Invoices"
 msgstr "账单和发票"
 
-#: templates/account.php:297
-msgid "Deleting the account will automatically deactivate your %s plan license so you can use it on other sites. If you want to terminate the recurring payments as well, click the \"Cancel\" button, and first \"Downgrade\" your account. Are you sure you would like to continue with the deletion?"
-msgstr "删除帐户将自动停用您的%s计划许可证，以便您可以在其他网站上使用。如果您想终止定期付款，点击“取消”按钮，并首先“降级”你的帐户。确实要继续删除吗？"
-
-#: templates/account.php:299
-msgid "Deletion is not temporary. Only delete if you no longer want to use this %s anymore. Are you sure you would like to continue with the deletion?"
-msgstr "删除不是临时的。只有当您不再想使用此%s时才删除。确实要继续删除吗？"
-
-#: templates/account.php:302
-msgid "Delete Account"
-msgstr "删除帐户"
-
-#: templates/account.php314, templates/account/partials/addon.php231,
+#: templates/account.php322, templates/account/partials/addon.php236,
 #: templates/account/partials/deactivate-license-button.php:35
 msgid "Deactivate License"
 msgstr "停用许可证"
 
-#: templates/account.php337, templates/forms/subscription-cancellation.php:125
+#: templates/account.php345, templates/forms/subscription-cancellation.php:125
 msgid "Are you sure you want to proceed?"
 msgstr "确定要继续吗？"
 
-#: templates/account.php337, templates/account/partials/addon.php:255
+#: templates/account.php345, templates/account/partials/addon.php:260
 msgid "Cancel Subscription"
 msgstr "取消订阅"
 
-#: templates/account.php366, templates/account/partials/addon.php:340
+#: templates/account.php374, templates/account/partials/addon.php:345
 msgctxt "as synchronize"
 msgid "Sync"
 msgstr "同步"
 
-#: templates/account.php381, templates/debug.php:522
+#: templates/account.php389, templates/debug.php:527
 msgid "Name"
 msgstr "姓名"
 
-#: templates/account.php387, templates/debug.php:523
+#: templates/account.php395, templates/debug.php:528
 msgid "Email"
 msgstr "电子邮件"
 
-#: templates/account.php394, templates/debug.php379, templates/debug.php:572
+#: templates/account.php402, templates/debug.php387, templates/debug.php:577
 msgid "User ID"
 msgstr "用户 ID"
 
-#: templates/account.php412, templates/account.php732,
-#: templates/account.php783, templates/debug.php246, templates/debug.php373,
-#: templates/debug.php462, templates/debug.php521, templates/debug.php570,
-#: templates/debug.php649, templates/account/payments.php35,
+#: templates/account.php420, templates/account.php738,
+#: templates/account.php789, templates/debug.php254, templates/debug.php381,
+#: templates/debug.php467, templates/debug.php526, templates/debug.php575,
+#: templates/debug.php654, templates/account/payments.php35,
 #: templates/debug/logger.php:21
 msgid "ID"
 msgstr "ID"
 
-#: templates/account.php:419
+#: templates/account.php:427
 msgid "Site ID"
 msgstr "站点 ID"
 
-#: templates/account.php:422
+#: templates/account.php:430
 msgid "No ID"
 msgstr "无 ID"
 
-#: templates/account.php427, templates/debug.php253, templates/debug.php382,
-#: templates/debug.php466, templates/debug.php525,
-#: templates/account/partials/site.php:227
+#: templates/account.php435, templates/debug.php261, templates/debug.php390,
+#: templates/debug.php471, templates/debug.php530,
+#: templates/account/partials/site.php:228
 msgid "Public Key"
 msgstr "公钥"
 
-#: templates/account.php433, templates/debug.php383, templates/debug.php467,
-#: templates/debug.php526, templates/account/partials/site.php:239
+#: templates/account.php441, templates/debug.php391, templates/debug.php472,
+#: templates/debug.php531, templates/account/partials/site.php:241
 msgid "Secret Key"
 msgstr "密钥"
 
-#: templates/account.php:436
+#: templates/account.php:444
 msgctxt "as secret encryption key missing"
 msgid "No Secret"
 msgstr "没有秘密"
 
-#: templates/account.php463, templates/account/partials/site.php120,
+#: templates/account.php471, templates/account/partials/site.php120,
 #: templates/account/partials/site.php:122
 msgid "Trial"
 msgstr "审判"
 
-#: templates/account.php490, templates/debug.php578,
-#: templates/account/partials/site.php:260
+#: templates/account.php498, templates/debug.php583,
+#: templates/account/partials/site.php:262
 msgid "License Key"
 msgstr "许可证密钥"
 
-#: templates/account.php:521
+#: templates/account.php:529
 msgid "Join the Beta program"
 msgstr "加入测试计划"
 
-#: templates/account.php:527
+#: templates/account.php:535
 msgid "not verified"
 msgstr "未验证"
 
-#: templates/account.php536, templates/account/partials/addon.php:190
+#: templates/account.php544, templates/account/partials/addon.php:195
 msgid "Expired"
 msgstr "期满"
 
-#: templates/account.php:596
+#: templates/account.php:602
 msgid "Premium version"
 msgstr "高级版"
 
-#: templates/account.php:598
+#: templates/account.php:604
 msgid "Free version"
 msgstr "免费版本"
 
-#: templates/account.php:610
+#: templates/account.php:616
 msgid "Verify Email"
 msgstr "验证电子邮件"
 
-#: templates/account.php:624
+#: templates/account.php:630
 msgid "Download %s Version"
 msgstr "下载%s版本"
 
-#: templates/account.php:640
+#: templates/account.php:646
 msgid "Download Paid Version"
 msgstr "下载付费版本"
 
-#: templates/account.php658, templates/account.php921,
-#: templates/account/partials/site.php248,
-#: templates/account/partials/site.php:270
+#: templates/account.php664, templates/account.php927,
+#: templates/account/partials/site.php250,
+#: templates/account/partials/site.php:272
 msgctxt "verb"
 msgid "Show"
 msgstr "显示"
 
-#: templates/account.php:674
+#: templates/account.php:680
 msgid "What is your %s?"
 msgstr "你的%s是什么？"
 
-#: templates/account.php682, templates/account/billing.php:21
+#: templates/account.php688, templates/account/billing.php:21
 msgctxt "verb"
 msgid "Edit"
 msgstr "编辑"
 
-#: templates/account.php687, templates/forms/user-change.php:27
+#: templates/account.php693, templates/forms/user-change.php:27
 msgid "Change User"
 msgstr "更改用户"
 
-#: templates/account.php:711
+#: templates/account.php:717
 msgid "Sites"
 msgstr "站点"
 
-#: templates/account.php:724
+#: templates/account.php:730
 msgid "Search by address"
 msgstr "按网址搜索"
 
-#: templates/account.php733, templates/debug.php:376
+#: templates/account.php739, templates/debug.php:384
 msgid "Address"
 msgstr "网址"
 
-#: templates/account.php:734
+#: templates/account.php:740
 msgid "License"
 msgstr "许可证"
 
-#: templates/account.php:735
+#: templates/account.php:741
 msgid "Plan"
 msgstr "计划"
 
-#: templates/account.php:786
+#: templates/account.php:792
 msgctxt "as software license"
 msgid "License"
 msgstr "许可证"
 
-#: templates/account.php:915
+#: templates/account.php:921
 msgctxt "verb"
 msgid "Hide"
 msgstr "隐藏"
 
-#: templates/account.php937, templates/forms/data-debug-mode.php31,
+#: templates/account.php943, templates/forms/data-debug-mode.php31,
 #: templates/forms/deactivation/form.php358,
 #: templates/forms/deactivation/form.php:389
 msgid "Processing"
 msgstr "处理"
 
-#: templates/account.php:940
+#: templates/account.php:946
 msgid "Get updates for bleeding edge Beta versions of %s."
 msgstr "获取%s的前沿测试版本的更新。"
 
-#: templates/account.php:998
+#: templates/account.php:1004
 msgid "Cancelling %s"
 msgstr "正在取消%s"
 
-#: templates/account.php998, templates/account.php1015,
+#: templates/account.php1004, templates/account.php1021,
 #: templates/forms/subscription-cancellation.php27,
 #: templates/forms/deactivation/form.php:178
 msgid "trial"
 msgstr "试用"
 
-#: templates/account.php1013, templates/forms/deactivation/form.php:195
+#: templates/account.php1019, templates/forms/deactivation/form.php:195
 msgid "Cancelling %s..."
 msgstr "正在取消%s..."
 
-#: templates/account.php1016, templates/forms/subscription-cancellation.php28,
+#: templates/account.php1022, templates/forms/subscription-cancellation.php28,
 #: templates/forms/deactivation/form.php:179
 msgid "subscription"
 msgstr "订阅"
 
-#: templates/account.php:1030
+#: templates/account.php:1036
 msgid "Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?"
 msgstr "停用许可证将阻止所有高级功能，但将在其他站点上激活许可证。确定要继续吗？"
 
-#: templates/account.php:1104
+#: templates/account.php:1110
 msgid "Disabling white-label mode"
 msgstr "禁用白标模式"
 
-#: templates/account.php:1105
+#: templates/account.php:1111
 msgid "Enabling white-label mode"
 msgstr "启用白标模式"
 
@@ -1573,8 +1566,8 @@ msgctxt "installed add-on"
 msgid "Installed"
 msgstr "安装"
 
-#: templates/admin-notice.php13, templates/forms/license-activation.php250,
-#: templates/forms/resend-key.php:77
+#: templates/admin-notice.php13, templates/forms/license-activation.php243,
+#: templates/forms/resend-key.php:80
 msgctxt "as close a window"
 msgid "Dismiss"
 msgstr "关闭"
@@ -1613,195 +1606,144 @@ msgctxt "greeting"
 msgid "Hey %s,"
 msgstr "嘿%s，"
 
-#: templates/connect.php:171
+#: templates/connect.php:189
+msgid "Never miss an important update"
+msgstr "Never miss an important update"
+
+#: templates/connect.php:197
+msgid "Thank you for updating to %1$s v%2$s!"
+msgstr "Thank you for updating to %1$s v%2$s!"
+
+#: templates/connect.php:207
 msgid "Allow & Continue"
 msgstr "允许并继续"
 
-#: templates/connect.php:175
+#: templates/connect.php:211
 msgid "Re-send activation email"
 msgstr "重新发送激活电子邮件"
 
-#: templates/connect.php:179
+#: templates/connect.php:215
 msgid "Thanks %s!"
 msgstr "谢谢%s！"
 
-#: templates/connect.php189, templates/forms/license-activation.php:46
-msgid "Agree & Activate License"
-msgstr "同意并激活许可证"
-
-#: templates/connect.php:193
+#: templates/connect.php:227
 msgid "Welcome to %s! To get started, please enter your license key:"
 msgstr "欢迎使用%s！首先，请输入您的许可证密钥："
 
-#: templates/connect.php:200
-msgid "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s."
-msgstr "千万不要错过一个重要的更新-使用%4$s选择加入我们的安全和功能更新通知、教育内容、服务和非敏感诊断跟踪。"
-
-#: templates/connect.php:201
-msgid "Never miss an important update - opt in to our security and feature updates notifications, and non-sensitive diagnostic tracking with %4$s."
-msgstr "千万不要错过重要的更新-使用%4$s选择加入我们的安全和功能更新通知，以及非敏感诊断跟踪。"
-
-#: templates/connect.php:207
-msgid "Never miss an important update - opt in to our security & feature updates notifications, educational content, offers, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
-msgstr "千万不要错过重要的更新-使用%14$s选择加入我们的安全和功能更新通知、教育内容、服务和非敏感诊断跟踪。如果您跳过这一步，没关系！%1$s仍然可以正常工作。"
-
-#: templates/connect.php:208
-msgid "Never miss an important update - opt in to our security & feature updates notifications, and non-sensitive diagnostic tracking with %4$s. If you skip this, that's okay! %1$s will still work just fine."
-msgstr "千万不要错过重要的更新-选择加入我们的安全和功能更新通知，并使用%4$s进行非敏感诊断跟踪。如果您跳过这一步，没关系！%1$s仍然可以正常工作。"
-
 #: templates/connect.php:237
+msgid "Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to."
+msgstr "Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to."
+
+#: templates/connect.php:239
+msgid "Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to."
+msgstr "Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to."
+
+#. translators: %s: module type (plugin, theme, or add-on)
+#: templates/connect.php:245
+msgid "We have introduced this opt-in so you never miss an important update and help us make the %s more compatible with your site and better at doing what you need it to."
+msgstr "We have introduced this opt-in so you never miss an important update and help us make the %s more compatible with your site and better at doing what you need it to."
+
+#: templates/connect.php:248
+msgid "Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info."
+msgstr "Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info."
+
+#: templates/connect.php:249
+msgid "Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info."
+msgstr "Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info."
+
+#: templates/connect.php:252
+msgid "If you skip this, that's okay! %1$s will still work just fine."
+msgstr "If you skip this, that's okay! %1$s will still work just fine."
+
+#: templates/connect.php:282
 msgid "We're excited to introduce the Freemius network-level integration."
 msgstr "我们很高兴介绍Freemius网络级集成。"
 
-#: templates/connect.php:240
+#: templates/connect.php:285
 msgid "During the update process we detected %d site(s) that are still pending license activation."
 msgstr "在更新过程中，我们检测到%d个网站仍在等待许可证激活。"
 
-#: templates/connect.php:242
+#: templates/connect.php:287
 msgid "If you'd like to use the %s on those sites, please enter your license key below and click the activation button."
 msgstr "如果要在这些站点上使用%s，请在下面输入许可证密钥，然后单击“激活”按钮。"
 
-#: templates/connect.php:244
+#: templates/connect.php:289
 msgid "%s's paid features"
 msgstr "%s的付费功能"
 
-#: templates/connect.php:249
+#: templates/connect.php:294
 msgid "Alternatively, you can skip it for now and activate the license later, in your %s's network-level Account page."
 msgstr "或者，您可以暂时跳过它，稍后在%s的网络级帐户页中激活许可证。"
 
-#: templates/connect.php:251
+#: templates/connect.php:296
 msgid "During the update process we detected %s site(s) in the network that are still pending your attention."
 msgstr "在更新过程中，我们在网络中检测到%s个网站仍然需要您的注意。"
 
-#: templates/connect.php260, templates/forms/data-debug-mode.php35,
-#: templates/forms/license-activation.php:49
+#: templates/connect.php305, templates/forms/data-debug-mode.php35,
+#: templates/forms/license-activation.php:42
 msgid "License key"
 msgstr "许可证密钥"
 
-#: templates/connect.php263, templates/forms/license-activation.php:22
+#: templates/connect.php308, templates/forms/license-activation.php:22
 msgid "Can't find your license key?"
 msgstr "找不到您的许可证密钥？"
 
-#: templates/connect.php322, templates/connect.php709,
+#: templates/connect.php371, templates/connect.php695,
 #: templates/forms/deactivation/retry-skip.php:20
 msgctxt "verb"
 msgid "Skip"
 msgstr "跳过"
 
-#: templates/connect.php:325
+#: templates/connect.php:374
 msgid "Delegate to Site Admins"
 msgstr "委派给站点管理员"
 
-#: templates/connect.php:325
+#: templates/connect.php:374
 msgid "If you click it, this decision will be delegated to the sites administrators."
 msgstr "如果单击它，此决定将委派给站点管理员。"
 
-#: templates/connect.php:350
+#: templates/connect.php:401
 msgid "License issues?"
 msgstr "许可问题？"
 
-#: templates/connect.php:366
-msgid "Your Profile Overview"
-msgstr "您的个人资料概述"
-
-#: templates/connect.php:367
-msgid "Name and email address"
-msgstr "姓名和电子邮件地址"
-
-#: templates/connect.php:374
-msgid "So you can manage and control your license remotely from the User Dashboard."
-msgstr "因此，您可以从用户仪表板远程管理和控制许可证。"
-
-#: templates/connect.php:375
-msgid "Your Site Overview"
-msgstr "您的网站概述"
-
-#: templates/connect.php:376
-msgid "Site URL, WP version, PHP info"
-msgstr "网站网址，WP版本，PHP信息"
-
-#: templates/connect.php:383
-msgid "Admin Notices"
-msgstr "管理通知"
-
-#: templates/connect.php384, templates/connect.php:402
-msgid "Updates, announcements, marketing, no spam"
-msgstr "更新、公告、营销，无垃圾邮件"
-
-#: templates/connect.php:391
-msgid "So you can reuse the license when the %s is no longer active."
-msgstr "因此，当%s不再活动时，您可以重新使用许可证。"
-
-#: templates/connect.php:392
-msgid "Current %s Status"
-msgstr "当前%s状态"
-
-#: templates/connect.php:393
-msgid "Active, deactivated, or uninstalled"
-msgstr "激活，未激活或已卸载"
-
-#: templates/connect.php:401
-msgid "Newsletter"
-msgstr "新闻稿"
-
-#: templates/connect.php:409
-msgid "Plugins & Themes"
-msgstr "插件和主题"
-
-#: templates/connect.php:409
-msgid "optional"
-msgstr "可选的"
-
-#: templates/connect.php:410
-msgid "To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts."
-msgstr "为了帮助我们解决由其他插件或主题冲突引起的任何潜在问题。"
-
-#: templates/connect.php:411
-msgid "Title, slug, version, and is active"
-msgstr "标题、slug、版本，并且处于激活状态"
-
-#: templates/connect.php:428
-msgid "The %1$s will periodically send %2$s to %3$s for security & feature updates delivery, and license management."
-msgstr "%1$s将定期向%3$s发送%2$s以便进行安全性和功能更新交付以及许可证管理。"
+#: templates/connect.php:425
+msgid "For delivery of security & feature updates, and license management, %s needs to"
+msgstr "For delivery of security & feature updates, and license management, %s needs to"
 
 #: templates/connect.php:430
-msgid "diagnostic data"
-msgstr "诊断数据"
+msgid "This will allow %s to"
+msgstr "This will allow %s to"
 
-#: templates/connect.php:431
-msgid "Freemius is our licensing and software updates engine"
-msgstr "Freemius是我们的许可和软件更新引擎"
-
-#: templates/connect.php:434
-msgid "What permissions are being granted?"
-msgstr "正在授予哪些权限？"
-
-#: templates/connect.php:461
+#: templates/connect.php:445
 msgid "Don't have a license key?"
 msgstr "没有许可证密钥？"
 
-#: templates/connect.php:464
+#: templates/connect.php:448
 msgid "Have a license key?"
 msgstr "有许可证密钥吗？"
 
-#: templates/connect.php:472
+#: templates/connect.php:456
+msgid "Freemius is our licensing and software updates engine"
+msgstr "Freemius是我们的许可和软件更新引擎"
+
+#: templates/connect.php:459
 msgid "Privacy Policy"
 msgstr "隐私政策"
 
-#: templates/connect.php:474
+#: templates/connect.php:461
 msgid "License Agreement"
 msgstr "许可协议"
 
-#: templates/connect.php:474
+#: templates/connect.php:461
 msgid "Terms of Service"
 msgstr "服务条款"
 
-#: templates/connect.php:875
+#: templates/connect.php:881
 msgctxt "as in the process of sending an email"
 msgid "Sending email"
 msgstr "发送电子邮件"
 
-#: templates/connect.php:876
+#: templates/connect.php:882
 msgctxt "as activating plugin"
 msgid "Activating"
 msgstr "正在激活"
@@ -1829,237 +1771,237 @@ msgctxt "as code debugging"
 msgid "Debugging"
 msgstr "调试"
 
-#: templates/debug.php52, templates/debug.php258, templates/debug.php384,
-#: templates/debug.php:527
+#: templates/debug.php54, templates/debug.php266, templates/debug.php392,
+#: templates/debug.php:532
 msgid "Actions"
 msgstr "行动"
 
-#: templates/debug.php:62
+#: templates/debug.php:64
 msgid "Are you sure you want to delete all Freemius data?"
 msgstr "是否确实要删除所有Freemius数据？"
 
-#: templates/debug.php:62
+#: templates/debug.php:64
 msgid "Delete All Accounts"
 msgstr "删除所有帐户"
 
-#: templates/debug.php:69
+#: templates/debug.php:71
 msgid "Clear API Cache"
 msgstr "清除 API 缓存"
 
-#: templates/debug.php:77
+#: templates/debug.php:79
 msgid "Clear Updates Transients"
 msgstr "清除更新瞬态"
 
-#: templates/debug.php:86
+#: templates/debug.php:88
 msgid "Reset Deactivation Snoozing"
-msgstr "Reset Deactivation Snoozing"
+msgstr "复位失活休眠"
 
-#: templates/debug.php:94
+#: templates/debug.php:96
 msgid "Sync Data From Server"
 msgstr "从服务器得到的同步数据"
 
-#: templates/debug.php:103
+#: templates/debug.php:105
 msgid "Migrate Options to Network"
 msgstr "将选项迁移到网络"
 
-#: templates/debug.php:108
+#: templates/debug.php:110
 msgid "Load DB Option"
 msgstr "加载数据库选项"
 
-#: templates/debug.php:111
+#: templates/debug.php:113
 msgid "Set DB Option"
 msgstr "设置数据库选项"
 
-#: templates/debug.php:190
+#: templates/debug.php:198
 msgid "Key"
 msgstr "钥匙"
 
-#: templates/debug.php:191
+#: templates/debug.php:199
 msgid "Value"
-msgstr "价值"
+msgstr "值"
 
-#: templates/debug.php:207
+#: templates/debug.php:215
 msgctxt "as software development kit versions"
 msgid "SDK Versions"
 msgstr "SDK 版本"
 
-#: templates/debug.php:212
+#: templates/debug.php:220
 msgid "SDK Path"
 msgstr "SDK 路径"
 
-#: templates/debug.php213, templates/debug.php:252
+#: templates/debug.php221, templates/debug.php:260
 msgid "Module Path"
 msgstr "模块路径"
 
-#: templates/debug.php:214
+#: templates/debug.php:222
 msgid "Is Active"
 msgstr "处于活动状态"
 
-#: templates/debug.php242, templates/debug/plugins-themes-sync.php:35
+#: templates/debug.php250, templates/debug/plugins-themes-sync.php:35
 msgid "Plugins"
 msgstr "插件"
 
-#: templates/debug.php242, templates/debug/plugins-themes-sync.php:56
+#: templates/debug.php250, templates/debug/plugins-themes-sync.php:56
 msgid "Themes"
 msgstr "主题"
 
-#: templates/debug.php247, templates/debug.php378, templates/debug.php464,
+#: templates/debug.php255, templates/debug.php386, templates/debug.php469,
 #: templates/debug/scheduled-crons.php:80
 msgid "Slug"
 msgstr "Slug"
 
-#: templates/debug.php249, templates/debug.php:463
+#: templates/debug.php257, templates/debug.php:468
 msgid "Title"
 msgstr "标题"
 
-#: templates/debug.php:250
+#: templates/debug.php:258
 msgctxt "as application program interface"
 msgid "API"
 msgstr "API"
 
-#: templates/debug.php:251
+#: templates/debug.php:259
 msgid "Freemius State"
 msgstr "Freemius 状态"
 
-#: templates/debug.php:255
+#: templates/debug.php:263
 msgid "Network Blog"
 msgstr "网络博客"
 
-#: templates/debug.php:256
+#: templates/debug.php:264
 msgid "Network User"
 msgstr "网络用户"
 
-#: templates/debug.php:293
+#: templates/debug.php:301
 msgctxt "as connection was successful"
 msgid "Connected"
 msgstr "已连接"
 
-#: templates/debug.php:294
+#: templates/debug.php:302
 msgctxt "as connection blocked"
 msgid "Blocked"
 msgstr "此路不通"
 
-#: templates/debug.php:330
+#: templates/debug.php:338
 msgid "Simulate Trial Promotion"
 msgstr "模拟试用推广"
 
-#: templates/debug.php:342
+#: templates/debug.php:350
 msgid "Simulate Network Upgrade"
 msgstr "模拟试用推广"
 
-#: templates/debug.php:367
+#: templates/debug.php:375
 msgid "%s Installs"
 msgstr "%s安装"
 
-#: templates/debug.php:369
+#: templates/debug.php:377
 msgctxt "like websites"
 msgid "Sites"
 msgstr "站点"
 
-#: templates/debug.php375, templates/account/partials/site.php:156
+#: templates/debug.php383, templates/account/partials/site.php:156
 msgid "Blog ID"
 msgstr "博客ID"
 
-#: templates/debug.php:380
+#: templates/debug.php:388
 msgid "License ID"
 msgstr "许可证ID"
 
-#: templates/debug.php444, templates/debug.php550,
-#: templates/account/partials/addon.php:435
+#: templates/debug.php449, templates/debug.php555,
+#: templates/account/partials/addon.php:440
 msgctxt "verb"
 msgid "Delete"
 msgstr "删除"
 
-#: templates/debug.php:458
+#: templates/debug.php:463
 msgid "Add Ons of module %s"
 msgstr "模块%s的加载项"
 
-#: templates/debug.php:517
+#: templates/debug.php:522
 msgid "Users"
 msgstr "用户"
 
-#: templates/debug.php:524
+#: templates/debug.php:529
 msgid "Verified"
 msgstr "已验证的"
 
-#: templates/debug.php:566
+#: templates/debug.php:571
 msgid "%s Licenses"
 msgstr "%s许可证"
 
-#: templates/debug.php:571
+#: templates/debug.php:576
 msgid "Plugin ID"
 msgstr "插件ID"
 
-#: templates/debug.php:573
+#: templates/debug.php:578
 msgid "Plan ID"
 msgstr "计划ID"
 
-#: templates/debug.php:574
+#: templates/debug.php:579
 msgid "Quota"
 msgstr "配额"
 
-#: templates/debug.php:575
+#: templates/debug.php:580
 msgid "Activated"
 msgstr "激活"
 
-#: templates/debug.php:576
+#: templates/debug.php:581
 msgid "Blocking"
 msgstr "阻止"
 
-#: templates/debug.php577, templates/debug.php648,
+#: templates/debug.php582, templates/debug.php653,
 #: templates/debug/logger.php:22
 msgid "Type"
 msgstr "类型"
 
-#: templates/debug.php:579
+#: templates/debug.php:584
 msgctxt "as expiration date"
 msgid "Expiration"
 msgstr "到期"
 
-#: templates/debug.php:607
+#: templates/debug.php:612
 msgid "Debug Log"
 msgstr "调试日志"
 
-#: templates/debug.php:611
+#: templates/debug.php:616
 msgid "All Types"
 msgstr "所有类型"
 
-#: templates/debug.php:618
+#: templates/debug.php:623
 msgid "All Requests"
 msgstr "所有请求"
 
-#: templates/debug.php623, templates/debug.php652,
+#: templates/debug.php628, templates/debug.php657,
 #: templates/debug/logger.php:25
 msgid "File"
 msgstr "文件"
 
-#: templates/debug.php624, templates/debug.php650,
+#: templates/debug.php629, templates/debug.php655,
 #: templates/debug/logger.php:23
 msgid "Function"
 msgstr "函数"
 
-#: templates/debug.php:625
+#: templates/debug.php:630
 msgid "Process ID"
 msgstr "进程 ID"
 
-#: templates/debug.php:626
+#: templates/debug.php:631
 msgid "Logger"
 msgstr "记录器"
 
-#: templates/debug.php627, templates/debug.php651,
+#: templates/debug.php632, templates/debug.php656,
 #: templates/debug/logger.php:24
 msgid "Message"
 msgstr "消息"
 
-#: templates/debug.php:629
+#: templates/debug.php:634
 msgid "Filter"
 msgstr "过滤"
 
-#: templates/debug.php:637
+#: templates/debug.php:642
 msgid "Download"
 msgstr "下载"
 
-#: templates/debug.php653, templates/debug/logger.php:26
+#: templates/debug.php658, templates/debug/logger.php:26
 msgid "Timestamp"
 msgstr "时间戳"
 
@@ -2086,120 +2028,210 @@ msgstr "Freemius API"
 msgid "Requests"
 msgstr "请求"
 
-#: includes/managers/class-fs-clone-manager.php:703
+#: includes/managers/class-fs-clone-manager.php:796
 msgid "Invalid clone resolution action."
-msgstr "Invalid clone resolution action."
+msgstr "无效的克隆解析操作。"
 
-#: includes/managers/class-fs-clone-manager.php:851
+#: includes/managers/class-fs-clone-manager.php:951
 msgid "products"
-msgstr "products"
+msgstr "产品"
 
-#: includes/managers/class-fs-clone-manager.php:1033
+#: includes/managers/class-fs-clone-manager.php:1132
 msgid "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
-msgstr "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
+msgstr "%1$s 已进入安全模式，因为我们注意到 %2$s 是 %3$s 的精确副本。"
 
-#: includes/managers/class-fs-clone-manager.php:1039
+#: includes/managers/class-fs-clone-manager.php:1138
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
-msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
+msgstr "以下产品已进入安全模式，因为我们注意到 %3$s 是 %1$s 的精确副本：%2$s"
 
-#: includes/managers/class-fs-clone-manager.php:1040
+#: includes/managers/class-fs-clone-manager.php:1139
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
-msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
+msgstr "以下产品已进入安全模式，因为我们注意到 %3$s 是这些网站的精确副本：%1$s%2$s"
 
-#: includes/managers/class-fs-clone-manager.php:1066
+#: includes/managers/class-fs-clone-manager.php:1165
 msgid "the above-mentioned sites"
-msgstr "the above-mentioned sites"
+msgstr "上述网站"
 
-#: includes/managers/class-fs-clone-manager.php:1079
+#: includes/managers/class-fs-clone-manager.php:1178
 msgid "Is %2$s a duplicate of %4$s?"
-msgstr "Is %2$s a duplicate of %4$s?"
+msgstr "%2$s 是 %4$s 的副本吗？"
 
-#: includes/managers/class-fs-clone-manager.php:1080
+#: includes/managers/class-fs-clone-manager.php:1179
 msgid "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
-msgstr "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
+msgstr "是的，%2$s 是 %4$s 的副本，用于测试、暂存或开发。"
 
-#: includes/managers/class-fs-clone-manager.php:1085
+#: includes/managers/class-fs-clone-manager.php:1184
 msgid "Long-Term Duplicate"
-msgstr "Long-Term Duplicate"
+msgstr "长期副本"
 
-#: includes/managers/class-fs-clone-manager.php:1090
+#: includes/managers/class-fs-clone-manager.php:1189
 msgid "Duplicate Website"
-msgstr "Duplicate Website"
+msgstr "复制网站"
 
-#: includes/managers/class-fs-clone-manager.php:1096
+#: includes/managers/class-fs-clone-manager.php:1195
 msgid "Is %2$s the new home of %4$s?"
-msgstr "Is %2$s the new home of %4$s?"
+msgstr "%2$s 是 %4$s 的新主页吗？"
 
-#: includes/managers/class-fs-clone-manager.php:1098
+#: includes/managers/class-fs-clone-manager.php:1197
 msgid "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
-msgstr "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
+msgstr "是的，%%2$s 正在替换 %%4$s。我想将我的 %s 从 %%4$s 迁移到 %%2$s。"
 
-#: includes/managers/class-fs-clone-manager.php1099,
+#: includes/managers/class-fs-clone-manager.php1198,
 #: templates/forms/subscription-cancellation.php:52
 msgid "license"
 msgstr "许可证"
 
-#: includes/managers/class-fs-clone-manager.php:1099
+#: includes/managers/class-fs-clone-manager.php:1198
 msgid "data"
-msgstr "data"
+msgstr "数据"
 
-#: includes/managers/class-fs-clone-manager.php:1105
+#: includes/managers/class-fs-clone-manager.php:1204
 msgid "Migrate License"
-msgstr "Migrate License"
+msgstr "迁移许可证"
 
-#: includes/managers/class-fs-clone-manager.php:1106
+#: includes/managers/class-fs-clone-manager.php:1205
 msgid "Migrate"
-msgstr "Migrate"
+msgstr "迁移"
 
-#: includes/managers/class-fs-clone-manager.php:1112
+#: includes/managers/class-fs-clone-manager.php:1211
 msgid "Is %2$s a new website?"
-msgstr "Is %2$s a new website?"
+msgstr "%2$s 是一个新网站吗？"
 
-#: includes/managers/class-fs-clone-manager.php:1113
+#: includes/managers/class-fs-clone-manager.php:1212
 msgid "Yes, %2$s is a new and different website that is separate from %4$s."
-msgstr "Yes, %2$s is a new and different website that is separate from %4$s."
+msgstr "是的，%2$s 是一个与 %4$s 不同的新网站。"
 
-#: includes/managers/class-fs-clone-manager.php:1115
+#: includes/managers/class-fs-clone-manager.php:1214
 msgid "It requires license activation."
-msgstr "It requires license activation."
+msgstr "它需要许可证激活。"
 
-#: includes/managers/class-fs-clone-manager.php:1122
+#: includes/managers/class-fs-clone-manager.php:1221
 msgid "New Website"
-msgstr "New Website"
+msgstr "新网站"
 
-#: includes/managers/class-fs-clone-manager.php:1145
+#: includes/managers/class-fs-clone-manager.php:1244
 msgctxt "Clone resolution admin notice products list label"
 msgid "Products"
-msgstr "Products"
+msgstr "产品"
 
-#: includes/managers/class-fs-clone-manager.php:1230
+#: includes/managers/class-fs-clone-manager.php:1333
 msgid "You marked this website, %s, as a temporary duplicate of %s."
-msgstr "You marked this website, %s, as a temporary duplicate of %s."
+msgstr "您将此网站 %s 标记为 %s 的临时副本。"
 
-#: includes/managers/class-fs-clone-manager.php:1231
+#: includes/managers/class-fs-clone-manager.php:1334
 msgid "You marked this website, %s, as a temporary duplicate of these sites"
-msgstr "You marked this website, %s, as a temporary duplicate of these sites"
+msgstr "您将此网站 %s 标记为这些网站的临时副本"
 
-#: includes/managers/class-fs-clone-manager.php:1245
+#: includes/managers/class-fs-clone-manager.php:1348
 msgid "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
-msgstr "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
+msgstr "%s 自动安全和功能更新以及付费功能将继续运行而不会中断，直到 %s（或当您的许可证到期时，无论先到者）。"
 
-#: includes/managers/class-fs-clone-manager.php:1248
+#: includes/managers/class-fs-clone-manager.php:1351
 msgctxt "\"The <product_label>\", e.g.: \"The plugin\""
 msgid "The %s's"
-msgstr "The %s's"
+msgstr "%s 的"
 
-#: includes/managers/class-fs-clone-manager.php:1251
+#: includes/managers/class-fs-clone-manager.php:1354
 msgid "The following products'"
-msgstr "The following products'"
+msgstr "以下产品"
 
-#: includes/managers/class-fs-clone-manager.php:1259
+#: includes/managers/class-fs-clone-manager.php:1362
 msgid "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
-msgstr "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
+msgstr "如果这是长期副本，要在 %s 之后保留自动更新和付费功能，请 %s。"
 
-#: includes/managers/class-fs-clone-manager.php:1261
+#: includes/managers/class-fs-clone-manager.php:1364
 msgid "activate a license here"
-msgstr "activate a license here"
+msgstr "在此处激活许可证"
+
+#: includes/managers/class-fs-permission-manager.php:182
+msgid "View Basic Website Info"
+msgstr "View Basic Website Info"
+
+#: includes/managers/class-fs-permission-manager.php:183
+msgid "Homepage URL & title, WP & PHP versions, and site language"
+msgstr "Homepage URL & title, WP & PHP versions, and site language"
+
+#: includes/managers/class-fs-permission-manager.php:186
+msgid "To provide additional functionality that's relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s should be translated and tailored to."
+msgstr "To provide additional functionality that's relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s should be translated and tailored to."
+
+#: includes/managers/class-fs-permission-manager.php:198
+msgid "View Basic %s Info"
+msgstr "View Basic %s Info"
+
+#: includes/managers/class-fs-permission-manager.php:201
+msgid "Current %s & SDK versions, and if active or uninstalled"
+msgstr "Current %s & SDK versions, and if active or uninstalled"
+
+#: includes/managers/class-fs-permission-manager.php:252
+msgid "View License Essentials"
+msgstr "View License Essentials"
+
+#: includes/managers/class-fs-permission-manager.php:253
+#: includes/managers/class-fs-permission-manager.php:263
+msgid "To let you manage & control where the license is activated and ensure %s security & feature updates are only delivered to websites you authorize."
+msgstr "To let you manage & control where the license is activated and ensure %s security & feature updates are only delivered to websites you authorize."
+
+#: includes/managers/class-fs-permission-manager.php:275
+msgid "View %s State"
+msgstr "View %s State"
+
+#: includes/managers/class-fs-permission-manager.php:278
+msgid "Is active, deactivated, or uninstalled"
+msgstr "Is active, deactivated, or uninstalled"
+
+#: includes/managers/class-fs-permission-manager.php:281
+msgid "So you can reuse the license when the %s is no longer active."
+msgstr "因此，当%s不再活动时，您可以重新使用许可证。"
+
+#: includes/managers/class-fs-permission-manager.php:317
+msgid "View Diagnostic Info"
+msgstr "View Diagnostic Info"
+
+#: includes/managers/class-fs-permission-manager.php317,
+#: includes/managers/class-fs-permission-manager.php:354
+msgid "optional"
+msgstr "可选的"
+
+#: includes/managers/class-fs-permission-manager.php:318
+msgid "WordPress & PHP versions, site language & title"
+msgstr "WordPress & PHP versions, site language & title"
+
+#: includes/managers/class-fs-permission-manager.php:321
+msgid "To avoid breaking your website due to WordPress or PHP version incompatibilities, and recognize which languages & regions the %s should be translated and tailored to."
+msgstr "To avoid breaking your website due to WordPress or PHP version incompatibilities, and recognize which languages & regions the %s should be translated and tailored to."
+
+#: includes/managers/class-fs-permission-manager.php:354
+msgid "View Plugins & Themes List"
+msgstr "View Plugins & Themes List"
+
+#: includes/managers/class-fs-permission-manager.php:355
+msgid "Names, slugs, versions, and if active or not"
+msgstr "Names, slugs, versions, and if active or not"
+
+#: includes/managers/class-fs-permission-manager.php:356
+msgid "To ensure compatibility and avoid conflicts with your installed plugins and themes."
+msgstr "To ensure compatibility and avoid conflicts with your installed plugins and themes."
+
+#: includes/managers/class-fs-permission-manager.php:373
+msgid "View Basic Profile Info"
+msgstr "View Basic Profile Info"
+
+#: includes/managers/class-fs-permission-manager.php:374
+msgid "Your WordPress user's: first & last name, and email address"
+msgstr "Your WordPress user's: first & last name, and email address"
+
+#: includes/managers/class-fs-permission-manager.php:375
+msgid "Never miss important updates, get security warnings before they become public knowledge, and receive notifications about special offers and awesome new features."
+msgstr "Never miss important updates, get security warnings before they become public knowledge, and receive notifications about special offers and awesome new features."
+
+#: includes/managers/class-fs-permission-manager.php:396
+msgid "Newsletter"
+msgstr "新闻稿"
+
+#: includes/managers/class-fs-permission-manager.php:397
+msgid "Updates, announcements, marketing, no spam"
+msgstr "更新、公告、营销，无垃圾邮件"
 
 #: templates/account/billing.php:22
 msgctxt "verb"
@@ -2266,6 +2298,17 @@ msgstr "数量"
 #: templates/account/payments.php38, templates/account/payments.php:50
 msgid "Invoice"
 msgstr "发票"
+
+#: templates/connect/permissions-group.php31, templates/forms/optout.php26,
+#: templates/js/permissions.php:78
+msgctxt "verb"
+msgid "Opt Out"
+msgstr "选择退出"
+
+#: templates/connect/permissions-group.php32, templates/js/permissions.php:77
+msgctxt "verb"
+msgid "Opt In"
+msgstr "选择加入"
 
 #: templates/debug/api-calls.php:56
 msgid "API"
@@ -2359,143 +2402,144 @@ msgstr "Cron类型"
 msgid "Next"
 msgstr "下一个"
 
-#: templates/forms/affiliation.php:82
+#: templates/forms/affiliation.php:83
 msgid "Non-expiring"
 msgstr "非到期"
 
-#: templates/forms/affiliation.php:85
+#: templates/forms/affiliation.php:86
 msgid "Apply to become an affiliate"
 msgstr "申请成为推广联盟"
 
-#: templates/forms/affiliation.php:107
+#: templates/forms/affiliation.php:108
 msgid "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s."
 msgstr "您的%s会员申请已被接受！登录到您的分支区域，地址为%s。"
 
-#: templates/forms/affiliation.php:122
+#: templates/forms/affiliation.php:123
 msgid "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information."
 msgstr "感谢您申请我们的推广联盟计划，我们将在未来14天内审查您的详细信息，并将与您联系提供更多的信息。"
 
-#: templates/forms/affiliation.php:125
+#: templates/forms/affiliation.php:126
 msgid "Your affiliation account was temporarily suspended."
 msgstr "您的会员帐户已暂时挂起。"
 
-#: templates/forms/affiliation.php:128
+#: templates/forms/affiliation.php:129
 msgid "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days."
 msgstr "感谢您申请我们的推广联盟计划，不幸的是，我们现在决定拒绝您的申请。请在30天后再试。"
 
-#: templates/forms/affiliation.php:131
+#: templates/forms/affiliation.php:132
 msgid "Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support."
 msgstr "由于违反我们的推广联盟条款，我们决定暂时封锁您的附属帐户。如果您有任何问题，请联系支持人员。"
 
-#: templates/forms/affiliation.php:144
+#: templates/forms/affiliation.php:145
 msgid "Like the %s? Become our ambassador and earn cash ;-)"
 msgstr "喜欢%s吗？成为我们的大使并赚取现金 ;-)"
 
-#: templates/forms/affiliation.php:145
+#: templates/forms/affiliation.php:146
 msgid "Refer new customers to our %s and earn %s commission on each successful sale you refer!"
 msgstr "向新客户介绍我们的%s，并在每次销售成功时获得%s佣金！"
 
-#: templates/forms/affiliation.php:148
+#: templates/forms/affiliation.php:149
 msgid "Program Summary"
 msgstr "计划摘要"
 
-#: templates/forms/affiliation.php:150
+#: templates/forms/affiliation.php:151
 msgid "%s commission when a customer purchases a new license."
 msgstr "%s客户购买新许可证时收取佣金。"
 
-#: templates/forms/affiliation.php:152
+#: templates/forms/affiliation.php:153
 msgid "Get commission for automated subscription renewals."
 msgstr "获得自动续订的佣金。"
 
-#: templates/forms/affiliation.php:155
+#: templates/forms/affiliation.php:156
 msgid "%s tracking cookie after the first visit to maximize earnings potential."
 msgstr "%s首次访问后跟踪Cookie，以最大限度地提高收益潜力。"
 
-#: templates/forms/affiliation.php:158
+#: templates/forms/affiliation.php:159
 msgid "Unlimited commissions."
 msgstr "佣金无上限。"
 
-#: templates/forms/affiliation.php:160
+#: templates/forms/affiliation.php:161
 msgid "%s minimum payout amount."
 msgstr "%s最低付款金额。"
 
-#: templates/forms/affiliation.php:161
+#: templates/forms/affiliation.php:162
 msgid "Payouts are in USD and processed monthly via PayPal."
 msgstr "付款以美元为单位，每月通过 PayPal 处理。"
 
-#: templates/forms/affiliation.php:162
+#: templates/forms/affiliation.php:163
 msgid "As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days."
 msgstr "由于我们保留30天的潜在退款，我们只支付超过30天的佣金。"
 
-#: templates/forms/affiliation.php:165
+#: templates/forms/affiliation.php:166
 msgid "Affiliate"
 msgstr "会员"
 
-#: templates/forms/affiliation.php168, templates/forms/resend-key.php:23
+#: templates/forms/affiliation.php169, templates/forms/resend-key.php:23
 msgid "Email address"
 msgstr "电子邮件地址"
 
-#: templates/forms/affiliation.php:172
+#: templates/forms/affiliation.php:173
 msgid "Full name"
 msgstr "全名"
 
-#: templates/forms/affiliation.php:176
+#: templates/forms/affiliation.php:177
 msgid "PayPal account email address"
 msgstr "PayPal 帐户电子邮件地址"
 
-#: templates/forms/affiliation.php:180
+#: templates/forms/affiliation.php:181
 msgid "Where are you going to promote the %s?"
 msgstr "您打算在哪里推广%s？"
 
-#: templates/forms/affiliation.php:182
+#: templates/forms/affiliation.php:183
 msgid "Enter the domain of your website or other websites from where you plan to promote the %s."
 msgstr "请输入您计划升级%s的网站或其他网站的域。"
 
-#: templates/forms/affiliation.php:184
+#: templates/forms/affiliation.php:185
 msgid "Add another domain"
 msgstr "添加另一个域"
 
-#: templates/forms/affiliation.php:188
+#: templates/forms/affiliation.php:189
 msgid "Extra Domains"
 msgstr "额外域"
 
-#: templates/forms/affiliation.php:189
+#: templates/forms/affiliation.php:190
 msgid "Extra domains where you will be marketing the product from."
 msgstr "您将营销产品的额外的网域。"
 
-#: templates/forms/affiliation.php:199
+#: templates/forms/affiliation.php:200
 msgid "Promotion methods"
 msgstr "推广方式"
 
-#: templates/forms/affiliation.php:202
+#: templates/forms/affiliation.php:203
 msgid "Social media (Facebook, Twitter, etc.)"
 msgstr "社交媒体（脸书、推特等）"
 
-#: templates/forms/affiliation.php:206
+#: templates/forms/affiliation.php:207
 msgid "Mobile apps"
 msgstr "移动应用程序"
 
-#: templates/forms/affiliation.php:210
+#: templates/forms/affiliation.php:211
 msgid "Website, email, and social media statistics (optional)"
 msgstr "网站、电子邮件和社交媒体统计（可选）"
 
-#: templates/forms/affiliation.php:213
+#: templates/forms/affiliation.php:214
 msgid "Please feel free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information confidential)."
 msgstr "请随时提供任何相关的网站或社交媒体统计数据，例如每月独特的网站访问量、电子邮件订户数量、关注者数量等（我们将对这些信息保密）。"
 
-#: templates/forms/affiliation.php:217
+#: templates/forms/affiliation.php:218
 msgid "How will you promote us?"
 msgstr "您将如何推广我们？"
 
-#: templates/forms/affiliation.php:220
+#: templates/forms/affiliation.php:221
 msgid "Please provide details on how you intend to promote %s (please be as specific as possible)."
 msgstr "请提供有关您打算如何推广%s的详细信息（请尽可能具体）。"
 
-#: templates/forms/affiliation.php232, templates/forms/resend-key.php:22
+#: templates/forms/affiliation.php233, templates/forms/resend-key.php22,
+#: templates/account/partials/disconnect-button.php:92
 msgid "Cancel"
 msgstr "取消"
 
-#: templates/forms/affiliation.php:234
+#: templates/forms/affiliation.php:235
 msgid "Become an affiliate"
 msgstr "加入推广联盟"
 
@@ -2517,7 +2561,7 @@ msgstr "用户密钥"
 
 #: templates/forms/email-address-update.php:32
 msgid "Email address update"
-msgstr "Email address update"
+msgstr "电子邮件地址更新"
 
 #: templates/forms/email-address-update.php33,
 #: templates/forms/user-change.php:81
@@ -2527,40 +2571,40 @@ msgstr "关闭"
 
 #: templates/forms/email-address-update.php:38
 msgid "Enter the new email address"
-msgstr "Enter the new email address"
+msgstr "输入新的电子邮件地址"
 
 #: templates/forms/email-address-update.php:42
 msgid "Are both %s and %s your email addresses?"
-msgstr "Are both %s and %s your email addresses?"
+msgstr "%s 和 %s 都是您的电子邮件地址吗？"
 
 #: templates/forms/email-address-update.php:50
 msgid "Yes - both addresses are mine"
-msgstr "Yes - both addresses are mine"
+msgstr "是的 - 两个地址都是我的"
 
 #: templates/forms/email-address-update.php:57
 msgid "%s is my client's email address"
-msgstr "%s is my client's email address"
+msgstr "%s 是我客户的电子邮件地址"
 
 #: templates/forms/email-address-update.php:66
 msgid "%s is my email address"
-msgstr "%s is my email address"
+msgstr "%s 是我的电子邮件地址"
 
 #: templates/forms/email-address-update.php:75
 msgid "Would you like to merge %s into %s?"
-msgstr "Would you like to merge %s into %s?"
+msgstr "要将 %s 合并到 %s 中吗？"
 
 #: templates/forms/email-address-update.php:84
 msgid "Yes - move all my data and assets from %s to %s"
-msgstr "Yes - move all my data and assets from %s to %s"
+msgstr "是 - 将我的所有数据和资产从 %s 移至 %s"
 
 #: templates/forms/email-address-update.php:94
 msgid "No - only move this site's data to %s"
-msgstr "No - only move this site's data to %s"
+msgstr "否 - 仅将此站点的数据移动到 %s"
 
 #: templates/forms/email-address-update.php292,
 #: templates/forms/email-address-update.php:298
 msgid "Update"
-msgstr "Update"
+msgstr "更新"
 
 #: templates/forms/license-activation.php:23
 msgid "Please enter the license key that you received in the email right after the purchase:"
@@ -2570,59 +2614,41 @@ msgstr "请输入购买后在电子邮件中收到的许可证密钥："
 msgid "Update License"
 msgstr "更新许可证"
 
-#: templates/forms/license-activation.php:41
-msgid "The %1$s will be periodically sending data to %2$s to check for security and feature updates, and verify the validity of your license."
-msgstr "%1$s将定期向%2$s发送数据，以检查安全性和功能更新，并验证许可证的有效性。"
+#: templates/forms/license-activation.php:34
+msgid "The %1$s will be periodically sending essential license data to %2$s to check for security and feature updates, and verify the validity of your license."
+msgstr "The %1$s will be periodically sending essential license data to %2$s to check for security and feature updates, and verify the validity of your license."
 
-#: templates/forms/license-activation.php:211
+#: templates/forms/license-activation.php:39
+msgid "Agree & Activate License"
+msgstr "同意并激活许可证"
+
+#: templates/forms/license-activation.php:204
 msgid "Associate with the license owner's account."
 msgstr "与许可证所有者的帐户关联。"
 
-#: templates/forms/optout.php:30
-msgctxt "verb"
-msgid "Opt Out"
-msgstr "选择退出"
-
-#: templates/forms/optout.php:31
-msgctxt "verb"
-msgid "Opt In"
-msgstr "选择加入"
-
-#: templates/forms/optout.php:34
-msgid "Connectivity to the licensing engine was successfully re-established. Automatic security & feature updates are now available through the WP Admin Dashboard."
-msgstr "与授权引擎的连接已成功重新建立。现在可以通过WP 管理仪表板进行自动安全性和功能更新。"
-
-#: templates/forms/optout.php:36
-msgid "Warning: Opting out will block automatic updates"
-msgstr "警告：选择退出会阻止自动更新"
-
-#: templates/forms/optout.php:37
-msgid "Ongoing connectivity with the licensing engine is essential for receiving automatic security & feature updates of the paid product. To receive these updates, data like your license key, %1$s version, and WordPress version, is periodically sent to the server to check for updates. By opting out, you understand that your site won't receive automatic updates for %2$s from within the WP Admin Dashboard. This can put your site at risk, and we highly recommend to keep this connection active. If you do choose to opt-out, you'll need to check for %1$s updates and install them manually."
-msgstr "与授权引擎的持续连接对于接收付费产品的自动安全性和功能更新至关重要。要接收这些更新，诸如许可证密钥，%1$s版本和WordPress版本之类的数据会定期发送到服务器以检查更新。通过选择退出，您了解您的网站将不会从WP 管理仪表板内收到%2$s的自动更新。这可能会使您的网站面临风险，我们强烈建议保持此连接处于活动状态。如果您选择退出，则需要检查%1$s更新并手动安装。"
-
-#: templates/forms/optout.php:39
-msgid "I'd like to keep automatic updates"
-msgstr "我想保持自动更新"
-
 #: templates/forms/optout.php:44
-msgid "Usage tracking is done in the name of making %s better. Making a better user experience, prioritizing new features, and more good things. We'd really appreciate if you'll reconsider letting us continue with the tracking."
-msgstr "使用情况跟踪是以改善%s的名义进行的。创造更好的用户体验，优先考虑新功能，以及更多的好东西。如果你能重新考虑让我们继续追踪，我们将不胜感激。"
+msgid "Communication"
+msgstr "Communication"
 
-#: templates/forms/optout.php:45
-msgid "On second thought - I want to continue helping"
-msgstr "仔细想想 - 我想继续提供帮助"
+#: templates/forms/optout.php:56
+msgid "Stay Connected"
+msgstr "Stay Connected"
 
-#: templates/forms/optout.php:49
-msgid "By clicking \"Opt Out\", we will no longer be sending any data from %s to %s."
-msgstr "单击“退出”，我们将不再从%s发送任何数据到%s。"
+#: templates/forms/optout.php:61
+msgid "Diagnostic Info"
+msgstr "Diagnostic Info"
 
-#: templates/forms/optout.php:74
-msgid "Plugins & themes tracking"
-msgstr "插件和主题追踪"
+#: templates/forms/optout.php:77
+msgid "Keep Sharing"
+msgstr "Keep Sharing"
 
-#: templates/forms/optout.php:261
-msgid "Saved"
-msgstr "已保存"
+#: templates/forms/optout.php:82
+msgid "Extensions"
+msgstr "Extensions"
+
+#: templates/forms/optout.php:104
+msgid "Keep automatic updates"
+msgstr "Keep automatic updates"
 
 #: templates/forms/premium-versions-upgrade-handler.php:40
 msgid "There is a new version of %s available."
@@ -2645,7 +2671,11 @@ msgstr "关闭"
 msgid "Send License Key"
 msgstr "发送许可证密钥"
 
-#: templates/forms/resend-key.php:57
+#: templates/forms/resend-key.php:58
+msgid "Enter the email address you've used during the purchase and we will resend you the license key."
+msgstr "Enter the email address you've used during the purchase and we will resend you the license key."
+
+#: templates/forms/resend-key.php:59
 msgid "Enter the email address you've used for the upgrade below and we will resend you the license key."
 msgstr "请在下面输入您用于升级的电子邮件地址，我们将重新向您发送许可证密钥。"
 
@@ -2702,6 +2732,10 @@ msgstr "我同意 - 更改用户"
 msgid "Enter email address"
 msgstr "请输入邮箱地址"
 
+#: templates/js/permissions.php337, templates/js/permissions.php:485
+msgid "Saved"
+msgstr "已保存"
+
 #: templates/js/style-premium-theme.php:39
 msgid "Premium"
 msgstr "高级版本"
@@ -2710,34 +2744,34 @@ msgstr "高级版本"
 msgid "Beta"
 msgstr "测试版本"
 
-#: templates/partials/network-activation.php:27
+#: templates/partials/network-activation.php:32
 msgid "Activate license on all sites in the network."
 msgstr "在网络中的所有站点上激活许可证。"
 
-#: templates/partials/network-activation.php:28
+#: templates/partials/network-activation.php:33
 msgid "Apply on all sites in the network."
 msgstr "应用于网络中的所有站点。"
 
-#: templates/partials/network-activation.php:31
+#: templates/partials/network-activation.php:36
 msgid "Activate license on all pending sites."
 msgstr "在所有挂起的站点上激活许可证。"
 
-#: templates/partials/network-activation.php:32
+#: templates/partials/network-activation.php:37
 msgid "Apply on all pending sites."
 msgstr "在所有挂起的站点上应用。"
 
-#: templates/partials/network-activation.php40,
-#: templates/partials/network-activation.php:74
+#: templates/partials/network-activation.php45,
+#: templates/partials/network-activation.php:79
 msgid "allow"
 msgstr "允许"
 
-#: templates/partials/network-activation.php43,
-#: templates/partials/network-activation.php:77
+#: templates/partials/network-activation.php48,
+#: templates/partials/network-activation.php:82
 msgid "delegate"
 msgstr "代表"
 
-#: templates/partials/network-activation.php47,
-#: templates/partials/network-activation.php:81
+#: templates/partials/network-activation.php52,
+#: templates/partials/network-activation.php:86
 msgid "skip"
 msgstr "跳过"
 
@@ -2765,31 +2799,47 @@ msgstr "最后一个许可证"
 
 #. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
 #. subscription'
-#: templates/account/partials/addon.php:29
+#: templates/account/partials/addon.php:34
 msgid "%1$s will immediately stop all future recurring payments and your %s plan license will expire in %s."
 msgstr "%1$s将立即停止所有未来的定期付款，并且您的%s计划许可证将在%s过期。"
 
-#: templates/account/partials/addon.php:185
+#: templates/account/partials/addon.php:190
 msgid "Cancelled"
 msgstr "取消"
 
-#: templates/account/partials/addon.php:195
+#: templates/account/partials/addon.php:200
 msgid "No expiration"
 msgstr "永不过期"
 
-#: templates/account/partials/site.php:189
+#: templates/account/partials/disconnect-button.php:74
+msgid "By disconnecting the website, previously shared diagnostic data about %1$s will be deleted and no longer visible to %2$s."
+msgstr "By disconnecting the website, previously shared diagnostic data about %1$s will be deleted and no longer visible to %2$s."
+
+#: templates/account/partials/disconnect-button.php:78
+msgid "Disconnecting the website will permanently remove %s from your User Dashboard's account."
+msgstr "Disconnecting the website will permanently remove %s from your User Dashboard's account."
+
+#: templates/account/partials/disconnect-button.php:84
+msgid "If you wish to cancel your %1$s plan's subscription instead, please navigate to the %2$s and cancel it there."
+msgstr "If you wish to cancel your %1$s plan's subscription instead, please navigate to the %2$s and cancel it there."
+
+#: templates/account/partials/disconnect-button.php:88
+msgid "Are you sure you would like to proceed with the disconnection?"
+msgstr "Are you sure you would like to proceed with the disconnection?"
+
+#: templates/account/partials/site.php:190
 msgid "Owner Name"
 msgstr "所有者名称"
 
-#: templates/account/partials/site.php:201
+#: templates/account/partials/site.php:202
 msgid "Owner Email"
 msgstr "所有者电子邮件"
 
-#: templates/account/partials/site.php:213
+#: templates/account/partials/site.php:214
 msgid "Owner ID"
 msgstr "所有者 ID"
 
-#: templates/account/partials/site.php:286
+#: templates/account/partials/site.php:288
 msgid "Subscription"
 msgstr "订阅"
 
@@ -2807,16 +2857,16 @@ msgstr "匿名反馈"
 
 #: templates/forms/deactivation/form.php:71
 msgid "hour"
-msgstr "hour"
+msgstr "小时"
 
 #: templates/forms/deactivation/form.php:76
 msgid "hours"
-msgstr "hours"
+msgstr "小时"
 
 #: templates/forms/deactivation/form.php81,
 #: templates/forms/deactivation/form.php:86
 msgid "days"
-msgstr "days"
+msgstr "天"
 
 #: templates/forms/deactivation/form.php:106
 msgid "Deactivate"
@@ -2852,7 +2902,7 @@ msgstr "请告诉我们原因以便我们改进。"
 
 #: templates/forms/deactivation/form.php:478
 msgid "Snooze & %s"
-msgstr "Snooze & %s"
+msgstr "暂停 & %s"
 
 #: templates/forms/deactivation/form.php:638
 msgid "Yes - %s"
