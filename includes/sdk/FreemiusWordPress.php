@@ -85,10 +85,7 @@
 		define( 'FS_API__SANDBOX_ADDRESS', '://sandbox-api.freemius.com' );
 	}
 
-	if ( class_exists( 'Freemius_Api_WordPress' ) ) {
-		return;
-	}
-
+	if ( ! class_exists( 'Freemius_Api_WordPress' ) ) {
 	class Freemius_Api_WordPress extends Freemius_Api_Base {
 		private static $_logger = array();
 
@@ -715,3 +712,4 @@
 
 		#endregion
 	}
+    }

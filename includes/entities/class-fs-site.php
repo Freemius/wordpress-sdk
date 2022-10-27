@@ -82,6 +82,8 @@
          * @author Leo Fajardo (@leorw)
          *
          * @since  1.2.1.5
+         * @deprecated Since 2.5.1
+         * @todo Remove after a few releases.
          *
          * @var bool
          */
@@ -222,26 +224,6 @@
          */
         function is_trial_utilized() {
             return is_numeric( $this->trial_plan_id );
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @return bool
-         */
-        function is_tracking_allowed() {
-            return ( true !== $this->is_disconnected );
-        }
-
-        /**
-         * @author Vova Feldman (@svovaf)
-         * @since  2.0.0
-         *
-         * @return bool
-         */
-        function is_tracking_prohibited() {
-            return ! $this->is_tracking_allowed();
         }
 
         /**

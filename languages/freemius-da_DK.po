@@ -1,7 +1,7 @@
 # Copyright (C) 2022 freemius
 # This file is distributed under the same license as the freemius package.
 # Translators:
-# Joachim Jensen, 2019-2020,2022
+# Joachim Jensen, 2019-2020
 # Joachim Jensen, 2016-2018
 # Lars Koudal, 2018-2019
 msgid ""
@@ -9,14 +9,14 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2015-10-01 21:38+0000\n"
-"Last-Translator: Joachim Jensen, 2019-2020,2022\n"
+"PO-Revision-Date: 2022-01-05 13:47+0000\n"
+"Last-Translator: Vova Feldman <vova@freemius.com>\n"
+"Language: da_DK\n"
 "Language-Team: Danish (Denmark) (http://www.transifex.com/freemius/wordpress-sdk/language/da_DK/)\n"
-"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: da_DK\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -174,7 +174,7 @@ msgstr "Tak fordi du giver os en chance for at fixe det! En besked er lige bleve
 
 #: includes/class-freemius.php:5187
 msgid "You have purchased a %s license."
-msgstr "Du har købt en licens til %s."
+msgstr "You have purchased a %s license."
 
 #: includes/class-freemius.php:5191
 msgid " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
@@ -208,7 +208,7 @@ msgid "Premium %s version was successfully activated."
 msgstr "Premium-versionen af %s blev aktiveret."
 
 #: includes/class-freemius.php6158, includes/class-freemius.php:8104
-msgctxt "Used to express elation, enthusiasm, or triumph (especially in electronic communication)."
+msgctxt ""
 msgid "W00t"
 msgstr "W00t"
 
@@ -294,7 +294,7 @@ msgstr "Your %s license was flagged as white-labeled to hide sensitive informati
 
 #: includes/class-freemius.php:13746
 msgid "User Dashboard"
-msgstr "Brugerpanel"
+msgstr "User Dashboard"
 
 #: includes/class-freemius.php:13747
 msgid "revert it now"
@@ -472,7 +472,7 @@ msgstr "It seems like one of the authentication parameters is wrong. Update your
 
 #: includes/class-freemius.php21340, includes/class-freemius.php21583,
 #: includes/class-freemius.php21638, includes/class-freemius.php:21745
-msgctxt "something somebody says when they are thinking about what you have just said."
+msgctxt ""
 msgid "Hmm"
 msgstr "Hmm"
 
@@ -685,7 +685,7 @@ msgstr "Is this your client's site? %s if you wish to hide sensitive info like y
 
 #: includes/class-freemius.php:23184
 msgid "Click here"
-msgstr "Klik her"
+msgstr "Click here"
 
 #: includes/class-freemius.php:23282
 msgid "Just letting you know that the add-ons information of %s is being pulled from an external server."
@@ -882,7 +882,7 @@ msgstr "There is a %s of %s available."
 #: includes/class-fs-plugin-updater.php333,
 #: includes/class-fs-plugin-updater.php:369
 msgid "new Beta version"
-msgstr "ny beta-version"
+msgstr "ny Beta-version"
 
 #: includes/class-fs-plugin-updater.php334,
 #: includes/class-fs-plugin-updater.php:370
@@ -1335,11 +1335,11 @@ msgstr "Kontodetaljer"
 
 #: templates/account.php277, templates/forms/data-debug-mode.php:33
 msgid "Start Debug"
-msgstr "Start fejlfinding"
+msgstr "Start Debug"
 
 #: templates/account.php:279
 msgid "Stop Debug"
-msgstr "Stop fejlfinding"
+msgstr "Stop Debug"
 
 #: templates/account.php:286
 msgid "Billing & Invoices"
@@ -1431,7 +1431,7 @@ msgstr "Licensnøgle"
 
 #: templates/account.php:521
 msgid "Join the Beta program"
-msgstr "Deltag i beta-programmet"
+msgstr "Deltag i Beta-programmet"
 
 #: templates/account.php:527
 msgid "not verified"
@@ -1459,7 +1459,7 @@ msgstr "Download 1%s version"
 
 #: templates/account.php:640
 msgid "Download Paid Version"
-msgstr "Hent betalt version"
+msgstr "Download Paid Version"
 
 #: templates/account.php658, templates/account.php921,
 #: templates/account/partials/site.php248,
@@ -1479,7 +1479,7 @@ msgstr "Rediger"
 
 #: templates/account.php687, templates/forms/user-change.php:27
 msgid "Change User"
-msgstr "Skift bruger"
+msgstr "Change User"
 
 #: templates/account.php:711
 msgid "Sites"
@@ -1719,7 +1719,7 @@ msgstr "Overblik af dit websted"
 
 #: templates/connect.php:376
 msgid "Site URL, WP version, PHP info"
-msgstr "Websteds-URL, WP version, PHP info"
+msgstr "Site URL, WP version, PHP info"
 
 #: templates/connect.php:383
 msgid "Admin Notices"
@@ -1747,11 +1747,11 @@ msgstr "Nyhedsbrev"
 
 #: templates/connect.php:409
 msgid "Plugins & Themes"
-msgstr "Plugins & temaer"
+msgstr "Plugins & Temaer"
 
 #: templates/connect.php:409
 msgid "optional"
-msgstr "valgfrit"
+msgstr "optional"
 
 #: templates/connect.php:410
 msgid "To help us troubleshoot any potential issues that may arise from other plugin or theme conflicts."
@@ -1963,7 +1963,7 @@ msgstr "Blog-ID"
 
 #: templates/debug.php:380
 msgid "License ID"
-msgstr "Licens-ID"
+msgstr "License ID"
 
 #: templates/debug.php444, templates/debug.php550,
 #: templates/account/partials/addon.php:435
@@ -2093,7 +2093,7 @@ msgstr "Invalid clone resolution action."
 
 #: includes/managers/class-fs-clone-manager.php:851
 msgid "products"
-msgstr "produkter"
+msgstr "products"
 
 #: includes/managers/class-fs-clone-manager.php:1033
 msgid "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
@@ -2125,7 +2125,7 @@ msgstr "Long-Term Duplicate"
 
 #: includes/managers/class-fs-clone-manager.php:1090
 msgid "Duplicate Website"
-msgstr "Kopier websted"
+msgstr "Duplicate Website"
 
 #: includes/managers/class-fs-clone-manager.php:1096
 msgid "Is %2$s the new home of %4$s?"
@@ -2146,15 +2146,15 @@ msgstr "data"
 
 #: includes/managers/class-fs-clone-manager.php:1105
 msgid "Migrate License"
-msgstr "Flyt licens"
+msgstr "Migrate License"
 
 #: includes/managers/class-fs-clone-manager.php:1106
 msgid "Migrate"
-msgstr "Flyt"
+msgstr "Migrate"
 
 #: includes/managers/class-fs-clone-manager.php:1112
 msgid "Is %2$s a new website?"
-msgstr "Er %2$s et nyt websted?"
+msgstr "Is %2$s a new website?"
 
 #: includes/managers/class-fs-clone-manager.php:1113
 msgid "Yes, %2$s is a new and different website that is separate from %4$s."
@@ -2166,12 +2166,12 @@ msgstr "It requires license activation."
 
 #: includes/managers/class-fs-clone-manager.php:1122
 msgid "New Website"
-msgstr "Nyt websted"
+msgstr "New Website"
 
 #: includes/managers/class-fs-clone-manager.php:1145
 msgctxt "Clone resolution admin notice products list label"
 msgid "Products"
-msgstr "Produkter"
+msgstr "Products"
 
 #: includes/managers/class-fs-clone-manager.php:1230
 msgid "You marked this website, %s, as a temporary duplicate of %s."
@@ -2200,7 +2200,7 @@ msgstr "If this is a long term duplicate, to keep automatic updates and paid fun
 
 #: includes/managers/class-fs-clone-manager.php:1261
 msgid "activate a license here"
-msgstr "aktiver en licens her"
+msgstr "activate a license here"
 
 #: templates/account/billing.php:22
 msgctxt "verb"
@@ -2510,11 +2510,11 @@ msgstr "To enter the debug mode, please enter the secret key of the license owne
 
 #: templates/forms/data-debug-mode.php:32
 msgid "Submit"
-msgstr "Send"
+msgstr "Submit"
 
 #: templates/forms/data-debug-mode.php:36
 msgid "User key"
-msgstr "Brugernøgle"
+msgstr "User key"
 
 #: templates/forms/email-address-update.php:32
 msgid "Email address update"
@@ -2561,7 +2561,7 @@ msgstr "No - only move this site's data to %s"
 #: templates/forms/email-address-update.php292,
 #: templates/forms/email-address-update.php:298
 msgid "Update"
-msgstr "Opdater"
+msgstr "Update"
 
 #: templates/forms/license-activation.php:23
 msgid "Please enter the license key that you received in the email right after the purchase:"
@@ -2623,7 +2623,7 @@ msgstr "Plugins & themes tracking"
 
 #: templates/forms/optout.php:261
 msgid "Saved"
-msgstr "Gemt"
+msgstr "Saved"
 
 #: templates/forms/premium-versions-upgrade-handler.php:40
 msgid "There is a new version of %s available."
@@ -2808,16 +2808,16 @@ msgstr "Anonym feedback"
 
 #: templates/forms/deactivation/form.php:71
 msgid "hour"
-msgstr "time"
+msgstr "hour"
 
 #: templates/forms/deactivation/form.php:76
 msgid "hours"
-msgstr "timer"
+msgstr "hours"
 
 #: templates/forms/deactivation/form.php81,
 #: templates/forms/deactivation/form.php:86
 msgid "days"
-msgstr "dage"
+msgstr "days"
 
 #: templates/forms/deactivation/form.php:106
 msgid "Deactivate"
@@ -2853,7 +2853,7 @@ msgstr "Fortæl os venligst årsagen, så vi kan forbedre det."
 
 #: templates/forms/deactivation/form.php:478
 msgid "Snooze & %s"
-msgstr "Udsæt & %s"
+msgstr "Snooze & %s"
 
 #: templates/forms/deactivation/form.php:638
 msgid "Yes - %s"

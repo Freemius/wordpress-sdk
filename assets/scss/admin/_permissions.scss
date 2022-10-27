@@ -1,0 +1,121 @@
+@use "tooltip";
+@import "../start";
+
+$permission-icon-size: 30px;
+
+.fs-permissions {
+    .fs-permission {
+        &.fs-disabled {
+            color: #aaa;
+
+            .fs-permission-description span {
+                color: #aaa;
+            }
+        }
+
+        .fs-switch-feedback {
+            position: absolute;
+            right:    15px;
+            top:      52px;
+        }
+    }
+
+    ul {
+        height:   0;
+        overflow: hidden;
+        margin:   0;
+
+        li {
+            padding: 17px 15px;
+            margin: 0;
+            position: relative;
+
+            & > i.dashicons {
+                float:      left;
+                font-size:  $permission-icon-size;
+                width:      $permission-icon-size;
+                height:     $permission-icon-size;
+                padding: 5px;
+            }
+
+            .fs-switch {
+                float: right;
+            }
+
+            .fs-permission-description {
+                margin-left: 55px;
+
+                span {
+                    font-size:   14px;
+                    font-weight: 500;
+                    color:       #23282d;
+                }
+
+                .fs-tooltip {
+                    font-size:   13px;
+                    font-weight: bold;
+                }
+
+                .fs-tooltip-trigger .dashicons {
+                    margin: -1px 2px 0 2px;
+                }
+
+                p {
+                    margin: 2px 0 0 0;
+                }
+            }
+        }
+    }
+
+    &.fs-open {
+        background: #fff;
+
+        ul {
+            overflow: initial;
+            height:   auto;
+            margin:   20px 0 10px 0;
+        }
+    }
+
+    .fs-switch-feedback {
+        .fs-ajax-spinner {
+            margin-right: 10px;
+        }
+
+        &.success {
+            color: $fs-logo-green-color;
+        }
+
+        .rtl &
+        {
+            right: auto;
+            left: 15px;
+
+            .fs-ajax-spinner {
+                margin-left:  10px;
+                margin-right: 0;
+            }
+        }
+    }
+}
+
+.rtl {
+    .fs-permissions {
+        ul {
+            li {
+                .fs-permission-description {
+                    margin-right: 55px;
+                    margin-left:  0;
+                }
+
+                .fs-switch {
+                    float: left;
+                }
+
+                i.dashicons {
+                    float: right;
+                }
+            }
+        }
+    }
+}

@@ -2,6 +2,12 @@
 @import "themes";
 @import "switch";
 
+body.fs-loading {
+    &, * {
+        cursor: wait !important;
+    }
+}
+
 #fs_frame
 {
     line-height: 0;

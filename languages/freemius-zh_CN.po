@@ -2,21 +2,20 @@
 # This file is distributed under the same license as the freemius package.
 # Translators:
 # Xiaheng Chen <futureman.tech@gmail.com>, 2020
-# Yulinn <977869645@qq.com>, 2022
-# Yulinn <977869645@qq.com>, 2021-2022
+# Yulinn <melittleloli@gmail.com>, 2021
 msgid ""
 msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2015-10-01 21:38+0000\n"
-"Last-Translator: Yulinn <977869645@qq.com>, 2022\n"
+"PO-Revision-Date: 2022-01-05 13:47+0000\n"
+"Last-Translator: Vova Feldman <vova@freemius.com>\n"
+"Language: zh_CN\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/freemius/wordpress-sdk/language/zh_CN/)\n"
-"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
 "X-Poedit-SearchPath-0: .\n"
@@ -49,7 +48,7 @@ msgstr "%s的名字是什么？"
 
 #: includes/class-freemius.php:2614
 msgid "It's a temporary %s - I'm troubleshooting an issue"
-msgstr "这是一个临时的 %s - 我正在解决一个问题"
+msgstr "It's a temporary %s - I'm troubleshooting an issue"
 
 #: includes/class-freemius.php:2616
 msgid "Deactivation"
@@ -174,11 +173,11 @@ msgstr "谢谢你给我们机会把它修好！刚刚给我们的技术人员发
 
 #: includes/class-freemius.php:5187
 msgid "You have purchased a %s license."
-msgstr "您购买了 %s 许可证。"
+msgstr "You have purchased a %s license."
 
 #: includes/class-freemius.php:5191
 msgid " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
-msgstr "%s 的 %s 下载链接 %s、许可证密钥和安装说明已发送到 %s。如果您在 5 分钟后找不到该电子邮件，请检查您的垃圾邮件箱。"
+msgstr " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
 
 #: includes/class-freemius.php5201, includes/class-freemius.php6177,
 #: includes/class-freemius.php17574, includes/class-freemius.php17585,
@@ -208,7 +207,7 @@ msgid "Premium %s version was successfully activated."
 msgstr "高级%s版本已成功激活。"
 
 #: includes/class-freemius.php6158, includes/class-freemius.php:8104
-msgctxt "Used to express elation, enthusiasm, or triumph (especially in electronic communication)."
+msgctxt ""
 msgid "W00t"
 msgstr "W00t"
 
@@ -472,7 +471,7 @@ msgstr "似乎身份验证参数中的一个不正确。请更新您的公钥、
 
 #: includes/class-freemius.php21340, includes/class-freemius.php21583,
 #: includes/class-freemius.php21638, includes/class-freemius.php:21745
-msgctxt "something somebody says when they are thinking about what you have just said."
+msgctxt ""
 msgid "Hmm"
 msgstr "嗯"
 
@@ -648,11 +647,11 @@ msgstr "我们不会再将%s在%s上的任何使用数据发送到%s。"
 
 #: includes/class-freemius.php:23023
 msgid "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
-msgstr "刚刚向 %s 发送了一封确认电子邮件。电子邮件所有者必须在接下来的 4 小时内确认更新。"
+msgstr "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
 
 #: includes/class-freemius.php:23025
 msgid "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
-msgstr "刚刚向 %s 发送了一封确认电子邮件。您必须在接下来的 4 小时内确认更新。如果您找不到该电子邮件，请检查您的垃圾邮件文件夹。"
+msgstr "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
 
 #: includes/class-freemius.php:23032
 msgid "Thanks for confirming the ownership change. An email was just sent to %s for final approval."
@@ -1853,7 +1852,7 @@ msgstr "清除更新瞬态"
 
 #: templates/debug.php:86
 msgid "Reset Deactivation Snoozing"
-msgstr "复位失活休眠"
+msgstr "Reset Deactivation Snoozing"
 
 #: templates/debug.php:94
 msgid "Sync Data From Server"
@@ -1877,7 +1876,7 @@ msgstr "钥匙"
 
 #: templates/debug.php:191
 msgid "Value"
-msgstr "值"
+msgstr "价值"
 
 #: templates/debug.php:207
 msgctxt "as software development kit versions"
@@ -2089,51 +2088,51 @@ msgstr "请求"
 
 #: includes/managers/class-fs-clone-manager.php:703
 msgid "Invalid clone resolution action."
-msgstr "无效的克隆解析操作。"
+msgstr "Invalid clone resolution action."
 
 #: includes/managers/class-fs-clone-manager.php:851
 msgid "products"
-msgstr "产品"
+msgstr "products"
 
 #: includes/managers/class-fs-clone-manager.php:1033
 msgid "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
-msgstr "%1$s 已进入安全模式，因为我们注意到 %2$s 是 %3$s 的精确副本。"
+msgstr "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
 
 #: includes/managers/class-fs-clone-manager.php:1039
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
-msgstr "以下产品已进入安全模式，因为我们注意到 %3$s 是 %1$s 的精确副本：%2$s"
+msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
 
 #: includes/managers/class-fs-clone-manager.php:1040
 msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
-msgstr "以下产品已进入安全模式，因为我们注意到 %3$s 是这些网站的精确副本：%1$s%2$s"
+msgstr "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
 
 #: includes/managers/class-fs-clone-manager.php:1066
 msgid "the above-mentioned sites"
-msgstr "上述网站"
+msgstr "the above-mentioned sites"
 
 #: includes/managers/class-fs-clone-manager.php:1079
 msgid "Is %2$s a duplicate of %4$s?"
-msgstr "%2$s 是 %4$s 的副本吗？"
+msgstr "Is %2$s a duplicate of %4$s?"
 
 #: includes/managers/class-fs-clone-manager.php:1080
 msgid "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
-msgstr "是的，%2$s 是 %4$s 的副本，用于测试、暂存或开发。"
+msgstr "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
 
 #: includes/managers/class-fs-clone-manager.php:1085
 msgid "Long-Term Duplicate"
-msgstr "长期副本"
+msgstr "Long-Term Duplicate"
 
 #: includes/managers/class-fs-clone-manager.php:1090
 msgid "Duplicate Website"
-msgstr "复制网站"
+msgstr "Duplicate Website"
 
 #: includes/managers/class-fs-clone-manager.php:1096
 msgid "Is %2$s the new home of %4$s?"
-msgstr "%2$s 是 %4$s 的新主页吗？"
+msgstr "Is %2$s the new home of %4$s?"
 
 #: includes/managers/class-fs-clone-manager.php:1098
 msgid "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
-msgstr "是的，%%2$s 正在替换 %%4$s。我想将我的 %s 从 %%4$s 迁移到 %%2$s。"
+msgstr "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
 
 #: includes/managers/class-fs-clone-manager.php1099,
 #: templates/forms/subscription-cancellation.php:52
@@ -2142,65 +2141,65 @@ msgstr "许可证"
 
 #: includes/managers/class-fs-clone-manager.php:1099
 msgid "data"
-msgstr "数据"
+msgstr "data"
 
 #: includes/managers/class-fs-clone-manager.php:1105
 msgid "Migrate License"
-msgstr "迁移许可证"
+msgstr "Migrate License"
 
 #: includes/managers/class-fs-clone-manager.php:1106
 msgid "Migrate"
-msgstr "迁移"
+msgstr "Migrate"
 
 #: includes/managers/class-fs-clone-manager.php:1112
 msgid "Is %2$s a new website?"
-msgstr "%2$s 是一个新网站吗？"
+msgstr "Is %2$s a new website?"
 
 #: includes/managers/class-fs-clone-manager.php:1113
 msgid "Yes, %2$s is a new and different website that is separate from %4$s."
-msgstr "是的，%2$s 是一个与 %4$s 不同的新网站。"
+msgstr "Yes, %2$s is a new and different website that is separate from %4$s."
 
 #: includes/managers/class-fs-clone-manager.php:1115
 msgid "It requires license activation."
-msgstr "它需要许可证激活。"
+msgstr "It requires license activation."
 
 #: includes/managers/class-fs-clone-manager.php:1122
 msgid "New Website"
-msgstr "新网站"
+msgstr "New Website"
 
 #: includes/managers/class-fs-clone-manager.php:1145
 msgctxt "Clone resolution admin notice products list label"
 msgid "Products"
-msgstr "产品"
+msgstr "Products"
 
 #: includes/managers/class-fs-clone-manager.php:1230
 msgid "You marked this website, %s, as a temporary duplicate of %s."
-msgstr "您将此网站 %s 标记为 %s 的临时副本。"
+msgstr "You marked this website, %s, as a temporary duplicate of %s."
 
 #: includes/managers/class-fs-clone-manager.php:1231
 msgid "You marked this website, %s, as a temporary duplicate of these sites"
-msgstr "您将此网站 %s 标记为这些网站的临时副本"
+msgstr "You marked this website, %s, as a temporary duplicate of these sites"
 
 #: includes/managers/class-fs-clone-manager.php:1245
 msgid "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
-msgstr "%s 自动安全和功能更新以及付费功能将继续运行而不会中断，直到 %s（或当您的许可证到期时，无论先到者）。"
+msgstr "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
 
 #: includes/managers/class-fs-clone-manager.php:1248
 msgctxt "\"The <product_label>\", e.g.: \"The plugin\""
 msgid "The %s's"
-msgstr "%s 的"
+msgstr "The %s's"
 
 #: includes/managers/class-fs-clone-manager.php:1251
 msgid "The following products'"
-msgstr "以下产品"
+msgstr "The following products'"
 
 #: includes/managers/class-fs-clone-manager.php:1259
 msgid "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
-msgstr "如果这是长期副本，要在 %s 之后保留自动更新和付费功能，请 %s。"
+msgstr "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
 
 #: includes/managers/class-fs-clone-manager.php:1261
 msgid "activate a license here"
-msgstr "在此处激活许可证"
+msgstr "activate a license here"
 
 #: templates/account/billing.php:22
 msgctxt "verb"
@@ -2518,7 +2517,7 @@ msgstr "用户密钥"
 
 #: templates/forms/email-address-update.php:32
 msgid "Email address update"
-msgstr "电子邮件地址更新"
+msgstr "Email address update"
 
 #: templates/forms/email-address-update.php33,
 #: templates/forms/user-change.php:81
@@ -2528,40 +2527,40 @@ msgstr "关闭"
 
 #: templates/forms/email-address-update.php:38
 msgid "Enter the new email address"
-msgstr "输入新的电子邮件地址"
+msgstr "Enter the new email address"
 
 #: templates/forms/email-address-update.php:42
 msgid "Are both %s and %s your email addresses?"
-msgstr "%s 和 %s 都是您的电子邮件地址吗？"
+msgstr "Are both %s and %s your email addresses?"
 
 #: templates/forms/email-address-update.php:50
 msgid "Yes - both addresses are mine"
-msgstr "是的 - 两个地址都是我的"
+msgstr "Yes - both addresses are mine"
 
 #: templates/forms/email-address-update.php:57
 msgid "%s is my client's email address"
-msgstr "%s 是我客户的电子邮件地址"
+msgstr "%s is my client's email address"
 
 #: templates/forms/email-address-update.php:66
 msgid "%s is my email address"
-msgstr "%s 是我的电子邮件地址"
+msgstr "%s is my email address"
 
 #: templates/forms/email-address-update.php:75
 msgid "Would you like to merge %s into %s?"
-msgstr "要将 %s 合并到 %s 中吗？"
+msgstr "Would you like to merge %s into %s?"
 
 #: templates/forms/email-address-update.php:84
 msgid "Yes - move all my data and assets from %s to %s"
-msgstr "是 - 将我的所有数据和资产从 %s 移至 %s"
+msgstr "Yes - move all my data and assets from %s to %s"
 
 #: templates/forms/email-address-update.php:94
 msgid "No - only move this site's data to %s"
-msgstr "否 - 仅将此站点的数据移动到 %s"
+msgstr "No - only move this site's data to %s"
 
 #: templates/forms/email-address-update.php292,
 #: templates/forms/email-address-update.php:298
 msgid "Update"
-msgstr "更新"
+msgstr "Update"
 
 #: templates/forms/license-activation.php:23
 msgid "Please enter the license key that you received in the email right after the purchase:"
@@ -2808,16 +2807,16 @@ msgstr "匿名反馈"
 
 #: templates/forms/deactivation/form.php:71
 msgid "hour"
-msgstr "小时"
+msgstr "hour"
 
 #: templates/forms/deactivation/form.php:76
 msgid "hours"
-msgstr "小时"
+msgstr "hours"
 
 #: templates/forms/deactivation/form.php81,
 #: templates/forms/deactivation/form.php:86
 msgid "days"
-msgstr "天"
+msgstr "days"
 
 #: templates/forms/deactivation/form.php:106
 msgid "Deactivate"
@@ -2853,7 +2852,7 @@ msgstr "请告诉我们原因以便我们改进。"
 
 #: templates/forms/deactivation/form.php:478
 msgid "Snooze & %s"
-msgstr "暂停 & %s"
+msgstr "Snooze & %s"
 
 #: templates/forms/deactivation/form.php:638
 msgid "Yes - %s"
