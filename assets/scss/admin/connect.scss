@@ -2,7 +2,7 @@
 
 @import "../start";
 
-$form_width: 480px;
+$form_width: 484px;
 $icon_padding: 3px;
 $icon_border_width: 1px;
 $box_border_radius: 3px;
@@ -53,6 +53,10 @@ $box_border_radius: 3px;
             text-align: center;
             padding: 5px;
             margin-bottom: 10px;
+        }
+
+        h2 {
+            line-height: 1.5em;
         }
 
         p

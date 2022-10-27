@@ -181,6 +181,28 @@
 			<?php if ( ! empty( $error ) ) : ?>
 				<p class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></p>
 			<?php endif ?>
+            <?php
+                if ( ! $is_pending_activation && ! $require_license_key ) {
+                    if ( ! $fs->is_plugin_update() ) {
+                        echo $fs->apply_filters( 'connect-header', sprintf(
+                            '<h2 style="text-align: center">%s</h2>',
+                            esc_html( fs_text_inline( 'Never miss an important update', 'connect-header' ) )
+                        ) );
+                    } else {
+                        echo $fs->apply_filters( 'connect-header_on-update', sprintf(
+                            '<h2>%s</h2>',
+                            sprintf(
+                                esc_html(
+                                /* translators: %1$s: plugin name (e.g., "Awesome Plugin"); %2$s: version (e.g., "1.2.3") */
+                                    fs_text_inline('Thank you for updating to %1$s v%2$s!', 'connect-header_on-update' )
+                                ),
+                                esc_html( $fs->get_plugin_name() ),
+                                $fs->get_plugin_version()
+                            )
+                        ) );
+                    }
+                }
+            ?>
 			<p><?php
 					$button_label = fs_text_inline( 'Allow & Continue', 'opt-in-connect', $slug );
 					$message = '';
@@ -210,33 +232,21 @@
                         $filter = 'connect_message';
 
 						if ( ! $fs->is_plugin_update() ) {
-                            $default_optin_message = $is_gdpr_required ?
-                                fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message', $slug ) :
-                                fs_text_inline( 'Never miss an important update - opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message', $slug );
-
-                            $default_optin_message = esc_html( $default_optin_message );
+                            $default_optin_message = esc_html( sprintf( ( $is_gdpr_required ?
+                                /* translators: %s: module type (plugin, theme, or add-on) */
+                                fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message', $slug ) :
+                                /* translators: %s: module type (plugin, theme, or add-on) */
+                                fs_text_inline( 'Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message', $slug ) ), $fs->get_module_label( true ) ) );
                         } else {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
 
-                            $default_optin_message = sprintf(
-                                '<h2>%s</h2>',
-                                sprintf(
-                                    esc_html(
-                                    /* translators: %1$s: plugin name (e.g., "Awesome Plugin"); %2$s: version (e.g., "1.2.3") */
-                                        fs_text_inline('Thank you for updating to %1$s v%2$s!', 'thank-you-for-updating' )
-                                    ),
-                                    esc_html( $fs->get_plugin_name() ),
-                                    $fs->get_plugin_version()
-                                )
-                            );
-
                             /* translators: %s: module type (plugin, theme, or add-on) */
-                            $default_optin_message .= esc_html( sprintf( fs_text_inline( 'We have introduced this opt-in so you never miss an important update and help us improve the %s\'s functionality to better meet your needs.', 'connect-message_on-update_why' ), $fs->get_module_label( true ) ) );
+                            $default_optin_message = esc_html( sprintf( fs_text_inline( 'We have introduced this opt-in so you never miss an important update and help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message_on-update_why' ), $fs->get_module_label( true ) ) );
 
 							$default_optin_message .= '<br><br>' . esc_html( $is_gdpr_required ?
-								fs_text_inline( 'Opt in to our security & feature updates notifications, educational content, offers and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug ) :
-								fs_text_inline( 'Opt in to our security & feature updates notifications and periodic, non-sensitive info sharing.', 'connect-message_on-update', $slug ) );
+								fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info.', 'connect-message_on-update', $slug ) :
+								fs_text_inline( 'Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info.', 'connect-message_on-update', $slug ) );
 
                             if ( $fs->is_enable_anonymous() ) {
                                 $default_optin_message .= ' ' . esc_html( fs_text_inline( 'If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update_skip', $slug ) );
