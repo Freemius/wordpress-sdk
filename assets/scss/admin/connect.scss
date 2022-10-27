@@ -32,7 +32,7 @@ $box_border_radius: 3px;
 
     @media screen and (max-width: ($form_width - 1)) {
         width:                    auto;
-        margin:                   0 0 0 -10px;
+        margin:                   30px 0 0 -10px;
 
         .fs-box-container {
             @include box-shadow(none);
