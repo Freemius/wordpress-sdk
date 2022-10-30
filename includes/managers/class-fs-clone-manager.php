@@ -916,7 +916,7 @@
                     continue;
                 }
 
-                if ( ! $instance->is_clone() ) {
+                if ( ! $instance->is_clone( true ) ) {
                     continue;
                 }
 

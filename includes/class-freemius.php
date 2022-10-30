@@ -3445,8 +3445,10 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
+         *
+         * @param bool $is_strict_mode
          */
-        function is_clone() {
+        function is_clone( $is_strict_mode = false ) {
             if ( ! is_object( $this->_site ) ) {
                 return false;
             }
@@ -3461,10 +3463,43 @@
                 $blog_id = $this->_storage->network_install_blog_id;
             }
 
-            return (
-                trailingslashit( fs_strip_url_protocol( $this->_site->url ) ) !==
-                self::get_unfiltered_site_url( $blog_id, true, true )
-            );
+            $site_url          = fs_strip_url_protocol( $this->_site->url);
+            $clone_install_url = self::get_unfiltered_site_url( $blog_id, true, true );
+
+            $is_clone = ( trailingslashit( $site_url !== $clone_install_url ) );
+
+            if ( ! $is_clone ) {
+                return false;
+            }
+
+            if ( ! $is_strict_mode ) {
+                return true;
+            }
+
+            if ( $this->is_whitelabeled( true, $blog_id ) ) {
+                return false;
+            }
+
+            if ( $this->should_handle_clone_by_user( $this->_site->user_id ) ) {
+                return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @param int $clone_install_user_id
+         *
+         * @return bool
+         */
+        private function should_handle_clone_by_user( $clone_install_user_id ) {
+            $current_user       = self::_get_current_wp_user();
+            $clone_install_user = self::_get_user_by_id( $clone_install_user_id );
+
+            return ( $current_user->user_email === $clone_install_user->email );
         }
 
         /**
@@ -5237,7 +5272,7 @@
                     ( file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $this->premium_plugin_basename() ) ) )
                 ) &&
                 $this->has_release_on_freemius() &&
-                ( ! $this->is_unresolved_clone() )
+                ( ! $this->is_unresolved_clone( true ) )
             ) {
                 FS_Plugin_Updater::instance( $this );
             }
@@ -22321,7 +22356,7 @@
         ) {
             $this->_logger->entrance();
 
-            if ( $this->is_unresolved_clone() ) {
+            if ( $this->is_unresolved_clone( true ) ) {
                 return false;
             }
 
