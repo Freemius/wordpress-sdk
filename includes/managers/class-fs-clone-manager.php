@@ -216,7 +216,7 @@
                     continue;
                 }
 
-                $instance->maybe_send_clone_update( array( 'site_url' => $site_url ) );
+                $instance->maybe_send_clone_update( null, array( 'site_url' => $site_url ) );
             }
         }
 
@@ -841,40 +841,53 @@
 
             $result = array();
 
+            $instances_with_clone       = array();
+            $instances_with_clone_count = 0;
+            $instance_id_to_install_map = array();
+
+            $instances = ( ! empty( $fs_instances ) ) ?
+                $fs_instances :
+                Freemius::_get_all_instances();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $instances_with_clone[] = $instance;
+                
+                $instances_with_clone_count ++;
+
+                $instance_id_to_install_map[ $instance->get_id() ] = $instance->get_site();
+            }
+
             if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
                 $this->store_temporary_duplicate_timestamp();
             } else {
-                $instances_with_clone_count = 0;
-                $instance_with_error        = null;
-                $has_error                  = false;
+                $instance_with_error = null;
+                $has_error           = false;
 
-                $instances = ( ! empty( $fs_instances ) ) ?
-                    $fs_instances :
-                    Freemius::_get_all_instances();
-
-                foreach ( $instances as $instance ) {
-                    if ( ! $instance->is_registered() ) {
-                        continue;
-                    }
-
-                    if ( ! $instance->is_clone() ) {
-                        continue;
-                    }
-
-                    $instances_with_clone_count ++;
-
+                foreach ( $instances_with_clone as $instance ) {
                     if ( self::OPTION_NEW_HOME === $clone_action ) {
                         $instance->sync_install( array( 'is_new_site' => true ), true );
+                        
+                        if ( $instance->is_clone() ) {
+                            $has_error = true;
+                        }
                     } else {
                         $instance->_handle_long_term_duplicate();
 
                         if ( ! is_object( $instance->get_site() ) ) {
                             $has_error = true;
-
-                            if ( ! is_object( $instance_with_error ) ) {
-                                $instance_with_error = $instance;
-                            }
                         }
+                    }
+                    
+                    if ( $has_error && ! is_object( $instance_with_error ) ) {
+                        $instance_with_error = $instance;
                     }
                 }
 
@@ -888,6 +901,22 @@
                 }
 
                 $result = ( array( 'redirect_url' => $redirect_url ) );
+            }
+            
+            foreach ( $instances_with_clone as $instance ) {
+                if ( $instance->is_clone() ) {
+                    continue;
+                }
+
+                $install        = $instance_id_to_install_map[ $instance->get_id() ];
+                $new_install_id = ( $install->id != $instance->get_site()->id ) ?
+                    $instance->get_site()->id :
+                    null;
+
+                $instance->maybe_send_clone_update( $install, array(
+                    'resolution'     => $clone_action,
+                    'new_install_id' => $new_install_id,
+                ) );
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
