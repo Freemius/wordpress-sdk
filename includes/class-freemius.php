@@ -9825,6 +9825,39 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.1
+         *
+         * @param number|null $clone_id
+         * @param string[]    $params
+         */
+        function maybe_send_clone_update( $params = array() ) {
+            $this->_logger->entrance();
+
+            $clone_id = ( ! empty( $this->_storage->clone_id ) ) ?
+                $this->_storage->clone_id :
+                null;
+
+            $path   = '/clones';
+            $method = 'post';
+
+            if ( ! is_null( $clone_id ) ) {
+                $path   .= "/{$clone_id}";
+                $method  = 'put';
+            }
+
+            $install_clone = $this->api_site_call(
+                $path,
+                $method,
+                $params
+            );
+
+            if ( $this->is_api_result_entity( $install_clone ) ) {
+                $this->_storage->clone_id = $install_clone->id;
+            }
+        }
+
+        /**
          * Update install only if changed.
          *
          * @author Vova Feldman (@svovaf)
@@ -17128,7 +17161,7 @@
                 $this->is_clone() &&
                 empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
             ) {
-                FS_Clone_Manager::instance()->store_clone_identification_timestamp();
+                FS_Clone_Manager::instance()->store_clone_identification_timestamp( array( $this ) );
             }
         }
 

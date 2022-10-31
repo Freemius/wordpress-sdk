@@ -191,9 +191,33 @@
 
         /**
          * Stores the time when a clone was identified.
+         *
+         * @param Freemius[]|null
          */
-        function store_clone_identification_timestamp() {
+        function store_clone_identification_timestamp( $instances = array() ) {
             $this->clone_identification_timestamp = time();
+
+            if ( is_multisite() ) {
+                return;
+            }
+
+            if ( empty( $instances ) ) {
+                return;
+            }
+
+            $site_url = Freemius::get_unfiltered_site_url();
+
+            foreach ( $instances as $instance ) {
+                if ( ! $instance->is_registered() ) {
+                    continue;
+                }
+
+                if ( ! $instance->is_clone() ) {
+                    continue;
+                }
+
+                $instance->maybe_send_clone_update( array( 'site_url' => $site_url ) );
+            }
         }
 
         /**
@@ -293,7 +317,7 @@
             }
 
             if ( ! $this->try_automatic_resolution() ) {
-                $this->store_clone_identification_timestamp();
+                $this->store_clone_identification_timestamp( Freemius::_get_all_instances() );
                 $this->clear_temporary_duplicate_notice_shown_timestamp();
             }
         }
