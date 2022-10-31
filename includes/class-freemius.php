@@ -9828,10 +9828,10 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.5.1
          *
-         * @param number|null $clone_id
-         * @param string[]    $params
+         * @param FS_Site  $site
+         * @param string[] $params
          */
-        function maybe_send_clone_update( $params = array() ) {
+        function maybe_send_clone_update( $site = null, $params = array() ) {
             $this->_logger->entrance();
 
             $clone_id = ( ! empty( $this->_storage->clone_id ) ) ?
@@ -9846,14 +9846,30 @@
                 $method  = 'put';
             }
 
+            $current_site = null;
+            $flush        = false;
+
+            if ( is_object( $site ) ) {
+                $current_site = $this->_site;
+                $this->_site  = $site;
+                $flush        = true;
+            }
+
             $install_clone = $this->api_site_call(
                 $path,
                 $method,
-                $params
+                $params,
+                $flush
             );
 
             if ( $this->is_api_result_entity( $install_clone ) ) {
                 $this->_storage->clone_id = $install_clone->id;
+            }
+
+            if ( is_object( $current_site ) ) {
+                $this->_site  = $site;
+
+                $this->get_api_site_scope( true );
             }
         }
 
