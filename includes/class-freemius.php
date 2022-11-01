@@ -3399,6 +3399,8 @@
 
             self::add_ajax_action_static( 'set_db_option', array( 'Freemius', '_set_db_option' ) );
 
+            self::add_ajax_action_static( 'get_clone_resolution_message', array( 'Freemius', '_get_clone_resolution_message_ajax_handler' ) );
+
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
             }
@@ -3432,10 +3434,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
+         * @param bool $is_strict_mode
+         *
          * @return bool
          */
-        private function is_unresolved_clone() {
-            if ( ! $this->is_clone() ) {
+        private function is_unresolved_clone( $is_strict_mode = false ) {
+            if ( ! $this->is_clone( $is_strict_mode ) ) {
                 return false;
             }
 
@@ -3463,12 +3467,7 @@
                 $blog_id = $this->_storage->network_install_blog_id;
             }
 
-            $site_url          = fs_strip_url_protocol( $this->_site->url);
-            $clone_install_url = self::get_unfiltered_site_url( $blog_id, true, true );
-
-            $is_clone = ( trailingslashit( $site_url !== $clone_install_url ) );
-
-            if ( ! $is_clone ) {
+            if ( ! $this->_site->is_clone( $blog_id ) ) {
                 return false;
             }
 
@@ -3476,30 +3475,23 @@
                 return true;
             }
 
-            if ( $this->is_whitelabeled( true, $blog_id ) ) {
-                return false;
-            }
-
-            if ( $this->should_handle_clone_by_user( $this->_site->user_id ) ) {
-                return true;
-            }
-
-            return false;
+            return (
+                ! empty( $this->_storage->has_clone_resolution_support ) &&
+                $this->_storage->has_clone_resolution_support
+            );
         }
 
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.1
-         *
-         * @param int $clone_install_user_id
-         *
-         * @return bool
          */
-        private function should_handle_clone_by_user( $clone_install_user_id ) {
-            $current_user       = self::_get_current_wp_user();
-            $clone_install_user = self::_get_user_by_id( $clone_install_user_id );
-
-            return ( $current_user->user_email === $clone_install_user->email );
+        function maybe_update_clone_resolution_support_flag() {
+            if (
+                empty( $this->_storage->sdk_last_version ) ||
+                version_compare( $this->_storage->sdk_last_version, '2.5.0', '>' )
+            ) {
+                $this->_storage->has_clone_resolution_support = true;
+            }
         }
 
         /**
@@ -3787,6 +3779,36 @@
             }
 
             self::shoot_ajax_success();
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         */
+        static function _get_clone_resolution_message_ajax_handler() {
+            self::check_ajax_referer_static( 'get_clone_resolution_message' );
+
+            $product_id    = fs_request_get( 'product_id' );
+            $fs            = self::get_instance_by_id( $product_id );
+            $product_title = $fs->get_plugin_title();
+            $install       = $fs->get_site();
+
+            $message = FS_Clone_Manager::get_manual_clone_resolution_message(
+                array( $product_title ),
+                array( $install->url ),
+                Freemius::get_unfiltered_site_url(
+                    ( is_multisite() ? $install->blog_id : null ),
+                    true,
+                    true
+                ),
+                is_object( $fs->_get_license() ),
+                $fs->is_premium()
+            );
+
+            self::shoot_ajax_success( array(
+                'message'       => $message,
+                'product_title' => $product_title,
+            ) );
         }
 
         /**
@@ -9867,8 +9889,9 @@
             }
 
             if ( is_object( $current_site ) ) {
-                $this->_site  = $site;
+                $this->_site  = $current_site;
 
+                // Restore the previous install scope entity of the API.
                 $this->get_api_site_scope( true );
             }
         }
@@ -19791,7 +19814,20 @@
          * @return string
          */
         function get_ajax_security( $tag ) {
-            return wp_create_nonce( $this->get_ajax_action( $tag ) );
+            return self::get_ajax_security_static( $tag, $this->_module_id );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.1
+         *
+         * @param string      $tag
+         * @param number|null $module_id
+         *
+         * @return string
+         */
+        static function get_ajax_security_static( $tag, $module_id = null ) {
+            return wp_create_nonce( self::get_ajax_action_static( $tag, $module_id ) );
         }
 
         /**
@@ -19801,7 +19837,18 @@
          * @param string $tag
          */
         function check_ajax_referer( $tag ) {
-            check_ajax_referer( $this->get_ajax_action( $tag ), 'security' );
+            self::check_ajax_referer_static( $tag, $this->_module_id );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.1
+         *
+         * @param string      $tag
+         * @param number|null $module_id
+         */
+        private static function check_ajax_referer_static( $tag, $module_id = null ) {
+            check_ajax_referer( self::get_ajax_action_static( $tag, $module_id ), 'security' );
         }
 
         /**
