@@ -3796,11 +3796,7 @@
             $message = FS_Clone_Manager::get_manual_clone_resolution_message(
                 array( $product_title ),
                 array( $install->url ),
-                Freemius::get_unfiltered_site_url(
-                    ( is_multisite() ? $install->blog_id : null ),
-                    true,
-                    true
-                ),
+                Freemius::get_unfiltered_site_url( is_multisite() ? $install->blog_id : null ),
                 is_object( $fs->_get_license() ),
                 $fs->is_premium()
             );
