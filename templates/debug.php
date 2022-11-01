@@ -16,6 +16,8 @@
 
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
+
+    $has_any_clone = false;
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -396,7 +398,19 @@
             <?php foreach ( $sites_map as $slug => $sites ) : ?>
                 <?php foreach ( $sites as $site ) : ?>
                     <tr>
-                        <td><?php echo $site->id ?></td>
+                        <td>
+                            <?php echo $site->id ?>
+                            <?php
+                                $is_clone = $site->is_clone();
+
+                                if ( $is_clone ) {
+                                    $has_any_clone = true;
+                                }
+                            ?>
+                            <?php if ( $is_clone ) : ?>
+                            <label class="fs-tag fs-warn"><?php fs_esc_html_echo_inline( 'Clone', 'clone' ) ?></label>
+                            <?php endif ?>
+                        </td>
                         <?php if ( $is_multisite ) : ?>
                             <td><?php echo $site->blog_id ?></td>
                             <td><?php echo fs_strip_url_protocol( $site->url ) ?></td>
@@ -437,17 +451,29 @@
                                     esc_html( $site->secret_key );
                         ?></td>
                         <td>
+                            <?php
+                                $actions = array();
+
+                                if ( $is_clone ) {
+                                    $actions['resolve_clone'] = fs_esc_html_x_inline( 'Resolve Clone', 'resolve a clone install', 'resolve-clone' );
+                                }
+
+                                $actions['delete_install'] = fs_esc_html_x_inline( 'Delete', 'verb', 'delete' );
+                            ?>
+                            <?php foreach ( $actions as $action => $button_label ) : ?>
                             <form action="" method="POST">
-                                <input type="hidden" name="fs_action" value="delete_install">
-                                <?php wp_nonce_field( 'delete_install' ) ?>
+                                <input type="hidden" name="fs_action" value="<?php echo $action ?>">
+                                <?php wp_nonce_field( $action ) ?>
+                                <input type="hidden" name="install_id" value="<?php echo $site->id ?>">
                                 <input type="hidden" name="module_id" value="<?php echo $site->plugin_id ?>">
                                 <?php if ( $is_multisite ) : ?>
                                     <input type="hidden" name="blog_id" value="<?php echo $site->blog_id ?>">
                                 <?php endif ?>
                                 <input type="hidden" name="module_type" value="<?php echo $module_type ?>">
                                 <input type="hidden" name="slug" value="<?php echo $slug ?>">
-                                <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
+                                <button type="submit" class="button fs-<?php echo str_replace( '_', '-', $action ) ?>-button"><span><?php echo $button_label ?><i class="fs-ajax-spinner" style="display: none"></i></span></button>
                             </form>
+                            <?php endforeach ?>
                         </td>
                     </tr>
                 <?php endforeach ?>
@@ -780,4 +806,14 @@
             loadLogs();
         });
     </script>
+<?php endif ?>
+<?php if ( $has_any_clone ) : ?>
+<?php
+    fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+    fs_enqueue_local_style( 'fs_clone_resolution', '/admin/clone-resolution.css' );
+
+    $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
+    fs_require_template( 'forms/clone-resolution.php' );
+    fs_require_once_template( 'clone-resolution-js.php', $vars );
+?>
 <?php endif ?>

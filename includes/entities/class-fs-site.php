@@ -234,4 +234,23 @@
         function is_beta() {
             return ( isset( $this->is_beta ) && true === $this->is_beta );
         }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @param int $blog_id
+         *
+         * @return bool
+         */
+        function is_clone( $blog_id = null ) {
+            $blog_id = ( empty( $blog_id ) && is_multisite() && ! empty( $this->blog_id ) ) ?
+                $this->blog_id :
+                $blog_id;
+
+            $clone_install_url = trailingslashit( fs_strip_url_protocol( $this->url ) );
+            $site_url          = Freemius::get_unfiltered_site_url( $blog_id, true, true );
+
+            return ( $clone_install_url !== $site_url );
+        }
     }

@@ -15,7 +15,9 @@
         var $errorMessage = null;
 
         $( document ).ready( function() {
-            var $cloneResolutionNotice = $( 'div[data-id="clone_resolution_options_notice"], div[data-id="temporary_duplicate_notice"]' );
+            var $cloneResolutionNotice = $(
+                'div[data-id="clone_resolution_options_notice"], div[data-id="temporary_duplicate_notice"], .fs-modal.fs-modal-clone-resolution'
+            );
 
             if ( 0 === $cloneResolutionNotice.length ) {
                 return;

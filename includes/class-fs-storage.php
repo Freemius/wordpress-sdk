@@ -389,19 +389,21 @@
                 'require_license_activation'   => self::OPTION_LEVEL_NETWORK_ACTIVATED,
 
                 // If not network activated OR delegated, then site level.
-                'activation_timestamp'           => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'expired_license_notice_shown'   => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'is_whitelabeled'                => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'last_license_key'               => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'last_license_user_id'           => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'prev_user_id'                   => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'sticky_optin_added'             => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'uninstall_reason'               => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'is_pending_activation'          => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
-                'pending_license_key'            => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'activation_timestamp'         => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'expired_license_notice_shown' => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'is_whitelabeled'              => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'last_license_key'             => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'last_license_user_id'         => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'prev_user_id'                 => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'sticky_optin_added'           => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'uninstall_reason'             => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'is_pending_activation'        => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
+                'pending_license_key'          => self::OPTION_LEVEL_NETWORK_ACTIVATED_NOT_DELEGATED,
 
                 // Site level options.
                 'is_anonymous'                 => self::OPTION_LEVEL_SITE,
+                'clone_id'                     => self::OPTION_LEVEL_SITE,
+                'has_clone_resolution_support' => self::OPTION_LEVEL_SITE,
             );
         }
 

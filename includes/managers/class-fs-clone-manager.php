@@ -90,6 +90,10 @@
          * @var string
          */
         const OPTION_NEW_HOME = 'new_home';
+        /**
+         * @var string
+         */
+        const DEFAULT_DOC_URL = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -192,7 +196,7 @@
         /**
          * Stores the time when a clone was identified.
          *
-         * @param Freemius[]|null
+         * @param Freemius[]|null $instances
          */
         function store_clone_identification_timestamp( $instances = array() ) {
             $this->clone_identification_timestamp = time();
@@ -216,6 +220,7 @@
                     continue;
                 }
 
+                $instance->maybe_update_clone_resolution_support_flag();
                 $instance->maybe_send_clone_update( null, array( 'site_url' => $site_url ) );
             }
         }
@@ -874,7 +879,7 @@
                 foreach ( $instances_with_clone as $instance ) {
                     if ( self::OPTION_NEW_HOME === $clone_action ) {
                         $instance->sync_install( array( 'is_new_site' => true ), true );
-                        
+
                         if ( $instance->is_clone() ) {
                             $has_error = true;
                         }
@@ -1013,7 +1018,7 @@
                 if ( ! empty( $site_urls ) ) {
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
-                    $doc_url = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
+                    $doc_url = self::DEFAULT_DOC_URL;
 
                     if ( 1 === count( $instances ) ) {
                         $doc_url = fs_apply_filter(
@@ -1153,26 +1158,25 @@
         }
 
         /**
-         * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
+         * Returns the clone resolution message that provides the logged-in WordPress user with manual clone resolution options.
          *
-         * @param number[] $product_ids
+         * @param string[] $product_titles
          * @param string[] $site_urls
          * @param string   $current_url
          * @param bool     $has_license
          * @param bool     $is_premium
          * @param string   $doc_url
+         *
+         * @return string
          */
-        private function add_manual_clone_resolution_admin_notice(
-            $product_ids,
+        static function get_manual_clone_resolution_message(
             $product_titles,
             $site_urls,
             $current_url,
             $has_license,
             $is_premium,
-            $doc_url
+            $doc_url = ''
         ) {
-            $this->_logger->entrance();
-
             $total_sites = count( $site_urls );
             $sites_list  = '';
 
@@ -1230,7 +1234,7 @@
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a duplicate of %4$s?', 'duplicate-site-confirmation-message' ),
                 fs_esc_html_inline( 'Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                ($this->has_temporary_duplicate_mode_expired() ?
+                ( self::instance()->has_temporary_duplicate_mode_expired() ?
                     sprintf(
                         $button_template,
                         'long_term_duplicate',
@@ -1240,7 +1244,7 @@
                         $button_template,
                         'temporary_duplicate',
                         fs_text_inline( 'Duplicate Website', 'duplicate-site' )
-                    ))
+                    ) )
             );
 
             $migration_option = sprintf(
@@ -1276,13 +1280,17 @@
                 )
             );
 
+            if ( empty( $doc_url ) ) {
+                $doc_url = self::DEFAULT_DOC_URL;
+            }
+
             /**
              * %1$s - single product's title or product titles list.
              * %2$s - site's URL.
              * %3$s - single install's URL or install URLs list.
              * %4$s - Clone site's link or "the above-mentioned sites" if there are multiple clone sites.
              */
-            $message = sprintf(
+            return sprintf(
                 $notice_header .
                 '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
                 $duplicate_option .
@@ -1304,6 +1312,36 @@
                     $sites_list ),
                 // %4$s
                 $remote_site_link
+            );
+        }
+
+        /**
+         * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
+         *
+         * @param number[] $product_ids
+         * @param string[] $product_titles
+         * @param string[] $site_urls
+         * @param string   $current_url
+         * @param bool     $has_license
+         * @param bool     $is_premium
+         * @param string   $doc_url
+         */
+        private function add_manual_clone_resolution_admin_notice(
+            $product_ids,
+            $product_titles,
+            $site_urls,
+            $current_url,
+            $has_license,
+            $is_premium,
+            $doc_url
+        ) {
+            $message = $this->get_manual_clone_resolution_message(
+                $product_titles,
+                $site_urls,
+                $current_url,
+                $has_license,
+                $is_premium,
+                $doc_url
             );
 
             $this->_notices->add_sticky(

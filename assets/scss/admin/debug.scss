@@ -1,4 +1,5 @@
 @import "../start";
+@import "tag";
 
 .fs-switch-label
 {
@@ -47,6 +48,21 @@
                     color: #6596be;
                 }
             }
+        }
+    }
+}
+
+form {
+    display: inline-block;
+
+    .button {
+        position: relative;
+
+        .fs-ajax-spinner {
+            position: absolute;
+            left: 50%;
+            margin-left: -8px;
+            bottom: -25px;
         }
     }
 }
