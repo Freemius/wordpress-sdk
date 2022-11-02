@@ -195,34 +195,9 @@
 
         /**
          * Stores the time when a clone was identified.
-         *
-         * @param Freemius[]|null $instances
          */
-        function store_clone_identification_timestamp( $instances = array() ) {
+        function store_clone_identification_timestamp() {
             $this->clone_identification_timestamp = time();
-
-            if ( is_multisite() ) {
-                return;
-            }
-
-            if ( empty( $instances ) ) {
-                return;
-            }
-
-            $site_url = Freemius::get_unfiltered_site_url();
-
-            foreach ( $instances as $instance ) {
-                if ( ! $instance->is_registered() ) {
-                    continue;
-                }
-
-                if ( ! $instance->is_clone() ) {
-                    continue;
-                }
-
-                $instance->maybe_update_clone_resolution_support_flag();
-                $instance->maybe_send_clone_update( null, array( 'site_url' => $site_url ) );
-            }
         }
 
         /**
@@ -322,7 +297,7 @@
             }
 
             if ( ! $this->try_automatic_resolution() ) {
-                $this->store_clone_identification_timestamp( Freemius::_get_all_instances() );
+                $this->store_clone_identification_timestamp();
                 $this->clear_temporary_duplicate_notice_shown_timestamp();
             }
         }
@@ -827,7 +802,27 @@
                 ) );
             }
 
-            $result = $this->resolve_cloned_sites( $clone_action );
+            $instances = array();
+
+            if ( fs_request_has( 'product_id' ) ) {
+                $product_id = fs_request_get( 'product_id' );
+                $instance   = null;
+
+                if ( FS_Plugin::is_valid_id( $product_id ) ) {
+                    $instance = Freemius::get_instance_by_id( $product_id );
+                }
+
+                if ( ! is_object( $instance ) ) {
+                    Freemius::shoot_ajax_failure( array(
+                        'message'      => fs_text_inline( 'Invalid product ID.', 'invalid-product-id-error' ),
+                        'redirect_url' => '',
+                    ) );
+                }
+
+                $instances[] = $instance;
+            }
+
+            $result = $this->resolve_cloned_sites( $clone_action, $instances );
 
             Freemius::shoot_ajax_success( $result );
         }
