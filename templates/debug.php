@@ -17,7 +17,7 @@
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
 
-    $has_any_clone = false;
+    $has_any_active_clone = false;
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -245,7 +245,7 @@
         WP_FS__MODULE_TYPE_THEME
     );
 ?>
-
+<?php $active_modules_by_id = array() ?>
 <?php foreach ( $module_types as $module_type ) : ?>
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
@@ -284,7 +284,13 @@
                     }
                 }
                 ?>
-                <?php $fs = $is_active ? freemius( $data->id ) : null ?>
+                <?php
+                    $fs = ( $is_active ? freemius( $data->id ) : null );
+
+                    if ( $is_active ) {
+                        $active_modules_by_id[ $data->id ] = true;
+                    }
+                ?>
                 <tr<?php if ( $is_active ) {
                     if ( $fs->has_api_connectivity() && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
@@ -401,14 +407,14 @@
                         <td>
                             <?php echo $site->id ?>
                             <?php
-                                $is_clone = $site->is_clone();
+                                $is_active_clone = ( $site->is_clone() && isset( $active_modules_by_id[ $site->plugin_id ] ) );
 
-                                if ( $is_clone ) {
-                                    $has_any_clone = true;
+                                if ( $is_active_clone ) {
+                                    $has_any_active_clone = true;
                                 }
                             ?>
-                            <?php if ( $is_clone ) : ?>
-                            <label class="fs-tag fs-warn"><?php fs_esc_html_echo_inline( 'Clone', 'clone' ) ?></label>
+                            <?php if ( $is_active_clone ) : ?>
+                            <label class="fs-tag fs-clone-tag-<?php echo $site->plugin_id ?> fs-warn"><?php fs_esc_html_echo_inline( 'Clone', 'clone' ) ?></label>
                             <?php endif ?>
                         </td>
                         <?php if ( $is_multisite ) : ?>
@@ -454,7 +460,7 @@
                             <?php
                                 $actions = array();
 
-                                if ( $is_clone ) {
+                                if ( $is_active_clone ) {
                                     $actions['resolve_clone'] = fs_esc_html_x_inline( 'Resolve Clone', 'resolve a clone install', 'resolve-clone' );
                                 }
 
@@ -471,7 +477,14 @@
                                 <?php endif ?>
                                 <input type="hidden" name="module_type" value="<?php echo $module_type ?>">
                                 <input type="hidden" name="slug" value="<?php echo $slug ?>">
-                                <button type="submit" class="button fs-<?php echo str_replace( '_', '-', $action ) ?>-button"><span><?php echo $button_label ?><i class="fs-ajax-spinner" style="display: none"></i></span></button>
+                                <?php
+                                    $resolve_button_classes = array(
+                                        'fs-' . str_replace( '_', '-', $action ) . '-button'
+                                    );
+
+                                    $resolve_button_classes[] = $resolve_button_classes[0] . "-{$site->plugin_id}";
+                                ?>
+                                <button type="submit" class="button <?php echo implode( ' ', $resolve_button_classes ) ?>"><span><?php echo $button_label ?><i class="fs-ajax-spinner" style="display: none"></i></span></button>
                             </form>
                             <?php endforeach ?>
                         </td>
@@ -807,7 +820,7 @@
         });
     </script>
 <?php endif ?>
-<?php if ( $has_any_clone ) : ?>
+<?php if ( $has_any_active_clone ) : ?>
 <?php
     fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
     fs_enqueue_local_style( 'fs_clone_resolution', '/admin/clone-resolution.css' );

@@ -82,7 +82,8 @@ HTML;
 
                     if ( response.data ) {
                         $modal.find( '.fs-clone-resolution-options-container tbody' ).html( response.data.message );
-                        $modal.find( '#fs-product-title' ).html( response.data.product_title );
+                        $modal.find( '#fs-product-title' ).text( response.data.product_title );
+                        $modal.data( 'product-id', response.data.product_id );
                         showModal( evt );
                     }
                 } );

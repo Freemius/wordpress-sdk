@@ -3486,12 +3486,14 @@
          * @since 2.5.1
          */
         function maybe_update_clone_resolution_support_flag() {
-            if (
+            if ( isset( $this->_storage->has_clone_resolution_support ) ) {
+                return;
+            }
+
+            $this->_storage->has_clone_resolution_support = (
                 empty( $this->_storage->sdk_last_version ) ||
                 version_compare( $this->_storage->sdk_last_version, '2.5.0', '>' )
-            ) {
-                $this->_storage->has_clone_resolution_support = true;
-            }
+            );
         }
 
         /**
@@ -3803,6 +3805,7 @@
 
             self::shoot_ajax_success( array(
                 'message'       => $message,
+                'product_id'    => $fs->get_id(),
                 'product_title' => $product_title,
             ) );
         }
@@ -9849,17 +9852,23 @@
          * @param FS_Site  $site
          * @param string[] $params
          */
-        function maybe_send_clone_update( $site = null, $params = array() ) {
+        function maybe_send_clone_update( $site = null, $params = array(), $initial_update = false ) {
             $this->_logger->entrance();
 
-            $clone_id = ( ! empty( $this->_storage->clone_id ) ) ?
-                $this->_storage->clone_id :
-                null;
+            if ( ! $this->is_tracking_allowed() ) {
+                return;
+            }
+
+            if ( empty( $this->_storage->clone_id ) && ! $initial_update ) {
+                return;
+            }
 
             $path   = '/clones';
             $method = 'post';
 
-            if ( ! is_null( $clone_id ) ) {
+            $clone_id = $this->_storage->clone_id;
+
+            if ( ! empty( $clone_id ) ) {
                 $path   .= "/{$clone_id}";
                 $method  = 'put';
             }
@@ -9867,18 +9876,13 @@
             $current_site = null;
             $flush        = false;
 
-            if ( is_object( $site ) ) {
+            if ( is_object( $site ) && $this->_site->id != $site->id ) {
                 $current_site = $this->_site;
                 $this->_site  = $site;
                 $flush        = true;
             }
 
-            $install_clone = $this->api_site_call(
-                $path,
-                $method,
-                $params,
-                $flush
-            );
+            $install_clone = $this->get_api_site_scope( $flush )->call( $path, $method, $params );
 
             if ( $this->is_api_result_entity( $install_clone ) ) {
                 $this->_storage->clone_id = $install_clone->id;
@@ -17191,12 +17195,13 @@
                 $this->_register_account_hooks();
             }
 
-            if (
-                $this->is_user_in_admin() &&
-                $this->is_clone() &&
-                empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() )
-            ) {
-                FS_Clone_Manager::instance()->store_clone_identification_timestamp( array( $this ) );
+            if ( $this->is_user_in_admin() && $this->is_clone() ) {
+                if ( empty( FS_Clone_Manager::instance()->get_clone_identification_timestamp() ) ) {
+                    FS_Clone_Manager::instance()->store_clone_identification_timestamp();
+                }
+
+                $this->maybe_update_clone_resolution_support_flag();
+                $this->maybe_send_clone_update( null, array( 'site_url' => self::get_unfiltered_site_url() ) );
             }
         }
 

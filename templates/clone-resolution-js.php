@@ -25,6 +25,8 @@
 
             $errorMessage = $cloneResolutionNotice.find( '#fs_clone_resolution_error_message' );
 
+            var isContextDialog = $cloneResolutionNotice.hasClass( 'fs-modal-clone-resolution' );
+
             /**
              * Triggers an AJAX request when the license activation link or any of the buttons on the clone resolution options notice is clicked. The AJAX request will then handle the action the user has chosen.
              */
@@ -39,19 +41,28 @@
                     return;
                 }
 
+                var data = {
+                    action      : '<?php echo $VARS['ajax_action'] ?>',
+                    security    : '<?php echo wp_create_nonce( $VARS['ajax_action'] ) ?>',
+                    clone_action: $this.data( 'clone-action' )
+                };
+
+                if ( isContextDialog ) {
+                    data.product_id = $cloneResolutionNotice.data( 'product-id' );
+                }
+
                 var beforeUnload = function() {
                     return '<?php fs_esc_js_echo_inline( 'Please wait', 'please-wait' ) ?>';
+                }, handleError = function() {
+                    $body.css( { cursor: cursor } );
+                    $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
                 };
 
                 $.ajax( {
                     // Get the parent options container from the child as `$cloneResolutionNotice` can have different AJAX URLs if both the manual clone resolution options and temporary duplicate notices are shown (for different subsites in a multisite network).
                     url       : $this.parents( '.fs-clone-resolution-options-container' ).data( 'ajax-url' ),
                     method    : 'POST',
-                    data      : {
-                        action      : '<?php echo $VARS['ajax_action'] ?>',
-                        security    : '<?php echo wp_create_nonce( $VARS['ajax_action'] ) ?>',
-                        clone_action: $this.data( 'clone-action' )
-                    },
+                    data      : data,
                     beforeSend: function() {
                         $body.css( { cursor: 'wait' } );
 
@@ -62,15 +73,26 @@
                     success   : function( resultObj ) {
                         $( window ).off( 'beforeunload', beforeUnload );
 
+                        if ( ! resultObj.success ) {
+                            handleError();
+                            return;
+                        }
+
                         if ( resultObj.data.redirect_url && '' !== resultObj.data.redirect_url ) {
                             window.location = resultObj.data.redirect_url;
                         } else {
-                            window.location.reload();
+                            if ( ! isContextDialog ) {
+                                window.location.reload();
+                            } else {
+                                $( '.fs-clone-tag-' + data.product_id + ', .fs-resolve-clone-button-' + data.product_id ).remove();
+
+                                $cloneResolutionNotice.removeClass( 'active' );
+                                $( 'body' ).removeClass( 'has-fs-modal' );
+                            }
                         }
                     },
                     error  : function() {
-                        $body.css( { cursor: cursor } );
-                        $cloneResolutionNotice.find( '.button' ).removeClass( 'disabled' );
+                        handleError();
                     }
                 } );
             } );
