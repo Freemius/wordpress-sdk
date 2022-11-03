@@ -403,7 +403,6 @@
                 // Site level options.
                 'is_anonymous'                 => self::OPTION_LEVEL_SITE,
                 'clone_id'                     => self::OPTION_LEVEL_SITE,
-                'has_clone_resolution_support' => self::OPTION_LEVEL_SITE,
             );
         }
 

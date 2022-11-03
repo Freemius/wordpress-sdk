@@ -116,6 +116,15 @@
         <td>
             <button id="fs_set_db_option" class="button"><?php fs_esc_html_echo_inline( 'Set DB Option' ) ?></button>
         </td>
+        <td>
+            <?php
+                $fs_debug_page_url = 'admin.php?page=freemius&fs_action=allow_clone_resolution_notice';
+                $fs_debug_page_url = fs_is_network_admin() ?
+                    network_admin_url( $fs_debug_page_url ) :
+                    admin_url( $fs_debug_page_url );
+            ?>
+            <a href="<?php echo $fs_debug_page_url ?>" class="button button-primary">Resolve Clone(s)</a>
+        </td>
     </tr>
     </tbody>
 </table>
@@ -403,33 +412,33 @@
             </tr>
             </thead>
             <tbody>
+            <?php $site_url = null ?>
             <?php foreach ( $sites_map as $slug => $sites ) : ?>
-                <?php $site_url = null ?>
                 <?php foreach ( $sites as $site ) : ?>
+                    <?php
+                        $blog_id = $is_multisite ?
+                            $site->blog_id :
+                            null;
+
+                        if ( is_null( $site_url ) || $is_multisite ) {
+                            $site_url = Freemius::get_unfiltered_site_url(
+                                $blog_id,
+                                true,
+                                true
+                            );
+                        }
+
+                        $is_active_clone = ( $site->is_clone( $site_url ) && isset( $active_modules_by_id[ $site->plugin_id ] ) );
+
+                        if ( $is_active_clone ) {
+                            $has_any_active_clone = true;
+                        }
+                    ?>
                     <tr>
                         <td>
                             <?php echo $site->id ?>
-                            <?php
-                                $blog_id = $is_multisite ?
-                                    $site->blog_id :
-                                    null;
-
-                                if ( is_null( $site_url ) || $is_multisite ) {
-                                    $site_url = Freemius::get_unfiltered_site_url(
-                                        $blog_id,
-                                        true,
-                                        true
-                                    );
-                                }
-
-                                $is_active_clone = ( $site->is_clone() && isset( $active_modules_by_id[ $site->plugin_id ] ) );
-
-                                if ( $is_active_clone ) {
-                                    $has_any_active_clone = true;
-                                }
-                            ?>
                             <?php if ( $is_active_clone ) : ?>
-                            <label class="fs-tag fs-clone-tag-<?php echo $site->plugin_id ?> fs-warn"><?php fs_esc_html_echo_inline( 'Clone', 'clone' ) ?></label>
+                            <label class="fs-tag fs-warn">Clone</label>
                             <?php endif ?>
                         </td>
                         <?php if ( $is_multisite ) : ?>
@@ -472,36 +481,17 @@
                                     esc_html( $site->secret_key );
                         ?></td>
                         <td>
-                            <?php
-                                $actions = array();
-
-                                if ( $is_active_clone ) {
-                                    $actions['resolve_clone'] = 'Resolve Clone';
-                                }
-
-                                $actions['delete_install'] = fs_esc_html_x_inline( 'Delete', 'verb', 'delete' );
-                            ?>
-                            <?php foreach ( $actions as $action => $button_label ) : ?>
                             <form action="" method="POST">
-                                <input type="hidden" name="fs_action" value="<?php echo $action ?>">
-                                <?php wp_nonce_field( $action ) ?>
-                                <input type="hidden" name="install_id" value="<?php echo $site->id ?>">
+                                <input type="hidden" name="fs_action" value="delete_install">
+                                <?php wp_nonce_field( 'delete_install' ) ?>
                                 <input type="hidden" name="module_id" value="<?php echo $site->plugin_id ?>">
                                 <?php if ( $is_multisite ) : ?>
                                     <input type="hidden" name="blog_id" value="<?php echo $site->blog_id ?>">
                                 <?php endif ?>
                                 <input type="hidden" name="module_type" value="<?php echo $module_type ?>">
                                 <input type="hidden" name="slug" value="<?php echo $slug ?>">
-                                <?php
-                                    $resolve_button_classes = array(
-                                        'fs-' . str_replace( '_', '-', $action ) . '-button'
-                                    );
-
-                                    $resolve_button_classes[] = $resolve_button_classes[0] . "-{$site->plugin_id}";
-                                ?>
-                                <button type="submit" class="button <?php echo implode( ' ', $resolve_button_classes ) ?>"><span><?php echo $button_label ?><i class="fs-ajax-spinner" style="display: none"></i></span></button>
+                                <button type="submit" class="button"><?php fs_esc_html_echo_x_inline( 'Delete', 'verb', 'delete' ) ?></button>
                             </form>
-                            <?php endforeach ?>
                         </td>
                     </tr>
                 <?php endforeach ?>
@@ -834,14 +824,4 @@
             loadLogs();
         });
     </script>
-<?php endif ?>
-<?php if ( $has_any_active_clone ) : ?>
-<?php
-    fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
-    fs_enqueue_local_style( 'fs_clone_resolution', '/admin/clone-resolution.css' );
-
-    $vars = array( 'ajax_action' => Freemius::get_ajax_action_static( 'handle_clone_resolution' ) );
-    fs_require_template( 'forms/clone-resolution.php' );
-    fs_require_once_template( 'clone-resolution-js.php', $vars );
-?>
 <?php endif ?>
