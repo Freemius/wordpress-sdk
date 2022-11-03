@@ -849,7 +849,7 @@
 
             $instances_with_clone       = array();
             $instances_with_clone_count = 0;
-            $instance_id_to_install_map = array();
+            $install_by_instance_id     = array();
 
             $instances = ( ! empty( $fs_instances ) ) ?
                 $fs_instances :
@@ -868,7 +868,7 @@
                 
                 $instances_with_clone_count ++;
 
-                $instance_id_to_install_map[ $instance->get_id() ] = $instance->get_site();
+                $install_by_instance_id[ $instance->get_id() ] = $instance->get_site();
             }
 
             if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
@@ -916,7 +916,7 @@
 
                 $instance->send_clone_resolution_update(
                     $clone_action,
-                    $instance_id_to_install_map[ $instance->get_id() ]
+                    $install_by_instance_id[ $instance->get_id() ]
                 );
             }
 

@@ -123,7 +123,7 @@
                     network_admin_url( $fs_debug_page_url ) :
                     admin_url( $fs_debug_page_url );
             ?>
-            <a href="<?php echo $fs_debug_page_url ?>" class="button button-primary">Resolve Clone(s)</a>
+            <a href="<?php echo wp_nonce_url( $fs_debug_page_url, 'fs_allow_clone_resolution_notice' ) ?>" class="button button-primary">Resolve Clone(s)</a>
         </td>
     </tr>
     </tbody>
