@@ -22,6 +22,7 @@
      * @property string $request_handler_id
      * @property int    $request_handler_timestamp
      * @property int    $request_handler_retries_count
+     * @property bool   $hide_manual_resolution
      */
     class FS_Clone_Manager {
         /**
@@ -40,6 +41,7 @@
          * @type string $request_handler_id
          * @type int    $request_handler_timestamp
          * @type int    $request_handler_retries_count
+         * @type bool   $hide_manual_resolution
          * }
          */
         private $_data;
@@ -133,6 +135,7 @@
                 'request_handler_id'                           => null,
                 'request_handler_timestamp'                    => null,
                 'request_handler_retries_count'                => null,
+                'hide_manual_resolution'                       => null,
             );
 
             if ( ! is_array( $this->_data ) ) {
@@ -194,6 +197,23 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @param string $sdk_last_version
+         */
+        function maybe_update_clone_resolution_support_flag( $sdk_last_version ) {
+            if ( null !== $this->hide_manual_resolution ) {
+                return;
+            }
+
+            $this->hide_manual_resolution = (
+                ! empty( $sdk_last_version ) &&
+                version_compare( $sdk_last_version, '2.5.0', '<' )
+            );
+        }
+
+        /**
          * Stores the time when a clone was identified.
          */
         function store_clone_identification_timestamp() {
@@ -229,6 +249,16 @@
 
             // Give the logic that handles clones enough time to finish (it is given 3 minutes for now).
             return ( time() > ( $this->request_handler_timestamp + self::CLONE_RESOLUTION_MAX_EXECUTION_TIME ) );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         *
+         * @return bool
+         */
+        function should_hide_manual_resolution() {
+            return ( true === $this->hide_manual_resolution );
         }
 
         /**
@@ -814,7 +844,7 @@
 
                 if ( ! is_object( $instance ) ) {
                     Freemius::shoot_ajax_failure( array(
-                        'message'      => fs_text_inline( 'Invalid product ID.', 'invalid-product-id-error' ),
+                        'message'      => 'Invalid product ID.',
                         'redirect_url' => '',
                     ) );
                 }
@@ -908,15 +938,10 @@
                     continue;
                 }
 
-                $install        = $instance_id_to_install_map[ $instance->get_id() ];
-                $new_install_id = ( $install->id != $instance->get_site()->id ) ?
-                    $instance->get_site()->id :
-                    null;
-
-                $instance->maybe_send_clone_update( $install, array(
-                    'resolution'     => $clone_action,
-                    'new_install_id' => $new_install_id,
-                ) );
+                $instance->send_clone_resolution_update(
+                    $clone_action,
+                    $instance_id_to_install_map[ $instance->get_id() ]
+                );
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
@@ -1170,7 +1195,7 @@
             $current_url,
             $has_license,
             $is_premium,
-            $doc_url = ''
+            $doc_url = self::DEFAULT_DOC_URL
         ) {
             $total_sites = count( $site_urls );
             $sites_list  = '';
@@ -1274,10 +1299,6 @@
                         fs_text_inline( 'Activate License', 'activate-license' )
                 )
             );
-
-            if ( empty( $doc_url ) ) {
-                $doc_url = self::DEFAULT_DOC_URL;
-            }
 
             /**
              * %1$s - single product's title or product titles list.

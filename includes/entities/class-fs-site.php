@@ -10,6 +10,9 @@
         exit;
     }
 
+    /**
+     * @property int $blog_id
+     */
     class FS_Site extends FS_Scope_Entity {
         /**
          * @var number
@@ -239,17 +242,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.1
          *
-         * @param int $blog_id
+         * @param string $site_url
          *
          * @return bool
          */
-        function is_clone( $blog_id = null ) {
-            $blog_id = ( empty( $blog_id ) && is_multisite() && ! empty( $this->blog_id ) ) ?
-                $this->blog_id :
-                $blog_id;
-
+        function is_clone( $site_url ) {
             $clone_install_url = trailingslashit( fs_strip_url_protocol( $this->url ) );
-            $site_url          = Freemius::get_unfiltered_site_url( $blog_id, true, true );
 
             return ( $clone_install_url !== $site_url );
         }

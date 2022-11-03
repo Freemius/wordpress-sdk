@@ -3450,9 +3450,9 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
-         * @param bool $is_strict_mode
+         * @param bool $only_if_manual_resolution_is_not_hidden
          */
-        function is_clone( $is_strict_mode = false ) {
+        function is_clone( $only_if_manual_resolution_is_not_hidden = false ) {
             if ( ! is_object( $this->_site ) ) {
                 return false;
             }
@@ -3467,32 +3467,15 @@
                 $blog_id = $this->_storage->network_install_blog_id;
             }
 
-            if ( ! $this->_site->is_clone( $blog_id ) ) {
+            $site_url = Freemius::get_unfiltered_site_url( $blog_id, true, true );
+
+            if ( ! $this->_site->is_clone( $site_url ) ) {
                 return false;
             }
 
-            if ( ! $is_strict_mode ) {
-                return true;
-            }
-
             return (
-                ! empty( $this->_storage->has_clone_resolution_support ) &&
-                $this->_storage->has_clone_resolution_support
-            );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.1
-         */
-        function maybe_update_clone_resolution_support_flag() {
-            if ( isset( $this->_storage->has_clone_resolution_support ) ) {
-                return;
-            }
-
-            $this->_storage->has_clone_resolution_support = (
-                empty( $this->_storage->sdk_last_version ) ||
-                version_compare( $this->_storage->sdk_last_version, '2.5.0', '>' )
+                ! $only_if_manual_resolution_is_not_hidden ||
+                ! FS_Clone_Manager::instance()->should_hide_manual_resolution()
             );
         }
 
@@ -9848,45 +9831,56 @@
         /**
          * @author Leo Fajardo (@leorw)
          * @since  2.5.1
-         *
-         * @param FS_Site  $site
-         * @param string[] $params
          */
-        function maybe_send_clone_update( $site = null, $params = array(), $initial_update = false ) {
+        private function send_pending_clone_update() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_tracking_allowed() ) {
-                return;
-            }
-
-            if ( empty( $this->_storage->clone_id ) && ! $initial_update ) {
-                return;
-            }
-
-            $path   = '/clones';
-            $method = 'post';
-
-            $clone_id = $this->_storage->clone_id;
-
-            if ( ! empty( $clone_id ) ) {
-                $path   .= "/{$clone_id}";
-                $method  = 'put';
-            }
-
-            $current_site = null;
-            $flush        = false;
-
-            if ( is_object( $site ) && $this->_site->id != $site->id ) {
-                $current_site = $this->_site;
-                $this->_site  = $site;
-                $flush        = true;
-            }
-
-            $install_clone = $this->get_api_site_scope( $flush )->call( $path, $method, $params );
+            $install_clone = $this->get_api_site_scope()->call(
+                '/clones',
+                'post',
+                array( 'site_url' => self::get_unfiltered_site_url() )
+            );
 
             if ( $this->is_api_result_entity( $install_clone ) ) {
                 $this->_storage->clone_id = $install_clone->id;
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.1
+         *
+         * @param string  $resolution_type
+         * @param FS_Site $clone_context_install
+         */
+        function send_clone_resolution_update( $resolution_type, $clone_context_install ) {
+            $this->_logger->entrance();
+
+            if ( empty( $this->_storage->clone_id ) ) {
+                return;
+            }
+
+            $new_install_id = null;
+            $current_site   = null;
+
+            $flush = false;
+
+            if ( $clone_context_install->id != $this->_site->id ) {
+                $new_install_id = $this->_site->id;
+                $current_site   = $this->_site;
+                $this->_site    = $clone_context_install;
+
+                $flush = true;
+            }
+
+            $this->get_api_site_scope( $flush )->call(
+                "/clones/{$this->_storage->clone_id}",
+                'put',
+                array(
+                    'resolution'     => $resolution_type,
+                    'new_install_id' => $new_install_id,
+                )
+            );
 
             if ( is_object( $current_site ) ) {
                 $this->_site  = $current_site;
@@ -17200,8 +17194,8 @@
                     FS_Clone_Manager::instance()->store_clone_identification_timestamp();
                 }
 
-                $this->maybe_update_clone_resolution_support_flag();
-                $this->maybe_send_clone_update( null, array( 'site_url' => self::get_unfiltered_site_url() ) );
+                FS_Clone_Manager::instance()->maybe_update_clone_resolution_support_flag( $this->_storage->sdk_last_version );
+                $this->send_pending_clone_update();
             }
         }
 
