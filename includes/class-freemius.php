@@ -9803,7 +9803,7 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.5.1
          */
-        private function send_pending_clone_update() {
+        private function send_pending_clone_update_once() {
             $this->_logger->entrance();
 
             if ( ! empty( $this->_storage->clone_id ) ) {
@@ -9840,6 +9840,9 @@
 
             $flush = false;
 
+            /**
+             * If the current site is now different from the context install before the clone resolution, we need to override `$this->_site` so that the API call below will be made with the right install scope entity.
+             */
             if ( $clone_context_install->id != $this->_site->id ) {
                 $new_install_id = $this->_site->id;
                 $current_site   = $this->_site;
@@ -9858,6 +9861,9 @@
             );
 
             if ( is_object( $current_site ) ) {
+                /**
+                 * Ensure that the install scope entity is updated back to the previous install entity.
+                 */
                 $this->_site  = $current_site;
 
                 // Restore the previous install scope entity of the API.
@@ -17170,7 +17176,7 @@
                 }
 
                 FS_Clone_Manager::instance()->maybe_update_clone_resolution_support_flag( $this->_storage->sdk_last_version );
-                $this->send_pending_clone_update();
+                $this->send_pending_clone_update_once();
             }
         }
 
@@ -23827,6 +23833,8 @@
             self::_hide_admin_notices();
 
             if ( fs_request_is_action( 'allow_clone_resolution_notice' ) ) {
+                check_admin_referer( 'fs_allow_clone_resolution_notice' );
+
                 FS_Clone_Manager::instance()->temporarily_clear_notices();
                 FS_Clone_Manager::instance()->maybe_show_clone_admin_notice();
             }
