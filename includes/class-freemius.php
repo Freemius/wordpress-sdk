@@ -3399,8 +3399,6 @@
 
             self::add_ajax_action_static( 'set_db_option', array( 'Freemius', '_set_db_option' ) );
 
-            self::add_ajax_action_static( 'get_clone_resolution_message', array( 'Freemius', '_get_clone_resolution_message_ajax_handler' ) );
-
             if ( 0 == did_action( 'plugins_loaded' ) ) {
                 add_action( 'plugins_loaded', array( 'Freemius', '_load_textdomain' ), 1 );
             }
@@ -3434,12 +3432,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          *
-         * @param bool $is_strict_mode
+         * @param bool $only_if_manual_resolution_is_not_hidden
          *
          * @return bool
          */
-        private function is_unresolved_clone( $is_strict_mode = false ) {
-            if ( ! $this->is_clone( $is_strict_mode ) ) {
+        private function is_unresolved_clone( $only_if_manual_resolution_is_not_hidden = false ) {
+            if ( ! $this->is_clone( $only_if_manual_resolution_is_not_hidden ) ) {
                 return false;
             }
 
@@ -3764,33 +3762,6 @@
             }
 
             self::shoot_ajax_success();
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.1
-         */
-        static function _get_clone_resolution_message_ajax_handler() {
-            self::check_ajax_referer_static( 'get_clone_resolution_message' );
-
-            $product_id    = fs_request_get( 'product_id' );
-            $fs            = self::get_instance_by_id( $product_id );
-            $product_title = $fs->get_plugin_title();
-            $install       = $fs->get_site();
-
-            $message = FS_Clone_Manager::get_manual_clone_resolution_message(
-                array( $product_title ),
-                array( $install->url ),
-                Freemius::get_unfiltered_site_url( is_multisite() ? $install->blog_id : null ),
-                is_object( $fs->_get_license() ),
-                $fs->is_premium()
-            );
-
-            self::shoot_ajax_success( array(
-                'message'       => $message,
-                'product_id'    => $fs->get_id(),
-                'product_title' => $product_title,
-            ) );
         }
 
         /**
@@ -9834,6 +9805,10 @@
          */
         private function send_pending_clone_update() {
             $this->_logger->entrance();
+
+            if ( ! empty( $this->_storage->clone_id ) ) {
+                return;
+            }
 
             $install_clone = $this->get_api_site_scope()->call(
                 '/clones',
@@ -19809,20 +19784,7 @@
          * @return string
          */
         function get_ajax_security( $tag ) {
-            return self::get_ajax_security_static( $tag, $this->_module_id );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.5.1
-         *
-         * @param string      $tag
-         * @param number|null $module_id
-         *
-         * @return string
-         */
-        static function get_ajax_security_static( $tag, $module_id = null ) {
-            return wp_create_nonce( self::get_ajax_action_static( $tag, $module_id ) );
+            return wp_create_nonce( $this->get_ajax_action( $tag ) );
         }
 
         /**
@@ -19832,18 +19794,7 @@
          * @param string $tag
          */
         function check_ajax_referer( $tag ) {
-            self::check_ajax_referer_static( $tag, $this->_module_id );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since  2.5.1
-         *
-         * @param string      $tag
-         * @param number|null $module_id
-         */
-        private static function check_ajax_referer_static( $tag, $module_id = null ) {
-            check_ajax_referer( self::get_ajax_action_static( $tag, $module_id ), 'security' );
+            check_ajax_referer( $this->get_ajax_action( $tag ), 'security' );
         }
 
         /**
@@ -23874,6 +23825,11 @@
 
         static function _clean_admin_content_section_hook() {
             self::_hide_admin_notices();
+
+            if ( fs_request_is_action( 'allow_clone_resolution_notice' ) ) {
+                FS_Clone_Manager::instance()->temporarily_clear_notices();
+                FS_Clone_Manager::instance()->maybe_show_clone_admin_notice();
+            }
 
             // Hide footer.
             echo '<style>#wpfooter { display: none !important; }</style>';

@@ -92,10 +92,6 @@
          * @var string
          */
         const OPTION_NEW_HOME = 'new_home';
-        /**
-         * @var string
-         */
-        const DEFAULT_DOC_URL = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -832,27 +828,7 @@
                 ) );
             }
 
-            $instances = array();
-
-            if ( fs_request_has( 'product_id' ) ) {
-                $product_id = fs_request_get( 'product_id' );
-                $instance   = null;
-
-                if ( FS_Plugin::is_valid_id( $product_id ) ) {
-                    $instance = Freemius::get_instance_by_id( $product_id );
-                }
-
-                if ( ! is_object( $instance ) ) {
-                    Freemius::shoot_ajax_failure( array(
-                        'message'      => 'Invalid product ID.',
-                        'redirect_url' => '',
-                    ) );
-                }
-
-                $instances[] = $instance;
-            }
-
-            $result = $this->resolve_cloned_sites( $clone_action, $instances );
+            $result = $this->resolve_cloned_sites( $clone_action );
 
             Freemius::shoot_ajax_success( $result );
         }
@@ -966,7 +942,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.0
          */
-        private function maybe_show_clone_admin_notice() {
+        function maybe_show_clone_admin_notice() {
             $this->_logger->entrance();
 
             if ( fs_is_network_admin() ) {
@@ -1038,7 +1014,7 @@
                 if ( ! empty( $site_urls ) ) {
                     fs_enqueue_local_style( 'fs_clone_resolution_notice', '/admin/clone-resolution.css' );
 
-                    $doc_url = self::DEFAULT_DOC_URL;
+                    $doc_url = 'https://freemius.com/help/documentation/wordpress-sdk/safe-mode-clone-resolution-duplicate-website/';
 
                     if ( 1 === count( $instances ) ) {
                         $doc_url = fs_apply_filter(
@@ -1096,6 +1072,14 @@
                 $this->get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $product_titles, $module_label ),
                 $admin_notice_module_title
             );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.1
+         */
+        function temporarily_clear_notices() {
+            $this->_notices->clear_all_sticky( null, true );
         }
 
         /**
@@ -1178,25 +1162,26 @@
         }
 
         /**
-         * Returns the clone resolution message that provides the logged-in WordPress user with manual clone resolution options.
+         * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
          *
-         * @param string[] $product_titles
+         * @param number[] $product_ids
          * @param string[] $site_urls
          * @param string   $current_url
          * @param bool     $has_license
          * @param bool     $is_premium
          * @param string   $doc_url
-         *
-         * @return string
          */
-        static function get_manual_clone_resolution_message(
+        private function add_manual_clone_resolution_admin_notice(
+            $product_ids,
             $product_titles,
             $site_urls,
             $current_url,
             $has_license,
             $is_premium,
-            $doc_url = self::DEFAULT_DOC_URL
+            $doc_url
         ) {
+            $this->_logger->entrance();
+
             $total_sites = count( $site_urls );
             $sites_list  = '';
 
@@ -1254,7 +1239,7 @@
                 $option_template,
                 fs_esc_html_inline( 'Is %2$s a duplicate of %4$s?', 'duplicate-site-confirmation-message' ),
                 fs_esc_html_inline( 'Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development.', 'duplicate-site-message' ),
-                ( self::instance()->has_temporary_duplicate_mode_expired() ?
+                ( $this->has_temporary_duplicate_mode_expired() ?
                     sprintf(
                         $button_template,
                         'long_term_duplicate',
@@ -1306,7 +1291,7 @@
              * %3$s - single install's URL or install URLs list.
              * %4$s - Clone site's link or "the above-mentioned sites" if there are multiple clone sites.
              */
-            return sprintf(
+            $message = sprintf(
                 $notice_header .
                 '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
                 $duplicate_option .
@@ -1328,36 +1313,6 @@
                     $sites_list ),
                 // %4$s
                 $remote_site_link
-            );
-        }
-
-        /**
-         * Adds a notice that provides the logged-in WordPress user with manual clone resolution options.
-         *
-         * @param number[] $product_ids
-         * @param string[] $product_titles
-         * @param string[] $site_urls
-         * @param string   $current_url
-         * @param bool     $has_license
-         * @param bool     $is_premium
-         * @param string   $doc_url
-         */
-        private function add_manual_clone_resolution_admin_notice(
-            $product_ids,
-            $product_titles,
-            $site_urls,
-            $current_url,
-            $has_license,
-            $is_premium,
-            $doc_url
-        ) {
-            $message = $this->get_manual_clone_resolution_message(
-                $product_titles,
-                $site_urls,
-                $current_url,
-                $has_license,
-                $is_premium,
-                $doc_url
             );
 
             $this->_notices->add_sticky(
