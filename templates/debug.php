@@ -18,6 +18,8 @@
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
 
     $has_any_active_clone = false;
+
+    $is_multisite = is_multisite();
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -261,7 +263,7 @@
                 <th><?php fs_esc_html_echo_inline( 'Freemius State' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Module Path' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
-                <?php if ( is_multisite() ) : ?>
+                <?php if ( $is_multisite ) : ?>
                     <th><?php fs_esc_html_echo_inline( 'Network Blog' ) ?></th>
                     <th><?php fs_esc_html_echo_inline( 'Network User' ) ?></th>
                 <?php endif ?>
@@ -285,9 +287,10 @@
                 }
                 ?>
                 <?php
-                    $fs = ( $is_active ? freemius( $data->id ) : null );
-
+                    $fs = null;
                     if ( $is_active ) {
+                        $fs = freemius( $data->id );
+
                         $active_modules_by_id[ $data->id ] = true;
                     }
                 ?>
@@ -320,7 +323,7 @@
                         } ?></td>
                     <td><?php echo $data->file ?></td>
                     <td><?php echo $data->public_key ?></td>
-                    <?php if ( is_multisite() ) : ?>
+                    <?php if ( $is_multisite ) : ?>
                         <?php
                         $network_blog_id = null;
                         $network_user    = null;
@@ -374,8 +377,7 @@
      */
     $sites_map = $VARS[ $module_type . '_sites' ];
 
-    $is_multisite = is_multisite();
-    $all_plans    = false;
+    $all_plans = false;
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
         <h2><?php echo esc_html( sprintf(
@@ -402,11 +404,24 @@
             </thead>
             <tbody>
             <?php foreach ( $sites_map as $slug => $sites ) : ?>
+                <?php $site_url = null ?>
                 <?php foreach ( $sites as $site ) : ?>
                     <tr>
                         <td>
                             <?php echo $site->id ?>
                             <?php
+                                $blog_id = $is_multisite ?
+                                    $site->blog_id :
+                                    null;
+
+                                if ( is_null( $site_url ) || $is_multisite ) {
+                                    $site_url = Freemius::get_unfiltered_site_url(
+                                        $blog_id,
+                                        true,
+                                        true
+                                    );
+                                }
+
                                 $is_active_clone = ( $site->is_clone() && isset( $active_modules_by_id[ $site->plugin_id ] ) );
 
                                 if ( $is_active_clone ) {
@@ -418,7 +433,7 @@
                             <?php endif ?>
                         </td>
                         <?php if ( $is_multisite ) : ?>
-                            <td><?php echo $site->blog_id ?></td>
+                            <td><?php echo $blog_id ?></td>
                             <td><?php echo fs_strip_url_protocol( $site->url ) ?></td>
                         <?php endif ?>
                         <td><?php echo $slug ?></td>
@@ -461,7 +476,7 @@
                                 $actions = array();
 
                                 if ( $is_active_clone ) {
-                                    $actions['resolve_clone'] = fs_esc_html_x_inline( 'Resolve Clone', 'resolve a clone install', 'resolve-clone' );
+                                    $actions['resolve_clone'] = 'Resolve Clone';
                                 }
 
                                 $actions['delete_install'] = fs_esc_html_x_inline( 'Delete', 'verb', 'delete' );
