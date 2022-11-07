@@ -25415,8 +25415,10 @@
         function _tabs_capture() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_product_settings_page() ||
-                 ! $this->is_matching_url( $this->main_menu_url() )
+            if (
+                ! $this->is_product_settings_page() ||
+                ! $this->should_page_include_tabs() ||
+                ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
             }
@@ -25470,8 +25472,10 @@
         function _store_tabs_styles() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_product_settings_page() ||
-                 ! $this->is_matching_url( $this->main_menu_url() )
+            if (
+                ! $this->is_product_settings_page() ||
+                ! $this->should_page_include_tabs() ||
+                ! $this->is_matching_url( $this->main_menu_url() )
             ) {
                 return;
             }
