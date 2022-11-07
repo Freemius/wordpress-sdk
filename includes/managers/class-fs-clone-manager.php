@@ -1601,20 +1601,20 @@
          * @param int|string $value
          */
         function __set( $name, $value ) {
-            if ( ! $this->should_use_network_storage( $name ) ) {
-                $storage = $this->_storage;
-                $data    = $this->_data;
-            } else {
-                $storage = $this->_network_storage;
-                $data    = $this->_network_data;
-            }
+            $storage_manager_name_prefix = $this->should_use_network_storage( $name ) ?
+                '_network' :
+                '';
+
+            $data = $this->{ $storage_manager_name_prefix . '_data' };
 
             if ( ! array_key_exists( $name, $data ) ) {
                 return;
             }
 
-            $data[ $name ] = $value;
+            $data[ $name ]                                    = $value;
+            $this->{ $storage_manager_name_prefix . '_data' } = $data;
 
+            $storage = $this->{ $storage_manager_name_prefix . '_storage' };
             $storage->set_option( self::OPTION_NAME, $data, true );
         }
 
