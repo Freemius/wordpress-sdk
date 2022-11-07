@@ -23830,13 +23830,16 @@
         }
 
         static function _clean_admin_content_section_hook() {
-            self::_hide_admin_notices();
+            $hide_admin_notices = true;
 
             if ( fs_request_is_action( 'allow_clone_resolution_notice' ) ) {
                 check_admin_referer( 'fs_allow_clone_resolution_notice' );
 
-                FS_Clone_Manager::instance()->temporarily_clear_notices();
-                FS_Clone_Manager::instance()->maybe_show_clone_admin_notice();
+                $hide_admin_notices = false;
+            }
+
+            if ( $hide_admin_notices ) {
+                self::_hide_admin_notices();
             }
 
             // Hide footer.
