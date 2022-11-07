@@ -92,6 +92,10 @@
          * @var string
          */
         const OPTION_NEW_HOME = 'new_home';
+        /**
+         * @var string
+         */
+        const USER_LOCK_ID = 'clone_resolution';
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -770,6 +774,14 @@
         private function try_automatic_resolution() {
             $this->_logger->entrance();
 
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+
+            $lock = FS_User_Lock::instance( self::USER_LOCK_ID );
+
+            if ( $lock->is_locked() ) {
+                return false;
+            }
+
             $current_url  = untrailingslashit( Freemius::get_unfiltered_site_url( null, true ) );
             $is_localhost = FS_Site::is_localhost_by_address( $current_url );
 
@@ -790,6 +802,9 @@
                     $require_manual_resolution = true;
                 }
             }
+
+            // Create a 1-day lock.
+            FS_User_Lock::instance()->lock( WP_FS__TIME_24_HOURS_IN_SEC );
 
             return ( ! $require_manual_resolution );
         }
