@@ -23981,29 +23981,29 @@
         private function api_site_call( $path, $method = 'GET', $params = array(), $flush_instance = false ) {
             $result = $this->get_api_site_scope( $flush_instance )->call( $path, $method, $params );
 
-        /**
-         * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
-         *
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.0
-         */
+            /**
+             * Checks if the local install's URL is different from the remote install's URL, update the local install if necessary, and then run the clone handler if the install's URL is different from the URL of the site.
+             *
+             * @author Leo Fajardo (@leorw)
+             * @since  2.5.0
+             */
             if (
                 $this->is_registered() &&
                 FS_Api::is_api_result_entity( $result ) &&
                 isset( $result->url )
             ) {
-            $stored_local_url  = trailingslashit( $this->_site->url );
+                $stored_local_url  = trailingslashit( $this->_site->url );
                 $stored_remote_url = trailingslashit( $result->url );
 
-            if ( $stored_local_url !== $stored_remote_url ) {
+                if ( $stored_local_url !== $stored_remote_url ) {
                     $this->_site->url = $result->url;
-                $this->_store_site();
-            }
+                    $this->_store_site();
+                }
 
-            if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_unfiltered_site_url( null, true, true ) ) {
+                if ( fs_strip_url_protocol( $stored_remote_url ) !== self::get_unfiltered_site_url( null, true, true ) ) {
                     FS_Clone_Manager::instance()->maybe_run_clone_resolution();
+                }
             }
-        }
 
             return $result;
         }
