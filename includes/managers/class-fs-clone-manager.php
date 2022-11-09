@@ -59,6 +59,10 @@
          * @var FS_Logger
          */
         protected $_logger;
+        /**
+         * @var FS_Lock
+         */
+        private $_lock;
 
         /**
          * @var int 3 minutes
@@ -92,10 +96,6 @@
          * @var string
          */
         const OPTION_NEW_HOME = 'new_home';
-        /**
-         * @var string
-         */
-        const USER_LOCK_ID = 'clone_resolution';
 
         #--------------------------------------------------------------------------------
         #region Singleton
@@ -774,11 +774,14 @@
         private function try_automatic_resolution() {
             $this->_logger->entrance();
 
-            require_once WP_FS__DIR_INCLUDES . '/class-fs-user-lock.php';
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
 
-            $lock = FS_User_Lock::instance( self::USER_LOCK_ID );
+            $this->_lock = new FS_Lock( 'clone_resolution' );
 
-            if ( $lock->is_locked() ) {
+            /**
+             * Try to acquire lock for the next 60 sec based on the thread ID.
+             */
+            if ( ! $this->_lock->try_lock( 60 ) ) {
                 return false;
             }
 
@@ -804,7 +807,7 @@
             }
 
             // Create a 1-day lock.
-            FS_User_Lock::instance()->lock( WP_FS__TIME_24_HOURS_IN_SEC );
+            $this->_lock->lock( WP_FS__TIME_24_HOURS_IN_SEC );
 
             return ( ! $require_manual_resolution );
         }

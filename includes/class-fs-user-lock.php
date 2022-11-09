@@ -10,62 +10,46 @@
         exit;
     }
 
+    require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
+
     /**
      * Class FS_User_Lock
      */
     class FS_User_Lock {
         /**
-         * @var int
+         * @var FS_Lock
          */
-        private $_wp_user_id;
-        /**
-         * @var int
-         */
-        private $_thread_id;
-        /**
-         * @var string
-         */
-        private $_lock_id;
+        private $_lock;
 
-        const DEFAULT_ID = 'user';
-        
         #--------------------------------------------------------------------------------
         #region Singleton
         #--------------------------------------------------------------------------------
 
         /**
-         * @var array[string]FS_User_Lock {
-         * @key   string
-         * @value FS_User_Lock
-         * }
+         * @var FS_User_Lock
          */
-        private static $_instances = array();
+        private static $_instance;
 
         /**
          * @author Vova Feldman (@svovaf)
          * @since  2.1.0
          *
-         * @param string $id
-         *
          * @return FS_User_Lock
          */
-        static function instance( $id = self::DEFAULT_ID ) {
-            if ( ! isset( self::$_instances[ $id ] ) ) {
-                self::$_instances[ $id ] = new self( $id );
+        static function instance() {
+            if ( ! isset( self::$_instance ) ) {
+                self::$_instance = new self();
             }
 
-            return self::$_instances[ $id ];
+            return self::$_instance;
         }
 
         #endregion
 
-        /**
-         * @param string $id
-         */
-        private function __construct( $id ) {
-            $this->_wp_user_id = Freemius::get_current_wp_user_id();
-            $this->_thread_id  = mt_rand( 0, 32000 );
-            $this->_lock_id    = "locked_{$this->_wp_user_id}" . ( self::DEFAULT_ID !== $id ? ( '_' . $id ) : '' );
+        private function __construct() {
+            $current_user_id = Freemius::get_current_wp_user_id();
+
+            $this->_lock = new FS_Lock( "locked_{$current_user_id}" );
         }
 
         /**
@@ -79,20 +63,7 @@
          * @return bool TRUE if successfully acquired lock.
          */
         function try_lock( $expiration = 0 ) {
-            if ( $this->is_locked() ) {
-                // Already locked.
-                return false;
-            }
-
-            set_site_transient( $this->_lock_id, $this->_thread_id, $expiration );
-
-            if ( $this->has_lock() ) {
-                set_site_transient( $this->_lock_id, true, $expiration );
-
-                return true;
-            }
-
-            return false;
+            return $this->_lock->try_lock( $expiration );
         }
 
         /**
@@ -104,19 +75,7 @@
          * @param int $expiration
          */
         function lock( $expiration = 0 ) {
-            set_site_transient( $this->_lock_id, true, $expiration );
-        }
-
-        /**
-         * Checks if lock is currently acquired.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  2.1.0
-         *
-         * @return bool
-         */
-        function is_locked() {
-            return ( false !== get_site_transient( $this->_lock_id ) );
+            $this->_lock->lock( $expiration );
         }
 
         /**
@@ -126,15 +85,6 @@
          * @since  2.1.0
          */
         function unlock() {
-            delete_site_transient( $this->_lock_id );
-        }
-
-        /**
-         * Checks if lock is currently acquired by the current locker.
-         *
-         * @return bool
-         */
-        private function has_lock() {
-            return ( $this->_thread_id == get_site_transient( $this->_lock_id ) );
+            $this->_lock->unlock();
         }
     }
