@@ -243,10 +243,15 @@
          * @since  1.0.6
          *
          * @param string $option
+         * @param bool   $flush
          *
          * @return bool
          */
-        function has_option( $option ) {
+        function has_option( $option, $flush = false ) {
+            if ( ! $this->is_loaded() || $flush ) {
+                $this->load( $flush );
+            }
+
             return array_key_exists( $option, $this->_options );
         }
 
@@ -256,14 +261,15 @@
          *
          * @param string $option
          * @param mixed  $default
+         * @param bool   $flush
          *
          * @return mixed
          */
-        function get_option( $option, $default = null ) {
+        function get_option( $option, $default = null, $flush = false ) {
             $this->_logger->entrance( 'option = ' . $option );
 
-            if ( ! $this->is_loaded() ) {
-                $this->load();
+            if ( ! $this->is_loaded() || $flush ) {
+                $this->load( $flush );
             }
 
             if ( is_array( $this->_options ) ) {
