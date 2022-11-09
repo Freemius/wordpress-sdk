@@ -23,6 +23,7 @@
      * @property int    $request_handler_timestamp
      * @property int    $request_handler_retries_count
      * @property bool   $hide_manual_resolution
+     * @property array  $new_blog_install_map
      */
     class FS_Clone_Manager {
         /**
@@ -33,24 +34,6 @@
          * @var FS_Option_Manager
          */
         private $_network_storage;
-        /**
-         * @var array {
-         * @type int    $clone_identification_timestamp
-         * @type int    $temporary_duplicate_mode_selection_timestamp
-         * @type int    $temporary_duplicate_notice_shown_timestamp
-         * @type string $request_handler_id
-         * @type int    $request_handler_timestamp
-         * @type int    $request_handler_retries_count
-         * @type bool   $hide_manual_resolution
-         * }
-         */
-        private $_data;
-        /**
-         * @var array {
-         * @type array $new_blog_install_map
-         * }
-         */
-        private $_network_data;
         /**
          * @var FS_Admin_Notices
          */
@@ -118,37 +101,37 @@
         private function __construct() {
             $this->_storage         = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true );
             $this->_network_storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, true );
-            $this->_data            = $this->_storage->get_option( self::OPTION_NAME, array() );
-            $this->_network_data    = $this->_network_storage->get_option( self::OPTION_NAME, array() );
+
+            $this->maybe_migrate_options();
 
             $this->_notices = FS_Admin_Notices::instance( 'global_clone_resolution_notices', '', '', true );
             $this->_logger  = FS_Logger::get_logger( WP_FS__SLUG . '_' . '_clone_manager', WP_FS__DEBUG_SDK, WP_FS__ECHO_DEBUG_SDK );
+        }
 
-            $defaults = array(
-                'clone_identification_timestamp'               => null,
-                'temporary_duplicate_mode_selection_timestamp' => null,
-                'temporary_duplicate_notice_shown_timestamp'   => null,
-                'request_handler_id'                           => null,
-                'request_handler_timestamp'                    => null,
-                'request_handler_retries_count'                => null,
-                'hide_manual_resolution'                       => null,
+        /**
+         * Migrate clone resolution options from 2.5.0 array-based structure, to a new flat structure.
+         *
+         * The reason this logic is not in a separate migration script is that we want to be 100% sure data is migrated before any execution of clone logic.
+         *
+         * @todo Delete this one in the future.
+         */
+        private function maybe_migrate_options() {
+            $storages = array(
+                $this->_storage,
+                $this->_network_storage
             );
 
-            if ( ! is_array( $this->_data ) ) {
-                $this->_data = $defaults;
-            } else {
-                foreach ( $defaults as $name => $value ) {
-                    $this->_data[ $name ] = isset( $this->_data[ $name ] ) ?
-                        $this->_data[ $name ] :
-                        $value;
-                }
-            }
+            foreach ( $storages as $storage ) {
+                $clone_data = $storage->get_option( self::OPTION_NAME );
+                if ( is_array( $clone_data ) && ! empty( $clone_data ) ) {
+                    foreach ( $clone_data as $key => $val ) {
+                        if ( ! is_null( $val ) ) {
+                            $storage->set_option( $key, $val );
+                        }
+                    }
 
-            if (
-                ! is_array( $this->_network_data ) ||
-                ! isset( $this->_network_data['new_blog_install_map'] )
-            ) {
-                $this->_network_data = array( 'new_blog_install_map' => null );
+                    $storage->unset_option( self::OPTION_NAME, true );
+                }
             }
         }
 
@@ -189,7 +172,7 @@
          * @return int|null
          */
         function get_clone_identification_timestamp() {
-            return $this->clone_identification_timestamp;
+            return $this->get_option( 'clone_identification_timestamp', true );
         }
 
         /**
@@ -1057,7 +1040,7 @@
             }
 
             if ( ! $this->is_temporary_duplicate_notice_shown() ) {
-                $last_time_temporary_duplicate_notice_shown  = $this->last_time_temporary_duplicate_notice_was_shown();
+                $last_time_temporary_duplicate_notice_shown  = $this->temporary_duplicate_notice_shown_timestamp;
                 $was_temporary_duplicate_notice_shown_before = is_numeric( $last_time_temporary_duplicate_notice_shown );
 
                 if ( $was_temporary_duplicate_notice_shown_before ) {
@@ -1086,14 +1069,6 @@
                 $this->get_temporary_duplicate_admin_notice_string( $sites_with_license_urls, $product_titles, $module_label ),
                 $admin_notice_module_title
             );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.1
-         */
-        function temporarily_clear_notices() {
-            $this->_notices->clear_all_sticky( null, true );
         }
 
         /**
@@ -1450,7 +1425,7 @@
          */
         function has_temporary_duplicate_mode_expired() {
             $temporary_duplicate_mode_start_timestamp = $this->was_temporary_duplicate_mode_selected() ?
-                $this->temporary_duplicate_mode_selection_timestamp :
+                $this->get_option( 'temporary_duplicate_mode_selection_timestamp', true ) :
                 $this->get_clone_identification_timestamp();
 
             if ( ! is_numeric( $temporary_duplicate_mode_start_timestamp ) ) {
@@ -1466,10 +1441,7 @@
          * @return bool
          */
         function was_temporary_duplicate_mode_selected() {
-            return (
-                isset( $this->temporary_duplicate_mode_selection_timestamp ) &&
-                is_numeric( $this->temporary_duplicate_mode_selection_timestamp )
-            );
+            return is_numeric( $this->temporary_duplicate_mode_selection_timestamp );
         }
 
         /**
@@ -1521,23 +1493,12 @@
          * @return bool
          */
         function is_temporary_duplicate_by_blog_id( $blog_id ) {
-            $storage = FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, $blog_id );
-            $data    = $storage->get_option( self::OPTION_NAME, array() );
+            $timestamp = $this->get_option( 'temporary_duplicate_mode_selection_timestamp', false, $blog_id );
 
-            if ( ! is_array( $data ) ) {
-                return false;
-            }
-
-            $was_temporary_duplicate_mode_selected = (
-                isset( $data['temporary_duplicate_mode_selection_timestamp'] ) &&
-                is_numeric( $data['temporary_duplicate_mode_selection_timestamp'] )
+            return (
+                is_numeric( $timestamp ) &&
+                time() < ( $timestamp + self::TEMPORARY_DUPLICATE_PERIOD )
             );
-
-            if ( ! $was_temporary_duplicate_mode_selected ) {
-                return false;
-            }
-
-            return ( time() < ( $data['temporary_duplicate_mode_selection_timestamp'] + self::TEMPORARY_DUPLICATE_PERIOD ) );
         }
 
         /**
@@ -1546,23 +1507,20 @@
          * @return int|null
          */
         function last_time_temporary_duplicate_notice_was_shown() {
-            return ( ! isset( $this->temporary_duplicate_notice_shown_timestamp ) ) ?
-                null :
-                $this->temporary_duplicate_notice_shown_timestamp;
+            return $this->temporary_duplicate_notice_shown_timestamp;
         }
 
         /**
          * Clears the time that has been stored when the temporary duplicate notice was shown.
          */
         function clear_temporary_duplicate_notice_shown_timestamp() {
-            $this->temporary_duplicate_notice_shown_timestamp = null;
+            unset( $this->temporary_duplicate_notice_shown_timestamp );
         }
 
         /**
          * Adds a temporary duplicate notice that provides the logged-in WordPress user with an option to activate a license for the site.
          *
          * @param number[]    $product_ids
-         * @param string      $message
          * @param string      $message
          * @param string|null $plugin_title
          */
@@ -1606,6 +1564,33 @@
             return ( 'new_blog_install_map' === $key );
         }
 
+        /**
+         * @param string      $key
+         * @param number|null $blog_id
+         *
+         * @return FS_Option_Manager
+         */
+        private function get_storage( $key, $blog_id = null ) {
+            if ( is_numeric( $blog_id ) ){
+                return FS_Option_Manager::get_manager( WP_FS___OPTION_PREFIX . self::OPTION_MANAGER_NAME, true, $blog_id );
+            }
+
+            return $this->should_use_network_storage( $key ) ?
+                $this->_network_storage :
+                $this->_storage;
+        }
+
+        /**
+         * @param string      $name
+         * @param bool        $flush
+         * @param number|null $blog_id
+         *
+         * @return mixed
+         */
+        private function get_option( $name, $flush = false, $blog_id = null ) {
+            return $this->get_storage( $name, $blog_id )->get_option( $name, null, $flush );
+        }
+        
         #--------------------------------------------------------------------------------
         #region Magic methods
         #--------------------------------------------------------------------------------
@@ -1615,21 +1600,7 @@
          * @param int|string $value
          */
         function __set( $name, $value ) {
-            $storage_manager_name_prefix = $this->should_use_network_storage( $name ) ?
-                '_network' :
-                '';
-
-            $data = $this->{ $storage_manager_name_prefix . '_data' };
-
-            if ( ! array_key_exists( $name, $data ) ) {
-                return;
-            }
-
-            $data[ $name ]                                    = $value;
-            $this->{ $storage_manager_name_prefix . '_data' } = $data;
-
-            $storage = $this->{ $storage_manager_name_prefix . '_storage' };
-            $storage->set_option( self::OPTION_NAME, $data, true );
+            $this->get_storage( $name )->set_option( $name, $value, true );
         }
 
         /**
@@ -1638,10 +1609,14 @@
          * @return bool
          */
         function __isset( $name ) {
-            return (
-                isset( $this->_data[ $name ] ) ||
-                isset( $this->_network_data[ $name ] )
-            );
+            return $this->get_storage( $name )->has_option( $name, true );
+        }
+
+        /**
+         * @param string $name
+         */
+        function __unset( $name ) {
+            $this->get_storage( $name )->unset_option( $name, true );
         }
 
         /**
@@ -1650,13 +1625,11 @@
          * @return null|int|string
          */
         function __get( $name ) {
-            $data = ( ! $this->should_use_network_storage( $name ) ) ?
-                $this->_data :
-                $this->_network_data;
-
-            return array_key_exists( $name, $data ) ?
-                $data[ $name ] :
-                null;
+            return $this->get_option(
+                $name,
+                // Reload storage from DB when accessing request_handler_* options to avoid race conditions.
+                fs_starts_with( $name, 'request_handler' )
+            );
         }
 
         #endregion
