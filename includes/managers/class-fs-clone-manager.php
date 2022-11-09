@@ -398,7 +398,7 @@
          * @return object
          */
         private function find_other_install_by_url( Freemius $instance, $url ) {
-            $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?search=" . urlencode( $url ) . "&all=true", true );
+            $result = $instance->get_api_user_scope()->get( "/plugins/{$instance->get_id()}/installs.json?url=" . urlencode( $url ) . "&all=true", true );
 
             $current_install = $instance->get_site();
 
