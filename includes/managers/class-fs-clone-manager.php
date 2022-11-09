@@ -648,6 +648,12 @@
                 return;
             }
 
+            $lock = new FS_Lock( self::OPTION_NAME . '_subsite' );
+
+            if ( ! $lock->try_lock(60) ) {
+                return;
+            }
+
             $instance->switch_to_blog( $blog_id );
 
             $current_url          = untrailingslashit( Freemius::get_unfiltered_site_url( null, true ) );
@@ -697,6 +703,8 @@
 
             // Remove the current site's information from the map to prevent handling it again.
             $this->remove_new_blog_install_info_from_storage( $blog_id );
+
+            $lock->unlock();
         }
 
         /**
