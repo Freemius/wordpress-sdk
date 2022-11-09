@@ -59,10 +59,6 @@
          * @var FS_Logger
          */
         protected $_logger;
-        /**
-         * @var FS_Lock
-         */
-        private $_lock;
 
         /**
          * @var int 3 minutes
@@ -776,12 +772,12 @@
 
             require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
 
-            $this->_lock = new FS_Lock( 'clone_resolution' );
+            $lock = new FS_Lock( self::OPTION_NAME );
 
             /**
              * Try to acquire lock for the next 60 sec based on the thread ID.
              */
-            if ( ! $this->_lock->try_lock( 60 ) ) {
+            if ( ! $lock->try_lock( 60 ) ) {
                 return false;
             }
 
@@ -807,7 +803,7 @@
             }
 
             // Create a 1-day lock.
-            $this->_lock->lock( WP_FS__TIME_24_HOURS_IN_SEC );
+            $lock->lock( WP_FS__TIME_24_HOURS_IN_SEC );
 
             return ( ! $require_manual_resolution );
         }
