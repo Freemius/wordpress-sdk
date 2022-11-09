@@ -306,7 +306,6 @@
             }
 
             if ( ! $this->try_automatic_resolution() ) {
-                $this->store_clone_identification_timestamp();
                 $this->clear_temporary_duplicate_notice_shown_timestamp();
             }
         }
@@ -1598,7 +1597,7 @@
         private function get_option( $name, $flush = false, $blog_id = null ) {
             return $this->get_storage( $name, $blog_id )->get_option( $name, null, $flush );
         }
-        
+
         #--------------------------------------------------------------------------------
         #region Magic methods
         #--------------------------------------------------------------------------------
