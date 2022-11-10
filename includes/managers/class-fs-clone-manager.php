@@ -145,17 +145,17 @@
                     add_action( 'admin_post_fs_clone_resolution', array( $this, '_handle_clone_resolution' ) );
                 }
 
-                if (
-                    empty( $this->get_clone_identification_timestamp() ) &&
-                    (
-                        ! fs_is_network_admin() ||
-                        ! ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
-                    )
-                ) {
-                    $this->hide_clone_admin_notices();
+                if ( Freemius::is_ajax() ) {
+                    Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
                 } else {
-                    if ( Freemius::is_ajax() ) {
-                        Freemius::add_ajax_action_static( 'handle_clone_resolution', array( $this, '_clone_resolution_action_ajax_handler' ) );
+                    if (
+                        empty( $this->get_clone_identification_timestamp() ) &&
+                        (
+                            ! fs_is_network_admin() ||
+                            ! ( $this->is_clone_resolution_options_notice_shown() || $this->is_temporary_duplicate_notice_shown() )
+                        )
+                    ) {
+                        $this->hide_clone_admin_notices();
                     } else if ( ! Freemius::is_cron() && ! Freemius::is_admin_post() ) {
                         $this->try_resolve_clone_automatically();
                         $this->maybe_show_clone_admin_notice();
@@ -826,6 +826,9 @@
             check_ajax_referer( Freemius::get_ajax_action_static( 'handle_clone_resolution' ), 'security' );
 
             $clone_action = fs_request_get( 'clone_action' );
+            $blog_id      = is_multisite() ?
+                fs_request_get( 'blog_id' ) :
+                0;
 
             if ( empty( $clone_action ) ) {
                 Freemius::shoot_ajax_failure( array(
@@ -834,7 +837,7 @@
                 ) );
             }
 
-            $result = $this->resolve_cloned_sites( $clone_action );
+            $result = $this->resolve_cloned_sites( $clone_action, array(), $blog_id );
 
             Freemius::shoot_ajax_success( $result );
         }
@@ -845,10 +848,11 @@
          *
          * @param string     $clone_action
          * @param Freemius[] $fs_instances
+         * @param int        $blog_id
          *
          * @return array
          */
-        private function resolve_cloned_sites( $clone_action, $fs_instances = array() ) {
+        private function resolve_cloned_sites( $clone_action, $fs_instances = array(), $blog_id = 0 ) {
             $this->_logger->entrance();
 
             $result = array();
@@ -862,6 +866,10 @@
                 Freemius::_get_all_instances();
 
             foreach ( $instances as $instance ) {
+                if ( $blog_id > 0 ) {
+                    $instance->switch_to_blog( $blog_id );
+                }
+
                 if ( ! $instance->is_registered() ) {
                     continue;
                 }
@@ -1283,6 +1291,8 @@
                 )
             );
 
+            $blog_id = get_current_blog_id();
+
             /**
              * %1$s - single product's title or product titles list.
              * %2$s - site's URL.
@@ -1291,7 +1301,7 @@
              */
             $message = sprintf(
                 $notice_header .
-                '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '">' .
+                '<div class="fs-clone-resolution-options-container" data-ajax-url="' . esc_attr( admin_url( 'admin-ajax.php?_fs_network_admin=false', 'relative' ) ) . '" data-blog-id="' . $blog_id . '">' .
                 $duplicate_option .
                 $migration_option .
                 $new_website . '</div>' .
@@ -1326,7 +1336,7 @@
                 false,
                 array(
                     'product_ids' => $product_ids,
-                    'blog_id'     => get_current_blog_id()
+                    'blog_id'     => $blog_id
                 )
             );
         }
