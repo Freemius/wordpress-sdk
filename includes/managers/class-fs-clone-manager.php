@@ -647,7 +647,7 @@
                 return;
             }
 
-            $lock = new FS_Lock( self::OPTION_NAME . '_subsite' );
+            $lock = new FS_Lock( WP_FS___OPTION_PREFIX . self::OPTION_NAME . '_subsite' );
 
             if ( ! $lock->try_lock(60) ) {
                 return;
@@ -762,7 +762,7 @@
 
             require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
 
-            $lock = new FS_Lock( self::OPTION_NAME );
+            $lock = new FS_Lock( WP_FS___OPTION_PREFIX . self::OPTION_NAME );
 
             /**
              * Try to acquire lock for the next 60 sec based on the thread ID.
