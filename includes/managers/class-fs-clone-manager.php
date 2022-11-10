@@ -869,33 +869,38 @@
                 $fs_instances :
                 Freemius::_get_all_instances();
 
+            $should_switch_to_blog = ( $blog_id > 0 );
+
             foreach ( $instances as $instance ) {
-                if ( $blog_id > 0 ) {
+                if ( $should_switch_to_blog ) {
                     $instance->switch_to_blog( $blog_id );
                 }
 
-                if ( ! $instance->is_registered() ) {
-                    continue;
+                if ( $instance->is_registered() && $instance->is_clone() ) {
+                    $instances_with_clone[] = $instance;
+
+                    $instances_with_clone_count ++;
+
+                    $install_by_instance_id[ $instance->get_id() ] = $instance->get_site();
                 }
 
-                if ( ! $instance->is_clone() ) {
-                    continue;
+                if ( $should_switch_to_blog ) {
+                    $instance->restore_current_blog();
                 }
-
-                $instances_with_clone[] = $instance;
-                
-                $instances_with_clone_count ++;
-
-                $install_by_instance_id[ $instance->get_id() ] = $instance->get_site();
             }
 
             if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
                 $this->store_temporary_duplicate_timestamp();
             } else {
-                $instance_with_error = null;
-                $has_error           = false;
+                $redirect_url = '';
 
                 foreach ( $instances_with_clone as $instance ) {
+                    if ( $should_switch_to_blog ) {
+                        $instance->switch_to_blog( $blog_id );
+                    }
+
+                    $has_error = false;
+
                     if ( self::OPTION_NEW_HOME === $clone_action ) {
                         $instance->sync_install( array( 'is_new_site' => true ), true );
 
@@ -910,32 +915,34 @@
                         }
                     }
                     
-                    if ( $has_error && ! is_object( $instance_with_error ) ) {
-                        $instance_with_error = $instance;
+                    if ( $has_error && 1 === $instances_with_clone_count ) {
+                        $redirect_url = $instance->get_activation_url();
                     }
-                }
 
-                $redirect_url = '';
-
-                if (
-                    1 === $instances_with_clone_count &&
-                    $has_error
-                ) {
-                    $redirect_url = $instance_with_error->get_activation_url();
+                    if ( $should_switch_to_blog ) {
+                        $instance->restore_current_blog();
+                    }
                 }
 
                 $result = ( array( 'redirect_url' => $redirect_url ) );
             }
             
             foreach ( $instances_with_clone as $instance ) {
-                if ( $instance->is_clone() ) {
-                    continue;
+                if ( $should_switch_to_blog ) {
+                    $instance->switch_to_blog( $blog_id );
                 }
 
-                $instance->send_clone_resolution_update(
-                    $clone_action,
-                    $install_by_instance_id[ $instance->get_id() ]
-                );
+                // No longer a clone, send an update.
+                if ( ! $instance->is_clone() ) {
+                    $instance->send_clone_resolution_update(
+                        $clone_action,
+                        $install_by_instance_id[ $instance->get_id() ]
+                    );
+                }
+
+                if ( $should_switch_to_blog ) {
+                    $instance->restore_current_blog();
+                }
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
