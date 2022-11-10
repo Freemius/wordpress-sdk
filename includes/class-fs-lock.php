@@ -30,6 +30,10 @@
          * @param string $lock_id
          */
         function __construct( $lock_id ) {
+            if ( ! fs_starts_with( $lock_id, WP_FS___OPTION_PREFIX ) ) {
+                $lock_id = WP_FS___OPTION_PREFIX . $lock_id;
+            }
+
             $this->_lock_id = $lock_id;
 
             if ( ! isset( self::$_thread_id ) ) {
