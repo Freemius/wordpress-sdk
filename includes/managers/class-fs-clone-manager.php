@@ -830,6 +830,10 @@
                 fs_request_get( 'blog_id' ) :
                 0;
 
+            if ( is_multisite() && $blog_id == get_current_blog_id() ) {
+                $blog_id = 0;
+            }
+
             if ( empty( $clone_action ) ) {
                 Freemius::shoot_ajax_failure( array(
                     'message'      => fs_text_inline( 'Invalid clone resolution action.', 'invalid-clone-resolution-action-error' ),
