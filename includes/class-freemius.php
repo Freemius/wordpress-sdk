@@ -24886,9 +24886,7 @@
                 return $this->can_activate_theme( $this->get_premium_slug() );
             }
 
-            $premium_plugin = get_plugins( '/' . dirname( $premium_plugin_basename ) );
-
-            return ! empty( $premium_plugin );
+            return file_exists( fs_normalize_path( WP_PLUGIN_DIR . '/' . $premium_plugin_basename ) );
         }
 
         /**
