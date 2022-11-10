@@ -883,10 +883,6 @@
 
                     $install_by_instance_id[ $instance->get_id() ] = $instance->get_site();
                 }
-
-                if ( $should_switch_to_blog ) {
-                    $instance->restore_current_blog();
-                }
             }
 
             if ( self::OPTION_TEMPORARY_DUPLICATE === $clone_action ) {
@@ -918,10 +914,6 @@
                     if ( $has_error && 1 === $instances_with_clone_count ) {
                         $redirect_url = $instance->get_activation_url();
                     }
-
-                    if ( $should_switch_to_blog ) {
-                        $instance->restore_current_blog();
-                    }
                 }
 
                 $result = ( array( 'redirect_url' => $redirect_url ) );
@@ -939,16 +931,18 @@
                         $install_by_instance_id[ $instance->get_id() ]
                     );
                 }
-
-                if ( $should_switch_to_blog ) {
-                    $instance->restore_current_blog();
-                }
             }
 
             if ( 'temporary_duplicate_license_activation' !== $clone_action ) {
                 $this->remove_clone_resolution_options_notice();
             } else {
                 $this->remove_temporary_duplicate_notice();
+            }
+
+            if ( $should_switch_to_blog ) {
+                foreach ( $instances as $instance ) {
+                    $instance->restore_current_blog();
+                }
             }
 
             return $result;
