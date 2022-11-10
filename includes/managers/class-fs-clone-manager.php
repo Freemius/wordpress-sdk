@@ -647,6 +647,8 @@
                 return;
             }
 
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
+
             $lock = new FS_Lock( WP_FS___OPTION_PREFIX . self::OPTION_NAME . '_subsite' );
 
             if ( ! $lock->try_lock(60) ) {
