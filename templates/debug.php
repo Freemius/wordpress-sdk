@@ -16,6 +16,10 @@
 
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
+
+    $has_any_active_clone = false;
+
+    $is_multisite = is_multisite();
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -35,7 +39,7 @@
                         .toggleClass( 'fs-on' )
                         .toggleClass( 'fs-off' );
 
-                    $.post( ajaxurl, {
+                    $.post( <?php echo Freemius::ajax_url() ?>, {
                         action: 'fs_toggle_debug_mode',
                         // As such we don't need to use `wp_json_encode` method but using it to follow wp.org guideline.
                         _wpnonce   : <?php echo wp_json_encode( wp_create_nonce( 'fs_toggle_debug_mode' ) ); ?>,
@@ -79,6 +83,16 @@
                 <button class="button"><?php fs_esc_html_echo_inline( 'Clear Updates Transients' ) ?></button>
             </form>
         </td>
+        <?php if ( Freemius::is_deactivation_snoozed() ) : ?>
+        <td>
+            <!-- Reset Deactivation Snoozing -->
+            <form action="" method="POST">
+                <input type="hidden" name="fs_action" value="reset_deactivation_snoozing">
+                <?php wp_nonce_field( 'reset_deactivation_snoozing' ) ?>
+                <button class="button"><?php fs_esc_html_echo_inline( 'Reset Deactivation Snoozing' ) ?> (Expires in <?php echo ( Freemius::deactivation_snooze_expires_at() - time() ) ?> sec)</button>
+            </form>
+        </td>
+        <?php endif ?>
         <td>
             <!-- Sync Data with Server -->
             <form action="" method="POST">
@@ -102,6 +116,15 @@
         <td>
             <button id="fs_set_db_option" class="button"><?php fs_esc_html_echo_inline( 'Set DB Option' ) ?></button>
         </td>
+        <td>
+            <?php
+                $fs_debug_page_url = 'admin.php?page=freemius&fs_action=allow_clone_resolution_notice';
+                $fs_debug_page_url = fs_is_network_admin() ?
+                    network_admin_url( $fs_debug_page_url ) :
+                    admin_url( $fs_debug_page_url );
+            ?>
+            <a href="<?php echo wp_nonce_url( $fs_debug_page_url, 'fs_allow_clone_resolution_notice' ) ?>" class="button button-primary">Resolve Clone(s)</a>
+        </td>
     </tr>
     </tbody>
 </table>
@@ -111,7 +134,7 @@
             var optionName = prompt('Please enter the option name:');
 
             if (optionName) {
-                $.post(ajaxurl, {
+                $.post(<?php echo Freemius::ajax_url() ?>, {
                     action     : 'fs_get_db_option',
                     // As such we don't need to use `wp_json_encode` method but using it to follow wp.org guideline.
                     _wpnonce   : <?php echo wp_json_encode( wp_create_nonce( 'fs_get_db_option' ) ); ?>,
@@ -132,7 +155,7 @@
                 var optionValue = prompt('Please enter the option value:');
 
                 if (optionValue) {
-                    $.post(ajaxurl, {
+                    $.post(<?php echo Freemius::ajax_url() ?>, {
                         action      : 'fs_set_db_option',
                         // As such we don't need to use `wp_json_encode` method but using it to follow wp.org guideline.
                         _wpnonce    : <?php echo wp_json_encode( wp_create_nonce( 'fs_set_db_option' ) ); ?>,
@@ -174,6 +197,10 @@
         array(
             'key' => 'WP_FS__DIR',
             'val' => WP_FS__DIR,
+        ),
+        array(
+            'key' => 'wp_using_ext_object_cache()',
+            'val' => wp_using_ext_object_cache() ? 'true' : 'false',
         ),
     )
 ?>
@@ -229,7 +256,7 @@
         WP_FS__MODULE_TYPE_THEME
     );
 ?>
-
+<?php $active_modules_by_id = array() ?>
 <?php foreach ( $module_types as $module_type ) : ?>
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
@@ -245,7 +272,7 @@
                 <th><?php fs_esc_html_echo_inline( 'Freemius State' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Module Path' ) ?></th>
                 <th><?php fs_esc_html_echo_inline( 'Public Key' ) ?></th>
-                <?php if ( is_multisite() ) : ?>
+                <?php if ( $is_multisite ) : ?>
                     <th><?php fs_esc_html_echo_inline( 'Network Blog' ) ?></th>
                     <th><?php fs_esc_html_echo_inline( 'Network User' ) ?></th>
                 <?php endif ?>
@@ -268,7 +295,14 @@
                     }
                 }
                 ?>
-                <?php $fs = $is_active ? freemius( $data->id ) : null ?>
+                <?php
+                    $fs = null;
+                    if ( $is_active ) {
+                        $fs = freemius( $data->id );
+
+                        $active_modules_by_id[ $data->id ] = true;
+                    }
+                ?>
                 <tr<?php if ( $is_active ) {
                     if ( $fs->has_api_connectivity() && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
@@ -298,7 +332,7 @@
                         } ?></td>
                     <td><?php echo $data->file ?></td>
                     <td><?php echo $data->public_key ?></td>
-                    <?php if ( is_multisite() ) : ?>
+                    <?php if ( $is_multisite ) : ?>
                         <?php
                         $network_blog_id = null;
                         $network_user    = null;
@@ -352,8 +386,7 @@
      */
     $sites_map = $VARS[ $module_type . '_sites' ];
 
-    $is_multisite = is_multisite();
-    $all_plans    = false;
+    $all_plans = false;
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
         <h2><?php echo esc_html( sprintf(
@@ -379,15 +412,37 @@
             </tr>
             </thead>
             <tbody>
+            <?php $site_url = null ?>
             <?php foreach ( $sites_map as $slug => $sites ) : ?>
-                <?php if ( ! is_array( $sites ) ) {
-                    $sites = array( $sites );
-                } ?>
                 <?php foreach ( $sites as $site ) : ?>
+                    <?php
+                        $blog_id = $is_multisite ?
+                            $site->blog_id :
+                            null;
+
+                        if ( is_null( $site_url ) || $is_multisite ) {
+                            $site_url = Freemius::get_unfiltered_site_url(
+                                $blog_id,
+                                true,
+                                true
+                            );
+                        }
+
+                        $is_active_clone = ( $site->is_clone( $site_url ) && isset( $active_modules_by_id[ $site->plugin_id ] ) );
+
+                        if ( $is_active_clone ) {
+                            $has_any_active_clone = true;
+                        }
+                    ?>
                     <tr>
-                        <td><?php echo $site->id ?></td>
+                        <td>
+                            <?php echo $site->id ?>
+                            <?php if ( $is_active_clone ) : ?>
+                            <label class="fs-tag fs-warn">Clone</label>
+                            <?php endif ?>
+                        </td>
                         <?php if ( $is_multisite ) : ?>
-                            <td><?php echo $site->blog_id ?></td>
+                            <td><?php echo $blog_id ?></td>
                             <td><?php echo fs_strip_url_protocol( $site->url ) ?></td>
                         <?php endif ?>
                         <td><?php echo $slug ?></td>
@@ -484,7 +539,14 @@
      * @var FS_User[] $users
      */
     $users                              = $VARS['users'];
+    $user_ids_map                       = array();
     $users_with_developer_license_by_id = array();
+
+    if ( is_array( $users ) && ! empty( $users ) ) {
+        foreach ( $users as $user ) {
+            $user_ids_map[ $user->id ] = true;
+        }
+    }
 
     foreach ( $module_types as $module_type ) {
         /**
@@ -578,7 +640,7 @@
                     <td><?php echo $license->is_block_features ? 'Blocking' : 'Flexible' ?></td>
                     <td><?php echo $license->is_whitelabeled ? 'Whitelabeled' : 'Normal' ?></td>
                     <td><?php
-                            echo $license->is_whitelabeled ?
+                            echo ( $license->is_whitelabeled || ! isset( $user_ids_map[ $license->user_id ] ) ) ?
                                 $license->get_html_escaped_masked_secret_key() :
                                 esc_html( $license->secret_key );
                     ?></td>
@@ -726,7 +788,7 @@
                     offset = 0;
                 }
 
-                $.post(ajaxurl, {
+                $.post(<?php echo Freemius::ajax_url() ?>, {
                     action : 'fs_get_debug_log',
                     // As such we don't need to use `wp_json_encode` method but using it to follow wp.org guideline.
                     _wpnonce : <?php echo wp_json_encode( wp_create_nonce( 'fs_get_debug_log' ) ); ?>,

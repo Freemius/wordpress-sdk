@@ -1,23 +1,49 @@
+@use "tooltip";
+
 @import "../start";
 
-$form_width: 480px;
+$form_width: 484px;
+$icon_padding: 3px;
+$icon_border_width: 1px;
+$box_border_radius: 3px;
 
 #fs_connect
 {
     width:  $form_width;
-    @include box-shadow(0px 1px 2px rgba(0, 0, 0, 0.3));
-    margin: 20px 0;
+    margin: 60px auto 20px auto;
+
+    a {
+        color: inherit;
+
+        &:not(.button) {
+            text-decoration: underline;
+        }
+    }
+
+    .fs-box-container {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        border-radius: $box_border_radius;
+        overflow: hidden;
+        padding-top: 40px;
+        background: #f0f0f1;
+        //position: relative;
+        //top: -40px;
+    }
 
     @media screen and (max-width: ($form_width - 1)) {
-        @include box-shadow(none);
         width:                    auto;
-        margin:                   0 0 0 -10px;
+        margin:                   30px 0 0 -10px;
+
+        .fs-box-container {
+            @include box-shadow(none);
+        }
     }
 
     .fs-content
     {
         background: #fff;
-        padding:    15px 20px;
+        padding: 30px 20px;
+        //border-top: 1px solid #efefef;
 
         .fs-error {
             background: snow;
@@ -27,6 +53,10 @@ $form_width: 480px;
             text-align: center;
             padding: 5px;
             margin-bottom: 10px;
+        }
+
+        h2 {
+            line-height: 1.5em;
         }
 
         p
@@ -54,6 +84,14 @@ $form_width: 480px;
     }
 
     &.require-license-key {
+        .fs-content {
+            padding-bottom: 10px;
+        }
+
+        .fs-actions {
+            border-top: none;
+        }
+
         .fs-sites-list-container {
             td {
                 cursor: pointer;
@@ -80,7 +118,10 @@ $form_width: 480px;
     .fs-actions
     {
         padding:    10px 20px;
-        background: #C0C7CA;
+        background: #fff;
+        border-width: 1px 0;
+        border-style: solid;
+        border-color: $body-color;
 
         .button
         {
@@ -145,8 +186,7 @@ $form_width: 480px;
     .fs-permissions
     {
         padding:    10px 20px;
-        background: #FEFEFE;
-        //        background: #F1F1F1;
+        background: #fff;
         @include transition(background 0.5s ease);
 
         .fs-license-sync-disclaimer {
@@ -160,74 +200,28 @@ $form_width: 480px;
             text-decoration: none;
             text-align:      center;
             display:         block;
+
+            .fs-arrow::after {
+                content: "→";
+                width: 20px;
+                display: inline-block;
+            }
         }
 
-        ul
-        {
-            height:   0;
-            overflow: hidden;
-            margin:   0;
-
-            li
-            {
-                margin-bottom: 12px;
-
-                &:last-child
-                {
-                    margin-bottom: 0;
-                }
-
-                & > i.dashicons
-                {
-                    float:     left;
-                    font-size: 40px;
-                    width:     40px;
-                    height:    40px;
-                }
-
-                .fs-switch {
-                    float: right;
-                }
-
-                .fs-permission-description
-                {
-                    margin-left: 55px;
-
-                    span
-                    {
-                        font-weight:    bold;
-                        text-transform: uppercase;
-                        color:          #23282d;
-                    }
-
-                    p
-                    {
-                        margin: 2px 0 0 0;
-                    }
+        &.fs-open {
+            & > .fs-trigger {
+                .fs-arrow::after {
+                    content: "↓" !important;
                 }
             }
         }
 
-        &.fs-open
-        {
-            background: #fff;
-
-            ul
-            {
-                overflow: initial;
-                height: auto;
-                margin: 20px 20px 10px 20px;
-            }
+        ul li {
+            padding-left: 0;
+            padding-right: 0;
         }
 
         @media screen and (max-width: ($form_width - 1)) {
-            background:               #fff;
-
-            .fs-trigger
-            {
-                display: none;
-            }
-
             ul
             {
                 height: auto;
@@ -238,7 +232,6 @@ $form_width: 480px;
 
     .fs-freemium-licensing {
         padding: 8px;
-//        background: #0085BA;
         background: #777;
         color: #fff;
 
@@ -250,55 +243,73 @@ $form_width: 480px;
         }
 
         a {
-            color: #C2EEFF;
+            color: inherit;
             text-decoration: underline;
         }
     }
 
-    $icon_size: 80px;
+    $icon_size: 50px;
+    $plugin_icon_size: 80px;
     $wp_logo_padding: $icon_size / 10;
     $icons_top: 10px;
+    $icons_border_radius: 50%;
+    $header_height: 40px;
+    $icon_position: (($form_width - $plugin_icon_size) / 2 - $icon_size);
 
-    .fs-visual
+    .fs-header
     {
-        padding:     12px;
+        padding:     0;
         line-height: 0;
-        background:  #fafafa;
-        height:      $icon_size;
+        //height:      $header_height;
+        height:      0;
         position:    relative;
+        //border-radius: $box_border_radius $box_border_radius 0 0;
+
+        .fs-site-icon,
+        .fs-connect-logo
+        {
+            position: absolute;
+            top: - (($icon_size - $header_height) / 2 + $icon_padding);
+            border-radius: $icons_border_radius;
+        }
 
         .fs-site-icon
         {
-            position: absolute;
-            left:     20px;
-            top:      $icons_top;
+            left: $icon_position;
         }
 
         .fs-connect-logo
         {
-            position: absolute;
-            right:    20px;
-            top:      $icons_top;
+            right: $icon_position;
         }
 
-        .fs-plugin-icon
-        {
-            position:    absolute;
-            top:         $icons_top;
-            left:        50%;
-            margin-left: - ($icon_size / 2);
-        }
-
-        .fs-plugin-icon,
         .fs-site-icon,
         img,
         object
         {
             width:  $icon_size;
             height: $icon_size;
+            border-radius: $icons_border_radius;
         }
 
-        .dashicons-wordpress
+        .fs-plugin-icon
+        {
+            position: absolute;
+            overflow: hidden;
+            //top:         $icons_top - ($plugin_icon_size - $icon_size) / 2 - $icon_padding - $icon_border_width;
+            top: - (($plugin_icon_size - $header_height) / 2 + $icon_padding);
+            left:        50%;
+            margin-left: - ($plugin_icon_size / 2 + $icon_padding + $icon_border_width);
+            border-radius: $icons_border_radius;
+            z-index: 1;
+
+            &, img {
+                width:  $plugin_icon_size;
+                height: $plugin_icon_size;
+            }
+        }
+
+        .dashicons-wordpress-alt
         {
             font-size:  $icon_size - ($wp_logo_padding * 2);
             background: $wordpress_color;
@@ -306,6 +317,7 @@ $form_width: 480px;
             width:      $icon_size - ($wp_logo_padding * 2);
             height:     $icon_size - ($wp_logo_padding * 2);
             padding:    $wp_logo_padding;
+            border-radius: $icons_border_radius;
         }
 
         .dashicons-plus
@@ -330,8 +342,8 @@ $form_width: 480px;
         .fs-connect-logo,
         .fs-site-icon
         {
-            border:     1px solid #ccc;
-            padding:    1px;
+            border:     $icon_border_width solid #efefef;
+            padding:    $icon_padding;
             background: #fff;
         }
     }
@@ -340,8 +352,8 @@ $form_width: 480px;
     {
         text-align: center;
         font-size:  0.85em;
-        padding:    5px;
-        background: rgba(0, 0, 0, 0.05);
+        padding:    10px 5px;
+        //background: rgba(0, 0, 0, 0.05);
 
         &, a
         {
@@ -356,13 +368,14 @@ $form_width: 480px;
 }
 
 @import "multisite-options";
-@import "tooltip";
 @import "gdpr-consent";
 
 .rtl
 {
     #fs_connect
     {
+        border-radius: 3px;
+
         .fs-actions
         {
             padding:    10px 20px;
@@ -400,32 +413,7 @@ $form_width: 480px;
             }
         }
 
-        .fs-permissions
-        {
-            ul
-            {
-                li
-                {
-                    .fs-permission-description
-                    {
-                        margin-right: 55px;
-                        margin-left:  0;
-                    }
-
-                    .fs-switch {
-                        float: left;
-                    }
-
-                    i.dashicons
-                    {
-                        float: right;
-                    }
-
-                }
-            }
-        }
-
-        .fs-visual
+        .fs-header
         {
             .fs-site-icon
             {
@@ -437,6 +425,14 @@ $form_width: 480px;
             {
                 right: auto;
                 left:  20px;
+            }
+        }
+    }
+
+    #fs_connect .fs-permissions {
+        & > .fs-trigger {
+            .fs-arrow::after {
+                content: "←";
             }
         }
     }
@@ -476,12 +472,11 @@ $form_width: 480px;
         text-align: left;
         display: inline-block;
         vertical-align: middle;
-        margin-top: 52px;
+        margin-top: 0;
         margin-bottom: 20px;
 
         .fs-terms
         {
-            background: rgba(140, 140, 140, 0.64);
 
             &, a
             {
@@ -562,3 +557,5 @@ $form_width: 480px;
     font-size: 0.9em;
     margin-top: 10px;
 }
+
+@import "permissions";

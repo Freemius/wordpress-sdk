@@ -11,6 +11,15 @@
 	display: none;
 	background: rgba(0, 0, 0, 0.6);
 
+	@media (min-width: 961px) {
+		padding-left: 160px;
+
+		.rtl & {
+			padding-left: 0;
+			padding-right: 160px;
+		}
+	}
+
 	.dashicons
 	{
 		vertical-align: middle;
@@ -164,7 +173,7 @@
 		> .button {
 			margin: 0 7px;
 
-			&:first-child {
+			&:last-of-type {
 				margin: 0;
 			}
 		}
@@ -191,6 +200,10 @@
                 left: 20px;
             }
         }
+
+		.fs-modal-footer {
+			text-align: left;
+		}
     }
 }
 
