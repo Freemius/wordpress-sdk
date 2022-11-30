@@ -103,17 +103,3 @@ $switch-on-color: $wp-button-primary-background-color;
         }
     }
 }
-
-.fs-switch-feedback {
-    margin-left: 10px;
-
-    &.success {
-        color: $fs-logo-green-color;
-    }
-
-    .rtl &
-    {
-        margin-left: 0;
-        margin-right: 10px;
-    }
-}

@@ -1,0 +1,77 @@
+@import "permissions";
+
+.fs-modal-opt-out {
+    .fs-opt-out-button {
+        //color: inherit;
+    }
+
+    .fs-modal-footer {
+        .fs-opt-out-button {
+            line-height: 30px;
+            margin-right: 10px;
+        }
+    }
+
+    .fs-permissions {
+        margin-top: 0 !important;
+
+        .fs-permissions-section--header .fs-group-opt-out-button {
+            float:        right;
+            line-height:  1.1em;
+        }
+
+        .fs-permissions-section--header .fs-switch-feedback {
+            float: right;
+            line-height: 1.1em;
+            margin-right: 10px;
+
+            .fs-ajax-spinner {
+                margin: -2px 0 0;
+            }
+        }
+
+        .fs-permissions-section--header-title {
+            font-size:      1.1em;
+            font-weight:    600;
+            text-transform: uppercase;
+            display:        block;
+            line-height:    1.1em;
+            margin: 0.5em 0;
+        }
+
+        .fs-permissions-section--desc {
+            margin-top: 0;
+        }
+
+        hr {
+            border: 0;
+            border-top: #eee solid 1px;
+            margin: 25px 0 20px 0;
+        }
+
+        ul {
+            border: 1px solid #c3c4c7;
+            border-radius: 3px;
+            margin: 10px 0 0 0;
+            box-shadow: 0 1px 1px rgb(0, 0, 0, 0.04);
+
+            li {
+                border-bottom: 1px solid #d7dde1;
+                border-left: 4px solid #72aee6;
+
+                .rtl & {
+                    border-left: none;
+                    border-right: 4px solid #72aee6;
+                }
+
+                &.fs-disabled {
+                    border-left-color: rgba(114,174,230,0);
+                }
+
+                &:last-child {
+                    border-bottom: none;
+                }
+            }
+        }
+    }
+}
