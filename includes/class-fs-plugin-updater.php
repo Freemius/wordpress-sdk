@@ -660,13 +660,14 @@
          * @return object
          */
         function get_update_details( FS_Plugin_Tag $new_version ) {
-            $update              = new stdClass();
-            $update->slug        = $this->_fs->get_slug();
-            $update->new_version = $new_version->version;
-            $update->url         = WP_FS__ADDRESS;
-            $update->package     = $new_version->url;
-            $update->tested      = $new_version->tested_up_to_version;
-            $update->requires    = $new_version->requires_platform_version;
+            $update               = new stdClass();
+            $update->slug         = $this->_fs->get_slug();
+            $update->new_version  = $new_version->version;
+            $update->url          = WP_FS__ADDRESS;
+            $update->package      = $new_version->url;
+            $update->tested       = $new_version->tested_up_to_version;
+            $update->requires     = $new_version->requires_platform_version;
+            $update->requires_php = $new_version->requires_programming_language_version;
 
             $icon = $this->_fs->get_local_icon_url();
 
@@ -1095,6 +1096,7 @@ if ( !isset($info->error) ) {
                 if ( ! $plugin_in_repo ) {
                     $data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
                     $data->requires     = $new_version->requires_platform_version;
+                    $data->requires_php = $new_version->requires_programming_language_version;
                     $data->tested       = $new_version->tested_up_to_version;
                 }
 
