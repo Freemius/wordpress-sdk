@@ -33,7 +33,7 @@ msgstr "மேம்படுத்தப்பட்ட பதிப்பி�
 msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr "ப்ளக்இன் முக்கிய கோப்பை Freemius SDKவால் கண்டறிய முடியவில்லை. தயவுசெய்து பின்வரும் செய்தியுடன் sdk@freemius.comக்கு மின்னஞ்சல் அனுப்பவும்"
 
-#: includes/class-freemius.php:1978
+#: includes/class-freemius.php1978, includes/fs-plugin-info-dialog.php:1517
 msgid "Error"
 msgstr "தவறு"
 
@@ -231,16 +231,16 @@ msgid "Purchase License"
 msgstr "உரிமம் வாங்குங்கள்"
 
 #: includes/class-freemius.php7318, templates/connect.php:216
-msgid "You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s."
-msgstr "%s அஞ்சலகத்திற்கு %s குறித்த செயல்பாட்டு மின்னஞ்சல் வந்துசேரும். %sக்கு வந்துசேர மின்னஞ்சலின் ஆக்டிவேசன் பட்டனை அழுத்தவும்."
+msgid "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
+msgstr "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
 
 #: includes/class-freemius.php:7322
 msgid "start the trial"
 msgstr "வெள்ளோட்டம் துவங்கலாம்"
 
 #: includes/class-freemius.php7323, templates/connect.php:220
-msgid "complete the install"
-msgstr "நிறுவுதலை முடிக்கவும்"
+msgid "complete the opt-in"
+msgstr "complete the opt-in"
 
 #: includes/class-freemius.php:7456
 msgid "You are just one step away - %s"
@@ -263,9 +263,9 @@ msgstr "\"%s\"ஐ சிறப்பானதாக்க தேர்வு ச
 msgid "The upgrade of %s was successfully completed."
 msgstr "%sன் மேம்படுத்தல் முடிந்தது"
 
-#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1089,
-#: includes/class-fs-plugin-updater.php1284,
-#: includes/class-fs-plugin-updater.php1291,
+#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1090,
+#: includes/class-fs-plugin-updater.php1305,
+#: includes/class-fs-plugin-updater.php1312,
 #: templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "ஆட் ஆன்"
@@ -754,117 +754,117 @@ msgstr "தெரிவை அகற்று"
 msgid "Opt In"
 msgstr "தெரிவு செய்"
 
-#: includes/class-freemius.php:24933
+#: includes/class-freemius.php:24931
 msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
 msgstr "%1$sன் விலையுள்ள பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது. %2$s வசதிகளை பயன்படுத்த அதை செயல்படுத்தவும். %3$s"
 
-#: includes/class-freemius.php:24943
+#: includes/class-freemius.php:24941
 msgid "Activate %s features"
 msgstr "%s வசதிகளை செயல்படுத்த"
 
-#: includes/class-freemius.php:24956
+#: includes/class-freemius.php:24954
 msgid "Please follow these steps to complete the upgrade"
 msgstr "மேம்படுத்தலை முடித்துவைக்க பின்வரும் வழிமுறையைப் பின்பற்றவும்"
 
-#: includes/class-freemius.php:24960
+#: includes/class-freemius.php:24958
 msgid "Download the latest %s version"
 msgstr "%sன் அண்மைய பதிப்பைப் பதிவிறக்கலாம்"
 
-#: includes/class-freemius.php:24964
+#: includes/class-freemius.php:24962
 msgid "Upload and activate the downloaded version"
 msgstr "பதிவிறக்கிய பதிப்பை பதிவேற்றி செயல்படுத்தலாம்"
 
-#: includes/class-freemius.php:24966
+#: includes/class-freemius.php:24964
 msgid "How to upload and activate?"
 msgstr "பதிவேற்றுதல் மற்றும் செயல்படுத்துதல் எப்படி?"
 
-#: includes/class-freemius.php:25100
+#: includes/class-freemius.php:25098
 msgid "%sClick here%s to choose the sites where you'd like to activate the license on."
 msgstr "உங்களுக்கு வேண்டிய தளங்களில் உரிமத்தை செயல்படுத்த %s கிளிக் செய்க %s"
 
-#: includes/class-freemius.php:25269
+#: includes/class-freemius.php:25267
 msgid "Auto installation only works for opted-in users."
 msgstr "முன்னரே தெரிவு செய்திருந்தால் மட்டுமே தானியங்கி நிறுவுதல் நடைபெறும்."
 
-#: includes/class-freemius.php25279, includes/class-freemius.php25312,
-#: includes/class-fs-plugin-updater.php1263,
-#: includes/class-fs-plugin-updater.php:1277
+#: includes/class-freemius.php25277, includes/class-freemius.php25310,
+#: includes/class-fs-plugin-updater.php1284,
+#: includes/class-fs-plugin-updater.php:1298
 msgid "Invalid module ID."
 msgstr "module ID தவறானது."
 
-#: includes/class-freemius.php25288, includes/class-fs-plugin-updater.php:1299
+#: includes/class-freemius.php25286, includes/class-fs-plugin-updater.php:1320
 msgid "Premium version already active."
 msgstr "விலையுள்ள பதிப்பு ஏற்கனவே செயலில் உள்ளது."
 
-#: includes/class-freemius.php:25295
+#: includes/class-freemius.php:25293
 msgid "You do not have a valid license to access the premium version."
 msgstr "விலையுள்ள பதிப்பை அணுக உங்களிடம் உரிமம் இல்லை."
 
-#: includes/class-freemius.php:25302
+#: includes/class-freemius.php:25300
 msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
 msgstr "விலையுள்ள நிரல் இல்லாததால் பிளக்இன் \"Serviceware\" எனப்படும்."
 
-#: includes/class-freemius.php25320, includes/class-fs-plugin-updater.php:1298
+#: includes/class-freemius.php25318, includes/class-fs-plugin-updater.php:1319
 msgid "Premium add-on version already installed."
 msgstr "விலையுள்ள ஆட்-ஆன் பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது."
 
-#: includes/class-freemius.php:25674
+#: includes/class-freemius.php:25672
 msgid "View paid features"
 msgstr "விலையுள்ள வசதிகள் என்னவென்று காணுங்கள்"
 
-#: includes/class-freemius.php:25996
+#: includes/class-freemius.php:25994
 msgid "Thank you so much for using %s and its add-ons!"
 msgstr "%s மற்றும் அதன் ஆட்-ஆன் பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:25997
+#: includes/class-freemius.php:25995
 msgid "Thank you so much for using %s!"
 msgstr "%s பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:26003
+#: includes/class-freemius.php:26001
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving the %s."
 msgstr "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, %sஐ மேம்படுத்த உதவும்."
 
-#: includes/class-freemius.php:26007
+#: includes/class-freemius.php:26005
 msgid "Thank you so much for using our products!"
 msgstr "எங்கள் உருவாக்கங்களைப் பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:26008
+#: includes/class-freemius.php:26006
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving them."
 msgstr "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, எங்கள் உருவாக்கத்தை மேம்படுத்த உதவும்."
 
-#: includes/class-freemius.php:26027
+#: includes/class-freemius.php:26025
 msgid "%s and its add-ons"
 msgstr "%sம் அதன் ஆட்-ஆன்களும்"
 
-#: includes/class-freemius.php:26036
+#: includes/class-freemius.php:26034
 msgid "Products"
 msgstr "தயாரிப்புகள்"
 
-#: includes/class-freemius.php26043, templates/connect.php:324
+#: includes/class-freemius.php26041, templates/connect.php:324
 msgid "Yes"
 msgstr "ஆம்"
 
-#: includes/class-freemius.php26044, templates/connect.php:325
+#: includes/class-freemius.php26042, templates/connect.php:325
 msgid "send me security & feature updates, educational content and offers."
 msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு அனுப்பவும்."
 
-#: includes/class-freemius.php26045, templates/connect.php:330
+#: includes/class-freemius.php26043, templates/connect.php:330
 msgid "No"
 msgstr "இல்லை"
 
-#: includes/class-freemius.php26047, templates/connect.php:332
+#: includes/class-freemius.php26045, templates/connect.php:332
 msgid "do %sNOT%s send me security & feature updates, educational content and offers."
 msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு அனுப்பவும். %s செய்க, %s தேவையில்லை"
 
-#: includes/class-freemius.php:26057
+#: includes/class-freemius.php:26055
 msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard :-)"
 msgstr "புதிய %s EU GDPRன் படி %s மேற்பார்வை விதிகளால், ஆட்சேபகர தகவலுக்கு எதிரான உங்கள் நிலையை உறுதி செய்கிறீர்கள் :)"
 
-#: includes/class-freemius.php26059, templates/connect.php:339
+#: includes/class-freemius.php26057, templates/connect.php:339
 msgid "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:"
 msgstr "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை உங்களுக்கு நாங்கள் அனுப்ப விரும்பினால் எங்களைத் தொடர்பு கொள்ளுங்கள்."
 
-#: includes/class-freemius.php:26341
+#: includes/class-freemius.php:26339
 msgid "License key is empty."
 msgstr "License key காலியாக உள்ளது."
 
@@ -897,332 +897,345 @@ msgstr "புதிய பதிப்பு"
 msgid "Important Upgrade Notice:"
 msgstr "முக்கியமான மேம்படுத்தல் அறிவிப்பு"
 
-#: includes/class-fs-plugin-updater.php:1328
+#: includes/class-fs-plugin-updater.php:1349
 msgid "Installing plugin: %s"
 msgstr "%s: பிளக்இன் நிறுவப்படுகிறது"
 
-#: includes/class-fs-plugin-updater.php:1369
+#: includes/class-fs-plugin-updater.php:1390
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr "Filesystem அணுக இயலவில்லை. உங்கள் உள்ளீடு சரியா என சோதிக்கவும்."
 
-#: includes/class-fs-plugin-updater.php:1551
+#: includes/class-fs-plugin-updater.php:1572
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
 msgstr "பெயர் மாற்றமுடியாது. Slug உடனான folder, பிளக்இன் பேக்கில் இல்லை."
 
-#: includes/fs-plugin-info-dialog.php:541
+#: includes/fs-plugin-info-dialog.php:542
 msgid "Purchase More"
 msgstr "மேலும் வாங்குக"
 
-#: includes/fs-plugin-info-dialog.php542,
+#: includes/fs-plugin-info-dialog.php543,
 #: templates/account/partials/addon.php:390
 msgctxt "verb"
 msgid "Purchase"
 msgstr "வாங்குக"
 
-#: includes/fs-plugin-info-dialog.php:546
+#: includes/fs-plugin-info-dialog.php:547
 msgid "Start my free %s"
 msgstr "என் விலையில்லா %sஐ துவக்கவும்"
 
-#: includes/fs-plugin-info-dialog.php:744
+#: includes/fs-plugin-info-dialog.php:745
 msgid "Install Free Version Update Now"
 msgstr "விலையில்லா பதிப்பின் மேம்படுத்தலை நிறுவலாம்"
 
-#: includes/fs-plugin-info-dialog.php745, templates/account.php:656
+#: includes/fs-plugin-info-dialog.php746, templates/account.php:656
 msgid "Install Update Now"
 msgstr "மேம்படுத்தலை நிறுவலாம்"
 
-#: includes/fs-plugin-info-dialog.php:754
+#: includes/fs-plugin-info-dialog.php:755
 msgid "Install Free Version Now"
 msgstr "விலையில்லா பதிப்பை நிறுவலாம்"
 
-#: includes/fs-plugin-info-dialog.php755, templates/add-ons.php323,
+#: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323,
 #: templates/auto-installation.php111,
 #: templates/account/partials/addon.php370,
 #: templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "நிறுவலாம்"
 
-#: includes/fs-plugin-info-dialog.php:771
+#: includes/fs-plugin-info-dialog.php:772
 msgctxt "as download latest version"
 msgid "Download Latest Free Version"
 msgstr "அண்மைய விலையில்லா பதிப்பை பதிவிறக்க"
 
-#: includes/fs-plugin-info-dialog.php772, templates/account.php114,
+#: includes/fs-plugin-info-dialog.php773, templates/account.php114,
 #: templates/add-ons.php37, templates/account/partials/addon.php:30
 msgctxt "as download latest version"
 msgid "Download Latest"
 msgstr "அண்மைய பதிப்பை பதிவிறக்க"
 
-#: includes/fs-plugin-info-dialog.php787, templates/add-ons.php329,
+#: includes/fs-plugin-info-dialog.php788, templates/add-ons.php329,
 #: templates/account/partials/addon.php361,
 #: templates/account/partials/addon.php:417
 msgid "Activate this add-on"
 msgstr "ஆட்-ஆன் செயல்படுத்த"
 
-#: includes/fs-plugin-info-dialog.php789, templates/connect.php:446
+#: includes/fs-plugin-info-dialog.php790, templates/connect.php:446
 msgid "Activate Free Version"
 msgstr "விலையில்லா பதிப்பை செயல்படுத்த"
 
-#: includes/fs-plugin-info-dialog.php790, templates/account.php138,
+#: includes/fs-plugin-info-dialog.php791, templates/account.php138,
 #: templates/add-ons.php330, templates/account/partials/addon.php:53
 msgid "Activate"
 msgstr "செயல்படுத்து"
 
-#: includes/fs-plugin-info-dialog.php:1002
+#: includes/fs-plugin-info-dialog.php:1003
 msgctxt "Plugin installer section title"
 msgid "Description"
 msgstr "விளக்கம்"
 
-#: includes/fs-plugin-info-dialog.php:1003
+#: includes/fs-plugin-info-dialog.php:1004
 msgctxt "Plugin installer section title"
 msgid "Installation"
 msgstr "நிறுவுதல்"
 
-#: includes/fs-plugin-info-dialog.php:1004
+#: includes/fs-plugin-info-dialog.php:1005
 msgctxt "Plugin installer section title"
 msgid "FAQ"
 msgstr "FAQ"
 
-#: includes/fs-plugin-info-dialog.php1005,
+#: includes/fs-plugin-info-dialog.php1006,
 #: templates/plugin-info/description.php:55
 msgid "Screenshots"
 msgstr "திரை நகல்கள்"
 
-#: includes/fs-plugin-info-dialog.php:1006
+#: includes/fs-plugin-info-dialog.php:1007
 msgctxt "Plugin installer section title"
 msgid "Changelog"
 msgstr "Changelog"
 
-#: includes/fs-plugin-info-dialog.php:1007
+#: includes/fs-plugin-info-dialog.php:1008
 msgctxt "Plugin installer section title"
 msgid "Reviews"
 msgstr "கருத்துரைகள்"
 
-#: includes/fs-plugin-info-dialog.php:1008
+#: includes/fs-plugin-info-dialog.php:1009
 msgctxt "Plugin installer section title"
 msgid "Other Notes"
 msgstr "பிற குறிப்புகள்"
 
-#: includes/fs-plugin-info-dialog.php:1023
+#: includes/fs-plugin-info-dialog.php:1024
 msgctxt "Plugin installer section title"
 msgid "Features & Pricing"
 msgstr "வசதிகள் & விலை"
 
-#: includes/fs-plugin-info-dialog.php:1033
+#: includes/fs-plugin-info-dialog.php:1034
 msgid "Plugin Install"
 msgstr "பிளக்இன் நிறுவுதல்"
 
-#: includes/fs-plugin-info-dialog.php:1105
+#: includes/fs-plugin-info-dialog.php:1106
 msgctxt "e.g. Professional Plan"
 msgid "%s Plan"
 msgstr "%s திட்டம்"
 
-#: includes/fs-plugin-info-dialog.php:1131
+#: includes/fs-plugin-info-dialog.php:1132
 msgctxt "e.g. the best product"
 msgid "Best"
 msgstr "சிறப்பு"
 
-#: includes/fs-plugin-info-dialog.php1137,
-#: includes/fs-plugin-info-dialog.php:1157
+#: includes/fs-plugin-info-dialog.php1138,
+#: includes/fs-plugin-info-dialog.php:1158
 msgctxt "as every month"
 msgid "Monthly"
 msgstr "மாதாமாதம்"
 
-#: includes/fs-plugin-info-dialog.php:1140
+#: includes/fs-plugin-info-dialog.php:1141
 msgctxt "as once a year"
 msgid "Annual"
 msgstr "ஆண்டு"
 
-#: includes/fs-plugin-info-dialog.php:1143
+#: includes/fs-plugin-info-dialog.php:1144
 msgid "Lifetime"
 msgstr "வாழ்நாள்"
 
-#: includes/fs-plugin-info-dialog.php1157,
-#: includes/fs-plugin-info-dialog.php1159,
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php1158,
+#: includes/fs-plugin-info-dialog.php1160,
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "e.g. billed monthly"
 msgid "Billed %s"
 msgstr "%s பில் எழுதப்பட்டது"
 
-#: includes/fs-plugin-info-dialog.php:1159
+#: includes/fs-plugin-info-dialog.php:1160
 msgctxt "as once a year"
 msgid "Annually"
 msgstr "ஆண்டுக்காண்டு"
 
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "as once a year"
 msgid "Once"
 msgstr "ஒருமுறை"
 
-#: includes/fs-plugin-info-dialog.php:1167
+#: includes/fs-plugin-info-dialog.php:1168
 msgid "Single Site License"
 msgstr "ஒரு தள உரிமம்"
 
-#: includes/fs-plugin-info-dialog.php:1169
+#: includes/fs-plugin-info-dialog.php:1170
 msgid "Unlimited Licenses"
 msgstr "பல்தள உரிமம்"
 
-#: includes/fs-plugin-info-dialog.php:1171
+#: includes/fs-plugin-info-dialog.php:1172
 msgid "Up to %s Sites"
 msgstr "%s தளங்கள் வரை"
 
-#: includes/fs-plugin-info-dialog.php1181,
+#: includes/fs-plugin-info-dialog.php1182,
 #: templates/plugin-info/features.php:82
 msgctxt "as monthly period"
 msgid "mo"
 msgstr "மாதம்"
 
-#: includes/fs-plugin-info-dialog.php1188,
+#: includes/fs-plugin-info-dialog.php1189,
 #: templates/plugin-info/features.php:80
 msgctxt "as annual period"
 msgid "year"
 msgstr "வருடம்"
 
-#: includes/fs-plugin-info-dialog.php:1242
+#: includes/fs-plugin-info-dialog.php:1243
 msgctxt "noun"
 msgid "Price"
 msgstr "விலை"
 
-#: includes/fs-plugin-info-dialog.php:1290
+#: includes/fs-plugin-info-dialog.php:1291
 msgid "Save %s"
 msgstr "%s சேமிக்கலாம்"
 
-#: includes/fs-plugin-info-dialog.php:1300
+#: includes/fs-plugin-info-dialog.php:1301
 msgid "No commitment for %s - cancel anytime"
 msgstr "%sக்கு எந்தக் கடப்பாடும் இல்லை - எப்போதும் ரத்து செய்யலாம்!"
 
-#: includes/fs-plugin-info-dialog.php:1303
+#: includes/fs-plugin-info-dialog.php:1304
 msgid "After your free %s, pay as little as %s"
 msgstr "விலையில்லா %sக்குப் பிறகு, குறைந்தளவு %s செலுத்துங்கள்"
 
-#: includes/fs-plugin-info-dialog.php:1314
+#: includes/fs-plugin-info-dialog.php:1315
 msgid "Details"
 msgstr "விபரங்கள்"
 
-#: includes/fs-plugin-info-dialog.php1318, templates/account.php125,
+#: includes/fs-plugin-info-dialog.php1319, templates/account.php125,
 #: templates/debug.php232, templates/debug.php269, templates/debug.php514,
 #: templates/account/partials/addon.php:41
 msgctxt "product version"
 msgid "Version"
 msgstr "பதிப்பு"
 
-#: includes/fs-plugin-info-dialog.php:1325
+#: includes/fs-plugin-info-dialog.php:1326
 msgctxt "as the plugin author"
 msgid "Author"
 msgstr "உருவாக்கியவர்"
 
-#: includes/fs-plugin-info-dialog.php:1332
+#: includes/fs-plugin-info-dialog.php:1333
 msgid "Last Updated"
 msgstr "கடைசி மேம்படுத்தல்"
 
-#: includes/fs-plugin-info-dialog.php1337, templates/account.php:544
+#: includes/fs-plugin-info-dialog.php1338, templates/account.php:544
 msgctxt "x-ago"
 msgid "%s ago"
 msgstr "%s முன்பு"
 
-#: includes/fs-plugin-info-dialog.php:1346
+#: includes/fs-plugin-info-dialog.php:1347
 msgid "Requires WordPress Version"
 msgstr "WordPress பதிப்பை வேண்டுகிறது"
 
-#: includes/fs-plugin-info-dialog.php:1347
+#: includes/fs-plugin-info-dialog.php1350,
+#: includes/fs-plugin-info-dialog.php:1370
 msgid "%s or higher"
 msgstr "%s அல்லது அதிகமாக"
 
-#: includes/fs-plugin-info-dialog.php:1354
+#: includes/fs-plugin-info-dialog.php:1358
 msgid "Compatible up to"
 msgstr "ஒத்திசைவு உயர்நிலை"
 
-#: includes/fs-plugin-info-dialog.php:1362
+#: includes/fs-plugin-info-dialog.php:1366
+msgid "Requires PHP Version"
+msgstr "Requires PHP Version"
+
+#: includes/fs-plugin-info-dialog.php:1379
 msgid "Downloaded"
 msgstr "பதிவிறக்கப்பட்டது"
 
-#: includes/fs-plugin-info-dialog.php:1366
+#: includes/fs-plugin-info-dialog.php:1383
 msgid "%s time"
 msgstr "%s முறை"
 
-#: includes/fs-plugin-info-dialog.php:1368
+#: includes/fs-plugin-info-dialog.php:1385
 msgid "%s times"
 msgstr "%s முறைகள்"
 
-#: includes/fs-plugin-info-dialog.php:1379
+#: includes/fs-plugin-info-dialog.php:1396
 msgid "WordPress.org Plugin Page"
 msgstr "WordPress.org பிளக்இன் பக்கம்"
 
-#: includes/fs-plugin-info-dialog.php:1388
+#: includes/fs-plugin-info-dialog.php:1405
 msgid "Plugin Homepage"
 msgstr "பிளக்இன் முகப்புப்பக்கம்"
 
-#: includes/fs-plugin-info-dialog.php1397,
-#: includes/fs-plugin-info-dialog.php:1481
+#: includes/fs-plugin-info-dialog.php1414,
+#: includes/fs-plugin-info-dialog.php:1498
 msgid "Donate to this plugin"
 msgstr "இந்த பிளக்இன்னுக்கு நன்கொடை தாருங்கள்"
 
-#: includes/fs-plugin-info-dialog.php:1404
+#: includes/fs-plugin-info-dialog.php:1421
 msgid "Average Rating"
 msgstr "உத்தேச மதிப்பீட்டெண்"
 
-#: includes/fs-plugin-info-dialog.php:1411
+#: includes/fs-plugin-info-dialog.php:1428
 msgid "based on %s"
 msgstr "%s அடிப்படையிலானது"
 
-#: includes/fs-plugin-info-dialog.php:1415
+#: includes/fs-plugin-info-dialog.php:1432
 msgid "%s rating"
 msgstr "%s மதிப்பீட்டெண்"
 
-#: includes/fs-plugin-info-dialog.php:1417
+#: includes/fs-plugin-info-dialog.php:1434
 msgid "%s ratings"
 msgstr "%s மதிப்பீட்டெண்கள்"
 
-#: includes/fs-plugin-info-dialog.php:1432
+#: includes/fs-plugin-info-dialog.php:1449
 msgid "%s star"
 msgstr "%s நட்சத்திரம்"
 
-#: includes/fs-plugin-info-dialog.php:1434
+#: includes/fs-plugin-info-dialog.php:1451
 msgid "%s stars"
 msgstr "%s நட்சத்திரங்கள்"
 
-#: includes/fs-plugin-info-dialog.php:1446
+#: includes/fs-plugin-info-dialog.php:1463
 msgid "Click to see reviews that provided a rating of %s"
 msgstr "%s குறித்த மதிப்பீடு & விமர்சனங்களை கிளிக் செய்து காண்க"
 
-#: includes/fs-plugin-info-dialog.php:1459
+#: includes/fs-plugin-info-dialog.php:1476
 msgid "Contributors"
 msgstr "பங்கெடுத்தோர்"
 
-#: includes/fs-plugin-info-dialog.php1489,
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1517
+msgid "This plugin requires a newer version of PHP."
+msgstr "This plugin requires a newer version of PHP."
+
+#: includes/fs-plugin-info-dialog.php:1526
+msgid "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+msgstr "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+
+#: includes/fs-plugin-info-dialog.php1540,
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "Warning"
 msgstr "எச்சரிக்கை"
 
-#: includes/fs-plugin-info-dialog.php:1489
+#: includes/fs-plugin-info-dialog.php:1540
 msgid "This plugin has not been tested with your current version of WordPress."
 msgstr "இந்த பிளக்இன் உங்கள் தற்போதைய WordPress பதிப்புடன் சோதிக்கப்படவில்லை."
 
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "This plugin has not been marked as compatible with your version of WordPress."
 msgstr "இந்த பிளக்இன் உங்கள் WordPress பதிப்புடன் ஒத்திசைவானது என்று குறிக்கப்படவில்லை."
 
-#: includes/fs-plugin-info-dialog.php:1510
+#: includes/fs-plugin-info-dialog.php:1561
 msgid "Paid add-on must be deployed to Freemius."
 msgstr "விலையுள்ள ஆட்ஆன் Freemiusல் வரிசைப்படுத்தப் பட்டிருக்க வேண்டும்."
 
-#: includes/fs-plugin-info-dialog.php:1511
+#: includes/fs-plugin-info-dialog.php:1562
 msgid "Add-on must be deployed to WordPress.org or Freemius."
 msgstr "ஆட்ஆன் WordPress.org அல்லது Freemius ஏதாவது ஒன்றில் வரிசைப்படுத்தப் பட்டிருக்க வேண்டும்."
 
-#: includes/fs-plugin-info-dialog.php:1532
+#: includes/fs-plugin-info-dialog.php:1583
 msgid "Newer Version (%s) Installed"
 msgstr "புதிய பதிப்பு (%s) நிறுவப்பட்டது"
 
-#: includes/fs-plugin-info-dialog.php:1533
+#: includes/fs-plugin-info-dialog.php:1584
 msgid "Newer Free Version (%s) Installed"
 msgstr "புதிய விலையில்லா பதிப்பு (%s) நிறுவப்பட்டது"
 
-#: includes/fs-plugin-info-dialog.php:1540
+#: includes/fs-plugin-info-dialog.php:1591
 msgid "Latest Version Installed"
 msgstr "சமீபத்திய பதிப்பு நிறுவப்பட்டது"
 
-#: includes/fs-plugin-info-dialog.php:1541
+#: includes/fs-plugin-info-dialog.php:1592
 msgid "Latest Free Version Installed"
 msgstr "சமீபத்திய விலையில்லா பதிப்பு நிறுவப்பட்டது"
 

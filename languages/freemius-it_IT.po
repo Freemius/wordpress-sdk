@@ -39,7 +39,7 @@ msgstr "Vuoi procedere con l'aggiornamento?"
 msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr "L'SDK di Freemius non è riuscito a trovare il file principale del plugin. Per favore contatta sdk@freemius.com riportando l'errore."
 
-#: includes/class-freemius.php:1978
+#: includes/class-freemius.php1978, includes/fs-plugin-info-dialog.php:1517
 msgid "Error"
 msgstr "Errore"
 
@@ -237,16 +237,16 @@ msgid "Purchase License"
 msgstr "Acquista licenza"
 
 #: includes/class-freemius.php7318, templates/connect.php:216
-msgid "You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s."
-msgstr "Dovresti ricevere un'email di attivazione di %s all'indirizzo %s. Assicurati di fare clic sul pulsante di attivazione nell'email per %s."
+msgid "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
+msgstr "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
 
 #: includes/class-freemius.php:7322
 msgid "start the trial"
 msgstr "Inizia il periodo di prova gratuito"
 
 #: includes/class-freemius.php7323, templates/connect.php:220
-msgid "complete the install"
-msgstr "completa l'installazione"
+msgid "complete the opt-in"
+msgstr "complete the opt-in"
 
 #: includes/class-freemius.php:7456
 msgid "You are just one step away - %s"
@@ -269,9 +269,9 @@ msgstr "Abilita \"%s\" per renderlo migliore!"
 msgid "The upgrade of %s was successfully completed."
 msgstr "L'aggiornamento di %s è stato completato con successo."
 
-#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1089,
-#: includes/class-fs-plugin-updater.php1284,
-#: includes/class-fs-plugin-updater.php1291,
+#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1090,
+#: includes/class-fs-plugin-updater.php1305,
+#: includes/class-fs-plugin-updater.php1312,
 #: templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "Add-on"
@@ -758,117 +758,117 @@ msgstr "Cancella iscrizione"
 msgid "Opt In"
 msgstr "Iscriviti"
 
-#: includes/class-freemius.php:24933
+#: includes/class-freemius.php:24931
 msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
 msgstr "La versione a pagamento di %1$sè già installata. Attiva questione versione per iniziare ad usare le funzionalità di %2$s.%3$s"
 
-#: includes/class-freemius.php:24943
+#: includes/class-freemius.php:24941
 msgid "Activate %s features"
 msgstr "Attiva le funzionalità di %s"
 
-#: includes/class-freemius.php:24956
+#: includes/class-freemius.php:24954
 msgid "Please follow these steps to complete the upgrade"
 msgstr "Segui i passi seguenti per completare l'aggiornamento"
 
-#: includes/class-freemius.php:24960
+#: includes/class-freemius.php:24958
 msgid "Download the latest %s version"
 msgstr "Scarica l'ultima versione di %s"
 
-#: includes/class-freemius.php:24964
+#: includes/class-freemius.php:24962
 msgid "Upload and activate the downloaded version"
 msgstr "Carica e attiva la versione scaricata"
 
-#: includes/class-freemius.php:24966
+#: includes/class-freemius.php:24964
 msgid "How to upload and activate?"
 msgstr "Come faccio a caricare ed attivare?"
 
-#: includes/class-freemius.php:25100
+#: includes/class-freemius.php:25098
 msgid "%sClick here%s to choose the sites where you'd like to activate the license on."
 msgstr "%sClicca qui%s per scegliere i siti dove vuoi attivare la licenza."
 
-#: includes/class-freemius.php:25269
+#: includes/class-freemius.php:25267
 msgid "Auto installation only works for opted-in users."
 msgstr "L'installazione automatica funziona solo per gli utenti che hanno dato il consenso."
 
-#: includes/class-freemius.php25279, includes/class-freemius.php25312,
-#: includes/class-fs-plugin-updater.php1263,
-#: includes/class-fs-plugin-updater.php:1277
+#: includes/class-freemius.php25277, includes/class-freemius.php25310,
+#: includes/class-fs-plugin-updater.php1284,
+#: includes/class-fs-plugin-updater.php:1298
 msgid "Invalid module ID."
 msgstr "ID modulo non valida."
 
-#: includes/class-freemius.php25288, includes/class-fs-plugin-updater.php:1299
+#: includes/class-freemius.php25286, includes/class-fs-plugin-updater.php:1320
 msgid "Premium version already active."
 msgstr "Versione Premium già attiva."
 
-#: includes/class-freemius.php:25295
+#: includes/class-freemius.php:25293
 msgid "You do not have a valid license to access the premium version."
 msgstr "Non disponi di una licenza valida per accedere alla versione Premium."
 
-#: includes/class-freemius.php:25302
+#: includes/class-freemius.php:25300
 msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
 msgstr "Il plugin è un \"Serviceware\", quindi non dispone di una versione del codice Premium."
 
-#: includes/class-freemius.php25320, includes/class-fs-plugin-updater.php:1298
+#: includes/class-freemius.php25318, includes/class-fs-plugin-updater.php:1319
 msgid "Premium add-on version already installed."
 msgstr "Versione Premium dell'add-on già installata."
 
-#: includes/class-freemius.php:25674
+#: includes/class-freemius.php:25672
 msgid "View paid features"
 msgstr "Vedi funzionalità a pagamento"
 
-#: includes/class-freemius.php:25996
+#: includes/class-freemius.php:25994
 msgid "Thank you so much for using %s and its add-ons!"
 msgstr "Grazie per utilizzare %se i suoi addon!"
 
-#: includes/class-freemius.php:25997
+#: includes/class-freemius.php:25995
 msgid "Thank you so much for using %s!"
 msgstr "Grazie per utilizzare %s!"
 
-#: includes/class-freemius.php:26003
+#: includes/class-freemius.php:26001
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving the %s."
 msgstr "Hai già accettato il tracciamento d'uso, ci aiuterà a migliorare %s."
 
-#: includes/class-freemius.php:26007
+#: includes/class-freemius.php:26005
 msgid "Thank you so much for using our products!"
 msgstr "Grazie per utilizzare i nostri prodotti!"
 
-#: includes/class-freemius.php:26008
+#: includes/class-freemius.php:26006
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving them."
 msgstr "Hai già accettato il tracciamento d'uso che ci aiuta a migliorare."
 
-#: includes/class-freemius.php:26027
+#: includes/class-freemius.php:26025
 msgid "%s and its add-ons"
 msgstr "%se i suoi addon"
 
-#: includes/class-freemius.php:26036
+#: includes/class-freemius.php:26034
 msgid "Products"
 msgstr "Prodotti"
 
-#: includes/class-freemius.php26043, templates/connect.php:324
+#: includes/class-freemius.php26041, templates/connect.php:324
 msgid "Yes"
 msgstr "Si"
 
-#: includes/class-freemius.php26044, templates/connect.php:325
+#: includes/class-freemius.php26042, templates/connect.php:325
 msgid "send me security & feature updates, educational content and offers."
 msgstr "inviami aggiornamenti di funzionalità e sicurezza, contenuti formativi e offerte."
 
-#: includes/class-freemius.php26045, templates/connect.php:330
+#: includes/class-freemius.php26043, templates/connect.php:330
 msgid "No"
 msgstr "No"
 
-#: includes/class-freemius.php26047, templates/connect.php:332
+#: includes/class-freemius.php26045, templates/connect.php:332
 msgid "do %sNOT%s send me security & feature updates, educational content and offers."
 msgstr "%snon %s mi invierà aggiornamenti di funzionalità e sicurezza, contenuti formativi e offerte."
 
-#: includes/class-freemius.php:26057
+#: includes/class-freemius.php:26055
 msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard :-)"
 msgstr "Causa la %sDirettiva per la protezione dei Dati Europea (GDPR)%sabbiamo adeguato i requisiti che fornisci per il consenso, confermando che accetti di lasciare i dati."
 
-#: includes/class-freemius.php26059, templates/connect.php:339
+#: includes/class-freemius.php26057, templates/connect.php:339
 msgid "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:"
 msgstr "Facci sapere se vuoi essere contattato per aggiornamenti di sicurezza e di funzionalità, contenuti formativi e offerte occasionali:"
 
-#: includes/class-freemius.php:26341
+#: includes/class-freemius.php:26339
 msgid "License key is empty."
 msgstr "La chiave licenza è vuota."
 
@@ -901,332 +901,345 @@ msgstr "nuova versione"
 msgid "Important Upgrade Notice:"
 msgstr "Avviso Importante di aggiornamento:"
 
-#: includes/class-fs-plugin-updater.php:1328
+#: includes/class-fs-plugin-updater.php:1349
 msgid "Installing plugin: %s"
 msgstr "Installazione plugin: %s"
 
-#: includes/class-fs-plugin-updater.php:1369
+#: includes/class-fs-plugin-updater.php:1390
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr "Impossibile accedere al filesystem. Conferma le tue credenziali."
 
-#: includes/class-fs-plugin-updater.php:1551
+#: includes/class-fs-plugin-updater.php:1572
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
 msgstr "Il pacchetto remoto del plugin non contiene una cartella con lo slug desiderato e la rinominazione non ha funzionato."
 
-#: includes/fs-plugin-info-dialog.php:541
+#: includes/fs-plugin-info-dialog.php:542
 msgid "Purchase More"
 msgstr "Continua a comprare"
 
-#: includes/fs-plugin-info-dialog.php542,
+#: includes/fs-plugin-info-dialog.php543,
 #: templates/account/partials/addon.php:390
 msgctxt "verb"
 msgid "Purchase"
 msgstr "Acquisto"
 
-#: includes/fs-plugin-info-dialog.php:546
+#: includes/fs-plugin-info-dialog.php:547
 msgid "Start my free %s"
 msgstr "Inizia la mia %s"
 
-#: includes/fs-plugin-info-dialog.php:744
+#: includes/fs-plugin-info-dialog.php:745
 msgid "Install Free Version Update Now"
 msgstr "Installa l'ultima versione gratuita"
 
-#: includes/fs-plugin-info-dialog.php745, templates/account.php:656
+#: includes/fs-plugin-info-dialog.php746, templates/account.php:656
 msgid "Install Update Now"
 msgstr "Installa l'aggiornamento ora"
 
-#: includes/fs-plugin-info-dialog.php:754
+#: includes/fs-plugin-info-dialog.php:755
 msgid "Install Free Version Now"
 msgstr "Installa la versione gratuita ora"
 
-#: includes/fs-plugin-info-dialog.php755, templates/add-ons.php323,
+#: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323,
 #: templates/auto-installation.php111,
 #: templates/account/partials/addon.php370,
 #: templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "Installa ora"
 
-#: includes/fs-plugin-info-dialog.php:771
+#: includes/fs-plugin-info-dialog.php:772
 msgctxt "as download latest version"
 msgid "Download Latest Free Version"
 msgstr "Scarica l'ultima versione gratuita"
 
-#: includes/fs-plugin-info-dialog.php772, templates/account.php114,
+#: includes/fs-plugin-info-dialog.php773, templates/account.php114,
 #: templates/add-ons.php37, templates/account/partials/addon.php:30
 msgctxt "as download latest version"
 msgid "Download Latest"
 msgstr "Scarica l'ultima versione"
 
-#: includes/fs-plugin-info-dialog.php787, templates/add-ons.php329,
+#: includes/fs-plugin-info-dialog.php788, templates/add-ons.php329,
 #: templates/account/partials/addon.php361,
 #: templates/account/partials/addon.php:417
 msgid "Activate this add-on"
 msgstr "Attivare questo addon"
 
-#: includes/fs-plugin-info-dialog.php789, templates/connect.php:446
+#: includes/fs-plugin-info-dialog.php790, templates/connect.php:446
 msgid "Activate Free Version"
 msgstr "Attiva versione gratuita"
 
-#: includes/fs-plugin-info-dialog.php790, templates/account.php138,
+#: includes/fs-plugin-info-dialog.php791, templates/account.php138,
 #: templates/add-ons.php330, templates/account/partials/addon.php:53
 msgid "Activate"
 msgstr "Attiva"
 
-#: includes/fs-plugin-info-dialog.php:1002
+#: includes/fs-plugin-info-dialog.php:1003
 msgctxt "Plugin installer section title"
 msgid "Description"
 msgstr "Descrizione"
 
-#: includes/fs-plugin-info-dialog.php:1003
+#: includes/fs-plugin-info-dialog.php:1004
 msgctxt "Plugin installer section title"
 msgid "Installation"
 msgstr "Installazione"
 
-#: includes/fs-plugin-info-dialog.php:1004
+#: includes/fs-plugin-info-dialog.php:1005
 msgctxt "Plugin installer section title"
 msgid "FAQ"
 msgstr "FAQ"
 
-#: includes/fs-plugin-info-dialog.php1005,
+#: includes/fs-plugin-info-dialog.php1006,
 #: templates/plugin-info/description.php:55
 msgid "Screenshots"
 msgstr "Screenshot"
 
-#: includes/fs-plugin-info-dialog.php:1006
+#: includes/fs-plugin-info-dialog.php:1007
 msgctxt "Plugin installer section title"
 msgid "Changelog"
 msgstr "Changelog"
 
-#: includes/fs-plugin-info-dialog.php:1007
+#: includes/fs-plugin-info-dialog.php:1008
 msgctxt "Plugin installer section title"
 msgid "Reviews"
 msgstr "Recensioni"
 
-#: includes/fs-plugin-info-dialog.php:1008
+#: includes/fs-plugin-info-dialog.php:1009
 msgctxt "Plugin installer section title"
 msgid "Other Notes"
 msgstr "Altre note"
 
-#: includes/fs-plugin-info-dialog.php:1023
+#: includes/fs-plugin-info-dialog.php:1024
 msgctxt "Plugin installer section title"
 msgid "Features & Pricing"
 msgstr "Caratteristiche & prezzi"
 
-#: includes/fs-plugin-info-dialog.php:1033
+#: includes/fs-plugin-info-dialog.php:1034
 msgid "Plugin Install"
 msgstr "Installazione del plugin"
 
-#: includes/fs-plugin-info-dialog.php:1105
+#: includes/fs-plugin-info-dialog.php:1106
 msgctxt "e.g. Professional Plan"
 msgid "%s Plan"
 msgstr "Piano %s"
 
-#: includes/fs-plugin-info-dialog.php:1131
+#: includes/fs-plugin-info-dialog.php:1132
 msgctxt "e.g. the best product"
 msgid "Best"
 msgstr "Migliore"
 
-#: includes/fs-plugin-info-dialog.php1137,
-#: includes/fs-plugin-info-dialog.php:1157
+#: includes/fs-plugin-info-dialog.php1138,
+#: includes/fs-plugin-info-dialog.php:1158
 msgctxt "as every month"
 msgid "Monthly"
 msgstr "Mensilmente"
 
-#: includes/fs-plugin-info-dialog.php:1140
+#: includes/fs-plugin-info-dialog.php:1141
 msgctxt "as once a year"
 msgid "Annual"
 msgstr "Annuale"
 
-#: includes/fs-plugin-info-dialog.php:1143
+#: includes/fs-plugin-info-dialog.php:1144
 msgid "Lifetime"
 msgstr "Tutta la vita"
 
-#: includes/fs-plugin-info-dialog.php1157,
-#: includes/fs-plugin-info-dialog.php1159,
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php1158,
+#: includes/fs-plugin-info-dialog.php1160,
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "e.g. billed monthly"
 msgid "Billed %s"
 msgstr "Fatturato %s"
 
-#: includes/fs-plugin-info-dialog.php:1159
+#: includes/fs-plugin-info-dialog.php:1160
 msgctxt "as once a year"
 msgid "Annually"
 msgstr "Annualmente"
 
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "as once a year"
 msgid "Once"
 msgstr "Una volta"
 
-#: includes/fs-plugin-info-dialog.php:1167
+#: includes/fs-plugin-info-dialog.php:1168
 msgid "Single Site License"
 msgstr "Licenza per sito singolo"
 
-#: includes/fs-plugin-info-dialog.php:1169
+#: includes/fs-plugin-info-dialog.php:1170
 msgid "Unlimited Licenses"
 msgstr "Licenze illimitate"
 
-#: includes/fs-plugin-info-dialog.php:1171
+#: includes/fs-plugin-info-dialog.php:1172
 msgid "Up to %s Sites"
 msgstr "Fino a %s siti"
 
-#: includes/fs-plugin-info-dialog.php1181,
+#: includes/fs-plugin-info-dialog.php1182,
 #: templates/plugin-info/features.php:82
 msgctxt "as monthly period"
 msgid "mo"
 msgstr "mese"
 
-#: includes/fs-plugin-info-dialog.php1188,
+#: includes/fs-plugin-info-dialog.php1189,
 #: templates/plugin-info/features.php:80
 msgctxt "as annual period"
 msgid "year"
 msgstr "anno"
 
-#: includes/fs-plugin-info-dialog.php:1242
+#: includes/fs-plugin-info-dialog.php:1243
 msgctxt "noun"
 msgid "Price"
 msgstr "Prezzo"
 
-#: includes/fs-plugin-info-dialog.php:1290
+#: includes/fs-plugin-info-dialog.php:1291
 msgid "Save %s"
 msgstr "Risparmia %s"
 
-#: includes/fs-plugin-info-dialog.php:1300
+#: includes/fs-plugin-info-dialog.php:1301
 msgid "No commitment for %s - cancel anytime"
 msgstr "Nessun impegno con %s - cancella quando vuoi"
 
-#: includes/fs-plugin-info-dialog.php:1303
+#: includes/fs-plugin-info-dialog.php:1304
 msgid "After your free %s, pay as little as %s"
 msgstr "Dopo il tuo %s gratuito, paghi solamente %s"
 
-#: includes/fs-plugin-info-dialog.php:1314
+#: includes/fs-plugin-info-dialog.php:1315
 msgid "Details"
 msgstr "Dettagli"
 
-#: includes/fs-plugin-info-dialog.php1318, templates/account.php125,
+#: includes/fs-plugin-info-dialog.php1319, templates/account.php125,
 #: templates/debug.php232, templates/debug.php269, templates/debug.php514,
 #: templates/account/partials/addon.php:41
 msgctxt "product version"
 msgid "Version"
 msgstr "Versione"
 
-#: includes/fs-plugin-info-dialog.php:1325
+#: includes/fs-plugin-info-dialog.php:1326
 msgctxt "as the plugin author"
 msgid "Author"
 msgstr "Autore"
 
-#: includes/fs-plugin-info-dialog.php:1332
+#: includes/fs-plugin-info-dialog.php:1333
 msgid "Last Updated"
 msgstr "Ultimo aggiornamento"
 
-#: includes/fs-plugin-info-dialog.php1337, templates/account.php:544
+#: includes/fs-plugin-info-dialog.php1338, templates/account.php:544
 msgctxt "x-ago"
 msgid "%s ago"
 msgstr "%s fa"
 
-#: includes/fs-plugin-info-dialog.php:1346
+#: includes/fs-plugin-info-dialog.php:1347
 msgid "Requires WordPress Version"
 msgstr "Richiede la versione di WordPress"
 
-#: includes/fs-plugin-info-dialog.php:1347
+#: includes/fs-plugin-info-dialog.php1350,
+#: includes/fs-plugin-info-dialog.php:1370
 msgid "%s or higher"
 msgstr "%s o superiore"
 
-#: includes/fs-plugin-info-dialog.php:1354
+#: includes/fs-plugin-info-dialog.php:1358
 msgid "Compatible up to"
 msgstr "Compatibile fino a"
 
-#: includes/fs-plugin-info-dialog.php:1362
+#: includes/fs-plugin-info-dialog.php:1366
+msgid "Requires PHP Version"
+msgstr "Requires PHP Version"
+
+#: includes/fs-plugin-info-dialog.php:1379
 msgid "Downloaded"
 msgstr "Scaricato"
 
-#: includes/fs-plugin-info-dialog.php:1366
+#: includes/fs-plugin-info-dialog.php:1383
 msgid "%s time"
 msgstr "%s volta"
 
-#: includes/fs-plugin-info-dialog.php:1368
+#: includes/fs-plugin-info-dialog.php:1385
 msgid "%s times"
 msgstr "%s volte"
 
-#: includes/fs-plugin-info-dialog.php:1379
+#: includes/fs-plugin-info-dialog.php:1396
 msgid "WordPress.org Plugin Page"
 msgstr "Pagina dei plugin di WordPress.org"
 
-#: includes/fs-plugin-info-dialog.php:1388
+#: includes/fs-plugin-info-dialog.php:1405
 msgid "Plugin Homepage"
 msgstr "Homepage del plugin"
 
-#: includes/fs-plugin-info-dialog.php1397,
-#: includes/fs-plugin-info-dialog.php:1481
+#: includes/fs-plugin-info-dialog.php1414,
+#: includes/fs-plugin-info-dialog.php:1498
 msgid "Donate to this plugin"
 msgstr "Fai una donazione a questo plugin"
 
-#: includes/fs-plugin-info-dialog.php:1404
+#: includes/fs-plugin-info-dialog.php:1421
 msgid "Average Rating"
 msgstr "Valutazione media"
 
-#: includes/fs-plugin-info-dialog.php:1411
+#: includes/fs-plugin-info-dialog.php:1428
 msgid "based on %s"
 msgstr "basato su %s"
 
-#: includes/fs-plugin-info-dialog.php:1415
+#: includes/fs-plugin-info-dialog.php:1432
 msgid "%s rating"
 msgstr "%s valutazione"
 
-#: includes/fs-plugin-info-dialog.php:1417
+#: includes/fs-plugin-info-dialog.php:1434
 msgid "%s ratings"
 msgstr "%s valutazioni"
 
-#: includes/fs-plugin-info-dialog.php:1432
+#: includes/fs-plugin-info-dialog.php:1449
 msgid "%s star"
 msgstr "%s stella"
 
-#: includes/fs-plugin-info-dialog.php:1434
+#: includes/fs-plugin-info-dialog.php:1451
 msgid "%s stars"
 msgstr "%s stelle"
 
-#: includes/fs-plugin-info-dialog.php:1446
+#: includes/fs-plugin-info-dialog.php:1463
 msgid "Click to see reviews that provided a rating of %s"
 msgstr "Fai clic per vedere le recensioni che hanno fornito una valutazione di %s"
 
-#: includes/fs-plugin-info-dialog.php:1459
+#: includes/fs-plugin-info-dialog.php:1476
 msgid "Contributors"
 msgstr "Contributori"
 
-#: includes/fs-plugin-info-dialog.php1489,
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1517
+msgid "This plugin requires a newer version of PHP."
+msgstr "This plugin requires a newer version of PHP."
+
+#: includes/fs-plugin-info-dialog.php:1526
+msgid "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+msgstr "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+
+#: includes/fs-plugin-info-dialog.php1540,
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "Warning"
 msgstr "Avviso"
 
-#: includes/fs-plugin-info-dialog.php:1489
+#: includes/fs-plugin-info-dialog.php:1540
 msgid "This plugin has not been tested with your current version of WordPress."
 msgstr "Questo plugin non è stato testato con la versione corrente di WordPress."
 
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "This plugin has not been marked as compatible with your version of WordPress."
 msgstr "Questo plugin non è stato segnato come compatibile con la tua versione di WordPress."
 
-#: includes/fs-plugin-info-dialog.php:1510
+#: includes/fs-plugin-info-dialog.php:1561
 msgid "Paid add-on must be deployed to Freemius."
 msgstr "Gli add-on a pagamento devono essere distribuiti da Freemius."
 
-#: includes/fs-plugin-info-dialog.php:1511
+#: includes/fs-plugin-info-dialog.php:1562
 msgid "Add-on must be deployed to WordPress.org or Freemius."
 msgstr "L'add-on dev'essere distribuito da WordPress.org o Freemius."
 
-#: includes/fs-plugin-info-dialog.php:1532
+#: includes/fs-plugin-info-dialog.php:1583
 msgid "Newer Version (%s) Installed"
 msgstr "Versione più recente (%s) installata"
 
-#: includes/fs-plugin-info-dialog.php:1533
+#: includes/fs-plugin-info-dialog.php:1584
 msgid "Newer Free Version (%s) Installed"
 msgstr "Nuova versione gratuita (%s) installata"
 
-#: includes/fs-plugin-info-dialog.php:1540
+#: includes/fs-plugin-info-dialog.php:1591
 msgid "Latest Version Installed"
 msgstr "Versione più recente installata"
 
-#: includes/fs-plugin-info-dialog.php:1541
+#: includes/fs-plugin-info-dialog.php:1592
 msgid "Latest Free Version Installed"
 msgstr "Ultima versione gratuita installata"
 

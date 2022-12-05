@@ -35,7 +35,7 @@ msgstr "是否继续更新？"
 msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr "Freemius SDK找不到插件的主文件。请关于当前错误与sdk@freemius.com联系。"
 
-#: includes/class-freemius.php:1978
+#: includes/class-freemius.php1978, includes/fs-plugin-info-dialog.php:1517
 msgid "Error"
 msgstr "错误"
 
@@ -233,16 +233,16 @@ msgid "Purchase License"
 msgstr "购买许可证"
 
 #: includes/class-freemius.php7318, templates/connect.php:216
-msgid "You should receive an activation email for %s to your mailbox at %s. Please make sure you click the activation button in that email to %s."
-msgstr "您应该在%s的邮箱中收到一封%s的激活电子邮件。请确保单击发送到%s的该电子邮件中的激活按钮。"
+msgid "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
+msgstr "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
 
 #: includes/class-freemius.php:7322
 msgid "start the trial"
 msgstr "开始试用"
 
 #: includes/class-freemius.php7323, templates/connect.php:220
-msgid "complete the install"
-msgstr "完成安装"
+msgid "complete the opt-in"
+msgstr "complete the opt-in"
 
 #: includes/class-freemius.php:7456
 msgid "You are just one step away - %s"
@@ -265,9 +265,9 @@ msgstr "选择加入以使“%s”更好！"
 msgid "The upgrade of %s was successfully completed."
 msgstr "%s的升级已成功完成。"
 
-#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1089,
-#: includes/class-fs-plugin-updater.php1284,
-#: includes/class-fs-plugin-updater.php1291,
+#: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1090,
+#: includes/class-fs-plugin-updater.php1305,
+#: includes/class-fs-plugin-updater.php1312,
 #: templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "附加组件"
@@ -754,117 +754,117 @@ msgstr "选择退出"
 msgid "Opt In"
 msgstr "选择加入"
 
-#: includes/class-freemius.php:24933
+#: includes/class-freemius.php:24931
 msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
 msgstr "已安装%1$s的付费版本。请激活它以开始使用%2$s功能。%3$s公司"
 
-#: includes/class-freemius.php:24943
+#: includes/class-freemius.php:24941
 msgid "Activate %s features"
 msgstr "激活%s功能"
 
-#: includes/class-freemius.php:24956
+#: includes/class-freemius.php:24954
 msgid "Please follow these steps to complete the upgrade"
 msgstr "请按照以下步骤完成升级"
 
-#: includes/class-freemius.php:24960
+#: includes/class-freemius.php:24958
 msgid "Download the latest %s version"
 msgstr "下载最新的%s版本"
 
-#: includes/class-freemius.php:24964
+#: includes/class-freemius.php:24962
 msgid "Upload and activate the downloaded version"
 msgstr "上传并激活下载的版本"
 
-#: includes/class-freemius.php:24966
+#: includes/class-freemius.php:24964
 msgid "How to upload and activate?"
 msgstr "如何上传和激活？"
 
-#: includes/class-freemius.php:25100
+#: includes/class-freemius.php:25098
 msgid "%sClick here%s to choose the sites where you'd like to activate the license on."
 msgstr "%s单击此处%s可选择要激活许可证的站点。"
 
-#: includes/class-freemius.php:25269
+#: includes/class-freemius.php:25267
 msgid "Auto installation only works for opted-in users."
 msgstr "自动安装仅适用于已选择的用户。"
 
-#: includes/class-freemius.php25279, includes/class-freemius.php25312,
-#: includes/class-fs-plugin-updater.php1263,
-#: includes/class-fs-plugin-updater.php:1277
+#: includes/class-freemius.php25277, includes/class-freemius.php25310,
+#: includes/class-fs-plugin-updater.php1284,
+#: includes/class-fs-plugin-updater.php:1298
 msgid "Invalid module ID."
 msgstr "模块ID无效。"
 
-#: includes/class-freemius.php25288, includes/class-fs-plugin-updater.php:1299
+#: includes/class-freemius.php25286, includes/class-fs-plugin-updater.php:1320
 msgid "Premium version already active."
 msgstr "高级版本已激活。"
 
-#: includes/class-freemius.php:25295
+#: includes/class-freemius.php:25293
 msgid "You do not have a valid license to access the premium version."
 msgstr "您没有访问高级版本的有效许可证。"
 
-#: includes/class-freemius.php:25302
+#: includes/class-freemius.php:25300
 msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
 msgstr "插件是一个“服务软件”，这意味着它没有高级代码版本。"
 
-#: includes/class-freemius.php25320, includes/class-fs-plugin-updater.php:1298
+#: includes/class-freemius.php25318, includes/class-fs-plugin-updater.php:1319
 msgid "Premium add-on version already installed."
 msgstr "已安装高级加载项版本。"
 
-#: includes/class-freemius.php:25674
+#: includes/class-freemius.php:25672
 msgid "View paid features"
 msgstr "查看付费功能"
 
-#: includes/class-freemius.php:25996
+#: includes/class-freemius.php:25994
 msgid "Thank you so much for using %s and its add-ons!"
 msgstr "非常感谢您使用%s及其附加组件！"
 
-#: includes/class-freemius.php:25997
+#: includes/class-freemius.php:25995
 msgid "Thank you so much for using %s!"
 msgstr "非常感谢您使用%s！"
 
-#: includes/class-freemius.php:26003
+#: includes/class-freemius.php:26001
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving the %s."
 msgstr "您已经选择加入我们的使用情况跟踪，这有助于我们不断改进%s。"
 
-#: includes/class-freemius.php:26007
+#: includes/class-freemius.php:26005
 msgid "Thank you so much for using our products!"
 msgstr "非常感谢您使用我们的产品！"
 
-#: includes/class-freemius.php:26008
+#: includes/class-freemius.php:26006
 msgid "You've already opted-in to our usage-tracking, which helps us keep improving them."
 msgstr "您已经选择了我们的使用情况跟踪，这有助于我们不断改进它们。"
 
-#: includes/class-freemius.php:26027
+#: includes/class-freemius.php:26025
 msgid "%s and its add-ons"
 msgstr "%s及其附加组件"
 
-#: includes/class-freemius.php:26036
+#: includes/class-freemius.php:26034
 msgid "Products"
 msgstr "产品"
 
-#: includes/class-freemius.php26043, templates/connect.php:324
+#: includes/class-freemius.php26041, templates/connect.php:324
 msgid "Yes"
 msgstr "是"
 
-#: includes/class-freemius.php26044, templates/connect.php:325
+#: includes/class-freemius.php26042, templates/connect.php:325
 msgid "send me security & feature updates, educational content and offers."
 msgstr "请给我发送安全和功能更新，教育内容和优惠。"
 
-#: includes/class-freemius.php26045, templates/connect.php:330
+#: includes/class-freemius.php26043, templates/connect.php:330
 msgid "No"
 msgstr "不"
 
-#: includes/class-freemius.php26047, templates/connect.php:332
+#: includes/class-freemius.php26045, templates/connect.php:332
 msgid "do %sNOT%s send me security & feature updates, educational content and offers."
 msgstr "不%s要%s向我发送安全和功能更新、教育内容和服务。"
 
-#: includes/class-freemius.php:26057
+#: includes/class-freemius.php:26055
 msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard :-)"
 msgstr "由于新的%sEU通用数据保护条例（GDPR）%s的合规性要求，要求您再次明确表示同意，确认您已经加入：-）"
 
-#: includes/class-freemius.php26059, templates/connect.php:339
+#: includes/class-freemius.php26057, templates/connect.php:339
 msgid "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:"
 msgstr "如果您希望我们与您联系以获取安全和功能更新、教育内容和偶尔的优惠，请告知我们："
 
-#: includes/class-freemius.php:26341
+#: includes/class-freemius.php:26339
 msgid "License key is empty."
 msgstr "许可证密钥为空。"
 
@@ -897,332 +897,345 @@ msgstr "新版本"
 msgid "Important Upgrade Notice:"
 msgstr "重要升级通知："
 
-#: includes/class-fs-plugin-updater.php:1328
+#: includes/class-fs-plugin-updater.php:1349
 msgid "Installing plugin: %s"
 msgstr "正在安装插件：%s"
 
-#: includes/class-fs-plugin-updater.php:1369
+#: includes/class-fs-plugin-updater.php:1390
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr "无法连接到文件系统。请确认您的凭据。"
 
-#: includes/class-fs-plugin-updater.php:1551
+#: includes/class-fs-plugin-updater.php:1572
 msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
 msgstr "远程插件包不包含具有所需段塞的文件夹，重命名失败。"
 
-#: includes/fs-plugin-info-dialog.php:541
+#: includes/fs-plugin-info-dialog.php:542
 msgid "Purchase More"
 msgstr "购买更多"
 
-#: includes/fs-plugin-info-dialog.php542,
+#: includes/fs-plugin-info-dialog.php543,
 #: templates/account/partials/addon.php:390
 msgctxt "verb"
 msgid "Purchase"
 msgstr "购买"
 
-#: includes/fs-plugin-info-dialog.php:546
+#: includes/fs-plugin-info-dialog.php:547
 msgid "Start my free %s"
 msgstr "开始我的免费%s"
 
-#: includes/fs-plugin-info-dialog.php:744
+#: includes/fs-plugin-info-dialog.php:745
 msgid "Install Free Version Update Now"
 msgstr "立即安装免费版本更新"
 
-#: includes/fs-plugin-info-dialog.php745, templates/account.php:656
+#: includes/fs-plugin-info-dialog.php746, templates/account.php:656
 msgid "Install Update Now"
 msgstr "立即安装更新"
 
-#: includes/fs-plugin-info-dialog.php:754
+#: includes/fs-plugin-info-dialog.php:755
 msgid "Install Free Version Now"
 msgstr "立即安装免费版本"
 
-#: includes/fs-plugin-info-dialog.php755, templates/add-ons.php323,
+#: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323,
 #: templates/auto-installation.php111,
 #: templates/account/partials/addon.php370,
 #: templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "立即安装"
 
-#: includes/fs-plugin-info-dialog.php:771
+#: includes/fs-plugin-info-dialog.php:772
 msgctxt "as download latest version"
 msgid "Download Latest Free Version"
 msgstr "下载最新免费版本"
 
-#: includes/fs-plugin-info-dialog.php772, templates/account.php114,
+#: includes/fs-plugin-info-dialog.php773, templates/account.php114,
 #: templates/add-ons.php37, templates/account/partials/addon.php:30
 msgctxt "as download latest version"
 msgid "Download Latest"
 msgstr "下载最新版本"
 
-#: includes/fs-plugin-info-dialog.php787, templates/add-ons.php329,
+#: includes/fs-plugin-info-dialog.php788, templates/add-ons.php329,
 #: templates/account/partials/addon.php361,
 #: templates/account/partials/addon.php:417
 msgid "Activate this add-on"
 msgstr "激活此加载项"
 
-#: includes/fs-plugin-info-dialog.php789, templates/connect.php:446
+#: includes/fs-plugin-info-dialog.php790, templates/connect.php:446
 msgid "Activate Free Version"
 msgstr "激活免费版本"
 
-#: includes/fs-plugin-info-dialog.php790, templates/account.php138,
+#: includes/fs-plugin-info-dialog.php791, templates/account.php138,
 #: templates/add-ons.php330, templates/account/partials/addon.php:53
 msgid "Activate"
 msgstr "激活"
 
-#: includes/fs-plugin-info-dialog.php:1002
+#: includes/fs-plugin-info-dialog.php:1003
 msgctxt "Plugin installer section title"
 msgid "Description"
 msgstr "说明"
 
-#: includes/fs-plugin-info-dialog.php:1003
+#: includes/fs-plugin-info-dialog.php:1004
 msgctxt "Plugin installer section title"
 msgid "Installation"
 msgstr "安装"
 
-#: includes/fs-plugin-info-dialog.php:1004
+#: includes/fs-plugin-info-dialog.php:1005
 msgctxt "Plugin installer section title"
 msgid "FAQ"
 msgstr "常见问题解答"
 
-#: includes/fs-plugin-info-dialog.php1005,
+#: includes/fs-plugin-info-dialog.php1006,
 #: templates/plugin-info/description.php:55
 msgid "Screenshots"
 msgstr "屏幕截图"
 
-#: includes/fs-plugin-info-dialog.php:1006
+#: includes/fs-plugin-info-dialog.php:1007
 msgctxt "Plugin installer section title"
 msgid "Changelog"
 msgstr "变更日志"
 
-#: includes/fs-plugin-info-dialog.php:1007
+#: includes/fs-plugin-info-dialog.php:1008
 msgctxt "Plugin installer section title"
 msgid "Reviews"
 msgstr "评论"
 
-#: includes/fs-plugin-info-dialog.php:1008
+#: includes/fs-plugin-info-dialog.php:1009
 msgctxt "Plugin installer section title"
 msgid "Other Notes"
 msgstr "其他注意事项"
 
-#: includes/fs-plugin-info-dialog.php:1023
+#: includes/fs-plugin-info-dialog.php:1024
 msgctxt "Plugin installer section title"
 msgid "Features & Pricing"
 msgstr "功能和定价"
 
-#: includes/fs-plugin-info-dialog.php:1033
+#: includes/fs-plugin-info-dialog.php:1034
 msgid "Plugin Install"
 msgstr "插件安装"
 
-#: includes/fs-plugin-info-dialog.php:1105
+#: includes/fs-plugin-info-dialog.php:1106
 msgctxt "e.g. Professional Plan"
 msgid "%s Plan"
 msgstr "%s计划"
 
-#: includes/fs-plugin-info-dialog.php:1131
+#: includes/fs-plugin-info-dialog.php:1132
 msgctxt "e.g. the best product"
 msgid "Best"
 msgstr "最好的"
 
-#: includes/fs-plugin-info-dialog.php1137,
-#: includes/fs-plugin-info-dialog.php:1157
+#: includes/fs-plugin-info-dialog.php1138,
+#: includes/fs-plugin-info-dialog.php:1158
 msgctxt "as every month"
 msgid "Monthly"
 msgstr "每月"
 
-#: includes/fs-plugin-info-dialog.php:1140
+#: includes/fs-plugin-info-dialog.php:1141
 msgctxt "as once a year"
 msgid "Annual"
 msgstr "每年"
 
-#: includes/fs-plugin-info-dialog.php:1143
+#: includes/fs-plugin-info-dialog.php:1144
 msgid "Lifetime"
 msgstr "终身"
 
-#: includes/fs-plugin-info-dialog.php1157,
-#: includes/fs-plugin-info-dialog.php1159,
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php1158,
+#: includes/fs-plugin-info-dialog.php1160,
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "e.g. billed monthly"
 msgid "Billed %s"
 msgstr "帐单%s"
 
-#: includes/fs-plugin-info-dialog.php:1159
+#: includes/fs-plugin-info-dialog.php:1160
 msgctxt "as once a year"
 msgid "Annually"
 msgstr "每年"
 
-#: includes/fs-plugin-info-dialog.php:1161
+#: includes/fs-plugin-info-dialog.php:1162
 msgctxt "as once a year"
 msgid "Once"
 msgstr "一次"
 
-#: includes/fs-plugin-info-dialog.php:1167
+#: includes/fs-plugin-info-dialog.php:1168
 msgid "Single Site License"
 msgstr "单站点许可证"
 
-#: includes/fs-plugin-info-dialog.php:1169
+#: includes/fs-plugin-info-dialog.php:1170
 msgid "Unlimited Licenses"
 msgstr "无限许可证"
 
-#: includes/fs-plugin-info-dialog.php:1171
+#: includes/fs-plugin-info-dialog.php:1172
 msgid "Up to %s Sites"
 msgstr "最多%s个站点"
 
-#: includes/fs-plugin-info-dialog.php1181,
+#: includes/fs-plugin-info-dialog.php1182,
 #: templates/plugin-info/features.php:82
 msgctxt "as monthly period"
 msgid "mo"
 msgstr "瞬间"
 
-#: includes/fs-plugin-info-dialog.php1188,
+#: includes/fs-plugin-info-dialog.php1189,
 #: templates/plugin-info/features.php:80
 msgctxt "as annual period"
 msgid "year"
 msgstr "年"
 
-#: includes/fs-plugin-info-dialog.php:1242
+#: includes/fs-plugin-info-dialog.php:1243
 msgctxt "noun"
 msgid "Price"
 msgstr "价格"
 
-#: includes/fs-plugin-info-dialog.php:1290
+#: includes/fs-plugin-info-dialog.php:1291
 msgid "Save %s"
 msgstr "保存%s"
 
-#: includes/fs-plugin-info-dialog.php:1300
+#: includes/fs-plugin-info-dialog.php:1301
 msgid "No commitment for %s - cancel anytime"
 msgstr "%s没有承诺-随时取消"
 
-#: includes/fs-plugin-info-dialog.php:1303
+#: includes/fs-plugin-info-dialog.php:1304
 msgid "After your free %s, pay as little as %s"
 msgstr "免费%s后，只需支付%s"
 
-#: includes/fs-plugin-info-dialog.php:1314
+#: includes/fs-plugin-info-dialog.php:1315
 msgid "Details"
 msgstr "细节"
 
-#: includes/fs-plugin-info-dialog.php1318, templates/account.php125,
+#: includes/fs-plugin-info-dialog.php1319, templates/account.php125,
 #: templates/debug.php232, templates/debug.php269, templates/debug.php514,
 #: templates/account/partials/addon.php:41
 msgctxt "product version"
 msgid "Version"
 msgstr "版本"
 
-#: includes/fs-plugin-info-dialog.php:1325
+#: includes/fs-plugin-info-dialog.php:1326
 msgctxt "as the plugin author"
 msgid "Author"
 msgstr "作者"
 
-#: includes/fs-plugin-info-dialog.php:1332
+#: includes/fs-plugin-info-dialog.php:1333
 msgid "Last Updated"
 msgstr "上次更新时间"
 
-#: includes/fs-plugin-info-dialog.php1337, templates/account.php:544
+#: includes/fs-plugin-info-dialog.php1338, templates/account.php:544
 msgctxt "x-ago"
 msgid "%s ago"
 msgstr "%s以前"
 
-#: includes/fs-plugin-info-dialog.php:1346
+#: includes/fs-plugin-info-dialog.php:1347
 msgid "Requires WordPress Version"
 msgstr "需要WordPress版本"
 
-#: includes/fs-plugin-info-dialog.php:1347
+#: includes/fs-plugin-info-dialog.php1350,
+#: includes/fs-plugin-info-dialog.php:1370
 msgid "%s or higher"
 msgstr "%s或更高"
 
-#: includes/fs-plugin-info-dialog.php:1354
+#: includes/fs-plugin-info-dialog.php:1358
 msgid "Compatible up to"
 msgstr "兼容至"
 
-#: includes/fs-plugin-info-dialog.php:1362
+#: includes/fs-plugin-info-dialog.php:1366
+msgid "Requires PHP Version"
+msgstr "Requires PHP Version"
+
+#: includes/fs-plugin-info-dialog.php:1379
 msgid "Downloaded"
 msgstr "下载"
 
-#: includes/fs-plugin-info-dialog.php:1366
+#: includes/fs-plugin-info-dialog.php:1383
 msgid "%s time"
 msgstr "%s时间"
 
-#: includes/fs-plugin-info-dialog.php:1368
+#: includes/fs-plugin-info-dialog.php:1385
 msgid "%s times"
 msgstr "%年代"
 
-#: includes/fs-plugin-info-dialog.php:1379
+#: includes/fs-plugin-info-dialog.php:1396
 msgid "WordPress.org Plugin Page"
 msgstr "WordPress.org 插件页面"
 
-#: includes/fs-plugin-info-dialog.php:1388
+#: includes/fs-plugin-info-dialog.php:1405
 msgid "Plugin Homepage"
 msgstr "插件主页"
 
-#: includes/fs-plugin-info-dialog.php1397,
-#: includes/fs-plugin-info-dialog.php:1481
+#: includes/fs-plugin-info-dialog.php1414,
+#: includes/fs-plugin-info-dialog.php:1498
 msgid "Donate to this plugin"
 msgstr "捐赠给这个插件"
 
-#: includes/fs-plugin-info-dialog.php:1404
+#: includes/fs-plugin-info-dialog.php:1421
 msgid "Average Rating"
 msgstr "平均评级"
 
-#: includes/fs-plugin-info-dialog.php:1411
+#: includes/fs-plugin-info-dialog.php:1428
 msgid "based on %s"
 msgstr "基于%s"
 
-#: includes/fs-plugin-info-dialog.php:1415
+#: includes/fs-plugin-info-dialog.php:1432
 msgid "%s rating"
 msgstr "%s级"
 
-#: includes/fs-plugin-info-dialog.php:1417
+#: includes/fs-plugin-info-dialog.php:1434
 msgid "%s ratings"
 msgstr "%s评级"
 
-#: includes/fs-plugin-info-dialog.php:1432
+#: includes/fs-plugin-info-dialog.php:1449
 msgid "%s star"
 msgstr "%s星"
 
-#: includes/fs-plugin-info-dialog.php:1434
+#: includes/fs-plugin-info-dialog.php:1451
 msgid "%s stars"
 msgstr "%s星"
 
-#: includes/fs-plugin-info-dialog.php:1446
+#: includes/fs-plugin-info-dialog.php:1463
 msgid "Click to see reviews that provided a rating of %s"
 msgstr "单击此处可查看评分为%s的评论"
 
-#: includes/fs-plugin-info-dialog.php:1459
+#: includes/fs-plugin-info-dialog.php:1476
 msgid "Contributors"
 msgstr "贡献者"
 
-#: includes/fs-plugin-info-dialog.php1489,
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1517
+msgid "This plugin requires a newer version of PHP."
+msgstr "This plugin requires a newer version of PHP."
+
+#: includes/fs-plugin-info-dialog.php:1526
+msgid "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+msgstr "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
+
+#: includes/fs-plugin-info-dialog.php1540,
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "Warning"
 msgstr "警告"
 
-#: includes/fs-plugin-info-dialog.php:1489
+#: includes/fs-plugin-info-dialog.php:1540
 msgid "This plugin has not been tested with your current version of WordPress."
 msgstr "此插件尚未用当前版本的WordPress进行测试。"
 
-#: includes/fs-plugin-info-dialog.php:1491
+#: includes/fs-plugin-info-dialog.php:1542
 msgid "This plugin has not been marked as compatible with your version of WordPress."
 msgstr "此插件尚未标记为与您的WordPress版本兼容。"
 
-#: includes/fs-plugin-info-dialog.php:1510
+#: includes/fs-plugin-info-dialog.php:1561
 msgid "Paid add-on must be deployed to Freemius."
 msgstr "付费附加组件必须部署到Freemius。"
 
-#: includes/fs-plugin-info-dialog.php:1511
+#: includes/fs-plugin-info-dialog.php:1562
 msgid "Add-on must be deployed to WordPress.org or Freemius."
 msgstr "加载项必须部署到WordPress.org或Freemius。"
 
-#: includes/fs-plugin-info-dialog.php:1532
+#: includes/fs-plugin-info-dialog.php:1583
 msgid "Newer Version (%s) Installed"
 msgstr "安装了较新的版本（%s）"
 
-#: includes/fs-plugin-info-dialog.php:1533
+#: includes/fs-plugin-info-dialog.php:1584
 msgid "Newer Free Version (%s) Installed"
 msgstr "已安装较新的免费版本（%s）"
 
-#: includes/fs-plugin-info-dialog.php:1540
+#: includes/fs-plugin-info-dialog.php:1591
 msgid "Latest Version Installed"
 msgstr "已安装最新版本"
 
-#: includes/fs-plugin-info-dialog.php:1541
+#: includes/fs-plugin-info-dialog.php:1592
 msgid "Latest Free Version Installed"
 msgstr "已安装最新的免费版本"
 
