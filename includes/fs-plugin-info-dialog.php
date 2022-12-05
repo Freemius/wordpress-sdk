@@ -1363,7 +1363,7 @@
                             if ( ! empty( $api->requires_php ) ) {
                                 ?>
                                 <li>
-                                    <strong><?php fs_esc_html_echo_inline( 'Requires PHP Version:', 'requires-php-version', $api->slug ); ?>:</strong>
+                                    <strong><?php fs_esc_html_echo_inline( 'Requires PHP Version', 'requires-php-version', $api->slug ); ?>:</strong>
                                     <?php
                                         echo esc_html( sprintf(
                                             /* translators: %s: Version number. */
@@ -1511,10 +1511,10 @@
             list( $wp_version ) = explode( '-', $GLOBALS['wp_version'] );
 
             $compatible_wp  = empty( $requires_wp ) || version_compare( $wp_version, $requires_wp, '>=' );
-            $tested_wp      = ( empty( $api->tested ) || version_compare( get_bloginfo( 'version' ), $api->tested, '<=' ) );
+            $tested_wp      = ( empty( $api->tested ) || version_compare( $wp_version, $api->tested, '<=' ) );
 
             if ( ! $compatible_php ) {
-                echo '<div class="notice notice-error notice-alt"><p><strong>' . fs_text_inline( 'Error', 'error', $api->slug ) . ':</strong>' . fs_text_inline( 'This plugin requires a newer version of PHP.', 'newer-php-required-error', $api->slug );
+                echo '<div class="notice notice-error notice-alt"><p><strong>' . fs_text_inline( 'Error', 'error', $api->slug ) . ':</strong> ' . fs_text_inline( 'This plugin requires a newer version of PHP.', 'newer-php-required-error', $api->slug );
 
                 if ( current_user_can( 'update_php' ) ) {
                     $wp_get_update_php_url = function_exists( 'wp_get_update_php_url' ) ?
