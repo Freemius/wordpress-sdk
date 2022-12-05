@@ -1158,14 +1158,14 @@ if ( !isset($info->error) ) {
         /**
          * @since 2.5.3 If the current WordPress version is a patch of the tested version (e.g., 6.1.2 is a patch of 6.1), then override the tested version with the patch so developers won't need to release a new version just to bump the latest supported WP version.
          *
-         * @param string $tested_up_to
+         * @param string|null $tested_up_to
          *
-         * @return string
+         * @return string|null
          */
         private static function get_tested_wp_version( $tested_up_to ) {
             $current_wp_version = get_bloginfo( 'version' );
 
-            return fs_starts_with( $current_wp_version, $tested_up_to . '.' ) ?
+            return ( ! empty($tested_up_to) && fs_starts_with( $current_wp_version, $tested_up_to . '.' ) ) ?
                 $current_wp_version :
                 $tested_up_to;
         }
