@@ -17972,6 +17972,16 @@
 
             if ( $this->is_registered() ) {
                 return;
+            } else if ( $this->is_anonymous() ) {
+                $this->reset_anonymous_mode( fs_is_network_admin() );
+
+                FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                    'essentials' => true,
+                    'events'     => true,
+                    'diagnostic' => false,
+                    'extensions' => false,
+                    'site'       => false,
+                ) );
             }
 
             if ( ( $this->is_plugin() && fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) ||

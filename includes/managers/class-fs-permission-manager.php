@@ -98,6 +98,15 @@
         }
 
         /**
+         * @since 2.5.3
+         *
+         * @return bool
+         */
+        function is_premium_context() {
+            return ( $this->_fs->is_premium() || $this->_fs->can_use_premium_code() );
+        }
+
+        /**
          * @param bool    $is_license_activation
          * @param array[] $extra_permissions
          *
