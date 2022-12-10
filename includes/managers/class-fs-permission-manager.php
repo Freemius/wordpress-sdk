@@ -439,7 +439,7 @@
          * @return bool
          */
         function is_diagnostic_tracking_allowed( $default = true ) {
-            return $this->_fs->is_premium() ?
+            return $this->is_premium_context() ?
                 $this->is_permission_allowed( self::PERMISSION_DIAGNOSTIC, $default ) :
                 $this->is_permission_allowed( self::PERMISSION_SITE, $default );
         }
@@ -601,7 +601,7 @@
          * @return string
          */
         function get_site_permission_name() {
-            return $this->_fs->is_premium() ?
+            return $this->is_premium_context() ?
                 self::PERMISSION_ESSENTIALS :
                 self::PERMISSION_SITE;
         }
@@ -610,7 +610,7 @@
          * @return string[]
          */
         function get_site_tracking_permission_names() {
-            return $this->_fs->is_premium() ?
+            return $this->is_premium_context() ?
                 array(
                     FS_Permission_Manager::PERMISSION_ESSENTIALS,
                     FS_Permission_Manager::PERMISSION_EVENTS,
