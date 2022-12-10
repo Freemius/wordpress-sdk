@@ -17970,7 +17970,18 @@
 
             if ( $this->is_registered() ) {
                 return;
-            } else if ( $this->is_anonymous() ) {
+            }
+
+            $has_pending_activation_confirmation_param = fs_request_has( 'pending_activation' );
+
+            if (
+                $this->is_anonymous() &&
+                (
+                    ! fs_is_network_admin() ||
+                    ! $this->_is_network_active ||
+                    ! $has_pending_activation_confirmation_param
+                )
+            ) {
                 $this->reset_anonymous_mode( fs_is_network_admin() );
 
                 FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
