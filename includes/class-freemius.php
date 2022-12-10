@@ -18580,6 +18580,14 @@
                 return;
             }
 
+            $permission_ids = FS_Permission_Manager::get_all_permission_ids();
+            $permissions = array();
+            foreach ( $permission_ids as $permission_id ) {
+                $permissions[ $permission_id ] = FS_Permission_Manager::instance( $parent_fs )->is_permission( $permission_id, true );
+            }
+
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( $permissions );
+
             /**
              * Do not override the `uid` if network-level opt-in since the call to `get_sites_for_network_level_optin()`
              * already returns the data for the current blog.
