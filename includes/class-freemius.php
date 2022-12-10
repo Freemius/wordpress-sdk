@@ -6021,14 +6021,13 @@
                 $this->do_action( 'after_free_version_reactivation' );
 
                 if ( $this->is_paying() && ! $this->is_premium() ) {
-                    $this->_admin_notices->add_sticky(
+                    $this->add_complete_upgrade_instructions_notice(
                         sprintf(
                         /* translators: %s: License type (e.g. you have a professional license) */
                             $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
                             $this->get_plan_title()
                         ) . $this->get_complete_upgrade_instructions(),
-                        'plan_upgraded',
-                        $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                        'plan_upgraded'
                     );
                 }
             }
@@ -17880,24 +17879,23 @@
                      ! $this->has_settings_menu()
                 ) {
                     if ( $this->is_paying() ) {
-                        $this->_admin_notices->add_sticky(
+                        $this->add_complete_upgrade_instructions_notice(
                             sprintf(
                                 $this->get_text_inline( 'Your account was successfully activated with the %s plan.', 'activation-with-plan-x-message' ),
                                 $this->get_plan_title()
-                            ) . $this->get_complete_upgrade_instructions(),
-                            'plan_upgraded',
-                            $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                            ),
+                            'plan_upgraded'
                         );
                     } else {
                         $trial_plan = $this->get_trial_plan();
 
-                        $this->_admin_notices->add_sticky(
+                        $this->add_complete_upgrade_instructions_notice(
                             sprintf(
                                 $this->get_text_inline( 'Your trial has been successfully started.', 'trial-started-message' ),
                                 '<i>' . $this->get_plugin_name() . '</i>'
-                            ) . $this->get_complete_upgrade_instructions( $trial_plan->title ),
+                            ),
                             'trial_started',
-                            $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                            $trial_plan->title
                         );
                     }
                 }
@@ -18289,6 +18287,8 @@
             $is_pending_trial = false,
             $is_suspicious_email = false
         ) {
+            $is_network_admin = fs_is_network_admin();
+
             if ( $this->_ignore_pending_mode ) {
                 /**
                  * If explicitly asked to ignore pending mode, set to anonymous mode
@@ -18297,12 +18297,16 @@
                  * @author Vova Feldman
                  * @since  1.2.1.6
                  */
-                $this->skip_connection( fs_is_network_admin() );
+                $this->skip_connection( $is_network_admin );
             } else {
-                // Install must be activated via email since
-                // user with the same email already exist.
-                $this->_storage->is_pending_activation = true;
-                $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
+                if ( $is_network_admin && $this->_is_network_active ) {
+                    $this->add_after_plan_activation_or_upgrade_instructions_notice();
+                } else {
+                    // Install must be activated via email since
+                    // user with the same email already exist.
+                    $this->_storage->is_pending_activation = true;
+                    $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
+                }
             }
 
             if ( ! empty( $license_key ) ) {
@@ -21739,14 +21743,7 @@
                         break;
                     case 'upgraded':
                     case 'activated':
-                        $this->_admin_notices->add_sticky(
-                            ( 'activated' === $plan_change ) ?
-                                $this->get_text_inline( 'Your plan was successfully activated.', 'plan-activated-message' ) :
-                                $this->get_text_inline( 'Your plan was successfully upgraded.', 'plan-upgraded-message' ) .
-                            $this->get_complete_upgrade_instructions(),
-                            'plan_upgraded',
-                            $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
-                        );
+                        $this->add_after_plan_activation_or_upgrade_instructions_notice( 'upgraded' === $plan_change );
 
                         $this->_admin_notices->remove_sticky( array(
                             'trial_started',
@@ -21808,13 +21805,13 @@
                         $this->_admin_notices->remove_sticky( 'plan_upgraded' );
                         break;
                     case 'trial_started':
-                        $this->_admin_notices->add_sticky(
+                        $this->add_complete_upgrade_instructions_notice(
                             sprintf(
                                 $this->get_text_inline( 'Your trial has been successfully started.', 'trial-started-message' ),
                                 '<i>' . $this->get_plugin_name() . '</i>'
-                            ) . $this->get_complete_upgrade_instructions( $this->get_trial_plan()->title ),
+                            ),
                             'trial_started',
-                            $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                            $this->get_trial_plan()->title
                         );
 
                         $this->_admin_notices->remove_sticky( array(
@@ -21982,11 +21979,9 @@
             }
 
             if ( ! $background ) {
-                $this->_admin_notices->add_sticky(
-                    $this->get_text_inline( 'Your license was successfully activated.', 'license-activated-message' ) .
-                    $this->get_complete_upgrade_instructions(),
-                    'license_activated',
-                    $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+                $this->add_complete_upgrade_instructions_notice(
+                    $this->get_text_inline( 'Your license was successfully activated.', 'license-activated-message' ),
+                    'license_activated'
                 );
             }
 
@@ -24974,6 +24969,42 @@
                     $this->get_text_inline( 'How to upload and activate?', 'howto-upload-activate' )
                 );
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.3
+         *
+         * @param string $message_before_the_instructions
+         * @param string $message_id
+         * @param string $plan_title
+         */
+        private function add_complete_upgrade_instructions_notice(
+            $message_before_the_instructions,
+            $message_id,
+            $plan_title = ''
+        ) {
+            $this->_admin_notices->add_sticky(
+                $message_before_the_instructions .
+                $this->get_complete_upgrade_instructions( $plan_title ),
+                $message_id,
+                $this->get_text_x_inline( 'Yee-haw', 'interjection expressing joy or exuberance', 'yee-haw' ) . '!'
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.3
+         *
+         * @param bool $is_upgrade
+         */
+        private function add_after_plan_activation_or_upgrade_instructions_notice( $is_upgrade = true ) {
+            $this->add_complete_upgrade_instructions_notice(
+                $is_upgrade ?
+                    $this->get_text_inline( 'Your plan was successfully upgraded.', 'plan-upgraded-message' ) :
+                    $this->get_text_inline( 'Your plan was successfully activated.', 'plan-activated-message' ),
+                'plan_upgraded'
+            );
         }
 
         /**
