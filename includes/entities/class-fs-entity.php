@@ -24,7 +24,7 @@
 		return get_object_vars( $object );
 	}
 
-	class FS_Entity {
+	class FS_Entity implements Serializable {
 		/**
 		 * @var number
 		 */
@@ -156,4 +156,51 @@
         public static function get_class_name() {
             return get_called_class();
         }
-	}
+
+        #--------------------------------------------------------------------------------
+        #region Serializable
+        #--------------------------------------------------------------------------------
+
+        /**
+         * @inheritDoc
+         */
+        public function serialize() {
+            $entity = fs_get_object_public_vars( $this );
+
+            $compressed = new stdClass();
+            foreach ( $entity as $p => $v ) {
+                if ( ! is_null( $v ) ) {
+                    $compressed->{$p} = $v;
+                }
+            }
+
+            return json_encode( $compressed );
+        }
+
+        /**
+         * @inheritDoc
+         */
+        public function unserialize( $data ) {
+            if ( is_serialized( $data ) ) {
+                // Backward compatibility.
+                return unserialize( $data );
+            }
+
+            $class_name = get_called_class();
+            $entity     = new $class_name();
+
+            $compressed = json_decode( $data, true );
+
+            if ( ! empty( $compressed ) ) {
+                foreach ( $compressed as $p => $v ) {
+                    if ( property_exists( $entity, $p ) ) {
+                        $entity->{$p} = $v;
+                    }
+                }
+            }
+
+            return $entity;
+        }
+
+        #endregion
+    }
