@@ -15,14 +15,6 @@
 		#region Properties
 
 		/**
-		 * @var int
-		 */
-		public $entity_id;
-		/**
-		 * @var string (Enum) Linked entity type. One of: developer, plugin, user, install
-		 */
-		public $entity_type;
-		/**
 		 * @var string
 		 */
 		public $business_name;
@@ -63,10 +55,6 @@
 		 */
 		public $address_city;
 		/**
-		 * @var string
-		 */
-		public $address_country;
-		/**
 		 * @var string Two chars country code.
 		 */
 		public $address_country_code;
@@ -75,7 +63,7 @@
 		 */
 		public $address_state;
 		/**
-		 * @var number Numeric ZIP code (cab be with leading zeros).
+		 * @var number Numeric ZIP code (can be with leading zeros).
 		 */
 		public $address_zip;
 

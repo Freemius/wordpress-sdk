@@ -30,14 +30,6 @@
 		 * @var bool
 		 */
 		public $is_verified;
-		/**
-		 * @var string|null
-		 */
-		public $customer_id;
-		/**
-		 * @var float
-		 */
-		public $gross;
 
 		#endregion Properties
 

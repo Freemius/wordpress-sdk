@@ -31,33 +31,9 @@
          */
         public $license_id;
         /**
-         * @var float
-         */
-        public $total_gross;
-        /**
-         * @var float
-         */
-        public $amount_per_cycle;
-        /**
          * @var int # of months
          */
         public $billing_cycle;
-        /**
-         * @var float
-         */
-        public $outstanding_balance;
-        /**
-         * @var int
-         */
-        public $failed_payments;
-        /**
-         * @var string
-         */
-        public $gateway;
-        /**
-         * @var string
-         */
-        public $external_id;
         /**
          * @var string|null
          */
@@ -72,14 +48,6 @@
          * @var string|null Datetime of the cancellation.
          */
         public $canceled_at;
-        /**
-         * @var string|null
-         */
-        public $vat_id;
-        /**
-         * @var string Two characters country code
-         */
-        public $country_code;
 
         #endregion Properties
 

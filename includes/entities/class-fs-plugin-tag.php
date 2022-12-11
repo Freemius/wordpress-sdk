@@ -32,14 +32,6 @@
          */
         public $tested_up_to_version;
         /**
-         * @var bool
-         */
-        public $has_free;
-        /**
-         * @var bool
-         */
-        public $has_premium;
-        /**
          * @var string One of the following: `pending`, `beta`, `unreleased`.
          */
         public $release_mode;
