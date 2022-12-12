@@ -7298,31 +7298,65 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.7
          *
-         * @param bool|string $email
+         * @param bool|string $email_address
          * @param bool        $is_pending_trial Since 1.2.1.5
          * @param bool        $is_suspicious_email Since 2.5.0 Set to true when there's an indication that email address the user opted in with is fake/dummy/placeholder.
+         * @param bool        $has_upgrade_context Since 2.5.3
+         * @param bool        $support_email_address Since 2.5.3
          */
         function _add_pending_activation_notice(
-            $email = false,
+            $email_address = false,
             $is_pending_trial = false,
-            $is_suspicious_email = false
+            $is_suspicious_email = false,
+            $has_upgrade_context = false,
+            $support_email_address = false
         ) {
-            if ( ! is_string( $email ) ) {
-                $current_user = self::_get_current_wp_user();
-                $email        = $current_user->user_email;
+            if ( ! is_string( $email_address ) ) {
+                $current_user  = self::_get_current_wp_user();
+                $email_address = $current_user->user_email;
+            }
+
+            $formatted_message_args = array(
+                '<b>' . $this->get_plugin_name() . '</b>',
+                '<b>' . $email_address . '</b>',
+            );
+
+            if ( ! $has_upgrade_context || ! fs_is_network_admin() ) {
+                $formatted_message = $this->get_text_inline( 'You should receive a confirmation email for %1$s to your mailbox at %2$s. Please make sure you click the button in that email to %3$s.', 'pending-activation-message' );
+
+                $formatted_message_args[] = $is_pending_trial ?
+                    $this->get_text_inline( 'start the trial', 'start-the-trial' ) :
+                    $this->get_text_inline( 'complete the opt-in', 'complete-the-opt-in' );
+            } else {
+                /* translators: %5$s: <b><a href="%s">Click here</a></b> to activate the license once you get it. */
+                $formatted_message = $this->get_text_inline( 'You should receive %4$s for %1$s to your mailbox at %2$s in the next 5 minutes. %5$sIf you didn\'t get the email, try checking your spam folder or search for emails from %3$s.', 'license-key-sent-message' );
+
+                $formatted_message_args[] = ( ! empty( $support_email_address ) ) ?
+                    ( '<b>' . $support_email_address . '</b>' ) :
+                    $this->get_text_inline( "the product's support email address", 'product-support-email-address-text' );
+
+                if ( $this->has_release_on_freemius() ) {
+                    $formatted_message_args[] = $this->get_text_inline( 'the installation instructions', 'the-installation-instructions' );
+                    $formatted_message_args[] = '';
+                } else {
+                    $formatted_message_args[] = $this->get_text_inline( 'a license key', 'a-license-key' );
+
+                    /* translators: %s: Activation URL. */
+                    $formatted_message_args[] = sprintf(
+                        $this->get_text_inline( '%s to activate the license once you get it.', 'license-activation-link-message' ),
+                        sprintf(
+                            '<b><a href="%s">%s</a></b>',
+                            $this->get_reconnect_url(),
+                            $this->get_text_inline( 'Click here', 'click-here' )
+                        )
+                    );
+                }
             }
 
             $this->_admin_notices->add_sticky(
-                sprintf(
-                    $this->get_text_inline( 'You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s.', 'pending-activation-message' ),
-                    '<b>' . $this->get_plugin_name() . '</b>',
-                    '<b>' . $email . '</b>',
-                    ( $is_pending_trial ?
-                        $this->get_text_inline( 'start the trial', 'start-the-trial' ) :
-                        $this->get_text_inline( 'complete the opt-in', 'complete-the-opt-in' ) )
-                ),
+                vsprintf( $formatted_message, $formatted_message_args ),
                 'activation_pending',
-                'Thanks!'
+                'Thanks for upgrading.'
             );
         }
 
@@ -9057,7 +9091,13 @@
                 return;
             }
 
-            $this->reset_anonymous_mode( fs_is_network_admin() );
+            $is_network_admin = fs_is_network_admin();
+
+            $this->reset_anonymous_mode( $is_network_admin );
+
+            if ( $this->is_pending_activation() ) {
+                $this->clear_pending_activation_mode();
+            }
 
             $this->maybe_set_slug_and_network_menu_exists_flag();
 
@@ -18029,13 +18069,15 @@
                             fs_request_get_bool( 'auto_install' )
                         );
                     }
-                } else if ( fs_request_has( 'pending_activation' ) ) {
+                } else if ( $has_pending_activation_confirmation_param ) {
                     $this->set_pending_confirmation(
                         fs_request_get( 'user_email' ),
                         true,
                         false,
                         false,
-                        fs_request_get_bool( 'is_suspicious_email' )
+                        fs_request_get_bool( 'is_suspicious_email' ),
+                        fs_request_get_bool( 'has_upgrade_context' ),
+                        fs_request_get( 'support_email_address' )
                     );
                 }
             }
@@ -18288,6 +18330,9 @@
          * @param bool        $redirect
          * @param string|bool $license_key      Since 1.2.1.5
          * @param bool        $is_pending_trial Since 1.2.1.5
+         * @param bool        $is_suspicious_email Since 2.5.0
+         * @param bool        $has_upgrade_context Since 2.5.3
+         * @param bool        $support_email_address Since 2.5.3
          *
          * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
          */
@@ -18296,11 +18341,13 @@
             $redirect = true,
             $license_key = false,
             $is_pending_trial = false,
-            $is_suspicious_email = false
+            $is_suspicious_email = false,
+            $has_upgrade_context = false,
+            $support_email_address = false
         ) {
             $is_network_admin = fs_is_network_admin();
 
-            if ( $this->_ignore_pending_mode ) {
+            if ( $this->_ignore_pending_mode && ! $has_upgrade_context && ! $is_network_admin ) {
                 /**
                  * If explicitly asked to ignore pending mode, set to anonymous mode
                  * if require confirmation before finalizing the opt-in.
@@ -18310,14 +18357,16 @@
                  */
                 $this->skip_connection( $is_network_admin );
             } else {
-                if ( $is_network_admin && $this->_is_network_active ) {
-                    $this->add_after_plan_activation_or_upgrade_instructions_notice();
-                } else {
-                    // Install must be activated via email since
-                    // user with the same email already exist.
-                    $this->_storage->is_pending_activation = true;
-                    $this->_add_pending_activation_notice( $email, $is_pending_trial, $is_suspicious_email );
-                }
+                // Install must be activated via email since
+                // user with the same email already exist.
+                $this->_storage->is_pending_activation = true;
+                $this->_add_pending_activation_notice(
+                    $email,
+                    $is_pending_trial,
+                    $is_suspicious_email,
+                    $has_upgrade_context,
+                    $support_email_address
+                );
             }
 
             if ( ! empty( $license_key ) ) {
