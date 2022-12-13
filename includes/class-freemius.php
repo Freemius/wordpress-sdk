@@ -1536,13 +1536,17 @@
             add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
-             * Handle request to reset anonymous mode for `get_reconnect_url()`.
+             * Handle request to reset anonymous mode for `get_reconnect_url()` or reset the pending activation mode.
              *
              * @author Vova Feldman (@svovaf)
              * @since  1.2.1.5
              */
-            if ( fs_request_is_action( 'reset_anonymous_mode' ) &&
-                 $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
+            if (
+                (
+                    fs_request_is_action( 'reset_anonymous_mode' ) ||
+                    fs_request_is_action( 'reset_pending_activation_mode' )
+                ) &&
+                $this->get_unique_affix() === fs_request_get( 'fs_unique_affix' )
             ) {
                 add_action( 'admin_init', array( &$this, 'connect_again' ) );
             }
@@ -6026,7 +6030,7 @@
                         /* translators: %s: License type (e.g. you have a professional license) */
                             $this->get_text_inline( 'You have a %s license.', 'you-have-x-license' ),
                             $this->get_plan_title()
-                        ) . $this->get_complete_upgrade_instructions(),
+                        ),
                         'plan_upgraded'
                     );
                 }
@@ -7317,46 +7321,67 @@
             }
 
             $formatted_message_args = array(
-                '<b>' . $this->get_plugin_name() . '</b>',
-                '<b>' . $email_address . '</b>',
+                "<b>{$this->get_plugin_name()}</b>",
+                "<b>{$email_address}</b>",
             );
 
             if ( ! $has_upgrade_context || ! fs_is_network_admin() ) {
+                /* translators: %3$s: action (e.g.: "start the trial" or "complete the opt-in") */
                 $formatted_message = $this->get_text_inline( 'You should receive a confirmation email for %1$s to your mailbox at %2$s. Please make sure you click the button in that email to %3$s.', 'pending-activation-message' );
 
                 $formatted_message_args[] = $is_pending_trial ?
                     $this->get_text_inline( 'start the trial', 'start-the-trial' ) :
                     $this->get_text_inline( 'complete the opt-in', 'complete-the-opt-in' );
-            } else {
-                /* translators: %5$s: <b><a href="%s">Click here</a></b> to activate the license once you get it. */
-                $formatted_message = $this->get_text_inline( 'You should receive %4$s for %1$s to your mailbox at %2$s in the next 5 minutes. %5$sIf you didn\'t get the email, try checking your spam folder or search for emails from %3$s.', 'license-key-sent-message' );
 
-                $formatted_message_args[] = ( ! empty( $support_email_address ) ) ?
-                    ( '<b>' . $support_email_address . '</b>' ) :
-                    $this->get_text_inline( "the product's support email address", 'product-support-email-address-text' );
+                $notice_title = $this->get_text_inline( 'Thanks!', 'thanks' );
+            } else {
+                /* translators: %3$s: What the user is expected to receive via email (e.g.: "the installation instructions" or "a license key") */
+                $formatted_message = $this->get_text_inline( 'You should receive %3$s for %1$s to your mailbox at %2$s in the next 5 minutes.' );
 
                 if ( $this->has_release_on_freemius() ) {
-                    $formatted_message_args[] = $this->get_text_inline( 'the installation instructions', 'the-installation-instructions' );
-                    $formatted_message_args[] = '';
+                    $formatted_message_args[] = $this->get_text_x_inline(
+                        'the installation instructions',
+                        'Part of the message telling the user what they should receive via email.',
+                        'the-installation-instructions-phrase'
+                    );
                 } else {
-                    $formatted_message_args[] = $this->get_text_inline( 'a license key', 'a-license-key' );
+                    $formatted_message_args[] = $this->get_text_x_inline(
+                        'a license key',
+                        'Part of the message telling the user what they should receive via email.',
+                        'a-license-key-phrase'
+                    );
 
-                    /* translators: %s: Activation URL. */
-                    $formatted_message_args[] = sprintf(
+                    $formatted_message .= ( ' ' . sprintf(
+                        /* translators: %s: activation link (e.g.: <a>Click here</a>) */
                         $this->get_text_inline( '%s to activate the license once you get it.', 'license-activation-link-message' ),
                         sprintf(
                             '<b><a href="%s">%s</a></b>',
-                            $this->get_reconnect_url(),
-                            $this->get_text_inline( 'Click here', 'click-here' )
+                            $this->get_activation_url( array(
+                                'fs_action'       => 'reset_pending_activation_mode',
+                                'fs_unique_affix' => $this->get_unique_affix(),
+                            ) ),
+                            $this->get_text_x_inline( 'Click here', 'Part of an activation link message.', 'click-here' )
                         )
-                    );
+                    ) );
                 }
+
+                $formatted_message_args[] = ( ! empty( $support_email_address ) ) ?
+                    ( "<b>{$support_email_address}</b>" ) :
+                    $this->get_text_x_inline(
+                        "the product's support email address",
+                        'Part of the message that tells the user to check their spam folder for a specific email.',
+                        'product-support-email-address-phrase'
+                    );
+
+                $formatted_message .= ( ' ' . $this->get_text_inline( 'If you didn\'t get the email, try checking your spam folder or search for emails from %4$s.', 'check-spam-folder-message' ) );
+
+                $notice_title = $this->get_text_inline( 'Thanks for upgrading.', 'after-upgrade-thank-you-message' );
             }
 
             $this->_admin_notices->add_sticky(
                 vsprintf( $formatted_message, $formatted_message_args ),
                 'activation_pending',
-                'Thanks for upgrading.'
+                $notice_title
             );
         }
 
@@ -9087,13 +9112,13 @@
          * @since  1.1.7
          */
         function connect_again() {
-            if ( ! $this->is_anonymous() ) {
+            if ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) {
                 return;
             }
 
-            $is_network_admin = fs_is_network_admin();
-
-            $this->reset_anonymous_mode( $is_network_admin );
+            if ( $this->is_anonymous() ) {
+                $this->reset_anonymous_mode( fs_is_network_admin() );
+            }
 
             if ( $this->is_pending_activation() ) {
                 $this->clear_pending_activation_mode();
@@ -18014,15 +18039,10 @@
 
             $has_pending_activation_confirmation_param = fs_request_has( 'pending_activation' );
 
-            if (
-                $this->is_anonymous() &&
-                (
-                    ! fs_is_network_admin() ||
-                    ! $this->_is_network_active ||
-                    ! $has_pending_activation_confirmation_param
-                )
-            ) {
-                $this->reset_anonymous_mode( fs_is_network_admin() );
+            $fs_is_network_admin = fs_is_network_admin();
+
+            if ( $this->is_anonymous() ) {
+                $this->reset_anonymous_mode( $fs_is_network_admin );
 
                 FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
                     'essentials' => true,
@@ -18040,7 +18060,7 @@
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
                 if ( fs_request_has( 'user_secret_key' ) ) {
-                    if ( fs_is_network_admin() && isset( $this->_storage->pending_sites_info ) ) {
+                    if ( $fs_is_network_admin && isset( $this->_storage->pending_sites_info ) ) {
                         $pending_sites_info = $this->_storage->pending_sites_info;
 
                         $this->install_many_pending_with_user(
@@ -18347,10 +18367,10 @@
         ) {
             $is_network_admin = fs_is_network_admin();
 
-            if ( $this->_ignore_pending_mode && ! $has_upgrade_context && ! $is_network_admin ) {
+            if ( $this->_ignore_pending_mode && ! $has_upgrade_context ) {
                 /**
                  * If explicitly asked to ignore pending mode, set to anonymous mode
-                 * if require confirmation before finalizing the opt-in.
+                 * if require confirmation before finalizing the opt-in except after completing a purchase (otherwise, in this case, they wouldn't see any notice telling them that they should receive their license key via email).
                  *
                  * @author Vova Feldman
                  * @since  1.2.1.6
