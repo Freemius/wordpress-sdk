@@ -18352,7 +18352,7 @@
          * @param bool        $is_pending_trial Since 1.2.1.5
          * @param bool        $is_suspicious_email Since 2.5.0
          * @param bool        $has_upgrade_context Since 2.5.3
-         * @param bool        $support_email_address Since 2.5.3
+         * @param bool|string $support_email_address Since 2.5.3
          *
          * @return string Since 1.2.1.5 if $redirect is `false`, return the pending activation page.
          */
