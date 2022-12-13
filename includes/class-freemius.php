@@ -7358,6 +7358,7 @@
                             '<b><a href="%s">%s</a></b>',
                             $this->get_activation_url( array(
                                 'fs_action'       => 'reset_pending_activation_mode',
+                                'require_license' => 'true',
                                 'fs_unique_affix' => $this->get_unique_affix(),
                             ) ),
                             $this->get_text_x_inline( 'Click here', 'Part of an activation link message.', 'click-here' )
@@ -9120,13 +9121,19 @@
                 $this->reset_anonymous_mode( fs_is_network_admin() );
             }
 
+            $activation_url_params = array();
+
             if ( $this->is_pending_activation() ) {
                 $this->clear_pending_activation_mode();
+
+                if ( fs_request_get_bool( 'require_license' ) ) {
+                    $activation_url_params['require_license'] = true;
+                }
             }
 
             $this->maybe_set_slug_and_network_menu_exists_flag();
 
-            fs_redirect( $this->get_activation_url() );
+            fs_redirect( $this->get_activation_url( $activation_url_params ) );
         }
 
         /**
