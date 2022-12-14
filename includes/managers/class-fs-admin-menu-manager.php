@@ -956,7 +956,7 @@
 		) {
 			$fn = 'add_submenu' . '_page';
 
-			return $fn( $parent_slug,
+			return $fn( $parent_slug ?? '',
 				$page_title,
 				$menu_title,
 				$capability,
