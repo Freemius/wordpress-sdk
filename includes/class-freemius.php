@@ -3652,7 +3652,7 @@
             } else {
                 // Add hidden debug page.
                 $hook = FS_Admin_Menu_Manager::add_subpage(
-                    null,
+                    '',
                     $title,
                     $title,
                     'manage_options',
