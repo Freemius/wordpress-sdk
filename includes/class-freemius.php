@@ -4970,6 +4970,31 @@
 
             $this->register_after_settings_parse_hooks();
 
+            if ( $this->is_anonymous() ) {
+                $is_network_level = ( $this->_is_network_active && fs_is_network_admin() );
+
+                if (
+                    ! $is_network_level ||
+                    FS_Site::is_valid_id( $this->_storage->network_install_blog_id )
+                 ) {
+                    if ( $this->is_paying_or_trial() ) {
+                        $this->reset_anonymous_mode( $is_network_level );
+                    }
+                } else {
+                    $network = get_network();
+
+                    if ( is_object( $network ) ) {
+                        $main_blog_id  = $network->site_id;
+                        $first_install = $this->get_install_by_blog_id( $main_blog_id );
+
+                        if ( is_object( $first_install ) ) {
+                            $this->_storage->network_install_blog_id = $main_blog_id;
+                            $this->_storage->network_user_id         = $first_install->user_id;
+                        }
+                    }
+                }
+            }
+
             if ( $this->should_stop_execution() ) {
                 return;
             }
@@ -11841,7 +11866,7 @@
         function is_trial() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_registered() || ! is_object( $this->_site ) ) {
+            if ( ! $this->is_registered( true ) || ! is_object( $this->_site ) ) {
                 return false;
             }
 
@@ -11955,7 +11980,7 @@
         function is_paying() {
             $this->_logger->entrance();
 
-            if ( ! $this->is_registered() ) {
+            if ( ! $this->is_registered( true ) ) {
                 return false;
             }
 
