@@ -4970,6 +4970,11 @@
 
             $this->register_after_settings_parse_hooks();
 
+            /**
+             * If anonymous but there's already a user entity and the user's site is associated with a valid license or trial period, update the anonymous mode accordingly.
+             *
+             * @todo Remove this entire `if` block after several releases as starting from this version, the anonymous mode will already be updated accordingly after a purchase.
+             */
             if ( $this->is_anonymous() ) {
                 $is_network_level = ( $this->_is_network_active && fs_is_network_admin() );
 
