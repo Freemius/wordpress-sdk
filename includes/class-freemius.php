@@ -6412,7 +6412,7 @@
                 return false;
             }
 
-            return $is_anonymous_ms['is'];
+            return $is_anonymous_ms['is'] ?? false;
         }
 
         /**
