@@ -9120,6 +9120,26 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.3
+         */
+        private function update_license_required_permissions_if_anonymous() {
+            if ( ! $this->is_anonymous() ) {
+                return;
+            }
+
+            $this->reset_anonymous_mode( fs_is_network_admin() );
+
+            FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
+                'essentials' => true,
+                'events'     => true,
+                'diagnostic' => false,
+                'extensions' => false,
+                'site'       => false,
+            ) );
+        }
+
+        /**
          * This is used to ensure that before redirecting to the opt-in page after resetting the anonymous mode or
          * deleting the account in the network level, the URL of the page to redirect to is correct.
          *
@@ -18076,19 +18096,7 @@
 
             $has_pending_activation_confirmation_param = fs_request_has( 'pending_activation' );
 
-            $fs_is_network_admin = fs_is_network_admin();
-
-            if ( $this->is_anonymous() ) {
-                $this->reset_anonymous_mode( $fs_is_network_admin );
-
-                FS_Permission_Manager::instance( $this )->update_permissions_tracking_flag( array(
-                    'essentials' => true,
-                    'events'     => true,
-                    'diagnostic' => false,
-                    'extensions' => false,
-                    'site'       => false,
-                ) );
-            }
+            $this->update_license_required_permissions_if_anonymous();
 
             if ( ( $this->is_plugin() && fs_request_is_action( $this->get_unique_affix() . '_activate_new' ) ) ||
                  // @todo This logic should be improved because it's executed on every load of a theme.
@@ -18097,7 +18105,7 @@
 //				check_admin_referer( $this->_slug . '_activate_new' );
 
                 if ( fs_request_has( 'user_secret_key' ) ) {
-                    if ( $fs_is_network_admin && isset( $this->_storage->pending_sites_info ) ) {
+                    if ( fs_is_network_admin() && isset( $this->_storage->pending_sites_info ) ) {
                         $pending_sites_info = $this->_storage->pending_sites_info;
 
                         $this->install_many_pending_with_user(
@@ -18954,6 +18962,8 @@
 
             // Sync add-on plans.
             $parent_fs->_sync_plans();
+
+            $parent_fs->update_license_required_permissions_if_anonymous();
 
             $parent_fs->_set_account( $user, $parent_fs->_site );
         }
