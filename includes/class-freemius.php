@@ -15011,7 +15011,7 @@
         private function get_plugin_id_for_affiliate_terms() {
             return $this->has_bundle_context() ?
                 $this->get_bundle_id() :
-                $this->_plugin_id;
+                $this->_plugin->id;
         }
 
         /**
