@@ -104,6 +104,11 @@
          * @var null|string
          */
         public $bundle_public_key;
+        /**
+         * @since 2.5.3
+         * @var null|array
+         */
+        public $moderation;
 
         const AFFILIATE_MODERATION_CUSTOMERS = 'customers';
 

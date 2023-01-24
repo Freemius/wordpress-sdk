@@ -126,18 +126,10 @@
     /* translators: %s: name (e.g. Hey John,) */
     $hey_x_text = esc_html( sprintf( fs_text_x_inline( 'Hey %s,', 'greeting', 'hey-x', $slug ), $first_name ) );
 
-    $is_gdpr_required = ( ! $is_pending_activation && ! $require_license_key ) ?
-	    FS_GDPR_Manager::instance()->is_required() :
-        false;
-
-    if ( is_null( $is_gdpr_required ) ) {
-        $is_gdpr_required = $fs->fetch_and_store_current_user_gdpr_anonymously();
-    }
-
     $activation_state = array(
         'is_license_activation'       => $require_license_key,
         'is_pending_activation'       => $is_pending_activation,
-        'is_gdpr_required'            => $is_gdpr_required,
+        'is_gdpr_required'            => true,
         'is_network_level_activation' => $is_network_level_activation,
         'is_dialog'                   => $is_optin_dialog,
     );
@@ -238,11 +230,13 @@
                         $filter = 'connect_message';
 
 						if ( ! $fs->is_plugin_update() ) {
-                            $default_optin_message = esc_html( sprintf( ( $is_gdpr_required ?
-                                /* translators: %s: module type (plugin, theme, or add-on) */
-                                fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message', $slug ) :
-                                /* translators: %s: module type (plugin, theme, or add-on) */
-                                fs_text_inline( 'Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message', $slug ) ), $fs->get_module_label( true ) ) );
+                            $default_optin_message = esc_html(
+                                sprintf(
+                                    /* translators: %s: module type (plugin, theme, or add-on) */
+                                    fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message', $slug ),
+                                    $fs->get_module_label( true )
+                                )
+                            );
                         } else {
 							// If Freemius was added on a plugin update, set different
 							// opt-in message.
@@ -250,9 +244,7 @@
                             /* translators: %s: module type (plugin, theme, or add-on) */
                             $default_optin_message = esc_html( sprintf( fs_text_inline( 'We have introduced this opt-in so you never miss an important update and help us make the %s more compatible with your site and better at doing what you need it to.', 'connect-message_on-update_why' ), $fs->get_module_label( true ) ) );
 
-							$default_optin_message .= '<br><br>' . esc_html( $is_gdpr_required ?
-								fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info.', 'connect-message_on-update', $slug ) :
-								fs_text_inline( 'Opt in to get email notifications for security & feature updates, and to share some basic WordPress environment info.', 'connect-message_on-update', $slug ) );
+							$default_optin_message .= '<br><br>' . esc_html( fs_text_inline( 'Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info.', 'connect-message_on-update', $slug ) );
 
                             if ( $fs->is_enable_anonymous() ) {
                                 $default_optin_message .= ' ' . esc_html( fs_text_inline( 'If you skip this, that\'s okay! %1$s will still work just fine.', 'connect-message_on-update_skip', $slug ) );
@@ -280,7 +272,7 @@
 							$current_user->user_login,
 							'<a href="' . $site_url . '" target="_blank" rel="noopener noreferrer">' . $site_url . '</a>',
 							$freemius_link,
-							$is_gdpr_required
+							true
 						);
 					}
 
@@ -414,10 +406,7 @@
 			// Set core permission list items.
 			$permissions = array();
 
-			// Add newsletter permissions if enabled.
-			if ( $is_gdpr_required || $fs->is_permission_requested( 'newsletter' ) ) {
-				$permissions[] = $permission_manager->get_newsletter_permission();
-			}
+            $permissions[] = $permission_manager->get_newsletter_permission();
 
             $permissions = $permission_manager->get_permissions(
                 $require_license_key,

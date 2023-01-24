@@ -4073,6 +4073,49 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.3
+         *
+         * @param bool $is_update
+         *
+         * @return bool
+         */
+        private function should_turn_fs_on( $is_update = true ) {
+            if ( empty( $this->_plugin->moderation ) ) {
+                return true;
+            }
+
+            $optin_config = $this->_plugin->moderation['opt_in'];
+
+            if (
+                WP_FS__IS_LOCALHOST_FOR_SERVER &&
+                ( empty( $optin_config['localhost'] ) || true === $optin_config['localhost'] )
+            ) {
+                return true;
+            }
+
+            $visibility = $is_update ?
+                $optin_config['updates'] :
+                $optin_config['new'];
+
+            if (
+                empty( $visibility ) ||
+                true === $visibility ||
+                ! is_numeric( $visibility )
+            ) {
+                return true;
+            }
+
+            if ( function_exists( 'random_int' ) ) {
+                $random = random_int( 1, 100 );
+            } else {
+                $random = rand( 1, 7 );
+            }
+
+            return ( $random <= $visibility );
+        }
+
+        /**
          * Check if there's any connectivity issue to Freemius API.
          *
          * @author Vova Feldman (@svovaf)
@@ -4080,7 +4123,7 @@
          *
          * @param bool $flush_if_no_connectivity
          *
-         * @return bool
+         * @return bool|null
          */
         function has_api_connectivity( $flush_if_no_connectivity = false ) {
             $this->_logger->entrance();
@@ -4110,19 +4153,13 @@
                 return $this->_has_api_connection;
             }
 
-            $pong         = $this->ping();
-            $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
+            $is_active = $this->should_turn_fs_on( $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() ) );
 
-            if ( ! $is_connected ) {
-                // API failure.
-                $this->_add_connectivity_issue_message( $pong );
+            if ( ! $is_active ) {
+                $this->store_connectivity_info( (object) array( 'is_active' => $is_active ), null );
+            } else {
+                $this->_is_on = true;
             }
-
-            if ( $is_connected ) {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-            }
-            
-            $this->store_connectivity_info( $pong, $is_connected );
 
             return $this->_has_api_connection;
         }
@@ -4131,15 +4168,15 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7.4
          *
-         * @param object $pong
-         * @param bool   $is_connected
+         * @param object    $pong
+         * @param bool|null $is_connected
          */
         private function store_connectivity_info( $pong, $is_connected ) {
             $this->_logger->entrance();
 
             $version = $this->get_plugin_version();
 
-            if ( ! $is_connected || WP_FS__SIMULATE_FREEMIUS_OFF ) {
+            if ( false === $is_connected || WP_FS__SIMULATE_FREEMIUS_OFF ) {
                 $is_active = false;
             } else {
                 $is_active = ( isset( $pong->is_active ) && true == $pong->is_active );
@@ -5010,7 +5047,7 @@
                     $this->_has_api_connection = true;
                     $this->_is_on              = true;
                 } else {
-                    if ( ! $this->has_api_connectivity() ) {
+                    if ( false === $this->has_api_connectivity() ) {
                         if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
                              $this->_admin_notices->has_sticky( 'failed_connect_api' )
                         ) {
@@ -5798,6 +5835,7 @@
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
                 'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
                 'bundle_public_key'    => $this->get_option( $plugin_info, 'bundle_public_key', null ),
+                'moderation'           => $this->get_option( $plugin_info, 'moderation', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
@@ -8180,7 +8218,7 @@
             $has_api_connectivity = $this->has_api_connectivity( WP_FS__DEV_MODE || $is_premium_version_activation );
 
             if ( ! $this->_anonymous_mode &&
-                 $has_api_connectivity &&
+                ( false !== $has_api_connectivity ) &&
                  ! $this->_isAutoInstall
             ) {
                 // Store hint that the plugin was just activated to enable auto-redirection to settings.
@@ -8817,7 +8855,7 @@
                     ) );
                 }
             } else {
-                if ( ! $this->has_api_connectivity() ) {
+                if ( false === $this->has_api_connectivity() && ! $this->is_premium() ) {
                     // Reset connectivity test cache.
                     unset( $this->_storage->connectivity_test );
 
@@ -17790,6 +17828,19 @@
 
                 $this->maybe_modify_api_curl_error_message( $result );
 
+                $this->store_connectivity_info(
+                    (object) array( 'is_active' => true ),
+                    false
+                );
+
+                if ( empty( $license_key ) ) {
+                    if ( $this->is_enable_anonymous() ) {
+                        $this->skip_connection( fs_is_network_admin() );
+                    } else {
+                        $this->_add_connectivity_issue_message( $result );
+                    }
+                }
+
                 return $result;
             }
 
@@ -19027,7 +19078,7 @@
 
             $should_hide_site_admin_settings = $this->apply_filters( 'should_hide_site_admin_settings_on_network_activation_mode', $should_hide_site_admin_settings );
 
-            if ( ( ! $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
+            if ( ( false === $this->has_api_connectivity() && ! $this->is_enable_anonymous() ) ||
                  $should_hide_site_admin_settings
             ) {
                 $this->_menu->remove_menu_item( $should_hide_site_admin_settings );
@@ -26091,24 +26142,6 @@
         #--------------------------------------------------------------------------------
         #region GDPR
         #--------------------------------------------------------------------------------
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.1.0
-         *
-         * @return bool
-         */
-        function fetch_and_store_current_user_gdpr_anonymously() {
-            $pong = $this->ping( null, true );
-
-            if ( ! $this->get_api_plugin_scope()->is_valid_ping( $pong ) ) {
-                return false;
-            } else {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-
-                return $pong->is_gdpr_required;
-            }
-        }
 
         /**
          * @author Leo Fajardo (@leorw)
