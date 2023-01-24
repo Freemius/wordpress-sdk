@@ -486,56 +486,6 @@
 		}
 
 		/**
-		 * Ping API for connectivity test, and return result object.
-		 *
-		 * @author   Vova Feldman (@svovaf)
-		 * @since    1.0.9
-		 *
-		 * @param null|string $unique_anonymous_id
-		 * @param array       $params
-		 *
-		 * @return object
-		 */
-		function ping( $unique_anonymous_id = null, $params = array() ) {
-			$this->_logger->entrance();
-
-			if ( self::is_temporary_down() ) {
-				return $this->get_temporary_unavailable_error();
-			}
-
-			$pong = is_null( $unique_anonymous_id ) ?
-				Freemius_Api_WordPress::Ping() :
-				$this->_call( 'ping.json?' . http_build_query( array_merge(
-						array( 'uid' => $unique_anonymous_id ),
-						$params
-					) ) );
-
-			if ( $this->is_valid_ping( $pong ) ) {
-				return $pong;
-			}
-
-			if ( self::should_try_with_http( $pong ) ) {
-				// Fallback to HTTP, since HTTPS fails.
-				Freemius_Api_WordPress::SetHttp();
-
-				self::$_options->set_option( 'api_force_http', true, true );
-
-				$pong = is_null( $unique_anonymous_id ) ?
-					Freemius_Api_WordPress::Ping() :
-					$this->_call( 'ping.json?' . http_build_query( array_merge(
-							array( 'uid' => $unique_anonymous_id ),
-							$params
-						) ) );
-
-				if ( ! $this->is_valid_ping( $pong ) ) {
-					self::$_options->set_option( 'api_force_http', false, true );
-				}
-			}
-
-			return $pong;
-		}
-
-		/**
 		 * Check if based on the API result we should try
 		 * to re-run the same request with HTTP instead of HTTPS.
 		 *
@@ -562,20 +512,6 @@
 				         'too_many_requests',
 			         ) ) );
 
-		}
-
-		/**
-		 * Check if valid ping request result.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.1.1
-		 *
-		 * @param mixed $pong
-		 *
-		 * @return bool
-		 */
-		function is_valid_ping( $pong ) {
-			return Freemius_Api_WordPress::Test( $pong );
 		}
 
 		function get_url( $path = '' ) {
