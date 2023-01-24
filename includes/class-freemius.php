@@ -4034,45 +4034,6 @@
         }
 
         /**
-         * @author Vova Feldman (@svovaf)
-         * @since  1.1.7.4
-         *
-         * @param int|null $blog_id      Since 2.0.0.
-         * @param bool     $is_gdpr_test Since 2.0.2. Perform only the GDPR test.
-         *
-         * @return object|false
-         */
-        private function ping( $blog_id = null, $is_gdpr_test = false ) {
-            if ( WP_FS__SIMULATE_NO_API_CONNECTIVITY ) {
-                return false;
-            }
-
-            $version = $this->get_plugin_version();
-
-            $is_update = $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() );
-
-            $params = array(
-                'is_update'    => json_encode( $is_update ),
-                'version'      => $version,
-                'sdk'          => $this->version,
-                'is_admin'     => json_encode( is_admin() ),
-                'is_ajax'      => json_encode( self::is_ajax() ),
-                'is_cron'      => json_encode( self::is_cron() ),
-                'is_gdpr_test' => $is_gdpr_test,
-                'is_http'      => json_encode( WP_FS__IS_HTTP_REQUEST ),
-            );
-
-            if ( is_multisite() && function_exists( 'get_network' ) ) {
-                $params['network_uid'] = $this->get_anonymous_network_id();
-            }
-
-            return $this->get_api_plugin_scope()->ping(
-                $this->get_anonymous_id( $blog_id ),
-                $params
-            );
-        }
-
-        /**
          * @author Leo Fajardo (@leorw)
          * @since  2.5.3
          *
@@ -4587,63 +4548,36 @@
             $connectivity_test_fails_message = $this->esc_html_inline( 'From unknown reason, the API connectivity test failed.', 'connectivity-test-fails-message' );
 
             if ( false === $message ) {
-                if ( $is_first_failure ) {
-                    // First attempt failed.
-                    $message = sprintf(
-                        $x_requires_access_to_api . ' ' .
-                        $connectivity_test_fails_message . ' ' .
-                        $this->esc_html_inline( 'It\'s probably a temporary issue on our end. Just to be sure, with your permission, would it be o.k to run another connectivity test?', 'connectivity-test-maybe-temporary' ) . '<br><br>' .
-                        '%s',
-                        '<b>' . $this->get_plugin_name() . '</b>',
+                $message = sprintf(
+                    $x_requires_access_to_api . ' ' .
+                    $connectivity_test_fails_message . ' ' .
+                    $happy_to_resolve_issue_asap .
+                    ' %s',
+                    '<b>' . $this->get_plugin_name() . '</b>',
+                    sprintf(
+                        '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
                         sprintf(
-                            '<div id="fs_firewall_issue_options">%s %s</div>',
-                            sprintf(
-                                '<a  class="button button-primary fs-resolve" data-type="retry_ping" href="#">%s</a>',
-                                $this->get_text_inline( 'Yes - do your thing', 'yes-do-your-thing' )
-                            ),
-                            sprintf(
-                                '<a href="%s" class="button">%s</a>',
-                                wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
-                                $this->get_text_inline( 'No - just deactivate', 'no-deactivate' )
+                            '<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
+                            $fix_issue_title,
+                            ' - ' . sprintf(
+                                $fix_issue_desc,
+                                '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
                             )
-                        )
-                    );
-
-                    $message_id = 'failed_connect_api_first';
-                    $type       = 'promotion';
-                } else {
-                    // Second connectivity attempt failed.
-                    $message = sprintf(
-                        $x_requires_access_to_api . ' ' .
-                        $connectivity_test_fails_message . ' ' .
-                        $happy_to_resolve_issue_asap .
-                        ' %s',
-                        '<b>' . $this->get_plugin_name() . '</b>',
+                        ),
                         sprintf(
-                            '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-                            sprintf(
-                                '<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-                                $fix_issue_title,
-                                ' - ' . sprintf(
-                                    $fix_issue_desc,
-                                    '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                                )
-                            ),
-                            sprintf(
-                                '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
-                                sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-                                $install_previous_title,
-                                $install_previous_desc
-                            ),
-                            sprintf(
-                                '<a href="%s"><b>%s</b></a> - %s',
-                                wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
-                                $deactivate_plugin_title,
-                                $deactivate_plugin_desc
-                            )
+                            '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
+                            sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
+                            $install_previous_title,
+                            $install_previous_desc
+                        ),
+                        sprintf(
+                            '<a href="%s"><b>%s</b></a> - %s',
+                            wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
+                            $deactivate_plugin_title,
+                            $deactivate_plugin_desc
                         )
-                    );
-                }
+                    )
+                );
             }
 
             $this->_admin_notices->add_sticky(
@@ -4671,19 +4605,6 @@
 
             $this->_admin_notices->remove_sticky( 'failed_connect_api' );
 
-            $pong = $this->ping();
-
-            $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
-
-            if ( $is_connected ) {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-
-                $this->store_connectivity_info( $pong, $is_connected );
-
-                echo $this->get_after_plugin_activation_redirect_url();
-                exit;
-            }
-
             $current_user = self::_get_current_wp_user();
             $admin_email  = $current_user->user_email;
 
@@ -4702,17 +4623,6 @@
             }
 
             $custom_email_sections = array();
-
-            // Add 'API Error' custom email section.
-            $custom_email_sections['api_error'] = array(
-                'title' => 'API Error',
-                'rows'  => array(
-                    'ping' => array(
-                        'API Error',
-                        is_string( $pong ) ? htmlentities( $pong ) : json_encode( $pong )
-                    ),
-                )
-            );
 
             // Send email with technical details to resolve API connectivity issues.
             $this->send_email(
@@ -4733,41 +4643,6 @@
             // Action was taken, tell that API connectivity troubleshooting should be off now.
 
             echo "1";
-            exit;
-        }
-
-        /**
-         * Handle connectivity test retry approved by the user.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.1.7.4
-         */
-        function _retry_connectivity_test() {
-            check_admin_referer( 'fs_retry_connectivity_test' );
-
-            if ( ! current_user_can( is_multisite() ? 'manage_options' : 'activate_plugins' ) ) {
-                return;
-            }
-
-            $this->_admin_notices->remove_sticky( 'failed_connect_api_first' );
-
-            $pong = $this->ping();
-
-            $is_connected = $this->get_api_plugin_scope()->is_valid_ping( $pong );
-
-            if ( $is_connected ) {
-                FS_GDPR_Manager::instance()->store_is_required( $pong->is_gdpr_required );
-
-                $this->store_connectivity_info( $pong, $is_connected );
-
-                echo $this->get_after_plugin_activation_redirect_url();
-            } else {
-                // Add connectivity issue message after 2nd failed attempt.
-                $this->_add_connectivity_issue_message( $pong, false );
-
-                echo "1";
-            }
-
             exit;
         }
 
@@ -5063,27 +4938,6 @@
                                     &$this,
                                     '_email_about_firewall_issue'
                                 ) );
-
-                                add_action( "wp_ajax_fs_retry_connectivity_test_{$ajax_action_suffix}", array(
-                                    &$this,
-                                    '_retry_connectivity_test'
-                                ) );
-
-                                /**
-                                 * Currently the admin notice manager relies on the module's type and slug. The new AJAX actions manager uses module IDs, hence, consider to replace the if block above with the commented code below after adjusting the admin notices manager to work with module IDs.
-                                 *
-                                 * @author Vova Feldman (@svovaf)
-                                 * @since  2.0.0
-                                 */
-                                /*$this->add_ajax_action( 'resolve_firewall_issues', array(
-                                    &$this,
-                                    '_email_about_firewall_issue'
-                                ) );
-
-                                $this->add_ajax_action( 'retry_connectivity_test', array(
-                                    &$this,
-                                    '_retry_connectivity_test'
-                                ) );*/
                             }
                         }
 
