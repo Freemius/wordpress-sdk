@@ -4106,10 +4106,13 @@
                 return true;
             }
 
+            $min = 1;
+            $max = 100;
+
             if ( function_exists( 'random_int' ) ) {
-                $random = random_int( 1, 100 );
+                $random = random_int( $min, $max );
             } else {
-                $random = rand( 1, 7 );
+                $random = rand( $min, $max );
             }
 
             return ( $random <= $visibility );
