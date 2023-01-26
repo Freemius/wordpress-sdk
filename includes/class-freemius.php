@@ -4100,7 +4100,7 @@
                  isset( $this->_storage->connectivity_test ) &&
                  true === $this->_storage->connectivity_test['is_connected']
             ) {
-                unset( $this->_storage->connectivity_test );
+                $this->clear_connectivity_info();
             }
 
             if ( ! $this->should_run_connectivity_test( $flush_if_no_connectivity ) ) {
@@ -4126,6 +4126,16 @@
             }
 
             return $this->_has_api_connection;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         */
+        private function clear_connectivity_info() {
+            unset( $this->_storage->connectivity_test );
+
+            FS_Api::clear_force_http_flag();
         }
 
         /**
@@ -4362,293 +4372,6 @@
             $domain = idn_to_ascii( $parts[1] ) . '.';
 
             return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
-        }
-
-        /**
-         * Generate API connectivity issue message.
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.9
-         *
-         * @param mixed $api_result
-         * @param bool  $is_first_failure
-         */
-        function _add_connectivity_issue_message( $api_result, $is_first_failure = true ) {
-            if ( ! $this->is_premium() && $this->_enable_anonymous ) {
-                // Don't add message if it's the free version and can run anonymously.
-                return;
-            }
-
-            if ( ! function_exists( 'wp_nonce_url' ) ) {
-                require_once ABSPATH . 'wp-includes/functions.php';
-            }
-
-            $current_user = self::_get_current_wp_user();
-//			$admin_email = get_option( 'admin_email' );
-            $admin_email = $current_user->user_email;
-
-            // Aliases.
-            $deactivate_plugin_title = $this->esc_html_inline( 'That\'s exhausting, please deactivate', 'deactivate-plugin-title' );
-            $deactivate_plugin_desc  = $this->esc_html_inline( 'We feel your frustration and sincerely apologize for the inconvenience. Hope to see you again in the future.', 'deactivate-plugin-desc' );
-            $install_previous_title  = $this->esc_html_inline( 'Let\'s try your previous version', 'install-previous-title' );
-            $install_previous_desc   = $this->esc_html_inline( 'Uninstall this version and install the previous one.', 'install-previous-desc' );
-            $fix_issue_title         = $this->esc_html_inline( 'Yes - I\'m giving you a chance to fix it', 'fix-issue-title' );
-            $fix_issue_desc          = $this->esc_html_inline( 'We will do our best to whitelist your server and resolve this issue ASAP. You will get a follow-up email to %s once we have an update.', 'fix-issue-desc' );
-            /* translators: %s: product title (e.g. "Awesome Plugin" requires access to...) */
-            $x_requires_access_to_api    = $this->esc_html_inline( '%s requires access to our API.', 'x-requires-access-to-api' );
-            $sysadmin_title              = $this->esc_html_inline( 'I\'m a system administrator', 'sysadmin-title' );
-            $happy_to_resolve_issue_asap = $this->esc_html_inline( 'We are sure it\'s an issue on our side and more than happy to resolve it for you ASAP if you give us a chance.', 'happy-to-resolve-issue-asap' );
-
-            if ( $this->is_premium() ) {
-                /* translators: This string is optionally prepended to 'plugin requires access to our API.' */
-                $x_requires_access_to_api = $this->esc_html_inline( 'For automatic delivery of security & feature updates,', 'requires-api-for' ) . ' ' . $x_requires_access_to_api;
-            }
-
-            $message = false;
-            if ( is_object( $api_result ) &&
-                 isset( $api_result->error ) &&
-                 isset( $api_result->error->code )
-            ) {
-                switch ( $api_result->error->code ) {
-                    case 'curl_missing':
-                        $missing_methods = '';
-                        if ( is_array( $api_result->missing_methods ) &&
-                             ! empty( $api_result->missing_methods )
-                        ) {
-                            foreach ( $api_result->missing_methods as $m ) {
-                                if ( 'curl_version' === $m ) {
-                                    continue;
-                                }
-
-                                if ( ! empty( $missing_methods ) ) {
-                                    $missing_methods .= ', ';
-                                }
-
-                                $missing_methods .= sprintf( '<code>%s</code>', $m );
-                            }
-
-                            if ( ! empty( $missing_methods ) ) {
-                                $missing_methods = sprintf(
-                                    '<br><br><b>%s</b> %s',
-                                    $this->esc_html_inline( 'Disabled method(s):', 'curl-disabled-methods' ),
-                                    $missing_methods
-                                );
-                            }
-                        }
-
-                        $message = sprintf(
-                            $x_requires_access_to_api . ' ' .
-                            $this->esc_html_inline( 'We use PHP cURL library for the API calls, which is a very common library and usually installed and activated out of the box. Unfortunately, cURL is not activated (or disabled) on your server.', 'curl-missing-message' ) . ' ' .
-                            $missing_methods .
-                            ' %s',
-                            '<b>' . $this->get_plugin_name() . '</b>',
-                            sprintf(
-                                '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-                                sprintf(
-                                    '<a class="fs-resolve" data-type="curl" href="#"><b>%s</b></a>%s',
-                                    $this->get_text_inline( 'I don\'t know what is cURL or how to install it, help me!', 'curl-missing-no-clue-title' ),
-                                    ' - ' . sprintf(
-                                        $this->get_text_inline( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'curl-missing-no-clue-desc' ),
-                                        '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                                    )
-                                ),
-                                sprintf(
-                                    '<b>%s</b> - %s',
-                                    $sysadmin_title,
-                                    esc_html( sprintf( $this->get_text_inline( 'Great, please install cURL and enable it in your php.ini file. In addition, search for the \'disable_functions\' directive in your php.ini file and remove any disabled methods starting with \'curl_\'. To make sure it was successfully activated, use \'phpinfo()\'. Once activated, deactivate the %s and reactivate it back again.', 'curl-missing-sysadmin-desc' ), $this->get_module_label( true ) ) )
-                                ),
-                                sprintf(
-                                    '<a href="%s"><b>%s</b></a> - %s',
-                                    wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
-                                    $deactivate_plugin_title,
-                                    $deactivate_plugin_desc
-                                )
-                            )
-                        );
-                        break;
-                    case 'cloudflare_ddos_protection':
-                        $message = sprintf(
-                            $x_requires_access_to_api . ' ' .
-                            $this->esc_html_inline( 'From unknown reason, CloudFlare, the firewall we use, blocks the connection.', 'cloudflare-blocks-connection-message' ) . ' ' .
-                            $happy_to_resolve_issue_asap .
-                            ' %s',
-                            '<b>' . $this->get_plugin_name() . '</b>',
-                            sprintf(
-                                '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-                                sprintf(
-                                    '<a class="fs-resolve" data-type="cloudflare" href="#"><b>%s</b></a>%s',
-                                    $fix_issue_title,
-                                    ' - ' . sprintf(
-                                        $fix_issue_desc,
-                                        '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                                    )
-                                ),
-                                sprintf(
-                                    '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
-                                    sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-                                    $install_previous_title,
-                                    $install_previous_desc
-                                ),
-                                sprintf(
-                                    '<a href="%s"><b>%s</b></a> - %s',
-                                    wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=' . '', 'deactivate-plugin_' . $this->_plugin_basename ),
-                                    $deactivate_plugin_title,
-                                    $deactivate_plugin_desc
-                                )
-                            )
-                        );
-                        break;
-                    case 'squid_cache_block':
-                        $message = sprintf(
-                            $x_requires_access_to_api . ' ' .
-                            $this->esc_html_inline( 'It looks like your server is using Squid ACL (access control lists), which blocks the connection.', 'squid-blocks-connection-message' ) .
-                            ' %s',
-                            '<b>' . $this->get_plugin_name() . '</b>',
-                            sprintf(
-                                '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-                                sprintf(
-                                    '<a class="fs-resolve" data-type="squid" href="#"><b>%s</b></a> - %s',
-                                    $this->esc_html_inline( 'I don\'t know what is Squid or ACL, help me!', 'squid-no-clue-title' ),
-                                    sprintf(
-                                        $this->esc_html_inline( 'We\'ll make sure to contact your hosting company and resolve the issue. You will get a follow-up email to %s once we have an update.', 'squid-no-clue-desc' ),
-                                        '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                                    )
-                                ),
-                                sprintf(
-                                    '<b>%s</b> - %s',
-                                    $sysadmin_title,
-                                    sprintf(
-                                        $this->esc_html_inline( 'Great, please whitelist the following domains: %s. Once you are done, deactivate the %s and activate it again.', 'squid-sysadmin-desc' ),
-                                        // We use a filter since the plugin might require additional API connectivity.
-                                        '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
-                                            'api.freemius.com',
-                                            'wp.freemius.com'
-                                        ) ) ) . '</b>',
-                                        $this->_module_type
-                                    )
-                                ),
-                                sprintf(
-                                    '<a href="%s"><b>%s</b></a> - %s',
-                                    wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
-                                    $deactivate_plugin_title,
-                                    $deactivate_plugin_desc
-                                )
-                            )
-                        );
-                        break;
-//					default:
-//						$message = $this->get_text_inline( 'connectivity-test-fails-message' );
-//						break;
-                }
-            }
-
-            $message_id = 'failed_connect_api';
-            $type       = 'error';
-
-            $connectivity_test_fails_message = $this->esc_html_inline( 'From unknown reason, the API connectivity test failed.', 'connectivity-test-fails-message' );
-
-            if ( false === $message ) {
-                $message = sprintf(
-                    $x_requires_access_to_api . ' ' .
-                    $connectivity_test_fails_message . ' ' .
-                    $happy_to_resolve_issue_asap .
-                    ' %s',
-                    '<b>' . $this->get_plugin_name() . '</b>',
-                    sprintf(
-                        '<ol id="fs_firewall_issue_options"><li>%s</li><li>%s</li><li>%s</li></ol>',
-                        sprintf(
-                            '<a class="fs-resolve" data-type="general" href="#"><b>%s</b></a>%s',
-                            $fix_issue_title,
-                            ' - ' . sprintf(
-                                $fix_issue_desc,
-                                '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                            )
-                        ),
-                        sprintf(
-                            '<a href="%s" target="_blank" rel="noopener noreferrer"><b>%s</b></a> - %s',
-                            sprintf( 'https://wordpress.org/plugins/%s/download/', $this->_slug ),
-                            $install_previous_title,
-                            $install_previous_desc
-                        ),
-                        sprintf(
-                            '<a href="%s"><b>%s</b></a> - %s',
-                            wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . $this->_plugin_basename . '&amp;plugin_status=all&amp;paged=1&amp;s=', 'deactivate-plugin_' . $this->_plugin_basename ),
-                            $deactivate_plugin_title,
-                            $deactivate_plugin_desc
-                        )
-                    )
-                );
-            }
-
-            $this->_admin_notices->add_sticky(
-                $message,
-                $message_id,
-                $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
-                $type
-            );
-        }
-
-        /**
-         * Handle user request to resolve connectivity issue.
-         * This method will send an email to Freemius API technical staff for resolution.
-         * The email will contain server's info and installed plugins (might be caching issue).
-         *
-         * @author Vova Feldman (@svovaf)
-         * @since  1.0.9
-         */
-        function _email_about_firewall_issue() {
-            check_admin_referer( 'fs_resolve_firewall_issues' );
-
-            if ( ! current_user_can( is_multisite() ? 'manage_options' : 'activate_plugins' ) ) {
-                return;
-            }
-
-            $this->_admin_notices->remove_sticky( 'failed_connect_api' );
-
-            $current_user = self::_get_current_wp_user();
-            $admin_email  = $current_user->user_email;
-
-            $error_type = fs_request_get( 'error_type', 'general' );
-
-            switch ( $error_type ) {
-                case 'squid':
-                    $title = 'Squid ACL Blocking Issue';
-                    break;
-                case 'cloudflare':
-                    $title = 'CloudFlare Blocking Issue';
-                    break;
-                default:
-                    $title = 'API Connectivity Issue';
-                    break;
-            }
-
-            $custom_email_sections = array();
-
-            // Send email with technical details to resolve API connectivity issues.
-            $this->send_email(
-                'api@freemius.com',                              // recipient
-                $title . ' [' . $this->get_plugin_name() . ']',  // subject
-                $custom_email_sections,
-                array( "Reply-To: $admin_email <$admin_email>" ) // headers
-            );
-
-            $this->_admin_notices->add_sticky(
-                sprintf(
-                    $this->get_text_inline( 'Thank for giving us the chance to fix it! A message was just sent to our technical staff. We will get back to you as soon as we have an update to %s. Appreciate your patience.', 'fix-request-sent-message' ),
-                    '<a href="mailto:' . $admin_email . '">' . $admin_email . '</a>'
-                ),
-                'server_details_sent'
-            );
-
-            // Action was taken, tell that API connectivity troubleshooting should be off now.
-
-            echo "1";
-            exit;
-        }
-
-        static function _add_firewall_issues_javascript() {
-            $params = array();
-            fs_require_once_template( 'firewall-issues-js.php', $params );
         }
 
         #endregion
@@ -4926,28 +4649,8 @@
                     $this->_is_on              = true;
                 } else {
                     if ( false === $this->has_api_connectivity() ) {
-                        if ( $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) ||
-                             $this->_admin_notices->has_sticky( 'failed_connect_api' )
-                        ) {
-                            if ( ! $this->_enable_anonymous || $this->is_premium() ) {
-                                // If anonymous mode is disabled, add firewall admin-notice message.
-                                add_action( 'admin_footer', array( 'Freemius', '_add_firewall_issues_javascript' ) );
-
-                                $ajax_action_suffix = $this->_slug . ( $this->is_theme() ? ':theme' : '' );
-                                add_action( "wp_ajax_fs_resolve_firewall_issues_{$ajax_action_suffix}", array(
-                                    &$this,
-                                    '_email_about_firewall_issue'
-                                ) );
-                            }
-                        }
-
                         return;
                     } else {
-                        $this->_admin_notices->remove_sticky( array(
-                            'failed_connect_api_first',
-                            'failed_connect_api',
-                        ) );
-
                         if ( $this->_anonymous_mode ) {
                             // Simulate anonymous mode.
                             $this->_is_anonymous = true;
@@ -5851,10 +5554,7 @@
                     return true;
                 }
 
-                if ( self::is_ajax() &&
-                     ! $this->_admin_notices->has_sticky( 'failed_connect_api_first' ) &&
-                     ! $this->_admin_notices->has_sticky( 'failed_connect_api' )
-                ) {
+                if ( self::is_ajax() ) {
                     /**
                      * During activation, if running in AJAX mode, unless there's a sticky
                      * connectivity issue notice, don't run Freemius.
@@ -8714,7 +8414,7 @@
             } else {
                 if ( false === $this->has_api_connectivity() && ! $this->is_premium() ) {
                     // Reset connectivity test cache.
-                    unset( $this->_storage->connectivity_test );
+                    $this->clear_connectivity_info();
 
                     $storage_keys_for_removal[] = 'connectivity_test';
                 }
@@ -17690,12 +17390,8 @@
                     false
                 );
 
-                if ( empty( $license_key ) ) {
-                    if ( $this->is_enable_anonymous() ) {
-                        $this->skip_connection( fs_is_network_admin() );
-                    } else {
-                        $this->_add_connectivity_issue_message( $result );
-                    }
+                if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
+                    $this->skip_connection( fs_is_network_admin() );
                 }
 
                 return $result;
