@@ -189,12 +189,14 @@
 		 * @param string $path
 		 * @param string $method
 		 * @param array  $params
-		 * @param bool   $retry Is in retry or first call attempt.
+		 * @param bool   $in_retry Is in retry or first call attempt.
 		 *
 		 * @return array|mixed|string|void
 		 */
-		private function _call( $path, $method = 'GET', $params = array(), $retry = false ) {
+		private function _call( $path, $method = 'GET', $params = array(), $in_retry = false ) {
             $this->_logger->entrance( $method . ':' . $path );
+
+            $force_http = ( ! $in_retry && self::$_options->get_option( 'api_force_http', false ) );
 
             if ( self::is_temporary_down() ) {
                 $result = $this->get_temporary_unavailable_error();
@@ -226,26 +228,51 @@
 
                 if ( null !== $result &&
                      isset( $result->error ) &&
-                     isset( $result->error->code ) &&
-                     'request_expired' === $result->error->code
+                     isset( $result->error->code )
                 ) {
-                    if ( ! $retry ) {
-                        $diff = isset( $result->error->timestamp ) ?
-                            ( time() - strtotime( $result->error->timestamp ) ) :
-                            false;
+                    $retry = false;
 
-                        // Try to sync clock diff.
-                        if ( false !== $this->_sync_clock_diff( $diff ) ) {
-                            // Retry call with new synced clock.
-                            return $this->_call( $path, $method, $params, true );
+                    if ( ! $in_retry ) {
+                        if ( 'request_expired' === $result->error->code ) {
+                            $diff = isset( $result->error->timestamp ) ?
+                                ( time() - strtotime( $result->error->timestamp ) ) :
+                                false;
+
+                            // Try to sync clock diff.
+                            if ( false !== $this->_sync_clock_diff( $diff ) ) {
+                                // Retry call with new synced clock.
+                                $retry = true;
+                            }
+                        } else if (
+                            Freemius_Api_WordPress::IsHttps() &&
+                            ! empty( $result->error->message ) &&
+                            ( false !== strpos( $result->error->message, 'ssl' ) ) &&
+                            ( false !== strpos( $result->error->message, 'curl error 35' ) )
+                        ) {
+                            $force_http = true;
+                            $retry      = true;
                         }
+                    }
+
+                    if ( $retry ) {
+                        if ( $force_http ) {
+                            self::$_options->set_option( 'api_force_http', true, true );
+                        }
+
+                        $result = $this->_call( $path, $method, $params, true );
                     }
                 }
             }
 
-            if ( $this->_logger->is_on() && self::is_api_error( $result ) ) {
-                // Log API errors.
-                $this->_logger->api_error( $result );
+            if ( self::is_api_error( $result ) ) {
+                if ( $this->_logger->is_on() ) {
+                    // Log API errors.
+                    $this->_logger->api_error( $result );
+                }
+
+                if ( $force_http ) {
+                    self::$_options->set_option( 'api_force_http', false, true );
+                }
             }
 
             return $result;
@@ -529,6 +556,14 @@
 
 			self::$_cache = FS_Cache_Manager::get_manager( WP_FS__API_CACHE_OPTION_NAME );
 			self::$_cache->clear();
+		}
+
+		/**
+		 * @author Leo Fajardo (@leorw)
+		 * @since  2.5.4
+		 */
+		static function clear_force_http_flag() {
+            self::$_options->unset_option( 'api_force_http' );
 		}
 
 		#----------------------------------------------------------------------------------
