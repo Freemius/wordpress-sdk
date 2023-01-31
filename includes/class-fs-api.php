@@ -256,7 +256,7 @@
 
                     if ( $retry ) {
                         if ( $force_http ) {
-                            self::$_options->set_option( 'api_force_http', true, true );
+                            $this->toggle_force_http( true );
                         }
 
                         $result = $this->_call( $path, $method, $params, true );
@@ -271,7 +271,7 @@
                 }
 
                 if ( $force_http ) {
-                    self::$_options->set_option( 'api_force_http', false, true );
+                    $this->toggle_force_http( false );
                 }
             }
 
@@ -478,6 +478,22 @@
 
 			return $test;
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param bool $is_http
+         */
+        private function toggle_force_http( $is_http ) {
+            self::$_options->set_option( 'api_force_http', $is_http, true );
+
+            if ( $is_http ) {
+                Freemius_Api_WordPress::SetHttp();
+            } else {
+                Freemius_Api_WordPress::SetHttps();
+            }
+        }
 
 		/**
 		 * Check if API is temporary down.

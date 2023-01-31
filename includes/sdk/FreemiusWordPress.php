@@ -165,6 +165,15 @@
 		}
 
 		/**
+		 * Sets API connection protocol to HTTPS.
+		 *
+		 * @since 2.5.4
+		 */
+		public static function SetHttps() {
+			self::$_protocol = 'https';
+		}
+
+		/**
 		 * @since 1.0.4
 		 *
 		 * @return bool
@@ -712,4 +721,4 @@
 
 		#endregion
 	}
-    }
+    }

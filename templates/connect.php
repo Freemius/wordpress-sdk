@@ -406,7 +406,10 @@
 			// Set core permission list items.
 			$permissions = array();
 
-            $permissions[] = $permission_manager->get_newsletter_permission();
+            // Add newsletter permissions if enabled.
+            if ( $fs->is_permission_requested( 'newsletter' ) ) {
+                $permissions[] = $permission_manager->get_newsletter_permission();
+            }
 
             $permissions = $permission_manager->get_permissions(
                 $require_license_key,
