@@ -4046,24 +4046,37 @@
                 return true;
             }
 
-            $optin_config = $this->_plugin->moderation['opt_in'];
-
             if (
-                WP_FS__IS_LOCALHOST_FOR_SERVER &&
-                ( empty( $optin_config['localhost'] ) || true === $optin_config['localhost'] )
+                empty( $this->_plugin->moderation['opt_in'] ) ||
+                ! is_array( $this->_plugin->moderation['opt_in'] )
             ) {
                 return true;
             }
 
-            $visibility = $is_update ?
-                $optin_config['updates'] :
-                $optin_config['new'];
+            $optin_config = $this->_plugin->moderation['opt_in'];
 
             if (
-                empty( $visibility ) ||
-                true === $visibility ||
-                ! is_numeric( $visibility )
+                WP_FS__IS_LOCALHOST_FOR_SERVER &&
+                ( ! isset( $optin_config['localhost'] ) || false !== $optin_config['localhost'] )
             ) {
+                return true;
+            }
+
+            $optin_config_key = $is_update ?
+                'updates' :
+                'new';
+
+            if ( ! isset( $optin_config[ $optin_config_key ] ) ) {
+                return true;
+            }
+
+            $visibility_percentage = $optin_config[ $optin_config_key ];
+
+            if ( 0 == $visibility_percentage ) {
+                return false;
+            }
+
+            if ( ! is_numeric( $visibility_percentage ) ) {
                 return true;
             }
 
@@ -4076,7 +4089,7 @@
                 $random = rand( $min, $max );
             }
 
-            return ( $random <= $visibility );
+            return ( $random <= $visibility_percentage );
         }
 
         /**
@@ -4117,11 +4130,18 @@
                 return $this->_has_api_connection;
             }
 
-            $is_active = $this->should_turn_fs_on( $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() ) );
-
-            if ( ! $is_active ) {
-                $this->store_connectivity_info( (object) array( 'is_active' => $is_active ), null );
+            if (
+                ! empty( $this->_storage->connectivity_test ) &&
+                isset( $this->_storage->connectivity_test['is_active'] )
+            ) {
+                $is_active = $this->_storage->connectivity_test['is_active'];
             } else {
+                $is_active = $this->should_turn_fs_on( $this->apply_filters( 'is_plugin_update', $this->is_plugin_update() ) );
+
+                $this->store_connectivity_info( (object) array( 'is_active' => $is_active ), null );
+            }
+
+            if ( $is_active ) {
                 $this->_is_on = true;
             }
 
@@ -17385,14 +17405,14 @@
 
                 $this->maybe_modify_api_curl_error_message( $result );
 
-                $this->store_connectivity_info(
-                    (object) array( 'is_active' => true ),
-                    false
-                );
+                    $this->store_connectivity_info(
+                        (object) array( 'is_active' => true ),
+                        false
+                    );
 
-                if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
-                    $this->skip_connection( fs_is_network_admin() );
-                }
+                    if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
+                        $this->skip_connection( fs_is_network_admin() );
+                    }
 
                 return $result;
             }
