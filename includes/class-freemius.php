@@ -17399,7 +17399,7 @@
                 if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
                     $this->skip_connection( fs_is_network_admin() );
 
-                    $is_connected = ( 'api_blocked' !== $result->error->code );
+                    $is_connected = ( ! FS_Api::is_blocked( $result ) );
                 }
 
                 $this->store_connectivity_info(
@@ -17409,6 +17409,11 @@
 
                 return $result;
             }
+
+            $this->store_connectivity_info(
+                (object) array( 'is_active' => true ),
+                true
+            );
 
             // Module is being uninstalled, don't handle the returned data.
             if ( $is_uninstall ) {
