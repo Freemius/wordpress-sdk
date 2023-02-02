@@ -13,7 +13,7 @@
 <script type="text/javascript">
     ( function( $ ) {
         $( document ).ready(function() {
-            var $parent = $( '<?php echo $VARS['parent_selector'] ?>' );
+            var $parent = $( '.fs-notice, #fs_connect, .fs-modal' );
 
             $parent.on( 'click', '.fs-api-request-error-show-details-link', function () {
                 var $error_details_container = $parent.find( '.fs-api-request-error-details' );

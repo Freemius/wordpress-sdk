@@ -1044,6 +1044,4 @@
 	})(jQuery);
 </script>
 <?php
-    $vars = array( 'parent_selector' => '#fs_connect' );
-
-    fs_require_once_template( 'api-connectivity-message-js.php', $vars );
+    fs_require_once_template( 'api-connectivity-message-js.php' );

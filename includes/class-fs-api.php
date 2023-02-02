@@ -451,51 +451,6 @@
 			return strtolower( $method . ':' . $canonized ) . ( ! empty( $params ) ? '#' . md5( json_encode( $params ) ) : '' );
 		}
 
-		/**
-		 * Test API connectivity.
-		 *
-		 * @author Vova Feldman (@svovaf)
-		 * @since  1.0.9 If fails, try to fallback to HTTP.
-		 * @since  1.1.6 Added a 5-min caching mechanism, to prevent from overloading the server if the API if
-		 *         temporary down.
-		 *
-		 * @return bool True if successful connectivity to the API.
-		 */
-		static function test() {
-			self::_init();
-
-			$cache_key = 'ping_test';
-
-			$test = self::$_cache->get_valid( $cache_key, null );
-
-			if ( is_null( $test ) ) {
-				$test = Freemius_Api_WordPress::Test();
-
-				if ( false === $test && Freemius_Api_WordPress::IsHttps() ) {
-					// Fallback to HTTP, since HTTPS fails.
-					Freemius_Api_WordPress::SetHttp();
-
-					self::$_options->set_option( 'api_force_http', true, true );
-
-					$test = Freemius_Api_WordPress::Test();
-
-					if ( false === $test ) {
-						/**
-						 * API connectivity test fail also in HTTP request, therefore,
-						 * fallback to HTTPS to keep connection secure.
-						 *
-						 * @since 1.1.6
-						 */
-						self::$_options->set_option( 'api_force_http', false, true );
-					}
-				}
-
-				self::$_cache->set( $cache_key, $test, WP_FS__TIME_5_MIN_IN_SEC );
-			}
-
-			return $test;
-		}
-
         /**
          * @author Leo Fajardo (@leorw)
          * @since 2.5.4
@@ -510,6 +465,22 @@
             } else {
                 Freemius_Api_WordPress::SetHttps();
             }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.3
+         *
+         * @param mixed $response
+         *
+         * @return bool
+         */
+        static function is_blocked( $response ) {
+            return (
+                self::is_api_error_object( $response, true ) &&
+                isset( $response->error->code ) &&
+                'api_blocked' === $response->error->code
+            );
         }
 
 		/**
@@ -621,14 +592,15 @@
          * @since  2.0.0
          *
          * @param mixed $result
+         * @param bool  $ignore_message
          *
          * @return bool Is API result contains an error.
          */
-        static function is_api_error_object( $result ) {
+        static function is_api_error_object( $result, $ignore_message = false ) {
             return (
                 is_object( $result ) &&
                 isset( $result->error ) &&
-                isset( $result->error->message )
+                ( $ignore_message || isset( $result->error->message ) )
             );
         }
 
