@@ -17394,14 +17394,18 @@
                 $this->maybe_modify_api_curl_error_message( $result );
                 $this->maybe_modify_api_blocked_error_message( $result );
 
-                $this->store_connectivity_info(
-                    (object) array( 'is_active' => true ),
-                    false
-                );
+                $is_connected = null;
 
                 if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
                     $this->skip_connection( fs_is_network_admin() );
+
+                    $is_connected = ( 'api_blocked' !== $result->error->code );
                 }
+
+                $this->store_connectivity_info(
+                    (object) array( 'is_active' => true ),
+                    $is_connected
+                );
 
                 return $result;
             }
