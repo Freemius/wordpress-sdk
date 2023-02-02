@@ -13985,6 +13985,8 @@
             }
 
             if ( is_object( $user ) ) {
+                $result = null;
+
                 if ( $is_network_activation_or_migration && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
                     $blog_2_install_map = array();
@@ -14006,22 +14008,10 @@
 
                     if ( ! empty( $blog_2_install_map ) ) {
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
-
-                        if ( true !== $result ) {
-                            $error = FS_Api::is_api_error_object( $result ) ?
-                                $result->error->message :
-                                var_export( $result, true );
-                        }
                     }
 
-                    if ( empty( $error ) && ! empty( $site_ids ) ) {
+                    if ( true === $result && ! empty( $site_ids ) ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
-
-                        if ( true !== $result ) {
-                            $error = FS_Api::is_api_error_object( $result ) ?
-                                $result->error->message :
-                                var_export( $result, true );
-                        }
                     }
                 } else {
                     if ( $fs->is_registered() ) {
@@ -14047,13 +14037,11 @@
 
                         $api = $fs->get_api_site_scope();
 
-                        $install = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
+                        $result = $api->call( $fs->add_show_pending( '/' ), 'put', $params );
 
-                        if ( FS_Api::is_api_error( $install ) ) {
-                            $error = FS_Api::is_api_error_object( $install ) ?
-                                $install->error->message :
-                                var_export( $install->error, true );
-                        } else {
+                        if ( ! FS_Api::is_api_error( $result ) ) {
+                            $install = $result;
+
                             $fs->reconnect_locally( $has_valid_blog_id );
 
                             if (
@@ -14066,16 +14054,16 @@
                         }
                     } else /* ( $fs->is_addon() && $fs->get_parent_instance()->is_registered() ) */ {
                         $result = $fs->activate_license_on_site( $user, $license_key );
-
-                        if ( true !== $result ) {
-                            $error = FS_Api::is_api_error_object( $result ) ?
-                                $result->error->message :
-                                var_export( $result, true );
-                        }
                     }
                 }
 
-                if ( empty( $error ) ) {
+                if ( true !== $result && ! FS_Api::is_api_result_entity( $result ) ) {
+                    $this->maybe_modify_api_blocked_error_message( $result );
+
+                    $error = FS_Api::is_api_error_object( $result ) ?
+                        $result->error->message :
+                        var_export( $result, true );
+                } else {
                     $fs->network_upgrade_mode_completed();
 
                     $fs->_user = $user;
@@ -17404,15 +17392,16 @@
                 );
 
                 $this->maybe_modify_api_curl_error_message( $result );
+                $this->maybe_modify_api_blocked_error_message( $result );
 
-                    $this->store_connectivity_info(
-                        (object) array( 'is_active' => true ),
-                        false
-                    );
+                $this->store_connectivity_info(
+                    (object) array( 'is_active' => true ),
+                    false
+                );
 
-                    if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
-                        $this->skip_connection( fs_is_network_admin() );
-                    }
+                if ( empty( $license_key ) && $this->is_enable_anonymous() ) {
+                    $this->skip_connection( fs_is_network_admin() );
+                }
 
                 return $result;
             }
@@ -21608,6 +21597,42 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param mixed $result
+         *
+         * @return string
+         */
+        private function generate_api_blocked_notice_message_from_result( $result ) {
+            $api_domains = $this->apply_filters( 'api_domains', array(
+                'api.freemius.com',
+                'wp.freemius.com',
+            ) );
+
+            $api_domains_list_items = '';
+
+            foreach( $api_domains as $api_domain ) {
+                $api_domains_list_items .= "<li>{$api_domain}</li>";
+            }
+            
+            $error_message = sprintf(
+                $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist the following domains:%2$s', 'server-blocking-access' ),
+                $this->get_plugin_name(),
+                "<ol>{$api_domains_list_items}</ol><a href='#' class='fs-api-request-error-show-details-link'>" . $this->get_text_inline( 'Show error details', 'show-error-details' ) . " <span class='dashicons dashicons-arrow-down-alt2'></span></a>"
+            );
+
+            $error_message =
+                "<div>{$error_message}</div>" .
+                '<div class="fs-api-request-error-details" style="display: none">' .
+                    $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . '<br>' .
+                    htmlentities( $result->error->message ) .
+                '</div>';
+
+            return $error_message;
+        }
+
+        /**
          * Include the required JS at the footer of the admin to trigger the license activation dialog box.
          *
          * @author Vova Feldman (@svovaf)
@@ -23870,6 +23895,24 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param object $result
+         */
+        private function maybe_modify_api_blocked_error_message( $result ) {
+            if (
+                ! FS_Api::is_api_error_object( $result ) ||
+                ! isset( $result->error->code ) ||
+                ( 'api_blocked' !== $result->error->code )
+            ) {
+                return;
+            }
+
+            $result->error->message = $this->generate_api_blocked_notice_message_from_result( $result );
+        }
+
+        /**
          * Show trial promotional notice (if any trial exist).
          *
          * @author Vova Feldman (@svovaf)
@@ -24819,25 +24862,21 @@
                     self::enrich_request_for_debug( $url, $request );
                 }
 
-                $response = wp_remote_post( $url, $request );
+                if ( ! isset( $request['method'] ) ) {
+                    $request['method'] = 'POST';
+                }
 
-                if ( $response instanceof WP_Error ) {
-                    if ( 'https://' === substr( $url, 0, 8 ) &&
-                        isset( $response->errors ) &&
-                        isset( $response->errors['http_request_failed'] )
-                    ) {
-                        $http_error = strtolower( $response->errors['http_request_failed'][0] );
+                $response = FS_Api::remote_request( $url, $request );
 
-                        if ( false !== strpos( $http_error, 'ssl' ) ||
-                            false !== strpos( $http_error, 'curl error 35' )
-                        ) {
-                            // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
-                            $url = 'http://' . substr( $url, 8 );
+                if (
+                    'https://' === substr( $url, 0, 8 ) &&
+                    FS_Api::is_ssl_error_response( $response )
+                ) {
+                    // Failed due to old version of cURL or Open SSL (SSLv3 is not supported by CloudFlare).
+                    $url = 'http://' . substr( $url, 8 );
 
-                            $request['timeout'] = 15;
-                            $response           = wp_remote_post( $url, $request );
-                        }
-                    }
+                    $request['timeout'] = 15;
+                    $response           = FS_Api::remote_request( $url, $request );
                 }
 
                 if ( false !== $cache_key ) {
