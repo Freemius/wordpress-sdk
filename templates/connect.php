@@ -177,7 +177,7 @@
             <?php $fs->do_action( 'connect/before_message', $activation_state ) ?>
 
 			<?php if ( ! empty( $error ) ) : ?>
-				<p class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></p>
+				<div class="fs-error"><?php echo $fs->apply_filters( 'connect_error_esc_html', esc_html( $error ) ) ?></div>
 			<?php endif ?>
             <?php
                 if ( ! $is_pending_activation && ! $require_license_key ) {
@@ -838,7 +838,7 @@
 								resetLoadingMode();
 
 								// Show error.
-								$('.fs-content').prepend('<p class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</p>');
+								$('.fs-content').prepend('<div class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</div>');
 							}
 						},
 						error: function () {

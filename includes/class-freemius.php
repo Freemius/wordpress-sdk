@@ -13985,7 +13985,7 @@
             }
 
             if ( is_object( $user ) ) {
-                $result = null;
+                $result = true;
 
                 if ( $is_network_activation_or_migration && ! $has_valid_blog_id ) {
                     // If no specific blog ID was provided, activate the license for all sites in the network.
@@ -21626,7 +21626,7 @@
                 "<div>{$error_message}</div>" .
                 '<div class="fs-api-request-error-details" style="display: none">' .
                     $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . '<br>' .
-                    htmlentities( $result->error->message ) .
+                    $result->error->message .
                 '</div>';
 
             return $error_message;
