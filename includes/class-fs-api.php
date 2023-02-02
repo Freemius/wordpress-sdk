@@ -245,9 +245,7 @@
                             }
                         } else if (
                             Freemius_Api_WordPress::IsHttps() &&
-                            ! empty( $result->error->message ) &&
-                            ( false !== strpos( $result->error->message, 'ssl' ) ) &&
-                            ( false !== strpos( $result->error->message, 'curl error 35' ) )
+                            FS_Api::is_ssl_error_response( $result )
                         ) {
                             $force_http = true;
                             $retry      = true;
@@ -363,6 +361,25 @@
 
 			return $cached_result;
 		}
+
+        /**
+         * This method will be removed in the future after migrating Freemius::safe_remote_post() to FS_Api::call().
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param string $url
+         * @param array  $remote_args
+         *
+         * @return mixed
+         */
+        static function remote_request( $url, $remote_args ) {
+            if ( ! class_exists( 'Freemius_Api_WordPress' ) ) {
+                require_once WP_FS__DIR_SDK . '/FreemiusWordPress.php';
+            }
+
+            return Freemius_Api_WordPress::RemoteRequest( $url, $remote_args );
+        }
 
 		/**
 		 * Check if there's a cached version of the API request.
@@ -612,6 +629,43 @@
                 is_object( $result ) &&
                 isset( $result->error ) &&
                 isset( $result->error->message )
+            );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param mixed $response
+         *
+         * @return bool
+         */
+        static function is_ssl_error_response( $response ) {
+            $http_error = null;
+
+            if ( $response instanceof WP_Error ) {
+                if (
+                    isset( $response->errors ) &&
+                    isset( $response->errors['http_request_failed'] )
+                ) {
+                    $http_error = strtolower( $response->errors['http_request_failed'][0] );
+                }
+            } else if (
+                self::is_api_error_object( $response ) &&
+                ! empty( $response->error->message )
+            ) {
+                $http_error = $response->error->message;
+            }
+
+            return (
+                ! empty( $http_error ) &&
+                (
+                    false !== strpos( $http_error, 'curl error 35' ) ||
+                    (
+                        false === strpos( $http_error, '</html>' ) &&
+                        false !== strpos( $http_error, 'ssl' )
+                    )
+                )
             );
         }
 

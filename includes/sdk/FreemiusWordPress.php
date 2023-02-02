@@ -315,7 +315,7 @@
 
 			$start = microtime( true );
 
-			$response = wp_remote_request( $pUrl, $pWPRemoteArgs );
+			$response = self::RemoteRequest( $pUrl, $pWPRemoteArgs );
 
 			if ( FS_API__LOGGER_ON ) {
 				$end = microtime( true );
@@ -341,6 +341,30 @@
 
 			return $response;
 		}
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param string $pUrl
+         * @param array  $pWPRemoteArgs
+         *
+         * @return mixed
+         */
+        static function RemoteRequest( $pUrl, $pWPRemoteArgs ) {
+            $response = wp_remote_request( $pUrl, $pWPRemoteArgs );
+
+            if (
+                ! is_wp_error( $response ) &&
+                (
+                    empty( $response['headers'] ) ||
+                    empty( $response['headers']['x-api-server'] )
+                )
+            ) {
+                $response = new WP_Error( 'api_blocked', $response['body'] );
+            }
+
+            return $response;
+        }
 
 		/**
 		 * @return array
