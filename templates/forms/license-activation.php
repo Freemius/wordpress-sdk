@@ -888,3 +888,7 @@ HTML;
 	});
 })( jQuery );
 </script>
+<?php
+    $vars = array( 'parent_selector' => "#fs_connect, .fs-modal-license-activation-{$unique_affix}" );
+
+    fs_require_once_template( 'api-connectivity-message-js.php', $vars );
