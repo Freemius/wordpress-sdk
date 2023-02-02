@@ -360,7 +360,7 @@
                     empty( $response['headers']['x-api-server'] )
                 )
             ) {
-                $response = new WP_Error( 'api_blocked', $response['body'] );
+                $response = new WP_Error( 'api_blocked', htmlentities( $response['body'] ) );
             }
 
             return $response;
