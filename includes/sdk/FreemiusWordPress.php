@@ -577,29 +577,6 @@
 		#----------------------------------------------------------------------------------
 
 		/**
-		 * If successful connectivity to the API endpoint using ping.json endpoint.
-		 *
-		 *      - OR -
-		 *
-		 * Validate if ping result object is valid.
-		 *
-		 * @param mixed $pPong
-		 *
-		 * @return bool
-		 */
-		public static function Test( $pPong = null ) {
-			$pong = is_null( $pPong ) ?
-				self::Ping() :
-				$pPong;
-
-			return (
-				is_object( $pong ) &&
-				isset( $pong->api ) &&
-				'pong' === $pong->api
-			);
-		}
-
-		/**
 		 * Ping API to test connectivity.
 		 *
 		 * @return object

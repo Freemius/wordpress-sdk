@@ -77,3 +77,7 @@
 		<?php echo $VARS['message'] ?>
 	</div>
 </div>
+<?php
+    if ( ! empty( $VARS['id'] ) && 'api_blocked' === $VARS['id'] ) {
+        add_action( 'admin_footer', array( 'Freemius', '_add_api_connectivity_notice_handler_js' ) );
+    }

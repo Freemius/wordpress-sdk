@@ -21180,14 +21180,11 @@
                     // Show API message only if not background sync or if paying customer.
                     if ( ! $background || $this->is_paying() ) {
                         // Try to ping API to see if not blocked.
-                        if ( ! FS_Api::test() ) {
+                        if ( FS_Api::is_blocked( $result ) ) {
                             /**
-                             * Failed to ping API - blocked!
-                             *
                              * @author Vova Feldman (@svovaf)
                              * @since  1.1.6 Only show message related to one of the Freemius powered plugins. Once it will be resolved it will fix the issue for all plugins anyways. There's no point to scare users with multiple error messages.
                              */
-
                             if ( ! self::$_global_admin_notices->has_sticky( 'api_blocked' ) ) {
                                 // Add notice immediately if not a background sync.
                                 $add_notice = ( ! $background );
@@ -21211,15 +21208,8 @@
                                 // Add notice instantly for not-background sync and only after 3 failed attempts for background sync.
                                 if ( $add_notice ) {
                                     self::$_global_admin_notices->add(
-                                        sprintf(
-                                            $this->get_text_inline( 'Your server is blocking the access to Freemius\' API, which is crucial for %1$s synchronization. Please contact your host to whitelist %2$s', 'server-blocking-access' ),
-                                            $this->get_plugin_name(),
-                                            '<b>' . implode( ', ', $this->apply_filters( 'api_domains', array(
-                                                'api.freemius.com',
-                                                'wp.freemius.com'
-                                            ) ) ) . '</b>'
-                                        ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
-                                        $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                                        $this->generate_api_blocked_notice_message_from_result( $result ),
+                                        '',
                                         'error',
                                         $background,
                                         'api_blocked'
@@ -21233,7 +21223,7 @@
                             // Authentication params are broken.
                             $this->_admin_notices->add(
                                 $this->get_text_inline( 'It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again.', 'wrong-authentication-param-message' ) . '<br> ' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . var_export( $result->error, true ),
-                                $this->get_text_x_inline( 'Oops', 'exclamation', 'oops' ) . '...',
+                                '',
                                 'error'
                             );
                         }
@@ -21629,7 +21619,7 @@
             $error_message =
                 "<div>{$error_message}</div>" .
                 '<div class="fs-api-request-error-details" style="display: none">' .
-                    $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . '<br>' .
+                    '<strong>' . $this->get_text_inline( 'Error received from the server:', 'server-error-message' ) . '</strong><br>' .
                     $result->error->message .
                 '</div>';
 
@@ -23905,11 +23895,7 @@
          * @param object $result
          */
         private function maybe_modify_api_blocked_error_message( $result ) {
-            if (
-                ! FS_Api::is_api_error_object( $result ) ||
-                ! isset( $result->error->code ) ||
-                ( 'api_blocked' !== $result->error->code )
-            ) {
+            if ( ! FS_Api::is_blocked( $result ) ) {
                 return;
             }
 
@@ -26117,6 +26103,14 @@
 
             // 10-year lock.
             FS_User_Lock::instance()->lock( 10 * 365 * WP_FS__TIME_24_HOURS_IN_SEC );
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.4
+         */
+        static function _add_api_connectivity_notice_handler_js() {
+            fs_require_once_template( 'api-connectivity-message-js.php' );
         }
 
         /**
