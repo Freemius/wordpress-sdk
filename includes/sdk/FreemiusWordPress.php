@@ -164,14 +164,14 @@
 			self::$_protocol = 'http';
 		}
 
-		/**
-		 * Sets API connection protocol to HTTPS.
-		 *
-		 * @since 2.5.4
-		 */
-		public static function SetHttps() {
-			self::$_protocol = 'https';
-		}
+        /**
+         * Sets API connection protocol to HTTPS.
+         *
+         * @since 2.5.4
+         */
+        public static function SetHttps() {
+            self::$_protocol = 'https';
+        }
 
 		/**
 		 * @since 1.0.4
@@ -315,7 +315,7 @@
 
 			$start = microtime( true );
 
-			$response = self::RemoteRequest( $pUrl, $pWPRemoteArgs );
+            $response = self::RemoteRequest( $pUrl, $pWPRemoteArgs );
 
 			if ( FS_API__LOGGER_ON ) {
 				$end = microtime( true );

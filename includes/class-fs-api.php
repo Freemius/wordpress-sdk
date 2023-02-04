@@ -469,7 +469,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.5.3
+         * @since 2.5.4
          *
          * @param mixed $response
          *
@@ -562,13 +562,13 @@
 			self::$_cache->clear();
 		}
 
-		/**
-		 * @author Leo Fajardo (@leorw)
-		 * @since  2.5.4
-		 */
-		static function clear_force_http_flag() {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.5.4
+         */
+        static function clear_force_http_flag() {
             self::$_options->unset_option( 'api_force_http' );
-		}
+        }
 
 		#----------------------------------------------------------------------------------
 		#region Error Handling
