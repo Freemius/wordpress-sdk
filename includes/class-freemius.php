@@ -4035,7 +4035,7 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since  2.5.3
+         * @since  2.5.4
          *
          * @param bool $is_update
          *
@@ -21219,6 +21219,8 @@
                                         $background,
                                         'api_blocked'
                                     );
+
+                                    add_action( 'admin_footer', array( 'Freemius', '_add_api_connectivity_notice_handler_js' ) );
 
                                     // Notice was just shown, reset connectivity counter.
                                     delete_transient( '_fs_api_connection_retry_counter' );
