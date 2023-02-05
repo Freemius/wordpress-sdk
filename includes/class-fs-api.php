@@ -226,30 +226,30 @@
 
                 $result = $this->_api->Api( $path, $method, $params );
 
-                if ( null !== $result &&
-                     isset( $result->error ) &&
-                     isset( $result->error->code )
+                if (
+                    ! $in_retry &&
+                    null !== $result &&
+                    isset( $result->error ) &&
+                    isset( $result->error->code )
                 ) {
                     $retry = false;
 
-                    if ( ! $in_retry ) {
-                        if ( 'request_expired' === $result->error->code ) {
-                            $diff = isset( $result->error->timestamp ) ?
-                                ( time() - strtotime( $result->error->timestamp ) ) :
-                                false;
+                    if ( 'request_expired' === $result->error->code ) {
+                        $diff = isset( $result->error->timestamp ) ?
+                            ( time() - strtotime( $result->error->timestamp ) ) :
+                            false;
 
-                            // Try to sync clock diff.
-                            if ( false !== $this->_sync_clock_diff( $diff ) ) {
-                                // Retry call with new synced clock.
-                                $retry = true;
-                            }
-                        } else if (
-                            Freemius_Api_WordPress::IsHttps() &&
-                            FS_Api::is_ssl_error_response( $result )
-                        ) {
-                            $force_http = true;
-                            $retry      = true;
+                        // Try to sync clock diff.
+                        if ( false !== $this->_sync_clock_diff( $diff ) ) {
+                            // Retry call with new synced clock.
+                            $retry = true;
                         }
+                    } else if (
+                        Freemius_Api_WordPress::IsHttps() &&
+                        FS_Api::is_ssl_error_response( $result )
+                    ) {
+                        $force_http = true;
+                        $retry      = true;
                     }
 
                     if ( $retry ) {
@@ -363,7 +363,7 @@
 		}
 
         /**
-         * This method will be removed in the future after migrating Freemius::safe_remote_post() to FS_Api::call().
+         * @todo Remove this method after migrating Freemius::safe_remote_post() to FS_Api::call().
          *
          * @author Leo Fajardo (@leorw)
          * @since 2.5.4
@@ -608,7 +608,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.5.4
          *
-         * @param mixed $response
+         * @param WP_Error|object|string $response
          *
          * @return bool
          */

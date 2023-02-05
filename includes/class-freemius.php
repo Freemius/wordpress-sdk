@@ -4042,21 +4042,17 @@
          * @return bool
          */
         private function should_turn_fs_on( $is_update = true ) {
-            if ( empty( $this->_plugin->moderation ) ) {
-                return true;
-            }
-
             if (
-                empty( $this->_plugin->moderation['opt_in'] ) ||
-                ! is_array( $this->_plugin->moderation['opt_in'] )
+                empty( $this->_plugin->opt_in_moderation ) ||
+                ! is_array( $this->_plugin->opt_in_moderation )
             ) {
                 return true;
             }
 
-            $optin_config = $this->_plugin->moderation['opt_in'];
+            $optin_config = $this->_plugin->opt_in_moderation;
 
             if (
-                WP_FS__IS_LOCALHOST_FOR_SERVER &&
+                WP_FS__IS_LOCALHOST &&
                 ( ! isset( $optin_config['localhost'] ) || false !== $optin_config['localhost'] )
             ) {
                 return true;
@@ -5415,7 +5411,7 @@
                 'affiliate_moderation' => $this->get_option( $plugin_info, 'has_affiliation' ),
                 'bundle_id'            => $this->get_option( $plugin_info, 'bundle_id', null ),
                 'bundle_public_key'    => $this->get_option( $plugin_info, 'bundle_public_key', null ),
-                'moderation'           => $this->get_option( $plugin_info, 'moderation', null ),
+                'opt_in_moderation'    => $this->get_option( $plugin_info, 'opt_in', null ),
             ) );
 
             if ( $plugin->is_updated() ) {
@@ -14058,7 +14054,9 @@
                 }
 
                 if ( true !== $result && ! FS_Api::is_api_result_entity( $result ) ) {
-                    $this->maybe_modify_api_blocked_error_message( $result );
+                    if ( FS_Api::is_blocked( $result ) ) {
+                        $result->error->message = $this->generate_api_blocked_notice_message_from_result( $result );
+                    }
 
                     $error = FS_Api::is_api_error_object( $result ) ?
                         $result->error->message :
@@ -17392,7 +17390,10 @@
                 );
 
                 $this->maybe_modify_api_curl_error_message( $result );
-                $this->maybe_modify_api_blocked_error_message( $result );
+
+                if ( FS_Api::is_blocked( $result ) ) {
+                    $result->error->message = $this->generate_api_blocked_notice_message_from_result( $result );
+                }
 
                 $is_connected = null;
 
@@ -17403,6 +17404,7 @@
                 }
 
                 $this->store_connectivity_info(
+                    // This is true since the user is able to access the opt-in/license activation screen.
                     (object) array( 'is_active' => true ),
                     $is_connected
                 );
@@ -17411,6 +17413,7 @@
             }
 
             $this->store_connectivity_info(
+                // This is true since the user is able to access the opt-in/license activation screen.
                 (object) array( 'is_active' => true ),
                 true
             );
@@ -23893,20 +23896,6 @@
                     $this->esc_html_inline( 'Once you are done, deactivate the %s and activate it again.', 'connectivity-reactivate-module' ),
                     $this->get_module_type()
                 );
-        }
-
-        /**
-         * @author Leo Fajardo (@leorw)
-         * @since 2.5.4
-         *
-         * @param object $result
-         */
-        private function maybe_modify_api_blocked_error_message( $result ) {
-            if ( ! FS_Api::is_blocked( $result ) ) {
-                return;
-            }
-
-            $result->error->message = $this->generate_api_blocked_notice_message_from_result( $result );
         }
 
         /**

@@ -108,7 +108,7 @@
          * @since 2.5.4
          * @var null|array
          */
-        public $moderation;
+        public $opt_in_moderation;
 
         const AFFILIATE_MODERATION_CUSTOMERS = 'customers';
 
