@@ -14884,7 +14884,11 @@
 
             return sprintf(
                 $this->get_text_inline( '%s to access version %s security & feature updates, and support.', 'x-for-updates-and-support' ),
-                sprintf( '<a href="%s">%s</a>', $url, $purchase_license_text ),
+                sprintf(
+                    '<a href="%s">%s</a>',
+                    $this->apply_filters( 'update_notice_checkout_url', $url ),
+                    $purchase_license_text
+                ),
                 $new_version
             );
         }
@@ -14954,7 +14958,7 @@
              */
             $params = array_merge( $params, $extra );
 
-            return $this->_get_admin_page_url( 'pricing', $params, $network );
+            return $this->apply_filters( 'checkout_url', $this->_get_admin_page_url( 'pricing', $params, $network ) );
         }
 
         /**
