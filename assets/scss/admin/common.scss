@@ -106,7 +106,9 @@ div.fs-notice
 #fs_connect .fs-error,
 .fs-modal .notice-error,
 .fs-notice.error {
-    ol, .fs-api-request-error-show-details-link, .fs-api-request-error-details {
+    ol,
+    .fs-api-request-error-show-details-link,
+    .fs-api-request-error-details {
         text-align: left;
     }
 
