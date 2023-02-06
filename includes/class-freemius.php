@@ -26206,7 +26206,7 @@
                 '/licenses_owners.json?install_ids=' . implode( ',', $install_ids )
             );
 
-            $license_owners = null;
+            $license_owners = array();
 
             if ( $this->is_api_result_object( $response, 'owners' ) ) {
                 $license_owners = $response->owners;
