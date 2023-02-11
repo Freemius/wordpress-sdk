@@ -4194,6 +4194,20 @@
         }
 
         /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.5.4
+         *
+         * @param bool $is_connected
+         */
+        private function update_connectivity_info( $is_connected ) {
+            $this->store_connectivity_info(
+                // This is true since we update the connection info only after a successful opt-in or license activation which means that Freemius has already been on even before the process.
+                (object) array( 'is_active' => true ),
+                $is_connected
+            );
+        }
+
+        /**
          * Force turning Freemius on.
          *
          * @author Vova Feldman (@svovaf)
@@ -17407,20 +17421,12 @@
                     $is_connected = ( ! FS_Api::is_blocked( $result ) );
                 }
 
-                $this->store_connectivity_info(
-                    // This is true since the user is able to access the opt-in/license activation screen.
-                    (object) array( 'is_active' => true ),
-                    $is_connected
-                );
+                $this->update_connectivity_info( $is_connected );
 
                 return $result;
             }
 
-            $this->store_connectivity_info(
-                // This is true since the user is able to access the opt-in/license activation screen.
-                (object) array( 'is_active' => true ),
-                true
-            );
+            $this->update_connectivity_info( true );
 
             // Module is being uninstalled, don't handle the returned data.
             if ( $is_uninstall ) {
@@ -17598,6 +17604,9 @@
                 // Only network level opt-in can have more than one install.
                 $is_network_level_opt_in = true;
             }
+
+            $this->update_connectivity_info( true );
+
 //            $is_network_level_opt_in = self::is_ajax_action_static( 'network_activate', $this->_module_id );
             // If Freemius was OFF before, turn it on.
             $this->turn_on();
