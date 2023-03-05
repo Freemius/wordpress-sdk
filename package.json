@@ -23,6 +23,6 @@
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
     "gulp-transifex": "^0.1.17",
-    "gulp-wp-pot": "^1.3.5"
+    "gulp-wp-pot": "^2.0.6"
   }
 }

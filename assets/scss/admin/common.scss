@@ -103,6 +103,33 @@ div.fs-notice
     }
 }
 
+#fs_connect .fs-error,
+.fs-modal .notice-error,
+.fs-notice.error {
+    ol,
+    .fs-api-request-error-show-details-link,
+    .fs-api-request-error-details {
+        text-align: left;
+    }
+
+    ol {
+        list-style-type: disc;
+    }
+
+    .fs-api-request-error-show-details-link {
+        text-decoration: none;
+        color: #2271b1;
+        box-shadow: none;
+    }
+
+    .fs-api-request-error-details {
+        border: 1px solid #ccc;
+        padding: 5px;
+        overflow: auto;
+        max-height: 150px;
+    }
+}
+
 .rtl .fs-notice
 {
     .fs-close
