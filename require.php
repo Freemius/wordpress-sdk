@@ -44,6 +44,10 @@
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-payment.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-plugin-license.php';
 	require_once WP_FS__DIR_INCLUDES . '/entities/class-fs-subscription.php';
+    /**
+     * Preemptively load the latest version of `Freemius_Api_WordPress` class so that other non-standard integration and custom forks do not override it. For non-standard or custom forks, we recommend copying the source code and renaming the classes, or putting them under namespaces.
+     */
+    require_once WP_FS__DIR_SDK . '/FreemiusWordPress.php';
 	require_once WP_FS__DIR_INCLUDES . '/class-fs-api.php';
 	require_once WP_FS__DIR_INCLUDES . '/class-fs-plugin-updater.php';
 	require_once WP_FS__DIR_INCLUDES . '/class-fs-security.php';
