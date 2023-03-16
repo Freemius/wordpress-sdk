@@ -161,9 +161,7 @@
 		);
 	}
 
-    $redirect_after_reordering_plugins = false;
-
-    $is_current_sdk_newest = isset( $fs_active_plugins->newest ) && ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
+	$is_current_sdk_newest = isset( $fs_active_plugins->newest ) && ( $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path );
 
 	if ( ! isset( $fs_active_plugins->newest ) ) {
 		/**
@@ -173,22 +171,27 @@
 
 		$is_current_sdk_newest = true;
 
-        // Try to reorder plugins so that the plugin containing the newest SDK version will be loaded first.
-        $redirect_after_reordering_plugins = ( true === fs_newest_sdk_plugin_first() );
+        // Try to reorder plugins so that the plugin containing the newest SDK version will be loaded first even if it's the only product/module that has the SDK.
+        if ( fs_newest_sdk_plugin_first() ) {
+            fs_redirect( $_SERVER['REQUEST_URI'] );
+        }
     } else if ( version_compare( $fs_active_plugins->newest->version, $this_sdk_version, '<' ) ) {
 		/**
 		 * Current SDK is newer than the newest stored SDK.
 		 */
 		fs_update_sdk_newest_version( $this_sdk_relative_path, $fs_active_plugins->plugins[ $this_sdk_relative_path ]->plugin_path );
 
-		if ( class_exists( 'Freemius' ) ) {
-			// Older SDK version was already loaded.
+        $reordered_plugins = false;
 
-			if ( ! $fs_active_plugins->newest->in_activation ) {
-				// Reorder plugins to load this plugin first.
-                $redirect_after_reordering_plugins = ( true === fs_newest_sdk_plugin_first() );
-			}
-		}
+        if ( ! $fs_active_plugins->newest->in_activation ) {
+            // Re-order plugins to load this plugin first.
+            $reordered_plugins = fs_newest_sdk_plugin_first();
+        }
+
+        if ( class_exists( 'Freemius' ) || $reordered_plugins ) {
+            // Refresh page.
+            fs_redirect( $_SERVER['REQUEST_URI'] );
+        }
 	} else {
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -258,36 +261,35 @@
 			// Find the active plugin with the newest SDK version and update the newest reference.
 			fs_fallback_to_newest_active_sdk();
 		} else {
-			if ( $is_newest_sdk_plugin_active &&
-			     $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path &&
-			     ( $fs_active_plugins->newest->in_activation ||
-			       ( class_exists( 'Freemius' ) && ( ! defined( 'WP_FS__SDK_VERSION' ) || version_compare( WP_FS__SDK_VERSION, $this_sdk_version, '<' ) ) )
-			     )
-
-			) {
-				if ( $fs_active_plugins->newest->in_activation && ! $is_newest_sdk_type_theme ) {
-					// Plugin no more in activation.
-					$fs_active_plugins->newest->in_activation = false;
-					update_option( 'fs_active_plugins', $fs_active_plugins );
-				}
+            if (
+                $is_newest_sdk_plugin_active &&
+                $this_sdk_relative_path == $fs_active_plugins->newest->sdk_path
+            ) {
+                if (
+                    $fs_active_plugins->newest->in_activation ||
+                    ( class_exists( 'Freemius' ) && ( ! defined( 'WP_FS__SDK_VERSION' ) || version_compare( WP_FS__SDK_VERSION, $this_sdk_version, '<' ) ) )
+                ) {
+                    if ( $fs_active_plugins->newest->in_activation && ! $is_newest_sdk_type_theme ) {
+                        // Plugin no more in activation.
+                        $fs_active_plugins->newest->in_activation = false;
+                        update_option( 'fs_active_plugins', $fs_active_plugins );
+                    }
+                }
 
                 // Reorder plugins to load plugin with newest SDK first.
-                $redirect_after_reordering_plugins = ( true === fs_newest_sdk_plugin_first() );
+                if ( fs_newest_sdk_plugin_first() ) {
+                    fs_redirect( $_SERVER['REQUEST_URI'] );
+                }
 			}
 		}
 	}
 
-    if ( $redirect_after_reordering_plugins ) {
-        // Redirect regardless of whether the Freemius class already exists to ensure that the relevant classes of the SDK will be loaded first even if there's a running non-standard version of the SDK (i.e., custom SDK version).
-        fs_redirect( $_SERVER['REQUEST_URI'] );
-    }
+	if ( class_exists( 'Freemius' ) ) {
+		// SDK was already loaded.
+		return;
+	}
 
-    if ( class_exists( 'Freemius' ) ) {
-        // SDK was already loaded.
-        return;
-    }
-    
-    if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
+	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
 		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
 
 		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) ?
