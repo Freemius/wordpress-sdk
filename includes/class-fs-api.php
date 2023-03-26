@@ -386,8 +386,11 @@
             $response = wp_remote_request( $url, $remote_args );
 
             if (
-                empty( $response['headers'] ) ||
-                empty( $response['headers']['x-api-server'] )
+                is_array( $response ) &&
+                (
+                    empty( $response['headers'] ) ||
+                    empty( $response['headers']['x-api-server'] )
+                )
             ) {
                 // API is considered blocked if the response doesn't include the `x-api-server` header. When there's no error but this header doesn't exist, the response is usually not in the expected form (e.g., cannot be JSON-decoded).
                 $response = new WP_Error( 'api_blocked', htmlentities( $response['body'] ) );
