@@ -371,7 +371,7 @@
          * @param string $url
          * @param array  $remote_args
          *
-         * @return mixed
+         * @return array|WP_Error The response array or a WP_Error on failure.
          */
         static function remote_request( $url, $remote_args ) {
             if ( ! class_exists( 'Freemius_Api_WordPress' ) ) {

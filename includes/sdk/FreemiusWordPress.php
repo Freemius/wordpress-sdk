@@ -348,7 +348,7 @@
          * @param string $pUrl
          * @param array  $pWPRemoteArgs
          *
-         * @return mixed
+         * @return array|WP_Error The response array or a WP_Error on failure.
          */
         static function RemoteRequest( $pUrl, $pWPRemoteArgs ) {
             $response = wp_remote_request( $pUrl, $pWPRemoteArgs );
