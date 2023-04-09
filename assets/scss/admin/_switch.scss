@@ -54,7 +54,7 @@ $switch-on-color: $wp-button-primary-background-color;
     /* Round switch */
     &.fs-round
     {
-        top:     $switch-size / 3;
+        top:     calc($switch-size / 3);
         padding: 4px ($switch-size + 1px);
         @include border-radius($switch-size);
 
