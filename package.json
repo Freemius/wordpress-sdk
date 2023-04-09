@@ -9,6 +9,9 @@
   "main": "gulpfile.js",
   "dependencies": {},
   "scripts": {
+    "dev": "gulp watch",
+    "build": "gulp build",
+    "default": "gulp default",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
   },
