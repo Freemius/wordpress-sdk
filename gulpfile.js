@@ -139,6 +139,7 @@ function compile_translations() {
         .pipe(gulp.dest(languagesFolder))
 }
 
+// Run postcss processing for styles.
 function style() {
     let plugins = [
         cssnano()
@@ -154,11 +155,13 @@ function style() {
         .pipe( gulp.dest( './assets/css/' ) )
 }
 
+// Compile css only in dev mode.
 function watch() {
     gulp.watch( './assets/scss/*.scss', style );
     gulp.watch( './assets/scss/admin/*.scss', style );
 }
 
+// Fully run style and translations compile.
 function build() {
     style();
     prepare_source();
