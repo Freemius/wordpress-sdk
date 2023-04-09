@@ -145,13 +145,9 @@ function style() {
         cssnano()
     ];
 
-    // location of style
     return gulp.src( './assets/scss/**/*.scss' )
-        // Compile file
         .pipe( sass() )
-        // Use postcss
         .pipe( postcss( plugins ) )
-        // Push build
         .pipe( gulp.dest( './assets/css/' ) )
 }
 
