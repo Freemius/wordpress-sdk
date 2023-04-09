@@ -1,16 +1,16 @@
-var gulp = require('gulp');
-var path = require('path');
-var filesystem = require('fs');
-var wpPot = require('gulp-wp-pot');
-var gettext = require('gulp-gettext');
-var sort = require('gulp-sort');
-var pofill = require('gulp-pofill');
-var rename = require('gulp-rename');
-var clean = require('gulp-clean');
-
-var languagesFolder = './languages/';
-
-var options = require('./transifex-config.json');
+const gulp       = require('gulp');
+const path       = require('path');
+const wpPot      = require('gulp-wp-pot');
+const gettext    = require('gulp-gettext');
+const sort       = require('gulp-sort');
+const pofill     = require('gulp-pofill');
+const rename     = require('gulp-rename');
+const clean      = require('gulp-clean');
+const postcss    = require( 'gulp-postcss' );
+const sass       = require('gulp-sass')(require('sass'));
+const cssnano    = require( 'cssnano' );
+const filesystem = require('fs');
+const { series } = require('gulp');
 
 function getFolders(dir) {
     return filesystem.readdirSync(dir)
@@ -19,10 +19,13 @@ function getFolders(dir) {
         });
 }
 
-var transifex = require('gulp-transifex').createClient(options);
+const options         = require('./transifex-config.json');
+const transifex       = require('gulp-transifex').createClient(options);
+const languagesFolder = './languages/';
+const folders         = getFolders(languagesFolder);
 
 // Create POT out of PHP files
-gulp.task('prepare-source', function () {
+function prepare_source() {
     gulp.src('**/*.php')
         .pipe(sort())
         .pipe(wpPot({
@@ -71,33 +74,36 @@ gulp.task('prepare-source', function () {
         }))
         .pipe(rename('freemius-en.po'))
         .pipe(gulp.dest(languagesFolder));
-});
+}
 
 // Push updated po resource to transifex.
-gulp.task('update-transifex', ['prepare-source'], function () {
+function update_transifex() {
+    prepare_source();
     return gulp.src(languagesFolder + 'freemius-en.po')
         .pipe(transifex.pushResource());
-});
+}
 
 // Download latest *.po translations.
-gulp.task('download-translations', ['update-transifex'], function () {
+async function download_translations() {
+    update_transifex();
     return gulp.src(languagesFolder + 'freemius-en.po')
         .pipe(transifex.pullResource());
-});
+}
 
 // Move translations to languages root.
-gulp.task('prepare-translations', ['download-translations'], function () {
-    var folders = getFolders(languagesFolder);
-
+function prepare_translations() {
+    download_translations();
+    
     return folders.map(function (folder) {
         return gulp.src(path.join(languagesFolder, folder, 'freemius-en.po'))
             .pipe(rename('freemius-' + folder + '.po'))
             .pipe(gulp.dest(languagesFolder));
     });
-});
+}
 
 // Feel up empty translations with English.
-gulp.task('translations-feelup', ['prepare-translations'], function () {
+function translations_feelup() {
+   prepare_translations()
     return gulp.src(languagesFolder + '*.po')
         .pipe(pofill({
             items: function (item) {
@@ -106,39 +112,80 @@ gulp.task('translations-feelup', ['prepare-translations'], function () {
                     item.msgstr = [''];
                 }
                 if (0 == item.msgstr[0].length) {
-//                    item.msgid[0] = item.msgid;
+                    // item.msgid[0] = item.msgid;
                     item.msgstr[0] = item.msgid;
                 }
                 return item;
             }
         }))
         .pipe(gulp.dest(languagesFolder));
-});
+}
 
 // Cleanup temporary translation folders.
-gulp.task('cleanup', ['prepare-translations'], function () {
-    var folders = getFolders(languagesFolder);
-
+function cleanup() {
+    prepare_translations();
     return folders.map(function (folder) {
         return gulp.src(path.join(languagesFolder, folder), {read: false})
             .pipe(clean());
     });
-});
+}
 
 // Compile *.po to *.mo binaries for usage.
-gulp.task('compile-translations', ['translations-feelup'], function () {
+function compile_translations() {
+    translations_feelup();
     // Compile POs to MOs.
     return gulp.src(languagesFolder + '*.po')
         .pipe(gettext())
         .pipe(gulp.dest(languagesFolder))
-});
+}
 
-gulp.task('default', [], function () {
-    gulp.run('prepare-source');
-    gulp.run('update-transifex');
-    gulp.run('download-translations');
-    gulp.run('prepare-translations');
-    gulp.run('translations-feelup');
-    gulp.run('cleanup');
-    gulp.run('compile-translations');
-});
+function style() {
+    let plugins = [
+        cssnano()
+    ];
+
+    // location of style
+    return gulp.src( './assets/scss/**/*.scss' )
+        // Compile file
+        .pipe( sass() )
+        // Use postcss
+        .pipe( postcss( plugins ) )
+        // Push build
+        .pipe( gulp.dest( './assets/css/' ) )
+}
+
+function watch() {
+    gulp.watch( './assets/scss/*.scss', style );
+    gulp.watch( './assets/scss/admin/*.scss', style );
+}
+
+function build() {
+    style();
+    prepare_source();
+    update_transifex();
+    download_translations();
+    prepare_translations();
+    translations_feelup();
+    cleanup();
+    compile_translations();
+}
+
+exports.prepare_source        = prepare_source;
+exports.update_transifex      = update_transifex;
+exports.download_translations = download_translations;
+exports.prepare_translations  = prepare_translations;
+exports.translations_feelup   = translations_feelup;
+exports.cleanup               = cleanup;
+exports.compile_translations  = compile_translations;
+exports.style                 = style;
+exports.watch                 = watch;
+exports.build                 = build;
+exports.default               = series(
+    prepare_source,
+    update_transifex,
+    download_translations,
+    prepare_translations,
+    translations_feelup,
+    cleanup,
+    compile_translations
+);
