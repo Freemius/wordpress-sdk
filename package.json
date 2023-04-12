@@ -10,8 +10,11 @@
   "dependencies": {},
   "scripts": {
     "dev": "gulp watch",
-    "build": "gulp build",
-    "default": "gulp default",
+    "build": "gulp style",
+    "i18n": "gulp default",
+    "i18n:prepare": "gulp prepare_source",
+    "i18n:transifex": "gulp update_transifex",
+    "i18n:compile": "gulp compile_translations",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
   },

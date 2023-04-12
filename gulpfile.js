@@ -101,8 +101,8 @@ function prepare_translations() {
     });
 }
 
-// Feel up empty translations with English.
-function translations_feelup() {
+// Fill up empty translations with English.
+function translations_fillup() {
    prepare_translations()
     return gulp.src(languagesFolder + '*.po')
         .pipe(pofill({
@@ -132,7 +132,7 @@ function cleanup() {
 
 // Compile *.po to *.mo binaries for usage.
 function compile_translations() {
-    translations_feelup();
+    translations_fillup();
     // Compile POs to MOs.
     return gulp.src(languagesFolder + '*.po')
         .pipe(gettext())
@@ -156,34 +156,21 @@ function watch() {
     gulp.watch( './assets/scss/**/*.scss', style );
 }
 
-// Fully run style and translations compile.
-function build() {
-    style();
-    prepare_source();
-    update_transifex();
-    download_translations();
-    prepare_translations();
-    translations_feelup();
-    cleanup();
-    compile_translations();
-}
-
 exports.prepare_source        = prepare_source;
 exports.update_transifex      = update_transifex;
 exports.download_translations = download_translations;
 exports.prepare_translations  = prepare_translations;
-exports.translations_feelup   = translations_feelup;
+exports.translations_fillup   = translations_fillup;
 exports.cleanup               = cleanup;
 exports.compile_translations  = compile_translations;
 exports.style                 = style;
 exports.watch                 = watch;
-exports.build                 = build;
 exports.default               = series(
     prepare_source,
     update_transifex,
     download_translations,
     prepare_translations,
-    translations_feelup,
+    translations_fillup,
     cleanup,
     compile_translations
 );
