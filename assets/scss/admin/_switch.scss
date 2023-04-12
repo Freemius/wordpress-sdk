@@ -1,3 +1,5 @@
+@use "sass:math";
+
 $switch-size: 24px;
 $switch-small-size: 0.75 * $switch-size;
 $switch-on-color: $wp-button-primary-background-color;
@@ -54,7 +56,7 @@ $switch-on-color: $wp-button-primary-background-color;
     /* Round switch */
     &.fs-round
     {
-        top:     calc($switch-size / 3);
+        top:     math.div($switch-size, 3);
         padding: 4px ($switch-size + 1px);
         @include border-radius($switch-size);
 
