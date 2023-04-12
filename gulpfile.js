@@ -141,7 +141,7 @@ function compile_translations() {
 
 // Run postcss processing for styles.
 function style() {
-    let plugins = [
+    const plugins = [
         cssnano()
     ];
 
