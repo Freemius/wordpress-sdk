@@ -153,8 +153,7 @@ function style() {
 
 // Compile css only in dev mode.
 function watch() {
-    gulp.watch( './assets/scss/*.scss', style );
-    gulp.watch( './assets/scss/admin/*.scss', style );
+    gulp.watch( './assets/scss/**/*.scss', style );
 }
 
 // Fully run style and translations compile.
