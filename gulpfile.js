@@ -25,8 +25,8 @@ const languagesFolder = './languages/';
 const folders         = getFolders(languagesFolder);
 
 // Create POT out of PHP files
-function prepare_source() {
-    gulp.src('**/*.php')
+function prepare_source_pot() {
+    return gulp.src('**/*.php')
         .pipe(sort())
         .pipe(wpPot({
             destFile        : 'freemius.pot',
@@ -57,8 +57,10 @@ function prepare_source() {
             ]
         }))
         .pipe(gulp.dest(languagesFolder + 'freemius.pot'));
+}
 
-    // Create English PO out of the POT.
+// Create English PO out of the POT.
+function generate_source_po() {
     return gulp.src(languagesFolder + 'freemius.pot')
         .pipe(pofill({
             items: function (item) {
@@ -77,23 +79,18 @@ function prepare_source() {
 }
 
 // Push updated po resource to transifex.
-function update_transifex() {
-    prepare_source();
+function push_transifex() {
     return gulp.src(languagesFolder + 'freemius-en.po')
         .pipe(transifex.pushResource());
 }
 
 // Download latest *.po translations.
-async function download_translations() {
-    update_transifex();
+function download_latest_po() {
     return gulp.src(languagesFolder + 'freemius-en.po')
-        .pipe(transifex.pullResource());
+    .pipe(transifex.pullResource());
 }
 
-// Move translations to languages root.
-function prepare_translations() {
-    download_translations();
-    
+function move_translations_to_root() {    
     return folders.map(function (folder) {
         return gulp.src(path.join(languagesFolder, folder, 'freemius-en.po'))
             .pipe(rename('freemius-' + folder + '.po'))
@@ -102,8 +99,7 @@ function prepare_translations() {
 }
 
 // Fill up empty translations with English.
-function translations_fillup() {
-   prepare_translations()
+function translations_english_fillup() {
     return gulp.src(languagesFolder + '*.po')
         .pipe(pofill({
             items: function (item) {
@@ -122,8 +118,7 @@ function translations_fillup() {
 }
 
 // Cleanup temporary translation folders.
-function cleanup() {
-    prepare_translations();
+function cleanup_temp() {
     return folders.map(function (folder) {
         return gulp.src(path.join(languagesFolder, folder), {read: false})
             .pipe(clean());
@@ -131,9 +126,7 @@ function cleanup() {
 }
 
 // Compile *.po to *.mo binaries for usage.
-function compile_translations() {
-    translations_fillup();
-    // Compile POs to MOs.
+function compile_translations_to_mo() {
     return gulp.src(languagesFolder + '*.po')
         .pipe(gettext())
         .pipe(gulp.dest(languagesFolder))
@@ -156,21 +149,21 @@ function watch() {
     gulp.watch( './assets/scss/**/*.scss', style );
 }
 
-exports.prepare_source        = prepare_source;
+const update_transifex      = series(prepare_source_pot, generate_source_po, push_transifex);
+const download_translations = series(update_transifex, download_latest_po);
+const prepare_translations  = series(download_translations, move_translations_to_root);
+const translations_fillup   = series(prepare_translations, translations_english_fillup);
+const cleanup               = series(prepare_translations, cleanup_temp);
+const compile_translations  = series(translations_fillup, compile_translations_to_mo);
+
+exports.prepare_source_pot    = prepare_source_pot;
 exports.update_transifex      = update_transifex;
 exports.download_translations = download_translations;
 exports.prepare_translations  = prepare_translations;
 exports.translations_fillup   = translations_fillup;
 exports.cleanup               = cleanup;
+exports.cleanup_temp          = cleanup_temp;
 exports.compile_translations  = compile_translations;
 exports.style                 = style;
 exports.watch                 = watch;
-exports.default               = series(
-    prepare_source,
-    update_transifex,
-    download_translations,
-    prepare_translations,
-    translations_fillup,
-    cleanup,
-    compile_translations
-);
+exports.default               = series(translations_fillup, cleanup, compile_translations);

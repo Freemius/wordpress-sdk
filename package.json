@@ -12,9 +12,11 @@
     "dev": "gulp watch",
     "build": "gulp style",
     "i18n": "gulp default",
-    "i18n:prepare": "gulp prepare_source",
+    "i18n:pot": "gulp prepare_source_pot",
     "i18n:transifex": "gulp update_transifex",
-    "i18n:compile": "gulp compile_translations",
+    "i18n:download": "gulp download_translations",
+    "i18n:cleanup": "gulp cleanup",
+    "i18n:compile": "gulp default",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
   },
