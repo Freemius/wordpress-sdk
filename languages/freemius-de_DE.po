@@ -8,19 +8,20 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2015-10-01 21:38+0000\n"
+"PO-Revision-Date: 2023-04-19 18:31+0530\n"
 "Last-Translator: Oliver Heinrich, 2022\n"
-"Language: de_DE\n"
 "Language-Team: German (Germany) (http://www.transifex.com/freemius/wordpress-sdk/language/de_DE/)\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"MIME-Version: 1.0\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 3.2.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
-"X-Poedit-SourceCharset: UTF-8\n"
 
 #: includes/class-freemius.php1744, templates/account.php:947
 msgid "An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned."
@@ -266,8 +267,7 @@ msgstr "Das Upgrade von %s wurde erfolgreich abgeschlossen."
 
 #: includes/class-freemius.php10709, includes/class-fs-plugin-updater.php1090,
 #: includes/class-fs-plugin-updater.php1305,
-#: includes/class-fs-plugin-updater.php1312,
-#: templates/auto-installation.php:32
+#: includes/class-fs-plugin-updater.php1312, templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "Add-on"
 
@@ -935,8 +935,7 @@ msgid "Install Free Version Now"
 msgstr "Kostenlose Version jetzt installieren"
 
 #: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323,
-#: templates/auto-installation.php111,
-#: templates/account/partials/addon.php370,
+#: templates/auto-installation.php111, templates/account/partials/addon.php370,
 #: templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "Jetzt installieren"
@@ -2262,8 +2261,8 @@ msgstr "Geschäftsname"
 msgid "Tax / VAT ID"
 msgstr "Steuer-/Umsatzsteuer-ID"
 
-#: templates/account/billing.php42, templates/account/billing.php42,
-#: templates/account/billing.php43, templates/account/billing.php:43
+#: templates/account/billing.php42, templates/account/billing.php43,
+#: templates/account/billing.php:43
 msgid "Address Line %d"
 msgstr "Adresse Zeile %d"
 
