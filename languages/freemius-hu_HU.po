@@ -7,25 +7,24 @@ msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2015-10-01 21:38+0000\n"
+"PO-Revision-Date: 2023-04-19 18:31+0530\n"
 "Last-Translator: Peter Ambrus, 2018-2019,2021\n"
 "Language-Team: Hungarian (Hungary) (http://www.transifex.com/freemius/wordpress-sdk/language/hu_HU/)\n"
+"Language: hu_HU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: hu_HU\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-Basepath: ..\n"
-"X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
+"X-Poedit-KeywordsList: get_text_inline;fs_text_inline;fs_echo_inline;fs_esc_js_inline;fs_esc_attr_inline;fs_esc_attr_echo_inline;fs_esc_html_inline;fs_esc_html_echo_inline;get_text_x_inline:1,2c;"
+"fs_text_x_inline:1,2c;fs_echo_x_inline:1,2c;fs_esc_attr_x_inline:1,2c;fs_esc_js_x_inline:1,2c;fs_esc_js_echo_x_inline:1,2c;fs_esc_html_x_inline:1,2c;fs_esc_html_echo_x_inline:1,2c\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 3.2.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
-"X-Poedit-SourceCharset: UTF-8\n"
 
 #: includes/class-freemius.php1748, templates/account.php:947
-msgid ""
-"An update to a Beta version will replace your installed version of %s with "
-"the latest Beta release - use with caution, and not on production sites. You"
-" have been warned."
+msgid "An update to a Beta version will replace your installed version of %s with the latest Beta release - use with caution, and not on production sites. You have been warned."
 msgstr ""
 
 #: includes/class-freemius.php:1755
@@ -33,9 +32,7 @@ msgid "Would you like to proceed with the update?"
 msgstr "Szeretnéd folytatni a frissítést?"
 
 #: includes/class-freemius.php:1980
-msgid ""
-"Freemius SDK couldn't find the plugin's main file. Please contact "
-"sdk@freemius.com with the current error."
+msgid "Freemius SDK couldn't find the plugin's main file. Please contact sdk@freemius.com with the current error."
 msgstr "A Freemius SDK nem találja a bővítmény fő fájlját. Kérlek írj az sdk@freemius.com email címre a problémával kapcsolatban."
 
 #: includes/class-freemius.php1982, includes/fs-plugin-info-dialog.php:1517
@@ -62,8 +59,7 @@ msgstr "Deaktiválás"
 msgid "Theme Switch"
 msgstr "Sablon váltás"
 
-#: includes/class-freemius.php2448, templates/forms/resend-key.php24,
-#: templates/forms/user-change.php:29
+#: includes/class-freemius.php2448, templates/forms/resend-key.php24, templates/forms/user-change.php:29
 msgid "Other"
 msgstr "Egyéb"
 
@@ -144,14 +140,10 @@ msgid "You have purchased a %s license."
 msgstr ""
 
 #: includes/class-freemius.php:4759
-msgid ""
-" The %s's %sdownload link%s, license key, and installation instructions have"
-" been sent to %s. If you can't find the email after 5 min, please check your"
-" spam box."
+msgid " The %s's %sdownload link%s, license key, and installation instructions have been sent to %s. If you can't find the email after 5 min, please check your spam box."
 msgstr ""
 
-#: includes/class-freemius.php4769, includes/class-freemius.php21125,
-#: includes/class-freemius.php:24783
+#: includes/class-freemius.php4769, includes/class-freemius.php21125, includes/class-freemius.php:24783
 msgctxt "interjection expressing joy or exuberance"
 msgid "Yee-haw"
 msgstr "Juhuuu"
@@ -166,22 +158,15 @@ msgctxt "addonX cannot run..."
 msgid "%s cannot run without the plugin."
 msgstr ""
 
-#: includes/class-freemius.php4786, includes/class-freemius.php5978,
-#: includes/class-freemius.php13730, includes/class-freemius.php14469,
-#: includes/class-freemius.php18281, includes/class-freemius.php18394,
-#: includes/class-freemius.php18571, includes/class-freemius.php20856,
-#: includes/class-freemius.php21955, includes/class-freemius.php22971,
-#: includes/class-freemius.php23101, includes/class-freemius.php23231,
-#: templates/add-ons.php:57
+#: includes/class-freemius.php4786, includes/class-freemius.php5978, includes/class-freemius.php13730, includes/class-freemius.php14469, includes/class-freemius.php18281,
+#: includes/class-freemius.php18394, includes/class-freemius.php18571, includes/class-freemius.php20856, includes/class-freemius.php21955, includes/class-freemius.php22971,
+#: includes/class-freemius.php23101, includes/class-freemius.php23231, templates/add-ons.php:57
 msgctxt "exclamation"
 msgid "Oops"
 msgstr "Hoppá"
 
 #: includes/class-freemius.php:5065
-msgid ""
-"There was an unexpected API error while processing your request. Please try "
-"again in a few minutes and if it still doesn't work, contact the %s's author"
-" with the following:"
+msgid "There was an unexpected API error while processing your request. Please try again in a few minutes and if it still doesn't work, contact the %s's author with the following:"
 msgstr ""
 
 #: includes/class-freemius.php:5645
@@ -189,9 +174,7 @@ msgid "Premium %s version was successfully activated."
 msgstr "%s prémium verziója sikeresen aktiválva."
 
 #: includes/class-freemius.php5657, includes/class-freemius.php:7692
-msgctxt ""
-"Used to express elation, enthusiasm, or triumph (especially in electronic "
-"communication)."
+msgctxt "Used to express elation, enthusiasm, or triumph (especially in electronic communication)."
 msgid "W00t"
 msgstr "Fantasztikus"
 
@@ -200,20 +183,14 @@ msgid "You have a %s license."
 msgstr "Licensz típusa: %s"
 
 #: includes/class-freemius.php:5961
-msgid ""
-"%s free trial was successfully cancelled. Since the add-on is premium only "
-"it was automatically deactivated. If you like to use it in the future, "
-"you'll have to purchase a license."
+msgid "%s free trial was successfully cancelled. Since the add-on is premium only it was automatically deactivated. If you like to use it in the future, you'll have to purchase a license."
 msgstr ""
 
 #: includes/class-freemius.php:5965
-msgid ""
-"%s is a premium only add-on. You have to purchase a license first before "
-"activating the plugin."
+msgid "%s is a premium only add-on. You have to purchase a license first before activating the plugin."
 msgstr "A(z) %s egy prémium kiegészítő. A bővítmény aktiválásához előbb egy érvényes licenszt kell vásárolnod."
 
-#: includes/class-freemius.php5974, templates/add-ons.php186,
-#: templates/account/partials/addon.php:386
+#: includes/class-freemius.php5974, templates/add-ons.php186, templates/account/partials/addon.php:386
 msgid "More information about %s"
 msgstr "További információ"
 
@@ -224,9 +201,7 @@ msgstr "Licensz vásárlása"
 #. translators: %3$s: action (e.g.: "start the trial" or "complete the opt-
 #. in")
 #: includes/class-freemius.php:6971
-msgid ""
-"You should receive a confirmation email for %1$s to your mailbox at %2$s. "
-"Please make sure you click the button in that email to %3$s."
+msgid "You should receive a confirmation email for %1$s to your mailbox at %2$s. Please make sure you click the button in that email to %3$s."
 msgstr ""
 
 #: includes/class-freemius.php:6974
@@ -244,20 +219,16 @@ msgstr ""
 #. translators: %3$s: What the user is expected to receive via email (e.g.:
 #. "the installation instructions" or "a license key")
 #: includes/class-freemius.php:6980
-msgid ""
-"You should receive %3$s for %1$s to your mailbox at %2$s in the next 5 "
-"minutes."
+msgid "You should receive %3$s for %1$s to your mailbox at %2$s in the next 5 minutes."
 msgstr ""
 
 #: includes/class-freemius.php:6983
-msgctxt ""
-"Part of the message telling the user what they should receive via email."
+msgctxt "Part of the message telling the user what they should receive via email."
 msgid "the installation instructions"
 msgstr ""
 
 #: includes/class-freemius.php:6989
-msgctxt ""
-"Part of the message telling the user what they should receive via email."
+msgctxt "Part of the message telling the user what they should receive via email."
 msgid "a license key"
 msgstr ""
 
@@ -271,16 +242,12 @@ msgid "Click here"
 msgstr ""
 
 #: includes/class-freemius.php:7012
-msgctxt ""
-"Part of the message that tells the user to check their spam folder for a "
-"specific email."
+msgctxt "Part of the message that tells the user to check their spam folder for a specific email."
 msgid "the product's support email address"
 msgstr ""
 
 #: includes/class-freemius.php:7018
-msgid ""
-"If you didn't get the email, try checking your spam folder or search for "
-"emails from %4$s."
+msgid "If you didn't get the email, try checking your spam folder or search for emails from %4$s."
 msgstr ""
 
 #: includes/class-freemius.php:7020
@@ -308,40 +275,29 @@ msgstr "Iratkozz fel, hogy a(z) %s még jobb lehessen!"
 msgid "The upgrade of %s was successfully completed."
 msgstr "A(z) %s frissítése sikeres volt."
 
-#: includes/class-freemius.php10441, includes/class-fs-plugin-updater.php1100,
-#: includes/class-fs-plugin-updater.php1315,
-#: includes/class-fs-plugin-updater.php1322,
-#: templates/auto-installation.php:32
+#: includes/class-freemius.php10441, includes/class-fs-plugin-updater.php1100, includes/class-fs-plugin-updater.php1315, includes/class-fs-plugin-updater.php1322, templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "Kiegészítő"
 
-#: includes/class-freemius.php10443, templates/account.php411,
-#: templates/account.php419, templates/debug.php399, templates/debug.php:619
+#: includes/class-freemius.php10443, templates/account.php411, templates/account.php419, templates/debug.php399, templates/debug.php:619
 msgid "Plugin"
 msgstr "Bővítmény"
 
-#: includes/class-freemius.php10444, templates/account.php412,
-#: templates/account.php420, templates/debug.php399, templates/debug.php619,
-#: templates/forms/deactivation/form.php:107
+#: includes/class-freemius.php10444, templates/account.php412, templates/account.php420, templates/debug.php399, templates/debug.php619, templates/forms/deactivation/form.php:107
 msgid "Theme"
 msgstr "Sablon"
 
 #: includes/class-freemius.php:13549
-msgid ""
-"An unknown error has occurred while trying to toggle the license's white-"
-"label mode."
+msgid "An unknown error has occurred while trying to toggle the license's white-label mode."
 msgstr ""
 
 #: includes/class-freemius.php:13563
 msgid ""
-"Your %s license was flagged as white-labeled to hide sensitive information "
-"from the WP Admin (e.g. your email, license key, prices, billing address & "
-"invoices). If you ever wish to revert it back, you can easily do it through "
-"your %s. If this was a mistake you can also %s."
+"Your %s license was flagged as white-labeled to hide sensitive information from the WP Admin (e.g. your email, license key, prices, billing address & invoices). If you ever wish to revert it "
+"back, you can easily do it through your %s. If this was a mistake you can also %s."
 msgstr ""
 
-#: includes/class-freemius.php13568,
-#: templates/account/partials/disconnect-button.php:84
+#: includes/class-freemius.php13568, templates/account/partials/disconnect-button.php:84
 msgid "User Dashboard"
 msgstr "Felhasználó vezérlőpult"
 
@@ -350,8 +306,7 @@ msgid "revert it now"
 msgstr ""
 
 #: includes/class-freemius.php:13627
-msgid ""
-"An unknown error has occurred while trying to set the user's beta mode."
+msgid "An unknown error has occurred while trying to set the user's beta mode."
 msgstr ""
 
 #: includes/class-freemius.php:13701
@@ -359,15 +314,11 @@ msgid "Invalid new user ID or email address."
 msgstr ""
 
 #: includes/class-freemius.php:13731
-msgid ""
-"Sorry, we could not complete the email update. Another user with the same "
-"email is already registered."
+msgid "Sorry, we could not complete the email update. Another user with the same email is already registered."
 msgstr ""
 
 #: includes/class-freemius.php:13732
-msgid ""
-"If you would like to give up the ownership of the %s's account to %s click "
-"the Change Ownership button."
+msgid "If you would like to give up the ownership of the %s's account to %s click the Change Ownership button."
 msgstr ""
 
 #: includes/class-freemius.php:13739
@@ -379,30 +330,22 @@ msgid "Invalid site details collection."
 msgstr ""
 
 #: includes/class-freemius.php:14456
-msgid ""
-"We couldn't find your email address in the system, are you sure it's the "
-"right address?"
+msgid "We couldn't find your email address in the system, are you sure it's the right address?"
 msgstr ""
 
 #: includes/class-freemius.php:14458
-msgid ""
-"We can't see any active licenses associated with that email address, are you"
-" sure it's the right address?"
+msgid "We can't see any active licenses associated with that email address, are you sure it's the right address?"
 msgstr ""
 
 #: includes/class-freemius.php:14756
-msgid ""
-"Account is pending activation. Please check your email and click the link to"
-" activate your account and then submit the affiliate form again."
+msgid "Account is pending activation. Please check your email and click the link to activate your account and then submit the affiliate form again."
 msgstr ""
 
-#: includes/class-freemius.php14870,
-#: templates/forms/premium-versions-upgrade-handler.php:47
+#: includes/class-freemius.php14870, templates/forms/premium-versions-upgrade-handler.php:47
 msgid "Buy a license now"
 msgstr "Vásárolj licenszet most"
 
-#: includes/class-freemius.php14882,
-#: templates/forms/premium-versions-upgrade-handler.php:46
+#: includes/class-freemius.php14882, templates/forms/premium-versions-upgrade-handler.php:46
 msgid "Renew your license now"
 msgstr "Licensz kulcs megújítása"
 
@@ -422,13 +365,11 @@ msgstr "A fiókodat sikeresen aktiváltuk a következő csomaggal: %s"
 msgid "Your trial has been successfully started."
 msgstr "A próbaidőszakodat sikeresen aktiváltuk."
 
-#: includes/class-freemius.php18279, includes/class-freemius.php18392,
-#: includes/class-freemius.php:18569
+#: includes/class-freemius.php18279, includes/class-freemius.php18392, includes/class-freemius.php:18569
 msgid "Couldn't activate %s."
 msgstr "A(z) %s aktiválása nem sikerült."
 
-#: includes/class-freemius.php18280, includes/class-freemius.php18393,
-#: includes/class-freemius.php:18570
+#: includes/class-freemius.php18280, includes/class-freemius.php18393, includes/class-freemius.php:18570
 msgid "Please contact us with the following message:"
 msgstr "Kérlek írj nekünk a következő üzenettel:"
 
@@ -452,19 +393,15 @@ msgstr "Árak"
 msgid "Affiliation"
 msgstr "Ajánlórendszer"
 
-#: includes/class-freemius.php19049, includes/class-freemius.php19051,
-#: templates/account.php264, templates/debug.php:366
+#: includes/class-freemius.php19049, includes/class-freemius.php19051, templates/account.php264, templates/debug.php:366
 msgid "Account"
 msgstr "Fiók"
 
-#: includes/class-freemius.php19065, includes/class-freemius.php19067,
-#: includes/customizer/class-fs-customizer-support-section.php:60
+#: includes/class-freemius.php19065, includes/class-freemius.php19067, includes/customizer/class-fs-customizer-support-section.php:60
 msgid "Contact Us"
 msgstr "Kapcsolat"
 
-#: includes/class-freemius.php19078, includes/class-freemius.php19080,
-#: includes/class-freemius.php24353, templates/account.php134,
-#: templates/account/partials/addon.php:49
+#: includes/class-freemius.php19078, includes/class-freemius.php19080, includes/class-freemius.php24353, templates/account.php134, templates/account/partials/addon.php:49
 msgid "Add-Ons"
 msgstr "Kiegészítők"
 
@@ -483,8 +420,7 @@ msgctxt "noun"
 msgid "Pricing"
 msgstr "Árak"
 
-#: includes/class-freemius.php19329,
-#: includes/customizer/class-fs-customizer-support-section.php:67
+#: includes/class-freemius.php19329, includes/customizer/class-fs-customizer-support-section.php:67
 msgid "Support Forum"
 msgstr "Támogató fórum"
 
@@ -502,9 +438,7 @@ msgid "seems like the key you entered doesn't match our records."
 msgstr ""
 
 #: includes/class-freemius.php:20881
-msgid ""
-"Debug mode was successfully enabled and will be automatically disabled in 60"
-" min. You can also disable it earlier by clicking the \"Stop Debug\" link."
+msgid "Debug mode was successfully enabled and will be automatically disabled in 60 min. You can also disable it earlier by clicking the \"Stop Debug\" link."
 msgstr ""
 
 #: includes/class-freemius.php:21116
@@ -520,40 +454,29 @@ msgid "Download the latest version"
 msgstr "Töltsd le a legfrissebb verziót"
 
 #: includes/class-freemius.php:21239
-msgid ""
-"It seems like one of the authentication parameters is wrong. Update your "
-"Public Key, Secret Key & User ID, and try again."
+msgid "It seems like one of the authentication parameters is wrong. Update your Public Key, Secret Key & User ID, and try again."
 msgstr ""
 
-#: includes/class-freemius.php21239, includes/class-freemius.php21636,
-#: includes/class-freemius.php21737, includes/class-freemius.php:21824
+#: includes/class-freemius.php21239, includes/class-freemius.php21636, includes/class-freemius.php21737, includes/class-freemius.php:21824
 msgid "Error received from the server:"
 msgstr "Hiba érkezett a szervertől."
 
-#: includes/class-freemius.php21470, includes/class-freemius.php21742,
-#: includes/class-freemius.php21795, includes/class-freemius.php:21902
-msgctxt ""
-"something somebody says when they are thinking about what you have just "
-"said."
+#: includes/class-freemius.php21470, includes/class-freemius.php21742, includes/class-freemius.php21795, includes/class-freemius.php:21902
+msgctxt "something somebody says when they are thinking about what you have just said."
 msgid "Hmm"
 msgstr "Hmm"
 
 #: includes/class-freemius.php:21483
-msgid ""
-"It looks like you are still on the %s plan. If you did upgrade or change "
-"your plan, it's probably an issue on our side - sorry."
+msgid "It looks like you are still on the %s plan. If you did upgrade or change your plan, it's probably an issue on our side - sorry."
 msgstr "Úgy tűnik, hogy még mindig a %s csomagban vagy. Ha biztosan előfizettél vagy csomagot váltottál, akkor valószínű a hiba a mi oldalunkon van. Elnézést!"
 
-#: includes/class-freemius.php21484, templates/account.php136,
-#: templates/add-ons.php250, templates/account/partials/addon.php:51
+#: includes/class-freemius.php21484, templates/account.php136, templates/add-ons.php250, templates/account/partials/addon.php:51
 msgctxt "trial period"
 msgid "Trial"
 msgstr "Próbaidő"
 
 #: includes/class-freemius.php:21489
-msgid ""
-"I have upgraded my account but when I try to Sync the License, the plan "
-"remains %s."
+msgid "I have upgraded my account but when I try to Sync the License, the plan remains %s."
 msgstr ""
 
 #: includes/class-freemius.php21493, includes/class-freemius.php:21545
@@ -565,46 +488,31 @@ msgid "Your plan was successfully changed to %s."
 msgstr "Az előfizetés sikeresen módosítva: %s."
 
 #: includes/class-freemius.php:21531
-msgid ""
-"Your license has expired. You can still continue using the free %s forever."
+msgid "Your license has expired. You can still continue using the free %s forever."
 msgstr "A licensz lejárt. A(z) %s ingyenes verziója továbbra is használható korlátlanul."
 
 #: includes/class-freemius.php:21533
-msgid ""
-"Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s "
-"without interruptions."
+msgid "Your license has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
 msgstr ""
 
 #: includes/class-freemius.php:21541
-msgid ""
-"Your license has been cancelled. If you think it's a mistake, please contact"
-" support."
+msgid "Your license has been cancelled. If you think it's a mistake, please contact support."
 msgstr "A licensz kikapcsolásra került. Ha úgy gondolod, hogy ez tévedés volt, kérlek írj az ügyfélszolgálatra!"
 
 #: includes/class-freemius.php:21554
-msgid ""
-"Your license has expired. You can still continue using all the %s features, "
-"but you'll need to renew your license to continue getting updates and "
-"support."
+msgid "Your license has expired. You can still continue using all the %s features, but you'll need to renew your license to continue getting updates and support."
 msgstr ""
 
 #: includes/class-freemius.php:21580
-msgid ""
-"Your free trial has expired. You can still continue using all our free "
-"features."
+msgid "Your free trial has expired. You can still continue using all our free features."
 msgstr ""
 
 #: includes/class-freemius.php:21582
-msgid ""
-"Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s "
-"without interruptions."
+msgid "Your free trial has expired. %1$sUpgrade now%2$s to continue using the %3$s without interruptions."
 msgstr ""
 
 #: includes/class-freemius.php:21628
-msgid ""
-"Your server is blocking the access to Freemius' API, which is crucial for "
-"%1$s synchronization. Please contact your host to whitelist the following "
-"domains:%2$s"
+msgid "Your server is blocking the access to Freemius' API, which is crucial for %1$s synchronization. Please contact your host to whitelist the following domains:%2$s"
 msgstr ""
 
 #: includes/class-freemius.php:21630
@@ -632,8 +540,7 @@ msgid "Your %s license was successfully deactivated."
 msgstr "A(z) %s licensz kikapcsolása sikerült."
 
 #: includes/class-freemius.php:21853
-msgid ""
-"Your license was successfully deactivated, you are back to the %s plan."
+msgid "Your license was successfully deactivated, you are back to the %s plan."
 msgstr "A licenszedet sikeresen deaktiváltuk, az aktuális csomagod: %s"
 
 #: includes/class-freemius.php:21856
@@ -641,15 +548,11 @@ msgid "O.K"
 msgstr "Rendben"
 
 #: includes/class-freemius.php:21909
-msgid ""
-"Seems like we are having some temporary issue with your subscription "
-"cancellation. Please try again in few minutes."
+msgid "Seems like we are having some temporary issue with your subscription cancellation. Please try again in few minutes."
 msgstr ""
 
 #: includes/class-freemius.php:21918
-msgid ""
-"Your subscription was successfully cancelled. Your %s plan license will "
-"expire in %s."
+msgid "Your subscription was successfully cancelled. Your %s plan license will expire in %s."
 msgstr ""
 
 #: includes/class-freemius.php:21960
@@ -673,15 +576,11 @@ msgid "None of the %s's plans supports a trial period."
 msgstr ""
 
 #: includes/class-freemius.php:22056
-msgid ""
-"It looks like you are not in trial mode anymore so there's nothing to cancel"
-" :)"
+msgid "It looks like you are not in trial mode anymore so there's nothing to cancel :)"
 msgstr ""
 
 #: includes/class-freemius.php:22092
-msgid ""
-"Seems like we are having some temporary issue with your trial cancellation. "
-"Please try again in few minutes."
+msgid "Seems like we are having some temporary issue with your trial cancellation. Please try again in few minutes."
 msgstr ""
 
 #: includes/class-freemius.php:22111
@@ -713,9 +612,7 @@ msgid "You are all good!"
 msgstr "Minden rendben!"
 
 #: includes/class-freemius.php:22859
-msgid ""
-"Verification mail was just sent to %s. If you can't find it after 5 min, "
-"please check your spam box."
+msgid "Verification mail was just sent to %s. If you can't find it after 5 min, please check your spam box."
 msgstr ""
 
 #: includes/class-freemius.php:22999
@@ -728,10 +625,8 @@ msgstr "Nagyszerű"
 
 #: includes/class-freemius.php:23016
 msgid ""
-"Sharing diagnostic data with %s helps to provide functionality that's more "
-"relevant to your website, avoid WordPress or PHP version incompatibilities "
-"that can break your website, and recognize which languages & regions the "
-"plugin should be translated and tailored to."
+"Sharing diagnostic data with %s helps to provide functionality that's more relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize "
+"which languages & regions the plugin should be translated and tailored to."
 msgstr ""
 
 #: includes/class-freemius.php:23017
@@ -743,22 +638,15 @@ msgid "Diagnostic data will no longer be sent from %s to %s."
 msgstr ""
 
 #: includes/class-freemius.php:23181
-msgid ""
-"A confirmation email was just sent to %s. The email owner must confirm the "
-"update within the next 4 hours."
+msgid "A confirmation email was just sent to %s. The email owner must confirm the update within the next 4 hours."
 msgstr ""
 
 #: includes/class-freemius.php:23183
-msgid ""
-"A confirmation email was just sent to %s. You must confirm the update within"
-" the next 4 hours. If you cannot find the email, please check your spam "
-"folder."
+msgid "A confirmation email was just sent to %s. You must confirm the update within the next 4 hours. If you cannot find the email, please check your spam folder."
 msgstr ""
 
 #: includes/class-freemius.php:23190
-msgid ""
-"Thanks for confirming the ownership change. An email was just sent to %s for"
-" final approval."
+msgid "Thanks for confirming the ownership change. An email was just sent to %s for final approval."
 msgstr ""
 
 #: includes/class-freemius.php:23195
@@ -783,9 +671,7 @@ msgid "You have successfully updated your %s."
 msgstr "A(z) %s sikeresen frissítve."
 
 #: includes/class-freemius.php:23339
-msgid ""
-"Is this your client's site? %s if you wish to hide sensitive info like your "
-"email, license key, prices, billing address & invoices from the WP Admin."
+msgid "Is this your client's site? %s if you wish to hide sensitive info like your email, license key, prices, billing address & invoices from the WP Admin."
 msgstr "Ez egy ügyfélnek készült weboldal? %s ha szeretnéd inkább elrejteni az admin felületről az érzékeny információkat, mint például email cím, licensz kulcs, árak, számlázási adatok és számlák."
 
 #: includes/class-freemius.php:23342
@@ -797,9 +683,7 @@ msgid "Bundle"
 msgstr ""
 
 #: includes/class-freemius.php:23459
-msgid ""
-"Just letting you know that the add-ons information of %s is being pulled "
-"from an external server."
+msgid "Just letting you know that the add-ons information of %s is being pulled from an external server."
 msgstr ""
 
 #: includes/class-freemius.php:23460
@@ -813,9 +697,7 @@ msgid "Hey"
 msgstr "Üdv"
 
 #: includes/class-freemius.php:24089
-msgid ""
-"How do you like %s so far? Test all our %s premium features with a %d-day "
-"free trial."
+msgid "How do you like %s so far? Test all our %s premium features with a %d-day free trial."
 msgstr ""
 
 #: includes/class-freemius.php:24097
@@ -832,26 +714,19 @@ msgid "Start free trial"
 msgstr "Ingyenes próbaidőszak indítása"
 
 #: includes/class-freemius.php:24182
-msgid ""
-"Hey there, did you know that %s has an affiliate program? If you like the %s"
-" you can become our ambassador and earn some cash!"
+msgid "Hey there, did you know that %s has an affiliate program? If you like the %s you can become our ambassador and earn some cash!"
 msgstr ""
 
 #: includes/class-freemius.php:24191
 msgid "Learn more"
 msgstr "Bővebben"
 
-#: includes/class-freemius.php24377, templates/account.php573,
-#: templates/account.php725, templates/connect.php221,
-#: templates/connect.php447, includes/managers/class-fs-clone-manager.php1295,
-#: templates/forms/license-activation.php27,
-#: templates/account/partials/addon.php:326
+#: includes/class-freemius.php24377, templates/account.php573, templates/account.php725, templates/connect.php221, templates/connect.php447, includes/managers/class-fs-clone-manager.php1295,
+#: templates/forms/license-activation.php27, templates/account/partials/addon.php:326
 msgid "Activate License"
 msgstr "Licensz aktiválása"
 
-#: includes/class-freemius.php24378, templates/account.php667,
-#: templates/account.php724, templates/account/partials/addon.php327,
-#: templates/account/partials/site.php:273
+#: includes/class-freemius.php24378, templates/account.php667, templates/account.php724, templates/account/partials/addon.php327, templates/account/partials/site.php:273
 msgid "Change License"
 msgstr "Licensz módosítása"
 
@@ -859,16 +734,12 @@ msgstr "Licensz módosítása"
 msgid "Opt Out"
 msgstr "Leiratkozás"
 
-#: includes/class-freemius.php24487, includes/class-freemius.php24493,
-#: templates/account/partials/site.php49,
-#: templates/account/partials/site.php:170
+#: includes/class-freemius.php24487, includes/class-freemius.php24493, templates/account/partials/site.php49, templates/account/partials/site.php:170
 msgid "Opt In"
 msgstr "Feliratkozás"
 
 #: includes/class-freemius.php:24728
-msgid ""
-" The paid version of %1$s is already installed. Please activate it to start "
-"benefiting the %2$s features. %3$s"
+msgid " The paid version of %1$s is already installed. Please activate it to start benefiting the %2$s features. %3$s"
 msgstr "A(z) %1$s fizetős verziója sikeresen telepítve. Kérlek aktiváld, hogy a(z) %2$s minden funkciója elérhető legyen. %3$s"
 
 #: includes/class-freemius.php:24738
@@ -900,18 +771,14 @@ msgid "Your plan was successfully activated."
 msgstr "Az előfizetés sikeresen aktiválva."
 
 #: includes/class-freemius.php:24927
-msgid ""
-"%sClick here%s to choose the sites where you'd like to activate the license "
-"on."
+msgid "%sClick here%s to choose the sites where you'd like to activate the license on."
 msgstr ""
 
 #: includes/class-freemius.php:25096
 msgid "Auto installation only works for opted-in users."
 msgstr ""
 
-#: includes/class-freemius.php25106, includes/class-freemius.php25139,
-#: includes/class-fs-plugin-updater.php1294,
-#: includes/class-fs-plugin-updater.php:1308
+#: includes/class-freemius.php25106, includes/class-freemius.php25139, includes/class-fs-plugin-updater.php1294, includes/class-fs-plugin-updater.php:1308
 msgid "Invalid module ID."
 msgstr ""
 
@@ -924,9 +791,7 @@ msgid "You do not have a valid license to access the premium version."
 msgstr ""
 
 #: includes/class-freemius.php:25129
-msgid ""
-"Plugin is a \"Serviceware\" which means it does not have a premium code "
-"version."
+msgid "Plugin is a \"Serviceware\" which means it does not have a premium code version."
 msgstr ""
 
 #: includes/class-freemius.php25147, includes/class-fs-plugin-updater.php:1329
@@ -946,9 +811,7 @@ msgid "Thank you so much for using %s!"
 msgstr ""
 
 #: includes/class-freemius.php:25812
-msgid ""
-"You've already opted-in to our usage-tracking, which helps us keep improving"
-" the %s."
+msgid "You've already opted-in to our usage-tracking, which helps us keep improving the %s."
 msgstr ""
 
 #: includes/class-freemius.php:25816
@@ -956,9 +819,7 @@ msgid "Thank you so much for using our products!"
 msgstr ""
 
 #: includes/class-freemius.php:25817
-msgid ""
-"You've already opted-in to our usage-tracking, which helps us keep improving"
-" them."
+msgid "You've already opted-in to our usage-tracking, which helps us keep improving them."
 msgstr ""
 
 #: includes/class-freemius.php:25836
@@ -982,50 +843,38 @@ msgid "No"
 msgstr "Nem"
 
 #: includes/class-freemius.php25856, templates/connect.php:330
-msgid ""
-"do %sNOT%s send me security & feature updates, educational content and "
-"offers."
+msgid "do %sNOT%s send me security & feature updates, educational content and offers."
 msgstr ""
 
 #: includes/class-freemius.php:25866
-msgid ""
-"Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance "
-"requirements it is required that you provide your explicit consent, again, "
-"confirming that you are onboard :-)"
+msgid "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance requirements it is required that you provide your explicit consent, again, confirming that you are onboard :-)"
 msgstr ""
 
 #: includes/class-freemius.php25868, templates/connect.php:337
-msgid ""
-"Please let us know if you'd like us to contact you for security & feature "
-"updates, educational content, and occasional offers:"
+msgid "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:"
 msgstr ""
 
 #: includes/class-freemius.php:26158
 msgid "License key is empty."
 msgstr "A licensz kulcs üres."
 
-#: includes/class-fs-plugin-updater.php210,
-#: templates/forms/premium-versions-upgrade-handler.php:57
+#: includes/class-fs-plugin-updater.php210, templates/forms/premium-versions-upgrade-handler.php:57
 msgid "Renew license"
 msgstr "Licensz megújítása"
 
-#: includes/class-fs-plugin-updater.php215,
-#: templates/forms/premium-versions-upgrade-handler.php:58
+#: includes/class-fs-plugin-updater.php215, templates/forms/premium-versions-upgrade-handler.php:58
 msgid "Buy license"
 msgstr "Licensz vásárlása"
 
-#: includes/class-fs-plugin-updater.php335,
-#: includes/class-fs-plugin-updater.php:368
+#: includes/class-fs-plugin-updater.php335, includes/class-fs-plugin-updater.php:368
 msgid "There is a %s of %s available."
 msgstr ""
 
-#: includes/class-fs-plugin-updater.php337,
-#: includes/class-fs-plugin-updater.php:373
+#: includes/class-fs-plugin-updater.php337, includes/class-fs-plugin-updater.php:373
 msgid "new Beta version"
 msgstr "új Béta verzió"
 
-#: includes/class-fs-plugin-updater.php338,
-#: includes/class-fs-plugin-updater.php:374
+#: includes/class-fs-plugin-updater.php338, includes/class-fs-plugin-updater.php:374
 msgid "new version"
 msgstr "új verzió"
 
@@ -1042,17 +891,14 @@ msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr ""
 
 #: includes/class-fs-plugin-updater.php:1582
-msgid ""
-"The remote plugin package does not contain a folder with the desired slug "
-"and renaming did not work."
+msgid "The remote plugin package does not contain a folder with the desired slug and renaming did not work."
 msgstr ""
 
 #: includes/fs-plugin-info-dialog.php:542
 msgid "Purchase More"
 msgstr "Vásárlás folytatása"
 
-#: includes/fs-plugin-info-dialog.php543,
-#: templates/account/partials/addon.php:390
+#: includes/fs-plugin-info-dialog.php543, templates/account/partials/addon.php:390
 msgctxt "verb"
 msgid "Purchase"
 msgstr "Vásárlás"
@@ -1073,10 +919,7 @@ msgstr "Frissítés telepítése most"
 msgid "Install Free Version Now"
 msgstr "Ingyenes verzió telepítése most"
 
-#: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323,
-#: templates/auto-installation.php111,
-#: templates/account/partials/addon.php370,
-#: templates/account/partials/addon.php:423
+#: includes/fs-plugin-info-dialog.php756, templates/add-ons.php323, templates/auto-installation.php111, templates/account/partials/addon.php370, templates/account/partials/addon.php:423
 msgid "Install Now"
 msgstr "Telepítés most"
 
@@ -1085,15 +928,12 @@ msgctxt "as download latest version"
 msgid "Download Latest Free Version"
 msgstr "A legfrissebb ingyenes verzió letöltése"
 
-#: includes/fs-plugin-info-dialog.php773, templates/account.php114,
-#: templates/add-ons.php37, templates/account/partials/addon.php:30
+#: includes/fs-plugin-info-dialog.php773, templates/account.php114, templates/add-ons.php37, templates/account/partials/addon.php:30
 msgctxt "as download latest version"
 msgid "Download Latest"
 msgstr "Legfrissebb verzió letöltése"
 
-#: includes/fs-plugin-info-dialog.php788, templates/add-ons.php329,
-#: templates/account/partials/addon.php361,
-#: templates/account/partials/addon.php:417
+#: includes/fs-plugin-info-dialog.php788, templates/add-ons.php329, templates/account/partials/addon.php361, templates/account/partials/addon.php:417
 msgid "Activate this add-on"
 msgstr "Kiegészítő bekapcsolása"
 
@@ -1101,8 +941,7 @@ msgstr "Kiegészítő bekapcsolása"
 msgid "Activate Free Version"
 msgstr "Ingyenes verzió aktiválása"
 
-#: includes/fs-plugin-info-dialog.php791, templates/account.php138,
-#: templates/add-ons.php330, templates/account/partials/addon.php:53
+#: includes/fs-plugin-info-dialog.php791, templates/account.php138, templates/add-ons.php330, templates/account/partials/addon.php:53
 msgid "Activate"
 msgstr "Aktiválás"
 
@@ -1121,8 +960,7 @@ msgctxt "Plugin installer section title"
 msgid "FAQ"
 msgstr "GYIK"
 
-#: includes/fs-plugin-info-dialog.php1006,
-#: templates/plugin-info/description.php:55
+#: includes/fs-plugin-info-dialog.php1006, templates/plugin-info/description.php:55
 msgid "Screenshots"
 msgstr "Képernyőfotók"
 
@@ -1160,8 +998,7 @@ msgctxt "e.g. the best product"
 msgid "Best"
 msgstr "Legjobb"
 
-#: includes/fs-plugin-info-dialog.php1138,
-#: includes/fs-plugin-info-dialog.php:1158
+#: includes/fs-plugin-info-dialog.php1138, includes/fs-plugin-info-dialog.php:1158
 msgctxt "as every month"
 msgid "Monthly"
 msgstr "Havi"
@@ -1175,9 +1012,7 @@ msgstr "Éves"
 msgid "Lifetime"
 msgstr "Örök"
 
-#: includes/fs-plugin-info-dialog.php1158,
-#: includes/fs-plugin-info-dialog.php1160,
-#: includes/fs-plugin-info-dialog.php:1162
+#: includes/fs-plugin-info-dialog.php1158, includes/fs-plugin-info-dialog.php1160, includes/fs-plugin-info-dialog.php:1162
 msgctxt "e.g. billed monthly"
 msgid "Billed %s"
 msgstr "%s számlázás"
@@ -1204,14 +1039,12 @@ msgstr "Korlátlan licensz"
 msgid "Up to %s Sites"
 msgstr "Weboldalak száma: %s"
 
-#: includes/fs-plugin-info-dialog.php1182,
-#: templates/plugin-info/features.php:82
+#: includes/fs-plugin-info-dialog.php1182, templates/plugin-info/features.php:82
 msgctxt "as monthly period"
 msgid "mo"
 msgstr "hó"
 
-#: includes/fs-plugin-info-dialog.php1189,
-#: templates/plugin-info/features.php:80
+#: includes/fs-plugin-info-dialog.php1189, templates/plugin-info/features.php:80
 msgctxt "as annual period"
 msgid "year"
 msgstr "év"
@@ -1237,9 +1070,7 @@ msgstr ""
 msgid "Details"
 msgstr "Részletek"
 
-#: includes/fs-plugin-info-dialog.php1319, templates/account.php125,
-#: templates/debug.php232, templates/debug.php269, templates/debug.php518,
-#: templates/account/partials/addon.php:41
+#: includes/fs-plugin-info-dialog.php1319, templates/account.php125, templates/debug.php232, templates/debug.php269, templates/debug.php518, templates/account/partials/addon.php:41
 msgctxt "product version"
 msgid "Version"
 msgstr "Verzió"
@@ -1262,8 +1093,7 @@ msgstr ""
 msgid "Requires WordPress Version"
 msgstr "A következő WordPress verzió szükséges:"
 
-#: includes/fs-plugin-info-dialog.php1350,
-#: includes/fs-plugin-info-dialog.php:1370
+#: includes/fs-plugin-info-dialog.php1350, includes/fs-plugin-info-dialog.php:1370
 msgid "%s or higher"
 msgstr ""
 
@@ -1295,8 +1125,7 @@ msgstr "WordPress.org bővítmény oldal"
 msgid "Plugin Homepage"
 msgstr "Bővítmény oldala"
 
-#: includes/fs-plugin-info-dialog.php1414,
-#: includes/fs-plugin-info-dialog.php:1498
+#: includes/fs-plugin-info-dialog.php1414, includes/fs-plugin-info-dialog.php:1498
 msgid "Donate to this plugin"
 msgstr "Bővítmény támogatása"
 
@@ -1337,25 +1166,19 @@ msgid "This plugin requires a newer version of PHP."
 msgstr ""
 
 #: includes/fs-plugin-info-dialog.php:1526
-msgid ""
-"<a href=\"%s\" target=\"_blank\">Click here to learn more about updating "
-"PHP</a>."
+msgid "<a href=\"%s\" target=\"_blank\">Click here to learn more about updating PHP</a>."
 msgstr ""
 
-#: includes/fs-plugin-info-dialog.php1540,
-#: includes/fs-plugin-info-dialog.php:1542
+#: includes/fs-plugin-info-dialog.php1540, includes/fs-plugin-info-dialog.php:1542
 msgid "Warning"
 msgstr "Figyelmeztetés"
 
 #: includes/fs-plugin-info-dialog.php:1540
-msgid ""
-"This plugin has not been tested with your current version of WordPress."
+msgid "This plugin has not been tested with your current version of WordPress."
 msgstr ""
 
 #: includes/fs-plugin-info-dialog.php:1542
-msgid ""
-"This plugin has not been marked as compatible with your version of "
-"WordPress."
+msgid "This plugin has not been marked as compatible with your version of WordPress."
 msgstr ""
 
 #: includes/fs-plugin-info-dialog.php:1561
@@ -1382,76 +1205,50 @@ msgstr "Legfrissebb verzió telepítve"
 msgid "Latest Free Version Installed"
 msgstr "Legfrissebb ingyenes verzió telepítve"
 
-#: templates/account.php115, templates/forms/subscription-cancellation.php96,
-#: templates/account/partials/addon.php31,
-#: templates/account/partials/site.php:313
+#: templates/account.php115, templates/forms/subscription-cancellation.php96, templates/account/partials/addon.php31, templates/account/partials/site.php:313
 msgid "Downgrading your plan"
 msgstr "Előfizetés módosítása kisebbre"
 
-#: templates/account.php116, templates/forms/subscription-cancellation.php97,
-#: templates/account/partials/addon.php32,
-#: templates/account/partials/site.php:314
+#: templates/account.php116, templates/forms/subscription-cancellation.php97, templates/account/partials/addon.php32, templates/account/partials/site.php:314
 msgid "Cancelling the subscription"
 msgstr "Előfizetés törlése"
 
 #. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
 #. subscription'
-#: templates/account.php118, templates/forms/subscription-cancellation.php99,
-#: templates/account/partials/site.php:316
-msgid ""
-"%1$s will immediately stop all future recurring payments and your %2$s plan "
-"license will expire in %3$s."
+#: templates/account.php118, templates/forms/subscription-cancellation.php99, templates/account/partials/site.php:316
+msgid "%1$s will immediately stop all future recurring payments and your %2$s plan license will expire in %3$s."
 msgstr ""
 
-#: templates/account.php119, templates/forms/subscription-cancellation.php100,
-#: templates/account/partials/addon.php35,
-#: templates/account/partials/site.php:317
+#: templates/account.php119, templates/forms/subscription-cancellation.php100, templates/account/partials/addon.php35, templates/account/partials/site.php:317
 msgid ""
-"Please note that we will not be able to grandfather outdated pricing for "
-"renewals/new subscriptions after a cancellation. If you choose to renew the "
-"subscription manually in the future, after a price increase, which typically"
-" occurs once a year, you will be charged the updated price."
+"Please note that we will not be able to grandfather outdated pricing for renewals/new subscriptions after a cancellation. If you choose to renew the subscription manually in the future, after a "
+"price increase, which typically occurs once a year, you will be charged the updated price."
 msgstr ""
 
-#: templates/account.php120, templates/forms/subscription-cancellation.php106,
-#: templates/account/partials/addon.php:36
-msgid ""
-"Cancelling the trial will immediately block access to all premium features. "
-"Are you sure?"
+#: templates/account.php120, templates/forms/subscription-cancellation.php106, templates/account/partials/addon.php:36
+msgid "Cancelling the trial will immediately block access to all premium features. Are you sure?"
 msgstr ""
 
-#: templates/account.php121, templates/forms/subscription-cancellation.php101,
-#: templates/account/partials/addon.php37,
-#: templates/account/partials/site.php:318
-msgid ""
-"You can still enjoy all %s features but you will not have access to %s "
-"security & feature updates, nor support."
+#: templates/account.php121, templates/forms/subscription-cancellation.php101, templates/account/partials/addon.php37, templates/account/partials/site.php:318
+msgid "You can still enjoy all %s features but you will not have access to %s security & feature updates, nor support."
 msgstr ""
 
-#: templates/account.php122, templates/forms/subscription-cancellation.php102,
-#: templates/account/partials/addon.php38,
-#: templates/account/partials/site.php:319
-msgid ""
-"Once your license expires you can still use the Free version but you will "
-"NOT have access to the %s features."
+#: templates/account.php122, templates/forms/subscription-cancellation.php102, templates/account/partials/addon.php38, templates/account/partials/site.php:319
+msgid "Once your license expires you can still use the Free version but you will NOT have access to the %s features."
 msgstr ""
 
 #. translators: %s: Plan title (e.g. "Professional")
-#: templates/account.php124,
-#: templates/account/partials/activate-license-button.php31,
-#: templates/account/partials/addon.php:40
+#: templates/account.php124, templates/account/partials/activate-license-button.php31, templates/account/partials/addon.php:40
 msgid "Activate %s Plan"
 msgstr "%s csomag aktiválása"
 
 #. translators: %s: Time period (e.g. Auto renews in "2 months")
-#: templates/account.php127, templates/account/partials/addon.php43,
-#: templates/account/partials/site.php:293
+#: templates/account.php127, templates/account/partials/addon.php43, templates/account/partials/site.php:293
 msgid "Auto renews in %s"
 msgstr ""
 
 #. translators: %s: Time period (e.g. Expires in "2 months")
-#: templates/account.php129, templates/account/partials/addon.php45,
-#: templates/account/partials/site.php:295
+#: templates/account.php129, templates/account/partials/addon.php45, templates/account/partials/site.php:295
 msgid "Expires in %s"
 msgstr "Hátralévő idő: %s"
 
@@ -1473,22 +1270,16 @@ msgctxt "verb"
 msgid "Upgrade"
 msgstr "Váltás nagyobb csomagra"
 
-#: templates/account.php135, templates/account/partials/addon.php50,
-#: templates/account/partials/site.php:320
+#: templates/account.php135, templates/account/partials/addon.php50, templates/account/partials/site.php:320
 msgctxt "verb"
 msgid "Downgrade"
 msgstr "Váltás kisebb csomagra"
 
-#: templates/account.php137, templates/add-ons.php246,
-#: templates/plugin-info/features.php72,
-#: templates/account/partials/addon.php52,
-#: templates/account/partials/site.php:33
+#: templates/account.php137, templates/add-ons.php246, templates/plugin-info/features.php72, templates/account/partials/addon.php52, templates/account/partials/site.php:33
 msgid "Free"
 msgstr "Ingyenes"
 
-#: templates/account.php139, templates/debug.php412,
-#: includes/customizer/class-fs-customizer-upsell-control.php110,
-#: templates/account/partials/addon.php:54
+#: templates/account.php139, templates/debug.php412, includes/customizer/class-fs-customizer-upsell-control.php110, templates/account/partials/addon.php:54
 msgctxt "as product pricing plan"
 msgid "Plan"
 msgstr "Csomag"
@@ -1517,8 +1308,7 @@ msgstr ""
 msgid "Billing & Invoices"
 msgstr "Számlázás"
 
-#: templates/account.php322, templates/account/partials/addon.php236,
-#: templates/account/partials/deactivate-license-button.php:35
+#: templates/account.php322, templates/account/partials/addon.php236, templates/account/partials/deactivate-license-button.php:35
 msgid "Deactivate License"
 msgstr "Licensz deaktiválása"
 
@@ -1547,11 +1337,8 @@ msgstr "Email"
 msgid "User ID"
 msgstr "Felhasználó ID"
 
-#: templates/account.php420, templates/account.php738,
-#: templates/account.php789, templates/debug.php267, templates/debug.php404,
-#: templates/debug.php515, templates/debug.php574, templates/debug.php623,
-#: templates/debug.php702, templates/account/payments.php35,
-#: templates/debug/logger.php:21
+#: templates/account.php420, templates/account.php738, templates/account.php789, templates/debug.php267, templates/debug.php404, templates/debug.php515, templates/debug.php574,
+#: templates/debug.php623, templates/debug.php702, templates/account/payments.php35, templates/debug/logger.php:21
 msgid "ID"
 msgstr "ID"
 
@@ -1563,14 +1350,11 @@ msgstr "Weboldal ID"
 msgid "No ID"
 msgstr "Nincs ID"
 
-#: templates/account.php435, templates/debug.php274, templates/debug.php413,
-#: templates/debug.php519, templates/debug.php578,
-#: templates/account/partials/site.php:228
+#: templates/account.php435, templates/debug.php274, templates/debug.php413, templates/debug.php519, templates/debug.php578, templates/account/partials/site.php:228
 msgid "Public Key"
 msgstr "Publikus kulcs"
 
-#: templates/account.php441, templates/debug.php414, templates/debug.php520,
-#: templates/debug.php579, templates/account/partials/site.php:241
+#: templates/account.php441, templates/debug.php414, templates/debug.php520, templates/debug.php579, templates/account/partials/site.php:241
 msgid "Secret Key"
 msgstr "Titkos kulcs"
 
@@ -1579,13 +1363,11 @@ msgctxt "as secret encryption key missing"
 msgid "No Secret"
 msgstr "Nincs titkos kulcs"
 
-#: templates/account.php471, templates/account/partials/site.php120,
-#: templates/account/partials/site.php:122
+#: templates/account.php471, templates/account/partials/site.php120, templates/account/partials/site.php:122
 msgid "Trial"
 msgstr "Próbaidő"
 
-#: templates/account.php498, templates/debug.php631,
-#: templates/account/partials/site.php:262
+#: templates/account.php498, templates/debug.php631, templates/account/partials/site.php:262
 msgid "License Key"
 msgstr "Licensz kulcs"
 
@@ -1621,9 +1403,7 @@ msgstr "%s verzió letöltése"
 msgid "Download Paid Version"
 msgstr "Fizetős verzió letöltése"
 
-#: templates/account.php664, templates/account.php927,
-#: templates/account/partials/site.php250,
-#: templates/account/partials/site.php:272
+#: templates/account.php664, templates/account.php927, templates/account/partials/site.php250, templates/account/partials/site.php:272
 msgctxt "verb"
 msgid "Show"
 msgstr "Mutasd"
@@ -1671,9 +1451,7 @@ msgctxt "verb"
 msgid "Hide"
 msgstr "Elrejt"
 
-#: templates/account.php943, templates/forms/data-debug-mode.php31,
-#: templates/forms/deactivation/form.php358,
-#: templates/forms/deactivation/form.php:389
+#: templates/account.php943, templates/forms/data-debug-mode.php31, templates/forms/deactivation/form.php358, templates/forms/deactivation/form.php:389
 msgid "Processing"
 msgstr "Feldolgozás alatt"
 
@@ -1685,9 +1463,7 @@ msgstr ""
 msgid "Cancelling %s"
 msgstr ""
 
-#: templates/account.php1004, templates/account.php1021,
-#: templates/forms/subscription-cancellation.php27,
-#: templates/forms/deactivation/form.php:178
+#: templates/account.php1004, templates/account.php1021, templates/forms/subscription-cancellation.php27, templates/forms/deactivation/form.php:178
 msgid "trial"
 msgstr "próbaidő"
 
@@ -1695,15 +1471,12 @@ msgstr "próbaidő"
 msgid "Cancelling %s..."
 msgstr "%s törlése..."
 
-#: templates/account.php1022, templates/forms/subscription-cancellation.php28,
-#: templates/forms/deactivation/form.php:179
+#: templates/account.php1022, templates/forms/subscription-cancellation.php28, templates/forms/deactivation/form.php:179
 msgid "subscription"
 msgstr "előfizetés"
 
 #: templates/account.php:1036
-msgid ""
-"Deactivating your license will block all premium features, but will enable "
-"activating the license on another site. Are you sure you want to proceed?"
+msgid "Deactivating your license will block all premium features, but will enable activating the license on another site. Are you sure you want to proceed?"
 msgstr "A licensz deaktiválása után a prémium funkciók használata nem elérhető, de így tudod másik weboldalon aktiválni ugyanezt a licenszt. Folytatod a deaktiválást?"
 
 #: templates/account.php:1110
@@ -1723,9 +1496,7 @@ msgid "Add Ons for %s"
 msgstr ""
 
 #: templates/add-ons.php:58
-msgid ""
-"We couldn't load the add-ons list. It's probably an issue on our side, "
-"please try to come back in few minutes."
+msgid "We couldn't load the add-ons list. It's probably an issue on our side, please try to come back in few minutes."
 msgstr ""
 
 #: templates/add-ons.php:229
@@ -1738,8 +1509,7 @@ msgctxt "installed add-on"
 msgid "Installed"
 msgstr "Telepítve"
 
-#: templates/admin-notice.php13, templates/forms/license-activation.php243,
-#: templates/forms/resend-key.php:80
+#: templates/admin-notice.php13, templates/forms/license-activation.php243, templates/forms/resend-key.php:80
 msgctxt "as close a window"
 msgid "Dismiss"
 msgstr "Mégsem"
@@ -1753,16 +1523,11 @@ msgid "Automatic Installation"
 msgstr "Automatikus telepítés"
 
 #: templates/auto-installation.php:93
-msgid ""
-"An automated download and installation of %s (paid version) from %s will "
-"start in %s. If you would like to do it manually - click the cancellation "
-"button now."
+msgid "An automated download and installation of %s (paid version) from %s will start in %s. If you would like to do it manually - click the cancellation button now."
 msgstr ""
 
 #: templates/auto-installation.php:104
-msgid ""
-"The installation process has started and may take a few minutes to complete."
-" Please wait until it is done - do not refresh this page."
+msgid "The installation process has started and may take a few minutes to complete. Please wait until it is done - do not refresh this page."
 msgstr ""
 
 #: templates/auto-installation.php:109
@@ -1804,9 +1569,7 @@ msgid "Thanks %s!"
 msgstr "Köszönjük %s!"
 
 #: templates/connect.php:214
-msgid ""
-"You should receive a confirmation email for %s to your mailbox at %s. Please"
-" make sure you click the button in that email to %s."
+msgid "You should receive a confirmation email for %s to your mailbox at %s. Please make sure you click the button in that email to %s."
 msgstr ""
 
 #: templates/connect.php:225
@@ -1815,25 +1578,17 @@ msgstr "Köszönjük, hogy a(z) %s szoftverünket választottad! Kérlek add meg
 
 #: templates/connect.php:236
 msgid ""
-"Opt in to get email notifications for security & feature updates, "
-"educational content, and occasional offers, and to share some basic "
-"WordPress environment info. This will help us make the %s more compatible "
-"with your site and better at doing what you need it to."
+"Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info. This will help us make the %s "
+"more compatible with your site and better at doing what you need it to."
 msgstr ""
 
 #. translators: %s: module type (plugin, theme, or add-on)
 #: templates/connect.php:245
-msgid ""
-"We have introduced this opt-in so you never miss an important update and "
-"help us make the %s more compatible with your site and better at doing what "
-"you need it to."
+msgid "We have introduced this opt-in so you never miss an important update and help us make the %s more compatible with your site and better at doing what you need it to."
 msgstr ""
 
 #: templates/connect.php:247
-msgid ""
-"Opt in to get email notifications for security & feature updates, "
-"educational content, and occasional offers, and to share some basic "
-"WordPress environment info."
+msgid "Opt in to get email notifications for security & feature updates, educational content, and occasional offers, and to share some basic WordPress environment info."
 msgstr ""
 
 #: templates/connect.php:250
@@ -1845,15 +1600,11 @@ msgid "We're excited to introduce the Freemius network-level integration."
 msgstr ""
 
 #: templates/connect.php:283
-msgid ""
-"During the update process we detected %d site(s) that are still pending "
-"license activation."
+msgid "During the update process we detected %d site(s) that are still pending license activation."
 msgstr ""
 
 #: templates/connect.php:285
-msgid ""
-"If you'd like to use the %s on those sites, please enter your license key "
-"below and click the activation button."
+msgid "If you'd like to use the %s on those sites, please enter your license key below and click the activation button."
 msgstr ""
 
 #: templates/connect.php:287
@@ -1861,19 +1612,14 @@ msgid "%s's paid features"
 msgstr ""
 
 #: templates/connect.php:292
-msgid ""
-"Alternatively, you can skip it for now and activate the license later, in "
-"your %s's network-level Account page."
+msgid "Alternatively, you can skip it for now and activate the license later, in your %s's network-level Account page."
 msgstr ""
 
 #: templates/connect.php:294
-msgid ""
-"During the update process we detected %s site(s) in the network that are "
-"still pending your attention."
+msgid "During the update process we detected %s site(s) in the network that are still pending your attention."
 msgstr ""
 
-#: templates/connect.php303, templates/forms/data-debug-mode.php35,
-#: templates/forms/license-activation.php:42
+#: templates/connect.php303, templates/forms/data-debug-mode.php35, templates/forms/license-activation.php:42
 msgid "License key"
 msgstr "Licensz kulcs"
 
@@ -1881,8 +1627,7 @@ msgstr "Licensz kulcs"
 msgid "Can't find your license key?"
 msgstr "Nem találod a licensz kulcsod?"
 
-#: templates/connect.php369, templates/connect.php693,
-#: templates/forms/deactivation/retry-skip.php:20
+#: templates/connect.php369, templates/connect.php693, templates/forms/deactivation/retry-skip.php:20
 msgctxt "verb"
 msgid "Skip"
 msgstr "Ugrás"
@@ -1892,9 +1637,7 @@ msgid "Delegate to Site Admins"
 msgstr ""
 
 #: templates/connect.php:372
-msgid ""
-"If you click it, this decision will be delegated to the sites "
-"administrators."
+msgid "If you click it, this decision will be delegated to the sites administrators."
 msgstr ""
 
 #: templates/connect.php:399
@@ -1902,9 +1645,7 @@ msgid "License issues?"
 msgstr "Licensszel kapcsolatos problémák?"
 
 #: templates/connect.php:423
-msgid ""
-"For delivery of security & feature updates, and license management, %s needs"
-" to"
+msgid "For delivery of security & feature updates, and license management, %s needs to"
 msgstr ""
 
 #: templates/connect.php:428
@@ -1968,8 +1709,7 @@ msgctxt "as code debugging"
 msgid "Debugging"
 msgstr "Hibakeresés"
 
-#: templates/debug.php58, templates/debug.php279, templates/debug.php415,
-#: templates/debug.php:580
+#: templates/debug.php58, templates/debug.php279, templates/debug.php415, templates/debug.php:580
 msgid "Actions"
 msgstr "Események"
 
@@ -2042,8 +1782,7 @@ msgstr "Bővítmények"
 msgid "Themes"
 msgstr "Sablonok"
 
-#: templates/debug.php268, templates/debug.php409, templates/debug.php517,
-#: templates/debug/scheduled-crons.php:80
+#: templates/debug.php268, templates/debug.php409, templates/debug.php517, templates/debug/scheduled-crons.php:80
 msgid "Slug"
 msgstr "Közvetlen hivatkozás"
 
@@ -2108,8 +1847,7 @@ msgstr "Blog ID"
 msgid "License ID"
 msgstr "Licensz ID"
 
-#: templates/debug.php497, templates/debug.php603,
-#: templates/account/partials/addon.php:440
+#: templates/debug.php497, templates/debug.php603, templates/account/partials/addon.php:440
 msgctxt "verb"
 msgid "Delete"
 msgstr "Törlés"
@@ -2150,8 +1888,7 @@ msgstr "Sikeres aktiválás"
 msgid "Blocking"
 msgstr "Blokkolás"
 
-#: templates/debug.php630, templates/debug.php701,
-#: templates/debug/logger.php:22
+#: templates/debug.php630, templates/debug.php701, templates/debug/logger.php:22
 msgid "Type"
 msgstr "Típus"
 
@@ -2172,13 +1909,11 @@ msgstr "Minden típus"
 msgid "All Requests"
 msgstr "Minden kérés"
 
-#: templates/debug.php676, templates/debug.php705,
-#: templates/debug/logger.php:25
+#: templates/debug.php676, templates/debug.php705, templates/debug/logger.php:25
 msgid "File"
 msgstr "Fájl"
 
-#: templates/debug.php677, templates/debug.php703,
-#: templates/debug/logger.php:23
+#: templates/debug.php677, templates/debug.php703, templates/debug/logger.php:23
 msgid "Function"
 msgstr "Funkció"
 
@@ -2190,8 +1925,7 @@ msgstr "Művelet ID"
 msgid "Logger"
 msgstr ""
 
-#: templates/debug.php680, templates/debug.php704,
-#: templates/debug/logger.php:24
+#: templates/debug.php680, templates/debug.php704, templates/debug/logger.php:24
 msgid "Message"
 msgstr "Üzenet"
 
@@ -2211,13 +1945,11 @@ msgstr "Időbélyeg"
 msgid "Secure HTTPS %s page, running from an external domain"
 msgstr ""
 
-#: includes/customizer/class-fs-customizer-support-section.php55,
-#: templates/plugin-info/features.php:43
+#: includes/customizer/class-fs-customizer-support-section.php55, templates/plugin-info/features.php:43
 msgid "Support"
 msgstr "Ügyfélszolgálat"
 
-#: includes/debug/class-fs-debug-bar-panel.php48,
-#: templates/debug/api-calls.php54, templates/debug/logger.php:62
+#: includes/debug/class-fs-debug-bar-panel.php48, templates/debug/api-calls.php54, templates/debug/logger.php:62
 msgctxt "milliseconds"
 msgid "ms"
 msgstr ""
@@ -2239,21 +1971,15 @@ msgid "products"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1205
-msgid ""
-"%1$s has been placed into safe mode because we noticed that %2$s is an exact"
-" copy of %3$s."
+msgid "%1$s has been placed into safe mode because we noticed that %2$s is an exact copy of %3$s."
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1211
-msgid ""
-"The products below have been placed into safe mode because we noticed that "
-"%2$s is an exact copy of %3$s:%1$s"
+msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of %3$s:%1$s"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1212
-msgid ""
-"The products below have been placed into safe mode because we noticed that "
-"%2$s is an exact copy of these sites:%3$s%1$s"
+msgid "The products below have been placed into safe mode because we noticed that %2$s is an exact copy of these sites:%3$s%1$s"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1238
@@ -2265,9 +1991,7 @@ msgid "Is %2$s a duplicate of %4$s?"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1252
-msgid ""
-"Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or "
-"development."
+msgid "Yes, %2$s is a duplicate of %4$s for the purpose of testing, staging, or development."
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1257
@@ -2283,13 +2007,10 @@ msgid "Is %2$s the new home of %4$s?"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1270
-msgid ""
-"Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to "
-"%%2$s."
+msgid "Yes, %%2$s is replacing %%4$s. I would like to migrate my %s from %%4$s to %%2$s."
 msgstr ""
 
-#: includes/managers/class-fs-clone-manager.php1271,
-#: templates/forms/subscription-cancellation.php:52
+#: includes/managers/class-fs-clone-manager.php1271, templates/forms/subscription-cancellation.php:52
 msgid "license"
 msgstr "licensz"
 
@@ -2335,10 +2056,7 @@ msgid "You marked this website, %s, as a temporary duplicate of these sites"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1423
-msgid ""
-"%s automatic security & feature updates and paid functionality will keep "
-"working without interruptions until %s (or when your license expires, "
-"whatever comes first)."
+msgid "%s automatic security & feature updates and paid functionality will keep working without interruptions until %s (or when your license expires, whatever comes first)."
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1426
@@ -2351,9 +2069,7 @@ msgid "The following products'"
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1437
-msgid ""
-"If this is a long term duplicate, to keep automatic updates and paid "
-"functionality after %s, please %s."
+msgid "If this is a long term duplicate, to keep automatic updates and paid functionality after %s, please %s."
 msgstr ""
 
 #: includes/managers/class-fs-clone-manager.php:1439
@@ -2370,10 +2086,8 @@ msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:195
 msgid ""
-"To provide additional functionality that's relevant to your website, avoid "
-"WordPress or PHP version incompatibilities that can break your website, and "
-"recognize which languages & regions the %s should be translated and tailored"
-" to."
+"To provide additional functionality that's relevant to your website, avoid WordPress or PHP version incompatibilities that can break your website, and recognize which languages & regions the %s "
+"should be translated and tailored to."
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:207
@@ -2388,11 +2102,8 @@ msgstr ""
 msgid "View License Essentials"
 msgstr ""
 
-#: includes/managers/class-fs-permission-manager.php:262
-#: includes/managers/class-fs-permission-manager.php:272
-msgid ""
-"To let you manage & control where the license is activated and ensure %s "
-"security & feature updates are only delivered to websites you authorize."
+#: includes/managers/class-fs-permission-manager.php:262 includes/managers/class-fs-permission-manager.php:272
+msgid "To let you manage & control where the license is activated and ensure %s security & feature updates are only delivered to websites you authorize."
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:284
@@ -2411,8 +2122,7 @@ msgstr ""
 msgid "View Diagnostic Info"
 msgstr ""
 
-#: includes/managers/class-fs-permission-manager.php326,
-#: includes/managers/class-fs-permission-manager.php:363
+#: includes/managers/class-fs-permission-manager.php326, includes/managers/class-fs-permission-manager.php:363
 msgid "optional"
 msgstr "választható"
 
@@ -2421,10 +2131,7 @@ msgid "WordPress & PHP versions, site language & title"
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:330
-msgid ""
-"To avoid breaking your website due to WordPress or PHP version "
-"incompatibilities, and recognize which languages & regions the %s should be "
-"translated and tailored to."
+msgid "To avoid breaking your website due to WordPress or PHP version incompatibilities, and recognize which languages & regions the %s should be translated and tailored to."
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:363
@@ -2436,9 +2143,7 @@ msgid "Names, slugs, versions, and if active or not"
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:365
-msgid ""
-"To ensure compatibility and avoid conflicts with your installed plugins and "
-"themes."
+msgid "To ensure compatibility and avoid conflicts with your installed plugins and themes."
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:382
@@ -2450,10 +2155,7 @@ msgid "Your WordPress user's: first & last name, and email address"
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:384
-msgid ""
-"Never miss important updates, get security warnings before they become "
-"public knowledge, and receive notifications about special offers and awesome"
-" new features."
+msgid "Never miss important updates, get security warnings before they become public knowledge, and receive notifications about special offers and awesome new features."
 msgstr ""
 
 #: includes/managers/class-fs-permission-manager.php:405
@@ -2481,8 +2183,7 @@ msgstr "Cégnév"
 msgid "Tax / VAT ID"
 msgstr "Közösségi adószám"
 
-#: templates/account/billing.php42, templates/account/billing.php42,
-#: templates/account/billing.php43, templates/account/billing.php:43
+#: templates/account/billing.php42, templates/account/billing.php43, templates/account/billing.php:43
 msgid "Address Line %d"
 msgstr "Cím %d"
 
@@ -2530,8 +2231,7 @@ msgstr "Mennyiség"
 msgid "Invoice"
 msgstr "Számla"
 
-#: templates/connect/permissions-group.php31, templates/forms/optout.php26,
-#: templates/js/permissions.php:78
+#: templates/connect/permissions-group.php31, templates/forms/optout.php26, templates/js/permissions.php:78
 msgctxt "verb"
 msgid "Opt Out"
 msgstr "Leiratkozás"
@@ -2583,19 +2283,16 @@ msgid "Log"
 msgstr ""
 
 #. translators: %s: time period (e.g. In "2 hours")
-#: templates/debug/plugins-themes-sync.php18,
-#: templates/debug/scheduled-crons.php:91
+#: templates/debug/plugins-themes-sync.php18, templates/debug/scheduled-crons.php:91
 msgid "In %s"
 msgstr ""
 
 #. translators: %s: time period (e.g. "2 hours" ago)
-#: templates/debug/plugins-themes-sync.php20,
-#: templates/debug/scheduled-crons.php:93
+#: templates/debug/plugins-themes-sync.php20, templates/debug/scheduled-crons.php:93
 msgid "%s ago"
 msgstr ""
 
-#: templates/debug/plugins-themes-sync.php21,
-#: templates/debug/scheduled-crons.php:74
+#: templates/debug/plugins-themes-sync.php21, templates/debug/scheduled-crons.php:74
 msgctxt "seconds"
 msgid "sec"
 msgstr ""
@@ -2608,8 +2305,7 @@ msgstr "Bővítmények és sablonok szinkronizálása"
 msgid "Total"
 msgstr "Összesen"
 
-#: templates/debug/plugins-themes-sync.php29,
-#: templates/debug/scheduled-crons.php:84
+#: templates/debug/plugins-themes-sync.php29, templates/debug/scheduled-crons.php:84
 msgid "Last"
 msgstr "Utolsó"
 
@@ -2642,15 +2338,11 @@ msgid "Apply to become an affiliate"
 msgstr "Jelentkezés ajánló partnernek"
 
 #: templates/forms/affiliation.php:108
-msgid ""
-"Your affiliate application for %s has been accepted! Log in to your "
-"affiliate area at: %s."
+msgid "Your affiliate application for %s has been accepted! Log in to your affiliate area at: %s."
 msgstr ""
 
 #: templates/forms/affiliation.php:123
-msgid ""
-"Thank you for applying for our affiliate program, we'll review your details "
-"during the next 14 days and will get back to you with further information."
+msgid "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information."
 msgstr ""
 
 #: templates/forms/affiliation.php:126
@@ -2658,16 +2350,11 @@ msgid "Your affiliation account was temporarily suspended."
 msgstr ""
 
 #: templates/forms/affiliation.php:129
-msgid ""
-"Thank you for applying for our affiliate program, unfortunately, we've "
-"decided at this point to reject your application. Please try again in 30 "
-"days."
+msgid "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days."
 msgstr ""
 
 #: templates/forms/affiliation.php:132
-msgid ""
-"Due to violation of our affiliation terms, we decided to temporarily block "
-"your affiliation account. If you have any questions, please contact support."
+msgid "Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support."
 msgstr ""
 
 #: templates/forms/affiliation.php:145
@@ -2675,9 +2362,7 @@ msgid "Like the %s? Become our ambassador and earn cash ;-)"
 msgstr ""
 
 #: templates/forms/affiliation.php:146
-msgid ""
-"Refer new customers to our %s and earn %s commission on each successful sale"
-" you refer!"
+msgid "Refer new customers to our %s and earn %s commission on each successful sale you refer!"
 msgstr ""
 
 #: templates/forms/affiliation.php:149
@@ -2693,8 +2378,7 @@ msgid "Get commission for automated subscription renewals."
 msgstr ""
 
 #: templates/forms/affiliation.php:156
-msgid ""
-"%s tracking cookie after the first visit to maximize earnings potential."
+msgid "%s tracking cookie after the first visit to maximize earnings potential."
 msgstr ""
 
 #: templates/forms/affiliation.php:159
@@ -2710,9 +2394,7 @@ msgid "Payouts are in USD and processed monthly via PayPal."
 msgstr ""
 
 #: templates/forms/affiliation.php:163
-msgid ""
-"As we reserve 30 days for potential refunds, we only pay commissions that "
-"are older than 30 days."
+msgid "As we reserve 30 days for potential refunds, we only pay commissions that are older than 30 days."
 msgstr ""
 
 #: templates/forms/affiliation.php:166
@@ -2736,9 +2418,7 @@ msgid "Where are you going to promote the %s?"
 msgstr ""
 
 #: templates/forms/affiliation.php:183
-msgid ""
-"Enter the domain of your website or other websites from where you plan to "
-"promote the %s."
+msgid "Enter the domain of your website or other websites from where you plan to promote the %s."
 msgstr ""
 
 #: templates/forms/affiliation.php:185
@@ -2771,9 +2451,8 @@ msgstr "Weboldal, email és közösségi média statisztikák (opcionális)"
 
 #: templates/forms/affiliation.php:214
 msgid ""
-"Please feel free to provide any relevant website or social media statistics,"
-" e.g. monthly unique site visits, number of email subscribers, followers, "
-"etc. (we will keep this information confidential)."
+"Please feel free to provide any relevant website or social media statistics, e.g. monthly unique site visits, number of email subscribers, followers, etc. (we will keep this information "
+"confidential)."
 msgstr ""
 
 #: templates/forms/affiliation.php:218
@@ -2781,13 +2460,10 @@ msgid "How will you promote us?"
 msgstr ""
 
 #: templates/forms/affiliation.php:221
-msgid ""
-"Please provide details on how you intend to promote %s (please be as "
-"specific as possible)."
+msgid "Please provide details on how you intend to promote %s (please be as specific as possible)."
 msgstr ""
 
-#: templates/forms/affiliation.php233, templates/forms/resend-key.php22,
-#: templates/account/partials/disconnect-button.php:92
+#: templates/forms/affiliation.php233, templates/forms/resend-key.php22, templates/account/partials/disconnect-button.php:92
 msgid "Cancel"
 msgstr "Mégsem"
 
@@ -2800,10 +2476,7 @@ msgid "Please enter the license key to enable the debug mode:"
 msgstr ""
 
 #: templates/forms/data-debug-mode.php:27
-msgid ""
-"To enter the debug mode, please enter the secret key of the license owner "
-"(UserID = %d), which you can find in your \"My Profile\" section of your "
-"User Dashboard:"
+msgid "To enter the debug mode, please enter the secret key of the license owner (UserID = %d), which you can find in your \"My Profile\" section of your User Dashboard:"
 msgstr ""
 
 #: templates/forms/data-debug-mode.php:32
@@ -2818,8 +2491,7 @@ msgstr ""
 msgid "Email address update"
 msgstr ""
 
-#: templates/forms/email-address-update.php33,
-#: templates/forms/user-change.php:81
+#: templates/forms/email-address-update.php33, templates/forms/user-change.php:81
 msgctxt "close window"
 msgid "Dismiss"
 msgstr "Mégsem"
@@ -2856,15 +2528,12 @@ msgstr ""
 msgid "No - only move this site's data to %s"
 msgstr ""
 
-#: templates/forms/email-address-update.php292,
-#: templates/forms/email-address-update.php:298
+#: templates/forms/email-address-update.php292, templates/forms/email-address-update.php:298
 msgid "Update"
 msgstr "Frissítés"
 
 #: templates/forms/license-activation.php:23
-msgid ""
-"Please enter the license key that you received in the email right after the "
-"purchase:"
+msgid "Please enter the license key that you received in the email right after the purchase:"
 msgstr "Kérlek add meg a licensz kulcsot, amit emailben kaptál a vásárlásod után:"
 
 #: templates/forms/license-activation.php:28
@@ -2872,10 +2541,7 @@ msgid "Update License"
 msgstr "Licensz frissítése"
 
 #: templates/forms/license-activation.php:34
-msgid ""
-"The %1$s will be periodically sending essential license data to %2$s to "
-"check for security and feature updates, and verify the validity of your "
-"license."
+msgid "The %1$s will be periodically sending essential license data to %2$s to check for security and feature updates, and verify the validity of your license."
 msgstr ""
 
 #: templates/forms/license-activation.php:39
@@ -2932,45 +2598,31 @@ msgid "Send License Key"
 msgstr "Licensz kulcs küldése"
 
 #: templates/forms/resend-key.php:58
-msgid ""
-"Enter the email address you've used during the purchase and we will resend "
-"you the license key."
+msgid "Enter the email address you've used during the purchase and we will resend you the license key."
 msgstr ""
 
 #: templates/forms/resend-key.php:59
-msgid ""
-"Enter the email address you've used for the upgrade below and we will resend"
-" you the license key."
+msgid "Enter the email address you've used for the upgrade below and we will resend you the license key."
 msgstr "Add meg az email címet, amit a vásárlás során használtál és újraküldjük a licensz kulcsot."
 
 #: templates/forms/subscription-cancellation.php:37
-msgid ""
-"Deactivating or uninstalling the %s will automatically disable the license, "
-"which you'll be able to use on another site."
+msgid "Deactivating or uninstalling the %s will automatically disable the license, which you'll be able to use on another site."
 msgstr "A(z) %s deaktiválása vagy törlése automatikusan törli az oldalhoz tartozó licenszed is, amit így másik weboldalon tudsz újra aktiválni."
 
 #: templates/forms/subscription-cancellation.php:47
-msgid ""
-"In case you are NOT planning on using this %s on this site (or any other "
-"site) - would you like to cancel the %s as well?"
+msgid "In case you are NOT planning on using this %s on this site (or any other site) - would you like to cancel the %s as well?"
 msgstr ""
 
 #: templates/forms/subscription-cancellation.php:57
-msgid ""
-"Cancel %s - I no longer need any security & feature updates, nor support for"
-" %s because I'm not planning to use the %s on this, or any other site."
+msgid "Cancel %s - I no longer need any security & feature updates, nor support for %s because I'm not planning to use the %s on this, or any other site."
 msgstr ""
 
 #: templates/forms/subscription-cancellation.php:68
-msgid ""
-"Don't cancel %s - I'm still interested in getting security & feature "
-"updates, as well as be able to contact support."
+msgid "Don't cancel %s - I'm still interested in getting security & feature updates, as well as be able to contact support."
 msgstr ""
 
 #: templates/forms/subscription-cancellation.php:103
-msgid ""
-"Once your license expires you will no longer be able to use the %s, unless "
-"you activate it again with a valid premium license."
+msgid "Once your license expires you will no longer be able to use the %s, unless you activate it again with a valid premium license."
 msgstr ""
 
 #: templates/forms/subscription-cancellation.php:136
@@ -2981,23 +2633,18 @@ msgstr ""
 msgid "Proceed"
 msgstr ""
 
-#: templates/forms/subscription-cancellation.php191,
-#: templates/forms/deactivation/form.php:216
+#: templates/forms/subscription-cancellation.php191, templates/forms/deactivation/form.php:216
 msgid "Cancel %s & Proceed"
 msgstr ""
 
 #: templates/forms/trial-start.php:22
-msgid ""
-"You are 1-click away from starting your %1$s-day free trial of the %2$s "
-"plan."
+msgid "You are 1-click away from starting your %1$s-day free trial of the %2$s plan."
 msgstr ""
 
 #: templates/forms/trial-start.php:28
 msgid ""
-"For compliance with the WordPress.org guidelines, before we start the trial "
-"we ask that you opt in with your user and non-sensitive site information, "
-"allowing the %s to periodically send data to %s to check for version updates"
-" and to validate your trial."
+"For compliance with the WordPress.org guidelines, before we start the trial we ask that you opt in with your user and non-sensitive site information, allowing the %s to periodically send data to "
+"%s to check for version updates and to validate your trial."
 msgstr ""
 
 #: templates/forms/user-change.php:26
@@ -3040,23 +2687,19 @@ msgstr "Licensz aktiválása a hálózat minden függő aloldalán."
 msgid "Apply on all pending sites."
 msgstr ""
 
-#: templates/partials/network-activation.php45,
-#: templates/partials/network-activation.php:79
+#: templates/partials/network-activation.php45, templates/partials/network-activation.php:79
 msgid "allow"
 msgstr ""
 
-#: templates/partials/network-activation.php48,
-#: templates/partials/network-activation.php:82
+#: templates/partials/network-activation.php48, templates/partials/network-activation.php:82
 msgid "delegate"
 msgstr ""
 
-#: templates/partials/network-activation.php52,
-#: templates/partials/network-activation.php:86
+#: templates/partials/network-activation.php52, templates/partials/network-activation.php:86
 msgid "skip"
 msgstr "ugrás"
 
-#: templates/plugin-info/description.php72,
-#: templates/plugin-info/screenshots.php:31
+#: templates/plugin-info/description.php72, templates/plugin-info/screenshots.php:31
 msgid "Click to view full-size screenshot %d"
 msgstr ""
 
@@ -3080,9 +2723,7 @@ msgstr ""
 #. translators: %1$s: Either 'Downgrading your plan' or 'Cancelling the
 #. subscription'
 #: templates/account/partials/addon.php:34
-msgid ""
-"%1$s will immediately stop all future recurring payments and your %s plan "
-"license will expire in %s."
+msgid "%1$s will immediately stop all future recurring payments and your %s plan license will expire in %s."
 msgstr ""
 
 #: templates/account/partials/addon.php:190
@@ -3094,21 +2735,15 @@ msgid "No expiration"
 msgstr ""
 
 #: templates/account/partials/disconnect-button.php:74
-msgid ""
-"By disconnecting the website, previously shared diagnostic data about %1$s "
-"will be deleted and no longer visible to %2$s."
+msgid "By disconnecting the website, previously shared diagnostic data about %1$s will be deleted and no longer visible to %2$s."
 msgstr ""
 
 #: templates/account/partials/disconnect-button.php:78
-msgid ""
-"Disconnecting the website will permanently remove %s from your User "
-"Dashboard's account."
+msgid "Disconnecting the website will permanently remove %s from your User Dashboard's account."
 msgstr ""
 
 #: templates/account/partials/disconnect-button.php:84
-msgid ""
-"If you wish to cancel your %1$s plan's subscription instead, please navigate"
-" to the %2$s and cancel it there."
+msgid "If you wish to cancel your %1$s plan's subscription instead, please navigate to the %2$s and cancel it there."
 msgstr ""
 
 #: templates/account/partials/disconnect-button.php:88
@@ -3132,8 +2767,7 @@ msgid "Subscription"
 msgstr "Előfizetés"
 
 #: templates/forms/deactivation/contact.php:19
-msgid ""
-"Sorry for the inconvenience and we are here to help if you give us a chance."
+msgid "Sorry for the inconvenience and we are here to help if you give us a chance."
 msgstr ""
 
 #: templates/forms/deactivation/contact.php:22
@@ -3152,8 +2786,7 @@ msgstr ""
 msgid "hours"
 msgstr ""
 
-#: templates/forms/deactivation/form.php81,
-#: templates/forms/deactivation/form.php:86
+#: templates/forms/deactivation/form.php81, templates/forms/deactivation/form.php:86
 msgid "days"
 msgstr ""
 
@@ -3206,7 +2839,5 @@ msgid "Click here to use the plugin anonymously"
 msgstr "Kattints ide, ha névtelenül szeretnéd használni a bővítményt"
 
 #: templates/forms/deactivation/retry-skip.php:23
-msgid ""
-"You might have missed it, but you don't have to share any data and can just "
-"%s the opt-in."
+msgid "You might have missed it, but you don't have to share any data and can just %s the opt-in."
 msgstr ""
