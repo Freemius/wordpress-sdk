@@ -65,7 +65,7 @@
 		$fs->get_license_activation_terms_url() :
 		$freemius_usage_tracking_url;
 
-	$freemius_activation_terms_html = '<a href="' . esc_attr( $freemius_activation_terms_url ) . '" target="_blank" rel="noopener" tabindex="1">freemius.com</a>';
+	$freemius_activation_terms_html = '<a href="' . esc_url( $freemius_activation_terms_url ) . '" target="_blank" rel="noopener" tabindex="1">freemius.com</a>';
 
 	if ( $is_pending_activation ) {
 		$require_license_key = false;
@@ -442,15 +442,15 @@
 		<?php endif ?>
         </div>
 		<div class="fs-terms">
-            <a class="fs-tooltip-trigger<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo esc_attr( $freemius_activation_terms_url ) ?>" target="_blank" rel="noopener" tabindex="1">Powered by Freemius<?php if ( $require_license_key ) : ?> <span class="fs-tooltip" style="width: 170px"><?php echo $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) ?></span><?php endif ?></a>
+            <a class="fs-tooltip-trigger<?php echo is_rtl() ? ' rtl' : '' ?>" href="<?php echo esc_url( $freemius_activation_terms_url ) ?>" target="_blank" rel="noopener" tabindex="1">Powered by Freemius<?php if ( $require_license_key ) : ?> <span class="fs-tooltip" style="width: 170px"><?php echo $fs->get_text_inline( 'Freemius is our licensing and software updates engine', 'permissions-extensions_desc' ) ?></span><?php endif ?></a>
             &nbsp;&nbsp;-&nbsp;&nbsp;
 			<a href="https://freemius.com/privacy/" target="_blank" rel="noopener"
 			   tabindex="1"><?php fs_esc_html_echo_inline( 'Privacy Policy', 'privacy-policy', $slug ) ?></a>
 			&nbsp;&nbsp;-&nbsp;&nbsp;
 			<?php if ($require_license_key) : ?>
-				<a href="<?php echo esc_attr( $freemius_plugin_terms_url ) ?>" target="_blank" rel="noopener" tabindex="1"><?php fs_echo_inline( 'License Agreement', 'license-agreement', $slug ) ?></a>
+				<a href="<?php echo esc_url( $freemius_plugin_terms_url ) ?>" target="_blank" rel="noopener" tabindex="1"><?php fs_echo_inline( 'License Agreement', 'license-agreement', $slug ) ?></a>
 			<?php else : ?>
-				<a href="<?php echo esc_attr( $freemius_usage_tracking_url ) ?>" target="_blank" rel="noopener" tabindex="1"><?php fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
+				<a href="<?php echo esc_url( $freemius_usage_tracking_url ) ?>" target="_blank" rel="noopener" tabindex="1"><?php fs_echo_inline( 'Terms of Service', 'tos', $slug ) ?></a>
 			<?php endif; ?>
 		</div>
 	</div>
