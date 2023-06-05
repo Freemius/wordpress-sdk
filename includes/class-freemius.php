@@ -3492,6 +3492,28 @@
          * @return string
          */
         static function get_unfiltered_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
+            $url = ( ! is_multisite() && defined( 'WP_SITEURL' ) ) ? WP_SITEURL : self::get_site_url_from_wp_option( $blog_id );
+
+            if ( $strip_protocol ) {
+                $url = fs_strip_url_protocol( $url );
+            }
+
+            if ( $add_trailing_slash ) {
+                $url = trailingslashit( $url );
+            }
+
+            return $url;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.6.0
+         *
+         * @param int|null $blog_id
+         *
+         * @return string
+         */
+        private static function get_site_url_from_wp_option( $blog_id = null ) {
             global $wp_filter;
 
             $site_url_filters = array(
@@ -3516,14 +3538,6 @@
                 if ( ! empty( $site_url_filter ) ) {
                     $wp_filter[ $hook_name ] = $site_url_filter;
                 }
-            }
-
-            if ( $strip_protocol ) {
-                $url = fs_strip_url_protocol( $url );
-            }
-
-            if ( $add_trailing_slash ) {
-                $url = trailingslashit( $url );
             }
 
             return $url;
