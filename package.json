@@ -24,10 +24,10 @@
         "prettier": "^2.8.8"
 	},
 	"lint-staged": {
-        "assets/src/*.{js}": [
+        "./assets/src/*.{js}": [
             "eslint --cache --fix"
         ],
-        "assets/src/*.{js,scss}": [
+        "./assets/src/*.{js,scss}": [
 			"prettier --write",
 			"npm run build"
 		]
