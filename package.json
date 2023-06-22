@@ -10,8 +10,21 @@
   "dependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
+    "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json",
+    "wpcs": "composer wpcs",
+    "wpcs:format" : "composer wpcs:format",
+    "phpcs" : "composer phpcs",
+    "phpstan" : "composer phpstan"
   },
+  "pre-commit": [
+    "composer install",
+    "format",
+    "phpcs",
+    "wpcs:format",
+    "wpcs",
+    "phpstan",
+    "build"
+  ],
   "repository": "Freemius/wordpress-sdk.git",
   "devDependencies": {
     "gulp": "^3.9.1",
@@ -23,6 +36,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-sort": "^2.0.0",
     "gulp-transifex": "^0.1.17",
-    "gulp-wp-pot": "^2.0.6"
+    "gulp-wp-pot": "^2.0.6",
+    "pre-commit": "^1.2.2"
   }
 }

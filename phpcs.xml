@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset name="Plugin FM Theme">
+    <config name="installed_paths" value="vendor/wp-coding-standards/wpcs" />
+	<config name="testVersion" value="8.0-" />
+	<config name="minimum_supported_wp_version" value="6.2" />
+
+	<arg value="ps" />
+	<arg name="colors" />
+	<arg name="extensions" value="php" />
+
+	<ini name="error_reporting" value="E_ALL &#38; ~E_DEPRECATED" />
+	<file>.</file>
+
+	<rule ref="WordPress">
+		<exclude name="Squiz.Commenting.FunctionComment.Missing" />
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax.Found" />
+		<exclude name="Generic.Commenting.DocComment.MissingShort" />
+		<exclude name="Squiz.Commenting.FunctionComment.MissingParamComment" />
+		<exclude name="Squiz.Commenting.InlineComment.InvalidEndChar" />
+		<exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop" />
+		<exclude name="PSR2.Classes.PropertyDeclaration.Underscore" />
+		<exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found" />
+		<exclude name="WordPress.WP.AlternativeFunctions.json_encode_json_encode" />
+		<exclude name="WordPress.PHP.StrictComparisons.LooseComparison" />
+		<exclude name="Squiz.Commenting.BlockComment.CloserSameLine" />
+	</rule>
+
+    <rule ref="WordPress-Extra">
+        <exclude name="WordPress.NamingConventions.ValidVariableName.NotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.MemberNotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.NotSnakeCaseMemberVar"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase"/>
+        <exclude name="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase" />
+        <exclude name="Squiz.WhiteSpace.LanguageConstructSpacing.IncorrectSingle" />
+    </rule>
+
+    <!--- Skip, these are purely html files. -->
+    <exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>assets</exclude-pattern>
+	<exclude-pattern>parts</exclude-pattern>
+	<exclude-pattern>templates</exclude-pattern>
+	<exclude-pattern>node_modules</exclude-pattern>
+	<exclude-pattern>./vendor</exclude-pattern>
+</ruleset>
