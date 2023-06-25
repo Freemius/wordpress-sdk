@@ -1531,8 +1531,8 @@
             );
             $this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
-            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
-            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
+            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) ); // @phpstan-ignore-line
+            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) ); // @phpstan-ignore-line
             add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
@@ -1642,7 +1642,7 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.2.3
          *
-         * @return string
+         * @return void
          */
         static function _prepend_fs_allow_updater_and_dialog_flag_url_param() {
             $slug_basename_map = array();
@@ -9990,7 +9990,7 @@
          * @param string $is_premium
          * @param string $caller
          *
-         * @return string
+         * @return void
          */
         function set_basename( $is_premium, $caller ) {
             $basename = plugin_basename( $caller );
@@ -17929,7 +17929,7 @@
          * @param bool      $trial_plan_id
          * @param bool      $redirect
          *
-         * @return string If redirect is `false`, returns the next page the user should be redirected to.
+         * @return void
          */
         private function install_many_pending_with_user(
             $user_id,
@@ -23310,6 +23310,18 @@
         }
 
         /**
+         * CSS classes for the body tag in the admin.
+         *
+         * @param string $classes Space-separated string of class names.
+         * 
+         * @return string $classes FS Admin body tag class names.
+         */
+        protected function fs_addons_body_class( $classes ) {
+            $classes .= ' plugins-php';
+            return $classes;
+        }
+
+        /**
          * Account page resources load.
          *
          * @author Vova Feldman (@svovaf)
@@ -23325,14 +23337,7 @@
             if ( $this->has_addons() ) {
                 wp_enqueue_script( 'plugin-install' );
                 add_thickbox();
-
-                function fs_addons_body_class( $classes ) {
-                    $classes .= ' plugins-php';
-
-                    return $classes;
-                }
-
-                add_filter( 'admin_body_class', 'fs_addons_body_class' );
+                add_filter( 'admin_body_class', array( $this, 'fs_addons_body_class' ) );
             }
 
             if ( $this->has_paid_plan() &&
@@ -23456,7 +23461,7 @@
 
         /**
          * Load required resources before add-ons page render.
-         *
+         * 
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          */
@@ -23467,14 +23472,7 @@
 
             wp_enqueue_script( 'plugin-install' );
             add_thickbox();
-
-            function fs_addons_body_class( $classes ) {
-                $classes .= ' plugins-php';
-
-                return $classes;
-            }
-
-            add_filter( 'admin_body_class', 'fs_addons_body_class' );
+            add_filter( 'admin_body_class', array( $this, 'fs_addons_body_class' ) );
 
             if ( ! $this->is_registered() && $this->is_org_repo_compliant() ) {
                 $this->_admin_notices->add(
