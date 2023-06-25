@@ -11,4 +11,5 @@ npm-debug.log
 package-lock.json
 error-phpstan.xml
 error-wpcs.log
+error-phpcs.log
 vendor/
