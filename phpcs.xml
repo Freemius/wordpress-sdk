@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Freemius WordPress SDK"
+         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/squizlabs/PHP_CodeSniffer/master/phpcs.xsd">
+
+    <description>A custom set of rules to check for a WPized WordPress project</description>
+
+    <!--
+    #############################################################################
+    COMMAND LINE ARGUMENTS
+    https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset
+    #############################################################################
+    -->
+
+    <file>.</file>
+
+    <!-- Exclude the Composer Vendor directory. -->
+    <exclude-pattern>/vendor/*</exclude-pattern>
+
+    <!-- Exclude the Node Modules directory. -->
+    <exclude-pattern>/node_modules/*</exclude-pattern>
+
+    <!-- Exclude front-end asset files. -->
+    <exclude-pattern>/assets/*</exclude-pattern>
+
+    <!-- Exclude language files. -->
+    <exclude-pattern>/languages/*</exclude-pattern>
+    <exclude-pattern>/includes/class-freemius.php</exclude-pattern>
+
+    <!-- Strip the filepaths down to the relevant bit. -->
+    <arg name="basepath" value="."/>
+
+    <!-- Check up to 8 files simultaneously. -->
+    <arg name="parallel" value="8"/>
+
+    <arg name="extensions" value="php"/>
+
+    <arg name="tab-width" value="4"/>
+
+    <!--
+    #############################################################################
+    SET UP THE RULESETS
+    #############################################################################
+    -->
+
+    <!-- Include only the security related sniffs for now -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <properties>
+            <property name="customEscapingFunctions" type="array">
+                <element value="fs_html_get_attributes"/>
+                <element value="fs_html_get_classname"/>
+                <element value="fs_html_get_sanitized_html"/>
+                <element value="fs_esc_attr"/>
+                <element value="fs_esc_attr_inline"/>
+                <element value="fs_esc_attr_x_inline"/>
+                <element value="htmlspecialchars"/>
+                <element value="fs_esc_html_inline"/>
+            </property>
+            <property name="customAutoEscapedFunctions" type="array">
+                <element value="fs_nonce_url" />
+                <element value="WP_FS__ADDRESS" />
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Encourage use of wp_safe_redirect() to avoid open redirect vulnerabilities.
+         https://github.com/WordPress/WordPress-Coding-Standards/pull/1264 -->
+    <rule ref="WordPress.Security.SafeRedirect"/>
+
+    <!-- Verify that a nonce check is done before using values in superglobals.
+         https://github.com/WordPress/WordPress-Coding-Standards/issues/73 -->
+    <rule ref="WordPress.Security.NonceVerification">
+        <properties>
+            <property name="customNonceVerificationFunctions" type="array">
+                <element value="check_ajax_referer"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Let's also check that everything is properly documented. -->
+    <!--    <rule ref="WordPress-Docs"/>-->
+
+    <!-- Add in some extra rules from other standards. -->
+    <!--    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>-->
+    <!--    <rule ref="Generic.Commenting.Todo"/>-->
+
+    <!-- Check for PHP cross-version compatibility. -->
+    <!--
+    To enable this, the PHPCompatibilityWP standard needs
+    to be installed.
+    See the readme for installation instructions:
+    https://github.com/PHPCompatibility/PHPCompatibilityWP
+    For more information, also see:
+    https://github.com/PHPCompatibility/PHPCompatibility
+    -->
+    <!--
+    <config name="testVersion" value="5.2-"/>
+    <rule ref="PHPCompatibilityWP"/>
+    -->
+
+
+    <!--
+    #############################################################################
+    SNIFF SPECIFIC CONFIGURATION
+    #############################################################################
+    -->
+
+    <!--
+    To get the optimal benefits of using WPCS, we should add a couple of
+    custom properties.
+    Adjust the values of these properties to fit our needs.
+
+    For information on additional custom properties available, check out
+    the wiki:
+    https://github.com/WordPress/WordPress-Coding-Standards/wiki/Customizable-sniff-properties
+    -->
+    <config name="minimum_supported_wp_version" value="5.0"/>
+
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="fs"/>
+            </property>
+        </properties>
+    </rule>
+
+</ruleset>

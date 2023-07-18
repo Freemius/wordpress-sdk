@@ -6,9 +6,11 @@
 .gitignore export-ignore
 gulpfile.js export-ignore
 *.json export-ignore
+composer.lock export-ignore
 /languages/*.po export-ignore
 /assets/scss/ export-ignore
 *.css.map export-ignore
+phpcs.xml export-ignore
 
 # Declare files that will always have CRLF line endings on checkout.
 #*.php text eol=crlf
