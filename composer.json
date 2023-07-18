@@ -4,7 +4,20 @@
     "keywords": ["freemius", "wordpress", "plugin", "wordpress-plugin", "theme", "wordpress-theme", "sdk"],
     "homepage": "https://freemius.com",
     "license": "GPL-3.0-only",
+    "scripts": {
+        "lint": ["Composer\\Config::disableProcessTimeout", "phpcs -p -s --colors"],
+        "lint-fix": ["Composer\\Config::disableProcessTimeout", "phpcbf -p -s --colors"]
+    },
     "require": {
         "php": ">=5.2"
-	}
+	},
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^2.3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
 }
