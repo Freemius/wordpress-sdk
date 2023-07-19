@@ -92,11 +92,10 @@
     For more information, also see:
     https://github.com/PHPCompatibility/PHPCompatibility
     -->
-    <!--
-    <config name="testVersion" value="5.2-"/>
-    <rule ref="PHPCompatibilityWP"/>
-    -->
+    <!-- <rule ref="PHPCompatibilityWP"/> -->
 
+    <config name="testVersion" value="5.6-"/>
+    <rule ref="PHPCompatibility"/>
 
     <!--
     #############################################################################
