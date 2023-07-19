@@ -2,9 +2,6 @@
 name: PHPCS and Static Analysis.
 
 on:
-  push:
-    branches:
-      - feature/php-static-analysis
   pull_request:
     branches:
       - develop
