@@ -240,19 +240,19 @@
                         true
                     );
 
-                    $human_readable_license_expiration = human_time_diff( time(), strtotime( $license->expiration ) );
-                    $downgrade_confirmation_message    = sprintf(
-                        $downgrade_x_confirm_text,
-                        ( $fs_addon->is_only_premium() ? $cancelling_subscription_text : $downgrading_plan_text ),
-                        $plan->title,
-                        $human_readable_license_expiration
-                    );
-
                     $after_downgrade_message = ! $license->is_block_features ?
                         sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs_addon->get_module_label( true ) ) :
                         sprintf( $after_downgrade_blocking_text, $plan->title );
 
                     if ( ! $license->is_lifetime() && $is_active_subscription ) {
+                        $human_readable_license_expiration = human_time_diff( time(), strtotime( $license->expiration ) );
+                        $downgrade_confirmation_message    = sprintf(
+                            $downgrade_x_confirm_text,
+                            ( $fs_addon->is_only_premium() ? $cancelling_subscription_text : $downgrading_plan_text ),
+                            $plan->title,
+                            $human_readable_license_expiration
+                        );
+
                         $buttons[] = fs_ui_get_action_button(
                             $fs->get_id(),
                             'account',
