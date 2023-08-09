@@ -424,6 +424,7 @@
             $this->_blog_id = is_multisite() ? get_current_blog_id() : null;
 
             $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
+            $this->_storage->last_load_timestamp = time();
 
             $this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
@@ -1348,6 +1349,10 @@
             }
         }
 
+        function _run_garbage_collector() {
+            FS_Garbage_Collector::instance()->init();
+        }
+
         /**
          * Opens the support forum subemenu item in a new browser page.
          *
@@ -1442,6 +1447,8 @@
                         $this->_plugins_loaded();
                     }
                 }
+
+                add_action( 'plugins_loaded', array( &$this, '_run_garbage_collector' ) );
 
                 if ( ! self::is_ajax() ) {
                     if ( ! $this->is_addon() ) {
