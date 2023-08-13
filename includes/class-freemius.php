@@ -424,7 +424,14 @@
             $this->_blog_id = is_multisite() ? get_current_blog_id() : null;
 
             $this->_storage = FS_Storage::instance( $this->_module_type, $this->_slug );
-            $this->_storage->last_load_timestamp = time();
+
+            // If not set or 24 hours have already passed from the last time it's set, set the last load timestamp to the current time.
+            if (
+                ! isset( $this->_storage->last_load_timestamp ) ||
+                $this->_storage->last_load_timestamp < ( time() - ( WP_FS__TIME_24_HOURS_IN_SEC ) )
+            ) {
+                $this->_storage->last_load_timestamp = time();
+            }
 
             $this->_cache = FS_Cache_Manager::get_manager( WP_FS___OPTION_PREFIX . "cache_{$module_id}" );
 
