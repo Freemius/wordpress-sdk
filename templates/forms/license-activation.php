@@ -142,12 +142,13 @@ HTML;
                 $plan = $fs->_get_plan_by_id( $license->plan_id );
 
                 $label = sprintf(
-                    "%s-Site %s License",
+                    "%s-Site %s License - %s",
                     ( 1 == $license->quota ?
                         'Single' :
                         ( $license->is_unlimited() ? 'Unlimited' : $license->quota )
                     ),
-                    ( is_object( $plan ) ? $plan->title : '' )
+                    ( is_object( $plan ) ? $plan->title : '' ),
+                    $license->get_html_escaped_masked_secret_key()
                 );
 
                 $license_input_html .= "<option data-id='{$license->id}' value='{$license->secret_key}' data-left='{$license->left()}'>{$label}</option>";
@@ -162,12 +163,13 @@ HTML;
              */
             $available_license  = $available_licenses[0];
             $value              = sprintf(
-                "%s-Site %s License",
+                "%s-Site %s License - %s",
                 ( 1 == $available_license->quota ?
                     'Single' :
                     ( $available_license->is_unlimited() ? 'Unlimited' : $available_license->quota )
                 ),
-                $fs->_get_plan_by_id( $available_license->plan_id )->title
+                $fs->_get_plan_by_id( $available_license->plan_id )->title,
+                $available_license->get_html_escaped_masked_secret_key()
             );
 
             $license_input_html .= <<< HTML
