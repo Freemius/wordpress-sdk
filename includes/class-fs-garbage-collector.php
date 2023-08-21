@@ -58,19 +58,9 @@
         }
 
         private function clean_up() {
-            $instances = Freemius::_get_all_instances();
+            $product_types = $this->get_product_types();
 
-            $product_types = array(
-                WP_FS__MODULE_TYPE_PLUGIN,
-                WP_FS__MODULE_TYPE_THEME,
-            );
-
-            $products_to_skip_by_type_and_slug = array_fill_keys( $product_types, array() );
-
-            // Iterate over the active instances so we can determine the products to skip.
-            foreach( $instances as $instance ) {
-                $products_to_skip_by_type_and_slug[ $instance->get_module_type() ][ $instance->get_slug() ] = true;
-            }
+            $products_to_skip_by_type_and_slug = $this->get_products_to_skip_by_type_and_slug();
 
             $_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
@@ -120,28 +110,7 @@
                 return;
             }
 
-            $products_options_by_type = array(
-                'plugin' => array(
-                    'plugins',
-                    'admin_notices',
-                    'plans',
-                    'sites',
-                    'all_licenses',
-                    'updates',
-                    'id_slug_type_path_map',
-                    'file_slug_map',
-                ),
-                'theme'  => array(
-                    'themes',
-                    'admin_notices',
-                    'theme_plans',
-                    'theme_sites',
-                    'all_licenses',
-                    'updates',
-                    'id_slug_type_path_map',
-                    'file_slug_map',
-                )
-            );
+            $products_options_by_type = $this->product_options_by_type();
 
             $loaded_products_options_by_type = array_fill_keys( $product_types, false );
 
@@ -199,6 +168,7 @@
                 }
             }
 
+            // Handle deletion of user entities that are no longer associated with installs.
             $users = Freemius::get_all_users();
 
             foreach( $products_slugs_by_type as $product_type => $product ) {
@@ -218,6 +188,51 @@
                     }
                 }
             }
+        }
+
+        private function get_product_types() {
+            return array(
+                WP_FS__MODULE_TYPE_PLUGIN,
+                WP_FS__MODULE_TYPE_THEME,
+            );
+        }
+
+        private function get_product_options_by_type() {
+            return array(
+                WP_FS__MODULE_TYPE_PLUGIN => array(
+                    'plugins',
+                    'admin_notices',
+                    'plans',
+                    'sites',
+                    'all_licenses',
+                    'updates',
+                    'id_slug_type_path_map',
+                    'file_slug_map',
+                ),
+                WP_FS__MODULE_TYPE_THEME  => array(
+                    'themes',
+                    'admin_notices',
+                    'theme_plans',
+                    'theme_sites',
+                    'all_licenses',
+                    'updates',
+                    'id_slug_type_path_map',
+                    'file_slug_map',
+                )
+            );
+        }
+
+        private function get_products_to_skip_by_type_and_slug() {
+            $products_to_skip_by_type_and_slug = array_fill_keys( $this->get_product_types(), array() );
+
+            $instances = Freemius::_get_all_instances();
+
+            // Iterate over the active instances so we can determine the products to skip.
+            foreach( $instances as $instance ) {
+                $products_to_skip_by_type_and_slug[ $instance->get_module_type() ][ $instance->get_slug() ] = true;
+            }
+
+            return $products_to_skip_by_type_and_slug;
         }
 
         /**
