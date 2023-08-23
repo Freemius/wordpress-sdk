@@ -12420,7 +12420,7 @@
 
             $install_2_blog_map = array();
             foreach ( $blog_2_install_map as $blog_id => $install ) {
-                $params[] = array( 'id' => $install->id );
+                $params[] = array( 'id' => $install->id, 'url' => $install->url );
 
                 $install_2_blog_map[ $install->id ] = $blog_id;
             }
