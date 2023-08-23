@@ -68,41 +68,52 @@
             $products_data_by_type  = array();
 
             foreach( $product_types as $product_type ) {
-                $option_name  = ( $product_type . 's' );
-                $product_data = $_accounts->get_option( $option_name, array() );
+                $option_name      = ( $product_type . 's' );
+                $all_product_data = $_accounts->get_option( $option_name, array() );
 
-                foreach ( $product_data as $slug => $data ) {
+                foreach ( $all_product_data as $slug => $product_data ) {
                     if ( isset( $products_to_skip_by_type_and_slug[ $product_type ][ $slug ] ) ) {
                         continue;
                     }
 
-                    if ( ! is_object( $data ) ) {
+                    if ( ! is_object( $product_data ) ) {
                         continue;
                     }
 
                     if (
-                        empty( $data->last_load_timestamp ) ||
-                        ! is_numeric( $data->last_load_timestamp )
+                        empty( $product_data->last_load_timestamp ) ||
+                        ! is_numeric( $product_data->last_load_timestamp )
                     ) {
                         continue;
                     }
 
-                    if ( $data->last_load_timestamp > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
+                    if ( $product_data->last_load_timestamp > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
                         // Do not remove the data if the last activation was within the last 4 weeks.
                         continue;
                     }
+
+                    $is_addon = FS_Plugin::is_valid_id( $product_data->parent_plugin_id );
 
                     if ( ! isset( $products_slugs_by_type[ $product_type ] ) ) {
                         $products_slugs_by_type[ $product_type ] = array();
                     }
 
-                    $products_slugs_by_type[ $product_type ][] = array(
-                        'id'   => $data->id,
+                    $product = array(
+                        'id'   => $product_data->id,
                         'slug' => $slug,
-                        'file' => $data->file,
+                        'file' => $product_data->file,
                     );
 
-                    $products_data_by_type[ $product_type ][ $option_name ] = $data;
+                    if ( ! $is_addon ) {
+                        $products_slugs_by_type[ $product_type ][] = $product;
+                    } else {
+                        /**
+                         * If add-on, add to the beginning of the array so that add-ons are removed before their parent. This is to prevent an unexpected issue when an add-on exists but its parent was already removed.
+                         */
+                        array_unshift( $products_slugs_by_type[ $product_type ], $product );
+                    }
+
+                    $products_data_by_type[ $product_type ][ $option_name ] = $product_data;
                 }
             }
 
@@ -110,17 +121,19 @@
                 return;
             }
 
-            $products_options_by_type = $this->product_options_by_type();
+            $products_options_by_type = $this->get_product_options_by_type();
 
             $loaded_products_options_by_type = array_fill_keys( $product_types, false );
 
             $installs_count_by_user_id = array();
 
+            $has_updated_option = false;
+
             foreach( $products_slugs_by_type as $product_type => $products ) {
                 foreach( $products as $product ) {
                     $product_id   = $product['id'];
                     $slug         = $product['slug'];
-                    $product_file = $product['product_file'];
+                    $product_file = $product['file'];
 
                     if ( ! $loaded_products_options_by_type[ $product_type ] ) {
                         $products_data_by_type[ $product_type ]           = $this->load_options( $products_options_by_type[ $product_type ] );
@@ -128,65 +141,77 @@
                     }
 
                     foreach( $products_data_by_type[ $product_type ] as $option_name => $products_data ) {
+                        $updated = false;
+
                         if ( ! is_array( $products_data ) ) {
-                            continue;
-                        }
-
-                        $update = false;
-
-                        if ( isset( $products_data[ $slug ] ) ) {
-                            if ( fs_ends_with( $option_name, 'sites' ) ) {
-                                $site = $products_data[ $slug ];
-
-                                $installs_count_by_user_id[ $site->user_id ] = isset( $installs_count_by_user_id[ $site->user_id ] ) ?
-                                    $installs_count_by_user_id[ $site->user_id ] ++ :
-                                    1;
+                            if (
+                                is_object( $products_data ) &&
+                                in_array( $option_name, array( "all_{$product_type}s", "active_{$product_type}s" ) )
+                            ) {
+                                if ( isset( $products_data->{ "{$product_type}s" }[ $product_file ] ) ) {
+                                    unset( $products_data->{ "{$product_type}s" }[ $product_file ] );
+                                    $updated = true;
+                                }
                             }
 
-                            unset( $products_data[ $slug ] );
-                            $update = true;
-                        } else if ( isset( $products_data[ "{$slug}:{$product_type}" ] ) ) {
-                            unset( $products_data[ "{$slug}:{$product_type}" ] );
-                            $update = true;
-                        } else if ( isset( $products_data[ $product_id ] ) ) {
-                            unset( $products_data[ $product_id ] );
-                            $update = true;
-                        } else if ( isset( $products_data[ $product_file ] ) ) {
-                            unset( $products_data[ $product_file ] );
-                            $update = true;
-                        } else if ( in_array( $option_name, array( "all_{$product_type}s", "active_{$product_type}s" ) ) ) {
-                            if ( isset( $products_data[ "{$product_type}s" ][ $product_file ] ) ) {
-                                unset( $products_data[ "{$product_type}s" ][ $product_file ] );
-                                $update = true;
+                            if ( ! $updated ) {
+                                continue;
                             }
                         }
 
-                        if ( $update ) {
-                            $_accounts->set_option( $option_name, $products_data, true );
+                        if ( ! $updated ) {
+                            if ( isset( $products_data[ $slug ] ) ) {
+                                if ( fs_ends_with( $option_name, 'sites' ) ) {
+                                    $site = $products_data[ $slug ];
+
+                                    $installs_count_by_user_id[ $site->user_id ] = isset( $installs_count_by_user_id[ $site->user_id ] ) ?
+                                        $installs_count_by_user_id[ $site->user_id ] ++ :
+                                        1;
+                                }
+
+                                unset( $products_data[ $slug ] );
+                                $updated = true;
+                            } else if ( isset( $products_data[ "{$slug}:{$product_type}" ] ) ) {
+                                unset( $products_data[ "{$slug}:{$product_type}" ] );
+                                $updated = true;
+                            } else if ( isset( $products_data[ $product_id ] ) ) {
+                                unset( $products_data[ $product_id ] );
+                                $updated = true;
+                            } else if ( isset( $products_data[ $product_file ] ) ) {
+                                unset( $products_data[ $product_file ] );
+                                $updated = true;
+                            }
+                        }
+
+                        if ( $updated ) {
+                            $_accounts->set_option( $option_name, $products_data );
+
+                            $products_data_by_type[ $product_type ][ $option_name ] = $products_data;
+
+                            $has_updated_option = true;
                         }
                     }
                 }
             }
 
+            if ( $has_updated_option ) {
+                $users = Freemius::get_all_users();
+            }
+
             // Handle deletion of user entities that are no longer associated with installs.
-            $users = Freemius::get_all_users();
+            if (
+                $this->delete_users(
+                    $users,
+                    $products_slugs_by_type,
+                    $products_data_by_type,
+                    $installs_count_by_user_id
+                )
+            ) {
+                $has_updated_option = true;
+            }
 
-            foreach( $products_slugs_by_type as $product_type => $product ) {
-                foreach( $products_data_by_type[ $product_type ] as $products_data ) {
-                    if ( ! is_array( $products_data ) ) {
-                        continue;
-                    }
-
-                    foreach( $installs_count_by_user_id as $user_id => $count ) {
-                        if ( 1 === $count) {
-                            unset( $users[ $user_id ] );
-                            unset( $products_data['user_id_license_ids_map'][ $user_id ] );
-
-                            $_accounts->set_option( 'users', $users, true );
-                            $_accounts->set_option( 'user_id_license_ids_map', $products_data['user_id_license_ids_map'], true );
-                        }
-                    }
-                }
+            if ( $has_updated_option ) {
+                $_accounts->store();
             }
         }
 
@@ -200,22 +225,28 @@
         private function get_product_options_by_type() {
             return array(
                 WP_FS__MODULE_TYPE_PLUGIN => array(
-                    'plugins',
                     'admin_notices',
-                    'plans',
+                    'updates',
                     'sites',
                     'all_licenses',
-                    'updates',
+                    'plans',
+                    'addons',
+                    'plugins',
+                    'active_plugins',
+                    'all_plugins',
                     'id_slug_type_path_map',
                     'file_slug_map',
                 ),
                 WP_FS__MODULE_TYPE_THEME  => array(
-                    'themes',
                     'admin_notices',
-                    'theme_plans',
+                    'updates',
                     'theme_sites',
                     'all_licenses',
-                    'updates',
+                    'theme_plans',
+                    'addons',
+                    'themes',
+                    'active_themes',
+                    'all_themes',
                     'id_slug_type_path_map',
                     'file_slug_map',
                 )
@@ -235,6 +266,38 @@
             return $products_to_skip_by_type_and_slug;
         }
 
+        private function delete_users(
+            $users,
+            $products_slugs_by_type,
+            $products_data_by_type,
+            $installs_count_by_user_id
+        ) {
+            $_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME );
+
+            $has_updated_option = false;
+
+            foreach( $products_slugs_by_type as $product_type => $product ) {
+                foreach( $products_data_by_type[ $product_type ] as $products_data ) {
+                    if ( ! is_array( $products_data ) ) {
+                        continue;
+                    }
+
+                    foreach( $installs_count_by_user_id as $user_id => $count ) {
+                        if ( 1 === $count) {
+                            unset( $users[ $user_id ] );
+                            unset( $products_data['user_id_license_ids_map'][ $user_id ] );
+
+                            $_accounts->set_option( 'users', $users );
+                            $_accounts->set_option( 'user_id_license_ids_map', $products_data['user_id_license_ids_map'] );
+
+                            $has_updated_option = true;
+                        }
+                    }
+                }
+            }
+
+            return $has_updated_option;
+        }
         /**
          * @since 2.5.11
          * @param $option_names
