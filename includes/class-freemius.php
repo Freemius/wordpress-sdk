@@ -4413,11 +4413,22 @@
             }
 
             // Get the UTF encoded domain name.
-            if ( version_compare( PHP_VERSION, '5.6.40') > 0 ) {
+            /**
+             * @note - The check of `defined('...')` is there to account for PHP servers compiled with some older version of ICU where the constants are not defined.
+             * @author - @swashata
+             */
+            $is_new_idn_available = (
+                version_compare( PHP_VERSION, '5.6.40') > 0 &&
+                defined( 'IDNA_DEFAULT' ) &&
+                defined( 'INTL_IDNA_VARIANT_UTS46' )
+            );
+            if ( $is_new_idn_available ) {
                 $domain = idn_to_ascii( $parts[1], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
             } else {
-                $domain = idn_to_ascii( $parts[1], IDNA_DEFAULT, INTL_IDNA_VARIANT_2003 ); // phpcs:ignore PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated
+                $domain = idn_to_ascii( $parts[1] );  // phpcs:ignore PHPCompatibility.ParameterValues.NewIDNVariantDefault.NotSet
             }
+
+            $domain = $domain . '.';
 
             return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
         }
