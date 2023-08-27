@@ -1,0 +1,46 @@
+# Run CI tests via Github.
+name: PHPCS and Static Analysis.
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    name: PHPCS
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0', '8.1', '8.2' ]
+        experimental: [false]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v2
+        with:
+          composer-options: "--no-progress --no-ansi --no-interaction"
+          dependency-versions: "lowest"
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+      - name: PHP Static Analysis
+        run: composer phpstan
+
+      - name: Run PHPCS
+        run: composer phpcs:ci
