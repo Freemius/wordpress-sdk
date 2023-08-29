@@ -1357,7 +1357,9 @@
         }
 
         function _run_garbage_collector() {
-            FS_Garbage_Collector::instance()->init();
+            if ( $this->is_user_in_admin() ) {
+                FS_Garbage_Collector::instance()->run();
+            }
         }
 
         /**
