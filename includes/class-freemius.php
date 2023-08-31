@@ -14791,9 +14791,15 @@
             }
 
             if ( ! $this->is_registered() ) {
+                $email_address = isset( $affiliate['email'] ) ? $affiliate['email'] : '';
+
+                if ( ! is_email( $email_address ) ) {
+                    self::shoot_ajax_failure('Invalid email address.');
+                }
+
                 // Opt in but don't track usage.
                 $next_page = $this->opt_in(
-                    false,
+                    $email_address,
                     false,
                     false,
                     false,
