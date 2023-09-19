@@ -25424,6 +25424,12 @@
                 return false;
             }
 
+            $tabs_html = $this->get_tabs_html();
+
+            if ( empty( $tabs_html ) ) {
+                return false;
+            }
+
             /**
              * Enqueue the original stylesheets that are included in the
              * theme settings page. That way, if the theme settings has
@@ -25438,7 +25444,7 @@
             }
 
             // Cut closing </div> tag.
-            echo substr( trim( $this->get_tabs_html() ), 0, - 6 );
+            echo substr( trim( $tabs_html ), 0, - 6 );
 
             return true;
         }
