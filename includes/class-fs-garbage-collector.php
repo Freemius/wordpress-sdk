@@ -35,11 +35,23 @@
          */
         private $_plural_type;
 
+        /**
+         * @var array<string, int> Map of product slugs to their last load timestamp, only for products that are not active.
+         */
+        private $_gc_timestamp;
+
+        /**
+         * @var array<string, array<string, mixed>> Map of product slugs to their data, as stored by the primary storage of `Freemius` class.
+         */
+        private $_storage_data;
+
         function __construct( FS_Options $_accounts, $option_names, $type ) {
             $this->_accounts      = $_accounts;
             $this->_options_names = $option_names;
             $this->_type          = $type;
             $this->_plural_type   = ( $type . 's' );
+            $this->_gc_timestamp  = $this->_accounts->get_option( 'gc_timestamp', array() );
+            $this->_storage_data  = $this->_accounts->get_option( $this->_type . '_data', array() );
         }
 
         function clean() {
@@ -51,39 +63,33 @@
             foreach( $products_to_clean as $product ) {
                 $slug = $product->slug;
 
+                // Clear the product's data.
                 foreach( $options as $option_name => $option ) {
                     $updated = false;
 
+                    /**
+                     * We expect to deal with only array like options here.
+                     * @todo - Refactor this to create dedicated GC classes for every option, then we can make the code mode predictable.
+                     *       For example, depending on data integrity of `plugins` we can still miss something entirely in the `plugin_data` or vice-versa.
+                     *       A better algorithm is to iterate over all options individually in separate classes and check against primary storage to see if those can be garbage collected.
+                     *       But given the chance of data integrity issue is very low, we let this run for now and gather feedback.
+                     */
                     if ( ! is_array( $option ) ) {
-                        if (
-                            is_object( $option ) &&
-                            in_array( $option_name, array( 'all_' . $this->_plural_type, 'active_' . $this->_plural_type ) )
-                        ) {
-                            if ( isset( $option->{ $this->_plural_type }[ $product->file ] ) ) {
-                                unset( $option->{ $this->_plural_type }[ $product->file ] );
-                                $updated = true;
-                            }
-                        }
-
-                        if ( ! $updated ) {
-                            continue;
-                        }
+                        continue;
                     }
 
-                    if ( ! $updated ) {
-                        if ( array_key_exists( $slug, $option ) ) {
-                            unset( $option[ $slug ] );
-                            $updated = true;
-                        } else if ( array_key_exists( "{$slug}:{$this->_type}", $option ) ) {
-                            unset( $option[ "{$slug}:{$this->_type}" ] );
-                            $updated = true;
-                        } else if ( isset( $product->id ) && array_key_exists( $product->id, $option ) ) {
-                            unset( $option[ $product->id ] );
-                            $updated = true;
-                        } else if ( isset( $product->file ) && array_key_exists( $product->file, $option ) ) {
-                            unset( $option[ $product->file ] );
-                            $updated = true;
-                        }
+                    if ( array_key_exists( $slug, $option ) ) {
+                        unset( $option[ $slug ] );
+                        $updated = true;
+                    } else if ( array_key_exists( "{$slug}:{$this->_type}", $option ) ) { /* admin_notices */
+                        unset( $option[ "{$slug}:{$this->_type}" ] );
+                        $updated = true;
+                    } else if ( isset( $product->id ) && array_key_exists( $product->id, $option ) ) { /* all_licenses */
+                        unset( $option[ $product->id ] );
+                        $updated = true;
+                    } else if ( isset( $product->file ) && array_key_exists( $product->file, $option ) ) { /* file_slug_map */
+                        unset( $option[ $product->file ] );
+                        $updated = true;
                     }
 
                     if ( $updated ) {
@@ -94,7 +100,23 @@
                         $has_updated_option = true;
                     }
                 }
+
+                // Clear the product's data from the primary storage.
+                if ( isset( $this->_storage_data[ $slug ] ) ) {
+                    unset( $this->_storage_data[ $slug ] );
+                    $has_updated_option = true;
+                }
+
+                // Clear from GC timestamp.
+                // @todo - This perhaps needs a separate garbage collector for all expired products. But the chance of left-over is very slim.
+                if ( isset( $this->_gc_timestamp[ $slug ] ) ) {
+                    unset( $this->_gc_timestamp[ $slug ] );
+                    $has_updated_option = true;
+                }
             }
+
+            $this->_accounts->set_option( 'gc_timestamp', $this->_gc_timestamp );
+            $this->_accounts->set_option( $this->_type . '_data', $this->_storage_data );
 
             return $has_updated_option;
         }
@@ -114,49 +136,19 @@
         }
 
         private function get_products() {
-            if ( ! empty( $this->_products ) ) {
-                return $this->_products;
-            }
+            $products = $this->_accounts->get_option( $this->_plural_type, array() );
 
-            $products        = $this->_accounts->get_option( $this->_plural_type, array() );
-            $this->_products = $this->maybe_set_products_last_load_timestamp( $products, $products, $this->_plural_type );
-
-            $other_product_option_names = array(
-                'active_' . $this->_plural_type,
-                'all_' . $this->_plural_type
-            );
-
-            foreach ( $other_product_option_names as $other_option_name ) {
-                $products_from_other_options = array();
-
-                $other_option = $this->_accounts->get_option( $other_option_name, array() );
-
-                if (
-                    is_object( $other_option ) &&
-                    is_array( $other_option->{ $this->_plural_type } )
-                ) {
-                    foreach( $other_option->{ $this->_plural_type } as $key => $other_product ) {
-                        $products_from_other_options[ $key ] = $other_product;
-                    }
-                }
-
-                $products_from_other_options = $this->maybe_set_products_last_load_timestamp(
-                    $products_from_other_options,
-                    $other_option,
-                    $other_option_name,
-                    $this->_plural_type
-                );
-
-                foreach( $products_from_other_options as $file => $product ) {
-                    $product['file'] = $file;
-
-                    if ( ! isset( $product['slug'] ) ) {
-                        $this->_products[ $product['slug'] ] = (object) $product;
-                    }
+            // Fill any missing product found in the primary storage.
+            // @todo - This wouldn't be needed if we use dedicated GC design for every options. The options themselves would provide such information.
+            foreach( $this->_storage_data as $slug => $product_data ) {
+                if ( ! isset( $products[ $slug ] ) ) {
+                    $products[ $slug ] = (object) $product_data;
                 }
             }
 
-            return $this->_products;
+            $this->update_gc_timestamp( $products );
+
+            return $products;
         }
 
         private function get_products_to_clean() {
@@ -169,7 +161,7 @@
                     continue;
                 }
 
-                if ( $this->is_product_active( $slug, $product_data ) ) {
+                if ( $this->is_product_active( $slug ) ) {
                     continue;
                 }
 
@@ -189,35 +181,18 @@
         }
 
         /**
-         * @return array
-         */
-        private function get_products_to_skip_by_slug() {
-            $products_to_skip_by_slug = array();
-
-            $instances = Freemius::_get_all_instances();
-
-            // Iterate over the active instances so we can determine the products to skip.
-            foreach( $instances as $instance ) {
-                $products_to_skip_by_slug[ $instance->get_slug() ] = true;
-            }
-
-            return $products_to_skip_by_slug;
-        }
-
-        /**
          * @param string $slug
-         * @param object $product_data
          *
          * @return bool
          */
-        private function is_product_active( $slug, $product_data ) {
-            $products_to_skip_by_slug = $this->get_products_to_skip_by_slug();
+        private function is_product_active( $slug ) {
+            $instances = Freemius::_get_all_instances();
 
-            if ( isset( $products_to_skip_by_slug[ $slug ] ) ) {
+            if ( isset( $instances[ $slug ] ) ) {
                 return true;
             }
 
-            if ( $product_data->last_load_timestamp > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
+            if ( $this->get_last_load_timestamp( $slug ) > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
                 // Last activation was within the last 4 weeks.
                 return true;
             }
@@ -236,43 +211,38 @@
             return $options;
         }
 
-        private function maybe_set_products_last_load_timestamp(
-            $products,
-            $option,
-            $option_name,
-            $child_option_name = null
-        ) {
-            foreach ( $products as $key => $product_data ) {
+        /**
+         * Updates the garbage collector timestamp, only if it was not already set by the product's primary storage.
+         *
+         * @param array $products
+         *
+         * @return void
+         */
+        private function update_gc_timestamp( $products ) {
+            foreach ($products as $slug => $product_data) {
                 if ( ! is_object( $product_data ) && ! is_array( $product_data ) ) {
                     continue;
                 }
 
-                if (
-                    ( is_object( $product_data ) && empty( $product_data->last_load_timestamp ) ) ||
-                    ( is_array( $product_data ) && empty( $product_data['last_load_timestamp'] ) )
-                ) {
-                    // Set to the current time so that if the product is no longer used, its data will be deleted after 4 weeks.
-                    if ( is_object( $product_data ) ) {
-                        $product_data->last_load_timestamp = time();
-                    } else {
-                        $product_data['last_load_timestamp'] = time();
-                    }
-
-                    if ( ! empty( $child_option_name ) ) {
-                        if ( is_object( $option ) ) {
-                            $option->{ $child_option_name }[ $key ] = $product_data;
-                        } else {
-                            $option[ $child_option_name ][ $key ] = $product_data;
-                        }
-
-                        $products[ $key ] = $product_data;
-                    }
+                // First try to check if the product has last_load_timestamp property.
+                if ( isset( $this->_storage_data[ $slug ] ) && ! isset( $this->_storage_data[ $slug ]['last_load_timestamp'] ) ) {
+                    $this->_storage_data[ $slug ]['last_load_timestamp'] = time();
+                } else if ( ! isset( $gc_timestamp[ $slug ] ) ) {
+                    // If not, fallback to the gc_timestamp, but we don't want to update it more than once.
+                    $gc_timestamp[ $slug ] = time();
                 }
             }
+        }
 
-            $this->_accounts->set_option( $option_name, $option );
+        private function get_last_load_timestamp( $slug ) {
+            if ( isset( $this->_storage_data[ $slug ]['last_load_timestamp'] ) ) {
+                return $this->_storage_data[ $slug ]['last_load_timestamp'];
+            }
 
-            return $products;
+            return isset( $this->_gc_timestamp[ $slug ] ) ?
+                $this->_gc_timestamp[ $slug ] :
+                // This should never happen, but if it does, let's assume the product is not expired.
+                time();
         }
     }
 
@@ -369,42 +339,9 @@
         function clean() {
             require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
 
-            $lock = new FS_Lock( 'garbage_collection' );
-
-            if ( $lock->is_locked() ) {
-                return;
-            }
-
-            // Create a 1-day lock.
-            $lock->lock( WP_FS__TIME_24_HOURS_IN_SEC );
-
             $_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
-            $products_cleaners = array();
-
-            $products_cleaners[ WP_FS__MODULE_TYPE_PLUGIN ] = new FS_Product_Garbage_Collector(
-                $_accounts,
-                array(
-                    'sites',
-                    'plans',
-                    'plugins',
-                    'active_plugins',
-                    'all_plugins',
-                ),
-                WP_FS__MODULE_TYPE_PLUGIN
-            );
-
-            $products_cleaners[ WP_FS__MODULE_TYPE_THEME ] = new FS_Product_Garbage_Collector(
-                $_accounts,
-                array(
-                    'theme_sites',
-                    'theme_plans',
-                    'themes',
-                    'active_themes',
-                    'all_themes',
-                ),
-                WP_FS__MODULE_TYPE_THEME
-            );
+            $products_cleaners = $this->get_product_cleaners( $_accounts );
 
             $has_cleaned = false;
 
@@ -423,7 +360,43 @@
                 $user_cleaner->clean();
             }
 
+            // @todo - We need a garbage collector for `all_plugins` and `active_plugins` (and variants of themes).
+
             // Always store regardless of whether there were cleaned products or not since during the process, the logic may set the last load timestamp of some products.
             $_accounts->store();
+        }
+
+        /**
+         * @param FS_Options $_accounts
+         *
+         * @return FS_I_Garbage_Collector[]
+         */
+        private function get_product_cleaners( FS_Options $_accounts ) {
+            /**
+             * @var FS_I_Garbage_Collector[] $products_cleaners
+             */
+            $products_cleaners = array();
+
+            $products_cleaners[ WP_FS__MODULE_TYPE_PLUGIN ] = new FS_Product_Garbage_Collector(
+                $_accounts,
+                array(
+                    'sites',
+                    'plans',
+                    'plugins',
+                ),
+                WP_FS__MODULE_TYPE_PLUGIN
+            );
+
+            $products_cleaners[ WP_FS__MODULE_TYPE_THEME ] = new FS_Product_Garbage_Collector(
+                $_accounts,
+                array(
+                    'theme_sites',
+                    'theme_plans',
+                    'themes',
+                ),
+                WP_FS__MODULE_TYPE_THEME
+            );
+
+            return $products_cleaners;
         }
     }

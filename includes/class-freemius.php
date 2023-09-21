@@ -1357,9 +1357,27 @@
         }
 
         function _run_garbage_collector() {
-            if ( $this->is_user_in_admin() ) {
-                FS_Garbage_Collector::instance()->clean();
+            // @todo - Remove this check once the garbage collector is ready.
+            if ( ! defined( 'WP_FS__ENABLE_GARBAGE_COLLECTOR' ) || true !== WP_FS__ENABLE_GARBAGE_COLLECTOR ) {
+                return;
             }
+
+            if ( ! $this->is_user_in_admin() ) {
+                return;
+            }
+
+            require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
+
+            $lock = new FS_Lock( 'garbage_collection' );
+
+            if ( $lock->is_locked() ) {
+                return;
+            }
+
+            // Create a 1-day lock.
+            $lock->lock( WP_FS__TIME_24_HOURS_IN_SEC );
+
+            FS_Garbage_Collector::instance()->clean();
         }
 
         /**
