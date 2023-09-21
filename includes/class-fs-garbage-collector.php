@@ -189,8 +189,10 @@
         private function is_product_active( $slug ) {
             $instances = Freemius::_get_all_instances();
 
-            if ( isset( $instances[ $slug ] ) ) {
-                return true;
+            foreach ( $instances as $instance ) {
+                if ( $instance->get_slug() === $slug ) {
+                    return true;
+                }
             }
 
             if ( $this->get_last_load_timestamp( $slug ) > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
