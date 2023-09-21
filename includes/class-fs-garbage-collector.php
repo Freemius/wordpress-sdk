@@ -50,11 +50,12 @@
             $this->_options_names = $option_names;
             $this->_type          = $type;
             $this->_plural_type   = ( $type . 's' );
-            $this->_gc_timestamp  = $this->_accounts->get_option( 'gc_timestamp', array() );
-            $this->_storage_data  = $this->_accounts->get_option( $this->_type . '_data', array() );
         }
 
         function clean() {
+            $this->_gc_timestamp  = $this->_accounts->get_option( 'gc_timestamp', array() );
+            $this->_storage_data  = $this->_accounts->get_option( $this->_type . '_data', array() );
+
             $options            = $this->load_options();
             $has_updated_option = false;
 
@@ -224,12 +225,18 @@
                     continue;
                 }
 
-                // First try to check if the product has last_load_timestamp property.
-                if ( isset( $this->_storage_data[ $slug ] ) && ! isset( $this->_storage_data[ $slug ]['last_load_timestamp'] ) ) {
+
+                // If the product is active, we don't need to update the gc_timestamp.
+                if ( isset( $this->_storage_data[ $slug ]['last_load_timestamp'] ) ) {
+                    continue;
+                }
+
+                // First try to check if the product is present in the primary storage. If so update that.
+                if ( isset( $this->_storage_data[ $slug ] ) ) {
                     $this->_storage_data[ $slug ]['last_load_timestamp'] = time();
-                } else if ( ! isset( $gc_timestamp[ $slug ] ) ) {
+                } else if ( ! isset( $this->_gc_timestamp[ $slug ] ) ) {
                     // If not, fallback to the gc_timestamp, but we don't want to update it more than once.
-                    $gc_timestamp[ $slug ] = time();
+                    $this->_gc_timestamp[ $slug ] = time();
                 }
             }
         }
@@ -337,8 +344,6 @@
         }
 
         function clean() {
-            require_once WP_FS__DIR_INCLUDES . '/class-fs-lock.php';
-
             $_accounts = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 
             $products_cleaners = $this->get_product_cleaners( $_accounts );
