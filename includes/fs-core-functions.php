@@ -588,6 +588,33 @@
         }
     }
 
+    if ( ! function_exists( 'fs_parse_url_params' ) ) {
+        /**
+         * Returns the query parameters of the given URL if there are any.
+         *
+         * @param string $url
+         * @param bool   $html_entity_decode
+         *
+         * @return string[]
+         */
+        function fs_parse_url_params( $url, $html_entity_decode = false ) {
+            $query_str  = parse_url( $url, PHP_URL_QUERY );
+            $url_params = array();
+
+            if ( empty( $query_str ) ) {
+                return $url_params;
+            }
+
+            if ( $html_entity_decode ) {
+                $query_str = html_entity_decode( $query_str );
+            }
+
+            parse_str( $query_str, $url_params );
+
+            return $url_params;
+        }
+    }
+
     if ( ! function_exists( 'fs_starts_with' ) ) {
         /**
          * Check if string starts with.
