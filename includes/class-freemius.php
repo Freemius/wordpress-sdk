@@ -1357,8 +1357,8 @@
         }
 
         function _run_garbage_collector() {
-            // @todo - Remove this check once the garbage collector is ready.
-            if ( ! defined( 'WP_FS__ENABLE_GARBAGE_COLLECTOR' ) || true !== WP_FS__ENABLE_GARBAGE_COLLECTOR ) {
+            // @todo - Remove this check once the garbage collector is ready to be out of beta.
+            if ( true !== fs_get_optional_constant( 'WP_FS__ENABLE_GARBAGE_COLLECTOR', false ) ) {
                 return;
             }
 
