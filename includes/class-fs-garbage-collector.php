@@ -195,7 +195,9 @@
                 }
             }
 
-            if ( $this->get_last_load_timestamp( $slug ) > ( time() - ( WP_FS__TIME_WEEK_IN_SEC * 4 ) ) ) {
+            $expiration_time = fs_get_optional_constant( 'WP_FS__GARBAGE_COLLECTOR_EXPIRATION_TIME_SECS', ( WP_FS__TIME_WEEK_IN_SEC * 4 ) );
+
+            if ( $this->get_last_load_timestamp( $slug ) > ( time() - $expiration_time ) ) {
                 // Last activation was within the last 4 weeks.
                 return true;
             }

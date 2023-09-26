@@ -1486,3 +1486,20 @@
             );
         }
     }
+
+    if ( ! function_exists( 'fs_get_optional_constant' ) ) {
+        /**
+         * Gets the value of an optional constant. If the constant is not defined, the default value will be returned.
+         *
+         * @author Swashata Ghosh (@swashata)
+         * @since 2.5.12.5
+         *
+         * @param string $constant_name
+         * @param mixed $default_value
+         *
+         * @return mixed
+         */
+        function fs_get_optional_constant( $constant_name, $default_value = null ) {
+            return defined( $constant_name ) ? constant( $constant_name ) : $default_value;
+        }
+    }
