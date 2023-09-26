@@ -3526,6 +3526,28 @@
          * @return string
          */
         static function get_unfiltered_site_url( $blog_id = null, $strip_protocol = false, $add_trailing_slash = false ) {
+            $url = ( ! is_multisite() && defined( 'WP_SITEURL' ) ) ? WP_SITEURL : self::get_site_url_from_wp_option( $blog_id );
+
+            if ( $strip_protocol ) {
+                $url = fs_strip_url_protocol( $url );
+            }
+
+            if ( $add_trailing_slash ) {
+                $url = trailingslashit( $url );
+            }
+
+            return $url;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.6.0
+         *
+         * @param int|null $blog_id
+         *
+         * @return string
+         */
+        private static function get_site_url_from_wp_option( $blog_id = null ) {
             global $wp_filter;
 
             $site_url_filters = array(
@@ -3550,14 +3572,6 @@
                 if ( ! empty( $site_url_filter ) ) {
                     $wp_filter[ $hook_name ] = $site_url_filter;
                 }
-            }
-
-            if ( $strip_protocol ) {
-                $url = fs_strip_url_protocol( $url );
-            }
-
-            if ( $add_trailing_slash ) {
-                $url = trailingslashit( $url );
             }
 
             return $url;
@@ -4433,11 +4447,22 @@
             }
 
             // Get the UTF encoded domain name.
-            if ( version_compare( PHP_VERSION, '5.6.40') > 0 ) {
+            /**
+             * @note - The check of `defined('...')` is there to account for PHP servers compiled with some older version of ICU where the constants are not defined.
+             * @author - @swashata
+             */
+            $is_new_idn_available = (
+                version_compare( PHP_VERSION, '5.6.40') > 0 &&
+                defined( 'IDNA_DEFAULT' ) &&
+                defined( 'INTL_IDNA_VARIANT_UTS46' )
+            );
+            if ( $is_new_idn_available ) {
                 $domain = idn_to_ascii( $parts[1], IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
             } else {
-                $domain = idn_to_ascii( $parts[1], IDNA_DEFAULT, INTL_IDNA_VARIANT_2003 ); // phpcs:ignore PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated
+                $domain = idn_to_ascii( $parts[1] );  // phpcs:ignore PHPCompatibility.ParameterValues.NewIDNVariantDefault.NotSet
             }
+
+            $domain = $domain . '.';
 
             return ( checkdnsrr( $domain, 'MX' ) || checkdnsrr( $domain, 'A' ) );
         }
@@ -5653,19 +5678,17 @@
                 $this->_cache->expire( 'tabs_stylesheets' );
             }
 
-            if ( $this->is_registered() ) {
-                if ( ! $this->is_addon() ) {
-                    add_action(
-                        is_admin() ? 'admin_init' : 'init',
-                        array( &$this, '_plugin_code_type_changed' )
-                    );
-                }
+            if ( ! $this->is_addon() ) {
+                add_action(
+                    is_admin() ? 'admin_init' : 'init',
+                    array( &$this, '_plugin_code_type_changed' )
+                );
+            }
 
-                if ( $this->is_premium() ) {
-                    // Purge cached payments after switching to the premium version.
-                    // @todo This logic doesn't handle purging the cache for serviceware module upgrade.
-                    $this->get_api_user_scope()->purge_cache( "/plugins/{$this->_module_id}/payments.json?include_addons=true" );
-                }
+            if ( $this->is_registered() && $this->is_premium() ) {
+                // Purge cached payments after switching to the premium version.
+                // @todo This logic doesn't handle purging the cache for serviceware module upgrade.
+                $this->get_api_user_scope()->purge_cache( "/plugins/{$this->_module_id}/payments.json?include_addons=true" );
             }
         }
 
@@ -5729,8 +5752,10 @@
                 }
             }
 
-            // Schedule code type changes event.
-            $this->schedule_install_sync();
+            if ( $this->is_registered() ) {
+                // Schedule code type changes event.
+                $this->schedule_install_sync();
+            }
 
             /**
              * Unregister the uninstall hook for the other version of the plugin (with different code type) to avoid
@@ -12454,7 +12479,7 @@
 
             $install_2_blog_map = array();
             foreach ( $blog_2_install_map as $blog_id => $install ) {
-                $params[] = array( 'id' => $install->id );
+                $params[] = array( 'id' => $install->id, 'url' => $install->url );
 
                 $install_2_blog_map[ $install->id ] = $blog_id;
             }
@@ -14800,9 +14825,15 @@
             }
 
             if ( ! $this->is_registered() ) {
+                $email_address = isset( $affiliate['email'] ) ? $affiliate['email'] : '';
+
+                if ( ! is_email( $email_address ) ) {
+                    self::shoot_ajax_failure('Invalid email address.');
+                }
+
                 // Opt in but don't track usage.
                 $next_page = $this->opt_in(
-                    false,
+                    $email_address,
                     false,
                     false,
                     false,
@@ -25433,6 +25464,12 @@
                 return false;
             }
 
+            $tabs_html = $this->get_tabs_html();
+
+            if ( empty( $tabs_html ) ) {
+                return false;
+            }
+
             /**
              * Enqueue the original stylesheets that are included in the
              * theme settings page. That way, if the theme settings has
@@ -25447,7 +25484,7 @@
             }
 
             // Cut closing </div> tag.
-            echo substr( trim( $this->get_tabs_html() ), 0, - 6 );
+            echo substr( trim( $tabs_html ), 0, - 6 );
 
             return true;
         }
