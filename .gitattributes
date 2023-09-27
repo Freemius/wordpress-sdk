@@ -12,6 +12,9 @@ composer.lock export-ignore
 *.css.map export-ignore
 phpcs.xml export-ignore
 .phpstan export-ignore
+phpcompat.xml export-ignore
+phpstan.neon export-ignore
+.editorconfig export-ignore
 
 # Declare files that will always have CRLF line endings on checkout.
 #*.php text eol=crlf
