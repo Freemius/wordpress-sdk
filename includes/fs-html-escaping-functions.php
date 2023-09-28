@@ -17,6 +17,7 @@
          */
         function fs_html_get_allowed_kses_list() {
             $common_attributes = array(
+                'id'     => true,
                 'class'  => true,
                 'style'  => true,
                 'data-*' => true,

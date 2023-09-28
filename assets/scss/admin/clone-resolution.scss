@@ -78,4 +78,25 @@
     ol {
         margin-top: 0;
     }
+
+    a {
+        position: relative;
+
+        &:focus {
+            box-shadow: none;
+        }
+
+        &.disabled {
+            color: gray;
+        }
+
+        .fs-ajax-spinner {
+            position: absolute;
+            left: 8px;
+            right: 0;
+            top: -1px;
+            bottom: 0;
+            margin-left: 100%;
+        }
+    }
 }
