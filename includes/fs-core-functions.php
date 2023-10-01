@@ -595,7 +595,7 @@
          * @param string $url
          * @param bool   $html_entity_decode
          *
-         * @return string[]
+         * @return array<string, string> Key value pair where key represents the parameter name and value represents the parameter value.
          */
         function fs_parse_url_params( $url, $html_entity_decode = false ) {
             $query_str  = parse_url( $url, PHP_URL_QUERY );
