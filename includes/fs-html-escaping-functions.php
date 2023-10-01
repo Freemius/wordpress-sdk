@@ -49,6 +49,7 @@
                 'strong' => $common_attributes,
                 'u'      => $common_attributes,
                 'b'      => $common_attributes,
+                'i'      => $common_attributes,
                 'hr'     => $common_attributes,
                 'span'   => $common_attributes,
                 'p'      => $common_attributes,
