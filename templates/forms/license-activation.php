@@ -561,17 +561,17 @@ HTML;
 					return;
 				}
 
-                var licenseKey = '';
-                var licenseId = '';
+                var licenseKey = '',
+                    licenseID  = '';
 
 				if ( hasLicenseTypes ) {
 				    if ( isOtherLicenseKeySelected() ) {
 				        licenseKey = $otherLicenseKey.val();
                     } else {
 				        if ( ! hasLicensesDropdown ) {
-                            licenseId = $availableLicenseKey.data( 'id' );
+                            licenseID = $availableLicenseKey.data( 'id' );
                         } else {
-                            licenseId = $licensesDropdown.val();
+                            licenseID = $licensesDropdown.val();
                         }
                     }
                 } else {
@@ -580,7 +580,7 @@ HTML;
 
 				disableActivateLicenseButton();
 
-				if (0 === licenseId.length && 0 === licenseKey.length) {
+				if ( 0 === licenseID.length && 0 === licenseKey.length ) {
 					return;
 				}
 
@@ -590,8 +590,8 @@ HTML;
                     module_id  : '<?php echo $fs->get_id() ?>'
                 };
 
-                if (licenseId.length > 0 ) {
-                    data.license_id = licenseId;
+                if ( licenseID.length > 0 ) {
+                    data.license_id = licenseID;
                 } else {
                     data.license_key = licenseKey;
                 }

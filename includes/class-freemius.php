@@ -13736,14 +13736,13 @@
 
             $license_key = trim( fs_request_get_raw( 'license_key' ) );
 
-            if (empty($license_key)) {
+            if ( empty( $license_key ) ) {
                 $license_id = trim( fs_request_get_raw( 'license_id' ) );
 
-                if ( ! empty($license_id))
-                {
-                    $license = $this->_get_license_by_id($license_id);
+                if ( FS_Plugin_License::is_valid_id( $license_id ) ) {
+                    $license = $this->_get_license_by_id( $license_id, false );
 
-                    if ($license) {
+                    if ( is_object( $license ) ) {
                         $license_key = $license->secret_key;
                     }
                 }
