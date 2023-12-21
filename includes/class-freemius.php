@@ -13956,15 +13956,15 @@
                 $this->get_parent_instance() :
                 $this;
 
-            $installed_addons_ids = array();
+            $installed_addons_ids_map = array();
 
             $installed_addons_instances = $fs->get_installed_addons();
             foreach ( $installed_addons_instances as $instance ) {
-                $installed_addons_ids[] = $instance->get_id();
+                $installed_addons_ids_map[] = $instance->get_id();
             }
 
             $addons_ids = array_unique( array_merge(
-                $installed_addons_ids,
+                $installed_addons_ids_map,
                 $fs->get_updated_account_addons()
             ) );
 
@@ -14011,7 +14011,8 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $error = false;
+            $error     = false;
+            $next_page = '';
 
             $sites = fs_request_get( 'sites', array(), 'post' );
             if ( is_array( $sites ) && ! empty( $sites ) ) {
@@ -14027,10 +14028,7 @@
 
                 $total_sites             = count( $sites );
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
-
-                $next_page = '';
-
-                $has_any_install = fs_request_get_bool( 'has_any_install' );
+                $has_any_install         = fs_request_get_bool( 'has_any_install' );
 
                 if ( $total_sites === $total_sites_to_delegate &&
                     ! $this->is_network_upgrade_mode() &&
