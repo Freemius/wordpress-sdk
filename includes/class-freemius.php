@@ -2736,7 +2736,7 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
 
             if ( $this->is_api_error( $result ) ) {
                 $this->shoot_ajax_failure( $result->error->message );
