@@ -321,8 +321,7 @@
 			return fs_apply_filter(
 				$this->_module_unique_affix,
 				'is_submenu_visible',
-				$this->get_bool_option( $this->_default_submenu_items, $id, $default ),
-				$id
+				$this->get_bool_option( $this->_default_submenu_items, $id, $default )
 			);
 		}
 
