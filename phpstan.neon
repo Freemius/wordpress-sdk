@@ -1,5 +1,5 @@
 parameters:
-    level: 0
+    level: 1
     paths:
         - config.php
         - start.php
@@ -12,3 +12,7 @@ parameters:
         -
             message: '#will always evaluate to true#'
             path: includes/class-fs-plugin-updater.php
+        -
+            message: '#Variable \$VARS might not be defined#'
+            paths:
+              - templates/*
