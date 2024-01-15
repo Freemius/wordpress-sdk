@@ -468,10 +468,11 @@
                                                     );
                                                 }
 											} else {
+                                                $bundle_title = ( $has_bundle_license ? ucfirst( $fs->get_module_type() ) : '' );
                                                 if ( $show_plan_row ) {
                                                     $profile[] = array(
                                                         'id'    => 'plan',
-                                                        'title' => ( $has_bundle_license ? ucfirst( $fs->get_module_type() ) . ' ' : '' ) . $plan_text,
+                                                        'title' => $bundle_title . ' ' . $plan_text,
                                                         'value' => strtoupper( is_string( $plan->name ) ?
                                                             $plan->title :
                                                             strtoupper( $free_text )
@@ -482,7 +483,7 @@
                                                         $profile[] = array(
                                                             'id'    => 'bundle_plan',
                                                             'title' => $bundle_plan_text,
-                                                            'value' => $bundle_plan_title
+                                                            'value' => $bundle_title
                                                         );
                                                     }
                                                 }
@@ -870,8 +871,8 @@
 
 						<?php
 							if ( $show_billing ) {
-								$view_params = array( 'id' => $VARS['id'], 'payments' => $payments );
-								fs_require_once_template( 'account/billing.php', $view_params );
+                                $view_params = array( 'id' => $VARS['id'], 'payments' => $payments ); // @phpstan-ignore-line
+                                fs_require_once_template( 'account/billing.php', $view_params );
 								fs_require_once_template( 'account/payments.php', $view_params );
 							}
 						?>
