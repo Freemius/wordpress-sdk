@@ -158,11 +158,11 @@
         <!--/ ID -->
 
         <!-- Version -->
-        <td><?php echo $version ?></td>
+        <td><?php echo $version; // @phpstan-ignore-line ?></td>
         <!--/ Version -->
 
         <!-- Plan Title -->
-        <td><?php echo strtoupper( is_string( $plan_name ) ? $plan_title : $free_text ) ?></td>
+        <td><?php echo strtoupper( is_string( $plan_name ) ? $plan_title : $free_text ); // @phpstan-ignore-line ?></td>
         <!--/ Plan Title -->
 
         <!-- Expiration -->
