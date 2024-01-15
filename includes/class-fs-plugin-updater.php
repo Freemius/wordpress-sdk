@@ -534,6 +534,7 @@
                 return $transient_data;
             }
 
+            // @phpstan-ignore-next-line
             if ( empty( $transient_data ) ||
                  defined( 'WP_FS__UNINSTALL_MODE' )
             ) {
@@ -1093,7 +1094,7 @@
                         false
                     );
 
-                    if ( ! empty( $addon_plugin_data ) ) {
+                    if ( is_array( $addon_plugin_data ) && $addon_plugin_data['Version'] ) {
                         $addon_version = $addon_plugin_data['Version'];
                     }
                 }
