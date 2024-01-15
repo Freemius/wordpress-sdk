@@ -154,7 +154,7 @@
 		 * @param bool  $is_addon
 		 */
 		function init( $menu, $is_addon = false ) {
-			$this->_menu_exists = ( isset( $menu['slug'] ) && ! empty( $menu['slug'] ) );
+			$this->_menu_exists = ( ! empty( $menu['slug'] ) );
 			$this->_network_menu_exists = ( ! empty( $menu['network'] ) && true === $menu['network'] );
 
 			$this->_menu_slug = ( $this->_menu_exists ? $menu['slug'] : $this->_module_unique_affix );
@@ -168,7 +168,7 @@
 			// @deprecated
 			$this->_parent_type = 'page';
 
-			if ( isset( $menu ) ) {
+			if ( is_array( $menu ) ) {
 			    if ( ! $is_addon ) {
                     $this->_default_submenu_items = array(
                         'contact'     => $this->get_bool_option( $menu, 'contact', true ),
@@ -318,12 +318,8 @@
 				return false;
 			}
 
-			return fs_apply_filter(
-				$this->_module_unique_affix,
-				'is_submenu_visible',
-				$this->get_bool_option( $this->_default_submenu_items, $id, $default )
-			);
-		}
+            return fs_apply_filter( $this->_module_unique_affix, 'is_submenu_visible', $this->get_bool_option( $this->_default_submenu_items, $id, $default ), $id ); // @phpstan-ignore-line
+        }
 
 		/**
 		 * Calculates admin settings menu slug.

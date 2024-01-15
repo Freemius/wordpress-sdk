@@ -157,7 +157,7 @@
 
             $site_view_params[] = $view_params;
 
-            if ( empty( $install ) ) {
+            if ( null === $install ) {
                 continue;
             }
 
