@@ -8019,6 +8019,7 @@
                     }
                 }
 
+                // @phpstan-ignore-next-line
                 if ( ! empty( $site_ids ) ) {
                     $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
                 }
@@ -8514,7 +8515,7 @@
                     unset( $this->_storage->sticky_optin_added_ms );
                 }
 
-                if ( ! empty( $storage_keys_for_removal ) ) {
+                if ( count( $storage_keys_for_removal ) > 0 ) {
                     $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
@@ -14104,7 +14105,7 @@
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
                     }
 
-                    if ( true === $result && ! empty( $site_ids ) ) {
+                    if ( true === $result && count( $site_ids ) > 0 ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
                     }
                 } else {
@@ -19925,7 +19926,7 @@
                 $site = $this->_site;
             }
 
-            if ( !isset( $site ) || !is_object($site) || empty( $site->id ) ) {
+            if ( !is_object($site) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
@@ -20059,7 +20060,7 @@
                     }
                 }
 
-                if ( ! empty( $new_user_licenses_map ) ) {
+                if ( count( $new_user_licenses_map ) > 0 ) {
                     // Add new licenses.
                     $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
                 }
