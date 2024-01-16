@@ -318,7 +318,13 @@
 				return false;
 			}
 
-            return fs_apply_filter( $this->_module_unique_affix, 'is_submenu_visible', $this->get_bool_option( $this->_default_submenu_items, $id, $default ), $id ); // @phpstan-ignore-line
+            // @phpstan-ignore-next-line
+            return fs_apply_filter(
+                $this->_module_unique_affix,
+                'is_submenu_visible',
+                $this->get_bool_option( $this->_default_submenu_items, $id, $default ),
+                $id
+            );
         }
 
 		/**
