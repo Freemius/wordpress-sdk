@@ -7,22 +7,20 @@
   "version": "0.0.0",
   "private": true,
   "main": "gulpfile.js",
-  "dependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prune": "rimraf .codeclimate.yml .git .github .gitignore .travis.yml gulpfile.js composer.json"
+    "translate": "gulp translate",
+    "postinstall": "patch-package"
   },
   "repository": "Freemius/wordpress-sdk.git",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-clean": "^0.3.2",
-    "gulp-fs": "0.0.2",
-    "gulp-gettext": "^0.3.0",
-    "gulp-path": "^3.0.3",
-    "gulp-pofill": "^1.0.0",
-    "gulp-rename": "^1.2.2",
+    "@transifex/api": "^7.0.1",
+    "dotenv": "^16.4.1",
+    "fancy-log": "^2.0.0",
+    "gettext-parser": "^7.0.1",
+    "gulp": "^4.0.2",
     "gulp-sort": "^2.0.0",
-    "gulp-transifex": "^0.1.17",
-    "gulp-wp-pot": "^2.0.6"
+    "gulp-wp-pot": "^2.5.0",
+    "node-fetch": "^3.3.2",
+    "patch-package": "^8.0.0"
   }
 }

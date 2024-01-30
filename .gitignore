@@ -8,8 +8,8 @@ node_modules
 transifex-config.json
 *.orig
 npm-debug.log
-package-lock.json
 vendor
 .DS_Store
 error-phpstan.xml
 error-phpcs.log
+.env
