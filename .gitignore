@@ -13,3 +13,4 @@ vendor
 error-phpstan.xml
 error-phpcs.log
 .env
+/assets/css/**/*.css.map
