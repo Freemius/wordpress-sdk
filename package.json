@@ -33,7 +33,6 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
     "gulp-wp-pot": "^2.5.0",
-    "node-fetch": "^3.3.2",
     "node-sass-package-importer": "^5.3.3",
     "patch-package": "^8.0.0",
     "postcss": "^8.4.33",
