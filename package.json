@@ -9,6 +9,7 @@
   "main": "gulpfile.js",
   "scripts": {
     "translate": "gulp translate",
+    "pot": "gulp pot",
     "build": "gulp build",
     "dev": "gulp dev",
     "postinstall": "patch-package"

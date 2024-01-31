@@ -1,5 +1,5 @@
 # Run CI tests via Github.
-name: PHPCS and Static Analysis.
+name: Static Analysis and Build
 
 on:
   pull_request:
@@ -8,9 +8,9 @@ on:
       - master
 
 jobs:
-  run:
+  staticAnalysis:
     runs-on: ubuntu-latest
-    name: PHPCS
+    name: PHP Static Analysis
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
@@ -44,3 +44,30 @@ jobs:
 
       - name: Run PHPCS
         run: composer phpcs:ci
+
+  canBuild:
+    runs-on: ubuntu-latest
+    name: Can Build
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+
+        - name: Setup Node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 'lts/*'
+
+        - name: Log debug information
+          run: |
+            node --version
+            npm --version
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Build
+          run: npm run build
+
+        - name: Create POT file
+          run: npm run pot

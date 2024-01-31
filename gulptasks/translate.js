@@ -113,3 +113,5 @@ async function syncWithTransifex() {
 }
 
 exports.createTranslation = series(translatePHP, syncWithTransifex);
+
+exports.createPot = translatePHP;

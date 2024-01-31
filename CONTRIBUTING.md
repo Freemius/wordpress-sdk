@@ -38,3 +38,21 @@ Now, you can run the following commands:
 # Run the script to extract translations and generate the POT file.
 npm run translate
 ```
+
+## Development and Build
+
+To compile SASS and JS during development, run
+
+```bash
+npm run dev
+```
+
+This will watch for changes and compile changed files. The system is also hooked with
+live-reload, so you don't need to refresh the page to see the changes. Simply install the
+[LiveReload browser extension](https://chromewebstore.google.com/detail/livereload++/ciehpookapcdlakedibajeccomagbfab) and enable it.
+
+To build the SDK for production, run
+
+```bash
+npm run build
+```
