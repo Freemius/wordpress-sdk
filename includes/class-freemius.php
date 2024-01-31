@@ -2736,7 +2736,7 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
 
             if ( $this->is_api_error( $result ) ) {
                 $this->shoot_ajax_failure( $result->error->message );
@@ -8019,6 +8019,7 @@
                     }
                 }
 
+                // @phpstan-ignore-next-line
                 if ( ! empty( $site_ids ) ) {
                     $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
                 }
@@ -8514,7 +8515,7 @@
                     unset( $this->_storage->sticky_optin_added_ms );
                 }
 
-                if ( ! empty( $storage_keys_for_removal ) ) {
+                if ( count( $storage_keys_for_removal ) > 0 ) {
                     $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
@@ -14104,7 +14105,7 @@
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
                     }
 
-                    if ( true === $result && ! empty( $site_ids ) ) {
+                    if ( true === $result && count( $site_ids ) > 0 ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
                     }
                 } else {
@@ -14295,15 +14296,15 @@
                 $this->get_parent_instance() :
                 $this;
 
-            $installed_addons_ids = array();
+            $installed_addons_ids_map = array();
 
             $installed_addons_instances = $fs->get_installed_addons();
             foreach ( $installed_addons_instances as $instance ) {
-                $installed_addons_ids[] = $instance->get_id();
+                $installed_addons_ids_map[] = $instance->get_id();
             }
 
             $addons_ids = array_unique( array_merge(
-                $installed_addons_ids,
+                $installed_addons_ids_map,
                 $fs->get_updated_account_addons()
             ) );
 
@@ -14350,7 +14351,8 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $error = false;
+            $error     = false;
+            $next_page = '';
 
             $sites = fs_request_get( 'sites', array(), 'post' );
             if ( is_array( $sites ) && ! empty( $sites ) ) {
@@ -14366,10 +14368,7 @@
 
                 $total_sites             = count( $sites );
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
-
-                $next_page = '';
-
-                $has_any_install = fs_request_get_bool( 'has_any_install' );
+                $has_any_install         = fs_request_get_bool( 'has_any_install' );
 
                 if ( $total_sites === $total_sites_to_delegate &&
                     ! $this->is_network_upgrade_mode() &&
@@ -19919,7 +19918,7 @@
                 $site = $this->_site;
             }
 
-            if ( !isset( $site ) || !is_object($site) || empty( $site->id ) ) {
+            if ( !is_object($site) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
@@ -20053,7 +20052,7 @@
                     }
                 }
 
-                if ( ! empty( $new_user_licenses_map ) ) {
+                if ( count( $new_user_licenses_map ) > 0 ) {
                     // Add new licenses.
                     $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
                 }
