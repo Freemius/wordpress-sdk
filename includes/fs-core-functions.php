@@ -505,6 +505,10 @@
          * @return FS_Plugin|FS_User|FS_Site|FS_Plugin_License|FS_Plugin_Plan|FS_Plugin_Tag|FS_Subscription
          */
         function fs_get_entity( $entity, $class ) {
+            $entity = ( $entity instanceof __PHP_Incomplete_Class ) ?
+                unserialize( serialize( $entity ) ) :
+                $entity;
+
             if ( ! is_object( $entity ) || $entity instanceof $class ) {
                 return $entity;
             }
