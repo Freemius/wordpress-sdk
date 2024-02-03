@@ -36,10 +36,6 @@
 		 */
 		public $description;
 		/**
-		 * @var bool Defaults to true. If true, allow unlimited localhost installs with the same license.
-		 */
-		public $is_free_localhost;
-		/**
 		 * @var bool Defaults to true. If false, don't block features after license expiry - only block updates and
 		 *      support.
 		 */
@@ -48,10 +44,6 @@
 		 * @var int
 		 */
 		public $license_type;
-		/**
-		 * @var bool
-		 */
-		public $is_https_support;
 		/**
 		 * @var int Trial days.
 		 */
@@ -84,10 +76,6 @@
 		 * @var bool Is personal success manager supported with the plan.
 		 */
 		public $is_success_manager;
-		/**
-		 * @var bool Is featured plan.
-		 */
-		public $is_featured;
 
 		#endregion Properties
 
