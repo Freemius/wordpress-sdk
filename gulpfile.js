@@ -1,144 +1,41 @@
-var gulp = require('gulp');
-var path = require('path');
-var filesystem = require('fs');
-var wpPot = require('gulp-wp-pot');
-var gettext = require('gulp-gettext');
-var sort = require('gulp-sort');
-var pofill = require('gulp-pofill');
-var rename = require('gulp-rename');
-var clean = require('gulp-clean');
+require('dotenv').config();
+const {parallel, watch} = require('gulp');
+const livereload = require('gulp-livereload');
+const {createTranslation, createPot} = require('./gulptasks/translate');
+const {getSdkScssCompiler, scssSources} = require('./gulptasks/sass');
+const {getSdkJSCompilers, jsSources} = require('./gulptasks/scripts');
 
-var languagesFolder = './languages/';
+const DEFAULT_GULP_WATCH_OPTIONS = {ignoreInitial: false, usePolling: true};
 
-var options = require('./transifex-config.json');
+/**
+ * Tasks related to translations of the SDK.
+ * This will
+ * 1. Create `languages/freemius.pot` file.
+ * 2. Upload it to Transifex.
+ * 3. Download latest translations from Transifex.
+ * 4. Build `languages/freemius-xx_XX.po` and `languages/freemius-xx_XX.mo` files.
+ */
+exports.translate = createTranslation;
 
-function getFolders(dir) {
-    return filesystem.readdirSync(dir)
-        .filter(function (file) {
-            return filesystem.statSync(path.join(dir, file)).isDirectory();
-        });
+/**
+ * Create `languages/freemius.pot` file. Used mainly by the CI to make sure POT can be created.
+ */
+exports.pot = createPot;
+
+/**
+ * The build task. This will build
+ * 1. SASS files.
+ * 2. JS files.
+ */
+exports.build = parallel(
+    getSdkScssCompiler(true),
+    ...getSdkJSCompilers(true)
+);
+
+exports.dev = function () {
+    livereload.listen();
+
+    watch(scssSources, DEFAULT_GULP_WATCH_OPTIONS, getSdkScssCompiler(false));
+
+    watch(Object.values(jsSources), DEFAULT_GULP_WATCH_OPTIONS, parallel(...getSdkJSCompilers(false)));
 }
-
-var transifex = require('gulp-transifex').createClient(options);
-
-// Create POT out of PHP files
-gulp.task('prepare-source', function () {
-    gulp.src('**/*.php')
-        .pipe(sort())
-        .pipe(wpPot({
-            destFile        : 'freemius.pot',
-            package         : 'freemius',
-            bugReport       : 'https://github.com/Freemius/wordpress-sdk/issues',
-            lastTranslator  : 'Vova Feldman <vova@freemius.com>',
-            team            : 'Freemius Team <admin@freemius.com>',
-
-            gettextFunctions: [
-                {name: 'get_text_inline'},
-
-                {name: 'fs_text_inline'},
-                {name: 'fs_echo_inline'},
-                {name: 'fs_esc_js_inline'},
-                {name: 'fs_esc_attr_inline'},
-                {name: 'fs_esc_attr_echo_inline'},
-                {name: 'fs_esc_html_inline'},
-                {name: 'fs_esc_html_echo_inline'},
-
-                {name: 'get_text_x_inline', context: 2},
-                {name: 'fs_text_x_inline', context: 2},
-                {name: 'fs_echo_x_inline', context: 2},
-                {name: 'fs_esc_attr_x_inline', context: 2},
-                {name: 'fs_esc_js_x_inline', context: 2},
-                {name: 'fs_esc_js_echo_x_inline', context: 2},
-                {name: 'fs_esc_html_x_inline', context: 2},
-                {name: 'fs_esc_html_echo_x_inline', context: 2}
-            ]
-        }))
-        .pipe(gulp.dest(languagesFolder + 'freemius.pot'));
-
-    // Create English PO out of the POT.
-    return gulp.src(languagesFolder + 'freemius.pot')
-        .pipe(pofill({
-            items: function (item) {
-                // If msgstr is empty, use identity translation
-                if (!item.msgstr.length) {
-                    item.msgstr = [''];
-                }
-                if (!item.msgstr[0]) {
-                    item.msgstr[0] = item.msgid;
-                }
-                return item;
-            }
-        }))
-        .pipe(rename('freemius-en.po'))
-        .pipe(gulp.dest(languagesFolder));
-});
-
-// Push updated po resource to transifex.
-gulp.task('update-transifex', ['prepare-source'], function () {
-    return gulp.src(languagesFolder + 'freemius-en.po')
-        .pipe(transifex.pushResource());
-});
-
-// Download latest *.po translations.
-gulp.task('download-translations', ['update-transifex'], function () {
-    return gulp.src(languagesFolder + 'freemius-en.po')
-        .pipe(transifex.pullResource());
-});
-
-// Move translations to languages root.
-gulp.task('prepare-translations', ['download-translations'], function () {
-    var folders = getFolders(languagesFolder);
-
-    return folders.map(function (folder) {
-        return gulp.src(path.join(languagesFolder, folder, 'freemius-en.po'))
-            .pipe(rename('freemius-' + folder + '.po'))
-            .pipe(gulp.dest(languagesFolder));
-    });
-});
-
-// Feel up empty translations with English.
-gulp.task('translations-feelup', ['prepare-translations'], function () {
-    return gulp.src(languagesFolder + '*.po')
-        .pipe(pofill({
-            items: function (item) {
-                // If msgstr is empty, use identity translation
-                if (0 == item.msgstr.length) {
-                    item.msgstr = [''];
-                }
-                if (0 == item.msgstr[0].length) {
-//                    item.msgid[0] = item.msgid;
-                    item.msgstr[0] = item.msgid;
-                }
-                return item;
-            }
-        }))
-        .pipe(gulp.dest(languagesFolder));
-});
-
-// Cleanup temporary translation folders.
-gulp.task('cleanup', ['prepare-translations'], function () {
-    var folders = getFolders(languagesFolder);
-
-    return folders.map(function (folder) {
-        return gulp.src(path.join(languagesFolder, folder), {read: false})
-            .pipe(clean());
-    });
-});
-
-// Compile *.po to *.mo binaries for usage.
-gulp.task('compile-translations', ['translations-feelup'], function () {
-    // Compile POs to MOs.
-    return gulp.src(languagesFolder + '*.po')
-        .pipe(gettext())
-        .pipe(gulp.dest(languagesFolder))
-});
-
-gulp.task('default', [], function () {
-    gulp.run('prepare-source');
-    gulp.run('update-transifex');
-    gulp.run('download-translations');
-    gulp.run('prepare-translations');
-    gulp.run('translations-feelup');
-    gulp.run('cleanup');
-    gulp.run('compile-translations');
-});

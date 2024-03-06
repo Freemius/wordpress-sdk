@@ -15,6 +15,12 @@ phpcs.xml export-ignore
 phpcompat.xml export-ignore
 phpstan.neon export-ignore
 .editorconfig export-ignore
+/assets/scripts/ export-ignore
+/patches/ export-ignore
+/gulptasks/ export-ignore
+.example.env export-ignore
+CONTRIBUTING.md export-ignore
+package-lock.json export-ignore
 
 # Declare files that will always have CRLF line endings on checkout.
 #*.php text eol=crlf

@@ -1,0 +1,48 @@
+diff --git a/node_modules/wp-pot/src/parsers/php-parser.js b/node_modules/wp-pot/src/parsers/php-parser.js
+index c8f411d..319a5da 100644
+--- a/node_modules/wp-pot/src/parsers/php-parser.js
++++ b/node_modules/wp-pot/src/parsers/php-parser.js
+@@ -220,6 +220,32 @@ class PHPParser {
+     return comment;
+   }
+ 
++  /**
++   * Get method name from property lookup, going as deep as necessary.
++   * Example: $this->plugin->text_domain->translate
++   *
++   * @param {object} what
++   * @return {string}
++   * @private
++   */
++  _getMethodNameFromPropertyLookup(what) {
++    let methodName = [];
++
++    while(what) {
++      if (what.kind === 'propertylookup') {
++        methodName.push(what.offset.name);
++        what = what.what;
++      } else if (what.kind === 'variable') {
++        methodName.push(what.name);
++        what = null;
++      } else {
++        what = null;
++      }
++    }
++
++    return `\$${methodName.reverse().join('->')}`;
++  }
++
+   /**
+    * Check if ast is a valid function call
+    *
+@@ -231,8 +257,8 @@ class PHPParser {
+     if (ast.kind === 'call') {
+       let methodName = ast.what.name;
+ 
+-      if (ast.what.kind === 'propertylookup' && ast.what.what.kind === 'variable') {
+-        methodName = ['$', ast.what.what.name, '->', ast.what.offset.name].join('');
++      if (ast.what.kind === 'propertylookup') {
++        methodName = this._getMethodNameFromPropertyLookup(ast.what);
+       } else if (ast.what.kind === 'name' && ast.what.resolution === 'fqn') {
+         methodName = ast.what.name.replace(/^\\/, '');
+       }
