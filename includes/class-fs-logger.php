@@ -649,8 +649,6 @@ KEY `type` (`type` ASC))" );
 			}
 			$filepath = rtrim( $upload_dir['path'], '/' ) . "/{$filename}";
 
-			$query .= " INTO OUTFILE '{$filepath}' FIELDS TERMINATED BY '\t' ESCAPED BY '\\\\' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\\n'";
-
 			$columns = '';
 			for ( $i = 0, $len = count( self::$_log_columns ); $i < $len; $i ++ ) {
 				if ( $i > 0 ) {
@@ -662,9 +660,15 @@ KEY `type` (`type` ASC))" );
 
 			$query = "SELECT {$columns} UNION ALL " . $query;
 
-			$result = $wpdb->query( $query );
+			$result = $wpdb->get_results( $query );
 
 			if ( false === $result ) {
+				return false;
+			}
+
+			$write_file = self::write_csv_to_filesystem( $filepath, $result );
+
+			if ( false === $write_file ) {
 				return false;
 			}
 
@@ -673,11 +677,12 @@ KEY `type` (`type` ASC))" );
 
 		/**
 		 * @author Vova Feldman (@svovaf)
-		 * @since  1.2.1.6
 		 *
 		 * @param string $filename
 		 *
 		 * @return string
+		 * @since  1.2.1.6
+		 *
 		 */
 		public static function get_logs_download_url( $filename = '' ) {
 			$upload_dir = wp_upload_dir();
@@ -689,4 +694,37 @@ KEY `type` (`type` ASC))" );
 		}
 
 		#endregion
+
+		/**
+		 * @param $file_path
+		 * @param $query_results
+		 *
+		 * @return bool
+		 */
+        public static function write_csv_to_filesystem( $file_path, $query_results ) {
+			require_once( ABSPATH . 'wp-admin/includes/file.php' );
+			WP_Filesystem();
+			global $wp_filesystem;
+
+			if ( ! empty( $query_results ) ) {
+				$headers = array_keys( (array) $query_results[0] );
+			} else {
+				return false;
+			}
+
+			$content = implode( "\t", $headers ) . "\n";
+
+			foreach ( $query_results as $row ) {
+				$row_data = array_map( function ( $value ) {
+					return str_replace( "\n", ' ', $value );
+				}, (array) $row );
+				$content  .= implode( "\t", $row_data ) . "\n";
+			}
+
+			if ( ! $wp_filesystem->put_contents( $file_path, $content, FS_CHMOD_FILE ) ) {
+				return false;
+			}
+
+			return true;
+		}
 	}
