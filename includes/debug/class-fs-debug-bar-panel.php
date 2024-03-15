@@ -56,11 +56,7 @@
 				<div id='debug-bar-php'>
 					<?php fs_require_template( '/debug/api-calls.php' ) ?>
 					<br>
-					<?php fs_require_template( '/debug/scheduled-crons.php' ) ?>
-					<br>
 					<?php fs_require_template( '/debug/plugins-themes-sync.php' ) ?>
-					<br>
-					<?php fs_require_template( '/debug/logger.php' ) ?>
 				</div>
 			<?php
 			}
