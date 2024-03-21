@@ -14151,15 +14151,21 @@
                     }
                 }
 
+                $is_connected = null;
+
                 if ( true !== $result && ! FS_Api::is_api_result_entity( $result ) ) {
                     if ( FS_Api::is_blocked( $result ) ) {
                         $result->error->message = $this->generate_api_blocked_notice_message_from_result( $result );
+
+                        $is_connected = false;
                     }
 
                     $error = FS_Api::is_api_error_object( $result ) ?
                         $result->error->message :
                         var_export( $result, true );
                 } else {
+                    $is_connected = true;
+
                     $fs->network_upgrade_mode_completed();
 
                     $fs->_user = $user;
@@ -14176,6 +14182,8 @@
                         $fs->get_parent_instance()->get_account_url() :
                         $fs->get_after_activation_url( 'after_connect_url' );
                 }
+
+                $fs->update_connectivity_info( $is_connected );
             } else {
                 $next_page = $fs->opt_in(
                     false,
