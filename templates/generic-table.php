@@ -105,7 +105,7 @@
 			$output              .= '<input type="hidden" name="fs_action" value="' . $fs_action_sanitized . '">';
 
 			// Generating the nonce, which is already sanitized by WordPress through wp_nonce_field
-			$output .= wp_nonce_field( $fs_action_sanitized, 'wpnonce', true, false );
+			$output .= wp_nonce_field( $fs_action_sanitized, '_wpnonce', true, false );
 
 			foreach ( $element as $key => $value ) {
 				if ( in_array( $key, array( 'fs_action', 'label', 'classes' ) ) || is_null( $value ) ) {
