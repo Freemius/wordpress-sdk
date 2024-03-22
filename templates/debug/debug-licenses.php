@@ -42,6 +42,6 @@
 					( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin',
 						'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) . '</h2>';
 
-			fs_debug_generate_table( $data );
+			echo fs_debug_generate_table( $data );
 		}
 	}

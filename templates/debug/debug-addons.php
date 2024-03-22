@@ -29,7 +29,7 @@
 			'data'       => $data,
 		];
 
-		$title = '<h2>' . esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) . '</h2>';
+		$title = esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) );
 
-		fs_debug_generate_table( $tableData, array('title' => $title) );
+		echo fs_debug_generate_table( $tableData, array('title' => $title) );
 	}
