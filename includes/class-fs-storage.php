@@ -27,6 +27,10 @@
          */
         private static $_instances = array();
         /**
+         * @var bool|int
+         */
+        public $install_timestamp;
+        /**
          * @var FS_Key_Value_Storage Site level storage.
          */
         private $_storage;
