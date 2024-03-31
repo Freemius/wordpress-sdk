@@ -18,6 +18,7 @@
   "devDependencies": {
     "@transifex/api": "^7.0.1",
     "autoprefixer": "^10.4.17",
+    "chalk": "^4.1.2",
     "cssnano": "^6.0.3",
     "dotenv": "^16.4.1",
     "fancy-log": "^2.0.0",
@@ -33,9 +34,11 @@
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^2.1.0",
     "gulp-wp-pot": "^2.5.0",
+    "node-fetch": "^2.7.0",
     "node-sass-package-importer": "^5.3.3",
     "patch-package": "^8.0.0",
     "postcss": "^8.4.33",
+    "prompts": "^2.4.2",
     "sass": "^1.70.0"
   }
 }

@@ -7,6 +7,10 @@
 const {transifexApi} = require('@transifex/api');
 const fs = require('node:fs');
 const log = require('fancy-log');
+const prompts = require('prompts');
+const {po} = require('gettext-parser');
+const chalk = require('chalk');
+const fetch = require('node-fetch'); // @todo - Remove once fetch is stabilized in NodeJS.
 
 transifexApi.setup({
     auth: process.env.TRANSIFEX_API
@@ -16,18 +20,13 @@ const SOURCE_SLUG = 'freemius-enpo';
 const SOURCE_NAME = 'freemius-en.po';
 
 async function getOrganization() {
-    // Safety check, unless we feel 100% confident, this wouldn't break the existing resources.
-    if ('wordpress-sdk' === process.env.TRANSIFEX_ORGANIZATION) {
-        throw new Error('Can not use the production organization yet!');
-    }
-
     const organization = await transifexApi.Organization.get({slug: process.env.TRANSIFEX_ORGANIZATION});
 
     if (!organization) {
         throw new Error(`Organization "${process.env.TRANSIFEX_ORGANIZATION}" not found!`);
     }
 
-    log(`Using organization "${organization.attributes.name}"`);
+    log(`Using organization "${chalk.bold.bgBlack.yellow(organization.attributes.name)}"`);
 
     return organization;
 }
@@ -44,7 +43,7 @@ async function getProject(organization) {
         throw new Error(`Project "${process.env.TRANSIFEX_PROJECT}" not found!`);
     }
 
-    log(`Using project "${project.attributes.name}"`);
+    log(`Using project "${chalk.bold.bgBlack.yellow(project.attributes.name)}"`);
 
     return project;
 }
@@ -78,10 +77,10 @@ async function getResourceStringForUpload(project, name, slug, i18nFormat) {
 
     try {
         resource = await resources.get({slug});
-        log(`Resource "${name}" already exists, updating...`)
+        log(`Resource "${chalk.bold.bgBlack.yellow(name)}" already exists, updating...`)
     } catch (e) {
         // No resources yet
-        log(`Creating resource "${name}"`);
+        log(`Creating resource "${chalk.bold.bgBlack.yellow(name)}"`);
         resource = await transifexApi.Resource.create({
             name,
             slug,
@@ -93,9 +92,33 @@ async function getResourceStringForUpload(project, name, slug, i18nFormat) {
     return resource;
 }
 
+function getLinesCount(parsedPot) {
+    let sentenceCount = 0;
+    let wordCount = 0;
+
+    Object.values(parsedPot.translations).forEach((messages) => {
+        Object.keys((messages)).forEach((source) => {
+            if ('' === source) {
+                return;
+            }
+
+            sentenceCount += 1;
+            wordCount += source.split(' ').length;
+        });
+    });
+
+    return {sentenceCount, wordCount};
+}
+
 async function uploadEnglishPoToTransifex(poPath) {
     const {organization, project} = await getOrgAndProject();
     const content = fs.readFileSync(poPath, {encoding: 'utf-8'});
+
+    // Get total number of lines in the file
+    const parsedPot = po.parse(content);
+
+    // Get total lines count from the parsedPot
+    const {sentenceCount, wordCount} = getLinesCount(parsedPot);
 
     const i18nFormat = await transifexApi.i18n_formats.get({
         organization,
@@ -103,6 +126,25 @@ async function uploadEnglishPoToTransifex(poPath) {
     });
 
     const resource = await getResourceStringForUpload(project, SOURCE_NAME, SOURCE_SLUG, i18nFormat);
+
+    log(`ATTENTION: ${chalk.bold.red('UPLOADING')}!!`);
+    log(`You are about to upload the freemius-en.po file to the production organization!.`);
+    log(`In ${chalk.bgYellow.black('Transifex')} freemius-en.po file has ${chalk.bold.magenta(resource.attributes.string_count)} lines and ${chalk.bold.cyan(resource.attributes.word_count)} words.`);
+    log(`In     ${chalk.bgYellow.black('Local')} freemius-en.po file has ${chalk.bold.magenta(sentenceCount)} lines and ${chalk.bold.cyan(wordCount)} words.`);
+    log(`Please make sure you have already tested the content of the file.`);
+    log(chalk.bold.red('Any data loss could be permanent.'));
+
+    const confirmation = await prompts({
+        type: 'confirm',
+        message: `Do you want to upload the file freemius-en.po to Transifex?`,
+        initial: false,
+        name: 'value',
+    });
+
+    if (!confirmation.value) {
+        log('Aborting upload');
+        return false;
+    }
 
     await transifexApi.ResourceStringsAsyncUpload.upload({
         resource,

@@ -5,6 +5,7 @@ const path = require('node:path');
 const log = require('fancy-log');
 const fs = require('node:fs');
 const {po, mo} = require('gettext-parser');
+const chalk = require('chalk');
 const {uploadEnglishPoToTransifex, getTranslation} = require('./transifex');
 
 const root = path.resolve(__dirname, '..');
@@ -94,20 +95,26 @@ function updateTranslationFiles(languageCode, translation) {
 async function syncWithTransifex() {
     log('Updaing Transifex source...');
     const resource = await uploadEnglishPoToTransifex(freemiusPotPath);
+
+    if (false === resource) {
+        log.error('Failed to upload the English po file to Transifex.');
+        return;
+    }
+
     log('Transifex updated.');
 
     // Loop over LANGUAGE_CODE and download and update every one of them
     for (const code of LANGUAGE_CODES) {
-        log(`Updating ${code}...`);
+        log(`Updating ${chalk.cyan(code)}...`);
         try {
             const translation = await getTranslation(code, resource);
 
             // Update the po file in the file system
             updateTranslationFiles(code, translation);
 
-            log(`Updated ${code}.`);
+            log(`Updated ${chalk.cyan(code)}.`);
         } catch (e) {
-            log.error(`Failed to get translation of ${code}, skipping...`);
+            log.error(`Failed to get translation of ${chalk.red(code)}, skipping...`);
         }
     }
 }
