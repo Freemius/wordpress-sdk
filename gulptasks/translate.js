@@ -13,19 +13,19 @@ const languagesFolder = path.resolve(root, './languages');
 const freemiusPotPath = path.resolve(languagesFolder, './freemius.pot');
 
 const LANGUAGE_CODES = [
-    // 'cs_CZ',
-    // 'da_DK',
+    'cs_CZ',
+    'da_DK',
     'de_DE',
     'es_ES',
     'fr_FR',
-    // 'he_IL',
-    // 'hu_HU',
-    // 'it_IT',
-    // 'js',
+    'he_IL',
+    'hu_HU',
+    'it_IT',
+    'ja',
     'nl_NL',
     'ru_RU',
-    // 'ta',
-    // 'zh_CN',
+    'ta',
+    'zh_CN',
 ];
 
 function translatePHP() {
