@@ -1,4 +1,5 @@
 @use "tooltip";
+@use "sass:math";
 
 @import "../start";
 
@@ -250,11 +251,11 @@ $box_border_radius: 3px;
 
     $icon_size: 50px;
     $plugin_icon_size: 80px;
-    $wp_logo_padding: $icon_size / 10;
+    $wp_logo_padding: math.div($icon_size, 10);
     $icons_top: 10px;
     $icons_border_radius: 50%;
     $header_height: 40px;
-    $icon_position: (($form_width - $plugin_icon_size) / 2 - $icon_size);
+    $icon_position: (math.div(($form_width - $plugin_icon_size), 2) - $icon_size);
 
     .fs-header
     {
@@ -269,7 +270,7 @@ $box_border_radius: 3px;
         .fs-connect-logo
         {
             position: absolute;
-            top: - (($icon_size - $header_height) / 2 + $icon_padding);
+            top: - (math.div(($icon_size - $header_height), 2) + $icon_padding);
             border-radius: $icons_border_radius;
         }
 
@@ -297,9 +298,9 @@ $box_border_radius: 3px;
             position: absolute;
             overflow: hidden;
             //top:         $icons_top - ($plugin_icon_size - $icon_size) / 2 - $icon_padding - $icon_border_width;
-            top: - (($plugin_icon_size - $header_height) / 2 + $icon_padding);
+            top: - (math.div(($plugin_icon_size - $header_height), 2) + $icon_padding);
             left:        50%;
-            margin-left: - ($plugin_icon_size / 2 + $icon_padding + $icon_border_width);
+            margin-left: - (math.div($plugin_icon_size, 2) + $icon_padding + $icon_border_width);
             border-radius: $icons_border_radius;
             z-index: 1;
 
