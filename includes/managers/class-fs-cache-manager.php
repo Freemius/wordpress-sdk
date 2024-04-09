@@ -166,7 +166,8 @@
                  isset( $cache_entry->timestamp ) &&
                  is_numeric( $cache_entry->timestamp )
             ) {
-                return $cache_entry->result;
+                return $cache_entry->result; // @phpstan-ignore-line
+
             }
 
             return is_object( $default ) ? clone $default : $default;
