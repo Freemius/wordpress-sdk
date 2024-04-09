@@ -1,5 +1,5 @@
 parameters:
-    level: 1
+    level: 2
     paths:
         - config.php
         - start.php
@@ -9,6 +9,20 @@ parameters:
     bootstrapFiles:
         - .phpstan/exceptions.php
     ignoreErrors:
+        -
+            message: '#PHPDoc tag @var has invalid value#'
+            path: includes/managers/class-fs-plugin-manager.php
+        -
+            message: '#PHPDoc tag @use has invalid value#'
+            path: includes/class-freemius.php
+        -
+            message: '#PHPDoc tag @var above a method has no effect.#'
+            path: includes/class-freemius.php
+        -
+            message: '#Access to an undefined property#'
+            paths:
+                - includes/class-freemius.php
+                - includes/fs-plugin-info-dialog.php
         -
             message: '#will always evaluate to true#'
             path: includes/class-fs-plugin-updater.php

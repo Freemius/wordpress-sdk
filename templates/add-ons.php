@@ -141,9 +141,11 @@
 										continue;
 									}
 
-
 									$has_paid_plan = true;
-									$has_trial     = $has_trial || ( is_numeric( $plan->trial_period ) && ( $plan->trial_period > 0 ) );
+
+                                    if ( isset( $plan->trial_period ) ) {
+									    $has_trial = ( is_numeric( $plan->trial_period ) && ( $plan->trial_period > 0 ) );
+                                    }
 
 									$min_price = 999999;
 									foreach ( $plan->pricing as $pricing ) {

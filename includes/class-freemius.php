@@ -1003,7 +1003,7 @@
 
             if ( isset( $install->plan ) && is_object( $install->plan ) ) {
                 if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
-                    $install->plan_id = self::_decrypt( $install->plan->id );
+                    $install->plan_id = self::_decrypt( $install->plan->id ); // @phpstan-ignore-line
                 }
 
                 unset( $install->plan );
@@ -1884,7 +1884,7 @@
                 $plugin_main_file = clone $this->_storage->plugin_main_file;
 
                 // Store cached path (2nd layer cache).
-                $plugin_main_file->prev_path = $plugin_main_file->path;
+                $plugin_main_file->prev_path = $plugin_main_file->path; // @phpstan-ignore-line
 
                 // Clear cached path.
                 unset( $plugin_main_file->path );
@@ -5953,9 +5953,6 @@
         private function get_cron_data( $name ) {
             $this->_logger->entrance( $name );
 
-            /**
-             * @var object $cron_data
-             */
             return $this->_storage->get( "{$name}_cron", null );
         }
 
@@ -8587,7 +8584,6 @@
          * @since  2.0.0
          *
          * @param int|null $blog_id
-         * @param bool     $send_skip
          */
         private function skip_site_connection( $blog_id = null ) {
             $this->_logger->entrance();
@@ -8621,7 +8617,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param array [string]array $plugins
+         * @param string[] $plugins
          *
          * @return string
          */
@@ -9036,7 +9032,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string           $override
+         * @param string[] $override
          * @param bool     $only_diff
          * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
@@ -9223,7 +9219,7 @@
          *
          * @param array    $site
          * @param FS_Site  $install
-         * @param string[] string $override
+         * @param string[] $override
          *
          * @return array
          */
@@ -9345,7 +9341,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9418,7 +9414,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9505,7 +9501,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         function sync_install( $override = array(), $flush = false ) {
@@ -9534,7 +9530,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         private function sync_installs( $override = array(), $flush = false ) {
@@ -19575,7 +19571,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.6
          *
-         * @param string[] string $key_value
+         * @param string[] $key_value
          *
          * @uses   fs_override_i18n()
          */
@@ -22515,8 +22511,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number              $user_id
-         * @param array[string]number $install_ids_by_slug_map
+         * @param number         $user_id
+         * @param string[]|int[] $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {
@@ -25702,9 +25698,6 @@
                 return;
             }
 
-            /**
-             * @var $current_wp_user WP_User
-             */
             $current_wp_user = self::_get_current_wp_user();
 
             /**
