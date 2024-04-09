@@ -27,7 +27,9 @@
 					$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
 				}
 
-				$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+                if ( ! empty( $plan->id ) ) {
+				    $features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+                }
 			}
 		}
 
