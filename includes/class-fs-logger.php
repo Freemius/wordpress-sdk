@@ -11,6 +11,10 @@
 	}
 
 	class FS_Logger {
+        /**
+         * @var bool
+         */
+        public static  $ON          = false;
 		private $_id;
 		private $_on = false;
 		private $_echo = false;
@@ -32,6 +36,9 @@
 		 */
 		private static $_abspathLength;
 
+        /**
+         * @var FS_Logger[] $LOGGERS
+         */
 		private static $LOGGERS = array();
 		private static $LOG = array();
 		private static $CNT = 0;
@@ -112,7 +119,7 @@
 		}
 
 		function is_on() {
-			return $this->_on;
+			return $this->_on && self::$ON;
 		}
 
 		function on() {
@@ -125,6 +132,14 @@
 			self::hook_footer();
 		}
 
+        /**
+         * Turn off instance
+         *
+         * @return void
+         */
+        public function off() {
+            $this->_on = false;
+        }
 		function echo_on() {
 			$this->on();
 
@@ -240,6 +255,9 @@
 		}
 
 		function entrance( $message = '', $wrapper = false ) {
+            if ( ! $this->is_on() ) {
+                return;
+            }
 			$msg = 'Entrance' . ( empty( $message ) ? '' : ' > ' ) . $message;
 
 			$this->_log( $msg, 'log', $wrapper );
@@ -329,7 +347,7 @@
 				 *
 				 * @link https://core.trac.wordpress.org/ticket/2695
 				 */
-				$result = $wpdb->query( "CREATE TABLE {$table} (
+				$result = $wpdb->query( "CREATE TABLE IF NOT EXISTS {$table} (
 `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 `process_id` INT UNSIGNED NOT NULL,
 `user_name` VARCHAR(64) NOT NULL,
@@ -353,9 +371,21 @@ KEY `type` (`type` ASC))" );
 				 * Drop logging table.
 				 */
 				$result = $wpdb->query( "DROP TABLE IF EXISTS $table;" );
+                /**
+                 * Since logging table does not exist anymore, we need to turn off all instances
+                 */
+                foreach ( self::$LOGGERS as $logger ) {
+                    $logger->off();
+                }
+                /**
+                 * Also, we delete all references and turn off global logging
+                 */
+                self::$LOGGERS = [];
+                self::$ON = false;
 			}
 
 			if ( false !== $result ) {
+                self::$ON = (bool) $is_on;
 				update_option( 'fs_storage_logger', ( $is_on ? 1 : 0 ) );
 			}
 
