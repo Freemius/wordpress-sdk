@@ -45,7 +45,7 @@
         .fs-feature-desc {
             opacity:       0;
             visibility: hidden;
-            @include transition(opacity 0.3s ease-in-out);
+            transition: opacity 0.3s ease-in-out;
 
             position:      absolute;
             background:    $tooltip-color;
@@ -58,8 +58,8 @@
             margin-bottom: 5px;
             left:          0;
             right:         0;
-            @include border-radius(5px);
-            @include box-shadow(1px 1px 1px rgba(0,0,0,0.2));
+            border-radius: 5px;
+            box-shadow:    1px 1px 1px rgba(0,0,0,0.2);
             line-height:   1.3em;
             font-weight:   bold;
             text-align:    left;
