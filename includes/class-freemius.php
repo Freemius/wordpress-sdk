@@ -14300,15 +14300,15 @@
                 $this->get_parent_instance() :
                 $this;
 
-            $installed_addons_ids_map = array();
+            $installed_addons_ids = array();
 
             $installed_addons_instances = $fs->get_installed_addons();
             foreach ( $installed_addons_instances as $instance ) {
-                $installed_addons_ids_map[] = $instance->get_id();
+                $installed_addons_ids[] = $instance->get_id();
             }
 
             $addons_ids = array_unique( array_merge(
-                $installed_addons_ids_map,
+                $installed_addons_ids,
                 $fs->get_updated_account_addons()
             ) );
 
@@ -14320,6 +14320,7 @@
                 )
             );
 
+            $installed_addons_ids_map = array_flip( $installed_addons_ids );
             foreach ( $addons_ids as $addon_id ) {
                 $is_installed = isset( $installed_addons_ids_map[ $addon_id ] );
 
