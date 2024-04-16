@@ -157,7 +157,7 @@
 
             $site_view_params[] = $view_params;
 
-            if ( null === $install ) {
+            if ( is_object( $install ) ) {
                 continue;
             }
 
@@ -186,6 +186,7 @@
 
     $bundle_subscription             = null;
     $is_bundle_first_payment_pending = false;
+    $bundle_plan_title               = '';
 
     if (
         $show_plan_row &&
@@ -468,11 +469,10 @@
                                                     );
                                                 }
 											} else {
-                                                $bundle_title = ( $has_bundle_license ? ucfirst( $fs->get_module_type() ) : '' );
                                                 if ( $show_plan_row ) {
                                                     $profile[] = array(
                                                         'id'    => 'plan',
-                                                        'title' => $bundle_title . ' ' . $plan_text,
+                                                        'title' => ( $has_bundle_license ? ucfirst( $fs->get_module_type() ) . ' ' : '' ) . $plan_text,
                                                         'value' => strtoupper( is_string( $plan->name ) ?
                                                             $plan->title :
                                                             strtoupper( $free_text )
@@ -483,7 +483,7 @@
                                                         $profile[] = array(
                                                             'id'    => 'bundle_plan',
                                                             'title' => $bundle_plan_text,
-                                                            'value' => $bundle_title
+                                                            'value' => $bundle_plan_title
                                                         );
                                                     }
                                                 }

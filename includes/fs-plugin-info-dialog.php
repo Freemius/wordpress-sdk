@@ -229,7 +229,7 @@
                         false
                     );
 
-                    if ( is_array( $addon_plugin_data ) && $addon_plugin_data['Version'] ) {
+                    if ( is_array( $addon_plugin_data ) && isset( $addon_plugin_data['Version'] ) ) {
                         $current_addon_version = $addon_plugin_data['Version'];
                     }
                 }
