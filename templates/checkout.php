@@ -118,13 +118,10 @@
 	} else {
 		$current_user = Freemius::_get_current_wp_user();
 
-		// Add site and user info to the request, this information
+		// Add site info to the request, this information
 		// is NOT being stored unless the user complete the purchase
 		// and agrees to the TOS.
 		$context_params = array_merge( $context_params, array(
-			'user_firstname' => $current_user->user_firstname,
-			'user_lastname'  => $current_user->user_lastname,
-			'user_email'     => $current_user->user_email,
 			'home_url'       => home_url(),
 		) );
 
