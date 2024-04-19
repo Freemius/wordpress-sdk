@@ -13485,7 +13485,10 @@
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
                 fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
-                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
+                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
+                fs_request_get( 'user_firstname', null ),
+                fs_request_get( 'user_lastname', null ),
+                fs_request_get( 'user_email', null )
             );
 
             if (
@@ -13752,7 +13755,10 @@
             $plugin_id = null,
             $license_owner_id = null,
             $is_extensions_tracking_allowed = null,
-            $is_diagnostic_tracking_allowed = null
+            $is_diagnostic_tracking_allowed = null,
+            $user_firstname = null,
+            $user_lastname = null,
+            $user_email = null
         ) {
             $this->_logger->entrance();
 
@@ -13778,7 +13784,8 @@
             ) );
 
             $error     = false;
-            $next_page = false;
+            $error_code = false;
+            $next_page  = false;
 
             $has_valid_blog_id = is_numeric( $blog_id );
 
@@ -13912,9 +13919,9 @@
                 $fs->update_connectivity_info( $is_connected );
             } else {
                 $next_page = $fs->opt_in(
-                    false,
-                    false,
-                    false,
+                    $user_email || false,
+                    $user_firstname || false,
+                    $user_lastname || false,
                     $license_key,
                     false,
                     false,
@@ -13925,6 +13932,7 @@
 
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
+                    $error_code = $next_page->code;
                 } else {
                     if ( $is_network_activation_or_migration ) {
                         /**
@@ -13993,6 +14001,7 @@
 
             if ( false !== $error ) {
                 $result['error'] = $fs->apply_filters( 'opt_in_error_message', $error );
+                $result['error_code'] = $error_code;
             } else {
                 if ( $fs->is_addon() || $fs->has_addons() ) {
                     /**
@@ -16954,9 +16963,6 @@
             $versions = $this->get_versions();
 
             $params = array_merge( $versions, array(
-                'user_firstname'    => $current_user->user_firstname,
-                'user_lastname'     => $current_user->user_lastname,
-                'user_email'        => $current_user->user_email,
                 'plugin_slug'       => $this->_slug,
                 'plugin_id'         => $this->get_id(),
                 'plugin_public_key' => $this->get_public_key(),
@@ -17068,11 +17074,6 @@
             $redirect = true
         ) {
             $this->_logger->entrance();
-
-            if ( false === $email ) {
-                $current_user = self::_get_current_wp_user();
-                $email        = $current_user->user_email;
-            }
 
             /**
              * @since 1.2.1 If activating with license key, ignore the context-user
@@ -21137,7 +21138,7 @@
                  * associated with that ID is not included in the user's licenses collection.
                  * Save previous value to manage remote license renewals.
                  */
-                $was_license_expired_before_sync = is_object( $this->_license ) && $this->_license->is_expired();
+                $was_license_expired_before_sync = is_object( $this->_license ) && $this->_license && $this->_license->is_expired();
                 $this->_sync_licenses(
                     $site->license_id,
                     ( $is_context_single_site ?

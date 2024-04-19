@@ -323,7 +323,34 @@
                         )
                     );
                 ?>
-                <div id="fs_marketing_optin">
+                <!-- BEGIN EXPLICIT DATA FIELDS -->
+                <div id="fs_personal_data" class="fs_gdpr_consent">
+                    <!--
+                        The fields below are used to explicitly collect missing information in cases where it is not possible
+                        to assign an existing user to the license being activated. This was done to avoid sending private data
+                         in any case.
+                    -->
+                    <span class="fs-message"><?php fs_echo_inline( "Please enter at least a valid email address to activate your license:",
+                            'email-is-requested' ) ?></span>
+                    <div class="fs-fields-container">
+                        <div class="fs-input-container">
+                            <label for="first_name" class="screen-reader-text">First name</label>
+                            <input type="text" id="first_name" name="first_name" placeholder="First name"
+                                   class="fs-input">
+                        </div>
+                        <div class="fs-input-container">
+                            <label for="last_name" class="screen-reader-text">Last name</label>
+                            <input type="text" id="last_name" name="last_name" placeholder="Last name" class="fs-input">
+                        </div>
+                        <div class="fs-input-container">
+                            <label for="user_email" class="screen-reader-text">Email (required)</label>
+                            <input type="email" id="user_email" name="user_email" placeholder="Email (required)"
+                                   class="fs-input" required>
+                        </div>
+                    </div>
+                </div>
+                <!-- END EXPLICIT DATA FIELDS -->
+                <div id="fs_marketing_optin" class="fs_gdpr_consent">
                     <span class="fs-message"><?php fs_echo_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) ?></span>
                     <div class="fs-input-container">
                         <label>
@@ -524,6 +551,11 @@
 				$( document.body ).addClass( 'fs-loading' );
 			};
 
+            $('#fs_personal_data input').on('focus', function() {
+                $('#fs_personal_data').removeClass('error');
+                resetLoadingMode();
+            })
+
 		$('.fs-actions .button').on('click', function () {
 			setLoadingMode();
 
@@ -696,6 +728,19 @@
 		var ajaxOptin = ( requireLicenseKey || isNetworkActive );
 
 		$form.on('submit', function () {
+            const personal_data = {};
+            if ($personalData.is(':visible')) {
+                const email_field = document.querySelector('#user_email');
+                if (!email_field.checkValidity()) {
+                    $personalData.addClass( 'error' ).show();
+                    resetLoadingMode();
+                    return false;
+                } else {
+                    personal_data.user_firstname = $('#first_name').val();
+                    personal_data.user_lastname = $('#last_name').val();
+                    personal_data.user_email = $(email_field).val();
+                }
+            }
             var $extensionsPermission = $( '#fs_permission_extensions .fs-switch' ),
                 isExtensionsTrackingAllowed = ( $extensionsPermission.length > 0 ) ?
                     $extensionsPermission.hasClass( 'fs-on' ) :
@@ -742,7 +787,8 @@
                             action     : action,
                             security   : security,
                             license_key: licenseKey,
-                            module_id  : '<?php echo $fs->get_id() ?>'
+                            module_id  : '<?php echo $fs->get_id() ?>',
+                            ...personal_data
                         };
 
 					if (
@@ -826,15 +872,17 @@
 						method : 'POST',
 						data   : data,
 						success: function (result) {
-							var resultObj = $.parseJSON(result);
-							if (resultObj.success) {
-								// Redirect to the "Account" page and sync the license.
-								window.location.href = resultObj.next_page;
-							} else {
-								resetLoadingMode();
-
-								// Show error.
-								$('.fs-content').prepend('<div class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</div>');
+                            var resultObj = $.parseJSON(result);
+                            if (resultObj.success) {
+                                // Redirect to the "Account" page and sync the license.
+                                window.location.href = resultObj.next_page;
+                            } else {
+                                resetLoadingMode();
+                                // Show error.
+                                $('.fs-content').prepend('<div class="fs-error">' + (resultObj.error.message ?  resultObj.error.message : resultObj.error) + '</div>');
+                                if (resultObj.error_code === 'empty_email') {
+                                    $('#fs_personal_data').show();
+                                }
 							}
 						},
 						error: function () {
@@ -959,6 +1007,7 @@
 		//--------------------------------------------------------------------------------
         var isMarketingAllowedByLicense = {},
             $marketingOptin = $('#fs_marketing_optin'),
+            $personalData = $('#fs_personal_data')
             previousLicenseKey = null;
 
 		if (requireLicenseKey) {
@@ -1033,6 +1082,7 @@
 
 			$marketingOptin.find( 'input' ).click(function() {
 				$marketingOptin.removeClass( 'error' );
+                $personalData.removeClass( 'error' );
 			});
 		}
 
