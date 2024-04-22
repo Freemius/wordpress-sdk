@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WordPress SDK\n"
 "Report-Msgid-Bugs-To: https://github.com/Freemius/wordpress-sdk/issues\n"
-"POT-Creation-Date: 2024-03-31 12:04+0000\n"
+"POT-Creation-Date: 2024-04-22 10:16+0000\n"
 "PO-Revision-Date: 2015-10-01 21:38+0000\n"
 "Last-Translator: Sankar Srinivasan <petra.srini@gmail.com>, 2019\n"
 "Language-Team: Tamil "
@@ -262,9 +262,9 @@ msgstr "\"%s\"ஐ சிறப்பானதாக்க தேர்வு ச
 msgid "The upgrade of %s was successfully completed."
 msgstr "%sன் மேம்படுத்தல் முடிந்தது"
 
-#: includes/class-freemius.php10527, includes/class-fs-plugin-updater.php1095,
-#: includes/class-fs-plugin-updater.php1317,
-#: includes/class-fs-plugin-updater.php1310,
+#: includes/class-freemius.php10527, includes/class-fs-plugin-updater.php1097,
+#: includes/class-fs-plugin-updater.php1319,
+#: includes/class-fs-plugin-updater.php1312,
 #: templates/auto-installation.php:32
 msgid "Add-On"
 msgstr "ஆட் ஆன்"
@@ -371,7 +371,7 @@ msgstr "%s பாதுகாப்பு மேம்படுத்தல் �
 msgid "%s opt-in was successfully completed."
 msgstr ""
 
-#: includes/class-freemius.php17694, includes/class-freemius.php:21615
+#: includes/class-freemius.php17694, includes/class-freemius.php:21631
 msgid "Your trial has been successfully started."
 msgstr "உங்கள் வெள்ளோட்டம் துவங்கியது"
 
@@ -393,7 +393,7 @@ msgstr "பின்வரும் செய்தியோடு எங்க�
 msgid "An unknown error has occurred."
 msgstr "என்னதென்றே தெரியாத ஒரு தவறு நேர்ந்துவிட்டது"
 
-#: includes/class-freemius.php18980, includes/class-freemius.php:24399
+#: includes/class-freemius.php18980, includes/class-freemius.php:24415
 msgid "Upgrade"
 msgstr "மேம்படுத்து"
 
@@ -420,7 +420,7 @@ msgid "Contact Us"
 msgstr "தொடர்பு கொள்ளுங்கள்"
 
 #: includes/class-freemius.php19127, includes/class-freemius.php19129,
-#: includes/class-freemius.php24413, templates/account.php130,
+#: includes/class-freemius.php24429, templates/account.php130,
 #: templates/account/partials/addon.php:49
 msgid "Add-Ons"
 msgstr "ஆட்-ஆன்ஸ்"
@@ -465,12 +465,12 @@ msgstr ""
 "சரிபார்க்கும் வகையினங்களில் ஏதோ ஒன்று தவறுபோல் தெரிகிறது. உங்கள் Public "
 "Key, Secret Key & User ID ஆகியவற்றை சரிபார்த்து மீண்டும் முயற்சிக்கவும்."
 
-#: includes/class-freemius.php21288, includes/class-freemius.php21685,
-#: includes/class-freemius.php21786, includes/class-freemius.php:21873
+#: includes/class-freemius.php21288, includes/class-freemius.php21701,
+#: includes/class-freemius.php21802, includes/class-freemius.php:21889
 msgid "Error received from the server:"
 msgstr "செர்வரிடம் இருந்து தவறுச் செய்தி வந்திருக்கிறது."
 
-#: includes/class-freemius.php:21532
+#: includes/class-freemius.php:21542
 msgid ""
 "It looks like you are still on the %s plan. If you did upgrade or change "
 "your plan, it's probably an issue on our side - sorry."
@@ -478,27 +478,27 @@ msgstr ""
 "நீங்கள் இன்னும் %s திட்டத்திலேயே இருப்பதாகத் தெரிகிறது. நீங்கள் திட்டத்தை "
 "மாற்றிய பின்னர் இப்படி இருந்தால், அது எங்கள் தவறு. மன்னிக்கவும். "
 
-#: includes/class-freemius.php:21538
+#: includes/class-freemius.php:21548
 msgid ""
 "I have upgraded my account but when I try to Sync the License, the plan "
 "remains %s."
 msgstr "என் திட்டத்தை மேம்படுத்திய பின்னும், என் உரிமம் %s என்பதாகவே காட்டுகிறது."
 
-#: includes/class-freemius.php21542, includes/class-freemius.php:21594
+#: includes/class-freemius.php21552, includes/class-freemius.php:21610
 msgid "Please contact us here"
 msgstr "எங்களை இங்கு அணுகலாம்"
 
-#: includes/class-freemius.php:21564
+#: includes/class-freemius.php:21580
 msgid "Your plan was successfully changed to %s."
 msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் %sக்கு மாறியது."
 
-#: includes/class-freemius.php:21580
+#: includes/class-freemius.php:21596
 msgid "Your license has expired. You can still continue using the free %s forever."
 msgstr ""
 "உங்கள் உரிமம் முடிந்தது. ஆனாலும் %sன் விலையில்லாப் பதிப்பை என்றும் "
 "தொடரலாம். "
 
-#: includes/class-freemius.php:21582
+#: includes/class-freemius.php:21598
 #. translators: %1$s: product title; %2$s, %3$s: wrapping HTML anchor element;
 #. %4$s: 'plugin', 'theme', or 'add-on'.
 msgid ""
@@ -508,7 +508,7 @@ msgstr ""
 "உங்கள் உரிமம் முடிந்தது. %3$sஐ தொடர்ந்து பயன்படுத்த %1$s %2$s இவற்றை "
 "மேம்படுத்துங்கள்."
 
-#: includes/class-freemius.php:21590
+#: includes/class-freemius.php:21606
 msgid ""
 "Your license has been cancelled. If you think it's a mistake, please "
 "contact support."
@@ -516,7 +516,7 @@ msgstr ""
 "உங்கள் உரிமம் ரத்தானது. இதில் தவறேதும் உணர்ந்தால் உடனடியாக எங்கள் உதவியை "
 "அணுகவும்."
 
-#: includes/class-freemius.php:21603
+#: includes/class-freemius.php:21619
 msgid ""
 "Your license has expired. You can still continue using all the %s features, "
 "but you'll need to renew your license to continue getting updates and "
@@ -525,13 +525,13 @@ msgstr ""
 "உங்கள் உரிமம் முடிந்தது. எனினும் நீங்கள் %sன் வசதிகளைத் தொடரலாம். எனினும், "
 "தொடர் மேம்படுத்தல் மற்றும் உதவிக்கு உங்கள் உரிமத்தைப் புதுப்பிக்கவும்."
 
-#: includes/class-freemius.php:21629
+#: includes/class-freemius.php:21645
 msgid ""
 "Your free trial has expired. You can still continue using all our free "
 "features."
 msgstr "உங்கள் வெள்ளோட்டம் முடிந்தது. ஆனாலும் பிற  விலையில்லா சேவைகளைத் தொடரலாம்."
 
-#: includes/class-freemius.php:21631
+#: includes/class-freemius.php:21647
 #. translators: %1$s: product title; %2$s, %3$s: wrapping HTML anchor element;
 #. %4$s: 'plugin', 'theme', or 'add-on'.
 msgid ""
@@ -541,46 +541,46 @@ msgstr ""
 "உங்கள் விலையில்லா வெள்ளோட்டம் முடிந்தது. %3$sஐ தொடர்ந்து பயன்படுத்த %1$s "
 "%2$sஇவற்றை மேம்படுத்துங்கள்."
 
-#: includes/class-freemius.php:21677
+#: includes/class-freemius.php:21693
 msgid ""
 "Your server is blocking the access to Freemius' API, which is crucial for "
 "%1$s synchronization. Please contact your host to whitelist the following "
 "domains:%2$s"
 msgstr ""
 
-#: includes/class-freemius.php:21679
+#: includes/class-freemius.php:21695
 msgid "Show error details"
 msgstr ""
 
-#: includes/class-freemius.php:21782
+#: includes/class-freemius.php:21798
 msgid "It looks like the license could not be activated."
 msgstr "உங்கள் உரிமம் செயல்பாட்டுக்கு வரவில்லையென தோன்றுகிறது."
 
-#: includes/class-freemius.php:21824
+#: includes/class-freemius.php:21840
 msgid "Your license was successfully activated."
 msgstr "உங்கள் உரிமம் செயல்படுத்தப்பட்டது."
 
-#: includes/class-freemius.php:21848
+#: includes/class-freemius.php:21864
 msgid "It looks like your site currently doesn't have an active license."
 msgstr "உங்கள் தளத்திற்கு உரிமம் ஏதும் இல்லை என்பது போல் தெரிகிறது."
 
-#: includes/class-freemius.php:21872
+#: includes/class-freemius.php:21888
 msgid "It looks like the license deactivation failed."
 msgstr "உரிமத்தின் செயல்நிறுத்தம் தோல்வி அடைந்ததுபோல் தெரிகிறது."
 
-#: includes/class-freemius.php:21901
+#: includes/class-freemius.php:21917
 msgid "Your %s license was successfully deactivated."
 msgstr ""
 
-#: includes/class-freemius.php:21902
+#: includes/class-freemius.php:21918
 msgid "Your license was successfully deactivated, you are back to the %s plan."
 msgstr "உங்கள் உரிமம் செயல்நிறுத்தப்பட்டது, %s திட்டத்திற்கு மாற்றப்பட்டுள்ளீர்கள்."
 
-#: includes/class-freemius.php:21905
+#: includes/class-freemius.php:21921
 msgid "O.K"
 msgstr "O.K"
 
-#: includes/class-freemius.php:21958
+#: includes/class-freemius.php:21974
 msgid ""
 "Seems like we are having some temporary issue with your subscription "
 "cancellation. Please try again in few minutes."
@@ -588,39 +588,39 @@ msgstr ""
 "உங்கள் சந்தா ரத்து செய்வதில் ஒரு தொழில்நுட்பக் கோளாறு. மீண்டும் "
 "முயற்சிக்கவும்."
 
-#: includes/class-freemius.php:21967
+#: includes/class-freemius.php:21983
 msgid ""
 "Your subscription was successfully cancelled. Your %s plan license will "
 "expire in %s."
 msgstr "உங்கள் சந்தா ரத்து செய்யப்பட்டது. உங்கள் %s திட்டம் %s அன்று காலாவதியாகிறது."
 
-#: includes/class-freemius.php:22009
+#: includes/class-freemius.php:22025
 msgid "You are already running the %s in a trial mode."
 msgstr "நீங்கள் %sஐ வெள்ளோட்ட நிலையில் உபயோகித்துக் கொண்டிருக்கிறீர்கள்."
 
-#: includes/class-freemius.php:22020
+#: includes/class-freemius.php:22036
 msgid "You already utilized a trial before."
 msgstr "நீங்கள் ஏற்கனவே வெள்ளோட்டம் பார்த்துவிட்டீர்களே."
 
-#: includes/class-freemius.php:22056
+#: includes/class-freemius.php:22072
 msgid "None of the %s's plans supports a trial period."
 msgstr "%sன் எந்தத் திட்டங்களிலும் வெள்ளோட்டம் இல்லை."
 
-#: includes/class-freemius.php:22034
+#: includes/class-freemius.php:22050
 msgid "Plan %s do not exist, therefore, can't start a trial."
 msgstr "%s திட்டம் இல்லை. வெள்ளோட்டம் துவங்க இயலாது."
 
-#: includes/class-freemius.php:22045
+#: includes/class-freemius.php:22061
 msgid "Plan %s does not support a trial period."
 msgstr "%s திட்டத்திற்கு வெள்ளோட்டம் கிடையாது."
 
-#: includes/class-freemius.php:22105
+#: includes/class-freemius.php:22121
 msgid ""
 "It looks like you are not in trial mode anymore so there's nothing to "
 "cancel :)"
 msgstr "வெள்ளோட்டத்தில் நீங்கள் இல்லை என்பதால், அதை ரத்துசெய்யத் தேவையில்லை :)"
 
-#: includes/class-freemius.php:22141
+#: includes/class-freemius.php:22157
 msgid ""
 "Seems like we are having some temporary issue with your trial cancellation. "
 "Please try again in few minutes."
@@ -629,35 +629,35 @@ msgstr ""
 "உங்கள் வெள்ளோட்டம் ரத்து செய்வதில் ஒரு தொழில்நுட்பக் கோளாறு. மீண்டும் "
 "முயற்சிக்கவும்"
 
-#: includes/class-freemius.php:22160
+#: includes/class-freemius.php:22176
 msgid "Your %s free trial was successfully cancelled."
 msgstr "உங்கள் %s விலையில்லா வெள்ளோட்டம் ரத்து செய்யப்பட்டது."
 
-#: includes/class-freemius.php:22504
+#: includes/class-freemius.php:22520
 msgid "Seems like you got the latest release."
 msgstr "புதிய பதிப்பு உங்களுக்குக் கிடைத்துவிட்டது போல் தெரிகிறது."
 
-#: includes/class-freemius.php:22505
+#: includes/class-freemius.php:22521
 msgid "You are all good!"
 msgstr "நல்லது... மகிழ்ச்சி"
 
-#: includes/class-freemius.php:22487
+#: includes/class-freemius.php:22503
 msgid "Version %s was released."
 msgstr "%s பதிப்பு வெளியாகிவிட்டது."
 
-#: includes/class-freemius.php:22487
+#: includes/class-freemius.php:22503
 msgid "Please download %s."
 msgstr "%sஐ பதிவிறக்கலாம்."
 
-#: includes/class-freemius.php:22494
+#: includes/class-freemius.php:22510
 msgid "the latest %s version here"
 msgstr "%sன் அண்மைய பதிப்பு இதோ"
 
-#: includes/class-freemius.php:22499
+#: includes/class-freemius.php:22515
 msgid "New"
 msgstr "புதியது"
 
-#: includes/class-freemius.php:22908
+#: includes/class-freemius.php:22924
 msgid ""
 "Verification mail was just sent to %s. If you can't find it after 5 min, "
 "please check your spam box."
@@ -665,19 +665,19 @@ msgstr ""
 "உறுதிப்படுத்தும் மின்னஞ்சல் %sக்கு அனுப்பப்பட்டுள்ளது. பார்க்கவும். 5 "
 "நிமிடத்தில் மின்னஞ்சல் வரவில்லை என்றால் Spamல் பார்க்கவும்."
 
-#: includes/class-freemius.php:23048
+#: includes/class-freemius.php:23064
 msgid "Site successfully opted in."
 msgstr "தளம் தெரிவு செய்யப்பட்டது."
 
-#: includes/class-freemius.php23049, includes/class-freemius.php:24109
+#: includes/class-freemius.php23065, includes/class-freemius.php:24125
 msgid "Awesome"
 msgstr "அடி தூள்"
 
-#: includes/class-freemius.php:23075
+#: includes/class-freemius.php:23091
 msgid "Diagnostic data will no longer be sent from %s to %s."
 msgstr ""
 
-#: includes/class-freemius.php:23065
+#: includes/class-freemius.php:23081
 msgid ""
 "Sharing diagnostic data with %s helps to provide functionality that's more "
 "relevant to your website, avoid WordPress or PHP version incompatibilities "
@@ -685,24 +685,24 @@ msgid ""
 "plugin should be translated and tailored to."
 msgstr ""
 
-#: includes/class-freemius.php:23066
+#: includes/class-freemius.php:23082
 msgid "Thank you!"
 msgstr "நன்றி!"
 
-#: includes/class-freemius.php:23235
+#: includes/class-freemius.php:23251
 msgid ""
 "A confirmation email was just sent to %s. You must confirm the update "
 "within the next 4 hours. If you cannot find the email, please check your "
 "spam folder."
 msgstr ""
 
-#: includes/class-freemius.php:23233
+#: includes/class-freemius.php:23249
 msgid ""
 "A confirmation email was just sent to %s. The email owner must confirm the "
 "update within the next 4 hours."
 msgstr ""
 
-#: includes/class-freemius.php:23247
+#: includes/class-freemius.php:23263
 msgid ""
 "Thanks for confirming the ownership change. An email was just sent to %s "
 "for final approval."
@@ -710,44 +710,44 @@ msgstr ""
 "உரிமை மாற்றத்தை உறுதிப்படுத்தியதற்கு நன்றி. இறுதி ஒப்புதலுக்காக %sக்கு "
 "இப்போது ஒரு மின்னஞ்சல் அனுப்பப்பட்டுள்ளது."
 
-#: includes/class-freemius.php:23253
+#: includes/class-freemius.php:23269
 msgid "%s is the new owner of the account."
 msgstr "கணக்கின் புதிய உரிமையாளர் %s."
 
-#: includes/class-freemius.php:23277
+#: includes/class-freemius.php:23293
 msgid "Your name was successfully updated."
 msgstr "உங்கள் பெயர் ஏற்றப்பட்டது."
 
-#: includes/class-freemius.php:23272
+#: includes/class-freemius.php:23288
 msgid "Please provide your full name."
 msgstr "உங்கள் முழுப் பெயரைத் தரவும்."
 
-#: includes/class-freemius.php:23342
+#: includes/class-freemius.php:23358
 #. translators: %s: User's account property (e.g. email address, name)
 msgid "You have successfully updated your %s."
 msgstr "உங்கள் %s மேம்படுத்தப்பட்டது."
 
-#: includes/class-freemius.php:23406
+#: includes/class-freemius.php:23422
 msgid ""
 "Is this your client's site? %s if you wish to hide sensitive info like your "
 "email, license key, prices, billing address & invoices from the WP Admin."
 msgstr ""
 
-#: includes/class-freemius.php:23409
+#: includes/class-freemius.php:23425
 msgid "Click here"
 msgstr ""
 
-#: includes/class-freemius.php:23446
+#: includes/class-freemius.php:23462
 msgid "Bundle"
 msgstr ""
 
-#: includes/class-freemius.php:23519
+#: includes/class-freemius.php:23535
 msgid ""
 "Just letting you know that the add-ons information of %s is being pulled "
 "from an external server."
 msgstr "%sன் ஆட்-ஆன் தகவலை வெளியிலுள்ள சர்வர் மூலம் எடுக்கிறோம் என்பதை அறியவும்."
 
-#: includes/class-freemius.php:24149
+#: includes/class-freemius.php:24165
 msgid ""
 "How do you like %s so far? Test all our %s premium features with a %d-day "
 "free trial."
@@ -755,15 +755,15 @@ msgstr ""
 "%sஐ எந்தளவு விரும்புகிறீர்கள்? %d-நாள் விலையில்லா வெள்ளோட்டத்தில் %sன் "
 "விலையுள்ள வசதிகளை சோதித்துப் பாருங்கள்."
 
-#: includes/class-freemius.php:24157
+#: includes/class-freemius.php:24173
 msgid "No commitment for %s days - cancel anytime!"
 msgstr "%s நாட்களுக்கு எந்தக் கடப்பாடும் இல்லை - எப்போதும் ரத்து செய்யலாம்!"
 
-#: includes/class-freemius.php:24158
+#: includes/class-freemius.php:24174
 msgid "No credit card required"
 msgstr "கடன் அட்டை தேவையில்லை"
 
-#: includes/class-freemius.php:24242
+#: includes/class-freemius.php:24258
 msgid ""
 "Hey there, did you know that %s has an affiliate program? If you like the "
 "%s you can become our ambassador and earn some cash!"
@@ -771,11 +771,11 @@ msgstr ""
 "வணக்கம். %sன் முகவர் திட்டம் குறித்து உங்களுக்குத் தெரியுமா? %sஐ நீங்கள் "
 "விரும்பினால், நீங்களும் முகவராகி பணம் ஈட்டலாம்!"
 
-#: includes/class-freemius.php:24251
+#: includes/class-freemius.php:24267
 msgid "Learn more"
 msgstr "மேலும் அறிய"
 
-#: includes/class-freemius.php24437, templates/account.php569,
+#: includes/class-freemius.php24453, templates/account.php569,
 #: templates/account.php721, templates/connect.php212,
 #: templates/connect.php440, includes/managers/class-fs-clone-manager.php1295,
 #: templates/forms/license-activation.php27,
@@ -783,40 +783,40 @@ msgstr "மேலும் அறிய"
 msgid "Activate License"
 msgstr "உரிமம் செயல்படுத்த"
 
-#: includes/class-freemius.php24438, templates/account.php663,
+#: includes/class-freemius.php24454, templates/account.php663,
 #: templates/account.php720, templates/account/partials/addon.php327,
 #: templates/account/partials/site.php:273
 msgid "Change License"
 msgstr "உரிமம் மாற்ற"
 
-#: includes/class-freemius.php24553, includes/class-freemius.php24547,
+#: includes/class-freemius.php24569, includes/class-freemius.php24563,
 #: templates/account/partials/site.php49,
 #: templates/account/partials/site.php:170
 msgid "Opt In"
 msgstr "தெரிவு செய்"
 
-#: includes/class-freemius.php24545, templates/account/partials/site.php:170
+#: includes/class-freemius.php24561, templates/account/partials/site.php:170
 msgid "Opt Out"
 msgstr "தெரிவை அகற்று"
 
-#: includes/class-freemius.php:24811
+#: includes/class-freemius.php:24827
 msgid "Please follow these steps to complete the upgrade"
 msgstr "மேம்படுத்தலை முடித்துவைக்க பின்வரும் வழிமுறையைப் பின்பற்றவும்"
 
-#: includes/class-freemius.php:24815
+#: includes/class-freemius.php:24831
 #. translators: %s: Plan title
 msgid "Download the latest %s version"
 msgstr "%sன் அண்மைய பதிப்பைப் பதிவிறக்கலாம்"
 
-#: includes/class-freemius.php:24819
+#: includes/class-freemius.php:24835
 msgid "Upload and activate the downloaded version"
 msgstr "பதிவிறக்கிய பதிப்பை பதிவேற்றி செயல்படுத்தலாம்"
 
-#: includes/class-freemius.php:24821
+#: includes/class-freemius.php:24837
 msgid "How to upload and activate?"
 msgstr "பதிவேற்றுதல் மற்றும் செயல்படுத்துதல் எப்படி?"
 
-#: includes/class-freemius.php:24788
+#: includes/class-freemius.php:24804
 msgid ""
 " The paid version of %1$s is already installed. Please activate it to start "
 "benefiting the %2$s features. %3$s"
@@ -824,61 +824,61 @@ msgstr ""
 "%1$sன் விலையுள்ள பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது. %2$s வசதிகளை பயன்படுத்த "
 "அதை செயல்படுத்தவும். %3$s"
 
-#: includes/class-freemius.php:24798
+#: includes/class-freemius.php:24814
 msgid "Activate %s features"
 msgstr "%s வசதிகளை செயல்படுத்த"
 
-#: includes/class-freemius.php:24856
+#: includes/class-freemius.php:24872
 msgid "Your plan was successfully upgraded."
 msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் மேம்படுத்தப்பட்டது."
 
-#: includes/class-freemius.php:24857
+#: includes/class-freemius.php:24873
 msgid "Your plan was successfully activated."
 msgstr "உங்கள் தேர்ந்தெடுத்த திட்டம் துவங்கியது."
 
-#: includes/class-freemius.php:24987
+#: includes/class-freemius.php:25003
 msgid ""
 "%sClick here%s to choose the sites where you'd like to activate the license "
 "on."
 msgstr "உங்களுக்கு வேண்டிய தளங்களில் உரிமத்தை செயல்படுத்த %s கிளிக் செய்க %s"
 
-#: includes/class-freemius.php:25156
+#: includes/class-freemius.php:25172
 msgid "Auto installation only works for opted-in users."
 msgstr "முன்னரே தெரிவு செய்திருந்தால் மட்டுமே தானியங்கி நிறுவுதல் நடைபெறும்."
 
-#: includes/class-freemius.php25166, includes/class-freemius.php25199,
-#: includes/class-fs-plugin-updater.php1289,
-#: includes/class-fs-plugin-updater.php:1303
+#: includes/class-freemius.php25182, includes/class-freemius.php25215,
+#: includes/class-fs-plugin-updater.php1291,
+#: includes/class-fs-plugin-updater.php:1305
 msgid "Invalid module ID."
 msgstr "module ID தவறானது."
 
-#: includes/class-freemius.php25207, includes/class-fs-plugin-updater.php:1324
+#: includes/class-freemius.php25223, includes/class-fs-plugin-updater.php:1326
 msgid "Premium add-on version already installed."
 msgstr "விலையுள்ள ஆட்-ஆன் பதிப்பு ஏற்கனவே நிறுவப்பட்டுள்ளது."
 
-#: includes/class-freemius.php25175, includes/class-fs-plugin-updater.php:1325
+#: includes/class-freemius.php25191, includes/class-fs-plugin-updater.php:1327
 msgid "Premium version already active."
 msgstr "விலையுள்ள பதிப்பு ஏற்கனவே செயலில் உள்ளது."
 
-#: includes/class-freemius.php:25182
+#: includes/class-freemius.php:25198
 msgid "You do not have a valid license to access the premium version."
 msgstr "விலையுள்ள பதிப்பை அணுக உங்களிடம் உரிமம் இல்லை."
 
-#: includes/class-freemius.php:25189
+#: includes/class-freemius.php:25205
 msgid ""
 "Plugin is a \"Serviceware\" which means it does not have a premium code "
 "version."
 msgstr "விலையுள்ள நிரல் இல்லாததால் பிளக்இன் \"Serviceware\" எனப்படும்."
 
-#: includes/class-freemius.php:25567
+#: includes/class-freemius.php:25583
 msgid "View paid features"
 msgstr "விலையுள்ள வசதிகள் என்னவென்று காணுங்கள்"
 
-#: includes/class-freemius.php:25882
+#: includes/class-freemius.php:25898
 msgid "Thank you so much for using our products!"
 msgstr "எங்கள் உருவாக்கங்களைப் பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:25883
+#: includes/class-freemius.php:25899
 msgid ""
 "You've already opted-in to our usage-tracking, which helps us keep "
 "improving them."
@@ -886,23 +886,23 @@ msgstr ""
 "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, எங்கள் "
 "உருவாக்கத்தை மேம்படுத்த உதவும்."
 
-#: includes/class-freemius.php:25902
+#: includes/class-freemius.php:25918
 msgid "%s and its add-ons"
 msgstr "%sம் அதன் ஆட்-ஆன்களும்"
 
-#: includes/class-freemius.php:25911
+#: includes/class-freemius.php:25927
 msgid "Products"
 msgstr "தயாரிப்புகள்"
 
-#: includes/class-freemius.php:25871
+#: includes/class-freemius.php:25887
 msgid "Thank you so much for using %s and its add-ons!"
 msgstr "%s மற்றும் அதன் ஆட்-ஆன் பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:25872
+#: includes/class-freemius.php:25888
 msgid "Thank you so much for using %s!"
 msgstr "%s பயன்படுத்துவதற்கு நன்றி!"
 
-#: includes/class-freemius.php:25878
+#: includes/class-freemius.php:25894
 msgid ""
 "You've already opted-in to our usage-tracking, which helps us keep "
 "improving the %s."
@@ -910,21 +910,21 @@ msgstr ""
 "உங்கள் பயன்பாட்டைப் பின்தொடர எங்களுக்கு நீங்கள் அளித்த அனுமதியானது, %sஐ "
 "மேம்படுத்த உதவும்."
 
-#: includes/class-freemius.php25918, templates/connect.php:313
+#: includes/class-freemius.php25934, templates/connect.php:313
 msgid "Yes"
 msgstr "ஆம்"
 
-#: includes/class-freemius.php25919, templates/connect.php:314
+#: includes/class-freemius.php25935, templates/connect.php:314
 msgid "send me security & feature updates, educational content and offers."
 msgstr ""
 "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு "
 "அனுப்பவும்."
 
-#: includes/class-freemius.php25920, templates/connect.php:319
+#: includes/class-freemius.php25936, templates/connect.php:319
 msgid "No"
 msgstr "இல்லை"
 
-#: includes/class-freemius.php25922, templates/connect.php:321
+#: includes/class-freemius.php25938, templates/connect.php:321
 msgid ""
 "do %sNOT%s send me security & feature updates, educational content and "
 "offers."
@@ -932,7 +932,7 @@ msgstr ""
 "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை எனக்கு "
 "அனுப்பவும். %s செய்க, %s தேவையில்லை"
 
-#: includes/class-freemius.php:25932
+#: includes/class-freemius.php:25948
 msgid ""
 "Due to the new %sEU General Data Protection Regulation (GDPR)%s compliance "
 "requirements it is required that you provide your explicit consent, again, "
@@ -941,7 +941,7 @@ msgstr ""
 "புதிய %s EU GDPRன் படி %s மேற்பார்வை விதிகளால், ஆட்சேபகர தகவலுக்கு எதிரான "
 "உங்கள் நிலையை உறுதி செய்கிறீர்கள் :)"
 
-#: includes/class-freemius.php25934, templates/connect.php:328
+#: includes/class-freemius.php25950, templates/connect.php:328
 msgid ""
 "Please let us know if you'd like us to contact you for security & feature "
 "updates, educational content, and occasional offers:"
@@ -949,48 +949,48 @@ msgstr ""
 "பாதுகாப்பு & மேம்படுத்தல், விளக்கவுரை மற்றும் தள்ளுபடி விவரங்களை உங்களுக்கு "
 "நாங்கள் அனுப்ப விரும்பினால் எங்களைத் தொடர்பு கொள்ளுங்கள்."
 
-#: includes/class-freemius.php:26224
+#: includes/class-freemius.php:26240
 msgid "License key is empty."
 msgstr "License key காலியாக உள்ளது."
 
-#: includes/class-fs-plugin-updater.php210,
+#: includes/class-fs-plugin-updater.php212,
 #: templates/forms/premium-versions-upgrade-handler.php:57
 msgid "Renew license"
 msgstr "உரிமத்தை புதுப்பியுங்கள்"
 
-#: includes/class-fs-plugin-updater.php215,
+#: includes/class-fs-plugin-updater.php217,
 #: templates/forms/premium-versions-upgrade-handler.php:58
 msgid "Buy license"
 msgstr "உரிமம் வாங்க"
 
-#: includes/class-fs-plugin-updater.php368,
-#: includes/class-fs-plugin-updater.php:335
+#: includes/class-fs-plugin-updater.php370,
+#: includes/class-fs-plugin-updater.php:337
 msgid "There is a %s of %s available."
 msgstr "%sன் %s கிடைக்கிறது."
 
-#: includes/class-fs-plugin-updater.php373,
-#: includes/class-fs-plugin-updater.php:337
+#: includes/class-fs-plugin-updater.php375,
+#: includes/class-fs-plugin-updater.php:339
 msgid "new Beta version"
 msgstr "புதிய பீட்டா பதிப்பு"
 
-#: includes/class-fs-plugin-updater.php374,
-#: includes/class-fs-plugin-updater.php:338
+#: includes/class-fs-plugin-updater.php376,
+#: includes/class-fs-plugin-updater.php:340
 msgid "new version"
 msgstr "புதிய பதிப்பு"
 
-#: includes/class-fs-plugin-updater.php:397
+#: includes/class-fs-plugin-updater.php:399
 msgid "Important Upgrade Notice:"
 msgstr "முக்கியமான மேம்படுத்தல் அறிவிப்பு"
 
-#: includes/class-fs-plugin-updater.php:1354
+#: includes/class-fs-plugin-updater.php:1356
 msgid "Installing plugin: %s"
 msgstr "%s: பிளக்இன் நிறுவப்படுகிறது"
 
-#: includes/class-fs-plugin-updater.php:1395
+#: includes/class-fs-plugin-updater.php:1397
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr "Filesystem அணுக இயலவில்லை. உங்கள் உள்ளீடு சரியா என சோதிக்கவும்."
 
-#: includes/class-fs-plugin-updater.php:1577
+#: includes/class-fs-plugin-updater.php:1579
 msgid ""
 "The remote plugin package does not contain a folder with the desired slug "
 "and renaming did not work."
@@ -2489,6 +2489,7 @@ msgstr ""
 "குறிப்பிட்டுச் சொல்லவும்)"
 
 #: templates/forms/affiliation.php238, templates/forms/resend-key.php22,
+#: templates/forms/subscription-cancellation.php142,
 #: templates/account/partials/disconnect-button.php:92
 msgid "Cancel"
 msgstr "ரத்து"
@@ -2917,7 +2918,7 @@ msgstr ""
 "%sதெரிந்தெடுப்பு மட்டுமே"
 
 #: includes/class-freemius.php4842, includes/class-freemius.php21174,
-#: includes/class-freemius.php:24843
+#: includes/class-freemius.php:24859
 msgctxt "interjection expressing joy or exuberance"
 msgid "Yee-haw"
 msgstr "Yee-haw"
@@ -2936,14 +2937,14 @@ msgstr "ப்ளக்இன் இல்லாமல் %s இயங்கா�
 #: includes/class-freemius.php13828, includes/class-freemius.php14575,
 #: includes/class-freemius.php18330, includes/class-freemius.php18443,
 #: includes/class-freemius.php18620, includes/class-freemius.php20905,
-#: includes/class-freemius.php22004, includes/class-freemius.php23020,
-#: includes/class-freemius.php23150, includes/class-freemius.php23293,
+#: includes/class-freemius.php22020, includes/class-freemius.php23036,
+#: includes/class-freemius.php23166, includes/class-freemius.php23309,
 #: templates/add-ons.php:57
 msgctxt "exclamation"
 msgid "Oops"
 msgstr "அரே ஓ சம்போ!"
 
-#: includes/class-freemius.php:24149
+#: includes/class-freemius.php:24165
 msgctxt "exclamation"
 msgid "Hey"
 msgstr "Hey"
@@ -3007,31 +3008,31 @@ msgctxt "a positive response"
 msgid "Right on"
 msgstr "Right on"
 
-#: includes/class-freemius.php21519, includes/class-freemius.php21791,
-#: includes/class-freemius.php21844, includes/class-freemius.php:21951
+#: includes/class-freemius.php21529, includes/class-freemius.php21807,
+#: includes/class-freemius.php21860, includes/class-freemius.php:21967
 msgctxt ""
 "something somebody says when they are thinking about what you have just "
 "said."
 msgid "Hmm"
 msgstr "Hmm"
 
-#: includes/class-freemius.php21533, templates/account.php132,
+#: includes/class-freemius.php21543, templates/account.php132,
 #: templates/add-ons.php250, templates/account/partials/addon.php:51
 msgctxt "trial period"
 msgid "Trial"
 msgstr "வெள்ளோட்டம்"
 
-#: includes/class-freemius.php:23255
+#: includes/class-freemius.php:23271
 msgctxt "as congratulations"
 msgid "Congrats"
 msgstr "வாழ்த்துக்கள்"
 
-#: includes/class-freemius.php:23520
+#: includes/class-freemius.php:23536
 msgctxt "advance notice of something that will need attention."
 msgid "Heads up"
 msgstr "Heads up"
 
-#: includes/class-freemius.php24165, templates/forms/trial-start.php:53
+#: includes/class-freemius.php24181, templates/forms/trial-start.php:53
 msgctxt "call to action"
 msgid "Start free trial"
 msgstr "விலையில்லா வெள்ளோட்டம் தொடங்கட்டும்... டும்"
