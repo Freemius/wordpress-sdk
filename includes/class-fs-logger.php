@@ -11,10 +11,6 @@
 	}
 
 	class FS_Logger {
-        /**
-         * @var bool
-         */
-        public static  $ON          = false;
 		private $_id;
 		private $_on = false;
 		private $_echo = false;
