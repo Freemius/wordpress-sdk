@@ -119,7 +119,7 @@
 		}
 
 		function is_on() {
-			return $this->_on && self::$ON;
+			return $this->_on;
 		}
 
 		function on() {
@@ -338,6 +338,11 @@
 
 			$table = "{$wpdb->prefix}fs_logger";
 
+            /**
+             * Drop logging table in any case.
+             */
+            $result = $wpdb->query( "DROP TABLE IF EXISTS $table;" );
+
 			if ( $is_on ) {
 				/**
 				 * Create logging table.
@@ -367,10 +372,6 @@ KEY `process_logger` (`process_id` ASC, `logger` ASC),
 KEY `function` (`function` ASC),
 KEY `type` (`type` ASC))" );
 			} else {
-				/**
-				 * Drop logging table.
-				 */
-				$result = $wpdb->query( "DROP TABLE IF EXISTS $table;" );
                 /**
                  * Since logging table does not exist anymore, we need to turn off all instances
                  */
@@ -381,12 +382,11 @@ KEY `type` (`type` ASC))" );
                  * Also, we delete all references and turn off global logging
                  */
                 self::$LOGGERS = [];
-                self::$ON = false;
 			}
 
 			if ( false !== $result ) {
-                self::$ON = (bool) $is_on;
 				update_option( 'fs_storage_logger', ( $is_on ? 1 : 0 ) );
+                self::$_isStorageLoggingOn = $is_on;
 			}
 
 			return ( false !== $result );
