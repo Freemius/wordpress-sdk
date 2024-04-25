@@ -17,6 +17,9 @@
     $off_text = fs_text_x_inline( 'Off', 'as turned off' );
     $on_text  = fs_text_x_inline( 'On', 'as turned on' );
 
+    // For some reason css was missing
+    fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+
     $has_any_active_clone = false;
 
     $is_multisite = is_multisite();

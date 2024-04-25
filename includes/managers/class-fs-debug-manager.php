@@ -189,7 +189,7 @@
                 return;
             }
 
-            if (!FS_Logger::$ON) {
+            if (!FS_Logger::is_storage_logging_on()) {
                 return;
             }
 
