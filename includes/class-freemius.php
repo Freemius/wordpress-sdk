@@ -13914,9 +13914,9 @@
          * @param int         $blog_id
          *
          * @return array {
-         *      @var bool   $success
-         *      @var string $error
-         *      @var string $next_page
+         *      @type bool   $success
+         *      @type string $error
+         *      @type string $next_page
          * }
          *
          * @uses Freemius::activate_license()
@@ -17313,7 +17313,6 @@
          * @param bool        $redirect
          *
          * @return string|object
-         * @use    WP_Error
          */
         function opt_in(
             $email = false,
@@ -22840,8 +22839,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number              $user_id
-         * @param array[string]number $install_ids_by_slug_map
+         * @param number        $user_id
+         * @param array[string] $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {

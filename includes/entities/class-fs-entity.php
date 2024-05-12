@@ -88,7 +88,7 @@
 		 * @author Vova Feldman (@svovaf)
 		 * @since  1.0.9
 		 *
-		 * @param  string|array[string]mixed $key
+		 * @param  string|array[string] $key
 		 * @param string|bool $val
 		 *
 		 * @return bool
