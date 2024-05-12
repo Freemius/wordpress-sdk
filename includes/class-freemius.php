@@ -8958,7 +8958,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param array [string]array $plugins
+         * @param array [string] $plugins
          *
          * @return string
          */
@@ -9373,7 +9373,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string           $override
+         * @param string[] $override
          * @param bool     $only_diff
          * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
@@ -9560,7 +9560,7 @@
          *
          * @param array    $site
          * @param FS_Site  $install
-         * @param string[] string $override
+         * @param string[] $override
          *
          * @return array
          */
@@ -9682,7 +9682,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9755,7 +9755,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9842,7 +9842,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         function sync_install( $override = array(), $flush = false ) {
@@ -9871,7 +9871,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         private function sync_installs( $override = array(), $flush = false ) {
@@ -19900,7 +19900,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.6
          *
-         * @param string[] string $key_value
+         * @param string[] $key_value
          *
          * @uses   fs_override_i18n()
          */
