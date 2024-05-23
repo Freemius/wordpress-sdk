@@ -36,7 +36,7 @@ $box_border_radius: 3px;
         margin:                   30px 0 0 -10px;
 
         .fs-box-container {
-            @include box-shadow(none);
+            box-shadow: none;
         }
     }
 
@@ -50,7 +50,7 @@ $box_border_radius: 3px;
             background: snow;
             color: $fs-logo-magenta-color;
             border: 1px solid $fs-logo-magenta-color;
-            @include box-shadow(0 1px 1px 0 rgba(0,0,0,.1));
+            box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
             text-align: center;
             padding: 5px;
             margin-bottom: 10px;
@@ -188,7 +188,7 @@ $box_border_radius: 3px;
     {
         padding:    10px 20px;
         background: #fff;
-        @include transition(background 0.5s ease);
+        transition: background 0.5s ease;
 
         .fs-license-sync-disclaimer {
             text-align: center;
@@ -492,7 +492,7 @@ $box_border_radius: 3px;
     #fs_connect
     {
         margin: 0;
-        @include box-shadow(none);
+        box-shadow: none;
     }
 }
 

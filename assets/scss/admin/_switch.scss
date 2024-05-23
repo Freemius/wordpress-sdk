@@ -40,7 +40,7 @@ $switch-on-color: $wp-button-primary-background-color;
         background-image: linear-gradient(to bottom, #ececec, #fff);
         box-shadow:    inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
         z-index:       999;
-        @include transition(0.40s cubic-bezier(0.54, 1.6, 0.5, 1));
+        transition: 0.40s cubic-bezier(0.54, 1.6, 0.5, 1);
     }
 
     &.fs-off .fs-toggle
@@ -57,14 +57,14 @@ $switch-on-color: $wp-button-primary-background-color;
     {
         top:     math.div($switch-size, 3);
         padding: 4px ($switch-size + 1px);
-        @include border-radius($switch-size);
+        border-radius: $switch-size;
 
         .fs-toggle
         {
             top:    0;
             width:  $switch-size;
             height: $switch-size;
-            @include border-radius($switch-size);
+            border-radius: $switch-size;
         }
 
         &.fs-off .fs-toggle
@@ -94,7 +94,7 @@ $switch-on-color: $wp-button-primary-background-color;
                 top:    0;
                 width:  $switch-small-size;
                 height: $switch-small-size;
-                @include border-radius($switch-small-size);
+                border-radius: $switch-small-size;
             }
 
             &.fs-on .fs-toggle
