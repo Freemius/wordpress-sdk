@@ -343,8 +343,8 @@
                             <input type="text" id="fs_last_name" name="last_name" placeholder="Last name" class="fs-input">
                         </div>
                         <div class="fs-input-container">
-                            <label for="user_email" class="screen-reader-text">Email (required)</label>
-                            <input type="email" id="user_email" name="user_email" placeholder="Email (required)"
+                            <label for="fs_user_email" class="screen-reader-text">Email (required)</label>
+                            <input type="email" id="fs_user_email" name="user_email" placeholder="Email (required)"
                                    class="fs-input" required>
                         </div>
                     </div>
@@ -730,14 +730,14 @@
 		$form.on('submit', function () {
             const personal_data = {};
             if ( $personalData.is( ':visible' ) ) {
-                const email_field = document.querySelector( '#user_email' );
+                const email_field = document.querySelector( '#fs_user_email' );
                 if ( !email_field.checkValidity() ) {
                     $personalData.addClass( 'error' ).show();
                     resetLoadingMode();
                     return false;
                 } else {
-                    personal_data.user_firstname = $( '#first_name' ).val();
-                    personal_data.user_lastname = $( '#last_name' ).val();
+                    personal_data.user_firstname = $( '#fs_first_name' ).val();
+                    personal_data.user_lastname = $( '#fs_last_name' ).val();
                     personal_data.user_email = $( email_field ).val();
                 }
             }
