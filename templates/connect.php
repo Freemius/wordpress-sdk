@@ -334,13 +334,13 @@
                             'email-is-requested' ) ?></span>
                     <div class="fs-fields-container">
                         <div class="fs-input-container">
-                            <label for="first_name" class="screen-reader-text">First name</label>
-                            <input type="text" id="first_name" name="first_name" placeholder="First name"
+                            <label for="fs_first_name" class="screen-reader-text">First name</label>
+                            <input type="text" id="fs_first_name" name="first_name" placeholder="First name"
                                    class="fs-input">
                         </div>
                         <div class="fs-input-container">
-                            <label for="last_name" class="screen-reader-text">Last name</label>
-                            <input type="text" id="last_name" name="last_name" placeholder="Last name" class="fs-input">
+                            <label for="fs_last_name" class="screen-reader-text">Last name</label>
+                            <input type="text" id="fs_last_name" name="last_name" placeholder="Last name" class="fs-input">
                         </div>
                         <div class="fs-input-container">
                             <label for="user_email" class="screen-reader-text">Email (required)</label>
@@ -551,10 +551,10 @@
 				$( document.body ).addClass( 'fs-loading' );
 			};
 
-            $('#fs_personal_data input').on('focus', function() {
-                $('#fs_personal_data').removeClass('error');
-                resetLoadingMode();
-            })
+        $( '#fs_personal_data input' ).on( 'focus', function () {
+            $( '#fs_personal_data' ).removeClass( 'error' );
+            resetLoadingMode();
+        } );
 
 		$('.fs-actions .button').on('click', function () {
 			setLoadingMode();
@@ -729,16 +729,16 @@
 
 		$form.on('submit', function () {
             const personal_data = {};
-            if ($personalData.is(':visible')) {
-                const email_field = document.querySelector('#user_email');
-                if (!email_field.checkValidity()) {
+            if ( $personalData.is( ':visible' ) ) {
+                const email_field = document.querySelector( '#user_email' );
+                if ( !email_field.checkValidity() ) {
                     $personalData.addClass( 'error' ).show();
                     resetLoadingMode();
                     return false;
                 } else {
-                    personal_data.user_firstname = $('#first_name').val();
-                    personal_data.user_lastname = $('#last_name').val();
-                    personal_data.user_email = $(email_field).val();
+                    personal_data.user_firstname = $( '#first_name' ).val();
+                    personal_data.user_lastname = $( '#last_name' ).val();
+                    personal_data.user_email = $( email_field ).val();
                 }
             }
             var $extensionsPermission = $( '#fs_permission_extensions .fs-switch' ),
