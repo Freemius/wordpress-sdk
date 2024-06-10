@@ -14193,9 +14193,9 @@
                 $fs->update_connectivity_info( $is_connected );
             } else {
                 $next_page = $fs->opt_in(
-                    $user_email || false,
-                    $user_firstname || false,
-                    $user_lastname || false,
+                    $user_email,
+                    $user_firstname,
+                    $user_lastname,
                     $license_key,
                     false,
                     false,
@@ -17211,8 +17211,6 @@
         function get_opt_in_params( $override_with = array(), $network_level_or_blog_id = null ) {
             $this->_logger->entrance();
 
-            $current_user = self::_get_current_wp_user();
-
             $activation_action = $this->get_unique_affix() . '_activate_new';
             $return_url        = $this->is_anonymous() ?
                 // If skipped already, then return to the account page.
@@ -17334,6 +17332,11 @@
             $redirect = true
         ) {
             $this->_logger->entrance();
+
+            if ( false === $email && empty( $license_key ) ) {
+                $current_user = self::_get_current_wp_user();
+                $email        = $current_user->user_email;
+            }
 
             /**
              * @since 1.2.1 If activating with license key, ignore the context-user
@@ -21350,7 +21353,7 @@
                  * associated with that ID is not included in the user's licenses collection.
                  * Save previous value to manage remote license renewals.
                  */
-                $was_license_expired_before_sync = $this->_license && $this->_license->is_expired();
+                $was_license_expired_before_sync = is_object($this->_license) && $this->_license->is_expired();
                 $this->_sync_licenses(
                     $site->license_id,
                     ( $is_context_single_site ?
