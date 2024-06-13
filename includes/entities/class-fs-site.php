@@ -120,7 +120,9 @@
             parent::__construct( $site );
 
             if ( is_object( $site ) ) {
-                $this->plan_id = $site->plan_id;
+                if ( ! empty( $site->plan_id ) ) {
+                    $this->plan_id = $site->plan_id;
+                }
             }
 
             if ( ! is_bool( $this->is_disconnected ) ) {
