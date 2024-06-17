@@ -46,14 +46,16 @@
 		}
 	}
 
-    .fs-modal-panel {
-        margin-top: 0 !important;
+	.fs-modal-panel {
+		margin-top: 0 !important;
 
-        h3 {
-            margin-top: 0;
-            line-height: 1.5em;
-        }
-    }
+		h3 {
+			margin-top: 10px;
+			margin-bottom: 0;
+			font-size: 16px;
+			line-height: 1.5em;
+		}
+	}
 }
 
 #the-list .deactivate > .fs-slug {
