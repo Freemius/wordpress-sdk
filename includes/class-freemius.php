@@ -1003,7 +1003,7 @@
 
             if ( isset( $install->plan ) && is_object( $install->plan ) ) {
                 if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
-                    $install->plan_id = self::_decrypt( $install->plan->id ); // @phpstan-ignore-line
+                    $install->plan_id = self::_decrypt( $install->plan->id );
                 }
 
                 unset( $install->plan );
@@ -1564,8 +1564,8 @@
             );
             $this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
-            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) ); // @phpstan-ignore-line
-            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) ); // @phpstan-ignore-line
+            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
             add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
@@ -1882,7 +1882,7 @@
                 $plugin_main_file = clone $this->_storage->plugin_main_file;
 
                 // Store cached path (2nd layer cache).
-                $plugin_main_file->prev_path = $plugin_main_file->path; // @phpstan-ignore-line
+                $plugin_main_file->prev_path = $plugin_main_file->path;
 
                 // Clear cached path.
                 unset( $plugin_main_file->path );
@@ -8016,7 +8016,6 @@
                     }
                 }
 
-                // @phpstan-ignore-next-line
                 if ( ! empty( $site_ids ) ) {
                     $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
                 }
@@ -8955,7 +8954,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] $plugins
+         * @param array<string, array> $plugins
          *
          * @return string
          */
@@ -14101,7 +14100,7 @@
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
                     }
 
-                    if ( true === $result && count( $site_ids ) > 0 ) {
+                    if ( true === $result && ! empty( $site_ids ) > 0 ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
                     }
                 } else {
@@ -19923,7 +19922,7 @@
                 $site = $this->_site;
             }
 
-            if ( !is_object($site) || empty( $site->id ) ) {
+            if ( ! is_object( $site ) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
@@ -20057,7 +20056,7 @@
                     }
                 }
 
-                if ( count( $new_user_licenses_map ) > 0 ) {
+                if ( ! empty( $new_user_licenses_map ) ) {
                     // Add new licenses.
                     $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
                 }
