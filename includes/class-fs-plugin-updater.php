@@ -1048,7 +1048,7 @@
                         false
                     );
 
-                    if ( ! empty( $addon_plugin_data ) ) {
+                    if ( ! empty( $addon_plugin_data['Version'] ) ) {
                         $addon_version = $addon_plugin_data['Version'];
                     }
                 }
@@ -1072,7 +1072,7 @@
                 $data->name        = $plugin_local_data['Name'];
                 $data->author      = $plugin_local_data['Author'];
                 $data->sections    = array(
-                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
+                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.'
                 );
 
                 // @todo Store extra plugin info on Freemius or parse readme.txt markup.

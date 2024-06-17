@@ -121,28 +121,29 @@
                                     ?></strong></p>
                                 </div>
                             <?php else : ?>
-                                    <?php
-                                    $message_text = '';
+                                <?php
+                                $message_text            = '';
+                                $message_container_class = '';
 
-                                    if ( $is_pending_affiliate ) {
-                                        $message_text            = fs_text_inline( "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information.", 'affiliate-application-thank-you', $slug );
-                                        $message_container_class = 'updated';
-                                    } else if ( $affiliate->is_suspended() ) {
-                                        $message_text            = fs_text_inline( 'Your affiliation account was temporarily suspended.', 'affiliate-account-suspended', $slug );
-                                        $message_container_class = 'notice notice-warning';
-                                    } else if ( $affiliate->is_rejected() ) {
-                                        $message_text            = fs_text_inline( "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days.", 'affiliate-application-rejected', $slug );
-                                        $message_container_class = 'error';
-                                    } else if ( $affiliate->is_blocked() ) {
-                                        $message_text            = fs_text_inline( 'Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support.', 'affiliate-account-blocked', $slug );
-                                        $message_container_class = 'error';
-                                    }
-                                    ?>
-                                    <div class="<?php echo $message_container_class ?>">
-                                        <p><strong><?php echo esc_html( $message_text ) ?></strong></p>
-                                    </div>
-                                <?php endif ?>
+                                if ( $is_pending_affiliate ) {
+                                    $message_text            = fs_text_inline( "Thank you for applying for our affiliate program, we'll review your details during the next 14 days and will get back to you with further information.", 'affiliate-application-thank-you', $slug );
+                                    $message_container_class = 'updated';
+                                } else if ( $affiliate->is_suspended() ) {
+                                    $message_text            = fs_text_inline( 'Your affiliation account was temporarily suspended.', 'affiliate-account-suspended', $slug );
+                                    $message_container_class = 'notice notice-warning';
+                                } else if ( $affiliate->is_rejected() ) {
+                                    $message_text            = fs_text_inline( "Thank you for applying for our affiliate program, unfortunately, we've decided at this point to reject your application. Please try again in 30 days.", 'affiliate-application-rejected', $slug );
+                                    $message_container_class = 'error';
+                                } else if ( $affiliate->is_blocked() ) {
+                                    $message_text            = fs_text_inline( 'Due to violation of our affiliation terms, we decided to temporarily block your affiliation account. If you have any questions, please contact support.', 'affiliate-account-blocked', $slug );
+                                    $message_container_class = 'error';
+                                }
+                                ?>
+                                <div class="<?php echo $message_container_class ?>">
+                                    <p><strong><?php echo esc_html( $message_text ) ?></strong></p>
+                                </div>
                             <?php endif ?>
+                        <?php endif ?>
                         </div>
                         <div class="entry-content">
                             <?php if ( ! $is_affiliate ) : ?>
