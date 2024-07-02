@@ -32,9 +32,9 @@
 		 */
 		private static $_abspathLength;
 
-        /**
-         * @var FS_Logger[] $LOGGERS
-         */
+		/**
+		 * @var FS_Logger[] $LOGGERS
+		 */
 		private static $LOGGERS = array();
 		private static $LOG = array();
 		private static $CNT = 0;
@@ -127,15 +127,6 @@
 
 			self::hook_footer();
 		}
-
-        /**
-         * Turn off instance
-         *
-         * @return void
-         */
-        public function off() {
-            $this->_on = false;
-        }
 		function echo_on() {
 			$this->on();
 
@@ -251,9 +242,6 @@
 		}
 
 		function entrance( $message = '', $wrapper = false ) {
-            if ( ! $this->is_on() ) {
-                return;
-            }
 			$msg = 'Entrance' . ( empty( $message ) ? '' : ' > ' ) . $message;
 
 			$this->_log( $msg, 'log', $wrapper );
@@ -334,10 +322,10 @@
 
 			$table = "{$wpdb->prefix}fs_logger";
 
-            /**
-             * Drop logging table in any case.
-             */
-            $result = $wpdb->query( "DROP TABLE IF EXISTS $table;" );
+			/**
+			 * Drop logging table in any case.
+			 */
+			$result = $wpdb->query( "DROP TABLE IF EXISTS $table;" );
 
 			if ( $is_on ) {
 				/**
@@ -367,22 +355,11 @@ KEY `process_id` (`process_id` ASC),
 KEY `process_logger` (`process_id` ASC, `logger` ASC),
 KEY `function` (`function` ASC),
 KEY `type` (`type` ASC))" );
-			} else {
-                /**
-                 * Since logging table does not exist anymore, we need to turn off all instances
-                 */
-                foreach ( self::$LOGGERS as $logger ) {
-                    $logger->off();
-                }
-                /**
-                 * Also, we delete all references and turn off global logging
-                 */
-                self::$LOGGERS = [];
 			}
 
 			if ( false !== $result ) {
 				update_option( 'fs_storage_logger', ( $is_on ? 1 : 0 ) );
-                self::$_isStorageLoggingOn = $is_on;
+				self::$_isStorageLoggingOn = $is_on;
 			}
 
 			return ( false !== $result );
