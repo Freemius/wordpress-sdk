@@ -1,4 +1,4 @@
-#fs_marketing_optin
+.fs_gdpr_consent
 {
     display:     none;
     margin-top:  10px;
@@ -62,7 +62,7 @@
 
 .rtl
 {
-    #fs_marketing_optin
+    .fs_gdpr_consent
     {
         .fs-input-container
         {
@@ -76,6 +76,29 @@
         {
             margin-left:  0;
             margin-right: 20px;
+        }
+    }
+}
+
+#fs_personal_data
+{
+    .fs-fields-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -15px;
+
+        .fs-input-container {
+            padding: 0 15px;
+            box-sizing: border-box;
+            flex: 1 1 50%;
+
+            input {
+                width: 100%;
+            }
+
+            &:last-child {
+                flex: 1 1 100%;
+            }
         }
     }
 }

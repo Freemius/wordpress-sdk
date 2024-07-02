@@ -13772,7 +13772,10 @@
                 fs_request_get( 'module_id', null, 'post' ),
                 fs_request_get( 'user_id', null ),
                 fs_request_get_bool( 'is_extensions_tracking_allowed', null ),
-                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null )
+                fs_request_get_bool( 'is_diagnostic_tracking_allowed', null ),
+                fs_request_get( 'user_firstname', null ),
+                fs_request_get( 'user_lastname', null ),
+                fs_request_get( 'user_email', null )
             );
 
             if (
@@ -14035,7 +14038,10 @@
             $plugin_id = null,
             $license_owner_id = null,
             $is_extensions_tracking_allowed = null,
-            $is_diagnostic_tracking_allowed = null
+            $is_diagnostic_tracking_allowed = null,
+            $user_firstname = null,
+            $user_lastname = null,
+            $user_email = null
         ) {
             $this->_logger->entrance();
 
@@ -14061,7 +14067,8 @@
             ) );
 
             $error     = false;
-            $next_page = false;
+            $error_code = false;
+            $next_page  = false;
 
             $has_valid_blog_id = is_numeric( $blog_id );
 
@@ -14195,9 +14202,9 @@
                 $fs->update_connectivity_info( $is_connected );
             } else {
                 $next_page = $fs->opt_in(
-                    false,
-                    false,
-                    false,
+                    $user_email,
+                    $user_firstname,
+                    $user_lastname,
                     $license_key,
                     false,
                     false,
@@ -14208,6 +14215,7 @@
 
                 if ( isset( $next_page->error ) ) {
                     $error = $next_page->error;
+                    $error_code = $next_page->code;
                 } else {
                     if ( $is_network_activation_or_migration ) {
                         /**
@@ -14276,6 +14284,7 @@
 
             if ( false !== $error ) {
                 $result['error'] = $fs->apply_filters( 'opt_in_error_message', $error );
+                $result['error_code'] = $error_code;
             } else {
                 if ( $fs->is_addon() || $fs->has_addons() ) {
                     /**
@@ -17211,8 +17220,6 @@
         function get_opt_in_params( $override_with = array(), $network_level_or_blog_id = null ) {
             $this->_logger->entrance();
 
-            $current_user = self::_get_current_wp_user();
-
             $activation_action = $this->get_unique_affix() . '_activate_new';
             $return_url        = $this->is_anonymous() ?
                 // If skipped already, then return to the account page.
@@ -17223,9 +17230,6 @@
             $versions = $this->get_versions();
 
             $params = array_merge( $versions, array(
-                'user_firstname'    => $current_user->user_firstname,
-                'user_lastname'     => $current_user->user_lastname,
-                'user_email'        => $current_user->user_email,
                 'plugin_slug'       => $this->_slug,
                 'plugin_id'         => $this->get_id(),
                 'plugin_public_key' => $this->get_public_key(),
@@ -17338,7 +17342,7 @@
         ) {
             $this->_logger->entrance();
 
-            if ( false === $email ) {
+            if ( false === $email && empty( $license_key ) ) {
                 $current_user = self::_get_current_wp_user();
                 $email        = $current_user->user_email;
             }
