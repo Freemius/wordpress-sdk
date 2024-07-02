@@ -287,9 +287,6 @@
                     self::_turn_off_debug_mode();
                 }
 
-                // Turn on/off storage logging.
-                FS_Logger::_set_storage_logging( ( 1 == $is_on ) );
-
                 // Logic to turn debugging off automatically
                 if ( 1 == $is_on ) {
                     // Plan a single event triggering after 24 hours to turn debugging off.
