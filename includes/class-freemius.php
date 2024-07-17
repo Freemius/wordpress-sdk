@@ -14674,6 +14674,20 @@
                 $this->_parent->addon_url( $this->_slug ) :
                 $this->_get_admin_page_url( 'pricing', $params );
 
+            return $this->get_pricing_url_with_filter( $url );
+        }
+
+        /**
+         * Retrieves the filtered pricing URL.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.7.4
+         *
+         * @param string $url
+         *
+         * @return string
+         */
+        private function get_pricing_url_with_filter( $url ) {
             return $this->apply_filters( 'pricing_url', $url );
         }
 
@@ -18800,18 +18814,34 @@
                         }
                     }
 
-                    // Add upgrade/pricing page.
-                    $this->add_submenu_item(
-                        $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? $this->get_text_x_inline( '&#x2190;', 'ASCII arrow left icon', 'symbol_arrow-left' ) : $this->get_text_x_inline( '&#x27a4;', 'ASCII arrow right icon', 'symbol_arrow-right' ) ),
-                        array( &$this, '_pricing_page_render' ),
-                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
-                        'manage_options',
-                        'pricing',
-                        'Freemius::_clean_admin_content_section',
-                        WP_FS__LOWEST_PRIORITY,
-                        ( $add_submenu_items && $show_pricing ),
-                        $pricing_class
-                    );
+                    $custom_pricing_url        = $this->get_pricing_url_with_filter( null );
+                    $pricing_menu_title        = $pricing_cta_text . '&nbsp;&nbsp;' . ( is_rtl() ? $this->get_text_x_inline( '&#x2190;', 'ASCII arrow left icon', 'symbol_arrow-left' ) : $this->get_text_x_inline( '&#x27a4;', 'ASCII arrow right icon', 'symbol_arrow-right' ) );
+                    $show_pricing_submenu_item = ( $add_submenu_items && $show_pricing );
+
+                    // Add upgrade/pricing submenu item.
+                    if ( ! is_null( $custom_pricing_url ) ) {
+                        $this->add_submenu_link_item(
+                            $pricing_menu_title,
+                            $custom_pricing_url,
+                            'pricing',
+                            'manage_options',
+                            WP_FS__LOWEST_PRIORITY,
+                            $show_pricing_submenu_item,
+                            $pricing_class
+                        );
+                    } else {
+                        $this->add_submenu_item(
+                            $pricing_menu_title,
+                            array( &$this, '_pricing_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_x_inline( 'Pricing', 'noun', 'pricing' ),
+                            'manage_options',
+                            'pricing',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__LOWEST_PRIORITY,
+                            $show_pricing_submenu_item,
+                            $pricing_class
+                        );
+                    }
                 }
             }
 
@@ -19100,6 +19130,7 @@
          * @param string $capability
          * @param int    $priority
          * @param bool   $show_submenu
+         * @param string $class
          */
         function add_submenu_link_item(
             $menu_title,
@@ -19107,7 +19138,8 @@
             $menu_slug = false,
             $capability = 'read',
             $priority = WP_FS__DEFAULT_PRIORITY,
-            $show_submenu = true
+            $show_submenu = true,
+            $class = ''
         ) {
             $this->_logger->entrance( 'Title = ' . $menu_title . '; Url = ' . $url );
 
@@ -19121,7 +19153,8 @@
                         $menu_slug,
                         $capability,
                         $priority,
-                        $show_submenu
+                        $show_submenu,
+                        $class
                     );
 
                     return;
@@ -19141,6 +19174,7 @@
                 'render_function'        => 'fs_dummy',
                 'before_render_function' => '',
                 'show_submenu'           => $show_submenu,
+                'class'                  => $class,
             );
         }
 
