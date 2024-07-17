@@ -651,7 +651,7 @@
 
             $slug = $this->_fs->get_slug();
 
-            if ( $this->_fs->is_org_repo_compliant() && $this->_fs->is_freemium() ) {
+            if ( $this->can_fetch_data_from_wp_org() ) {
                 if ( ! isset( $this->_translation_updates ) ) {
                     $this->_translation_updates = array();
 
@@ -909,6 +909,16 @@
         }
 
         /**
+         * Returns true if the product can fetch data from WordPress.org.
+         *
+         * @author Leo Fajardo (@leorw)
+         * @since  2.7.4
+         */
+        private function can_fetch_data_from_wp_org() {
+            return ( $this->_fs->is_org_repo_compliant() && $this->_fs->is_freemium() );
+        }
+
+        /**
          * Fetches module translation updates from wordpress.org.
          *
          * @author Leo Fajardo (@leorw)
@@ -1092,7 +1102,7 @@
             }
 
             $plugin_in_repo = false;
-            if ( ! $is_addon ) {
+            if ( ! $is_addon && $this->can_fetch_data_from_wp_org() ) {
                 // Try to fetch info from .org repository.
                 $data = self::_fetch_plugin_info_from_repository( $action, $args );
 
