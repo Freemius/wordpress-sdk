@@ -22,15 +22,6 @@
 //  THE SOFTWARE.
 //
 
-// ---- LEGACY IE SUPPORT USING FILTERS ----
-//  Should IE filters be used or not?
-//  PROS: gradients, drop shadows etc will be handled by css.
-//  CONS: will harm the site performance badly, 
-//        especially on sites with heavy rendering and scripting. 
-$useIEFilters: 0; 
-// might be 0 or 1. disabled by default.
-// ---- /LEGACY IE SUPPORT USING FILTERS ----
-
 // requires sass 3.2
 @mixin keyframes($name){
      @-moz-keyframes #{$name} { @content; }
@@ -41,11 +32,7 @@ $useIEFilters: 0;
 }
 
 @mixin transform($transforms) {
-	   -moz-transform: $transforms;
-	     -o-transform: $transforms;
-	    -ms-transform: $transforms;
-	-webkit-transform: $transforms;
-          transform: $transforms;
+  transform: $transforms;
 }
 
 @mixin rotate($deg) {
@@ -72,11 +59,7 @@ $useIEFilters: 0;
 
 // Placeholder text
 @mixin placeholder($color: $input-color-placeholder) {
-    // Firefox
-    &::-moz-placeholder {
+    &::placeholder {
         color: $color;
-        opacity: 1; // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526
     }
-    &:-ms-input-placeholder { color: $color; } // Internet Explorer 10+
-    &::-webkit-input-placeholder  { color: $color; } // Safari and Chrome
 }

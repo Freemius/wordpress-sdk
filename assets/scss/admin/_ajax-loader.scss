@@ -20,7 +20,7 @@ $size: 20;
         animation-duration: 1.5s;
         animation-iteration-count: infinite;
         animation-direction: normal;
-        @include transform(.3);
+        @include transform(scale(.3));
     }
 
     @for $i from 0 through 7
