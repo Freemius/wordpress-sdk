@@ -7407,6 +7407,11 @@
                     $this->apply_filters( 'deactivate_on_activation', true )
                 ) {
                     deactivate_plugins( $other_version_basename );
+                } else if ( $is_premium_version_activation ) {
+                    /**
+                     * To prevent the free version from loading before the premium version when both are active, remove the SDK reference associated with the free version if it's the newest.
+                     */
+                    $this->remove_sdk_reference( $other_version_basename );
                 }
             }
 
@@ -8198,20 +8203,35 @@
         }
 
         /**
+         * @since 1.1.6
+         * @since 1.7.4 The $plugin_basename parameter was added by Leo Fajardo (@leorw).
+         *
          * @author Vova Feldman (@svovaf)
-         * @since  1.1.6
+         * @author Leo Fajardo (@leorw)
+         *
+         * @param string|null $plugin_basename
          */
-        private function remove_sdk_reference() {
+        private function remove_sdk_reference( $plugin_basename = null ) {
             global $fs_active_plugins;
 
+            if ( is_null( $plugin_basename ) ) {
+                $plugin_basename = $this->_plugin_basename;
+            }
+
             foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
-                if ( $this->_plugin_basename == $data->plugin_path ) {
+                if ( $plugin_basename == $data->plugin_path ) {
                     unset( $fs_active_plugins->plugins[ $sdk_path ] );
                     break;
                 }
             }
 
-            fs_fallback_to_newest_active_sdk();
+            if (
+                ! empty( $fs_active_plugins->newest ) &&
+                ! empty( $fs_active_plugins->newest->plugin_path ) &&
+                $fs_active_plugins->newest->plugin_path === $plugin_basename
+            ) {
+                fs_fallback_to_newest_active_sdk();
+            }
         }
 
         /**
