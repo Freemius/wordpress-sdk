@@ -416,3 +416,24 @@
             }
         }
     }
+
+    if ( ! function_exists( 'fs_remove_sdk_reference_by_basename' ) ) {
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.8.0
+         *
+         * @param string $plugin_basename
+         */
+        function fs_remove_sdk_reference_by_basename( $plugin_basename ) {
+            global $fs_active_plugins;
+
+            foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
+                if ( $plugin_basename == $data->plugin_path ) {
+                    unset( $fs_active_plugins->plugins[ $sdk_path ] );
+                    break;
+                }
+            }
+
+            fs_fallback_to_newest_active_sdk();
+        }
+    }
