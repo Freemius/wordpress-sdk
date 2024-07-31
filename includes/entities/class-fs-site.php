@@ -182,6 +182,7 @@
                 fs_ends_with( $subdomain, '.staging.wpengine.com' ) ||
                 fs_ends_with( $subdomain, '.dev.wpengine.com' ) ||
                 fs_ends_with( $subdomain, '.wpengine.com' ) ||
+                fs_ends_with( $subdomain, '.wpenginepowered.com' ) ||
                 // Pantheon
                 ( fs_ends_with( $subdomain, 'pantheonsite.io' ) &&
                   ( fs_starts_with( $subdomain, 'test-' ) || fs_starts_with( $subdomain, 'dev-' ) ) ) ||
