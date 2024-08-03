@@ -703,11 +703,15 @@
                 $menu['parent_slug'] :
                 'admin.php';
 
+            $parent_query = isset( $menu['menu'][2]) ?
+				( false === strpos( $parent_slug, '?' ) ? '?' : '&' ) .
+				'page=' .
+				$menu['menu'][2]:
+				'';
+
             return admin_url(
                 $parent_slug .
-                ( false === strpos( $parent_slug, '?' ) ? '?' : '&' ) .
-                'page=' .
-                $menu['menu'][2]
+                $parent_query
             );
 		}
 
