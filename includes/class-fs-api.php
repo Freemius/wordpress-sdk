@@ -355,7 +355,13 @@
 					}
 				}
 
-				self::$_cache->set( $cache_key, $result, $expiration );
+                // Do not cache the latest.json request.
+                if (preg_match('/\/latest\.json$/', $cache_key)) {
+                    $this->_logger->log('Skipping cache for key: ' . $cache_key);
+                } else
+                {
+				    self::$_cache->set( $cache_key, $result, $expiration );
+                }
 
 				$cached_result = $result;
 			} else {
