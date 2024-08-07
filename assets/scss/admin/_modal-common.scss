@@ -124,9 +124,9 @@
             top: 12px;
             cursor: pointer;
             color: #bbb;
-            @include border-radius(20px);
+            border-radius: 20px;
             padding: 3px;
-            @include transition(all 0.2s ease-in-out);
+            transition: all 0.2s ease-in-out;
 
             &:hover {
                 color: #fff;
