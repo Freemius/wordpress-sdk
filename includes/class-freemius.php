@@ -1564,8 +1564,8 @@
             );
             $this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
-            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) ); // @phpstan-ignore-line
-            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) ); // @phpstan-ignore-line
+            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
             add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
@@ -2738,7 +2738,7 @@
 
             $this->check_ajax_referer( 'cancel_subscription_or_trial' );
 
-            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ), false );
+            $result = $this->cancel_subscription_or_trial( fs_request_get( 'plugin_id', $this->get_id() ) );
 
             if ( $this->is_api_error( $result ) ) {
                 $this->shoot_ajax_failure( $result->error->message );
@@ -5953,9 +5953,6 @@
         private function get_cron_data( $name ) {
             $this->_logger->entrance( $name );
 
-            /**
-             * @var object $cron_data
-             */
             return $this->_storage->get( "{$name}_cron", null );
         }
 
@@ -8176,7 +8173,7 @@
                     unset( $this->_storage->sticky_optin_added_ms );
                 }
 
-                if ( ! empty( $storage_keys_for_removal ) ) {
+                if ( count( $storage_keys_for_removal ) > 0 ) {
                     $sites = self::get_sites();
 
                     foreach ( $sites as $site ) {
@@ -8586,7 +8583,6 @@
          * @since  2.0.0
          *
          * @param int|null $blog_id
-         * @param bool     $send_skip
          */
         private function skip_site_connection( $blog_id = null ) {
             $this->_logger->entrance();
@@ -8620,7 +8616,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param array [string]array $plugins
+         * @param array<string, array> $plugins
          *
          * @return string
          */
@@ -9035,7 +9031,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string           $override
+         * @param string[] $override
          * @param bool     $only_diff
          * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
@@ -9222,7 +9218,7 @@
          *
          * @param array    $site
          * @param FS_Site  $install
-         * @param string[] string $override
+         * @param string[] $override
          *
          * @return array
          */
@@ -9344,7 +9340,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9417,7 +9413,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9504,7 +9500,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         function sync_install( $override = array(), $flush = false ) {
@@ -9533,7 +9529,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         private function sync_installs( $override = array(), $flush = false ) {
@@ -13746,7 +13742,7 @@
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
                     }
 
-                    if ( true === $result && ! empty( $site_ids ) ) {
+                    if ( true === $result && ! empty( $site_ids ) > 0 ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
                     }
                 } else {
@@ -13965,6 +13961,7 @@
                 )
             );
 
+            $installed_addons_ids_map = array_flip( $installed_addons_ids );
             foreach ( $addons_ids as $addon_id ) {
                 $is_installed = isset( $installed_addons_ids_map[ $addon_id ] );
 
@@ -14000,7 +13997,8 @@
                 $this :
                 $this->get_addon_instance( $plugin_id );
 
-            $error = false;
+            $error     = false;
+            $next_page = '';
 
             $sites = fs_request_get( 'sites', array(), 'post' );
             if ( is_array( $sites ) && ! empty( $sites ) ) {
@@ -14016,10 +14014,7 @@
 
                 $total_sites             = count( $sites );
                 $total_sites_to_delegate = count( $sites_by_action['delegate'] );
-
-                $next_page = '';
-
-                $has_any_install = fs_request_get_bool( 'has_any_install' );
+                $has_any_install         = fs_request_get_bool( 'has_any_install' );
 
                 if ( $total_sites === $total_sites_to_delegate &&
                     ! $this->is_network_upgrade_mode() &&
@@ -19576,7 +19571,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.6
          *
-         * @param string[] string $key_value
+         * @param string[] $key_value
          *
          * @uses   fs_override_i18n()
          */
@@ -19603,7 +19598,7 @@
                 $site = $this->_site;
             }
 
-            if ( !isset( $site ) || !is_object($site) || empty( $site->id ) ) {
+            if ( ! is_object( $site ) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
@@ -22516,8 +22511,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number              $user_id
-         * @param array[string]number $install_ids_by_slug_map
+         * @param number         $user_id
+         * @param string[]|int[] $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {
@@ -25703,9 +25698,6 @@
                 return;
             }
 
-            /**
-             * @var $current_wp_user WP_User
-             */
             $current_wp_user = self::_get_current_wp_user();
 
             /**

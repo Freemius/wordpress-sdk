@@ -229,7 +229,7 @@
                         false
                     );
 
-                    if ( ! empty( $addon_plugin_data ) ) {
+                    if ( ! empty( $addon_plugin_data['Version'] ) ) {
                         $current_addon_version = $addon_plugin_data['Version'];
                     }
                 }

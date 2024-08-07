@@ -323,13 +323,13 @@
                                     $downgrade_confirmation_message    = sprintf(
                                         $downgrade_x_confirm_text,
                                         ( $fs->is_only_premium() ? $cancelling_subscription_text : $downgrading_plan_text ),
-                                        $plan->title,
+                                        $plan_title,
                                         $human_readable_license_expiration
                                     );
 
                                     $after_downgrade_message = ! $license->is_block_features ?
-                                        sprintf( $after_downgrade_non_blocking_text, $plan->title, $fs->get_module_label( true ) ) :
-                                        sprintf( $after_downgrade_blocking_text, $plan->title );
+                                        sprintf( $after_downgrade_non_blocking_text, $plan_title, $fs->get_module_label( true ) ) :
+                                        sprintf( $after_downgrade_blocking_text, $plan_title );
                                 ?>
                                     <?php $action = 'downgrade_account' ?>
                                     <form id="fs_downgrade" action="<?php echo $fs->_get_admin_page_url( 'account' ) ?>" method="POST">

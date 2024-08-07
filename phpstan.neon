@@ -1,5 +1,5 @@
 parameters:
-    level: 0
+    level: 2
     paths:
         - config.php
         - start.php
@@ -10,5 +10,38 @@ parameters:
         - .phpstan/exceptions.php
     ignoreErrors:
         -
-            message: '#will always evaluate to true#'
+            messages:
+                - '#PHPDoc tag @use has invalid value#'
+                - '#PHPDoc tag @var above a method has no effect.#'
+                - '#Action callback returns bool but should not return anything.#'
+                - '#Variable \$site_ids in empty\(\) always exists and is always falsy.#'
+                - '#Variable \$new_user_licenses_map in empty\(\) always exists and is not falsy.#'
+                - '#Cannot access property \$installs#'
+            path: includes/class-freemius.php
+        -
+            message: '#Access to an undefined property#'
+            paths:
+                - start.php
+                - templates/debug.php
+                - templates/add-ons.php
+                - templates/plugin-info/features.php
+                - includes/class-freemius.php
+                - includes/fs-plugin-info-dialog.php
+                - includes/fs-essential-functions.php
+                - includes/class-fs-plugin-updater.php
+                - includes/managers/class-fs-cache-manager.php
+        -
+            message: '#Call to an undefined method object::has_trial\(\)#'
+            path: includes/fs-plugin-info-dialog.php
+        -
+            message: '#PHPDoc tag @var has invalid value#'
+            path: includes/managers/class-fs-plugin-manager.php
+        -
+            messages:
+                - '#Variable \$transient_data in empty\(\) always exists and is not falsy.#'
+                - '#will always evaluate to true#'
             path: includes/class-fs-plugin-updater.php
+        -
+            message: '#Variable \$VARS might not be defined#'
+            paths:
+              - templates/*

@@ -1389,8 +1389,8 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.6
          *
-         * @param array[string]string $key_value
-         * @param string              $slug
+         * @param array<string, string> $key_value
+         * @param string                $slug
          *
          * @global $fs_text_overrides
          */
