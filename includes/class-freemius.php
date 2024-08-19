@@ -9737,6 +9737,13 @@
                 $plugin_dir . $basename,
                 array( &$this, '_activate_plugin_event_hook' )
             );
+
+            // If the instance was created with a free version, yet now it's premium, we need to update the plugin object.
+            if ( $is_premium && ! $this->is_premium() && is_object( $this->_plugin ) ) {
+                $this->_plugin->update( array(
+                    'is_premium' => true,
+                ) );
+            }
         }
 
         /**
