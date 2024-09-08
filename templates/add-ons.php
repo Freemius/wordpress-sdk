@@ -142,12 +142,8 @@
 									}
 
 									$has_paid_plan = true;
-
-                                    if ( isset( $plan->trial_period ) ) {
-									    $has_trial = ( is_numeric( $plan->trial_period ) && ( $plan->trial_period > 0 ) );
-                                    }
-
-									$min_price = 999999;
+                                    $has_trial     = isset( $plan->trial_period ) && is_numeric( $plan->trial_period ) && $plan->trial_period > 0;
+									$min_price     = 999999;
 									foreach ( $plan->pricing as $pricing ) {
                                         $pricing = new FS_Pricing( $pricing );
 

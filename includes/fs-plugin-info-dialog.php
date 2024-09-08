@@ -201,7 +201,7 @@
                     )
                 ) );
 
-                if ( ! empty( $repo_data ) ) {
+                if ( ! is_object( $repo_data ) ) {
                     $data                 = $repo_data;
                     $data->wp_org_missing = false;
                 } else {
@@ -229,7 +229,7 @@
                         false
                     );
 
-                    if ( is_array( $addon_plugin_data ) && isset( $addon_plugin_data['Version'] ) ) {
+                    if ( ! empty( $addon_plugin_data['Version'] ) ) {
                         $current_addon_version = $addon_plugin_data['Version'];
                     }
                 }
@@ -493,12 +493,12 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.7
          *
-         * @param object         $api
-         * @param FS_Plugin_Plan $plan
+         * @param object              $api
+         * @param bool|FS_Plugin_Plan $plan
          *
          * @return string
          */
-        private function get_checkout_cta( $api, $plan = null ) {
+        private function get_checkout_cta( $api, $plan = false ) {
             if ( empty( $api->checkout_link ) ||
                  ! isset( $api->plans ) ||
                  ! is_array( $api->plans ) ||
@@ -527,7 +527,7 @@
                 $plan->plugin_id,
                 $plan->pricing[0]->id,
                 $this->get_billing_cycle( $plan ),
-                $plan->has_trial(), // @phpstan-ignore-line
+                $plan->has_trial(),
                 ( $has_valid_blog_id ? false : null )
             );
 
@@ -536,7 +536,7 @@
             }
 
             return '<a class="button button-primary fs-checkout-button right" href="' . $addon_checkout_url . '" target="_parent">' .
-                   esc_html( ! $plan->has_trial() ? // @phpstan-ignore-line
+                   esc_html( ! $plan->has_trial() ?
                        (
                            $api->has_purchased_license ?
                                fs_text_inline( 'Purchase More', 'purchase-more', $api->slug ) :

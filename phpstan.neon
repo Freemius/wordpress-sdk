@@ -8,25 +8,24 @@ parameters:
         - templates/
     bootstrapFiles:
         - .phpstan/exceptions.php
+    stubFiles:
+        - .phpstan/stubs/includes/fs-plugin-info-dialog.php
+        - .phpstan/stubs/includes/entities/class-fs-entity.php
     ignoreErrors:
         -
-            message: '#PHPDoc tag @var has invalid value#'
-            path: includes/managers/class-fs-plugin-manager.php
-        -
-            message: '#PHPDoc tag @use has invalid value#'
+            messages:
+                - '#Action callback returns bool but should not return anything.#'
             path: includes/class-freemius.php
-        -
-            message: '#PHPDoc tag @var above a method has no effect.#'
-            path: includes/class-freemius.php
-        -
-            message: '#Access to an undefined property#'
-            paths:
-                - includes/class-freemius.php
-                - includes/fs-plugin-info-dialog.php
-        -
-            message: '#will always evaluate to true#'
-            path: includes/class-fs-plugin-updater.php
         -
             message: '#Variable \$VARS might not be defined#'
             paths:
               - templates/*
+        -
+            message: '#Access to an undefined property object#'
+            paths:
+              - start.php
+              - includes/class-freemius.php
+              - includes/fs-plugin-info-dialog.php
+              - includes/fs-essential-functions.php
+              - includes/class-fs-plugin-updater.php
+              - includes/managers/class-fs-cache-manager.php
