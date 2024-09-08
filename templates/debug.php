@@ -359,21 +359,18 @@
                     $has_api_connectivity = false;
 
                     if ( $is_active ) {
-                        $fs                   = freemius( $data->id );
-                        $has_api_connectivity = $fs->has_api_connectivity();
-
+                        $fs                                = freemius( $data->id );
                         $active_modules_by_id[ $data->id ] = true;
                     }
                 ?>
-                <tr <?php
-                    if ( $is_active ) {
+                <tr<?php if ( $is_active ) {
+                        $has_api_connectivity = $fs->has_api_connectivity();
                         if ( true === $has_api_connectivity && $fs->is_on() ) {
-                            echo 'style="background: #E6FFE6; font-weight: bold"';
+                            echo ' style="background: #E6FFE6; font-weight: bold"';
                         } else {
-                            echo 'style="background: #ffd0d0; font-weight: bold"';
+                            echo ' style="background: #ffd0d0; font-weight: bold"';
                         }
-                    }
-                    ?>>
+                    } ?>>
                     <td><?php echo $data->id ?></td>
                     <td><?php echo $slug ?></td>
                     <td><?php echo $data->version ?></td>

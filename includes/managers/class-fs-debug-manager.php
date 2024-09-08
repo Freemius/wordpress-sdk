@@ -10,6 +10,11 @@
     class FS_DebugManager {
 
         /**
+         * @var mixed
+         */
+        private static $_accounts;
+
+        /**
          * @author Vova Feldman (@svovaf)
          *  Moved from Freemius
          *

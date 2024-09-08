@@ -996,7 +996,7 @@
 
             if ( isset( $install->plan ) && is_object( $install->plan ) ) {
                 if ( isset( $install->plan->id ) && ! empty( $install->plan->id ) ) {
-                    $install->plan_id = self::_decrypt( $install->plan->id ); // @phpstan-ignore-line
+                    $install->plan_id = self::_decrypt( $install->plan->id );
                 }
 
                 unset( $install->plan );
@@ -1571,8 +1571,8 @@
             );
             $this->add_filter( 'after_code_type_change', array( &$this, '_after_code_type_change' ) );
 
-            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) ); // @phpstan-ignore-line
-            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) ); // @phpstan-ignore-line
+            add_action( 'admin_init', array( &$this, '_add_trial_notice' ) );
+            add_action( 'admin_init', array( &$this, '_add_affiliate_program_notice' ) );
             add_action( 'admin_enqueue_scripts', array( &$this, '_enqueue_common_css' ) );
 
             /**
@@ -1872,7 +1872,8 @@
          */
         private function clear_module_main_file_cache( $store_prev_path = true ) {
             if ( ! isset( $this->_storage->plugin_main_file ) ||
-                empty( $this->_storage->plugin_main_file->path )
+                 ! is_object( $this->_storage->plugin_main_file ) ||
+                 empty( $this->_storage->plugin_main_file->path )
             ) {
                 return;
             }
@@ -1891,7 +1892,7 @@
                 $plugin_main_file = clone $this->_storage->plugin_main_file;
 
                 // Store cached path (2nd layer cache).
-                $plugin_main_file->prev_path = $plugin_main_file->path; // @phpstan-ignore-line
+                $plugin_main_file->prev_path = $plugin_main_file->path;
 
                 // Clear cached path.
                 unset( $plugin_main_file->path );
@@ -7685,8 +7686,7 @@
                     }
                 }
 
-                // @phpstan-ignore-next-line
-                if ( ! empty( $site_ids ) ) {
+                if ( 0 < count( $site_ids ) ) {
                     $this->activate_license_on_many_sites( $user, $license->secret_key, $site_ids );
                 }
             }
@@ -8624,7 +8624,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] $plugins
+         * @param array<string, array> $plugins
          *
          * @return string
          */
@@ -9425,7 +9425,7 @@
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
-         * @return false|object|string
+         * @return object
          */
         private function send_installs_update( $override = array(), $flush = false, $is_two_way_sync = false ) {
             $this->_logger->entrance();
@@ -9441,7 +9441,7 @@
             $installs_data = $this->get_installs_data_for_api( $override, ! $flush, $should_send_keepalive );
 
             if ( empty( $installs_data ) ) {
-                return false;
+                return;
             }
 
             if ( $is_two_way_sync ) {
@@ -9544,12 +9544,6 @@
             $this->_logger->entrance();
 
             $result = $this->send_installs_update( $override, $flush, true );
-
-            if ( false === $result ) {
-                // No sync required.
-                return;
-            }
-
             if ( ! $this->is_api_result_object( $result, 'installs' ) ) {
                 // Failed to sync, don't update locally.
                 return;
@@ -9672,7 +9666,7 @@
 
             $params           = array();
             $uninstall_reason = null;
-            if ( isset( $this->_storage->uninstall_reason ) ) {
+            if ( isset( $this->_storage->uninstall_reason ) && is_object( $this->_storage->uninstall_reason ) ) {
                 $uninstall_reason      = $this->_storage->uninstall_reason;
                 $params['reason_id']   = $uninstall_reason->id;
                 $params['reason_info'] = $uninstall_reason->info;
@@ -9680,8 +9674,8 @@
 
             if ( ! $this->is_registered() ) {
                 // Send anonymous uninstall event only if user submitted a feedback.
-                if ( isset( $uninstall_reason ) ) {
-                    if ( isset( $uninstall_reason->is_anonymous ) && ! $uninstall_reason->is_anonymous ) {
+                if ( $uninstall_reason !== null ) {
+                    if ( ! empty( $uninstall_reason->is_anonymous ) ) {
                         $this->opt_in( false, false, false, false, true );
                     } else {
                         $params['uid'] = $this->get_anonymous_id();
@@ -13559,13 +13553,11 @@
          * @param array       $sites
          * @param int         $blog_id
          *
-         * @return array {
-         *      @var bool   $success
-         *      @var string $error
-         *      @var string $next_page
-         * }
+         * @return array
          *
-         * @uses Freemius::activate_license()
+         * @property bool   $success
+         * @property string $error
+         * @property string $next_page
          */
         function activate_migrated_license(
             $license_key,
@@ -13662,11 +13654,11 @@
          * @param bool|null   $is_diagnostic_tracking_allowed Since 2.5.0.2 to allow license activation with minimal data footprint.
          *
          *
-         * @return array {
-         *      @var bool   $success
-         *      @var string $error
-         *      @var string $next_page
-         * }
+         * @return array
+         *
+         * @property bool   $success
+         * @property string $error
+         * @property string $next_page
          */
         private function activate_license(
             $license_key,
@@ -13754,7 +13746,7 @@
                         $result = $fs->activate_license_on_many_installs( $user, $license_key, $blog_2_install_map );
                     }
 
-                    if ( true === $result && count( $site_ids ) > 0 ) {
+                    if ( true === $result && ! count( $site_ids ) > 0 ) {
                         $result = $fs->activate_license_on_many_sites( $user, $license_key, $site_ids );
                     }
                 } else {
@@ -16375,6 +16367,11 @@
             return $fn( $str );
         }
 
+        /**
+         * @param $str
+         *
+         * @return mixed|null
+         */
         static function _decrypt( $str ) {
             if ( is_null( $str ) ) {
                 return null;
@@ -16976,7 +16973,6 @@
          * @param bool        $redirect
          *
          * @return string|object
-         * @use    WP_Error
          */
         function opt_in(
             $email = false,
@@ -17150,7 +17146,7 @@
                 json_decode( $response['body'] ) :
                 null;
 
-            if ( empty( $decoded ) ) {
+            if ( empty( $decoded ) && ! is_object( $decoded ) ) {
                 return false;
             }
 
@@ -19638,7 +19634,7 @@
                 $site = $this->_site;
             }
 
-            if ( !is_object($site) || empty( $site->id ) ) {
+            if ( ! is_object( $site ) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
 
                 return;
@@ -19772,10 +19768,8 @@
                     }
                 }
 
-                if ( count( $new_user_licenses_map ) > 0 ) {
-                    // Add new licenses.
-                    $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
-                }
+                // Add new licenses.
+                $all_licenses[ $module_id ] = array_merge( array_values( $new_user_licenses_map ), $all_licenses[ $module_id ] );
 
                 $licenses = $all_licenses[ $module_id ];
             }
@@ -21018,14 +21012,16 @@
 
                     // Find the current context install.
                     $site = null;
-                    foreach ( $result->installs as $install ) {
-                        if ( $install->id == $this->_site->id ) {
-                            $site = new FS_Site( $install );
-                        } else {
-                            $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
-                            $blog_id = $address_to_blog_map[ $address ];
+                    if ( is_array( $result ) ) {
+                        foreach ( $result->installs as $install ) {
+                            if ( $install->id == $this->_site->id ) {
+                                $site = new FS_Site( $install );
+                            } else {
+                                $address = trailingslashit( fs_strip_url_protocol( $install->url ) );
+                                $blog_id = $address_to_blog_map[ $address ];
 
-                            $this->_store_site( true, $blog_id, new FS_Site( $install ) );
+                                $this->_store_site( true, $blog_id, new FS_Site( $install ) );
+                            }
                         }
                     }
                 }
@@ -22441,6 +22437,23 @@
             ) );
 
             return ! $this->is_api_error( $result );
+        }
+
+        /**
+         * Retrieves all module sites.
+         *
+         * @return array $all_sites Get all module sites.
+         */
+        public static function get_all_modules_sites() {
+            $all_sites = [];
+
+            foreach ( self::$_instances as $instance ) {
+                if ( method_exists( $instance, 'get_sites' ) ) {
+                    $all_sites = array_merge( $all_sites, $instance->get_sites() );
+                }
+            }
+
+            return $all_sites;
         }
 
         /**

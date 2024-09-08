@@ -67,6 +67,10 @@
     $show_upgrade           = false;
     $is_whitelabeled        = $VARS['is_whitelabeled'];
 
+    $version    = '';
+    $plan_name  = '';
+    $plan_title = '';
+
     if ( is_object( $fs_addon ) ) {
         $is_paying                  = $fs_addon->is_paying();
         $user                       = $fs_addon->get_user();
@@ -158,11 +162,11 @@
         <!--/ ID -->
 
         <!-- Version -->
-        <td><?php echo $version; // @phpstan-ignore-line ?></td>
+        <td><?php echo $version; ?></td>
         <!--/ Version -->
 
         <!-- Plan Title -->
-        <td><?php echo strtoupper( is_string( $plan_name ) ? $plan_title : $free_text ); // @phpstan-ignore-line ?></td>
+        <td><?php echo strtoupper( is_string( $plan_name ) ? $plan_title : $free_text ); ?></td>
         <!--/ Plan Title -->
 
         <!-- Expiration -->

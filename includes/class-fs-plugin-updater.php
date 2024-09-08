@@ -534,10 +534,7 @@
                 return $transient_data;
             }
 
-            // @phpstan-ignore-next-line
-            if ( empty( $transient_data ) ||
-                 defined( 'WP_FS__UNINSTALL_MODE' )
-            ) {
+            if ( defined( 'WP_FS__UNINSTALL_MODE' ) ) {
                 return $transient_data;
             }
 
@@ -872,7 +869,7 @@
          * @param string $action
          * @param object $args
          *
-         * @return bool|mixed
+         * @return object The plugin information or false on failure.
          */
         static function _fetch_plugin_info_from_repository( $action, $args ) {
             $url = $http_url = 'http://api.wordpress.org/plugins/info/1.2/';
@@ -892,7 +889,7 @@
             $request = wp_remote_get( $url, array( 'timeout' => 15 ) );
 
             if ( is_wp_error( $request ) ) {
-                return false;
+                return;
             }
 
             $res = json_decode( wp_remote_retrieve_body( $request ), true );
@@ -903,7 +900,7 @@
             }
 
             if ( ! is_object( $res ) || isset( $res->error ) ) {
-                return false;
+                return;
             }
 
             return $res;
@@ -1094,7 +1091,7 @@
                         false
                     );
 
-                    if ( is_array( $addon_plugin_data ) && isset( $addon_plugin_data['Version'] ) ) {
+                    if ( ! empty( $addon_plugin_data['Version'] ) ) {
                         $addon_version = $addon_plugin_data['Version'];
                     }
                 }
@@ -1115,9 +1112,11 @@
 
                 // Fetch as much as possible info from local files.
                 $plugin_local_data = $this->_fs->get_plugin_data();
-                $data->name        = $plugin_local_data['Name']; // @phpstan-ignore-line
-                $data->author      = $plugin_local_data['Author']; // @phpstan-ignore-line
-                $data->sections    = array( 'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.' ); // @phpstan-ignore-line
+                $data->name        = $plugin_local_data['Name'];
+                $data->author      = $plugin_local_data['Author'];
+                $data->sections    = array(
+                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.'
+                );
 
                 // @todo Store extra plugin info on Freemius or parse readme.txt markup.
                 /*$info = $this->_fs->get_api_site_scope()->call('/information.json');
@@ -1141,18 +1140,18 @@ if ( !isset($info->error) ) {
                     $data->name    = $addon->title . ' ' . $this->_fs->get_text_inline( 'Add-On', 'addon' );
                     $data->slug    = $addon->slug;
                     $data->url     = WP_FS__ADDRESS;
-                    $data->package = $new_version->url; // @phpstan-ignore-line
+                    $data->package = $new_version->url;
                 }
 
                 if ( ! $plugin_in_repo ) {
-                    $data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created; // @phpstan-ignore-line
-                    $data->requires     = $new_version->requires_platform_version; // @phpstan-ignore-line
-                    $data->requires_php = $new_version->requires_programming_language_version; // @phpstan-ignore-line
-                    $data->tested       = $new_version->tested_up_to_version; // @phpstan-ignore-line
+                    $data->last_updated = ! is_null( $new_version->updated ) ? $new_version->updated : $new_version->created;
+                    $data->requires     = $new_version->requires_platform_version;
+                    $data->requires_php = $new_version->requires_programming_language_version;
+                    $data->tested       = $new_version->tested_up_to_version;
                 }
 
                 $data->version       = $new_version->version;
-                $data->download_link = $new_version->url; // @phpstan-ignore-line
+                $data->download_link = $new_version->url;
 
                 if ( isset( $new_version->readme ) && is_object( $new_version->readme ) ) {
                     $new_version_readme_data = $new_version->readme;
@@ -1442,7 +1441,6 @@ if ( !isset($info->error) ) {
 
                 // Pass through the error from WP_Filesystem if one was raised.
                 if ( $wp_filesystem instanceof WP_Filesystem_Base &&
-                     is_wp_error( $wp_filesystem->errors ) &&
                      $wp_filesystem->errors->get_error_code()
                 ) {
                     $error_message = $wp_filesystem->errors->get_error_message();
