@@ -78,9 +78,9 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.6
          *
-         * @param array       $data
-         * @param string      $action
-         * @param object|null $args
+         * @param object|array $data
+         * @param string       $action
+         * @param object|null  $args
          *
          * @return array|null
          */
@@ -188,6 +188,9 @@
 
             $latest = null;
 
+            /**
+             * @var stdClass $data
+             */
             if ( ! $has_paid_plan && $selected_addon->is_wp_org_compliant ) {
                 $repo_data = FS_Plugin_Updater::_fetch_plugin_info_from_repository(
                     'plugin_information', (object) array(
@@ -202,7 +205,6 @@
                 ) );
 
                 if ( ! is_object( $repo_data ) ) {
-                    $data                 = $repo_data;
                     $data->wp_org_missing = false;
                 } else {
                     // Couldn't find plugin on .org.
@@ -535,6 +537,9 @@
                 restore_current_blog();
             }
 
+            /**
+             * @var stdClass $api
+             */
             return '<a class="button button-primary fs-checkout-button right" href="' . $addon_checkout_url . '" target="_parent">' .
                    esc_html( ! $plan->has_trial() ?
                        (
@@ -763,6 +768,9 @@
 
             $download_latest_action = '';
 
+            /**
+             * @var stdClass $api
+             */
             if (
                 ! empty( $api->download_link ) &&
                 ( $can_download_free_version || $can_download_premium_version )
@@ -1092,6 +1100,7 @@
 
                             /**
                              * @var FS_Plugin_Plan $plan
+                             * @var stdClass $api
                              */
                             ?>
                             <?php $first_pricing = $plan->pricing[0] ?>
@@ -1310,6 +1319,11 @@
                 <div>
                     <h3><?php fs_echo_inline( 'Details', 'details', $api->slug ) ?></h3>
                     <ul>
+                        <?php
+                            /**
+                             * @var stdClass $api
+                             */
+                        ?>
                         <?php if ( ! empty( $api->version ) ) { ?>
                             <li>
                                 <strong><?php fs_esc_html_echo_x_inline( 'Version', 'product version', 'version', $api->slug ); ?>

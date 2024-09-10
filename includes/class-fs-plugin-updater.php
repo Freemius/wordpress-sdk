@@ -534,7 +534,8 @@
                 return $transient_data;
             }
 
-            if ( defined( 'WP_FS__UNINSTALL_MODE' ) ) {
+            // @phpstan-ignore-next-line
+            if ( empty( $transient_data ) || defined( 'WP_FS__UNINSTALL_MODE' ) ) {
                 return $transient_data;
             }
 
@@ -869,7 +870,7 @@
          * @param string $action
          * @param object $args
          *
-         * @return object The plugin information or false on failure.
+         * @return bool|object The plugin information or false on failure.
          */
         static function _fetch_plugin_info_from_repository( $action, $args ) {
             $url = $http_url = 'http://api.wordpress.org/plugins/info/1.2/';
@@ -889,7 +890,7 @@
             $request = wp_remote_get( $url, array( 'timeout' => 15 ) );
 
             if ( is_wp_error( $request ) ) {
-                return;
+                return false;
             }
 
             $res = json_decode( wp_remote_retrieve_body( $request ), true );
@@ -900,7 +901,7 @@
             }
 
             if ( ! is_object( $res ) || isset( $res->error ) ) {
-                return;
+                return false;
             }
 
             return $res;
@@ -1110,7 +1111,11 @@
             if ( ! $plugin_in_repo ) {
                 $data = $args;
 
-                // Fetch as much as possible info from local files.
+                /**
+                 * Fetch as much as possible info from local files.
+                 *
+                 * @var stdClass $data
+                 */
                 $plugin_local_data = $this->_fs->get_plugin_data();
                 $data->name        = $plugin_local_data['Name'];
                 $data->author      = $plugin_local_data['Author'];
@@ -1130,7 +1135,12 @@ if ( !isset($info->error) ) {
                 $addon_version :
                 $this->_fs->get_plugin_version();
 
-            // Get plugin's newest update.
+            /**
+             * Get plugin's newest update.
+             *
+             * @var FS_Plugin_Tag $new_version
+             * @var object        $data
+             */
             $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
