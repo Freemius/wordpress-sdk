@@ -987,10 +987,13 @@
             $module_type = $storage->get_module_type();
             $module_slug = $storage->get_module_slug();
 
+            /**
+             * @var FS_Site[] $installs
+             */
             $installs = self::get_all_sites( $module_type, $blog_id );
             $install  = isset( $installs[ $module_slug ] ) ? $installs[ $module_slug ] : null;
 
-            if ( ! is_object( $install ) ) {
+            if ( is_null( $install ) ) {
                 return;
             }
 
@@ -1872,7 +1875,6 @@
          */
         private function clear_module_main_file_cache( $store_prev_path = true ) {
             if ( ! isset( $this->_storage->plugin_main_file ) ||
-                 ! is_object( $this->_storage->plugin_main_file ) ||
                  empty( $this->_storage->plugin_main_file->path )
             ) {
                 return;
@@ -1889,6 +1891,9 @@
                  */
                 unset( $this->_storage->plugin_main_file->path );
             } else {
+                /**
+                 * @var stdClass $plugin_main_file
+                 */
                 $plugin_main_file = clone $this->_storage->plugin_main_file;
 
                 // Store cached path (2nd layer cache).
@@ -17141,12 +17146,14 @@
              * @link   https://themes.trac.wordpress.org/ticket/46134#comment:9
              * @link   https://themes.trac.wordpress.org/ticket/46134#comment:12
              * @link   https://themes.trac.wordpress.org/ticket/46134#comment:14
+             *
+             * @var stdClass $decoded The decoded object is expected to be UserPlugin entity, but since we do not have this Entity in the SDK, we made this a StdClass
              */
             $decoded = is_string( $response['body'] ) ?
                 json_decode( $response['body'] ) :
                 null;
 
-            if ( empty( $decoded ) && ! is_object( $decoded ) ) {
+            if ( ! is_object( $decoded ) ) {
                 return false;
             }
 
@@ -19634,9 +19641,9 @@
                 $site = $this->_site;
             }
 
-            if ( ! is_object( $site ) || empty( $site->id ) ) {
+            // @phpstan-ignore-next-line Variable $site in isset() always exists and is not nullable
+            if ( !isset( $site ) || !is_object( $site ) || empty( $site->id ) ) {
                 $this->_logger->error( "Empty install ID, can't store site." );
-
                 return;
             }
 
@@ -20083,7 +20090,11 @@
 
             $api = $this->get_api_user_scope();
 
-            // Get user's information.
+            /**
+             * Get user's information.
+             *
+             * @var FS_User $user
+             */
             $user = $api->get( '/', true );
 
             if ( isset( $user->id ) ) {
@@ -21012,7 +21023,7 @@
 
                     // Find the current context install.
                     $site = null;
-                    if ( is_array( $result ) ) {
+                    if ( is_object( $result ) && is_array( $result->installs ) ) {
                         foreach ( $result->installs as $install ) {
                             if ( $install->id == $this->_site->id ) {
                                 $site = new FS_Site( $install );
@@ -22442,7 +22453,7 @@
         /**
          * Retrieves all module sites.
          *
-         * @return array $all_sites Get all module sites.
+         * @return array $all_sites
          */
         public static function get_all_modules_sites() {
             $all_sites = [];
@@ -22585,8 +22596,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number         $user_id
-         * @param string[]|int[] $install_ids_by_slug_map
+         * @param number             $user_id
+         * @param array<string, int> $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {

@@ -20,12 +20,3 @@ parameters:
             message: '#Variable \$VARS might not be defined#'
             paths:
               - templates/*
-        -
-            message: '#Access to an undefined property object#'
-            paths:
-              - start.php
-              - includes/class-freemius.php
-              - includes/fs-plugin-info-dialog.php
-              - includes/fs-essential-functions.php
-              - includes/class-fs-plugin-updater.php
-              - includes/managers/class-fs-cache-manager.php
