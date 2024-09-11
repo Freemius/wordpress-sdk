@@ -16,11 +16,11 @@ $size: 20;
         background-color: $color;
         width:            #{$size}px;
         height:           #{$size}px;
-        @include animation-name(bounce_ajaxLoader);
-        @include animation-duration(1.5s);
-        @include animation-iteration-count(infinite);
-        @include animation-direction(normal);
-        @include transform(.3);
+        animation-name: bounce_ajaxLoader;
+        animation-duration: 1.5s;
+        animation-iteration-count: infinite;
+        animation-direction: normal;
+        @include transform(scale(.3));
     }
 
     @for $i from 0 through 7
@@ -28,7 +28,7 @@ $size: 20;
         .fs-ajax-loader-bar-#{$i + 1}
         {
             left: #{$i*($size - 1)}px;
-            @include animation-delay(#{0.6 + $i*0.15}s);
+            animation-delay: #{0.6 + $i*0.15}s;
         }
     }
 }

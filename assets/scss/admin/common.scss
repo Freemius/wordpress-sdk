@@ -85,7 +85,7 @@ body.fs-loading {
         top:         100%;
         bottom:      auto;
         right:       auto;
-        @include border-radius(0 0 3px 3px);
+        border-radius: 0 0 3px 3px;
         left:        10px;
         font-size:   12px;
         font-weight: bold;
@@ -151,13 +151,13 @@ div.fs-notice
     background: rgb(235, 253, 235);
     padding:    10px 20px;
     color:      green;
-    z-index:    9999;
-    @include box-shadow(0 2px 2px rgba(6, 113, 6, 0.3));
-    @include opacity(0.95);
+    z-index:    9989; // 1 less than WordPress' #adminmenuwrap
+    box-shadow: 0 2px 2px rgba(6, 113, 6, 0.3);
+    opacity: 0.95;
 
     &:hover
     {
-        @include opacity(1);
+        opacity: 1;
     }
 
     a.fs-security-proof
