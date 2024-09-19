@@ -7402,11 +7402,12 @@
                  * @author Leo Fajardo (@leorw)
                  * @since  1.2.2
                  */
-                if (
-                    is_plugin_active( $other_version_basename ) &&
-                    $this->apply_filters( 'deactivate_on_activation', true )
-                ) {
-                    deactivate_plugins( $other_version_basename );
+                if ( is_plugin_active( $other_version_basename ) ) {
+                    if ( $this->apply_filters( 'deactivate_on_activation', true ) ) {
+                        deactivate_plugins( $other_version_basename );
+                    } else {
+                        add_action( 'activated_plugin', array( &$this, '_activated_plugin' ), 10, 2 );
+                    }
                 }
             }
 
@@ -7542,6 +7543,45 @@
              * @since  1.1.9
              */
             $this->_storage->was_plugin_loaded = true;
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.8.0
+         *
+         * @param string $plugin
+         * @param bool   $network_wide
+         */
+        function _activated_plugin( $plugin, $network_wide ) {
+            // We cannot rely on fs_remove_sdk_reference_by_basename() for reordering, as the latest SDK reference might be associated with a different product, leading to the reordering of that product instead of the intended one.
+            $this->move_free_plugin_to_end_of_active_plugins( $this->_free_plugin_basename );
+
+            if ( $plugin !== $this->_free_plugin_basename ) {
+                /**
+                 * To avoid placing the free version at the start of the active plugins option when the SDK is loaded from it, remove the SDK reference linked to the free version if it is the newest.
+                 */
+                fs_remove_sdk_reference_by_basename( $this->_free_plugin_basename );
+            }
+        }
+
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since 2.8.0
+         *
+         * @param string $plugin
+         */
+        private function move_free_plugin_to_end_of_active_plugins( $plugin ) {
+            $active_plugins = get_option( 'active_plugins' );
+
+            // Move the free version to the last position in the active plugins option.
+            if ( false !== ( $key = array_search( $plugin, $active_plugins ) ) ) {
+                unset( $active_plugins[ $key ] );
+
+                $active_plugins[] = $plugin;
+            }
+
+            // Update the active plugins option with the reordered plugins.
+            update_option( 'active_plugins', $active_plugins );
         }
 
         /**
@@ -8202,16 +8242,7 @@
          * @since  1.1.6
          */
         private function remove_sdk_reference() {
-            global $fs_active_plugins;
-
-            foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
-                if ( $this->_plugin_basename == $data->plugin_path ) {
-                    unset( $fs_active_plugins->plugins[ $sdk_path ] );
-                    break;
-                }
-            }
-
-            fs_fallback_to_newest_active_sdk();
+            fs_remove_sdk_reference_by_basename( $this->_plugin_basename );
         }
 
         /**
