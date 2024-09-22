@@ -41,6 +41,7 @@
 	wp_enqueue_script( 'json2' );
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
+	fs_enqueue_local_script( 'fs-form', 'jquery.form.js' );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
 	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
@@ -185,52 +186,6 @@
 	<div id="fs_checkout" class="wrap fs-section fs-full-size-wrapper">
 		<div id="fs_frame"></div>
 		<script type="text/javascript">
-			// http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
-			jQuery(function ($) {
-				$.extend({
-					form: function (url, data, method) {
-						if (method == null) method = 'POST';
-						if (data == null) data = {};
-
-						var form = $('<form>').attr({
-							method: method,
-							action: url
-						}).css({
-							display: 'none'
-						});
-
-						var addData = function (name, data) {
-							if ($.isArray(data)) {
-								for (var i = 0; i < data.length; i++) {
-									var value = data[i];
-									addData(name + '[]', value);
-								}
-							} else if (typeof data === 'object') {
-								for (var key in data) {
-									if (data.hasOwnProperty(key)) {
-										addData(name + '[' + key + ']', data[key]);
-									}
-								}
-							} else if (data != null) {
-								form.append($('<input>').attr({
-									type : 'hidden',
-									name : String(name),
-									value: String(data)
-								}));
-							}
-						};
-
-						for (var key in data) {
-							if (data.hasOwnProperty(key)) {
-								addData(key, data[key]);
-							}
-						}
-
-						return form.appendTo('body');
-					}
-				});
-			});
-
 			(function ($) {
 				$(function () {
 
