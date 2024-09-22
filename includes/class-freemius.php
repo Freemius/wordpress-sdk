@@ -22451,23 +22451,6 @@
         }
 
         /**
-         * Retrieves all module sites.
-         *
-         * @return array $all_sites
-         */
-        public static function get_all_modules_sites() {
-            $all_sites = [];
-
-            foreach ( self::$_instances as $instance ) {
-                if ( method_exists( $instance, 'get_sites' ) ) {
-                    $all_sites = array_merge( $all_sites, $instance->get_sites() );
-                }
-            }
-
-            return $all_sites;
-        }
-
-        /**
          * Handle install ownership change.
          *
          * @author Vova Feldman (@svovaf)
