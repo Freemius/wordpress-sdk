@@ -1,5 +1,13 @@
+@import "../start";
+@import "ajax-loader";
+
 @media screen and (max-width: 782px) {
     #wpbody-content {
         padding-bottom: 0 !important;
     }
+}
+
+.fs-checkout-process-redirect {
+    padding: 40px;
+    text-align: center;
 }

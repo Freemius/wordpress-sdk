@@ -41,7 +41,7 @@
 	wp_enqueue_script( 'json2' );
 	fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.js' );
 	fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
-	fs_enqueue_local_script( 'fs-form', 'jquery.form.js' );
+	fs_enqueue_local_script( 'fs-form', 'jquery.form.js', array( 'jquery' ) );
 	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
 
 	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
@@ -53,124 +53,25 @@
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
-	$timestamp = time();
-
-	$context_params = array(
-		'plugin_id'      => $fs->get_id(),
-		'public_key'     => $fs->get_public_key(),
-		'plugin_version' => $fs->get_plugin_version(),
-		'mode'           => 'dashboard',
-		'trial'          => fs_request_get_bool( 'trial' ),
-		'is_ms'          => ( fs_is_network_admin() && $fs->is_network_active() ),
-	);
-
-	$plan_id = fs_request_get( 'plan_id' );
-	if ( FS_Plugin_Plan::is_valid_id( $plan_id ) ) {
-		$context_params['plan_id'] = $plan_id;
-	}
-
-	$licenses = fs_request_get( 'licenses' );
-	if ( $licenses === strval( intval( $licenses ) ) && $licenses > 0 ) {
-		$context_params['licenses'] = $licenses;
-	}
+    $fs_checkout = FS_Checkout_Manager::instance();
 
 	$plugin_id = fs_request_get( 'plugin_id' );
 	if ( ! FS_Plugin::is_valid_id( $plugin_id ) ) {
 		$plugin_id = $fs->get_id();
 	}
 
-	if ( $plugin_id == $fs->get_id() ) {
-		$is_premium = $fs->is_premium();
+	$plan_id  = fs_request_get( 'plan_id' );
+	$licenses = fs_request_get( 'licenses' );
 
-        $bundle_id = $fs->get_bundle_id();
-        if ( ! is_null( $bundle_id ) ) {
-            $context_params['bundle_id'] = $bundle_id;
-        }
-    } else {
-		// Identify the module code version of the checkout context module.
-		if ( $fs->is_addon_activated( $plugin_id ) ) {
-			$fs_addon   = Freemius::get_instance_by_id( $plugin_id );
-			$is_premium = $fs_addon->is_premium();
-		} else {
-			// If add-on isn't activated assume the premium version isn't installed.
-			$is_premium = false;
-		}
-	}
-
-	// Get site context secure params.
-	if ( $fs->is_registered() ) {
-		$site = $fs->get_site();
-
-		if ( $plugin_id != $fs->get_id() ) {
-			if ( $fs->is_addon_activated( $plugin_id ) ) {
-                $fs_addon   = Freemius::get_instance_by_id( $plugin_id );
-                $addon_site = $fs_addon->get_site();
-                if ( is_object( $addon_site ) ) {
-                    $site = $addon_site;
-                }
-			}
-		}
-
-		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-			$site,
-			$timestamp,
-			'checkout'
-		) );
-	} else {
-		$current_user = Freemius::_get_current_wp_user();
-
-		// Add site and user info to the request, this information
-		// is NOT being stored unless the user complete the purchase
-		// and agrees to the TOS.
-		$context_params = array_merge( $context_params, array(
-			'user_firstname' => $current_user->user_firstname,
-			'user_lastname'  => $current_user->user_lastname,
-			'user_email'     => $current_user->user_email,
-			'home_url'       => home_url(),
-		) );
-
-		$fs_user = Freemius::_get_user_by_email( $current_user->user_email );
-
-		if ( is_object( $fs_user ) && $fs_user->is_verified() ) {
-			$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-				$fs_user,
-				$timestamp,
-				'checkout'
-			) );
-		}
-	}
-
-	if ( $fs->is_payments_sandbox() ) {
-		// Append plugin secure token for sandbox mode authentication.
-		$context_params['sandbox'] = FS_Security::instance()->get_secure_token(
-			$fs->get_plugin(),
-			$timestamp,
-			'checkout'
-		);
-
-		/**
-		 * @since 1.1.7.3 Add security timestamp for sandbox even for anonymous user.
-		 */
-		if ( empty( $context_params['s_ctx_ts'] ) ) {
-			$context_params['s_ctx_ts'] = $timestamp;
-		}
-	}
+    $query_params = $fs_checkout->get_query_params(
+        $fs,
+        $plugin_id,
+        $plan_id,
+        $licenses
+    );
 
 	$return_url = $fs->_get_sync_license_url( $plugin_id );
-
-	$can_user_install = (
-		( $fs->is_plugin() && current_user_can( 'install_plugins' ) ) ||
-		( $fs->is_theme() && current_user_can( 'install_themes' ) )
-	);
-
-	$query_params = array_merge( $context_params, $_GET, array(
-		// Current plugin version.
-		'plugin_version' => $fs->get_plugin_version(),
-		'sdk_version'    => WP_FS__SDK_VERSION,
-		'is_premium'     => $is_premium ? 'true' : 'false',
-		'can_install'    => $can_user_install ? 'true' : 'false',
-		'return_url'     => $return_url,
-	) );
+    $query_params['return_url'] = $return_url;
 
 	$xdebug_session = fs_request_get( 'XDEBUG_SESSION' );
 	if ( false !== $xdebug_session ) {
@@ -225,10 +126,7 @@
 							requestData.auto_install = true;
 
 						// Post data to activation URL.
-						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-							'fs_action' => $fs->get_unique_affix() . '_activate_new',
-							'plugin_id' => $plugin_id
-						) ), $fs->get_unique_affix() . '_activate_new' ) ?>', requestData).submit();
+						$.form('<?php echo $fs_checkout->get_install_url( $fs, $plugin_id ); ?>', requestData).submit();
 					});
 
 					FS.PostMessage.receiveOnce('pending_activation', function (data) {
@@ -240,12 +138,7 @@
 						if (true === data.auto_install)
 							requestData.auto_install = true;
 
-						$.form('<?php echo fs_nonce_url( $fs->_get_admin_page_url( 'account', array(
-							'fs_action'           => $fs->get_unique_affix() . '_activate_new',
-							'plugin_id'           => $plugin_id,
-							'pending_activation'  => true,
-                            'has_upgrade_context' => true,
-						) ), $fs->get_unique_affix() . '_activate_new' ) ?>', requestData).submit();
+						$.form('<?php echo $fs_checkout->get_pending_activation_url( $fs, $plugin_id ); ?>', requestData).submit();
 					});
 
 					FS.PostMessage.receiveOnce('get_context', function () {

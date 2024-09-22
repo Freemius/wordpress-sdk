@@ -1,5 +1,5 @@
 // http://stackoverflow.com/questions/4583703/jquery-post-request-not-ajax
-jQuery(function ($) {
+(function ($) {
     $.extend({
         form: function (url, data, method) {
             if (method == null) method = 'POST';
@@ -42,4 +42,4 @@ jQuery(function ($) {
             return form.appendTo('body');
         }
     });
-});
+})(jQuery);
