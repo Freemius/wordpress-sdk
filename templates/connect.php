@@ -324,6 +324,12 @@
                     );
                 ?>
                 <div id="fs_marketing_optin">
+                    <div id="fs_missing_user_notice" class="fs_on_missing_user">
+                        <span class="fs-message">
+                            <?php fs_echo_inline("A user has not yet been associated with the license, which is necessary to prevent unauthorized activation. To assign the license to your user, you agree to share your WP user's full name and email address.",
+                                'missing-user-notice') ?>
+                        </span>
+                    </div>
                     <span class="fs-message"><?php fs_echo_inline( "Please let us know if you'd like us to contact you for security & feature updates, educational content, and occasional offers:", 'contact-for-updates' ) ?></span>
                     <div class="fs-input-container">
                         <label>
@@ -369,7 +375,8 @@
 					<input type="hidden" name="is_extensions_tracking_allowed" value="1">
 					<input type="hidden" name="is_diagnostic_tracking_allowed" value="1">
 					<button class="button button-primary" tabindex="1"
-					        type="submit"><?php echo esc_html( $button_label ) ?></button>
+					        type="submit">
+                        <?php echo esc_html( $button_label ) ?></button>
 				</form>
 			<?php else : ?>
 				<form method="post" action="<?php echo WP_FS__ADDRESS ?>/action/service/user/install/">
@@ -382,7 +389,9 @@
 					<button class="button button-primary" tabindex="1"
 					        type="submit"<?php if ( $require_license_key ) {
 						echo ' disabled="disabled"';
-					} ?>><?php echo esc_html( $button_label ) ?></button>
+					} ?>>
+                        <span class="fs_on_missing_user"><?php echo esc_html( 'Agree and ' ) ?></span>
+                        <?php echo esc_html( $button_label ) ?></button>
 				</form>
 			<?php endif ?>
             <?php if ( $require_license_key ) : ?>
@@ -982,12 +991,25 @@
                             $primaryCta.focus();
                         }
                     },
+                    hideMissingUserElements = function () {
+                        $('.fs_on_missing_user').hide();
+                        $('input[name="user_firstname]').attr('disabled', 'disabled');
+                        $('input[name="user_lastname]').attr('disabled', 'disabled');
+                        $('input[name="user_email]').attr('disabled', 'disabled');
+                    },
+                    showMissingUserElements = function () {
+                        $('.fs_on_missing_user').show();
+                        $('input[name="user_firstname]').removeAttr('disabled');
+                        $('input[name="user_lastname]').removeAttr('disabled');
+                        $('input[name="user_email]').removeAttr('disabled');
+                    },
                     /**
                      * @author Leo Fajardo (@leorw)
                      * @since 2.1.0
                      */
                     fetchIsMarketingAllowedFlagAndToggleOptin = function () {
                         var licenseKey = $licenseKeyInput.val();
+                        hideMissingUserElements();
 
                         if (licenseKey.length < 32) {
                             $marketingOptin.hide();
@@ -1024,6 +1046,8 @@
 
                                     // Cache result.
                                     isMarketingAllowedByLicense[licenseKey] = result.is_marketing_allowed;
+                                } else if ("no_user_for_license" === result.error) {
+                                    showMissingUserElements();
                                 }
 
                                 afterMarketingFlagLoaded();
