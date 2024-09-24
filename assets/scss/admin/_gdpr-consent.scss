@@ -1,3 +1,8 @@
+.fs_on_missing_user
+{
+    display: none;
+}
+
 #fs_marketing_optin
 {
     display:     none;
@@ -5,6 +10,14 @@
     border:      1px solid #ccc;
     padding:     10px;
     line-height: 1.5em;
+
+    #fs_missing_user_notice
+    {
+        color: $fs-logo-magenta-color;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #ccc;
+    }
 
     .fs-message
     {
