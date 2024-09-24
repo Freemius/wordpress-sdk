@@ -355,13 +355,8 @@
 					}
 				}
 
-				// Do not cache the latest.json request.
-				$regex = '/\/updates\/latest\.json\?.*(&|^)readme=true(&|$)/';
-				if (preg_match($regex, $path)) {
-					$this->_logger->log('Skipping cache for key: ' . $cache_key);
-				} else {
+				if (is_numeric($expiration))
 					self::$_cache->set($cache_key, $result, $expiration);
-				}
 
 				$cached_result = $result;
 			} else {

@@ -21942,6 +21942,9 @@
         ) {
             $this->_logger->entrance();
 
+            if ($fetch_readme)
+                $expiration = null; // Don't cache if readme is present.
+
             if ( $this->is_unresolved_clone( true ) ) {
                 return false;
             }
