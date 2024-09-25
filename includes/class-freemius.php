@@ -21942,9 +21942,6 @@
         ) {
             $this->_logger->entrance();
 
-            if ($fetch_readme)
-                $expiration = null; // Don't cache if readme is present.
-
             if ( $this->is_unresolved_clone( true ) ) {
                 return false;
             }
@@ -22009,6 +22006,9 @@
 
             if ( true === $fetch_readme ) {
                 $latest_version_endpoint = add_query_arg( 'readme', 'true', $latest_version_endpoint );
+
+                // Don't cache the API response when fetching readme information.
+                $expiration = null;
             }
 
             $tag = $this->get_api_site_or_plugin_scope()->get(
