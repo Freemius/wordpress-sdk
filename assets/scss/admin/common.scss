@@ -48,6 +48,18 @@ body.fs-loading {
     {
         margin:  .5em 0;
         padding: 2px;
+
+        .fs-container-flex
+        {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+
+            & > div
+            {
+                margin: 5px 10px;
+            }
+        }
     }
 
     .fs-close

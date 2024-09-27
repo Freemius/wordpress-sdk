@@ -23855,13 +23855,13 @@
 
             // Start trial button.
             $button = ' ' . sprintf(
-                    '<a style="margin-left: 10px; vertical-align: super;" href="%s"><button class="button button-primary">%s &nbsp;&#10140;</button></a>',
+                    '<div><a class="button button-primary" href="%s">%s &#10140;</a></div>',
                     $trial_url,
                     $this->get_text_x_inline( 'Start free trial', 'call to action', 'start-free-trial' )
                 );
 
             $this->_admin_notices->add_sticky(
-                $this->apply_filters( 'trial_promotion_message', "{$message} {$cc_string} {$button}" ),
+                $this->apply_filters( 'trial_promotion_message', "<div class=\"fs-container-flex\"><div>{$message} {$cc_string}</div> {$button}</div>" ),
                 'trial_promotion',
                 '',
                 'promotion'
