@@ -1380,16 +1380,35 @@
         }
 
         /**
-         * Opens the support forum subemenu item in a new browser page.
+         * Modifies all external links in the submenu by altering their href, and also opens them in new tab if needed.
          *
          * @author Vova Feldman (@svovaf)
+         * @author Swashata Ghosh (@swashata)
          * @since  2.1.4
          */
-        static function _open_support_forum_in_new_page() {
+        static function _handle_submenu_external_link() {
             ?>
             <script type="text/javascript">
                 (function ($) {
-                    $('.fs-submenu-item.wp-support-forum').parent().attr( { target: '_blank', rel: 'noopener noreferrer' } );
+                    $('.fs-submenu-item').each(function () {
+                        var $this = $(this),
+                            $parent = $this.parent(),
+                            externalLink = $this.data('fs-external-url'),
+                            isOpensInNewTab = $this.data('fs-new-tab');
+
+                        if (externalLink) {
+                            $parent.attr('href', externalLink);
+                        }
+
+                        if (isOpensInNewTab) {
+                            $parent.attr({target: '_blank', rel: 'noopener noreferrer'});
+
+                            // Append a dashbicon to indicate that the link will open in a new tab.
+                            $parent.css('clear', 'both');
+                            $parent.addClass('fs-submenu-item-parent--external');
+                            $parent.prepend('<span style="float: right; height: 18px; width: 18px; font-size: 18px;" class="dashicons dashicons-external"></span>');
+                        }
+                    });
                 })(jQuery);
             </script>
             <?php
@@ -3429,7 +3448,7 @@
             $clone_manager = FS_Clone_Manager::instance();
             add_action( 'init', array( $clone_manager, '_init' ) );
 
-            add_action( 'admin_footer', array( 'Freemius', '_open_support_forum_in_new_page' ) );
+            add_action( 'admin_footer', array( 'Freemius', '_handle_submenu_external_link' ) );
 
             if ( self::is_plugins_page() || self::is_themes_page() ) {
                 add_action( 'admin_print_footer_scripts', array( 'Freemius', '_maybe_add_beta_label_styles' ), 9 );
@@ -18766,16 +18785,29 @@
             if ( $add_submenu_items ) {
                 if (! WP_FS__DEMO_MODE && ! $this->is_whitelabeled() ) {
                     // Add contact page.
-                    $this->add_submenu_item(
-                        $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                        array( &$this, '_contact_page_render' ),
-                        $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
-                        'manage_options',
-                        'contact',
-                        'Freemius::_clean_admin_content_section',
-                        WP_FS__DEFAULT_PRIORITY,
-                        $this->is_submenu_item_visible( 'contact' )
-                    );
+                    if ( $this->is_premium() ) {
+                        $this->add_submenu_item(
+                            $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                            array( &$this, '_contact_page_render' ),
+                            $this->get_plugin_name() . ' &ndash; ' . $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                            'manage_options',
+                            'contact',
+                            'Freemius::_clean_admin_content_section',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'contact' )
+                        );
+                    } else {
+                        $this->add_submenu_link_item(
+                            $this->get_text_inline( 'Contact Us', 'contact-us' ),
+                            FS_Contact_Form_Manager::instance()->get_standalone_link( $this ),
+                            'contact',
+                            'manage_options',
+                            WP_FS__DEFAULT_PRIORITY,
+                            $this->is_submenu_item_visible( 'contact' ),
+                            'fs_external_contact',
+                            true
+                        );
+                    }
                 }
 
                 if ( $this->has_addons() ) {
@@ -18877,9 +18909,9 @@
          * @since  1.1.4
          */
         private function embed_submenu_items() {
-            $item_template = $this->_menu->is_top_level() ?
-                '<span class="fs-submenu-item %s %s %s">%s</span>' :
-                '<span class="fs-submenu-item fs-sub %s %s %s">%s</span>';
+            $item_classes = $this->_menu->is_top_level() ? 'fs-submenu-item' : 'fs-submenu-item fs-sub';
+
+            $item_template = '<span class="' . $item_classes . ' %1$s %2$s %3$s" data-fs-external-url="%5$s" data-fs-new-tab="%6$s">%4$s</span>';
 
             $top_level_menu_capability = $this->get_top_level_menu_capability();
 
@@ -18896,7 +18928,9 @@
                         $this->get_unique_affix(),
                         $item['menu_slug'],
                         ! empty( $item['class'] ) ? $item['class'] : '',
-                        $item['menu_title']
+                        $item['menu_title'],
+                        esc_attr( isset( $item['url'] ) ? $item['url'] : '' ),
+                        esc_attr( isset( $item['new_tab'] ) ? 'true' : 'false' )
                     );
 
                     $top_level_menu_slug = $this->get_top_level_menu_slug();
@@ -19052,7 +19086,9 @@
                     'wp-support-forum',
                     null,
                     50,
-                    $this->is_submenu_item_visible( 'support' )
+                    $this->is_submenu_item_visible( 'support' ),
+                    '',
+                    true
                 );
             }
         }
@@ -19131,6 +19167,7 @@
          * @param int    $priority
          * @param bool   $show_submenu
          * @param string $class
+         * @param bool   $new_tab
          */
         function add_submenu_link_item(
             $menu_title,
@@ -19139,7 +19176,8 @@
             $capability = 'read',
             $priority = WP_FS__DEFAULT_PRIORITY,
             $show_submenu = true,
-            $class = ''
+            $class = '',
+            $new_tab = false
         ) {
             $this->_logger->entrance( 'Title = ' . $menu_title . '; Url = ' . $url );
 
@@ -19154,7 +19192,8 @@
                         $capability,
                         $priority,
                         $show_submenu,
-                        $class
+                        $class,
+                        $new_tab
                     );
 
                     return;
@@ -19175,6 +19214,7 @@
                 'before_render_function' => '',
                 'show_submenu'           => $show_submenu,
                 'class'                  => $class,
+                'new_tab'                => $new_tab,
             );
         }
 

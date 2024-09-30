@@ -25,6 +25,11 @@
 	 *  before we move forward. For the record, I got the final approval from
 	 *  Ulrich Pogson (@grapplerulrich), a team lead at the TRT during WordCamp
 	 *  Europe 2017 (June 16th, 2017).
+     *
+     * UPDATE:
+     *  Following request from the wp.org plugin review team, we have stopped
+     *  embedding the contact form inside an i-frame for wp.org hosted free version
+     *  of plugins. Now they will be opened in a new tab.
 	 *
 	 * If you have any questions or need clarifications, please don't hesitate
 	 * pinging me on slack, my username is @svovaf.
@@ -50,28 +55,7 @@
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
-	$context_params = array(
-		'plugin_id'         => $fs->get_id(),
-		'plugin_public_key' => $fs->get_public_key(),
-		'plugin_version'    => $fs->get_plugin_version(),
-	);
-
-
-	// Get site context secure params.
-	if ( $fs->is_registered() ) {
-		$context_params = array_merge( $context_params, FS_Security::instance()->get_context_params(
-			$fs->get_site(),
-			time(),
-			'contact'
-		) );
-	}
-
-	$query_params = array_merge( $_GET, array_merge( $context_params, array(
-		'plugin_version' => $fs->get_plugin_version(),
-		'wp_login_url'   => wp_login_url(),
-		'site_url'       => Freemius::get_unfiltered_site_url(),
-//		'wp_admin_css' => get_bloginfo('wpurl') . "/wp-admin/load-styles.php?c=1&load=buttons,wp-admin,dashicons",
-	) ) );
+    $query_params = FS_Contact_Form_Manager::instance()->get_query_params( $fs );
 
 	$view_params = array(
 		'id'   => $VARS['id'],
