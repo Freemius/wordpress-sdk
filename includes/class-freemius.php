@@ -18018,9 +18018,16 @@
                      *
                      * @author Leo Fajardo (@leorw)
                      */
+                    $user = $this->_user;
+
                     $this->_user = null;
 
                     fs_redirect( $this->get_activation_url( array( 'error' => $result->error->message ) ) );
+
+	                /**
+	                 * Restore the user after the redirect, this is relevant when there are cases where the redirect will choose not to do anything.
+	                 */
+                    $this->_user = $user;
                 }
             }
 
@@ -21726,10 +21733,11 @@
          * @since  1.1.8.1
          *
          * @param bool|string $plan_name
+         * @param bool        $add_sticky_notice
          *
          * @return bool If trial was successfully started.
          */
-        function start_trial( $plan_name = false ) {
+        function start_trial( $plan_name = false, $add_sticky_notice = false ) {
             $this->_logger->entrance();
 
             // Alias.
@@ -21740,18 +21748,20 @@
                 $this->_admin_notices->add(
                     sprintf( $this->get_text_inline( 'You are already running the %s in a trial mode.', 'in-trial-mode' ), $this->_module_type ),
                     $oops_text,
-                    'error'
+                    'error',
+                    $add_sticky_notice
                 );
 
                 return false;
             }
 
-            if ( $this->_site->is_trial_utilized() ) {
+            if ( $this->_site->is_trial_utilized() && ! $this->is_payments_sandbox() ) {
                 // Trial was already utilized.
                 $this->_admin_notices->add(
                     $this->get_text_inline( 'You already utilized a trial before.', 'trial-utilized' ),
                     $oops_text,
-                    'error'
+                    'error',
+                    $add_sticky_notice
                 );
 
                 return false;
@@ -21765,7 +21775,8 @@
                     $this->_admin_notices->add(
                         sprintf( $this->get_text_inline( 'Plan %s do not exist, therefore, can\'t start a trial.', 'trial-plan-x-not-exist' ), $plan_name ),
                         $oops_text,
-                        'error'
+                        'error',
+                        $add_sticky_notice
                     );
 
                     return false;
@@ -21776,7 +21787,8 @@
                     $this->_admin_notices->add(
                         sprintf( $this->get_text_inline( 'Plan %s does not support a trial period.', 'plan-x-no-trial' ), $plan_name ),
                         $oops_text,
-                        'error'
+                        'error',
+	                    $add_sticky_notice
                     );
 
                     return false;
@@ -21787,7 +21799,8 @@
                     $this->_admin_notices->add(
                         sprintf( $this->get_text_inline( 'None of the %s\'s plans supports a trial period.', 'no-trials' ), $this->_module_type ),
                         $oops_text,
-                        'error'
+                        'error',
+	                    $add_sticky_notice
                     );
 
                     return false;
@@ -21798,15 +21811,27 @@
                 $plan = $plans_with_trial[0];
             }
 
-            $api  = $this->get_api_site_scope();
-            $plan = $api->call( "plans/{$plan->id}/trials.json", 'post' );
+            $trial_params = array();
 
-            if ( ! $this->is_api_result_entity( $plan ) ) {
+            if ( $this->is_payments_sandbox() ) {
+                $trial_params['trial_timestamp'] = time();
+                $trial_params['trial_token']     = FS_Security::instance()->get_trial_token(
+                    $this->get_plugin(),
+                    $plan,
+	                $trial_params['trial_timestamp']
+                );
+            }
+
+            $api   = $this->get_api_site_scope();
+            $trial = $api->call( "plans/{$plan->id}/trials.json", 'post', $trial_params );
+
+            if ( ! $this->is_api_result_entity( $trial ) ) {
                 // Some API error while trying to start the trial.
                 $this->_admin_notices->add(
-                    $this->get_api_error_message( $plan ),
+                    $this->get_api_error_message( $trial ),
                     $oops_text,
-                    'error'
+                    'error',
+	                $add_sticky_notice
                 );
 
                 return false;
@@ -23356,14 +23381,28 @@
                     $result = $api->get( 'pricing.json?' . http_build_query( $params ) );
                     break;
                 case 'start_trial':
-                    $result = $this->opt_in(
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        fs_request_get( 'plan_id' )
-                    );
+                    $trial_plan_id = fs_request_get( 'plan_id' );
+
+                    if ( $this->is_registered() && $this->is_tracking_allowed() ) {
+                        $plan = $this->_get_plan_by_id( $trial_plan_id );
+
+                        if ( ! $plan ) {
+                            $this->shoot_ajax_failure( 'Invalid plan ID.' );
+                            return;
+                        }
+
+                        $result = $this->start_trial( $plan->name, true );
+                    } else {
+                        // @todo - This fails for sandbox trial at the moment if the trial was already utilized.
+                        $result = $this->opt_in(
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+	                        $trial_plan_id
+                        );
+                    }
             }
 
             if ( is_object( $result ) && $this->is_api_error( $result ) ) {
