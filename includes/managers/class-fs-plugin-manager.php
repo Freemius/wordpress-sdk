@@ -106,11 +106,7 @@
 			}
 
 			foreach ( $all_modules as $modules ) {
-				/**
-				 * @since 1.2.2
-				 *
-				 * @var $modules FS_Plugin[]
-				 */
+
 				foreach ( $modules as $module ) {
 					$found_module = false;
 

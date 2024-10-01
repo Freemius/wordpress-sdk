@@ -21,13 +21,15 @@
 
 	$features_plan_map = array();
 	foreach ( $plans as $plan ) {
+        /**
+         * @var FS_Plugin_Plan $plan
+         */
 		if (!empty($plan->features) && is_array($plan->features)) {
 			foreach ( $plan->features as $feature ) {
-				if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
-					$features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
-				}
-
-				$features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
+                if ( ! isset( $features_plan_map[ $feature->id ] ) ) {
+                    $features_plan_map[ $feature->id ] = array( 'feature' => $feature, 'plans' => array() );
+                }
+                $features_plan_map[ $feature->id ]['plans'][ $plan->id ] = $feature;
 			}
 		}
 

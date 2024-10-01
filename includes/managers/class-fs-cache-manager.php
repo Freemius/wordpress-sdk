@@ -160,6 +160,9 @@
         function get( $key, $default = null ) {
             $this->_logger->entrance( 'key = ' . $key );
 
+            /**
+             * @var stdClass $cache_entry
+             */
             $cache_entry = $this->_options->get_option( $key, false );
 
             if ( is_object( $cache_entry ) &&
@@ -184,6 +187,9 @@
         function get_valid( $key, $default = null ) {
             $this->_logger->entrance( 'key = ' . $key );
 
+            /**
+             * @var stdClass $cache_entry
+             */
             $cache_entry = $this->_options->get_option( $key, false );
 
             if ( is_object( $cache_entry ) &&
@@ -271,6 +277,9 @@
         function update_expiration( $key, $expiration = WP_FS__TIME_24_HOURS_IN_SEC ) {
             $this->_logger->entrance( 'key = ' . $key );
 
+            /**
+             * @var stdClass $cache_entry
+             */
             $cache_entry = $this->_options->get_option( $key, false );
 
             if ( ! is_object( $cache_entry ) ||

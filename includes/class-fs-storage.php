@@ -21,6 +21,14 @@
      * @property bool|null   $is_diagnostic_tracking_allowed
      * @property object      $sync_cron
      * @property bool|int    $install_timestamp
+     * @property bool        $is_whitelabeled
+     * @property mixed       $beta_data
+     * @property bool        $expired_license_notice_shown
+     * @property bool        $has_trial_plan
+     * @property bool        $trial_promotion_shown
+     * @property bool        $affiliate_program_notice_shown
+     * @property bool        $is_pending_activation
+     * @property bool        $pending_license_key
      */
     class FS_Storage {
         /**
@@ -31,6 +39,196 @@
          * @var FS_Key_Value_Storage Site level storage.
          */
         private $_storage;
+
+        /**
+         * @var int Timestamp of the last load.
+         */
+        public $last_load_timestamp;
+
+        /**
+         * @var bool Indicates if the network is activated.
+         */
+        public $is_network_activated;
+
+        /**
+         * @var string Last version of the SDK.
+         */
+        public $sdk_last_version;
+
+        /**
+         * @var string Current version of the SDK.
+         */
+        public $sdk_version;
+
+        /**
+         * @var bool Indicates if the SDK upgrade mode is active.
+         */
+        public $sdk_upgrade_mode;
+
+        /**
+         * @var bool Indicates if the SDK downgrade mode is active.
+         */
+        public $sdk_downgrade_mode;
+
+        /**
+         * @var string Last version of the plugin.
+         */
+        public $plugin_last_version;
+
+        /**
+         * @var string Current version of the plugin.
+         */
+        public $plugin_version;
+
+        /**
+         * @var bool Indicates if the plugin upgrade mode is active.
+         */
+        public $plugin_upgrade_mode;
+
+        /**
+         * @var bool Indicates if the plugin downgrade mode is active.
+         */
+        public $plugin_downgrade_mode;
+
+        /**
+         * @var bool Indicates if the plugin is a new install.
+         */
+        public $is_plugin_new_install;
+
+        /**
+         * @var bool Indicates if the user is anonymous.
+         */
+        public $is_anonymous;
+
+        /**
+         * @var bool Indicates if the user is anonymous in multisite.
+         */
+        public $is_anonymous_ms;
+
+        /**
+         * @var bool Indicates if the network is connected.
+         */
+        public $is_network_connected;
+
+        /**
+         * @var int Network user ID.
+         */
+        public $network_user_id;
+
+        /**
+         * @var bool Indicates if the plugin was loaded.
+         */
+        public $was_plugin_loaded;
+
+        /**
+         * @var bool Handle GDPR admin notice.
+         */
+        public $handle_gdpr_admin_notice;
+
+        /**
+         * @var object Main file of the plugin.
+         */
+        public $plugin_main_file;
+
+        /**
+         * @var bool Indicates if license activation is required.
+         */
+        public $require_license_activation;
+
+        /**
+         * @var bool Connectivity test status.
+         */
+        public $connectivity_test;
+
+        /**
+         * @var bool Indicates if the previous state was premium.
+         */
+        public $prev_is_premium;
+
+        /**
+         * @var int Activation timestamp.
+         */
+        public $activation_timestamp;
+
+        /**
+         * @var bool Indicates if sticky opt-in was added.
+         */
+        public $sticky_optin_added;
+
+        /**
+         * @var bool Indicates if sticky opt-in was added in multisite.
+         */
+        public $sticky_optin_added_ms;
+
+        /**
+         * @var string Previous theme.
+         */
+        public $previous_theme;
+
+        /**
+         * @var int Clone ID.
+         */
+        public $clone_id;
+
+        /**
+         * @var string Last license key.
+         */
+        public $last_license_key;
+
+        /**
+         * @var int Last license user ID.
+         */
+        public $last_license_user_id;
+
+        /**
+         * @var string Last license user key.
+         */
+        public $last_license_user_key;
+
+        /**
+         * @var array Subscriptions.
+         */
+        public $subscriptions;
+
+        /**
+         * @var bool License migration status.
+         */
+        public $license_migration;
+
+        /**
+         * @var array Affiliate application data.
+         */
+        public $affiliate_application_data;
+
+        /**
+         * @var int Previous user ID.
+         */
+        public $prev_user_id;
+
+        /**
+         * @var bool Indicates if the user was recovered from install.
+         */
+        public $user_was_recovered_from_install;
+
+        /**
+         * @var int Number of user recovery attempts from install.
+         */
+        public $user_recovery_from_install_attempts;
+
+        /**
+         * @var int Timestamp of the last user recovery attempt from install.
+         */
+        public $user_recovery_from_install_last_attempt_timestamp;
+
+        /**
+         * @var object Reason for uninstall.
+         */
+        public $uninstall_reason;
+
+        /**
+         * @var array Pending sites information.
+         */
+        public $pending_sites_info;
 
         /**
          * @var FS_Key_Value_Storage Network level storage.
