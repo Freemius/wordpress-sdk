@@ -13,11 +13,15 @@
 	$fs_options      = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$scheduled_crons = array();
 
-	$title_tag = $VARS['title_tag'] ?? 'h1';
+	$title_tag = isset($VARS['title_tag']) ? $VARS['title_tag'] : 'h1';
     $title_tag_open = "<$title_tag>";
     $title_tag_close = "</$title_tag>";
-    $display_toggle_button = $VARS['display_toggle'] ?? false;
-    $is_open = ($VARS['is_open'] ?? false) ? 'true' : 'false';
+    $display_toggle_button = isset($VARS['display_toggle']) ? $VARS['display_toggle'] : false;
+    if (isset($VARS['is_open'])) {
+        $is_open = $VARS['is_open'] ? 'true' : 'false';
+    } else {
+        $is_open = 'true';
+    }
 
 	$module_types = array(
 		WP_FS__MODULE_TYPE_PLUGIN,

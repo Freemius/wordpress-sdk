@@ -701,7 +701,7 @@ KEY `type` (`type` ASC))" );
 		 *
 		 * @return bool
 		 */
-		private static function write_csv_to_filesystem( $file_path, $query_results ): bool {
+		private static function write_csv_to_filesystem( $file_path, $query_results ) {
 			require_once( ABSPATH . 'wp-admin/includes/file.php' );
 			WP_Filesystem();
 			global $wp_filesystem;
