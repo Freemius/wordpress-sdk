@@ -25,6 +25,13 @@
     $is_multisite = is_multisite();
 
     $auto_off_timestamp = wp_next_scheduled( 'fs_debug_turn_off_logging_hook' ) * 1000;
+
+    function fs_get_debug_table_toggle_button( $open = false ) {
+        return '
+        <button class="fs-debug-table-toggle-button" aria-expanded="' . ( $open ? 'true' : 'false' ) . '">
+            <span class="fs-debug-table-toggle-icon">' . ( $open ? '▼' : '▶' ) . '</span>
+        </button>';
+    }
 ?>
 <h1><?php echo fs_text_inline( 'Freemius Debug' ) . ' - ' . fs_text_inline( 'SDK' ) . ' v.' . $fs_active_plugins->newest->version ?></h1>
 <div>
@@ -261,6 +268,10 @@
             'key' => 'wp_using_ext_object_cache()',
             'val' => wp_using_ext_object_cache() ? 'true' : 'false',
         ),
+        array(
+            'key' => 'Freemius::get_unfiltered_site_url()',
+            'val' => Freemius::get_unfiltered_site_url(),
+        ),
     )
 ?>
 <br>
@@ -284,7 +295,10 @@
         <?php endforeach ?>
     </tbody>
 </table>
-<h2><?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?></h2>
+<h2>
+    <?php echo fs_get_debug_table_toggle_button( true ) ?>
+    <?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?>
+</h2>
 <table id="fs_sdks" class="widefat">
     <thead>
     <tr>
@@ -319,7 +333,11 @@
 <?php foreach ( $module_types as $module_type ) : ?>
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
-        <h2><?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?></h2>
+        <h2>
+            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins',
+                'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?>
+        </h2>
         <table id="fs_<?php echo $module_type ?>" class="widefat">
             <thead>
             <tr>
@@ -452,11 +470,14 @@
     $all_plans = false;
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
-        <h2><?php echo esc_html( sprintf(
+        <h2>
+            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo esc_html( sprintf(
             /* translators: %s: 'plugin' or 'theme' */
                 fs_text_inline( '%s Installs', 'module-installs' ),
                 ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) )
-            ) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?></h2>
+            ) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?>
+        </h2>
         <table id="fs_<?php echo $module_type ?>_installs" class="widefat">
             <thead>
             <tr>
@@ -567,7 +588,10 @@
     $addons = $VARS['addons'];
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
-    <h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?></h2>
+    <h2>
+        <?php echo fs_get_debug_table_toggle_button( true ) ?>
+        <?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?>
+    </h2>
     <table id="fs_addons" class="widefat">
         <thead>
         <tr>
@@ -626,7 +650,10 @@
 
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
-    <h2><?php fs_esc_html_echo_inline( 'Users' ) ?></h2>
+    <h2>
+        <?php echo fs_get_debug_table_toggle_button( true ) ?>
+        <?php fs_esc_html_echo_inline( 'Users' ) ?>
+    </h2>
     <table id="fs_users" class="widefat">
         <thead>
         <tr>
@@ -675,7 +702,10 @@
      */
     $licenses = $VARS[ $module_type . '_licenses' ] ?>
     <?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
-        <h2><?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?></h2>
+        <h2>
+            <?php echo fs_get_debug_table_toggle_button( true ) ?>
+            <?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?>
+        </h2>
         <table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
             <thead>
             <tr>
@@ -714,6 +744,14 @@
         </table>
     <?php endif ?>
 <?php endforeach ?>
+<?php
+    $page_params = array(
+        'title_tag'     => 'h2',
+        'toggle_button' => fs_get_debug_table_toggle_button(),
+    );
+
+    fs_require_template( 'debug/scheduled-crons.php', $page_params );
+?>
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>
 
     <h2><?php fs_esc_html_echo_inline( 'Debug Log', 'debug-log' ) ?></h2>
@@ -888,3 +926,29 @@
         });
     </script>
 <?php endif ?>
+<script type="text/javascript">
+    // JavaScript to toggle the visibility of the table body and change the caret icon
+    jQuery( document ).ready( function ( $ ) {
+        $( '.fs-debug-table-toggle-button' ).each( function () {
+            const button = $( this );
+            const table = button.closest( 'h2' ).next( 'table' );
+            table.css( 'overflow', 'hidden' );
+
+            const toggle = function ( isExpanded ) {
+                button.attr( 'aria-expanded', isExpanded );
+                button.find( '.fs-debug-table-toggle-icon' ).text( isExpanded ? '▼' : '▶' );
+                table.css( {
+                    display    : isExpanded ? 'table' : 'block',
+                    borderWidth: isExpanded ? '1px' : '0',
+                    maxHeight  : isExpanded ? 'auto' : '0'
+                } );
+            };
+
+            button.on( 'click', function () {
+                toggle( button.attr( 'aria-expanded' ) === 'false' );
+            } );
+
+            toggle( button.attr( 'aria-expanded' ) === 'true' );
+        } );
+    } );
+</script>
