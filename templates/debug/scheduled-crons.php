@@ -13,6 +13,16 @@
 	$fs_options      = FS_Options::instance( WP_FS__ACCOUNTS_OPTION_NAME, true );
 	$scheduled_crons = array();
 
+	$title_tag = isset($VARS['title_tag']) ? $VARS['title_tag'] : 'h1';
+    $title_tag_open = "<$title_tag>";
+    $title_tag_close = "</$title_tag>";
+    $display_toggle_button = isset($VARS['display_toggle']) ? $VARS['display_toggle'] : false;
+    if (isset($VARS['is_open'])) {
+        $is_open = $VARS['is_open'] ? 'true' : 'false';
+    } else {
+        $is_open = 'true';
+    }
+
 	$module_types = array(
 		WP_FS__MODULE_TYPE_PLUGIN,
 		WP_FS__MODULE_TYPE_THEME
@@ -73,7 +83,18 @@
 
 	$sec_text = fs_text_x_inline( 'sec', 'seconds' );
 ?>
-<h1><?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?></h1>
+<?php echo $title_tag_open; ?>
+<?php
+    if ($display_toggle_button) {
+        ?>
+        <button class="toggle-table" aria-expanded="<?php echo $is_open; ?>">
+            <span class="caret-icon">▼</span>
+        </button>
+        <?php
+    }
+?>
+    <?php fs_esc_html_echo_inline( 'Scheduled Crons' ) ?>
+<?php echo $title_tag_close; ?>
 <table class="widefat">
 	<thead>
 	<tr>
