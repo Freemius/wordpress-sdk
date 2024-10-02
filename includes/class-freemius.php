@@ -11576,7 +11576,7 @@
                         continue;
                     }
 
-                    $missing_plan = self::_get_plan_by_id( $plan_id );
+                    $missing_plan = self::_get_plan_by_id( $plan_id, false );
 
                     if ( is_object( $missing_plan ) ) {
                         $plans[] = $missing_plan;
@@ -11738,10 +11738,10 @@
          *
          * @return FS_Plugin_Plan|false
          */
-        function _get_plan_by_id( $id ) {
+        function _get_plan_by_id( $id, $allow_sync = true ) {
             $this->_logger->entrance();
 
-            if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
+            if ( $allow_sync && ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) ) {
                 $this->_sync_plans();
             }
 
