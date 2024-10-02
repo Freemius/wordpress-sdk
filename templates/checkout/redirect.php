@@ -70,4 +70,33 @@
 
 	$query_params['_fs_dashboard_independent'] = true;
 
-	fs_redirect( $fs_checkout->get_full_checkout_url( $query_params ) );
+	$redirect_url = $fs_checkout->get_full_checkout_url( $query_params );
+
+	if ( ! fs_redirect( $redirect_url ) ) {
+		// The Header was sent, so the server redirect failed. Rely on JS instead.
+		?>
+		<div class="fs-checkout-process-redirect">
+			<div class="fs-checkout-process-redirect__loader">
+				<?php fs_include_template( 'ajax-loader.php' ); ?>
+			</div>
+
+			<div class="fs-checkout-process-redirect__content">
+				<p>
+					<?php echo wp_kses(
+						sprintf(
+							fs_text_inline( 'Redirecting, please <a href="%1$s">click here</a> if you\'re stuck...' ),
+							esc_url( $redirect_url )
+						),
+						array( 'a' => array( 'href' => true ) )
+					); ?>
+				</p>
+			</div>
+		</div>
+		<script type="text/javascript">
+            jQuery(document).ready(function ($) {
+            	$('.fs-checkout-process-redirect .fs-ajax-loader').show();
+            	window.location.href = <?php echo wp_json_encode($redirect_url ); ?>;
+            });
+		</script>
+		<?php
+	}

@@ -27,8 +27,6 @@
 	wp_enqueue_script( 'jquery' );
 	wp_enqueue_script( 'json2' );
 	fs_enqueue_local_script( 'fs-form', 'jquery.form.js', array( 'jquery' ) );
-	fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
-	fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
 
 	$action = fs_request_get( '_fs_checkout_action' );
 	$data   = json_decode( fs_request_get_raw( '_fs_checkout_data' ) );
@@ -40,7 +38,7 @@
 
     <div class="fs-checkout-process-redirect__content">
         <p>
-		    <?php echo esc_html( fs_text_inline( 'Processing' ) ); ?>
+		    <?php echo esc_html( fs_text_inline( 'Processing, please wait and do not close or refresh this window...' ) ); ?>
         </p>
     </div>
 </div>

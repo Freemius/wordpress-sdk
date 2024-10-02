@@ -1402,11 +1402,6 @@
 
                         if (isOpensInNewTab) {
                             $parent.attr({target: '_blank', rel: 'noopener noreferrer'});
-
-                            // Append a dashbicon to indicate that the link will open in a new tab.
-                            $parent.css('clear', 'both');
-                            $parent.addClass('fs-submenu-item-parent--external');
-                            $parent.prepend('<span style="float: right; height: 18px; width: 18px; font-size: 18px;" class="dashicons dashicons-external"></span>');
                         }
                     });
                 })(jQuery);
@@ -23314,6 +23309,9 @@
          */
         function _pricing_page_render() {
             $this->_logger->entrance();
+
+	        fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+	        fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
 
             $vars = array( 'id' => $this->_module_id );
 
