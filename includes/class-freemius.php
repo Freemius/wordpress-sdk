@@ -381,13 +381,6 @@
 
         /**
          * @author Leo Fajardo (@leorw)
-         * @since 2.3.1
-         *
-         * @var boolean|null
-         */
-        private $_use_external_pricing = null;
-        /**
-         * @author Leo Fajardo (@leorw)
          * @since 2.4.2
          *
          * @var string|null
@@ -1501,7 +1494,7 @@
                 }
 
                 add_action( 'init', array( &$this, '_maybe_add_gdpr_optin_ajax_handler') );
-                add_action( 'init', array( &$this, '_maybe_add_pricing_ajax_handler' ) );
+                add_action( 'init', array( &$this, '_add_pricing_ajax_handler' ) );
             }
 
             if ( $this->is_plugin() ) {
@@ -13610,8 +13603,11 @@
          */
         function get_pricing_js_path() {
             if ( ! isset( $this->_pricing_js_path ) ) {
-                $pricing_js_path = $this->apply_filters( 'freemius_pricing_js_path', '' );
+                $default_path = WP_FS__DIR_JS . '/pricing/freemius-pricing.js';
 
+                $pricing_js_path = $this->apply_filters( 'freemius_pricing_js_path', $default_path );
+
+                // Backward compatibility for people who placed the freemius-pricing inside `includes` directory. Let it take more preference than the default path.
                 if ( empty( $pricing_js_path ) ) {
                     global $fs_active_plugins;
 
@@ -13630,6 +13626,11 @@
                     }
                 }
 
+                // If it is still empty, load the default pricing JS.
+                if ( ! file_exists( $pricing_js_path ) ) {
+                    $pricing_js_path = $default_path;
+                }
+
                 $this->_pricing_js_path = $pricing_js_path;
             }
 
@@ -13640,16 +13641,12 @@
          * @author Leo Fajardo (@leorw)
          * @since 2.3.1
          *
+         * @deprecated Since v2.9.0 we have removed the iFrame based pricing. This will always return `false`.
+         *
          * @return bool
          */
         function should_use_external_pricing() {
-            if ( is_null( $this->_use_external_pricing ) ) {
-                $pricing_js_path = $this->get_pricing_js_path();
-
-                $this->_use_external_pricing = ( empty( $pricing_js_path ) || ! file_exists( $pricing_js_path ) );
-            }
-
-            return $this->_use_external_pricing;
+            return false;
         }
 
         /**
@@ -23326,10 +23323,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.1
          */
-        function _maybe_add_pricing_ajax_handler() {
-            if ( ! $this->should_use_external_pricing() ) {
-                $this->add_ajax_action( 'pricing_ajax_action', array( &$this, '_fs_pricing_ajax_action_handler' ) );
-            }
+        function _add_pricing_ajax_handler() {
+            $this->add_ajax_action( 'pricing_ajax_action', array( &$this, '_fs_pricing_ajax_action_handler' ) );
         }
 
         /**
