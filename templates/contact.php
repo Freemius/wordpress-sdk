@@ -12,9 +12,10 @@
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
 	 *  we only develop and maintain one code base.
 	 *
-	 *  This code (and page) will not run for wp.org themes (only plugins).
+	 *  This code (and page) will not run for wp.org themes or plugins. It will
+	 *   run only for premium version of the plugin/theme that is using the SDK.
 	 *
-	 *  In addition, this page loads an i-frame. We intentionally named it 'frame'
+	 *  In addition, when this page loads an i-frame. We intentionally named it 'frame'
 	 *  so it will pass the "Theme Check" that is looking for the string "i" . "frame".
 	 *
 	 * UPDATE:
@@ -55,7 +56,7 @@
 	$fs   = freemius( $VARS['id'] );
 	$slug = $fs->get_slug();
 
-    $query_params = FS_Contact_Form_Manager::instance()->get_query_params( $fs );
+	$query_params = FS_Contact_Form_Manager::instance()->get_query_params( $fs );
 
 	$view_params = array(
 		'id'   => $VARS['id'],

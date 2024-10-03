@@ -1,9 +1,9 @@
 <?php
 	/**
 	 * @package     Freemius
-	 * @copyright   Copyright (c) 2015, Freemius, Inc.
+	 * @copyright   Copyright (c) 2024, Freemius, Inc.
 	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since       1.0.3
+	 * @since       2.9.0
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -45,25 +45,25 @@
 
 <script type="text/javascript">
     jQuery(function ($) {
-        var $loader = $('.fs-checkout-process-redirect .fs-ajax-loader'),
-            action = '<?php echo esc_js( $action ); ?>',
+        var $loader = $( '.fs-checkout-process-redirect .fs-ajax-loader' ),
+            action = <?php echo wp_json_encode( $action ); ?>,
             data = <?php echo wp_json_encode( $data ); ?>;
 
         $loader.show();
 
-        switch (action) {
+        switch ( action ) {
             case 'install':
-                processInstall(data);
+                processInstall( data );
                 break;
             case 'pending_activation':
-                processPendingActivation(data);
+                processPendingActivation( data );
                 break;
             default:
-                syncLicense(data);
+                syncLicense( data );
                 break;
         }
 
-        function processInstall(data) {
+        function processInstall( data ) {
             var requestData = {
                 user_id           : data.user.id,
                 user_secret_key   : data.user.secret_key,
@@ -73,30 +73,30 @@
                 install_public_key: data.install.public_key
             };
 
-            if (true === data.auto_install)
+            if ( true === data.auto_install )
                 requestData.auto_install = true;
 
             // Post data to activation URL.
-            $.form('<?php echo $fs_checkout->get_install_url( $fs, $plugin_id ); ?>', requestData).submit();
+            $.form( '<?php echo $fs_checkout->get_install_url( $fs, $plugin_id ); ?>', requestData ).submit();
         }
 
-        function processPendingActivation(data) {
+        function processPendingActivation( data ) {
             var requestData = {
                 user_email           : data.user_email,
                 support_email_address: data.support_email_address
             };
 
-            if (true === data.auto_install)
+            if ( true === data.auto_install )
                 requestData.auto_install = true;
 
-            $.form('<?php echo $fs_checkout->get_pending_activation_url( $fs, $plugin_id ); ?>', requestData).submit();
+            $.form( '<?php echo $fs_checkout->get_pending_activation_url( $fs, $plugin_id ); ?>', requestData ).submit();
         }
 
         function syncLicense(data) {
-            var redirectUrl = new URL(<?php echo wp_json_encode( $fs->_get_sync_license_url( $plugin_id ) ); ?>);
+            var redirectUrl = new URL( <?php echo wp_json_encode( $fs->_get_sync_license_url( $plugin_id ) ); ?> );
 
             if (true === data.auto_install) {
-                redirectUrl.searchParams.set('auto_install', 'true');
+                redirectUrl.searchParams.set( 'auto_install', 'true' );
             }
 
             window.location.href = redirectUrl.toString();

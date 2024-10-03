@@ -12,19 +12,16 @@
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
 	 *  we only develop and maintain one code base.
 	 *
-	 *  This code (and page) will not run for wp.org themes (only plugins).
+	 *  This code (and page) will not run for wp.org themes and plugins. It will
+	 *  run only for premium version of the plugin/theme that is using the SDK.
 	 *
-	 *  In addition, this page loads an i-frame. We intentionally named it 'frame'
+	 *  In addition, when this page loads an i-frame. We intentionally named it 'frame'
 	 *  so it will pass the "Theme Check" that is looking for the string "i" . "frame".
 	 *
 	 * UPDATE:
-	 *  After ongoing conversations with the WordPress.org TRT we received
-	 *  an official approval for including i-frames in the theme's WP Admin setting's
-	 *  page tab (the SDK will never add any i-frames on the sitefront). i-frames
-	 *  were never against the guidelines, but we wanted to get the team's blessings
-	 *  before we move forward. For the record, I got the final approval from
-	 *  Ulrich Pogson (@grapplerulrich), a team lead at the TRT during WordCamp
-	 *  Europe 2017 (June 16th, 2017).
+	 *   Following request from the wp.org plugin review team, we have stopped
+	 *   embedding the checkout inside an i-frame for wp.org hosted free version
+	 *   of plugins and themes. Now they will be redirected instead.
 	 *
 	 * If you have any questions or need clarifications, please don't hesitate
 	 * pinging me on slack, my username is @svovaf.

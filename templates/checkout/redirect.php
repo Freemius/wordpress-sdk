@@ -1,9 +1,9 @@
 <?php
 	/**
 	 * @package     Freemius
-	 * @copyright   Copyright (c) 2015, Freemius, Inc.
+	 * @copyright   Copyright (c) 2024, Freemius, Inc.
 	 * @license     https://www.gnu.org/licenses/gpl-3.0.html GNU General Public License Version 3
-	 * @since       1.0.3
+	 * @since       2.9.0
 	 */
 
 	if ( ! defined( 'ABSPATH' ) ) {
@@ -93,8 +93,8 @@
 			</div>
 		</div>
 		<script type="text/javascript">
-            jQuery(document).ready(function ($) {
-            	$('.fs-checkout-process-redirect .fs-ajax-loader').show();
+            jQuery( document ).ready( function ( $ ) {
+            	$( '.fs-checkout-process-redirect .fs-ajax-loader' ).show();
             	window.location.href = <?php echo wp_json_encode($redirect_url ); ?>;
             });
 		</script>

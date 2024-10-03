@@ -1382,22 +1382,22 @@
         static function _handle_submenu_external_link() {
             ?>
             <script type="text/javascript">
-                (function ($) {
-                    $('.fs-submenu-item').each(function () {
-                        var $this = $(this),
+                (function ( $ ) {
+                    $( '.fs-submenu-item' ).each( function () {
+                        var $this = $( this ),
                             $parent = $this.parent(),
-                            externalLink = $this.data('fs-external-url'),
-                            isOpensInNewTab = $this.data('fs-new-tab');
+                            externalLink = $this.data( 'fs-external-url' ),
+                            isOpensInNewTab = $this.data( 'fs-new-tab' );
 
-                        if (externalLink) {
-                            $parent.attr('href', externalLink);
+                        if ( externalLink ) {
+                            $parent.attr( 'href', externalLink );
                         }
 
-                        if (isOpensInNewTab) {
-                            $parent.attr({target: '_blank', rel: 'noopener noreferrer'});
+                        if ( isOpensInNewTab ) {
+                            $parent.attr( { target: '_blank', rel: 'noopener noreferrer' } );
                         }
-                    });
-                })(jQuery);
+                    } );
+                } )( jQuery );
             </script>
             <?php
         }
@@ -18016,9 +18016,9 @@
 
                     fs_redirect( $this->get_activation_url( array( 'error' => $result->error->message ) ) );
 
-	                /**
-	                 * Restore the user after the redirect, this is relevant when there are cases where the redirect will choose not to do anything.
-	                 */
+                    /**
+                     * Restore the user after the redirect, this is relevant when there are cases where the redirect will choose not to do anything.
+                     */
                     $this->_user = $user;
                 }
             }
@@ -21780,7 +21780,7 @@
                         sprintf( $this->get_text_inline( 'Plan %s does not support a trial period.', 'plan-x-no-trial' ), $plan_name ),
                         $oops_text,
                         'error',
-	                    $add_sticky_notice
+                        $add_sticky_notice
                     );
 
                     return false;
@@ -21792,7 +21792,7 @@
                         sprintf( $this->get_text_inline( 'None of the %s\'s plans supports a trial period.', 'no-trials' ), $this->_module_type ),
                         $oops_text,
                         'error',
-	                    $add_sticky_notice
+                        $add_sticky_notice
                     );
 
                     return false;
@@ -21810,7 +21810,7 @@
                 $trial_params['trial_token']     = FS_Security::instance()->get_trial_token(
                     $this->get_plugin(),
                     $plan,
-	                $trial_params['trial_timestamp']
+                    $trial_params['trial_timestamp']
                 );
             }
 
@@ -21823,7 +21823,7 @@
                     $this->get_api_error_message( $trial ),
                     $oops_text,
                     'error',
-	                $add_sticky_notice
+                    $add_sticky_notice
                 );
 
                 return false;
@@ -23307,8 +23307,8 @@
         function _pricing_page_render() {
             $this->_logger->entrance();
 
-	        fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
-	        fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
+            fs_enqueue_local_style( 'fs_common', '/admin/common.css' );
+            fs_enqueue_local_style( 'fs_checkout', '/admin/checkout.css' );
 
             $vars = array( 'id' => $this->_module_id );
 
