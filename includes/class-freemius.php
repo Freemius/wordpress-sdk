@@ -2019,9 +2019,9 @@
                 }
 
                 wp_die(
-                    $this->get_text_inline( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'failed-finding-main-path' ) .
-                    " Module: {$this->_slug}; SDK: " . WP_FS__SDK_VERSION . ";",
-                    $this->get_text_inline( 'Error', 'error' ),
+                    wp_kses( $this->get_text_inline( 'Freemius SDK couldn\'t find the plugin\'s main file. Please contact sdk@freemius.com with the current error.', 'failed-finding-main-path' ) .
+                    " Module: {$this->_slug}; SDK: " . WP_FS__SDK_VERSION . ";" ),
+                    wp_kses( $this->get_text_inline( 'Error', 'error' ) ),
                     array( 'back_link' => true )
                 );
             }
@@ -7046,7 +7046,7 @@
                 jQuery(document).ready(function ($) {
                     if ('undefined' !== typeof(jQuery().pointer)) {
 
-                        var element = <?php echo $this->apply_filters( 'optin_pointer_element', '$("#non_existing_element");' ) ?>;
+                        var element = <?php echo wp_kses( $this->apply_filters( 'optin_pointer_element', '$("#non_existing_element");' ) ) ?>;
 
                         if (element.length > 0) {
                             var optin = $(element).pointer($.extend(true, {}, {
@@ -7060,10 +7060,10 @@
                                     return '';
                                 },
                                 pointerWidth: 482
-                            }, <?php echo $this->apply_filters( 'optin_pointer_options_json', '{}' ) ?>));
+                            }, <?php echo wp_kses( $this->apply_filters( 'optin_pointer_options_json', '{}' ) ) ?> ) );
 
                             <?php
-                            echo $this->apply_filters( 'optin_pointer_execute', "
+                            echo wp_kses( $this->apply_filters( 'optin_pointer_execute', "
 
                             optin.pointer('open');
 
@@ -7072,7 +7072,7 @@
                                 .parents('.wp-pointer.wp-pointer-top')
                                 .addClass('fs-opt-in-pointer');
 
-                            ", 'element', 'optin' ) ?>
+                            ", 'element', 'optin' ) ) ?>
                         }
                     }
                 });
@@ -23204,7 +23204,7 @@
                 'id'           => $this->_module_id,
                 'plugin_title' => $plugin_title,
             );
-            echo $this->apply_filters( "/forms/affiliation.php", fs_get_template( '/forms/affiliation.php', $vars ) );
+            fs_html_echo_sanitized_html( $this->apply_filters( "/forms/affiliation.php", fs_get_template( '/forms/affiliation.php', $vars ) ) );
         }
 
 
@@ -23227,7 +23227,7 @@
              * @author Vova Feldman (@svovaf)
              * @since  1.2.1.6
              */
-            echo $this->apply_filters( "templates/{$template}", fs_get_template( $template, $vars ) );
+            fs_html_echo_sanitized_html( $this->apply_filters( "templates/{$template}", fs_get_template( $template, $vars ) ) );
         }
 
         /**
@@ -23248,7 +23248,7 @@
              * @author Vova Feldman (@svovaf)
              * @since  1.2.1.6
              */
-            echo $this->apply_filters( 'templates/connect.php', fs_get_template( 'connect.php', $vars ) );
+            fs_html_echo_sanitized_html( $this->apply_filters( 'templates/connect.php', fs_get_template( 'connect.php', $vars ) ) );
         }
 
         /**
@@ -23293,7 +23293,7 @@
              * @author Vova Feldman (@svovaf)
              * @since  1.2.1.6
              */
-            echo $this->apply_filters( 'templates/add-ons.php', fs_get_template( 'add-ons.php', $vars ) );
+            fs_html_echo_sanitized_html( $this->apply_filters( 'templates/add-ons.php', fs_get_template( 'add-ons.php', $vars ) ) );
         }
 
         /* Pricing & Upgrade
@@ -23313,9 +23313,9 @@
             $vars = array( 'id' => $this->_module_id );
 
             if ( 'true' === fs_request_get( 'checkout', false ) ) {
-                echo $this->apply_filters( 'templates/checkout.php', fs_get_template( 'checkout.php', $vars ) );
+                fs_html_echo_sanitized_html( $this->apply_filters( 'templates/checkout.php', fs_get_template( 'checkout.php', $vars ) ) );
             } else {
-                echo $this->apply_filters( 'templates/pricing.php', fs_get_template( 'pricing.php', $vars ) );
+                fs_html_echo_sanitized_html( $this->apply_filters( 'templates/pricing.php', fs_get_template( 'pricing.php', $vars ) ) );
             }
         }
 
@@ -23433,7 +23433,7 @@
              * @author Vova Feldman (@svovaf)
              * @since  2.1.3
              */
-            echo $this->apply_filters( 'templates/contact.php', fs_get_template( 'contact.php', $vars ) );
+            fs_html_echo_sanitized_html( $this->apply_filters( 'templates/contact.php', fs_get_template( 'contact.php', $vars ) ) );
         }
 
         #endregion ------------------------------------------------------------------------
@@ -25246,7 +25246,7 @@
             }
 
             // Cut closing </div> tag.
-            echo substr( trim( $tabs_html ), 0, - 6 );
+            fs_html_echo_sanitized_html( substr( trim( $tabs_html ), 0, - 6 ) );
 
             return true;
         }

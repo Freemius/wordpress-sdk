@@ -103,7 +103,7 @@
             $tab.removeAttr('target');
             $tab.removeClass('nav-tab-active');
             $tab.addClass('fs-tab');
-            $tab.addClass('<?php echo $fs->get_unique_affix() ?>');
+            $tab.addClass('<?php echo esc_html( $fs->get_unique_affix() ) ?>');
 
             var $tabClone = null;
 
@@ -114,11 +114,11 @@
             // Add the Freemius tabs.
             $tabClone = $tab.clone();
             $tabClone.html(<?php echo json_encode( $tab['label'] ) ?>)
-                .attr('href', '<?php echo $is_support_tab ? $fs->get_support_forum_url() : $tab['href'] ?>')
+                .attr('href', '<?php echo esc_html( $is_support_tab ? $fs->get_support_forum_url() : $tab['href'] ) ?>')
                 .appendTo($tabsWrapper)
                 // Remove any custom click events.
                 .off('click', '**')
-                .addClass('<?php echo $tab['slug'] ?>')
+                .addClass('<?php echo esc_attr( $tab['slug'] ) ?>')
                 // Avoid tab click triggering parent events.
                 .click(function (e) {
                     e.stopPropagation();

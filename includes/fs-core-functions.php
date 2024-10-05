@@ -409,18 +409,20 @@
             $confirmation = false,
             $method = 'GET'
         ) {
-            echo fs_ui_get_action_button(
-                $module_id,
-                $page,
-                $action,
-                $title,
-                $button_class,
-                $params,
-                $is_primary,
-                $is_small,
-                $icon_class,
-                $confirmation,
-                $method
+            fs_html_echo_sanitized_html(
+                fs_ui_get_action_button(
+                    $module_id,
+                    $page,
+                    $action,
+                    $title,
+                    $button_class,
+                    $params,
+                    $is_primary,
+                    $is_small,
+                    $icon_class,
+                    $confirmation,
+                    $method
+                )
             );
         }
     }
@@ -490,7 +492,7 @@
 
         function fs_ui_action_link( $module_id, $page, $action, $title, $params = array() ) {
             ?><a class=""
-                 href="<?php echo wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ?>"><?php echo $title ?></a><?php
+                 href="<?php echo esc_url( wp_nonce_url( freemius( $module_id )->_get_admin_page_url( $page, array_merge( $params, array( 'fs_action' => $action ) ) ), $action ) ) ?>"><?php echo esc_html( $title ) ?></a><?php
         }
     }
 
@@ -948,7 +950,7 @@
          * @param string $slug
          */
         function fs_echo( $key, $slug = 'freemius' ) {
-            echo fs_text( $key, $slug );
+            echo esc_html( fs_text( $key, $slug ) );
         }
 
         /**
@@ -962,7 +964,7 @@
          * @param string $slug Module slug for overrides.
          */
         function fs_echo_inline( $text, $key = '', $slug = 'freemius' ) {
-            echo _fs_text_inline( $text, $key, $slug );
+            echo esc_html( _fs_text_inline( $text, $key, $slug ) );
         }
 
         /**
@@ -977,7 +979,7 @@
          * @param string $slug    Module slug for overrides.
          */
         function fs_echo_x_inline( $text, $context, $key = '', $slug = 'freemius' ) {
-            echo _fs_text_x_inline( $text, $context, $key, $slug );
+            echo esc_html( _fs_text_x_inline( $text, $context, $key, $slug ) );
         }
     }
 

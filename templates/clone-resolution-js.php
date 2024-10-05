@@ -47,8 +47,8 @@
                     url       : $optionsContainer.data( 'ajax-url' ),
                     method    : 'POST',
                     data      : {
-                        action      : '<?php echo $VARS['ajax_action'] ?>',
-                        security    : '<?php echo wp_create_nonce( $VARS['ajax_action'] ) ?>',
+                        action      : '<?php echo wp_kses( $VARS['ajax_action'] ) ?>',
+                        security    : '<?php echo wp_kses( wp_create_nonce( $VARS['ajax_action'] ) ) ?>',
                         clone_action: $this.data( 'clone-action' ),
                         blog_id     : $optionsContainer.data( 'blog-id' )
                     },

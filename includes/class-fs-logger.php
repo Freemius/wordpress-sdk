@@ -191,9 +191,9 @@
 
 			self::$LOG[] = $log;
 
-			if ( $this->is_echo_on() && ! Freemius::is_ajax() ) {
-				echo self::format_html( $log ) . "\n";
-			}
+            if ( $this->is_echo_on() && ! Freemius::is_ajax() ) {
+                fs_html_echo_sanitized_html( self::format_html( $log ) . "\n" );
+            }
 		}
 
 		function log( $message, $wrapper = false ) {
@@ -271,10 +271,10 @@
 			?>
 			<!-- BEGIN: Freemius PHP Console Log -->
 			<script type="text/javascript">
-				<?php
-				foreach ( self::$LOG as $log ) {
-					echo 'console.' . $log['log_type'] . '(' . json_encode( self::format( $log, false ) ) . ')' . "\n";
-				}
+                <?php
+                foreach ( self::$LOG as $log ) {
+                    echo 'console.' . esc_html( $log['log_type'] ) . '(' . esc_html( json_encode( self::format( $log, false ) ) ) . ')' . "\n";
+                }
 				?>
 			</script>
 			<!-- END: Freemius PHP Console Log -->

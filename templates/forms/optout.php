@@ -140,7 +140,7 @@
                 </div>
             </div>
             <div class="fs-modal-footer">
-                <button class="button button-primary button-close" tabindex="1"><?php echo $fs->esc_html_inline( 'Done', 'done' ) ?></button>
+                <button class="button button-primary button-close" tabindex="1"><?php echo esc_html( $fs->esc_html_inline( 'Done', 'done' ) ) ?></button>
             </div>
         </div>
         <?php foreach ( $permission_groups as $i => $permission_group ) : ?>

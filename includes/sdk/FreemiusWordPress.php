@@ -670,13 +670,13 @@
 
 				if ( ! empty( $missing_methods ) ) {
 					throw new Freemius_Exception( array(
-						'error'           => (object) array(
+						'error'           => array(
 							'type'    => 'cUrlMissing',
-							'message' => $message,
+							'message' => wp_kses($message),
 							'code'    => 'curl_missing',
 							'http'    => 402
 						),
-						'missing_methods' => $missing_methods,
+						'missing_methods' => array_map('wp_kses', $missing_methods),
 					) );
 				}
 
@@ -690,16 +690,16 @@
 
 				$e = new Freemius_Exception( array(
 					'error' => (object) array(
-						'code'    => $code,
-						'message' => $message,
+						'code'    => wp_kses($code),
+						'message' => wp_kses($message),
 						'type'    => 'CurlException',
 					),
 				) );
 			} else {
 				$e = new Freemius_Exception( array(
-					'error' => (object) array(
-						'code'    => $pError->get_error_code(),
-						'message' => $pError->get_error_message(),
+					'error' => array(
+						'code'    => wp_kses($pError->get_error_code()),
+						'message' => wp_kses($pError->get_error_message()),
 						'type'    => 'WPRemoteException',
 					),
 				) );
@@ -715,9 +715,9 @@
 		 */
 		private static function ThrowCloudFlareDDoSException( $pResult = '' ) {
 			throw new Freemius_Exception( array(
-				'error' => (object) array(
+				'error' => array(
 					'type'    => 'CloudFlareDDoSProtection',
-					'message' => $pResult,
+					'message' => wp_kses($pResult),
 					'code'    => 'cloudflare_ddos_protection',
 					'http'    => 402
 				)
@@ -731,9 +731,9 @@
 		 */
 		private static function ThrowSquidAclException( $pResult = '' ) {
 			throw new Freemius_Exception( array(
-				'error' => (object) array(
+				'error' => array(
 					'type'    => 'SquidCacheBlock',
-					'message' => $pResult,
+					'message' => wp_kses($pResult),
 					'code'    => 'squid_cache_block',
 					'http'    => 402
 				)

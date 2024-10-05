@@ -36,7 +36,7 @@
 <script type="text/javascript">
 (function( $ ) {
     $( document ).ready(function() {
-        var $premiumVersionCheckbox = $( 'input[type="checkbox"][value="<?php echo $fs->get_plugin_basename() ?>"]' );
+        var $premiumVersionCheckbox = $( 'input[type="checkbox"][value="<?php echo esc_attr( $fs->get_plugin_basename() ) ?>"]' );
 
         $premiumVersionCheckbox.addClass( 'license-expired' );
         $premiumVersionCheckbox.data( 'plugin-name', <?php echo json_encode( $plugin_data['Name'] ) ?> );

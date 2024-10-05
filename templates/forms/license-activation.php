@@ -238,7 +238,7 @@ HTML;
 	$( document ).ready(function() {
 		var modalContentHtml = <?php echo json_encode($modal_content_html); ?>,
 			modalHtml =
-				'<div class="fs-modal fs-modal-license-activation fs-modal-license-activation-<?php echo $unique_affix ?>">'
+				'<div class="fs-modal fs-modal-license-activation fs-modal-license-activation-<?php echo esc_attr( $unique_affix ) ?>">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-header">'
 				+ '		    <h4><?php echo esc_js($header_title) ?></h4>'
@@ -271,7 +271,7 @@ HTML;
             $applyOnAllSites     = $modal.find( '.fs-apply-on-all-sites-checkbox' ),
             $sitesListContainer  = $modal.find( '.fs-sites-list-container' ),
             $availableLicenseKey = $modal.find( '.fs-available-license-key' ),
-            $otherLicenseKey     = $modal.find( '#other_license_key_<?php echo $unique_affix ?>' ),
+            $otherLicenseKey     = $modal.find( '#other_license_key_<?php echo esc_attr( $unique_affix ) ?>' ),
             $multisiteOptionsContainer = $modal.find( '.fs-multisite-options-container' ),
             $activationsLeft     = null,
             hasLicensesDropdown  = ( $licensesDropdown.length > 0 ),
@@ -310,7 +310,7 @@ HTML;
             afterLicenseUserDataLoaded = function () {
                 if (
                     null !== otherLicenseOwnerID &&
-                    otherLicenseOwnerID != <?php echo $fs->is_registered() ? $fs->get_user()->id : 'null' ?>
+                    otherLicenseOwnerID != <?php echo $fs->is_registered() ? esc_attr( $fs->get_user()->id ) : 'null' ?>
                 ) {
                     $ownershipChangeOptionContainer.show();
                 } else {
@@ -364,13 +364,13 @@ HTML;
                 $activateLicenseButton.html( '<?php fs_esc_js_echo_inline( 'Please wait', 'please-wait', $slug ) ?>...' );
 
                 $.ajax( {
-                    url    : <?php echo Freemius::ajax_url() ?>,
+                    url    : <?php echo esc_url( Freemius::ajax_url() ) ?>,
                     method : 'POST',
                     data   : {
-                        action     : '<?php echo $fs->get_ajax_action( 'fetch_is_marketing_required_flag_value' ) ?>',
-                        security   : '<?php echo $fs->get_ajax_security( 'fetch_is_marketing_required_flag_value' ) ?>',
+                        action     : '<?php echo esc_attr( $fs->get_ajax_action( 'fetch_is_marketing_required_flag_value' ) ) ?>',
+                        security   : '<?php echo esc_attr( $fs->get_ajax_security( 'fetch_is_marketing_required_flag_value' ) ) ?>',
                         license_key: licenseKey,
-                        module_id  : '<?php echo $fs->get_id() ?>'
+                        module_id  : '<?php echo esc_attr( $fs->get_id() ) ?>'
                     },
                     success: function ( result ) {
                         resetLoadingMode();
@@ -484,7 +484,7 @@ HTML;
                 });
             }
 
-            $body.on( 'click', 'span.activate-license.<?php echo $unique_affix ?> a, .activate-license-trigger.<?php echo $unique_affix ?>', function (evt) {
+            $body.on( 'click', 'span.activate-license.<?php echo esc_attr( $unique_affix ) ?> a, .activate-license-trigger.<?php echo esc_attr( $unique_affix ) ?>', function (evt) {
 				evt.preventDefault();
 
 				showModal( evt );
@@ -585,9 +585,9 @@ HTML;
 				}
 
                 var data = {
-                    action     : '<?php echo $fs->get_ajax_action( 'activate_license' ) ?>',
-                    security   : '<?php echo $fs->get_ajax_security( 'activate_license' ) ?>',
-                    module_id  : '<?php echo $fs->get_id() ?>'
+                    action     : '<?php echo esc_attr( $fs->get_ajax_action( 'activate_license' ) ) ?>',
+                    security   : '<?php echo esc_attr( $fs->get_ajax_security( 'activate_license' ) ) ?>',
+                    module_id  : '<?php echo esc_attr( $fs->get_id() ) ?>'
                 };
 
                 if ( licenseID.length > 0 ) {
@@ -634,7 +634,7 @@ HTML;
                 }
 
 				$.ajax({
-					url: <?php echo Freemius::ajax_url() ?>,
+					url: <?php echo esc_url( Freemius::ajax_url() ) ?>,
 					method: 'POST',
                     data: data,
 					beforeSend: function () {

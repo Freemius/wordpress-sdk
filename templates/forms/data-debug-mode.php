@@ -49,7 +49,7 @@ HTML;
 	$( document ).ready( function() {
 		var modalContentHtml          = <?php echo json_encode( $modal_content_html ) ?>,
 			modalHtml                 =
-				'<div class="fs-modal fs-modal-developer-license-debug-mode fs-modal-developer-license-debug-mode-<?php echo $unique_affix ?>">'
+				'<div class="fs-modal fs-modal-developer-license-debug-mode fs-modal-developer-license-debug-mode-<?php echo esc_attr( $unique_affix ) ?>">'
 				+ '	<div class="fs-modal-dialog">'
 				+ '		<div class="fs-modal-body">'
 				+ '			<div class="fs-modal-panel active">' + modalContentHtml + '</div>'
@@ -132,20 +132,20 @@ HTML;
 
 		function setDeveloperLicenseDebugMode( licenseOrUserKey ) {
             var data = {
-                action             : '<?php echo $fs->get_ajax_action( 'set_data_debug_mode' ) ?>',
-                security           : '<?php echo $fs->get_ajax_security( 'set_data_debug_mode' ) ?>',
+                action             : '<?php echo esc_attr( $fs->get_ajax_action( 'set_data_debug_mode' ) ) ?>',
+                security           : '<?php echo esc_attr( $fs->get_ajax_security( 'set_data_debug_mode' ) ) ?>',
                 license_or_user_key: licenseOrUserKey,
                 is_debug_mode      : isDebugMode,
-                module_id          : '<?php echo $fs->get_id() ?>'
+                module_id          : '<?php echo esc_attr( $fs->get_id() ) ?>'
             };
 
             $.ajax( {
-                url       : <?php echo Freemius::ajax_url() ?>,
+                url       : <?php echo esc_attr( Freemius::ajax_url() ) ?>,
                 method    : 'POST',
                 data      : data,
                 beforeSend: function () {
-                    $debugLicenseLink.find('span').text( '<?php echo $processing_text ?>' );
-                    $submitKeyButton.text( '<?php echo $processing_text ?>' );
+                    $debugLicenseLink.find('span').text( '<?php echo esc_html( $processing_text ) ?>' );
+                    $submitKeyButton.text( '<?php echo esc_html( $processing_text ) ?>' );
                 },
                 success   : function ( result ) {
                     if ( result.success ) {

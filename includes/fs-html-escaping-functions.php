@@ -67,6 +67,31 @@
                 'sup'    => $common_attributes,
                 'sub'    => $common_attributes,
                 'nobr'   => $common_attributes,
+                'form'   => array_merge(
+                    $common_attributes,
+                    array(
+                        'action'  => true,
+                        'method'  => true,
+                        'id'      => true,
+                        'enctype' => true,
+                        'name'    => true,
+                        'target'  => true,
+                    )
+                ),
+                'input' => array_merge(
+                    $common_attributes,
+                    array(
+                        'type'        => true,
+                        'name'        => true,
+                        'value'       => true,
+                        'id'          => true,
+                        'placeholder' => true,
+                        'checked'     => true,
+                        'disabled'    => true,
+                        'readonly'    => true,
+                        'required'    => true,
+                    )
+                ),
             );
         }
     }
@@ -122,5 +147,19 @@
          */
         function fs_html_get_sanitized_html( $raw_html ) {
             return wp_kses( $raw_html, fs_html_get_allowed_kses_list() );
+        }
+    }
+
+    if ( ! function_exists( 'fs_html_echo_sanitized_html' ) ) {
+        /**
+         * Prints sanitized HTML for template files.
+         *
+         * @param string $raw_html
+         *
+         * @return void
+         * @since 2.5.10
+         */
+        function fs_html_echo_sanitized_html( $raw_html ) {
+            echo wp_kses( $raw_html, fs_html_get_allowed_kses_list() );
         }
     }

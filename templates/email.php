@@ -30,11 +30,11 @@
 			<tr>
 				<?php
 				if ( 1 === $col_count ) { ?>
-					<td style="vertical-align: top;" colspan="2"><?php echo $row[0] ?></td>
+					<td style="vertical-align: top;" colspan="2"><?php echo esc_html( $row[0] ) ?></td>
 					<?php
 				} else { ?>
 					<td style="vertical-align: top;"><b><?php echo esc_html($row[0]) ?>:</b></td>
-					<td><?php echo $row[1]; ?></td>
+					<td><?php echo esc_html( $row[1] ); ?></td>
 					<?php
 				}
 				?>

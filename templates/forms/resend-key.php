@@ -90,14 +90,14 @@ HTML;
 			    $feedbackMessage = $modal.find('.license-resend-message'),
 			    isFreemium       = <?php echo json_encode( $is_freemium ) ?>,
 			    userEmail        = <?php echo json_encode( $email ) ?>,
-			    moduleID         = '<?php echo $fs->get_id() ?>',
+			    moduleID         = '<?php echo esc_attr( $fs->get_id() ) ?>',
 			    isChild          = false;
 
 
 			$modal.appendTo($('body'));
 
 			function registerEventHandlers() {
-				$('a.show-license-resend-modal-<?php echo $fs->get_unique_affix() ?>').click(function (evt) {
+				$('a.show-license-resend-modal-<?php echo esc_attr( $fs->get_unique_affix() ) ?>').click(function (evt) {
 					evt.preventDefault();
 
 					showModal();
@@ -145,11 +145,11 @@ HTML;
 					}
 
 					$.ajax({
-						url       : <?php echo Freemius::ajax_url() ?>,
+						url       : <?php echo esc_url( Freemius::ajax_url() ) ?>,
 						method    : 'POST',
 						data      : {
-							action     : '<?php echo $fs->get_ajax_action( 'resend_license_key' ) ?>',
-							security   : '<?php echo $fs->get_ajax_security( 'resend_license_key' ) ?>',
+							action     : '<?php echo esc_attr( $fs->get_ajax_action( 'resend_license_key' ) ) ?>',
+							security   : '<?php echo esc_attr( $fs->get_ajax_security( 'resend_license_key' ) ) ?>',
 							module_id  : moduleID,
 							email      : email
 						},
