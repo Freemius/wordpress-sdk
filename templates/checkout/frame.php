@@ -7,6 +7,11 @@
 	 */
 
 	/**
+     * Update (October 9, 2024 by @swashata):
+	 *    Following request from the wp.org plugin review team, we have stopped
+	 *    embedding the checkout inside an i-frame for wp.org hosted free version
+	 *    of plugins and themes. Now they will be redirected instead.
+     *
 	 * Note for WordPress.org Theme/Plugin reviewer:
 	 *  Freemius is an SDK for plugin and theme developers. Since the core
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
@@ -17,11 +22,6 @@
 	 *
 	 *  In addition, when this page loads an i-frame. We intentionally named it 'frame'
 	 *  so it will pass the "Theme Check" that is looking for the string "i" . "frame".
-	 *
-	 * UPDATE:
-	 *   Following request from the wp.org plugin review team, we have stopped
-	 *   embedding the checkout inside an i-frame for wp.org hosted free version
-	 *   of plugins and themes. Now they will be redirected instead.
 	 *
 	 * If you have any questions or need clarifications, please don't hesitate
 	 * pinging me on slack, my username is @svovaf.

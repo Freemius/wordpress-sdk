@@ -6,19 +6,6 @@
 	 * @since       1.0.3
 	 */
 
-	/**
-	 * Note for WordPress.org Theme/Plugin reviewer:
-	 *  Freemius is an SDK for plugin and theme developers. This page will not
-     *  load any external resources or make any remote requests. It's will use
-     *  API (through WP-AJAX) and JavaScript (React) to render a pricing page.
-	 *
-	 * If you have any questions or need clarifications, please don't hesitate
-	 * pinging me on slack, my username is @svovaf.
-	 *
-	 * @author Vova Feldman (@svovaf)
-	 * @since 1.2.2
-	 */
-
 	if ( ! defined( 'ABSPATH' ) ) {
 		exit;
 	}

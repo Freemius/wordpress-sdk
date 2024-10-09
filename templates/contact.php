@@ -7,6 +7,11 @@
 	 */
 
 	/**
+     * Update (October 9, 2024 by @swashata):
+	 *   Following request from the wp.org plugin review team, we have stopped
+	 *   embedding the contact form inside an i-frame for wp.org hosted free version
+	 *   of plugins. Now they will be opened in a new tab.
+     *
 	 * Note for WordPress.org Theme/Plugin reviewer:
 	 *  Freemius is an SDK for plugin and theme developers. Since the core
 	 *  of the SDK is relevant both for plugins and themes, for obvious reasons,
@@ -26,11 +31,6 @@
 	 *  before we move forward. For the record, I got the final approval from
 	 *  Ulrich Pogson (@grapplerulrich), a team lead at the TRT during WordCamp
 	 *  Europe 2017 (June 16th, 2017).
-     *
-     * UPDATE:
-     *  Following request from the wp.org plugin review team, we have stopped
-     *  embedding the contact form inside an i-frame for wp.org hosted free version
-     *  of plugins. Now they will be opened in a new tab.
 	 *
 	 * If you have any questions or need clarifications, please don't hesitate
 	 * pinging me on slack, my username is @svovaf.
