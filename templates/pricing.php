@@ -94,6 +94,7 @@
             'selector'               => '#fs_pricing_wrapper',
             'unique_affix'           => $fs->get_unique_affix(),
             'show_annual_in_monthly' => $fs->apply_filters( 'pricing/show_annual_in_monthly', true ),
+            'license'                => $fs->has_active_valid_license() ? $fs->_get_license() : null,
         ), $query_params );
 
         wp_add_inline_script( 'freemius-pricing', 'Freemius.pricing.new( ' . json_encode( $pricing_config ) . ' )' );
