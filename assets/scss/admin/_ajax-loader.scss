@@ -13,7 +13,7 @@ $size: 20;
     {
         position:         absolute;
         top:              0;
-        background-color: $color;
+        background-color: $bkg-color;
         width:            #{$size}px;
         height:           #{$size}px;
         animation-name: bounce_ajaxLoader;
