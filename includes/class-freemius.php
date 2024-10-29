@@ -8627,7 +8627,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param array [string]array $plugins
+         * @param array [string] $plugins
          *
          * @return string
          */
@@ -9042,7 +9042,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string           $override
+         * @param string[] $override
          * @param bool     $only_diff
          * @param bool     $is_keepalive
          * @param bool     $include_plugins Since 1.1.8 by default include plugin changes.
@@ -9229,7 +9229,7 @@
          *
          * @param array    $site
          * @param FS_Site  $install
-         * @param string[] string $override
+         * @param string[] $override
          *
          * @return array
          */
@@ -9351,7 +9351,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9424,7 +9424,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.0.0
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          * @param bool     $is_two_way_sync @since 2.5.0 If true and there's a successful API request, the install sync cron will be cleared.
          *
@@ -9511,7 +9511,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         function sync_install( $override = array(), $flush = false ) {
@@ -9540,7 +9540,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.0.9
          *
-         * @param string[] string $override
+         * @param string[] $override
          * @param bool     $flush
          */
         private function sync_installs( $override = array(), $flush = false ) {
@@ -9715,7 +9715,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  2.2.1
          *
-         * @param string $is_premium
+         * @param bool $is_premium
          * @param string $caller
          *
          * @return void
@@ -13563,9 +13563,9 @@
          * @param int         $blog_id
          *
          * @return array {
-         *      @var bool   $success
-         *      @var string $error
-         *      @var string $next_page
+         *      @type bool   $success
+         *      @type string $error
+         *      @type string $next_page
          * }
          *
          * @uses Freemius::activate_license()
@@ -16980,7 +16980,6 @@
          * @param bool        $redirect
          *
          * @return string|object
-         * @use    WP_Error
          */
         function opt_in(
             $email = false,
@@ -19615,7 +19614,7 @@
          * @author Vova Feldman (@svovaf)
          * @since  1.1.6
          *
-         * @param string[] string $key_value
+         * @param string[] $key_value
          *
          * @uses   fs_override_i18n()
          */
@@ -22576,8 +22575,8 @@
          * @author Leo Fajardo (@leorw)
          * @since  2.3.2
          *
-         * @param number              $user_id
-         * @param array[string]number $install_ids_by_slug_map
+         * @param number        $user_id
+         * @param array[string] $install_ids_by_slug_map
          *
          */
         private function complete_ownership_change_by_license( $user_id, $install_ids_by_slug_map ) {
