@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.9.0';
+	$this_sdk_version = '2.9.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -313,7 +313,14 @@
 		return;
 	}
 
-	if ( version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ) {
+	if (
+		version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) ||
+		(
+		version_compare( $this_sdk_version, $fs_active_plugins->newest->version, '<' ) &&
+		strpos( $this_sdk_relative_path, '/vendor/' ) === false &&
+		strpos( $fs_active_plugins->newest->sdk_path, '/vendor/' ) !== false
+		)
+	) {
 		$newest_sdk = $fs_active_plugins->plugins[ $fs_active_plugins->newest->sdk_path ];
 
 		$plugins_or_theme_dir_path = ( ! isset( $newest_sdk->type ) || 'theme' !== $newest_sdk->type ) ?
