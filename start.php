@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.9.0';
+	$this_sdk_version = '2.9.1';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -198,9 +198,18 @@
 		fs_update_sdk_newest_version( $this_sdk_relative_path, $fs_active_plugins->plugins[ $this_sdk_relative_path ]->plugin_path );
 
 		$is_current_sdk_newest = true;
-	} else if ( version_compare( $fs_active_plugins->newest->version, $this_sdk_version, '<' ) ) {
+	} else if (
+		version_compare($fs_active_plugins->newest->version, $this_sdk_version, '<') ||
+		(
+			version_compare($fs_active_plugins->newest->version, $this_sdk_version, '==') &&
+			(
+				! str_contains($fs_active_plugins->newest->sdk_path, '/vendor/') &&
+				str_contains($this_sdk_relative_path, '/vendor/')
+			)
+		)
+	) {
 		/**
-		 * Current SDK is newer than the newest stored SDK.
+		 * Current SDK is newer than the newest stored SDK or current SDK is stored under /vendor/ folder while newest is not
 		 */
 		fs_update_sdk_newest_version( $this_sdk_relative_path, $fs_active_plugins->plugins[ $this_sdk_relative_path ]->plugin_path );
 
