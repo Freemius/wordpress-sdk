@@ -15,7 +15,7 @@
 	 *
 	 * @var string
 	 */
-	$this_sdk_version = '2.9.1';
+	$this_sdk_version = '2.9.2';
 
 	#region SDK Selection Logic --------------------------------------------------------------------
 
@@ -83,14 +83,16 @@
      */
 	$themes_directory         = get_theme_root( get_stylesheet() );
 	$themes_directory_name    = basename( $themes_directory );
-	$theme_candidate_basename = basename( dirname( $fs_root_path ) ) . '/' . basename( $fs_root_path );
+	$file_path_normalized = fs_normalize_path( $file_path );
 
-	if ( $file_path == fs_normalize_path( realpath( trailingslashit( $themes_directory ) . $theme_candidate_basename . '/' . basename( $file_path ) ) )
-	) {
-		$this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_candidate_basename;
+	// Check if file is part of a theme or a plugin.
+	if ( strpos( $file_path_normalized, fs_normalize_path( $themes_directory ) ) === 0 ) {
+		// File is part of a theme.
+		$this_sdk_relative_path = '/../' . $themes_directory_name . str_replace( fs_normalize_path( $themes_directory ), '', $file_path_normalized );
 		$is_theme               = true;
 	} else {
-		$this_sdk_relative_path = plugin_basename( $fs_root_path );
+		// File is part of a plugin.
+		$this_sdk_relative_path = str_replace( fs_normalize_path( WP_PLUGIN_DIR ), '', $file_path_normalized );
 		$is_theme               = false;
 	}
 
@@ -139,7 +141,7 @@
 			 */
 			$has_changes = false;
 			foreach ( $fs_active_plugins->plugins as $sdk_path => $data ) {
-                if ( ! file_exists( ( isset( $data->type ) && 'theme' === $data->type ? $themes_directory : WP_PLUGIN_DIR ) . '/' . $sdk_path ) ) {
+				if ( ! file_exists( WP_PLUGIN_DIR . $sdk_path ) ) {
 					unset( $fs_active_plugins->plugins[ $sdk_path ] );
 
                     if (
@@ -176,7 +178,10 @@
 	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
 	) {
 		if ( $is_theme ) {
-			$plugin_path = basename( dirname( $this_sdk_relative_path ) );
+		// @todo: maybe there is a better way to take this
+			$start_pos = strpos($this_sdk_relative_path, '../' . $themes_directory_name . '/') + strlen('../' . $themes_directory_name . '/');
+			$end_pos = strpos($this_sdk_relative_path, '/', $start_pos);
+			$plugin_path = substr($this_sdk_relative_path, $start_pos, $end_pos - $start_pos);
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
@@ -252,15 +257,7 @@
 			update_option( 'fs_active_plugins', $fs_active_plugins );
 		}
 
-		if ( ! $is_theme ) {
-			$sdk_starter_path = fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path . '/start.php' );
-		} else {
-			$sdk_starter_path = fs_normalize_path(
-                $themes_directory
-				. '/'
-				. str_replace( "../{$themes_directory_name}/", '', $this_sdk_relative_path )
-				. '/start.php' );
-		}
+		$sdk_starter_path = fs_normalize_path( WP_PLUGIN_DIR . '/' . $this_sdk_relative_path );
 
 		$is_newest_sdk_path_valid = ( $is_newest_sdk_plugin_active || $fs_active_plugins->newest->in_activation ) && file_exists( $sdk_starter_path );
 
@@ -309,6 +306,9 @@
 	}
 
 	if ( class_exists( 'Freemius' ) ) {
+		if ($is_theme && $is_current_sdk_newest) {
+			update_option( 'fs_active_plugins', $fs_active_plugins );
+		}
 		// SDK was already loaded.
 		return;
 	}
@@ -320,11 +320,7 @@
 			WP_PLUGIN_DIR :
             $themes_directory;
 
-		$newest_sdk_starter = fs_normalize_path(
-			$plugins_or_theme_dir_path
-			. '/'
-			. str_replace( "../{$themes_directory_name}/", '', $fs_active_plugins->newest->sdk_path )
-			. '/start.php' );
+		$newest_sdk_starter = fs_normalize_path(WP_PLUGIN_DIR . $fs_active_plugins->newest->sdk_path );
 
 		if ( file_exists( $newest_sdk_starter ) ) {
 			// Reorder plugins to load plugin with newest SDK first.
