@@ -83,11 +83,12 @@
      */
 	$themes_directory         = get_theme_root( get_stylesheet() );
 	$themes_directory_name    = basename( $themes_directory );
-	$theme_candidate_basename = basename( dirname( $fs_root_path ) ) . '/' . basename( $fs_root_path );
 
-	if ( $file_path == fs_normalize_path( realpath( trailingslashit( $themes_directory ) . $theme_candidate_basename . '/' . basename( $file_path ) ) )
-	) {
-		$this_sdk_relative_path = '../' . $themes_directory_name . '/' . $theme_candidate_basename;
+	// This change ensures that the condition works even if the SDK is located in a subdirectory (e.g., vendor)
+	$theme_candidate_basename = str_replace($themes_directory . '/' . get_stylesheet() . '/', '', $fs_root_path );
+
+	if ($file_path == $themes_directory . '/' . get_stylesheet() . '/' . $theme_candidate_basename . '/' . basename($file_path)) {
+		$this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_stylesheet() . '/' . $theme_candidate_basename;
 		$is_theme               = true;
 	} else {
 		$this_sdk_relative_path = plugin_basename( $fs_root_path );
@@ -176,7 +177,8 @@
 	     $this_sdk_version != $fs_active_plugins->plugins[ $this_sdk_relative_path ]->version
 	) {
 		if ( $is_theme ) {
-			$plugin_path = basename( dirname( $this_sdk_relative_path ) );
+			// Saving relative path and not only directory name as it could be a subfolder
+			$plugin_path = $this_sdk_relative_path;
 		} else {
 			$plugin_path = plugin_basename( fs_find_direct_caller_plugin_file( $file_path ) );
 		}
@@ -229,7 +231,8 @@
 			$is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
 		} else {
 			$current_theme               = wp_get_theme();
-			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
+			// Detect if current theme is the one registered as newer SDK
+			$is_newest_sdk_plugin_active = ( strpos( $fs_newest_sdk->plugin_path, '/' . $themes_directory_name . '/' . $current_theme->stylesheet . '/' ) !== false );
 
             $current_theme_parent = $current_theme->parent();
 
