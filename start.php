@@ -87,8 +87,21 @@
 	// This change ensures that the condition works even if the SDK is located in a subdirectory (e.g., vendor)
 	$theme_candidate_basename = str_replace($themes_directory . '/' . get_stylesheet() . '/', '', $fs_root_path );
 
-	if ($file_path == $themes_directory . '/' . get_stylesheet() . '/' . $theme_candidate_basename . '/' . basename($file_path)) {
+	// Check if the current file is part of the active theme.
+	$is_current_active_theme = $file_path == $themes_directory . '/' . get_stylesheet() . '/' . $theme_candidate_basename . '/' . basename($file_path);
+	$is_current_parent_theme = false;
+
+	// Check if the current file is part of the parent theme.
+	if (!$is_current_active_theme) {
+		$theme_candidate_basename = str_replace($themes_directory . '/' . get_template() . '/', '', $fs_root_path);
+		$is_current_parent_theme = $file_path == $themes_directory . '/' . get_template() . '/' . $theme_candidate_basename . '/' . basename($file_path);
+	}
+
+	if ($is_current_active_theme) {
 		$this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_stylesheet() . '/' . $theme_candidate_basename;
+		$is_theme               = true;
+	} else if ($is_current_parent_theme) {
+		$this_sdk_relative_path = '../' . $themes_directory_name . '/' . get_template() . '/' . $theme_candidate_basename;
 		$is_theme               = true;
 	} else {
 		$this_sdk_relative_path = plugin_basename( $fs_root_path );
@@ -241,7 +254,8 @@
              * from happening by keeping the SDK info stored in the `fs_active_plugins` option.
              */
             if ( ! $is_newest_sdk_plugin_active && $current_theme_parent instanceof WP_Theme ) {
-                $is_newest_sdk_plugin_active = ( $fs_newest_sdk->plugin_path === $current_theme_parent->stylesheet );
+				// Detect if current theme parent is the one registered as newer SDK
+				$is_newest_sdk_plugin_active = ( strpos( $fs_newest_sdk->plugin_path, '../' . $themes_directory_name . '/' . $current_theme_parent->stylesheet . '/' ) === 0 );
             }
 		}
 
@@ -312,6 +326,9 @@
 	}
 
 	if ( class_exists( 'Freemius' ) ) {
+		if ($is_theme && $is_current_sdk_newest) {
+			update_option( 'fs_active_plugins', $fs_active_plugins );
+		}
 		// SDK was already loaded.
 		return;
 	}
