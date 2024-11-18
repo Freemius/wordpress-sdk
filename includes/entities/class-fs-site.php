@@ -208,6 +208,39 @@
             );
         }
 
+        /**
+         * @author Leo Fajardo (@leorw)
+         * @since  2.9.1
+         *
+         * @param string $host
+         *
+         * @return bool
+         */
+        static function is_playground_wp_environment_by_host( $host ) {
+            // Services aimed at providing a WordPress sandbox environment.
+            $sandbox_wp_environment_domains = array(
+                // InstaWP
+                'instawp.xyz',
+
+                // TasteWP
+                'tastewp.com',
+
+                // WordPress Playground
+                'playground.wordpress.net',
+            );
+
+            foreach ( $sandbox_wp_environment_domains as $domain) {
+                if (
+                    fs_ends_with( $host, '.' . $domain ) ||
+                    fs_ends_with( $host, '-' . $domain )
+                ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         function is_localhost() {
             return ( WP_FS__IS_LOCALHOST_FOR_SERVER || self::is_localhost_by_address( $this->url ) );
         }

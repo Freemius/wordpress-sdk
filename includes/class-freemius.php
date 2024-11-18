@@ -5236,7 +5236,14 @@
                 $this->_anonymous_mode   = false;
             } else {
                 $this->_enable_anonymous = $this->get_bool_option( $plugin_info, 'enable_anonymous', true );
-                $this->_anonymous_mode   = $this->get_bool_option( $plugin_info, 'anonymous_mode', false );
+                $this->_anonymous_mode   = (
+                    $this->get_bool_option( $plugin_info, 'anonymous_mode', false ) ||
+                    (
+                        $this->apply_filters( 'playground_anonymous_mode', true ) &&
+                        ! empty( $_SERVER['HTTP_HOST'] ) &&
+                        FS_Site::is_playground_wp_environment_by_host( $_SERVER['HTTP_HOST'] )
+                    )
+                );
             }
             $this->_permissions = $this->get_option( $plugin_info, 'permissions', array() );
             $this->_is_bundle_license_auto_activation_enabled = $this->get_option( $plugin_info, 'bundle_license_auto_activation', false );
