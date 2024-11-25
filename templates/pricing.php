@@ -69,6 +69,11 @@
 
     wp_enqueue_script( 'freemius-pricing', $pricing_js_url );
 
+    $pricing_css_path = $fs->apply_filters( 'pricing/css_path', null );
+    if ( is_string( $pricing_css_path ) ) {
+        wp_enqueue_style( 'freemius-pricing', fs_asset_url( $pricing_css_path ) );
+    }
+
 	$has_tabs = $fs->_add_tabs_before_content();
 
 	if ( $has_tabs ) {
