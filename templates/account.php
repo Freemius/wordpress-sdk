@@ -96,13 +96,12 @@
 		) );
 	}
 
+    $payments     = [];
     $show_billing = ( ! $is_whitelabeled && ! $fs->apply_filters( 'hide_billing_and_payments_info', false ) );
     if ( $show_billing ) {
-        $payments = $fs->_fetch_payments();
-
-        $show_billing = ( is_array( $payments ) && 0 < count( $payments ) );
+        $payments     = $fs->_fetch_payments();
+        $show_billing = ( 0 < count( $payments ) );
     }
-
 
     $has_tabs = $fs->_add_tabs_before_content();
 
@@ -137,8 +136,7 @@
 
     $show_plan_row    = true;
     $show_license_row = is_object( $license );
-
-	$site_view_params        = array();
+	$site_view_params = array();
 
     if ( fs_is_network_admin() ) {
         $sites                   = Freemius::get_sites();
@@ -157,7 +155,7 @@
 
             $site_view_params[] = $view_params;
 
-            if ( empty( $install ) ) {
+            if ( ! is_object( $install ) ) {
                 continue;
             }
 
@@ -186,6 +184,7 @@
 
     $bundle_subscription             = null;
     $is_bundle_first_payment_pending = false;
+    $bundle_plan_title               = '';
 
     if (
         $show_plan_row &&
@@ -870,8 +869,8 @@
 
 						<?php
 							if ( $show_billing ) {
-								$view_params = array( 'id' => $VARS['id'], 'payments' => $payments );
-								fs_require_once_template( 'account/billing.php', $view_params );
+                                $view_params = array( 'id' => $VARS['id'], 'payments' => $payments );
+                                fs_require_once_template( 'account/billing.php', $view_params );
 								fs_require_once_template( 'account/payments.php', $view_params );
 							}
 						?>

@@ -534,9 +534,8 @@
                 return $transient_data;
             }
 
-            if ( empty( $transient_data ) ||
-                 defined( 'WP_FS__UNINSTALL_MODE' )
-            ) {
+            // @phpstan-ignore-next-line
+            if ( empty( $transient_data ) || defined( 'WP_FS__UNINSTALL_MODE' ) ) {
                 return $transient_data;
             }
 
@@ -871,7 +870,7 @@
          * @param string $action
          * @param object $args
          *
-         * @return bool|mixed
+         * @return bool|object The plugin information or false on failure.
          */
         static function _fetch_plugin_info_from_repository( $action, $args ) {
             $url = $http_url = 'http://api.wordpress.org/plugins/info/1.2/';
@@ -1093,7 +1092,7 @@
                         false
                     );
 
-                    if ( ! empty( $addon_plugin_data ) ) {
+                    if ( ! empty( $addon_plugin_data['Version'] ) ) {
                         $addon_version = $addon_plugin_data['Version'];
                     }
                 }
@@ -1112,12 +1111,16 @@
             if ( ! $plugin_in_repo ) {
                 $data = $args;
 
-                // Fetch as much as possible info from local files.
+                /**
+                 * Fetch as much as possible info from local files.
+                 *
+                 * @var stdClass $data
+                 */
                 $plugin_local_data = $this->_fs->get_plugin_data();
                 $data->name        = $plugin_local_data['Name'];
                 $data->author      = $plugin_local_data['Author'];
                 $data->sections    = array(
-                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.',
+                    'description' => 'Upgrade ' . $plugin_local_data['Name'] . ' to latest.'
                 );
 
                 // @todo Store extra plugin info on Freemius or parse readme.txt markup.
@@ -1132,7 +1135,12 @@ if ( !isset($info->error) ) {
                 $addon_version :
                 $this->_fs->get_plugin_version();
 
-            // Get plugin's newest update.
+            /**
+             * Get plugin's newest update.
+             *
+             * @var FS_Plugin_Tag $new_version
+             * @var object        $data
+             */
             $new_version = $this->get_latest_download_details( $is_addon ? $addon->id : false, $plugin_version );
 
             if ( ! is_object( $new_version ) || empty( $new_version->version ) ) {
@@ -1443,7 +1451,6 @@ if ( !isset($info->error) ) {
 
                 // Pass through the error from WP_Filesystem if one was raised.
                 if ( $wp_filesystem instanceof WP_Filesystem_Base &&
-                     is_wp_error( $wp_filesystem->errors ) &&
                      $wp_filesystem->errors->get_error_code()
                 ) {
                     $error_message = $wp_filesystem->errors->get_error_message();

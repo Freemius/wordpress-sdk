@@ -250,6 +250,9 @@
 
             global $fs_active_plugins;
 
+            /**
+             * @var stdClass $newest_sdk
+             */
             $newest_sdk = $fs_active_plugins->plugins[ $sdk_relative_path ];
 
             if ( ! is_string( $plugin_file ) ) {

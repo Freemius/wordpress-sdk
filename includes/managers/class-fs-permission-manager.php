@@ -638,7 +638,7 @@
             fs_require_template( 'connect/permissions-group.php', $permissions_group );
         }
 
-        function require_permissions_js() {
+        function require_permissions_js( $params ) {
             fs_require_once_template( 'js/permissions.php', $params );
         }
 

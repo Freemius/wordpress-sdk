@@ -102,11 +102,17 @@
             $fs_active_plugins = new stdClass();
         }
 
+        /**
+         * @var stdClass $fs_active_plugins
+         */
 		if ( ! isset( $fs_active_plugins->plugins ) ) {
 			$fs_active_plugins->plugins = array();
 		}
 	}
 
+    /**
+     * @var stdClass $fs_active_plugins
+     */
 	if ( empty( $fs_active_plugins->abspath ) ) {
 		/**
 		 * Store the WP install absolute path reference to identify environment change
@@ -229,6 +235,9 @@
 			$is_newest_sdk_plugin_active = is_plugin_active( $fs_newest_sdk->plugin_path );
 		} else {
 			$current_theme               = wp_get_theme();
+            /**
+             * @var stdClass $fs_newest_sdk
+             */
 			$is_newest_sdk_plugin_active = ( $current_theme->stylesheet === $fs_newest_sdk->plugin_path );
 
             $current_theme_parent = $current_theme->parent();

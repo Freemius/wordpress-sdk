@@ -1,5 +1,5 @@
 parameters:
-    level: 0
+    level: 2
     paths:
         - config.php
         - start.php
@@ -8,7 +8,15 @@ parameters:
         - templates/
     bootstrapFiles:
         - .phpstan/exceptions.php
+    stubFiles:
+        - .phpstan/stubs/includes/fs-plugin-info-dialog.php
+        - .phpstan/stubs/includes/entities/class-fs-entity.php
     ignoreErrors:
         -
-            message: '#will always evaluate to true#'
-            path: includes/class-fs-plugin-updater.php
+            messages:
+                - '#Action callback returns bool but should not return anything.#'
+            path: includes/class-freemius.php
+        -
+            message: '#Variable \$VARS might not be defined#'
+            paths:
+              - templates/*
