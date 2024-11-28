@@ -36,7 +36,16 @@
 		require_once dirname( __FILE__ ) . '/includes/fs-essential-functions.php';
 	}
 
-	/**
+    /**
+     * We updated the logic to support SDK loading from a subfolder of a theme as well as from a parent theme
+     * If the SDK is found in the active theme, it sets the relative path accordingly.
+     * If not, it checks the parent theme and sets the relative path if found there.
+     * This allows the SDK to be loaded from composer dependencies or from a custom `vendor/freemius` folder.
+     *
+     * @author Daniele Alessandra (@DanieleAlessandra)
+     * @since  2.9.0.5
+     *
+     *
 	 * This complex logic fixes symlink issues (e.g. with Vargant). The logic assumes
 	 * that if it's a file from an SDK running in a theme, the location of the SDK
 	 * is in the main theme's folder.
@@ -253,8 +262,12 @@
         } else {
             $current_theme = wp_get_theme();
             // Detect if current theme is the one registered as newer SDK
-            $is_newest_sdk_module_active = ( strpos( $fs_newest_sdk->plugin_path,
-                    '/' . $themes_directory_name . '/' . $current_theme->stylesheet . '/' ) !== false );
+            $is_newest_sdk_module_active = (
+                strpos(
+                    $fs_newest_sdk->plugin_path,
+                    '../' . $themes_directory_name . '/' . $current_theme->get_stylesheet() . '/'
+                ) === 0
+            );
 
             $current_theme_parent = $current_theme->parent();
 
@@ -264,13 +277,17 @@
              */
             if ( ! $is_newest_sdk_module_active && $current_theme_parent instanceof WP_Theme ) {
                 // Detect if current theme parent is the one registered as newer SDK
-                $is_newest_sdk_module_active = ( strpos( $fs_newest_sdk->plugin_path,
-                        '../' . $themes_directory_name . '/' . $current_theme_parent->stylesheet . '/' ) === 0 );
+                $is_newest_sdk_module_active = (
+                    strpos(
+                        $fs_newest_sdk->plugin_path,
+                        '../' . $themes_directory_name . '/' . $current_theme_parent->get_stylesheet() . '/'
+                    ) === 0
+                );
             }
 		}
 
 		if ( $is_current_sdk_newest &&
-             ! $is_newest_sdk_module_active &&
+		     ! $is_newest_sdk_module_active &&
 		     ! $fs_active_plugins->newest->in_activation
 		) {
 			// If current SDK is the newest and the plugin is NOT active, it means
