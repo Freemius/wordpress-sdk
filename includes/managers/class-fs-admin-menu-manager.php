@@ -699,16 +699,30 @@
 				$menu = $this->find_main_submenu();
 			}
 
-			$parent_slug = isset( $menu['parent_slug'] ) ?
-                $menu['parent_slug'] :
-                'admin.php';
+			$menu_slug   = $menu['menu'][2];
+			$parent_slug = 'admin.php';
 
-            return admin_url(
-                $parent_slug .
-                ( false === strpos( $parent_slug, '?' ) ? '?' : '&' ) .
-                'page=' .
-                $menu['menu'][2]
-            );
+			/**
+			 * This line and the `if` block below it is based on the `menu_page_url()` function of WordPress.
+			 *
+			 * @author Leo Fajardo (@leorw)
+			 * @since 2.7.4
+			 */
+			global $_parent_pages;
+
+			if ( ! empty( $_parent_pages[ $menu_slug ] ) ) {
+				$_parent_slug = $_parent_pages[ $menu_slug ];
+				$parent_slug  = isset( $_parent_pages[ $_parent_slug ] ) ?
+					$parent_slug :
+					$menu['parent_slug'];
+			}
+
+			return admin_url(
+				$parent_slug .
+				( false === strpos( $parent_slug, '?' ) ? '?' : '&' ) .
+				'page=' .
+				$menu_slug
+			);
 		}
 
 		/**
